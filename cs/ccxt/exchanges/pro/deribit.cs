@@ -733,7 +733,7 @@ public partial class deribit : ccxt.deribit
         (client as WebSocketClient).resolve(storedOrderBook, messageHash);
     }
 
-    public virtual object cleanOrderBook(object data)
+    public virtual object cleanOrderBook(IDictionary<string, object> data)
     {
         List<object> bids = this.safeList(data, "bids", new List<object>() {});
         List<object> asks = this.safeList(data, "asks", new List<object>() {});

@@ -3892,7 +3892,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual object getMessageHash(object elementName, object symbol = null)
+    public virtual object getMessageHash(object elementName, string? symbol = null)
     {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...

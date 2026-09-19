@@ -7414,4 +7414,394 @@ export function installCsharpParameterTypes (transpiler) {
     csharp._parameterTypesPatched = true;
 }
 
+// ===== typed parameter declarations (D-17) =====
+//
+// The printer declares every method parameter `object`. A parameter whose ts/src annotation
+// names a native-carriable alias prints that type instead -- the same value in the same box
+// (a reference copy, or a Nullable<T> that boxes as T) -- and is published to the printer's
+// member rules through csharpDeclaredLocalTypeResolver, which is what makes the body's typed
+// reads of the parameter fire (getValue(k)/ContainsKey families). The proof, all of it:
+//   1. the owner is a non-async, non-static MethodDeclaration without `override` (D8: an
+//      override must match its base declaration -- another unit's family);
+//   2. the parameter's annotation names Dict/List/Str/Int/Num/Bool and the checker's own type
+//      for the parameter still spells that alias (never a name heuristic);
+//   3. the body never writes the parameter (D2, the shared write scan);
+//   4. the (method, position) is not one of B-17's narrowed core arguments (its tables own
+//      those positions and their call-site conversions);
+//   5. every call site proves: no `.name(` occurrence in any OTHER ts/src file (a call site in
+//      a file the current program does not hold -- the pro tier of a scoped run -- is still
+//      type-checked by the C# compiler, so only a name the corpus nowhere else calls is
+//      safe), and every call site the checker DOES resolve passes an argument the module's
+//      type oracle proves assignable to the target (a literal, null/undefined, a same-typed
+//      admitted parameter of the caller, a local the local-typing table declares with that
+//      type, or a call whose typed C# return the module's tables name).
+// Anything else keeps the `object` box (D1: no opt-ins, no casts).
+
+const CSHARP_PARAMETER_ALIAS_TYPES = {
+    'Dict': { 'type': 'IDictionary<string, object>', 'value': false },
+    'List': { 'type': 'IList<object>', 'value': false },
+    'Str': { 'type': 'string', 'value': false },
+    'Int': { 'type': 'Int64', 'value': true },
+    'Num': { 'type': 'double', 'value': true },
+    'Bool': { 'type': 'bool', 'value': true },
+};
+
+function csharpMethodHasModifier (node, kind) {
+    return (node?.modifiers ?? []).some ((modifier) => modifier.kind === kind);
+}
+
+// the type a candidate parameter prints with: a reference type plain (the printer appends its
+// own `?` when it prints the `= null` default), a value type nullable unless the printer is
+// already about to append the `?` itself
+function csharpParameterPrintedType (parameter, mapped) {
+    if (!mapped.value) {
+        return mapped.type;
+    }
+    const initializer = parameter.initializer;
+    if (initializer === undefined) {
+        return mapped.type + '?';
+    }
+    if (!csharpParameterDefaultPrintsNull (initializer)) {
+        return undefined; // a non-null default prints a value of a type this rule cannot name
+    }
+    return mapped.type;
+}
+
+// the default shapes printParameter/printFunctionBody turn into `= null` (plus, for the literal
+// shapes, a `name ??= <literal>;` prologue whose literal is assignable to the mapped type)
+function csharpParameterDefaultPrintsNull (initializer) {
+    if (initializer === undefined) {
+        return false;
+    }
+    return ts.isArrayLiteralExpression (initializer) || ts.isObjectLiteralExpression (initializer)
+        || ts.isStringLiteral (initializer) || ts.isNumericLiteral (initializer)
+        || (ts.isBooleanLiteral !== undefined && ts.isBooleanLiteral (initializer))
+        || (initializer.kind === ts.SyntaxKind.NullKeyword)
+        || ((initializer.kind === ts.SyntaxKind.Identifier) && (initializer.escapedText === 'undefined'));
+}
+
+// the corpus shell, built once per process -- the call-site proof below must see the files
+// this run's program does not hold:
+//   - `.name (` occurrence counts per ts/src file, and
+//   - the module basenames each file imports (`from '../bitget.js'` -> `bitget`): a file that
+//     never imports the declaring file's module cannot reference its class, so its same-named
+//     calls bind another class's method
+let csharpCorpusCache;
+
+function csharpCorpus () {
+    if (csharpCorpusCache !== undefined) {
+        return csharpCorpusCache;
+    }
+    const table = { 'occurrences': new Map (), 'imports': new Map () };
+    csharpCorpusCache = table;
+    try {
+        const root = process.cwd ();
+        const walk = (dir) => {
+            for (const entry of fs.readdirSync (dir, { 'withFileTypes': true })) {
+                const full = path.join (dir, entry.name);
+                if (entry.isDirectory ()) {
+                    if (entry.name !== 'node_modules') {
+                        walk (full);
+                    }
+                    continue;
+                }
+                if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts')) {
+                    continue;
+                }
+                const rel = path.relative (root, full);
+                const text = fs.readFileSync (full, 'utf8');
+                const re = /\.([A-Za-z_$][\w$]*)\s*\(/g;
+                let match;
+                while ((match = re.exec (text)) !== null) {
+                    let files = table.occurrences.get (match[1]);
+                    if (files === undefined) {
+                        files = new Map ();
+                        table.occurrences.set (match[1], files);
+                    }
+                    files.set (rel, (files.get (rel) ?? 0) + 1);
+                }
+                const imports = new Set ();
+                const importRe = /from\s*['"]([^'"]+)['"]/g;
+                while ((match = importRe.exec (text)) !== null) {
+                    const specifier = match[1].replace (/\\/g, '/');
+                    const base = specifier.split ('/').pop () ?? '';
+                    imports.add (base.replace (/\.js$/, '').replace (/\.ts$/, ''));
+                }
+                table.imports.set (rel, imports);
+            }
+        };
+        walk (path.join (root, 'ts/src'));
+    } catch (e) {
+        // no corpus on disk (in-memory transpiles): no name proves clean, so nothing is retyped
+    }
+    return table;
+}
+
+// every `.name (...)` call site of one source file, with the method declarations its callee
+// symbol resolves to -- walk once per file, keyed by name
+const csharpFileCallSitesCache = new WeakMap ();
+
+function csharpFileCallSitesByName (csharp, sourceFile, name) {
+    let table = csharpFileCallSitesCache.get (sourceFile);
+    if (table === undefined) {
+        table = new Map ();
+        const visit = (node) => {
+            if (ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)) {
+                const calleeName = node.expression.name?.escapedText;
+                if (calleeName !== undefined) {
+                    let declarations;
+                    try {
+                        declarations = (csharp.getChecker ().getSymbolAtLocation (node.expression.name)?.declarations ?? [])
+                            .filter ((declaration) => ts.isMethodDeclaration (declaration));
+                    } catch (e) {
+                        declarations = [];
+                    }
+                    if (declarations.length) {
+                        const list = table.get (calleeName) ?? [];
+                        list.push ({ 'call': node, 'declarations': declarations });
+                        table.set (calleeName, list);
+                    }
+                }
+            }
+            ts.forEachChild (node, visit);
+        };
+        ts.forEachChild (sourceFile, visit);
+        csharpFileCallSitesCache.set (sourceFile, table);
+    }
+    return table.get (name) ?? [];
+}
+
+// the declaration a bare identifier reads (the checker's own answer; a param read in a lambda
+// resolves to the same declaration)
+function csharpIdentifierDeclaration (csharp, node) {
+    try {
+        return csharp.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+}
+
+// the C# static type of a call-site argument, or undefined when nothing proves it
+function csharpArgumentType (csharp, argument, expected) {
+    if (argument === undefined) {
+        return undefined;
+    }
+    if (argument.kind === ts.SyntaxKind.NullKeyword) {
+        return 'null';
+    }
+    if (ts.isIdentifier (argument)) {
+        if (argument.escapedText === 'undefined') {
+            return 'null';
+        }
+        const declaration = csharpIdentifierDeclaration (csharp, argument);
+        if (declaration !== undefined) {
+            if (declaration.kind === ts.SyntaxKind.Parameter) {
+                const own = csharpParameterDecision (csharp, declaration, expected);
+                return (own === undefined) ? 'object' : own;
+            }
+            const reference = referenceDeclaredType (csharp, declaration);
+            if (reference !== undefined) {
+                return reference;
+            }
+        }
+    }
+    try {
+        const context = { 'scope': csharp.csharpEnclosingFunction (argument), 'stack': new Set (), 'depth': 0 };
+        const own = csharpTypeOfValue (csharp, argument, context);
+        if (own !== undefined) {
+            return own;
+        }
+    } catch (e) {
+        return undefined; // no transpilation context: nothing is proven
+    }
+    return undefined;
+}
+
+// assignable() plus the C# constant conversions a literal argument takes for free
+function csharpArgumentAssignable (target, source, argument) {
+    if (assignable (target, source)) {
+        return true;
+    }
+    if (source === 'int') {
+        if ((target === 'Int64') || (target === 'Int64?')) {
+            return true; // an int constant converts to long implicitly
+        }
+        if ((target === 'double') || (target === 'double?')) {
+            return true; // int widens to double
+        }
+    }
+    return false;
+}
+
+// every call site of the parameter's method must prove: the name occurs in no other corpus
+// file, and each checker-resolved site passes a provable argument at this position
+function csharpParameterCallSitesProve (csharp, parameter, target) {
+    const owner = parameter.parent;
+    const name = owner.name.escapedText;
+    const position = owner.parameters.indexOf (parameter);
+    const declaringFile = parameter.getSourceFile ();
+    let declaringRel;
+    try {
+        declaringRel = path.relative (process.cwd (), declaringFile.fileName);
+    } catch (e) {
+        return false;
+    }
+    const corpus = csharpCorpus ();
+    const occurrences = corpus.occurrences.get (name);
+    // the declaring module's own basename: a file either imports it (and can bind the
+    // declaration through the class) or, for the base tier, inherits it from every venue
+    const moduleBase = path.basename (declaringFile.fileName).replace (/\.ts$/, '');
+    const baseTier = declaringRel.startsWith ('ts/src/base/');
+    if (occurrences !== undefined) {
+        for (const rel of occurrences.keys ()) {
+            if (rel === declaringRel) {
+                continue;
+            }
+            if (baseTier) {
+                return false; // every generated class extends the base: any call site can bind it
+            }
+            const imports = corpus.imports.get (rel);
+            if (imports !== undefined && imports.has (moduleBase)) {
+                return false; // a file that can bind this declaration calls the name too
+            }
+        }
+    }
+    let resolved = 0;
+    for (const site of csharpFileCallSitesByName (csharp, declaringFile, name)) {
+        if (site.declarations.indexOf (parameter) < 0) {
+            continue;
+        }
+        resolved++;
+        const argument = site.call.arguments[position];
+        if (argument === undefined) {
+            if (!csharpParameterDefaultPrintsNull (parameter.initializer)) {
+                return false; // a call omits the argument and the emitted parameter has no default
+            }
+            continue;
+        }
+        if (!csharpArgumentAssignable (target, csharpArgumentType (csharp, argument, target), argument)) {
+            return false;
+        }
+    }
+    // every textual occurrence in the declaring file must be one of the sites above: any other
+    // shape (`other.name (...)`) could bind another declaration and is not proven
+    return resolved >= (occurrences?.get (declaringRel) ?? 0);
+}
+
+const csharpParameterTypeDecisions = new WeakMap (); // ParameterDeclaration -> string | null
+const csharpParameterDecisionsInProgress = new Set ();
+
+// the printed type of a parameter, or undefined: the whole D-17 proof (see the section header)
+function csharpParameterDecision (csharp, parameter, expected) {
+    if (parameter?.kind !== ts.SyntaxKind.Parameter) {
+        return undefined;
+    }
+    const cached = csharpParameterTypeDecisions.get (parameter);
+    if (cached !== undefined) {
+        return (cached === null) ? undefined : cached;
+    }
+    const alias = (parameter.type?.getText !== undefined) ? parameter.type.getText () : undefined;
+    const mapped = (alias === undefined) ? undefined : CSHARP_PARAMETER_ALIAS_TYPES[alias];
+    if (mapped === undefined) {
+        csharpParameterTypeDecisions.set (parameter, null);
+        return undefined;
+    }
+    if (csharpParameterDecisionsInProgress.has (parameter)) {
+        // a call cycle: sound exactly while every member of the cycle carries the same target
+        const cycleTarget = csharpParameterPrintedType (parameter, mapped);
+        return (cycleTarget !== undefined && cycleTarget === expected) ? cycleTarget : undefined;
+    }
+    const owner = parameter.parent;
+    if (owner?.kind !== ts.SyntaxKind.MethodDeclaration || owner.body === undefined || owner.name === undefined) {
+        return undefined;
+    }
+    if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
+        || csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword)
+        || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
+        return undefined;
+    }
+    const name = owner.name.escapedText;
+    const position = owner.parameters.indexOf (parameter);
+    if (position < 0) {
+        return undefined; // a destructured / rest parameter
+    }
+    if (coreArgParamPosition (name, position)) {
+        return undefined; // B-17's narrowed core arguments
+    }
+    if (csharpParameterIsWritten (csharp, owner, parameter)) {
+        return undefined; // D2
+    }
+    // the pro-tier `handleX (client, message)` family is D-19's (its signature + message reads)
+    const ownerFile = owner.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (ownerFile.includes ('/pro/') && /^handle[A-Z]/.test (name)) {
+        return undefined;
+    }
+    // only a real ts/src file carries the corpus proof this rule needs: an in-memory program
+    // names every source `__dummy-file.ts` (the test/example stages transpile inline), where
+    // the cross-file call-site scan is vacuous and the declaring identity is unknown
+    if ((path.basename (ownerFile) === '__dummy-file.ts') || !/(^|\/)ts\/src\//.test (ownerFile)) {
+        return undefined;
+    }
+    // the generated test harness (ts/src/test, ts/src/pro/test) is its own compile unit with
+    // object-typed fixtures: only generated exchange classes are this family's surface
+    if (ownerFile.includes ('/test/')) {
+        return undefined;
+    }
+    const target = csharpParameterPrintedType (parameter, mapped);
+    if (target === undefined) {
+        return undefined;
+    }
+    // the checker's own reading of the parameter must still be the alias (the annotation alone
+    // is not the proof)
+    try {
+        const typeText = csharp.getChecker ().typeToString (csharp.getChecker ().getTypeAtLocation (parameter));
+        if (typeText !== alias) {
+            return undefined;
+        }
+    } catch (e) {
+        return undefined;
+    }
+    csharpParameterDecisionsInProgress.add (parameter);
+    try {
+        const proves = csharpParameterCallSitesProve (csharp, parameter, target);
+        csharpParameterTypeDecisions.set (parameter, proves ? target : null);
+        return proves ? target : undefined;
+    } finally {
+        csharpParameterDecisionsInProgress.delete (parameter);
+    }
+}
+
+function coreArgParamPosition (name, position) {
+    const strings = CORE_STRING_ARGS[name];
+    if ((strings !== undefined) && (strings.indexOf (position) >= 0)) {
+        return true;
+    }
+    const numerics = CORE_NUMERIC_ARGS[name];
+    return (numerics !== undefined) && (numerics[position] !== undefined);
+}
+
+export function installCsharpParameterDeclarations (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printParameterType !== 'function' || csharp._parameterDeclarationsPatched) {
+        return;
+    }
+    const upstreamPrintParameterType = csharp.printParameterType.bind (csharp);
+    csharp.printParameterType = (node) => {
+        const native = csharpParameterDecision (csharp, node);
+        return (native !== undefined) ? native : upstreamPrintParameterType (node);
+    };
+    // the printer's own member-access rules ask this resolver for the C# type of a declaration
+    // it did not type itself: every parameter this hook retypes answers its printed type, so
+    // `getValue(param, "k")` / the market-row reads become native on the spot
+    const upstreamResolver = csharp.csharpDeclaredLocalTypeResolver;
+    csharp.csharpDeclaredLocalTypeResolver = (declaration) => {
+        const own = (declaration?.kind === ts.SyntaxKind.Parameter) ? csharpParameterDecision (csharp, declaration) : undefined;
+        if (own !== undefined) {
+            return own;
+        }
+        return (typeof upstreamResolver === 'function') ? upstreamResolver (declaration) : undefined;
+    };
+    csharp._parameterDeclarationsPatched = true;
+}
+
 export default installCsharpLocalTypes;
