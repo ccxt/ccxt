@@ -1483,7 +1483,7 @@ public partial class tokocrypto : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (this.isNativeMarket(market))
         {
-            throw new NotSupported ((string)(((this.id + " fetchTicker() does not support ") + (symbol)) + " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
+            throw new NotSupported ((string)(((this.id + " fetchTicker() does not support ") + symbol) + " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.getMarketIdByType(market) },
@@ -1986,10 +1986,10 @@ public partial class tokocrypto : Exchange
         {
             if ((initialUppercaseType != uppercaseType))
             {
-                throw new InvalidOrder ((string)(((((this.id + " triggerPrice parameter is not allowed for ") + (symbol)) + " ") + (typeVar)) + " orders")) ;
+                throw new InvalidOrder ((string)(((((this.id + " triggerPrice parameter is not allowed for ") + symbol) + " ") + (typeVar)) + " orders")) ;
             } else
             {
-                throw new InvalidOrder ((string)(((((this.id + " ") + (typeVar)) + " is not a valid order type for the ") + (symbol)) + " market")) ;
+                throw new InvalidOrder ((string)(((((this.id + " ") + (typeVar)) + " is not a valid order type for the ") + symbol) + " market")) ;
             }
         }
         Dictionary<string, object> reverseOrderTypeMapping = new Dictionary<string, object>() {

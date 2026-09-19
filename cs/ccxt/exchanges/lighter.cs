@@ -1944,7 +1944,7 @@ public partial class lighter : Exchange
             } else if ((limit != null))
             {
                 int duration = this.parseTimeframe(timeframeVar);
-                endTs = this.sum(since, multiply(multiply(duration, limit), 1000));
+                endTs = this.sum(since, ((duration * limit) * 1000));
             } else
             {
                 endTs = now;
@@ -1955,7 +1955,7 @@ public partial class lighter : Exchange
             int defaultLimit = 100;
             if ((limit != null))
             {
-                startTs = subtract(endTs, multiply(multiply(this.parseTimeframe(timeframeVar), 1000), limit));
+                startTs = subtract(endTs, (multiply(this.parseTimeframe(timeframeVar), 1000) * limit));
             } else
             {
                 startTs = subtract(endTs, (multiply(this.parseTimeframe(timeframeVar), 1000) * defaultLimit));

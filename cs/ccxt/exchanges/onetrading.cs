@@ -1524,7 +1524,7 @@ public partial class onetrading : Exchange
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "trigger_price", "stopPrice"});
         } else if ((uppercaseType == "STOP"))
         {
-            throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a triggerPrice param for ") + (type)) + " orders")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a triggerPrice param for ") + type) + " orders")) ;
         }
         if (priceIsRequired)
         {

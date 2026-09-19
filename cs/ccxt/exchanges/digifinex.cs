@@ -1875,7 +1875,7 @@ public partial class digifinex : Exchange
                         Int64? endByUntil = this.parseToInt((until / 1000));
                         if ((limit != null))
                         {
-                            object endByLimit = this.sum(startTime, multiply(limit, duration));
+                            object endByLimit = this.sum(startTime, (limit * duration));
                             ((IDictionary<string,object>)request)["end_time"] = mathMin(endByLimit, endByUntil);
                         } else
                         {
@@ -1887,7 +1887,7 @@ public partial class digifinex : Exchange
                         {
                             throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV() requires a limit argument")) ;
                         }
-                        ((IDictionary<string,object>)request)["end_time"] = this.sum(startTime, multiply(limit, duration));
+                        ((IDictionary<string,object>)request)["end_time"] = this.sum(startTime, (limit * duration));
                     }
                 }
             }
@@ -2787,7 +2787,7 @@ public partial class digifinex : Exchange
             ((IDictionary<string,object>)request)["market"] = marketType;
             if ((since != null))
             {
-                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt(divide(since, 1000)); // default 3 days from now, max 30 days
+                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt((since / 1000)); // default 3 days from now, max 30 days
             }
         }
         if ((market != null))
@@ -3027,7 +3027,7 @@ public partial class digifinex : Exchange
             ((IDictionary<string,object>)request)["market"] = marketType;
             if ((since != null))
             {
-                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt(divide(since, 1000)); // default 3 days from now, max 30 days
+                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt((since / 1000)); // default 3 days from now, max 30 days
             }
         }
         string marketIdRequest = ((bool) ((marketType == "swap"))) ? "instrument_id" : "symbol";
@@ -3200,7 +3200,7 @@ public partial class digifinex : Exchange
             ((IDictionary<string,object>)request)["market"] = marketType;
             if ((since != null))
             {
-                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt(divide(since, 1000)); // default 3 days from now, max 30 days
+                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt((since / 1000)); // default 3 days from now, max 30 days
             }
         }
         string currencyIdRequest = ((bool) ((marketType == "swap"))) ? "currency" : "currency_mark";
@@ -3336,7 +3336,7 @@ public partial class digifinex : Exchange
         IDictionary<string, object> address = this.safeDict(addresses, code);
         if ((address == null))
         {
-            throw new InvalidAddress ((string)(((this.id + " fetchDepositAddress() did not return an address for ") + (code)) + " - create the deposit address in the user settings on the exchange website first.")) ;
+            throw new InvalidAddress ((string)(((this.id + " fetchDepositAddress() did not return an address for ") + code) + " - create the deposit address in the user settings on the exchange website first.")) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(address);
     }

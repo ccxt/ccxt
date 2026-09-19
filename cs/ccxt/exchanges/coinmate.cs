@@ -1396,7 +1396,7 @@ public partial class coinmate : Exchange
             response = await this.privatePostSellLimit(requestParams);
         } else
         {
-            throw new InvalidOrder ((string)((this.id + " createOrder() does not support order type ") + (type))) ;
+            throw new InvalidOrder ((string)((this.id + " createOrder() does not support order type ") + type)) ;
         }
         string? id = this.safeString(response, "data");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },         }, market));

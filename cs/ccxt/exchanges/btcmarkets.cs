@@ -1103,7 +1103,7 @@ public partial class btcmarkets : Exchange
         {
             if ((price == null))
             {
-                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + "order")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price argument for a ") + type) + "order")) ;
             } else
             {
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -1115,7 +1115,7 @@ public partial class btcmarkets : Exchange
             parameters = this.omit(parameters, "triggerPrice");
             if (isEqual(triggerPrice, null))
             {
-                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a triggerPrice parameter for a ") + (type)) + "order")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a triggerPrice parameter for a ") + type) + "order")) ;
             } else
             {
                 ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -1559,7 +1559,7 @@ public partial class btcmarkets : Exchange
         }
         if ((tagVar != null))
         {
-            ((IDictionary<string,object>)request)["toAddress"] = add(add(address, "?dt="), tagVar);
+            ((IDictionary<string,object>)request)["toAddress"] = ((address + "?dt=") + (tagVar));
         }
         Dictionary<string, object> response = await this.privatePostWithdrawals(this.extend(request, parameters));
         //

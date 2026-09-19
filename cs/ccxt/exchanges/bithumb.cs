@@ -2983,7 +2983,7 @@ public partial class bithumb : Exchange
             parameters = this.omit(parameters, new List<object>() {"destination", "secondary_address"});
             if (((tagVar == null)) && ((destination == null)))
             {
-                throw new ArgumentsRequired ((string)(((this.id + " ") + (code)) + " withdraw() requires a tag argument or an extra destination param")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " ") + code) + " withdraw() requires a tag argument or an extra destination param")) ;
             } else if ((tagVar != null))
             {
                 destinationRequest = tagVar;
@@ -3001,7 +3001,7 @@ public partial class bithumb : Exchange
                 string? twoFactorType = this.safeString(parameters, "two_factor_type");
                 if ((twoFactorType == null))
                 {
-                    throw new ArgumentsRequired ((string)(((this.id + " ") + (code)) + " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
+                    throw new ArgumentsRequired ((string)(((this.id + " ") + code) + " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
                 }
                 Dictionary<string, object> krwRequest = new Dictionary<string, object>() {
                     { "amount", this.numberToString(amount) },
@@ -3011,7 +3011,7 @@ public partial class bithumb : Exchange
             {
                 if ((network == null))
                 {
-                    throw new ArgumentsRequired ((string)(((this.id + " ") + (code)) + " withdraw() requires a network parameter")) ;
+                    throw new ArgumentsRequired ((string)(((this.id + " ") + code) + " withdraw() requires a network parameter")) ;
                 }
                 ((IDictionary<string,object>)request)["address"] = address;
                 ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
@@ -3490,7 +3490,7 @@ public partial class bithumb : Exchange
         parameters = this.omit(parameters, "network");
         if ((network == null))
         {
-            throw new ArgumentsRequired ((string)(((this.id + " ") + (code)) + " createDepositAddress() requires a network parameter")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
         }
         ((IDictionary<string,object>)request)["net_type"] = network;
         Dictionary<string, object> response = await this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters));
@@ -3539,7 +3539,7 @@ public partial class bithumb : Exchange
         parameters = this.omit(parameters, "network");
         if ((network == null))
         {
-            throw new ArgumentsRequired ((string)(((this.id + " ") + (code)) + " fetchDepositAddress() requires a network parameter")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;
         }
         ((IDictionary<string,object>)request)["net_type"] = network;
         Dictionary<string, object> response = await this.privateGetV1DepositsCoinAddress(this.extend(request, parameters));

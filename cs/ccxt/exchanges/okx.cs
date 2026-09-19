@@ -7503,7 +7503,7 @@ public partial class okx : Exchange
         IDictionary<string, object> position = this.safeDict(data, 0);
         if ((position == null))
         {
-            throw new NullResponse ((string)((this.id + " fetchPosition() could not find a position for ") + (symbol))) ;
+            throw new NullResponse ((string)((this.id + " fetchPosition() could not find a position for ") + symbol)) ;
         }
         return ccxt.BaseExchange.ToPosition(this.parsePosition(position, market));
     }
@@ -9098,7 +9098,7 @@ public partial class okx : Exchange
         {
             if ((type != "MARGIN"))
             {
-                throw new BadRequest ((string)((this.id + " fetchMarketLeverageTiers() cannot fetch leverage tiers for ") + (symbol))) ;
+                throw new BadRequest ((string)((this.id + " fetchMarketLeverageTiers() cannot fetch leverage tiers for ") + symbol)) ;
             }
         }
         object marginMode = null;
@@ -10066,7 +10066,7 @@ public partial class okx : Exchange
                 return ccxt.BaseExchange.ToGreeks(this.parseGreeks(entry, market));
             }
         }
-        throw new NullResponse ((string)((this.id + " fetchGreeks() could not find greeks for ") + (symbol))) ;
+        throw new NullResponse ((string)((this.id + " fetchGreeks() could not find greeks for ") + symbol)) ;
     }
 
     /**
@@ -10898,7 +10898,7 @@ public partial class okx : Exchange
                 subType = "162";
             } else
             {
-                throw new BadRequest ((string)((this.id + " cannot fetch margin adjustments for type ") + (type))) ;
+                throw new BadRequest ((string)((this.id + " cannot fetch margin adjustments for type ") + type)) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

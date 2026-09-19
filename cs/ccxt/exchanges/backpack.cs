@@ -1166,7 +1166,7 @@ public partial class backpack : Exchange
             ((IDictionary<string,object>)request)["startTime"] = startTime;
         } else
         {
-            ((IDictionary<string,object>)request)["startTime"] = this.parseToInt(divide(since, 1000)); // convert milliseconds to seconds
+            ((IDictionary<string,object>)request)["startTime"] = this.parseToInt((since / 1000)); // convert milliseconds to seconds
         }
         string? price = this.safeString(parameters, "price");
         if ((price != null))
@@ -1219,7 +1219,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new BadRequest ((string)((this.id + " fetchFundingRate() symbol does not support market ") + (symbol))) ;
+            throw new BadRequest ((string)((this.id + " fetchFundingRate() symbol does not support market ") + symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1285,7 +1285,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new BadRequest ((string)((this.id + " fetchOpenInterest() symbol does not support market ") + (symbol))) ;
+            throw new BadRequest ((string)((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },

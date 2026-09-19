@@ -1948,7 +1948,7 @@ public partial class binance : PredictionExchange
                 {
                     if ((price == null))
                     {
-                        throw new ArgumentsRequired ((string)(((this.id + " createOrder requires price for ") + (side)) + " order")) ;
+                        throw new ArgumentsRequired ((string)(((this.id + " createOrder requires price for ") + side) + " order")) ;
                     }
                 }
                 string? feeRate = Precise.stringDiv(feeRateBps, "10000");

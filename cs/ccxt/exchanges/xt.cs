@@ -1876,7 +1876,7 @@ public partial class xt : Exchange
             // window start return one pre-since candle, shifting paginated windows and
             // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
             Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
-            ((IDictionary<string,object>)request)["startTime"] = multiply(Math.Ceiling(Convert.ToDouble(divide(since, duration))), duration);
+            ((IDictionary<string,object>)request)["startTime"] = multiply(Math.Ceiling(Convert.ToDouble((since / duration))), duration);
         }
         if ((limitVar != null))
         {
@@ -6176,7 +6176,7 @@ public partial class xt : Exchange
                 return ccxt.BaseExchange.ToPosition(this.parsePosition(merged, marketInner));
             }
         }
-        throw new NullResponse ((string)((this.id + " fetchPosition() could not find a position for ") + (symbol))) ;
+        throw new NullResponse ((string)((this.id + " fetchPosition() could not find a position for ") + symbol)) ;
     }
 
     /**

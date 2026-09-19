@@ -847,7 +847,7 @@ public partial class zaif : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         if ((code == "JPY"))
         {
-            throw new ExchangeError ((string)(((this.id + " withdraw() does not allow ") + (code)) + " withdrawals")) ;
+            throw new ExchangeError ((string)(((this.id + " withdraw() does not allow ") + code) + " withdrawals")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },

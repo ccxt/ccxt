@@ -2687,7 +2687,7 @@ public partial class woo : Exchange
         IDictionary<string, object> first = this.safeDict(rows, 0);
         if ((first == null))
         {
-            throw new BadSymbol ((string)((this.id + " fetchTicker() could not find ticker data for ") + (symbol))) ;
+            throw new BadSymbol ((string)((this.id + " fetchTicker() could not find ticker data for ") + symbol)) ;
         }
         Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {
             { "timestamp", this.safeInteger(response, "timestamp") },
@@ -3756,7 +3756,7 @@ public partial class woo : Exchange
         string? network = this.safeString(parameters, "network");
         if ((network == null))
         {
-            throw new ArgumentsRequired ((string)((this.id + " withdraw() requires a network parameter for ") + (code))) ;
+            throw new ArgumentsRequired ((string)((this.id + " withdraw() requires a network parameter for ") + code)) ;
         }
         parameters = this.omit(parameters, "network");
         ((IDictionary<string,object>)request)["token"] = (currency.ContainsKey("id") ? currency["id"] : null);

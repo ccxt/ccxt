@@ -1316,7 +1316,7 @@ public partial class gate : ccxt.gate
         string messageHash = "myTrades";
         if ((symbol != null))
         {
-            messageHash = messageHash + (":" + (symbol));
+            messageHash = messageHash + (":" + symbol);
         }
         bool isInverse = (isEqual(subType, "inverse"));
         object url = this.getUrlByMarketType(type, isInverse);

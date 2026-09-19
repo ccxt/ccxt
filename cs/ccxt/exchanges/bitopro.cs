@@ -982,8 +982,8 @@ public partial class bitopro : Exchange
         } else
         {
             Int64 timeframeInMilliseconds = multiply(timeframeInSeconds, 1000);
-            alignedSince = multiply((Math.Floor(Double.Parse((divide(since, timeframeInMilliseconds)).ToString()))), timeframeInMilliseconds);
-            ((IDictionary<string,object>)request)["from"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
+            alignedSince = multiply((Math.Floor(Double.Parse(((since / timeframeInMilliseconds)).ToString()))), timeframeInMilliseconds);
+            ((IDictionary<string,object>)request)["from"] = (Math.Floor(Double.Parse(((since / 1000)).ToString())));
             ((IDictionary<string,object>)request)["to"] = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), multiply(limitVar, timeframeInSeconds));
         }
         Dictionary<string, object> response = await this.publicGetTradingHistoryPair(this.extend(request, parameters));

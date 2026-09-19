@@ -386,7 +386,7 @@ public partial class mudrex : Exchange
         object startTime = null;
         if ((since != null))
         {
-            startTime = this.parseToInt(divide(since, 1000));
+            startTime = this.parseToInt((since / 1000));
         } else
         {
             startTime = subtract(now, multiply(duration, requestLimit));
@@ -1524,7 +1524,7 @@ public partial class mudrex : Exchange
         if ((limit != null))
         {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-            pageSize = multiply(limit, 2);
+            pageSize = (limit * 2);
         }
         List<object> allRows = new List<object>() {};
         object transactionsCount = 0;

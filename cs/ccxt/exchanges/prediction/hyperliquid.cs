@@ -1791,7 +1791,7 @@ public partial class hyperliquid : PredictionExchange
             string? expected = this.safeString(outcomeObj, "outcome");
             if ((this.safeString(parsed, "outcome") != expected))
             {
-                throw new OrderNotFound ((string)((((this.id + " fetchOrder() order ") + (id)) + " is not in outcome ") + expected)) ;
+                throw new OrderNotFound ((string)((((this.id + " fetchOrder() order ") + id) + " is not in outcome ") + expected)) ;
             }
         }
         return ccxt.BaseExchange.ToPredictionOrder(parsed);

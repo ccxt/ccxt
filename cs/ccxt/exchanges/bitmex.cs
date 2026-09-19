@@ -1451,7 +1451,7 @@ public partial class bitmex : Exchange
         {
             return ccxt.BaseExchange.ToOrder(getValue(response, 0));
         }
-        throw new OrderNotFound ((string)(((this.id + ": The order ") + (id)) + " not found.")) ;
+        throw new OrderNotFound ((string)(((this.id + ": The order ") + id) + " not found.")) ;
     }
 
     /**
@@ -2004,7 +2004,7 @@ public partial class bitmex : Exchange
         IDictionary<string, object> ticker = this.safeDict(response, 0);
         if ((ticker == null))
         {
-            throw new BadSymbol ((string)(((this.id + " fetchTicker() symbol ") + (symbol)) + " not found")) ;
+            throw new BadSymbol ((string)(((this.id + " fetchTicker() symbol ") + symbol) + " not found")) ;
         }
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }

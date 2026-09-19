@@ -578,7 +578,7 @@ public partial class mercado : Exchange
         };
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
         }
         Int64? to = this.safeInteger(parameters, "to");
         List<object> response = null;
@@ -902,14 +902,14 @@ public partial class mercado : Exchange
             bool account_ref = (((IDictionary<string, object>)parameters).ContainsKey("account_ref"));
             if (!account_ref)
             {
-                throw new ArgumentsRequired ((string)((this.id + " withdraw() requires account_ref parameter to withdraw ") + (code))) ;
+                throw new ArgumentsRequired ((string)((this.id + " withdraw() requires account_ref parameter to withdraw ") + code)) ;
             }
         } else if ((code != "LTC"))
         {
             bool tx_fee = (((IDictionary<string, object>)parameters).ContainsKey("tx_fee"));
             if (!tx_fee)
             {
-                throw new ArgumentsRequired ((string)((this.id + " withdraw() requires tx_fee parameter to withdraw ") + (code))) ;
+                throw new ArgumentsRequired ((string)((this.id + " withdraw() requires tx_fee parameter to withdraw ") + code)) ;
             }
             if ((code == "XRP"))
             {
@@ -917,7 +917,7 @@ public partial class mercado : Exchange
                 {
                     if (!(((IDictionary<string, object>)parameters).ContainsKey("destination_tag")))
                     {
-                        throw new ArgumentsRequired ((string)((this.id + " withdraw() requires a tag argument or destination_tag parameter to withdraw ") + (code))) ;
+                        throw new ArgumentsRequired ((string)((this.id + " withdraw() requires a tag argument or destination_tag parameter to withdraw ") + code)) ;
                     }
                 } else
                 {
@@ -1027,7 +1027,7 @@ public partial class mercado : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
             ((IDictionary<string,object>)request)["to"] = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), multiply(limitVar, this.parseTimeframe(timeframeVar)));
         } else
         {

@@ -1306,7 +1306,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
+            ((IDictionary<string,object>)request)["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.publicMarketPostFullV1TradeHistory(this.extend(request, parameters));
         //
@@ -1475,7 +1475,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
+            ((IDictionary<string,object>)request)["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.publicMarketPostFullV1Kline(this.extend(request, parameters));
         //
@@ -1565,7 +1565,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
+            ((IDictionary<string,object>)request)["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.publicMarketPostFullV1Funding(this.extend(request, parameters));
         //
@@ -1759,7 +1759,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
+            ((IDictionary<string,object>)request)["start_time"] = this.numberToString((since * 1000000));
         }
         bool? useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if ((useTransfersEndpoint == true))
@@ -1826,7 +1826,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
+            ((IDictionary<string,object>)request)["start_time"] = this.numberToString((since * 1000000));
         }
         bool? useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if ((useTransfersEndpoint == true))
@@ -2063,7 +2063,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
+            ((IDictionary<string,object>)request)["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1TransferHistory(this.extend(request, parameters));
         //
@@ -2711,7 +2711,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
+            ((IDictionary<string,object>)request)["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1FillHistory(this.extend(request, parameters));
         //
@@ -3066,7 +3066,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
+            ((IDictionary<string,object>)request)["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1FundingPaymentHistory(this.extend(request, parameters));
         //
@@ -3153,7 +3153,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
+            ((IDictionary<string,object>)request)["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1OrderHistory(this.extend(request, parameters));
         //

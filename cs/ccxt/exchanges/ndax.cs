@@ -1219,7 +1219,7 @@ public partial class ndax : Exchange
         {
             if ((limit != null))
             {
-                ((IDictionary<string,object>)request)["FromDate"] = this.ymdhms(subtract(now, multiply(multiply(duration, limit), 1000)));
+                ((IDictionary<string,object>)request)["FromDate"] = this.ymdhms(subtract(now, ((duration * limit) * 1000)));
                 ((IDictionary<string,object>)request)["ToDate"] = this.ymdhms(now);
             }
         } else
@@ -1230,7 +1230,7 @@ public partial class ndax : Exchange
                 ((IDictionary<string,object>)request)["ToDate"] = this.ymdhms(now);
             } else
             {
-                ((IDictionary<string,object>)request)["ToDate"] = this.ymdhms(this.sum(since, multiply(multiply(duration, limit), 1000)));
+                ((IDictionary<string,object>)request)["ToDate"] = this.ymdhms(this.sum(since, ((duration * limit) * 1000)));
             }
         }
         List<object> response = await this.publicGetGetTickerHistory(this.extend(request, parameters));
@@ -2029,7 +2029,7 @@ public partial class ndax : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["StartTimeStamp"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["StartTimeStamp"] = this.parseToInt((since / 1000));
         }
         if ((limit != null))
         {
@@ -2290,7 +2290,7 @@ public partial class ndax : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["StartTimeStamp"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["StartTimeStamp"] = this.parseToInt((since / 1000));
         }
         if ((limit != null))
         {

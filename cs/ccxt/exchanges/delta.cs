@@ -1795,7 +1795,7 @@ public partial class delta : Exchange
             ((IDictionary<string,object>)request)["start"] = subtract(end, multiply(limitVar, duration));
         } else
         {
-            Int64? start = this.parseToInt(divide(since, 1000));
+            Int64? start = this.parseToInt((since / 1000));
             ((IDictionary<string,object>)request)["start"] = start;
             ((IDictionary<string,object>)request)["end"] = ((bool) untilIsDefined) ? until : this.sum(start, multiply(limitVar, duration));
         }
@@ -2184,7 +2184,7 @@ public partial class delta : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object orderType = add(type, "_order");
+        string orderType = (type + "_order");
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_id", (market.ContainsKey("numericId") ? market["numericId"] : null) },
