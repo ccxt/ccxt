@@ -2392,6 +2392,12 @@ class BaseExchange(object):
     def unlock_id(self):
         return None
 
+    def lock_last_nonce(self):
+        return None
+
+    def unlock_last_nonce(self):
+        return None
+
     def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
         return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex, createClient)
 
@@ -5588,6 +5594,20 @@ class BaseExchange(object):
 
     def nonce(self):
         return self.seconds()
+
+    def incrementing_nonce(self):
+        """
+ @ignore
+        returns the current timestamp in milliseconds, bumped past the previously issued value when both land in the same millisecond — for venues that reject duplicate nonces per signer; the counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes
+        :returns int: a strictly-increasing millisecond nonce
+        """
+        self.lock_last_nonce()
+        currentMilliseconds = self.milliseconds()
+        lastNonce = self.safe_integer(self.options, 'lastNonce', 0)
+        result = currentMilliseconds if (currentMilliseconds > lastNonce) else lastNonce + 1
+        self.options['lastNonce'] = result
+        self.unlock_last_nonce()
+        return result
 
     def set_headers(self, headers: object):
         return headers
