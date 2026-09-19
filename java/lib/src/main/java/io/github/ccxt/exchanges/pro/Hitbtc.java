@@ -120,7 +120,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
             String messageHash = "authenticated";
-            Client client = this.client(url);
+            Client client = this.client((String) (url));
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
@@ -138,7 +138,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                         put( "signature", signature );
                     }} );
                 }};
-                this.watch(url, messageHash, request, messageHash, null);
+                this.watch((String) (url), messageHash, request, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
@@ -184,7 +184,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "ch", name );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
-            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -220,7 +220,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "params", parameters );
                 put( "id", Hitbtc.this.nonce() );
             }};
-            return (this.watch(url, messageHash, subscribe, messageHash, null)).join();
+            return (this.watch((String) (url), (String) (messageHash), subscribe, messageHash, null)).join();
         });
 
     }
@@ -249,7 +249,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "params", parameters );
                 put( "id", messageHash );
             }};
-            return (this.watch(url, messageHash, subscribe, messageHash, null)).join();
+            return (this.watch((String) (url), (String) (messageHash), subscribe, messageHash, null)).join();
         });
 
     }
@@ -290,7 +290,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 name = (((("orderbook/D" + depth) + "/") + speed) + "ms/batch");
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "params", new HashMap<String, Object>() {{
                     put( "symbols", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
@@ -349,7 +349,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Long nonce = this.safeInteger(item, "s");
             if (java.util.Objects.equals(type, "snapshot"))
             {
-                Map<String, Object> parsedSnapshot = (Map<String, Object>) this.parseOrderBook(item, symbol, timestamp, "b", "a");
+                Map<String, Object> parsedSnapshot = (Map<String, Object>) this.parseOrderBook(item, (String) (symbol), timestamp, "b", "a");
                 Helpers.callDynamically(orderbook, "reset", new Object[]{parsedSnapshot});
             } else
             {
@@ -446,7 +446,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object marketId = this.marketId(Helpers.GetValue(symbols, i));
+                    Object marketId = this.marketId((String) (Helpers.GetValue(symbols, i)));
                     if (!java.util.Objects.equals(marketId, null))
                     {
                         ((List<Object>)marketIds).add(marketId);
@@ -563,9 +563,9 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(ticker, "t");
-        String symbol = this.safeSymbol(null, market);
+        String symbol = this.safeSymbol((String) (null), market);
         String last = this.safeString(ticker, "c");
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Hitbtc.this.iso8601(timestamp) );
@@ -586,7 +586,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             put( "baseVolume", Hitbtc.this.safeString(ticker, "v") );
             put( "quoteVolume", Hitbtc.this.safeString(ticker, "q") );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -611,7 +611,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, false);
+            symbols = this.marketSymbols(symbols, (String) (null), false);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBidsAsks");
             String defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
             String method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
@@ -680,7 +680,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(ticker, "t");
         Object bidAskSymbol = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : null;
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", bidAskSymbol );
             put( "timestamp", timestamp );
             put( "datetime", Hitbtc.this.iso8601(timestamp) );
@@ -689,7 +689,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             put( "bid", Hitbtc.this.safeString(ticker, "b") );
             put( "bidVolume", Hitbtc.this.safeString(ticker, "B") );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -715,7 +715,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "params", new HashMap<String, Object>() {{
                     put( "symbols", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
@@ -812,7 +812,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)tradesArray).size(); i++)
         {
-            Map<String, Object> trade = this.extend(this.parseWsTrade((tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i)), market), parameters);
+            Map<String, Object> trade = this.extend(this.parseWsTrade((Map<String, Object>) ((tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i))), market), parameters);
             ((List<Object>)result).add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
@@ -820,7 +820,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //    {
@@ -833,7 +833,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "t");
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Hitbtc.this.safeString(trade, "i") );
             put( "order", null );
@@ -847,7 +847,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             put( "amount", Hitbtc.this.safeString(trade, "q") );
             put( "cost", null );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -873,7 +873,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             String period = this.safeString(this.timeframes, timeframe, timeframe);
             String name = ("candles/" + period);
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "params", new HashMap<String, Object>() {{
                     put( "symbols", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
@@ -1009,7 +1009,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -1124,14 +1124,14 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         String method = this.safeString(message, "method", "");
         Object splitMethod = new ArrayList<Object>(Arrays.asList(((String)method).split(java.util.regex.Pattern.quote("_order"))));
         String messageHash = this.safeString(splitMethod, 0);
-        String symbol = this.safeSymbol(marketId);
-        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order);
+        String symbol = this.safeSymbol((String) (marketId));
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((Map<String, Object>) (order));
         Helpers.callDynamically(orders, "append", new Object[]{parsed});
         client.resolve(orders, messageHash);
         client.resolve(orders, Helpers.add((messageHash + "::"), symbol));
     }
 
-    public Object parseWsOrderTrade(Object trade, Object... optionalArgs)
+    public Object parseWsOrderTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //    {
@@ -1162,7 +1162,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "created_at");
         String marketId = this.safeString(trade, "symbol");
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Hitbtc.this.safeString(trade, "trade_id") );
             put( "order", Hitbtc.this.safeString(trade, "id") );
@@ -1180,10 +1180,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "currency", null );
                 put( "rate", null );
             }} );
-        }}, market);
+        }}), market);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //    {
@@ -1219,7 +1219,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         List<Object> trades = null;
         if (!java.util.Objects.equals(tradeId, null))
         {
-            Object trade = this.parseWsOrderTrade(order, market);
+            Object trade = this.parseWsOrderTrade((Map<String, Object>) (order), market);
             trades = new ArrayList<Object>(Arrays.asList(trade));
         }
         String rawStatus = this.safeString(order, "status");
@@ -1235,7 +1235,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         final Object finalMarket = market;
         final Object finalParsedStatus = parsedStatus;
         final Object finalTrades = trades;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Hitbtc.this.safeString(order, "id") );
             put( "clientOrderId", Hitbtc.this.safeString(order, "client_order_id") );
@@ -1257,7 +1257,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             put( "average", null );
             put( "trades", finalTrades );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1333,7 +1333,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Object request = new HashMap<String, Object>() {{}};
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
@@ -1392,7 +1392,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrderWs", market, parameters);
@@ -1442,7 +1442,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrdersWs", market, parameters);
@@ -1498,7 +1498,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object marketType = null;
@@ -1591,13 +1591,13 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(Helpers.GetValue(result, i));
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (Helpers.GetValue(result, i)));
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);
         } else
         {
-            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(result);
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (result));
             client.resolve(parsedOrder, messageHash);
         }
         return message;

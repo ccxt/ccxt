@@ -381,7 +381,7 @@ public class Coincheck extends CoincheckApi
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object currencyId = ((Map<String, Object>)currency).get("id");
             if (((Map<?, ?>)response).containsKey(currencyId))
             {
@@ -392,7 +392,7 @@ public class Coincheck extends CoincheckApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -507,7 +507,7 @@ public class Coincheck extends CoincheckApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Map<String, Object> response = (this.privateGetExchangeOrdersOpens(parameters)).join();
             List<Object> rawOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
@@ -524,7 +524,7 @@ public class Coincheck extends CoincheckApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // fetchOpenOrders
@@ -550,7 +550,7 @@ public class Coincheck extends CoincheckApi
         Object status = null;
         String marketId = this.safeString(order, "pair");
         String symbol = this.safeSymbol(marketId, market, "_");
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
@@ -572,7 +572,7 @@ public class Coincheck extends CoincheckApi
             put( "info", order );
             put( "average", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -596,17 +596,17 @@ public class Coincheck extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetOrderBooks(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"));
+            return this.parseOrderBook(response, (String) (((Map<String, Object>)market).get("symbol")));
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // {
@@ -620,10 +620,10 @@ public class Coincheck extends CoincheckApi
         // }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String symbol = this.safeSymbol(null, market);
+        String symbol = this.safeSymbol((String) (null), market);
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Coincheck.this.iso8601(timestamp) );
@@ -644,7 +644,7 @@ public class Coincheck extends CoincheckApi
             put( "baseVolume", Coincheck.this.safeString(ticker, "volume") );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -670,7 +670,7 @@ public class Coincheck extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -686,12 +686,12 @@ public class Coincheck extends CoincheckApi
             //     "timestamp":1643374115
             // }
             //
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -738,7 +738,7 @@ public class Coincheck extends CoincheckApi
         String side = null;
         Object fee = null;
         String orderId = null;
-        if (((Map<?, ?>)trade).containsKey("liquidity"))
+        if (trade.containsKey("liquidity"))
         {
             if (java.util.Objects.equals(this.safeString(trade, "liquidity"), "T"))
             {
@@ -767,7 +767,7 @@ public class Coincheck extends CoincheckApi
         final Object finalAmountString = amountString;
         final Object finalCostString = costString;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "datetime", Coincheck.this.iso8601(timestamp) );
@@ -781,7 +781,7 @@ public class Coincheck extends CoincheckApi
             put( "amount", finalAmountString );
             put( "cost", finalCostString );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -808,7 +808,7 @@ public class Coincheck extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -866,7 +866,7 @@ public class Coincheck extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -939,7 +939,7 @@ public class Coincheck extends CoincheckApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, ((Map<String, Object>)market).get("id"), new HashMap<String, Object>() {{}});
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", fee );
@@ -981,7 +981,7 @@ public class Coincheck extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1009,10 +1009,10 @@ public class Coincheck extends CoincheckApi
             }
             Map<String, Object> response = (this.privatePostExchangeOrders(this.extend(request, parameters))).join();
             String id = this.safeString(response, "id");
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "info", response );
-            }}, market);
+            }}), market);
         }).thenApply(Order::new);
 
     }
@@ -1044,7 +1044,7 @@ public class Coincheck extends CoincheckApi
             //        "id": 12345
             //    }
             //
-            return this.parseOrder(response);
+            return this.parseOrder((Map<String, Object>) (response));
         }).thenApply(Order::new);
 
     }
@@ -1077,7 +1077,7 @@ public class Coincheck extends CoincheckApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1143,7 +1143,7 @@ public class Coincheck extends CoincheckApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -1193,7 +1193,7 @@ public class Coincheck extends CoincheckApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits

@@ -127,7 +127,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "id", id );
             }};
             Object fullUrl = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), url);
-            return (this.watch(fullUrl, messageHash, this.deepExtend(message, parameters), messageHash, null)).join();
+            return (this.watch((String) (fullUrl), (String) (messageHash), this.deepExtend(message, parameters), messageHash, null)).join();
         });
 
     }
@@ -153,7 +153,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "params", request );
                 put( "id", id );
             }};
-            Object result = (this.watch(url, messageHash, this.deepExtend(message, parameters), subscribeHash, null)).join();
+            Object result = (this.watch((String) (url), (String) (messageHash), this.deepExtend(message, parameters), subscribeHash, null)).join();
             return result;
         });
 
@@ -182,7 +182,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             String messageHash = ("trades::" + ((Map<String, Object>)market).get("symbol"));
             Object url = "/trading-api/v1/market-data/trades";
             Object request = new HashMap<String, Object>() {{
@@ -227,8 +227,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        String symbol = this.safeSymbol(marketId);
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        String symbol = this.safeSymbol((String) (marketId));
+        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
         List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawTrades, market);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
@@ -266,11 +266,11 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), "/trading-api/v1/market-data/tick/"), ((Map<String, Object>)market).get("id"));
             String messageHash = ("ticker::" + symbol);
-            return (this.watch(url, messageHash, parameters, messageHash, null)).join();  // no need to send a subscribe message, the server sends a ticker update on connect
+            return (this.watch((String) (url), messageHash, parameters, messageHash, null)).join();  // no need to send a subscribe message, the server sends a ticker update on connect
         }).thenApply(Ticker::new);
 
     }
@@ -326,13 +326,13 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object parsed = this.parseTicker(data, market);
+        Object parsed = this.parseTicker((Map<String, Object>) (data), market);
         if (java.util.Objects.equals(updateType, "update"))
         {
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
             Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> merged = this.extend(rawTicker, data);
-            parsed = this.parseTicker(merged, market);
+            parsed = this.parseTicker((Map<String, Object>) (merged), market);
         }
         Helpers.addElementToObject(this.tickers, symbol, parsed);
         String messageHash = ("ticker::" + symbol);
@@ -360,7 +360,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Object url = "/trading-api/v1/market-data/orderbook";
             String messageHash = ("orderbook::" + ((Map<String, Object>)market).get("symbol"));
             Object request = new HashMap<String, Object>() {{
@@ -399,7 +399,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         // current channel is 'l2Orderbook' which returns only snapshots
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        String symbol = this.safeSymbol(marketId);
+        String symbol = this.safeSymbol((String) (marketId));
         String messageHash = ("orderbook::" + symbol);
         Long timestamp = this.safeInteger(data, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
@@ -413,7 +413,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             put( "bids", bids );
             put( "asks", asks );
         }};
-        Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(snapshot, symbol, timestamp);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(snapshot, (String) (symbol), timestamp);
         List<Object> sequenceNumberRange = (List<Object>) this.safeList(data, "sequenceNumberRange", new ArrayList<Object>(Arrays.asList()));
         if (((List<?>)sequenceNumberRange).size() > 0)
         {
@@ -473,7 +473,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Object messageHash = subscribeHash;
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbol = this.symbol(symbol);
+                symbol = this.symbol((String) (symbol));
                 messageHash = ((messageHash + "::") + symbol);
             }
             Object request = new HashMap<String, Object>() {{
@@ -564,7 +564,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
             {
                 Object rawOrder = Helpers.GetValue(rawOrders, i);
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder);
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder((Map<String, Object>) (rawOrder));
                 Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
                 String symbol = this.safeString(parsedOrder, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -613,7 +613,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Object messageHash = subscribeHash;
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbol = this.symbol(symbol);
+                symbol = this.symbol((String) (symbol));
                 messageHash = (messageHash + ("::" + symbol));
             }
             Object request = new HashMap<String, Object>() {{
@@ -697,7 +697,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
             {
                 Object rawTrade = Helpers.GetValue(rawTrades, i);
-                Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(rawTrade);
+                Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade((Map<String, Object>) (rawTrade));
                 Helpers.callDynamically(trades, "append", new Object[]{parsedTrade});
                 String symbol = this.safeString(parsedTrade, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -816,13 +816,13 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Object account = this.account();
             ((Map<String, Object>)account).put("total", this.safeString(data, "availableQuantity"));
             ((Map<String, Object>)account).put("used", this.safeString(data, "lockedQuantity"));
-            String code = this.safeCurrencyCode(assetId);
+            String code = this.safeCurrencyCode((String) (assetId));
             if ((!java.util.Objects.equals(tradingAccountId, null)) && (!java.util.Objects.equals(code, null)))
             {
                 Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), code, account);
             }
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), "info", message);
-            Helpers.addElementToObject(this.balance, tradingAccountId, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId))));
+            Helpers.addElementToObject(this.balance, tradingAccountId, this.safeBalance((Map<String, Object>) ((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)))));
         }
         Object messageHash = "balance";
         String tradingAccountIdHash = ("::" + tradingAccountId);
@@ -898,7 +898,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
             Helpers.callDynamically(positions, "append", new Object[]{position});
             ((List<Object>)newPositions).add(position);
         }

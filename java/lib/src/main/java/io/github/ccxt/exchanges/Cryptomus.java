@@ -398,7 +398,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Object parseMarket(Object market)
+    public Object parseMarket(Map<String, Object> market)
     {
         //
         //     {
@@ -525,7 +525,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         // currency here is array of networks
         String id = null; // all entries have same id, as they were grouped by
@@ -569,12 +569,12 @@ public class Cryptomus extends CryptomusApi
         }
         final Object finalId = id;
         final Object finalCode = code;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "code", finalCode );
             put( "networks", networks );
             put( "info", rawCurrency );
-        }});
+        }}));
     }
 
     /**
@@ -617,7 +617,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -632,7 +632,7 @@ public class Cryptomus extends CryptomusApi
         market = this.safeMarket(marketId, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String last = this.safeString(ticker, "last_price");
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -653,7 +653,7 @@ public class Cryptomus extends CryptomusApi
             put( "baseVolume", Cryptomus.this.safeString(ticker, "base_volume") );
             put( "quoteVolume", Cryptomus.this.safeString(ticker, "quote_volume") );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -678,7 +678,7 @@ public class Cryptomus extends CryptomusApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currencyPair", ((Map<String, Object>)market).get("id") );
             }};
@@ -709,7 +709,7 @@ public class Cryptomus extends CryptomusApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object timestamp = this.safeTimestamp(data, "timestamp");
-            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
+            return this.parseOrderBook(data, (String) (symbol), timestamp, "bids", "asks", "price", "quantity");
         }).thenApply(OrderBook::new);
 
     }
@@ -737,7 +737,7 @@ public class Cryptomus extends CryptomusApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currencyPair", ((Map<String, Object>)market).get("id") );
             }};
@@ -767,7 +767,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //     {
@@ -781,7 +781,7 @@ public class Cryptomus extends CryptomusApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object timestamp = this.safeTimestamp(trade, "timestamp");
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Cryptomus.this.safeString(trade, "trade_id") );
             put( "timestamp", timestamp );
             put( "datetime", Cryptomus.this.iso8601(timestamp) );
@@ -798,7 +798,7 @@ public class Cryptomus extends CryptomusApi
                 put( "cost", null );
             }} );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -863,7 +863,7 @@ public class Cryptomus extends CryptomusApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -895,7 +895,7 @@ public class Cryptomus extends CryptomusApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             final Object finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -961,7 +961,7 @@ public class Cryptomus extends CryptomusApi
             //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -995,9 +995,9 @@ public class Cryptomus extends CryptomusApi
             //         "success": true
             //     }
             //
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", response );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -1035,7 +1035,7 @@ public class Cryptomus extends CryptomusApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1087,7 +1087,7 @@ public class Cryptomus extends CryptomusApi
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
                 Object order = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
-                ((List<Object>)orders).add(this.parseOrder(order, market));
+                ((List<Object>)orders).add(this.parseOrder((Map<String, Object>) (order), market));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1126,7 +1126,7 @@ public class Cryptomus extends CryptomusApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
@@ -1159,7 +1159,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -1236,7 +1236,7 @@ public class Cryptomus extends CryptomusApi
         {
             final Object finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
-                put( "currency", Cryptomus.this.safeCurrencyCode(finalFeeCurrency) );
+                put( "currency", Cryptomus.this.safeCurrencyCode((String) (finalFeeCurrency)) );
                 put( "cost", Cryptomus.this.safeNumber(firstTx, "fee") );
             }};
         }
@@ -1251,7 +1251,7 @@ public class Cryptomus extends CryptomusApi
         final Object finalMarket = market;
         final Object finalPrice = price;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
@@ -1274,7 +1274,7 @@ public class Cryptomus extends CryptomusApi
             put( "fee", finalFee );
             put( "trades", null );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderStatus(Object... optionalArgs)

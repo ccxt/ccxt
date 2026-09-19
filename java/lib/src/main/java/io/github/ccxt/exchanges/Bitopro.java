@@ -433,7 +433,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         String currencyId = this.safeString(rawCurrency, "currency");
@@ -443,7 +443,7 @@ public class Bitopro extends BitoproApi
         boolean isFiat = this.inArray(code, fiatCurrencies);
         final Object finalDeposit = deposit;
         final Object finalWithdraw = withdraw;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "code", code );
             put( "info", rawCurrency );
@@ -465,7 +465,7 @@ public class Bitopro extends BitoproApi
                 }} );
             }} );
             put( "networks", null );
-        }});
+        }}));
     }
 
     /**
@@ -509,7 +509,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object parseMarket(Object market)
+    public Object parseMarket(Map<String, Object> market)
     {
         Boolean active = (!java.util.Objects.equals(this.safeBool(market, "maintain"), true));
         String id = this.safeString(market, "pair");
@@ -578,7 +578,7 @@ public class Bitopro extends BitoproApi
         }});
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -595,7 +595,7 @@ public class Bitopro extends BitoproApi
         String marketId = this.safeString(ticker, "pair");
         market = this.safeMarket(marketId, market);
         String symbol = this.safeString(market, "symbol");
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -616,7 +616,7 @@ public class Bitopro extends BitoproApi
             put( "baseVolume", Bitopro.this.safeString(ticker, "volume24hr") );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -638,7 +638,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -657,7 +657,7 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
@@ -725,7 +725,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -754,12 +754,12 @@ public class Bitopro extends BitoproApi
             //         ]
             //     }
             //
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "amount");
+            return this.parseOrderBook(response, (String) (((Map<String, Object>)market).get("symbol")), null, "bids", "asks", "price", "amount");
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -848,7 +848,7 @@ public class Bitopro extends BitoproApi
         final Object finalSide = side;
         final Object finalAmount = amount;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "info", trade );
             put( "order", orderId );
@@ -862,7 +862,7 @@ public class Bitopro extends BitoproApi
             put( "amount", finalAmount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -888,7 +888,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1045,7 +1045,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             String resolution = this.safeString(this.timeframes, timeframe, timeframe);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1171,7 +1171,7 @@ public class Bitopro extends BitoproApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -1226,7 +1226,7 @@ public class Bitopro extends BitoproApi
         return (((java.util.Objects.equals(status, null)))) ? null : this.safeString(statuses, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -1302,7 +1302,7 @@ public class Bitopro extends BitoproApi
         final Object finalPostOnly = postOnly;
         final Object finalSide = side;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
@@ -1324,7 +1324,7 @@ public class Bitopro extends BitoproApi
             put( "fee", finalFee );
             put( "trades", null );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1352,22 +1352,22 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", type );
                 put( "pair", ((Map<String, Object>)market).get("id") );
                 put( "action", side );
-                put( "amount", Bitopro.this.amountToPrecision(symbol, amount) );
+                put( "amount", Bitopro.this.amountToPrecision((String) (symbol), amount) );
                 put( "timestamp", Bitopro.this.milliseconds() );
             }};
             Object orderType = ((String)type).toUpperCase();
             if (java.util.Objects.equals(orderType, "LIMIT"))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
             }
             if (java.util.Objects.equals(orderType, "STOP_LIMIT"))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
                 String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")));
                 if (java.util.Objects.equals(triggerPrice, null))
@@ -1375,7 +1375,7 @@ public class Bitopro extends BitoproApi
                     throw new InvalidOrder((((this.id + " createOrder() requires a triggerPrice parameter for ") + orderType) + " orders")) ;
                 } else
                 {
-                    ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
+                    ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision((String) (symbol), triggerPrice));
                 }
                 String condition = this.safeString(parameters, "condition");
                 if (java.util.Objects.equals(condition, null))
@@ -1402,7 +1402,7 @@ public class Bitopro extends BitoproApi
             //         "timeInForce": "GTC"
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -1432,7 +1432,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1447,7 +1447,7 @@ public class Bitopro extends BitoproApi
             //         "amount":"0.01"
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -1463,11 +1463,11 @@ public class Bitopro extends BitoproApi
             for (var j = 0; j < Helpers.getArrayLength(orderIds); j++)
             {
 final Object finalJ = j;
-                                ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
+                                ((List<Object>)orders).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", Helpers.GetValue(orderIds, finalJ) );
                     put( "id", Helpers.GetValue(orderIds, finalJ) );
-                    put( "symbol", Bitopro.this.safeSymbol(marketId) );
-                }}));
+                    put( "symbol", Bitopro.this.safeSymbol((String) (marketId)) );
+                }})));
             }
         }
         return orders;
@@ -1498,7 +1498,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Object id = ((Map<String, Object>)market).get("uppercaseId");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(id, null))
@@ -1546,7 +1546,7 @@ final Object finalJ = j;
             Object response = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
                 ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
                 response = (this.privateDeleteOrdersPair(this.extend(request, parameters))).join();
             } else
@@ -1594,7 +1594,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1623,7 +1623,7 @@ final Object finalJ = j;
             //         "updatedTimestamp":1644899002598
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -1656,7 +1656,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1733,7 +1733,7 @@ final Object finalJ = j;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
@@ -1799,7 +1799,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1845,7 +1845,7 @@ final Object finalJ = j;
         return this.safeString(states, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -1960,7 +1960,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2028,7 +2028,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2092,7 +2092,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "serial", id );
                 put( "currency", ((Map<String, Object>)currency).get("id") );
@@ -2115,7 +2115,7 @@ final Object finalJ = j;
             //         }
             //     }
             //
-            return this.parseTransaction(result, currency);
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         });
 
     }
@@ -2147,7 +2147,7 @@ final Object finalJ = j;
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Bitopro.this.numberToString(amount) );
@@ -2184,7 +2184,7 @@ final Object finalJ = j;
             //         }
             //     }
             //
-            return this.parseTransaction(result, currency);
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         }).thenApply(Transaction::new);
 
     }

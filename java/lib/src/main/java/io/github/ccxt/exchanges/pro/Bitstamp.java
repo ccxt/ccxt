@@ -95,7 +95,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orderbook:" + symbol);
             String channel = ("diff_order_book_" + ((Map<String, Object>)market).get("id"));
@@ -107,7 +107,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
+            Object orderbook = (this.watch((String) (url), messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -132,7 +132,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             Object channel = ("diff_order_book_" + ((Map<String, Object>)market).get("id"));
             String subHash = ("orderbook:" + symbol);
@@ -171,7 +171,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 put( "topic", topic );
                 put( "symbols", symbols );
             }};
-            return (this.watch(url, unsubHash, this.extend(request, parameters), unsubHash, subscription)).join();
+            return (this.watch((String) (url), unsubHash, this.extend(request, parameters), unsubHash, subscription)).join();
         });
 
     }
@@ -208,7 +208,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 3);
-        String symbol = this.safeSymbol(marketId);
+        String symbol = this.safeSymbol((String) (marketId));
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         Long nonce = this.safeInteger(storedOrderBook, "nonce");
         Map<String, Object> delta = (Map<String, Object>) this.safeDict(message, "data");
@@ -309,7 +309,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trades:" + symbol);
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -321,7 +321,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
+            Object trades = (this.watch((String) (url), messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -350,7 +350,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             Object channel = ("live_trades_" + ((Map<String, Object>)market).get("id"));
             String subHash = ("trades:" + symbol);
@@ -359,7 +359,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //     {
@@ -388,7 +388,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long sideRaw = this.safeInteger(trade, "type");
         String side = ((((sideRaw != null && sideRaw == 0)))) ? "buy" : "sell";
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Bitstamp.this.iso8601(timestamp) );
@@ -402,7 +402,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     public void handleTrade(Client client, Map<String, Object> message)
@@ -438,7 +438,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trades:" + symbol);
         Object data = this.safeValue(message, "data");
-        Object trade = this.parseWsTrade(data, market);
+        Object trade = this.parseWsTrade((Map<String, Object>) (data), market);
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
         {
@@ -469,7 +469,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("fundingRate:" + symbol);
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -481,7 +481,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watch(url, messageHash, message, messageHash, null)).join();
+            return (this.watch((String) (url), messageHash, message, messageHash, null)).join();
         }).thenApply(FundingRate::new);
 
     }
@@ -544,7 +544,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String channel = "private-my_orders";
             Object messageHash = ((channel + "_") + ((Map<String, Object>)market).get("id"));
@@ -591,7 +591,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             (this.authenticate()).join();
             Object channel = Helpers.add((("private-my_orders_" + ((Map<String, Object>)market).get("id")) + "-"), ((Map<String, Object>)this.options).get("userId"));
@@ -628,7 +628,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String channel = "private-my_trades";
             Object messageHash = ((channel + "_") + ((Map<String, Object>)market).get("id"));
@@ -675,7 +675,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             (this.authenticate()).join();
             Object channel = Helpers.add((("private-my_trades_" + ((Map<String, Object>)market).get("id")) + "-"), ((Map<String, Object>)this.options).get("userId"));
@@ -714,7 +714,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             // the symbol from - drop the message instead of throwing
             return;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -761,7 +761,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             }};
         }
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Bitstamp.this.safeString2(trade, "id_str", "id") );
             put( "order", Bitstamp.this.safeString(trade, "order_id") );
@@ -775,7 +775,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "amount", Bitstamp.this.safeString(trade, "amount") );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     public void handleOrders(Client client, Map<String, Object> message)
@@ -823,14 +823,14 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.orders;
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
         ((Map<String, Object>)order).put("event", this.safeString(message, "event"));
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, market);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(this.orders, channel);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // order_deleted after a full fill - amount_str carries the amount
@@ -911,7 +911,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         final Object finalAmount = amount;
         final Object finalRemaining = remaining;
         final Object finalStatus = status;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
             put( "id", id );
@@ -934,7 +934,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "status", finalStatus );
             put( "fee", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public void handleOrderBookSubscription(Client client, Map<String, Object> message)
@@ -946,7 +946,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 3);
-        String symbol = this.safeSymbol(marketId);
+        String symbol = this.safeSymbol((String) (marketId));
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
     }
 
@@ -1016,7 +1016,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             this.cleanCache(subscription);
         }
-        this.cleanUnsubscription(client, subHash, unsubHash);
+        this.cleanUnsubscription(client, (String) (subHash), unsubHash);
     }
 
     /**
@@ -1262,7 +1262,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 }} );
             }};
             ((Map<String, Object>)subscription).put("messageHash", messageHash);
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+            return (this.watch((String) (url), (String) (messageHash), this.extend(request, parameters), messageHash, subscription)).join();
         });
 
     }

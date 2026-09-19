@@ -80,7 +80,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String url = ((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "?subscribe=ticker-"), ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
             String messageHash = ("trades:" + symbol);
@@ -112,7 +112,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "Pair");
-        String symbol = this.safeSymbol(marketId, null, "-");
+        String symbol = this.safeSymbol((String) (marketId), null, "-");
         String messageHash = ("trades:" + symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -121,13 +121,13 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object trade = this.parseWsTrade(data);
+        Object trade = this.parseWsTrade((Map<String, Object>) (data));
         Helpers.callDynamically(stored, "append", new Object[]{trade});
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //    {
@@ -144,11 +144,11 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String datetime = this.safeString(trade, "TradeDate");
         String marketId = this.safeString(market, "Pair");
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Independentreserve.this.safeString(trade, "TradeGuid") );
             put( "order", Independentreserve.this.safeString(trade, "orderNo") );
-            put( "symbol", Independentreserve.this.safeSymbol(marketId, market, "-") );
+            put( "symbol", Independentreserve.this.safeSymbol((String) (marketId), market, "-") );
             put( "side", Independentreserve.this.safeStringLower(trade, "Side") );
             put( "type", null );
             put( "takerOrMaker", null );
@@ -158,7 +158,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             put( "fee", null );
             put( "timestamp", Independentreserve.this.parse8601(datetime) );
             put( "datetime", datetime );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -181,7 +181,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             if (java.util.Objects.equals(limit, null))
             {
@@ -233,8 +233,8 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         String depth = this.safeString(parts, 1);
         String baseId = this.safeString(parts, 2);
         String quoteId = this.safeString(parts, 3);
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode((String) (baseId));
+        String quote = this.safeCurrencyCode((String) (quoteId));
         Object symbol = Helpers.add((base + "/"), quote);
         Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String messageHash = ((("orderbook:" + symbol) + ":") + depth);
@@ -249,7 +249,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(eventVar, "OrderBookSnapshot"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, (String) (symbol), timestamp, "Bids", "Offers", "Price", "Volume");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
@@ -291,7 +291,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             Long responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (!Helpers.isEqual(calculatedChecksum, responseChecksum))
             {
-                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
+                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol))));
                 ((Map<String,Object>)client.subscriptions).remove(messageHash);
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
                 client.reject(error, messageHash);

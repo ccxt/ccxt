@@ -92,7 +92,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orderbook:" + symbol);
             Object query = this.urlencode(parameters);
@@ -102,7 +102,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 url = (url + ("?" + query));
             }
             final Object finalSymbol = symbol;
-            Object orderbook = (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
+            Object orderbook = (this.watch((String) (url), messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "limit", limit );
             }})).join();
@@ -147,7 +147,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(type, "SNAPSHOT"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", "p", "q");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, (String) (symbol), timestamp, "b", "a", "p", "q");
             ((Map<String, Object>)snapshot).put("nonce", nonce);
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             client.resolve(orderbook, messageHash);
@@ -202,7 +202,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                         }} );
                     }} );
                 }};
-                this.extendExchangeOptions(defaultOptions);
+                this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
                 Object originalOptions = Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "options");
                 Map<String, Object> originalHeaders = (Map<String, Object>) this.safeDict(originalOptions, "headers", new HashMap<String, Object>() {{}});
                 Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options", this.extend(this.extend(new HashMap<String, Object>() {{}}, originalOptions), new HashMap<String, Object>() {{
@@ -212,10 +212,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             put( "X-Api-Key", Extended.this.apiKey );
         }}) );
     }}));
-                this.client(url);
+                this.client((String) (url));
                 Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options", originalOptions);
             }
-            return (this.watch(url, messageHash, null, messageHash, subscription)).join();
+            return (this.watch((String) (url), (String) (messageHash), null, messageHash, subscription)).join();
         });
 
     }
@@ -247,7 +247,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String messageHash = "orders";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
@@ -324,7 +324,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         if (!java.util.Objects.equals(balance, null))
         {
             String currencyId = this.safeString(balance, "collateralName");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             if (!java.util.Objects.equals(code, null))
             {
                 Object account = this.account();
@@ -338,7 +338,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         {
             Map<String, Object> spotBalance = (Map<String, Object>) this.safeDict(spotBalances, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(spotBalance, "asset");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             if (!java.util.Objects.equals(code, null))
             {
                 Object account = this.account();
@@ -350,7 +350,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         Long timestamp = this.safeInteger(message, "ts");
         ((Map<String, Object>)result).put("timestamp", timestamp);
         ((Map<String, Object>)result).put("datetime", this.iso8601(timestamp));
-        this.balance = this.safeBalance(this.deepExtend(this.balance, result));
+        this.balance = this.safeBalance((Map<String, Object>) (this.deepExtend(this.balance, result)));
         client.resolve(this.balance, "balance");
     }
 
@@ -381,7 +381,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
@@ -444,7 +444,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)));
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))));
             String symbol = this.safeString(trade, "symbol");
             ((Map<String, Object>)symbols).put((String)symbol, true);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
@@ -557,7 +557,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 continue;
             }
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(stored, "append", new Object[]{position});
         }
@@ -625,7 +625,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         for (var i = 0; i < ((List<?>)(List<Object>)(rawOrders)).size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(Helpers.GetValue((List<Object>)(rawOrders), i));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (Helpers.GetValue((List<Object>)(rawOrders), i)));
             String symbol = this.safeString(order, "symbol");
             ((Map<String, Object>)symbols).put((String)symbol, true);
             Helpers.callDynamically(orders, "append", new Object[]{order});
@@ -667,7 +667,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("fundingRate:" + symbol);
             Object query = this.urlencode(parameters);
@@ -677,7 +677,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 url = (url + ("?" + query));
             }
             final Object finalSymbol = symbol;
-            return (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
+            return (this.watch((String) (url), messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "messageHash", messageHash );
             }})).join();
@@ -756,7 +756,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("markPrice:" + symbol);
             Object query = this.urlencode(parameters);
@@ -766,7 +766,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 url = (url + ("?" + query));
             }
             final Object finalSymbol = symbol;
-            return (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
+            return (this.watch((String) (url), messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "name", "markPrice" );
                 put( "symbol", finalSymbol );
                 put( "messageHash", messageHash );
@@ -799,13 +799,13 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             timestamp = this.safeInteger(message, "ts");
         }
         final Object finalTimestamp = timestamp;
-        Object ticker = this.safeTicker(new HashMap<String, Object>() {{
+        Object ticker = this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
             put( "datetime", Extended.this.iso8601(finalTimestamp) );
             put( "markPrice", Extended.this.safeString(data, "p") );
             put( "info", message );
-        }}, market);
+        }}), market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         String messageHash = ("markPrice:" + symbol);
         client.resolve(ticker, messageHash);
@@ -834,7 +834,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trades:" + symbol);
             Object query = this.urlencode(parameters);
@@ -845,7 +845,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             }
             final Object finalSymbol = symbol;
             final Object finalLimit = limit;
-            Object trades = (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
+            Object trades = (this.watch((String) (url), messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "limit", finalLimit );
             }})).join();
@@ -905,7 +905,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         ((Map<String, Object>)subscription).put("nonce", nonce);
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), market);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
         client.resolve(stored, messageHash);
@@ -938,7 +938,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String price = this.safeString(parameters, "price");
             String candleType = this.safeString(parameters, "candleType");

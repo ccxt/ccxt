@@ -734,7 +734,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(rawCurrency, 0);
         String code = this.safeCurrencyCode(id);
@@ -774,7 +774,7 @@ public class Gemini extends GeminiApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "id", id );
             put( "code", code );
@@ -796,7 +796,7 @@ public class Gemini extends GeminiApi
                 }} );
             }} );
             put( "networks", networks );
-        }});
+        }}));
     }
 
     /**
@@ -976,7 +976,7 @@ public class Gemini extends GeminiApi
                 }};
                 // don't use Promise.all here, for some reason the exchange can't handle it and crashes
                 Map<String, Object> rawResponse = (this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters))).join();
-                ((List<Object>)result).add(this.parseMarket(rawResponse));
+                ((List<Object>)result).add(this.parseMarket((Map<String, Object>) (rawResponse)));
             }
             return result;
         });
@@ -1027,7 +1027,7 @@ public class Gemini extends GeminiApi
                 Object responses = (Helpers.promiseAll(promises)).join();
                 for (var i = 0; i < ((List<?>)responses).size(); i++)
                 {
-                    ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(responses, i)));
+                    ((List<Object>)result).add(this.parseMarket((Map<String, Object>) (Helpers.GetValue(responses, i))));
                 }
             } else
             {
@@ -1042,7 +1042,7 @@ public class Gemini extends GeminiApi
                         List<Object> pairInfo = (List<Object>) this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
                         if (!java.util.Objects.equals(pairInfo, null) && !this.inArray(marketId, brokenPairs))
                         {
-                            ((List<Object>)result).add(this.parseMarket(pairInfo));
+                            ((List<Object>)result).add(this.parseMarket((Map<String, Object>) (pairInfo)));
                         }
                     }
                 } else
@@ -1051,7 +1051,7 @@ public class Gemini extends GeminiApi
                     {
                         if (!this.inArray((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)), brokenPairs))
                         {
-                            ((List<Object>)result).add(this.parseMarket((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i))));
+                            ((List<Object>)result).add(this.parseMarket((Map<String, Object>) ((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)))));
                         }
                     }
                 }
@@ -1061,7 +1061,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseMarket(Object response)
+    public Object parseMarket(Map<String, Object> response)
     {
         //
         // response might be:
@@ -1166,9 +1166,9 @@ public class Gemini extends GeminiApi
                 }
             }
         }
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
-        String settle = this.safeCurrencyCode(settleId);
+        String base = this.safeCurrencyCode((String) (baseId));
+        String quote = this.safeCurrencyCode((String) (quoteId));
+        String settle = this.safeCurrencyCode((String) (settleId));
         Object symbol = ((base + "/") + quote);
         if (!java.util.Objects.equals(settleId, null))
         {
@@ -1266,7 +1266,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1276,7 +1276,7 @@ public class Gemini extends GeminiApi
                 ((Map<String, Object>)request).put("limit_asks", limit);
             }
             Map<String, Object> response = (this.publicGetV1BookSymbol(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "amount");
+            return this.parseOrderBook(response, (String) (((Map<String, Object>)market).get("symbol")), null, "bids", "asks", "price", "amount");
         }).thenApply(OrderBook::new);
 
     }
@@ -1291,7 +1291,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1308,7 +1308,7 @@ public class Gemini extends GeminiApi
             //         "last":"9115.23"
             //     }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         });
 
     }
@@ -1323,7 +1323,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1341,7 +1341,7 @@ public class Gemini extends GeminiApi
             //         "ask":"9115.87"
             //     }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         });
 
     }
@@ -1401,7 +1401,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // fetchTickers
@@ -1461,8 +1461,8 @@ public class Gemini extends GeminiApi
                 baseId = (marketId == null ? null : ((String)marketId).substring(0, Math.min(3, ((String)marketId).length())));
                 quoteId = (marketId == null ? null : ((String)marketId).substring(Math.min(3, ((String)marketId).length()), Math.min(6, ((String)marketId).length())));
             }
-            base = this.safeCurrencyCode(baseId);
-            quote = this.safeCurrencyCode(quoteId);
+            base = this.safeCurrencyCode((String) (baseId));
+            quote = this.safeCurrencyCode((String) (quoteId));
             symbol = Helpers.add((base + "/"), quote);
         }
         if ((java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(market, null)))
@@ -1478,7 +1478,7 @@ public class Gemini extends GeminiApi
         String baseVolume = this.safeString(volume, baseId);
         String quoteVolume = this.safeString(volume, quoteId);
         final Object finalSymbol = symbol;
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
             put( "timestamp", timestamp );
             put( "datetime", Gemini.this.iso8601(timestamp) );
@@ -1499,7 +1499,7 @@ public class Gemini extends GeminiApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1539,12 +1539,12 @@ public class Gemini extends GeminiApi
             //
             Object result = this.parseTickers(response, symbols);
             List<Object> brokenPairs = (List<Object>) this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
-            return this.removeKeysFromDict(result, brokenPairs);
+            return this.removeKeysFromDict((Map<String, Object>) (result), brokenPairs);
         }).thenApply(Tickers::new);
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // public fetchTrades
@@ -1592,8 +1592,8 @@ public class Gemini extends GeminiApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String side = this.safeStringLower(trade, "type");
-        String symbol = this.safeSymbol(null, market);
-        return this.safeTrade(new HashMap<String, Object>() {{
+        String symbol = this.safeSymbol((String) (null), market);
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "order", orderId );
             put( "info", trade );
@@ -1607,7 +1607,7 @@ public class Gemini extends GeminiApi
             put( "cost", null );
             put( "amount", amountString );
             put( "fee", fee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1633,7 +1633,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1682,7 +1682,7 @@ public class Gemini extends GeminiApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -1781,7 +1781,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // createOrder (private)
@@ -1936,7 +1936,7 @@ public class Gemini extends GeminiApi
         final Object finalType = type;
         final Object finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "info", order );
@@ -1958,7 +1958,7 @@ public class Gemini extends GeminiApi
             put( "remaining", remaining );
             put( "fee", fee );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -2009,7 +2009,7 @@ public class Gemini extends GeminiApi
             //          "remaining_amount":"0.01"
             //      }
             //
-            return this.parseOrder(response);
+            return this.parseOrder((Map<String, Object>) (response));
         }).thenApply(Order::new);
 
     }
@@ -2067,7 +2067,7 @@ public class Gemini extends GeminiApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol); // throws on non-existent symbol
+                market = this.market((String) (symbol)); // throws on non-existent symbol
             }
             return this.parseOrders(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2108,9 +2108,9 @@ public class Gemini extends GeminiApi
             {
                 clientOrderId = String.valueOf(this.milliseconds());
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object amountString = this.amountToPrecision(symbol, amount);
-            Object priceString = this.priceToPrecision(symbol, price);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Object amountString = this.amountToPrecision((String) (symbol), amount);
+            Object priceString = this.priceToPrecision((String) (symbol), price);
             final Object finalClientOrderId = clientOrderId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "client_order_id", finalClientOrderId );
@@ -2130,7 +2130,7 @@ public class Gemini extends GeminiApi
             }
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                ((Map<String, Object>)request).put("stop_price", this.priceToPrecision(symbol, triggerPrice));
+                ((Map<String, Object>)request).put("stop_price", this.priceToPrecision((String) (symbol), triggerPrice));
                 ((Map<String, Object>)request).put("type", "exchange stop limit");
             } else
             {
@@ -2187,7 +2187,7 @@ public class Gemini extends GeminiApi
             //          "remaining_amount":"0"
             //      }
             //
-            return this.parseOrder(response);
+            return this.parseOrder((Map<String, Object>) (response));
         }).thenApply(Order::new);
 
     }
@@ -2241,7 +2241,7 @@ public class Gemini extends GeminiApi
             //          "remaining_amount":"0.01"
             //      }
             //
-            return this.parseOrder(response);
+            return this.parseOrder((Map<String, Object>) (response));
         }).thenApply(Order::new);
 
     }
@@ -2274,7 +2274,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2319,7 +2319,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
@@ -2354,7 +2354,7 @@ public class Gemini extends GeminiApi
             {
                 throw new ExchangeError(((this.id + " withdraw() failed: ") + this.json(response))) ;
             }
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2408,7 +2408,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // withdraw
@@ -2491,7 +2491,7 @@ public class Gemini extends GeminiApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String address = this.safeString(depositAddress, "address");
-        String code = this.safeCurrencyCode(null, currency);
+        String code = this.safeCurrencyCode((String) (null), currency);
         return new HashMap<String, Object>() {{
             put( "currency", code );
             put( "network", null );
@@ -2551,7 +2551,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             code = ((Map<String, Object>)currency).get("code");
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
@@ -2687,7 +2687,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2730,7 +2730,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             String timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "timeframe", timeframeId );
@@ -2773,7 +2773,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2804,13 +2804,13 @@ public class Gemini extends GeminiApi
         //    }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return this.safeOpenInterest(new HashMap<String, Object>() {{
+        return this.safeOpenInterest((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", interest );
             put( "symbol", Gemini.this.safeString(market, "symbol") );
             put( "openInterestAmount", Gemini.this.safeString(interest, "open_interest") );
             put( "openInterestValue", Gemini.this.safeString(interest, "open_interest_notional") );
             put( "timestamp", null );
             put( "datetime", null );
-        }}, market);
+        }}), market);
     }
 }

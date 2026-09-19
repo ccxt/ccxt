@@ -489,7 +489,7 @@ public class Coinone extends CoinoneApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode(id);
@@ -497,7 +497,7 @@ public class Coinone extends CoinoneApi
         Boolean isDepositEnabled = java.util.Objects.equals(this.safeString(rawCurrency, "deposit_status", ""), "normal");
         String type = (((!java.util.Objects.equals(code, "KRW")))) ? "crypto" : "fiat";
         final Object finalCode = code;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", finalCode );
             put( "info", rawCurrency );
@@ -519,7 +519,7 @@ public class Coinone extends CoinoneApi
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
             put( "type", type );
-        }});
+        }}));
     }
 
     /**
@@ -651,7 +651,7 @@ public class Coinone extends CoinoneApi
         {
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Object balance = Helpers.GetValue(balances, currencyId);
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Object account = this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "avail"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
@@ -660,7 +660,7 @@ public class Coinone extends CoinoneApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -708,7 +708,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "quote_currency", ((Map<String, Object>)market).get("quote") );
                 put( "target_currency", ((Map<String, Object>)market).get("base") );
@@ -742,7 +742,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "qty");
+            return this.parseOrderBook(response, (String) (((Map<String, Object>)market).get("symbol")), timestamp, "bids", "asks", "price", "qty");
         }).thenApply(OrderBook::new);
 
     }
@@ -843,7 +843,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "quote_currency", ((Map<String, Object>)market).get("quote") );
                 put( "target_currency", ((Map<String, Object>)market).get("base") );
@@ -884,12 +884,12 @@ public class Coinone extends CoinoneApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -927,7 +927,7 @@ public class Coinone extends CoinoneApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         final Object finalBase = base;
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", ((finalBase + "/") + quote) );
             put( "timestamp", timestamp );
             put( "datetime", Coinone.this.iso8601(timestamp) );
@@ -948,10 +948,10 @@ public class Coinone extends CoinoneApi
             put( "baseVolume", Coinone.this.safeString(ticker, "target_volume") );
             put( "quoteVolume", Coinone.this.safeString(ticker, "quote_volume") );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -1007,7 +1007,7 @@ public class Coinone extends CoinoneApi
         final Object finalMarket = market;
         final Object finalSide = side;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Coinone.this.safeString(trade, "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1021,7 +1021,7 @@ public class Coinone extends CoinoneApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1047,7 +1047,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "quote_currency", ((Map<String, Object>)market).get("quote") );
                 put( "target_currency", ((Map<String, Object>)market).get("base") );
@@ -1115,7 +1115,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             // the v1 order/limit_buy and order/limit_sell endpoints were retired by
             // the exchange and return 404, the v2.1 order endpoint replaces them,
             // see https://github.com/ccxt/ccxt/issues/23174
@@ -1126,8 +1126,8 @@ public class Coinone extends CoinoneApi
                 put( "target_currency", ((Map<String, Object>)market).get("baseId") );
                 put( "type", finalOrderType );
                 put( "side", orderSide );
-                put( "price", Coinone.this.priceToPrecision(symbol, finalPrice) );
-                put( "qty", Coinone.this.amountToPrecision(symbol, amount) );
+                put( "price", Coinone.this.priceToPrecision((String) (symbol), finalPrice) );
+                put( "qty", Coinone.this.amountToPrecision((String) (symbol), amount) );
             }};
             Map<String, Object> response = (this.v2_1PrivatePostOrderLimit(this.extend(request, parameters))).join();
             //
@@ -1137,7 +1137,7 @@ public class Coinone extends CoinoneApi
             //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -1166,7 +1166,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "currency", ((Map<String, Object>)market).get("id") );
@@ -1193,7 +1193,7 @@ public class Coinone extends CoinoneApi
             //         "averageExecutedPrice": "10011000.0"
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -1210,7 +1210,7 @@ public class Coinone extends CoinoneApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -1327,7 +1327,7 @@ public class Coinone extends CoinoneApi
         final Object finalRemainingString = remainingString;
         final Object finalStatus = status;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", null );
@@ -1349,7 +1349,7 @@ public class Coinone extends CoinoneApi
             put( "status", finalStatus );
             put( "fee", finalFee );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1381,7 +1381,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "quote_currency", ((Map<String, Object>)market).get("quoteId") );
                 put( "target_currency", ((Map<String, Object>)market).get("baseId") );
@@ -1437,7 +1437,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)market).get("id") );
             }};
@@ -1508,7 +1508,7 @@ public class Coinone extends CoinoneApi
                 put( "price", finalPrice );
                 put( "qty", finalQty );
                 put( "is_ask", finalIsAsk );
-                put( "currency", Coinone.this.marketId(finalSymbol) );
+                put( "currency", Coinone.this.marketId((String) (finalSymbol)) );
             }};
             Map<String, Object> response = (this.v2PrivatePostOrderCancel(this.extend(request, parameters))).join();
             //
@@ -1517,7 +1517,7 @@ public class Coinone extends CoinoneApi
             //         "errorCode": "0"
             //     }
             //
-            return this.safeOrder(response);
+            return this.safeOrder((Map<String, Object>) (response));
         }).thenApply(Order::new);
 
     }

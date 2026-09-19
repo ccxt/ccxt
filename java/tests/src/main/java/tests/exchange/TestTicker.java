@@ -76,7 +76,7 @@ public class TestTicker extends BaseTest {
         {
             if ((!java.util.Objects.equals(exchange.markets, null)) && (((Map<?, ?>)exchange.markets).containsKey(symbolForMarket)))
             {
-                market = exchange.market(symbolForMarket);
+                market = exchange.market((String) (symbolForMarket));
             } else
             {
                 isUnrecognizedSymbol = true;

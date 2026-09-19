@@ -80,7 +80,7 @@ public class TestAfterConstruct extends BaseTest {
                 Object networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
                 Object networkId = Helpers.GetValue(((Map<String, Object>)exchange.options).get("networks"), networkCode);
                 // check networkCodeToId
-                Object networkIdConverted = exchange.networkCodeToId(networkCode);
+                Object networkIdConverted = exchange.networkCodeToId((String) (networkCode));
                 Assert(java.util.Objects.equals(networkId, networkIdConverted), (Helpers.add((((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + networkIdConverted) + "\" does not match exchange.options[\"networks\"][\"") + networkCode) + "\"]=\""), networkId) + "\""));
                 // ensure it exists in networksById
                 Assert(Helpers.inOp(((Map<String, Object>)exchange.options).get("networksById"), networkId), (Helpers.add("exchange.options[\"networksById\"] does not contain networkId \"", networkId) + "\""));

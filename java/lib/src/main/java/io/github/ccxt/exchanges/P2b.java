@@ -412,7 +412,7 @@ public class P2b extends P2bApi
 
     }
 
-    public Object parseMarket(Object market)
+    public Object parseMarket(Map<String, Object> market)
     {
         String marketId = this.safeString(market, "name");
         String baseId = this.safeString(market, "stock");
@@ -545,7 +545,7 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -575,12 +575,12 @@ public class P2b extends P2bApi
             return this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
                 put( "datetime", P2b.this.iso8601(timestamp) );
-            }}, this.parseTicker(result, market));
+            }}, this.parseTicker((Map<String, Object>) (result), market));
         }).thenApply(Ticker::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // parseTickers
@@ -615,13 +615,13 @@ public class P2b extends P2bApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeIntegerProduct(ticker, "at", 1000);
-        if (Helpers.inOp(ticker, "ticker"))
+        if (ticker.containsKey("ticker"))
         {
-            ticker = this.safeDict(ticker, "ticker");
+            ticker = (Map<String, Object>) (this.safeDict(ticker, "ticker"));
         }
         String last = this.safeString(ticker, "last");
         final Object finalTicker = ticker;
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", P2b.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", P2b.this.iso8601(timestamp) );
@@ -642,7 +642,7 @@ public class P2b extends P2bApi
             put( "baseVolume", P2b.this.safeString2(finalTicker, "vol", "volume") );
             put( "quoteVolume", P2b.this.safeString(finalTicker, "deal") );
             put( "info", finalTicker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -669,7 +669,7 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -705,7 +705,7 @@ public class P2b extends P2bApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeIntegerProduct(response, "current_time", 1000);
-            return this.parseOrderBook(result, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1);
+            return this.parseOrderBook(result, (String) (((Map<String, Object>)market).get("symbol")), timestamp, "bids", "asks", 0, 1);
         }).thenApply(OrderBook::new);
 
     }
@@ -739,7 +739,7 @@ public class P2b extends P2bApi
             {
                 throw new ArgumentsRequired((this.id + " fetchTrades () requires an extra parameter params[\"lastId\"]")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             final Object finalLastId = lastId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -775,7 +775,7 @@ public class P2b extends P2bApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -828,7 +828,7 @@ public class P2b extends P2bApi
             takerOrMaker = "taker";
         }
         final Object finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", P2b.this.safeString2(trade, "id", "deal_id") );
             put( "timestamp", timestamp );
@@ -845,7 +845,7 @@ public class P2b extends P2bApi
                 put( "currency", P2b.this.safeString(market, "quote") );
                 put( "cost", P2b.this.safeString2(trade, "fee", "deal_fee") );
             }} );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -874,7 +874,7 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "interval", timeframe );
@@ -994,7 +994,7 @@ public class P2b extends P2bApi
         {
             Object currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object balance = Helpers.GetValue(response, currencyId);
-            Object code = this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode((String) (currencyId));
             String used = this.safeString(balance, "freeze");
             String available = this.safeString(balance, "available");
             Map<String, Object> account = new HashMap<String, Object>() {{
@@ -1003,7 +1003,7 @@ public class P2b extends P2bApi
             }};
             ((Map<String, Object>)result).put((String)((String)code), account);
         }
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -1034,12 +1034,12 @@ public class P2b extends P2bApi
             {
                 throw new BadRequest((this.id + " createOrder () can only accept orders with type \"limit\"")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "side", side );
-                put( "amount", P2b.this.amountToPrecision(symbol, amount) );
-                put( "price", P2b.this.priceToPrecision(symbol, price) );
+                put( "amount", P2b.this.amountToPrecision((String) (symbol), amount) );
+                put( "price", P2b.this.priceToPrecision((String) (symbol), price) );
             }};
             Map<String, Object> response = (this.privatePostOrderNew(this.extend(request, parameters))).join();
             //
@@ -1065,7 +1065,7 @@ public class P2b extends P2bApi
             //    }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
-            return this.parseOrder(result, market);
+            return this.parseOrder((Map<String, Object>) (result), market);
         }).thenApply(Order::new);
 
     }
@@ -1095,7 +1095,7 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "orderId", id );
@@ -1124,7 +1124,7 @@ public class P2b extends P2bApi
             //    }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
-            return this.parseOrder(result);
+            return this.parseOrder((Map<String, Object>) (result));
         }).thenApply(Order::new);
 
     }
@@ -1160,7 +1160,7 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -1319,7 +1319,7 @@ public class P2b extends P2bApi
             {
                 throw new BadRequest((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Long sinceSec = this.parseToInt(Helpers.divide(since, 1000));
             Long untilSec = this.parseToInt(Helpers.divide(until, 1000));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1398,7 +1398,7 @@ public class P2b extends P2bApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             if (java.util.Objects.equals(until, null))
             {
@@ -1474,7 +1474,7 @@ public class P2b extends P2bApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // cancelOrder, fetchOpenOrders, createOrder
@@ -1518,7 +1518,7 @@ public class P2b extends P2bApi
         String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         final Object finalMarket = market;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", P2b.this.safeString2(order, "id", "orderId") );
             put( "clientOrderId", null );
@@ -1543,7 +1543,7 @@ public class P2b extends P2bApi
                 put( "cost", P2b.this.safeString(order, "dealFee") );
             }} );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public Object sign(Object path, Object... optionalArgs)

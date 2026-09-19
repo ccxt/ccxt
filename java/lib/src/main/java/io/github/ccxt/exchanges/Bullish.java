@@ -711,13 +711,13 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode(id);
         String name = this.safeString(rawCurrency, "name");
         String precision = this.safeString(rawCurrency, "precision");
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "name", name );
@@ -739,7 +739,7 @@ public class Bullish extends BullishApi
             put( "networks", new HashMap<String, Object>() {{}} );
             put( "type", "crypto" );
             put( "info", rawCurrency );
-        }});
+        }}));
     }
 
     /**
@@ -766,7 +766,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object parseMarket(Object market)
+    public Object parseMarket(Map<String, Object> market)
     {
         //
         //     {
@@ -1154,7 +1154,7 @@ public class Bullish extends BullishApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1179,7 +1179,7 @@ public class Bullish extends BullishApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "priceLevelQuantity");
+            return this.parseOrderBook(response, (String) (symbol), timestamp, "bids", "asks", "price", "priceLevelQuantity");
         }).thenApply(OrderBook::new);
 
     }
@@ -1220,7 +1220,7 @@ public class Bullish extends BullishApi
                 parameters = this.handlePaginationParams("fetchTrades", since, parameters);
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters, maxLimit)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1282,7 +1282,7 @@ public class Bullish extends BullishApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -1371,7 +1371,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1432,7 +1432,7 @@ public class Bullish extends BullishApi
         String side = this.safeStringLower(trade, "side");
         Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker");
         Object currency = ((Map<String, Object>)market).get("quote");
-        String code = this.safeCurrencyCode(currency);
+        String code = this.safeCurrencyCode((String) (currency));
         Double feeCost = this.safeNumber(trade, "quoteFee");
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
@@ -1454,7 +1454,7 @@ public class Bullish extends BullishApi
         String orderId = this.safeString(trade, "orderId");
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Bullish.this.iso8601(timestamp) );
@@ -1468,7 +1468,7 @@ public class Bullish extends BullishApi
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1490,7 +1490,7 @@ public class Bullish extends BullishApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1533,12 +1533,12 @@ public class Bullish extends BullishApi
             //         ]
             //     }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         }).thenApply(Ticker::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1583,7 +1583,7 @@ public class Bullish extends BullishApi
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(ticker, "createdAtTimestamp");
         final Object finalMarket = market;
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Bullish.this.iso8601(timestamp) );
@@ -1605,7 +1605,7 @@ public class Bullish extends BullishApi
             put( "quoteVolume", Bullish.this.safeString(ticker, "quoteVolume") );
             put( "markPrice", Bullish.this.safeString(ticker, "markPrice") );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     public CompletableFuture<Object> safeDeterministicCall(Object method2, Object... optionalArgs)
@@ -1689,7 +1689,7 @@ public class Bullish extends BullishApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Integer maxLimit = 100;
             Object paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
@@ -1790,7 +1790,7 @@ public class Bullish extends BullishApi
                 parameters = this.handlePaginationParams("fetchFundingRateHistory", since, parameters);
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, parameters, maxLimit)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadRequest((this.id + " fetchFundingRateHistory() supports swap markets only")) ;
@@ -1878,7 +1878,7 @@ public class Bullish extends BullishApi
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             parameters = this.handleSinceAndUntil(since, parameters);
@@ -2150,7 +2150,7 @@ public class Bullish extends BullishApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
@@ -2184,7 +2184,7 @@ public class Bullish extends BullishApi
             //         "createdAtTimestamp": "1621490985000",
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -2217,12 +2217,12 @@ public class Bullish extends BullishApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "commandType", "V3CreateOrder" );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "side", ((String)((String)side)).toUpperCase() );
-                put( "quantity", Bullish.this.amountToPrecision(symbol, amount) );
+                put( "quantity", Bullish.this.amountToPrecision((String) (symbol), amount) );
                 put( "tradingAccountId", tradingAccountId );
             }};
             Boolean isMarketOrder = ((java.util.Objects.equals(type, "market")) || java.util.Objects.equals(type, "MARKET"));
@@ -2241,7 +2241,7 @@ public class Bullish extends BullishApi
             ((Map<String, Object>)parameters).put("timeInForce", ((String)timeInForce).toUpperCase());
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
             }
             String triggerPrice = this.safeString(parameters, "triggerPrice");
             if (!java.util.Objects.equals(triggerPrice, null))
@@ -2250,7 +2250,7 @@ public class Bullish extends BullishApi
                 {
                     throw new NotSupported((this.id + " createOrder() does not support market trigger orders")) ;
                 }
-                ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
+                ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision((String) (symbol), triggerPrice));
                 type = "STOP_LIMIT";
                 parameters = this.omit(parameters, "triggerPrice");
             }
@@ -2264,7 +2264,7 @@ public class Bullish extends BullishApi
             //         "clientOrderId": "1234567"
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -2296,7 +2296,7 @@ public class Bullish extends BullishApi
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "commandType", "V1AmendOrder" );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2319,14 +2319,14 @@ public class Bullish extends BullishApi
             }
             if (!java.util.Objects.equals(amount, null))
             {
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put("quantity", this.amountToPrecision((String) (symbol), amount));
             }
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
             }
             Map<String, Object> response = (this.privatePostV2Command(this.extend(request, parameters))).join();
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -2356,7 +2356,7 @@ public class Bullish extends BullishApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "tradingAccountId", tradingAccountId );
@@ -2372,7 +2372,7 @@ public class Bullish extends BullishApi
             //         "clientOrderId": null
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -2402,7 +2402,7 @@ public class Bullish extends BullishApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 ((Map<String, Object>)request).put("commandType", "V1CancelAllOrdersByMarket");
             } else
@@ -2422,7 +2422,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // fetchOrders, fetchOrder
@@ -2509,7 +2509,7 @@ public class Bullish extends BullishApi
         String average = this.safeString(order, "averageFillPrice");
         final Object finalStatus = status;
         final Object finalType = type;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", Bullish.this.safeString(order, "clientOrderId") );
             put( "timestamp", timestamp );
@@ -2531,7 +2531,7 @@ public class Bullish extends BullishApi
             put( "fee", fee );
             put( "info", order );
             put( "average", average );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderStatus(String status)
@@ -2629,7 +2629,7 @@ public class Bullish extends BullishApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -2660,13 +2660,13 @@ public class Bullish extends BullishApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             // todo check this method properly
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "command", new HashMap<String, Object>() {{
                     put( "commandType", "V1Withdraw" );
                     put( "destinationId", address );
                     put( "symbol", ((Map<String, Object>)currency).get("id") );
-                    put( "quantity", Bullish.this.currencyToPrecision(code, amount) );
+                    put( "quantity", Bullish.this.currencyToPrecision((String) (code), amount) );
                 }} );
             }};
             String networkCode = null;
@@ -2691,12 +2691,12 @@ public class Bullish extends BullishApi
             //         }
             //     }
             //
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -2929,7 +2929,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object parseAccount(Object account)
+    public Object parseAccount(Map<String, Object> account)
     {
         return new HashMap<String, Object>() {{
             put( "id", Bullish.this.safeString(account, "tradingAccountId") );
@@ -2956,7 +2956,7 @@ public class Bullish extends BullishApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)currency).get("id") );
             }};
@@ -3089,7 +3089,7 @@ public class Bullish extends BullishApi
         ((Map<String, Object>)account).put("free", this.safeString(response, "availableQuantity"));
         ((Map<String, Object>)account).put("used", this.safeString(response, "lockedQuantity"));
         ((Map<String, Object>)result).put((String)((String)code), account);
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     public Object parseBalance(Object response)
@@ -3110,7 +3110,7 @@ public class Bullish extends BullishApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -3163,7 +3163,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     [
@@ -3191,7 +3191,7 @@ public class Bullish extends BullishApi
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(position, "createdAtTimestamp");
         String side = this.safeString(position, "side");
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -3219,7 +3219,7 @@ public class Bullish extends BullishApi
             put( "percentage", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     public Object parsePositionSide(String side)
@@ -3271,7 +3271,7 @@ public class Bullish extends BullishApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("assetSymbol", ((Map<String, Object>)currency).get("id"));
             }
             Long until = this.safeInteger(parameters, "until");
@@ -3330,11 +3330,11 @@ public class Bullish extends BullishApi
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             // todo check this method properly
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "commandType", "V2TransferAsset" );
                 put( "assetSymbol", ((Map<String, Object>)currency).get("id") );
-                put( "quantity", Bullish.this.currencyToPrecision(code, amount) );
+                put( "quantity", Bullish.this.currencyToPrecision((String) (code), amount) );
                 put( "fromTradingAccountId", fromAccount );
                 put( "toTradingAccountId", toAccount );
             }};
@@ -3347,7 +3347,7 @@ public class Bullish extends BullishApi
             //
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            Object transfer = this.parseTransfer(response, currency);
+            Object transfer = this.parseTransfer((Map<String, Object>) (response), currency);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
@@ -3360,7 +3360,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         // fetchTransfers
@@ -3439,7 +3439,7 @@ public class Bullish extends BullishApi
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object request = new HashMap<String, Object>() {{
                 put( "assetSymbol", ((Map<String, Object>)currency).get("id") );
                 put( "tradingAccountId", tradingAccountId );
@@ -3474,7 +3474,7 @@ public class Bullish extends BullishApi
             //         }
             //     ]
             //
-            return this.parseBorrowRateHistory(response, code, since, limit);
+            return this.parseBorrowRateHistory(response, (String) (code), since, limit);
         });
 
     }
@@ -3528,7 +3528,7 @@ public class Bullish extends BullishApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3618,7 +3618,7 @@ public class Bullish extends BullishApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String openInterest = this.safeString(interest, "openInterest");
-        return this.safeOpenInterest(new HashMap<String, Object>() {{
+        return this.safeOpenInterest((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", interest );
             put( "symbol", Bullish.this.safeString(market, "symbol") );
             put( "openInterestAmount", openInterest );
@@ -3627,7 +3627,7 @@ public class Bullish extends BullishApi
             put( "datetime", Bullish.this.safeString(interest, "createdAtDatetime") );
             put( "baseVolume", openInterest );
             put( "quoteVolume", null );
-        }}, market);
+        }}), market);
     }
 
     public Object sign(Object path, Object... optionalArgs)

@@ -683,7 +683,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseMarket(Object market)
+    public Object parseMarket(Map<String, Object> market)
     {
         //
         //     {
@@ -882,7 +882,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public Object parseCurrency(Map<String, Object> currency)
     {
         //
         //     {
@@ -921,7 +921,7 @@ public class Extended extends ExtendedApi
         final Object finalCurrencyId = currencyId;
         final Object finalCode = code;
         final Object finalPrecision = precision;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalCurrencyId );
             put( "code", finalCode );
             put( "numericId", Extended.this.safeInteger(currency, "id") );
@@ -933,7 +933,7 @@ public class Extended extends ExtendedApi
             put( "type", "other" );
             put( "margin", Extended.this.safeBool(currency, "canBeUsedAsCollateral") );
             put( "info", currency );
-        }});
+        }}));
     }
 
     /**
@@ -952,7 +952,7 @@ public class Extended extends ExtendedApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -994,7 +994,7 @@ public class Extended extends ExtendedApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTicker(data, market);
+            return this.parseTicker((Map<String, Object>) (data), market);
         }).thenApply(Ticker::new);
 
     }
@@ -1023,7 +1023,7 @@ public class Extended extends ExtendedApi
                 List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                    Map<String, Object> market = (Map<String, Object>) this.market((String) (Helpers.GetValue(symbols, i)));
                     ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
                 }
                 ((Map<String, Object>)request).put("market", marketIds);
@@ -1054,7 +1054,7 @@ public class Extended extends ExtendedApi
                 String marketId = this.safeString(marketData, "name");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Map<String, Object> stats = (Map<String, Object>) this.safeDict(marketData, "marketStats", new HashMap<String, Object>() {{}});
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(stats, market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (stats), market);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -1066,7 +1066,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1102,11 +1102,11 @@ public class Extended extends ExtendedApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String symbol = this.safeSymbol(null, market);
+        String symbol = this.safeSymbol((String) (null), market);
         Double last = this.safeNumber(ticker, "lastPrice");
         String percentageRaw = this.safeString(ticker, "dailyPriceChangePercentage");
         String percentage = (((!java.util.Objects.equals(percentageRaw, null)))) ? Precise.stringMul(percentageRaw, "100") : null;
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1129,7 +1129,7 @@ public class Extended extends ExtendedApi
             put( "markPrice", Extended.this.safeNumber(ticker, "markPrice") );
             put( "indexPrice", Extended.this.safeNumber(ticker, "indexPrice") );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1150,7 +1150,7 @@ public class Extended extends ExtendedApi
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -1177,7 +1177,7 @@ public class Extended extends ExtendedApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bid", "ask", "price", "qty");
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, (String) (((Map<String, Object>)market).get("symbol")), timestamp, "bid", "ask", "price", "qty");
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)orderbook).put("bids", this.arraySlice(((Map<String, Object>)orderbook).get("bids"), 0, limit));
@@ -1208,7 +1208,7 @@ public class Extended extends ExtendedApi
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -1269,7 +1269,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1359,7 +1359,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1465,7 +1465,7 @@ public class Extended extends ExtendedApi
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1520,7 +1520,7 @@ public class Extended extends ExtendedApi
             takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
         }
         final Object finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Extended.this.safeString2(trade, "i", "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1534,7 +1534,7 @@ public class Extended extends ExtendedApi
             put( "amount", amountString );
             put( "cost", Extended.this.safeString(trade, "value") );
             put( "fee", fee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1562,7 +1562,7 @@ public class Extended extends ExtendedApi
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             String price = this.safeString(parameters, "price");
             String candleType = this.safeString(parameters, "candleType");
             if (java.util.Objects.equals(candleType, null))
@@ -1667,7 +1667,7 @@ public class Extended extends ExtendedApi
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "cursor", "cursor", null, 10000)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             if (java.util.Objects.equals(limit, null))
             {
@@ -1775,7 +1775,7 @@ public class Extended extends ExtendedApi
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             String interval = this.safeString(this.timeframes, timeframe);
             if (!this.inArray(interval, new ArrayList<Object>(Arrays.asList("PT1H", "P1D"))))
             {
@@ -1832,7 +1832,7 @@ public class Extended extends ExtendedApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(interest, "t");
-        return this.safeOpenInterest(new HashMap<String, Object>() {{
+        return this.safeOpenInterest((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", Extended.this.safeString(market, "symbol") );
             put( "openInterestAmount", Extended.this.safeNumber(interest, "I") );
             put( "openInterestValue", Extended.this.safeNumber(interest, "i") );
@@ -1841,7 +1841,7 @@ public class Extended extends ExtendedApi
             put( "timestamp", timestamp );
             put( "datetime", Extended.this.iso8601(timestamp) );
             put( "info", interest );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1913,7 +1913,7 @@ public class Extended extends ExtendedApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -1950,7 +1950,7 @@ public class Extended extends ExtendedApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseAccount(data);
+            return this.parseAccount((Map<String, Object>) (data));
         });
 
     }
@@ -2000,7 +2000,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseAccount(Object account)
+    public Object parseAccount(Map<String, Object> account)
     {
         Long accountIndex = this.safeInteger(account, "accountIndex");
         String type = null;
@@ -2050,7 +2050,7 @@ public class Extended extends ExtendedApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -2080,7 +2080,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         //     {
@@ -2171,7 +2171,7 @@ public class Extended extends ExtendedApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -2302,7 +2302,7 @@ public class Extended extends ExtendedApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String chainId = this.safeStringUpper2(parameters, "chainId", "network", "STRK");
             if (!java.util.Objects.equals(chainId, "STRK"))
             {
@@ -2313,7 +2313,7 @@ public class Extended extends ExtendedApi
                 throw new BadRequest((this.id + " withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow")) ;
             }
             Object account = (this.fetchExtendedAccount()).join();
-            Object amountString = this.currencyToPrecision(code, amount);
+            Object amountString = this.currencyToPrecision((String) (code), amount);
             String accountId = this.safeString(account, "accountId");
             Object settlement = this.createWithdrawalSettlementData(address, ((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), parameters);
             final Object finalChainId = chainId;
@@ -2392,7 +2392,7 @@ public class Extended extends ExtendedApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "TRANSFER" );
@@ -2449,7 +2449,7 @@ public class Extended extends ExtendedApi
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object account = (this.fetchExtendedAccount()).join();
             String currentAccountId = this.safeString(account, "accountId", "");
             if (java.util.Objects.equals(fromAccount, null))
@@ -2465,7 +2465,7 @@ public class Extended extends ExtendedApi
             {
                 throw new ArgumentsRequired((this.id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
             }
-            Object amountString = this.currencyToPrecision(code, amount);
+            Object amountString = this.currencyToPrecision((String) (code), amount);
             Object settlement = this.createTransferSettlementData(((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), toVault, toL2Key, parameters);
             final Object finalFromAccount = fromAccount;
             final Object finalToAccount = toAccount;
@@ -2511,7 +2511,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(transfer, "time");
@@ -2570,7 +2570,7 @@ public class Extended extends ExtendedApi
         {
             return (String) ((Map<String, Object>)currency).get("code");
         }
-        String code = this.safeCurrencyCode(assetId);
+        String code = this.safeCurrencyCode((String) (assetId));
         if (java.util.Objects.equals(code, "USD"))
         {
             code = "USDC";
@@ -2600,7 +2600,7 @@ public class Extended extends ExtendedApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -2676,7 +2676,7 @@ public class Extended extends ExtendedApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -2789,7 +2789,7 @@ public class Extended extends ExtendedApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -2806,7 +2806,7 @@ public class Extended extends ExtendedApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverage(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
+            return this.parseLeverage((Map<String, Object>) (this.safeDict(data, 0, new HashMap<String, Object>() {{}})), market);
         }).thenApply(Leverage::new);
 
     }
@@ -2833,7 +2833,7 @@ public class Extended extends ExtendedApi
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "leverage", Extended.this.numberToString(leverage) );
@@ -2846,12 +2846,12 @@ public class Extended extends ExtendedApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage(data, market);
+            return this.parseLeverage((Map<String, Object>) (data), market);
         });
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         //
         //     {
@@ -3044,7 +3044,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -3081,7 +3081,7 @@ public class Extended extends ExtendedApi
         String margin = this.safeString(position, "margin");
         final Object finalMarket = market;
         final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Extended.this.safeString(position, "id") );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -3110,7 +3110,7 @@ public class Extended extends ExtendedApi
             put( "hedged", null );
             put( "stopLossPrice", Extended.this.safeString(position, "slTriggerPrice") );
             put( "takeProfitPrice", Extended.this.safeString(position, "tpTriggerPrice") );
-        }});
+        }}));
     }
 
     public Object getExtendedStarkAmount(Object amount, Object resolution, Object... optionalArgs)
@@ -3287,7 +3287,7 @@ public class Extended extends ExtendedApi
                 throw new ArgumentsRequired((this.id + " requires a side argument")) ;
             }
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Object uppercaseType = ((String)type).toUpperCase();
             Object uppercaseSide = ((String)((String)side)).toUpperCase();
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !java.util.Objects.equals(uppercaseType, "LIMIT"))
@@ -3302,8 +3302,8 @@ public class Extended extends ExtendedApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price argument")) ;
             }
-            Object amountString = this.amountToPrecision(symbol, amount);
-            Object priceString = this.priceToPrecision(symbol, price);
+            Object amountString = this.amountToPrecision((String) (symbol), amount);
+            Object priceString = this.priceToPrecision((String) (symbol), price);
             Object postOnly = this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), null, parameters);
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
@@ -3429,8 +3429,8 @@ public class Extended extends ExtendedApi
                     String stopLossType = this.safeString(stopLoss, "type");
                     Object stopLossSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), ((String)amountString), stopLossExecutionPrice, settlementParams);
                     Map<String, Object> requestStopLoss = new HashMap<String, Object>() {{
-                        put( "triggerPrice", Extended.this.priceToPrecision(symbol, stopLossTrigger) );
-                        put( "price", Extended.this.priceToPrecision(symbol, stopLossExecutionPrice) );
+                        put( "triggerPrice", Extended.this.priceToPrecision((String) (symbol), stopLossTrigger) );
+                        put( "price", Extended.this.priceToPrecision((String) (symbol), stopLossExecutionPrice) );
                         put( "settlement", new HashMap<String, Object>() {{
                             put( "signature", new HashMap<String, Object>() {{
                                 put( "r", ((Map<String, Object>)stopLossSettlement).get("r") );
@@ -3458,8 +3458,8 @@ public class Extended extends ExtendedApi
                     String takeProfitType = this.safeString(takeProfit, "type");
                     Object takeProfitSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), ((String)amountString), takeProfitExecutionPrice, settlementParams);
                     Map<String, Object> requestTakeProfit = new HashMap<String, Object>() {{
-                        put( "triggerPrice", Extended.this.priceToPrecision(symbol, takeProfitTrigger) );
-                        put( "price", Extended.this.priceToPrecision(symbol, takeProfitExecutionPrice) );
+                        put( "triggerPrice", Extended.this.priceToPrecision((String) (symbol), takeProfitTrigger) );
+                        put( "price", Extended.this.priceToPrecision((String) (symbol), takeProfitExecutionPrice) );
                         put( "settlement", new HashMap<String, Object>() {{
                             put( "signature", new HashMap<String, Object>() {{
                                 put( "r", ((Map<String, Object>)takeProfitSettlement).get("r") );
@@ -3490,7 +3490,7 @@ public class Extended extends ExtendedApi
                     }
                     final Object finalTriggerPriceStr = triggerPriceStr;
                     Map<String, Object> trigger = new HashMap<String, Object>() {{
-                        put( "triggerPrice", Extended.this.priceToPrecision(symbol, finalTriggerPriceStr) );
+                        put( "triggerPrice", Extended.this.priceToPrecision((String) (symbol), finalTriggerPriceStr) );
                     }};
                     ((Map<String, Object>)trigger).put("direction", triggerDirection);
                     ((Map<String, Object>)request).put("type", "CONDITIONAL");
@@ -3500,7 +3500,7 @@ public class Extended extends ExtendedApi
                     triggerPriceStr = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
                     final Object finalTriggerPriceStr_2 = triggerPriceStr;
                     Map<String, Object> trigger = new HashMap<String, Object>() {{
-                        put( "triggerPrice", Extended.this.priceToPrecision(symbol, finalTriggerPriceStr_2) );
+                        put( "triggerPrice", Extended.this.priceToPrecision((String) (symbol), finalTriggerPriceStr_2) );
                     }};
                     if (Boolean.TRUE.equals(isBuy))
                     {
@@ -3584,7 +3584,7 @@ public class Extended extends ExtendedApi
             Long now = this.safeInteger(extendedOrderRequest, "timestamp");
             ((Map<String, Object>)data).put("timestamp", now);
             ((Map<String, Object>)data).put("status", "NEW");
-            return this.parseOrder(this.extend(request, data), market);
+            return this.parseOrder((Map<String, Object>) (this.extend(request, data)), market);
         }).thenApply(Order::new);
 
     }
@@ -3688,7 +3688,7 @@ public class Extended extends ExtendedApi
             Long now = this.safeInteger(extendedOrderRequest, "timestamp");
             ((Map<String, Object>)responseData).put("timestamp", now);
             ((Map<String, Object>)responseData).put("status", "NEW");
-            return this.parseOrder(this.extend(request, responseData), market);
+            return this.parseOrder((Map<String, Object>) (this.extend(request, responseData)), market);
         }).thenApply(Order::new);
 
     }
@@ -3716,7 +3716,7 @@ public class Extended extends ExtendedApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Object response = null;
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
@@ -3749,7 +3749,7 @@ public class Extended extends ExtendedApi
             Object orderSymbol = (((java.util.Objects.equals(market, null)))) ? symbol : ((Map<String, Object>)market).get("symbol");
             final Object finalResponse = response;
             final Object finalClientOrderId_2 = clientOrderId;
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "id", orderId );
                 put( "clientOrderId", finalClientOrderId_2 );
@@ -3757,7 +3757,7 @@ public class Extended extends ExtendedApi
                 put( "datetime", null );
                 put( "symbol", orderSymbol );
                 put( "status", "canceled" );
-            }}, market);
+            }}), market);
         }).thenApply(Order::new);
 
     }
@@ -3847,7 +3847,7 @@ public class Extended extends ExtendedApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("markets", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))));
             }
             (this.v1PrivatePostUserOrderMassCancel(this.extend(request, parameters))).join();
@@ -3915,7 +3915,7 @@ public class Extended extends ExtendedApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Object response = null;
             Object order = null;
@@ -3943,7 +3943,7 @@ public class Extended extends ExtendedApi
                 response = (this.v1PrivateGetUserOrdersId(this.extend(request, parameters))).join();
                 order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
-            return this.parseOrder(order, market);
+            return this.parseOrder((Map<String, Object>) (order), market);
         }).thenApply(Order::new);
 
     }
@@ -3973,7 +3973,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.v1PrivateGetUserOrders(this.extend(request, parameters))).join();
@@ -4045,7 +4045,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -4178,7 +4178,7 @@ public class Extended extends ExtendedApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //     {
@@ -4239,7 +4239,7 @@ public class Extended extends ExtendedApi
             put( "cost", feeCost );
             put( "currency", (((java.util.Objects.equals(finalMarket, null)))) ? null : ((Map<String, Object>)finalMarket).get("settle") );
         }};
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Extended.this.safeString(order, "id") );
             put( "clientOrderId", Extended.this.safeString(order, "externalId") );
@@ -4265,7 +4265,7 @@ public class Extended extends ExtendedApi
             put( "status", status );
             put( "fee", fee );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public Object getExtendedStringToFelt(Object value)

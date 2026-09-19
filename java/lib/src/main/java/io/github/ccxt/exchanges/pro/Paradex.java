@@ -81,7 +81,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Client client = this.client(url);
+            Client client = this.client((String) (url));
             String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -96,7 +96,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                         put( "bearer", token );
                     }} );
                 }};
-                this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null);
+                this.watch((String) (url), messageHash, this.deepExtend(request, parameters), messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
@@ -150,7 +150,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Object messageHash = "trades.";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
                 messageHash = Helpers.add(messageHash, ((Map<String, Object>)market).get("id"));
             } else
             {
@@ -165,7 +165,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                     put( "channel", finalMessageHash );
                 }} );
             }};
-            Object trades = (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
+            Object trades = (this.watch((String) (url), (String) (messageHash), this.deepExtend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -197,7 +197,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data);
+        Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade((Map<String, Object>) (data));
         Object symbol = ((Map<String, Object>)parsedTrade).get("symbol");
         String messageHash = this.safeString(parameters, "channel");
         Object stored = this.safeValue(this.trades, symbol);
@@ -232,7 +232,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             String messageHash = (("order_book." + ((Map<String, Object>)market).get("id")) + ".snapshot@15@100ms");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -242,7 +242,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                     put( "channel", messageHash );
                 }} );
             }};
-            Object orderbook = (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
+            Object orderbook = (this.watch((String) (url), messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -309,7 +309,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderbookData, (String) (symbol), timestamp, "bids", "asks");
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seq_no"));
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         String messageHash = this.safeString(parameters, "channel");
@@ -335,7 +335,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets()).join();
             }
-            symbol = this.symbol(symbol);
+            symbol = this.symbol((String) (symbol));
             String channel = "markets_summary";
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             final Object finalChannel = channel;
@@ -347,7 +347,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 }} );
             }};
             String messageHash = ((channel + ".") + symbol);
-            return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
+            return (this.watch((String) (url), messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -395,7 +395,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 ((List<Object>)messageHashes).add(channel);
             }
-            Object newTicker = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
+            Object newTicker = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -436,7 +436,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Object channel = "orders.";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
                 symbol = ((Map<String, Object>)market).get("symbol");
                 channel = Helpers.add(channel, ((Map<String, Object>)market).get("id"));
                 messageHash = (messageHash + (":" + symbol));
@@ -453,7 +453,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                     put( "channel", finalChannel );
                 }} );
             }};
-            Object orders = (this.watch(url, messageHash, this.deepExtend(request, parameters), channel, null)).join();
+            Object orders = (this.watch((String) (url), messageHash, this.deepExtend(request, parameters), channel, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -494,7 +494,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((Map<String, Object>) (data));
         String symbol = this.safeString(parsed, "symbol");
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -544,7 +544,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String channel = this.safeString(parameters, "channel");
         Object messageHash = Helpers.add((channel + "."), symbol);
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (data), market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, channel);
         client.resolve(ticker, messageHash);
@@ -570,7 +570,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets()).join();
             }
-            symbol = this.symbol(symbol);
+            symbol = this.symbol((String) (symbol));
             String channel = "funding_data";
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             final Object finalChannel = channel;
@@ -582,7 +582,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 }} );
             }};
             String messageHash = ((channel + ".") + symbol);
-            return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
+            return (this.watch((String) (url), messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         }).thenApply(FundingRate::new);
 
     }
@@ -637,7 +637,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 ((List<Object>)messageHashes).add(channel);
             }
-            Object newFundingRates = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
+            Object newFundingRates = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -694,7 +694,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(contract, "market");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol((String) (marketId), market);
         Long timestamp = this.safeInteger(contract, "created_at");
         String fundingPeriod = this.safeString(contract, "funding_period_hours");
         final Object finalFundingPeriod = fundingPeriod;

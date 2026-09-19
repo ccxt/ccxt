@@ -126,7 +126,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
     }})) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            return (this.watch(url, messageHash, request, subscribeHash, request)).join();
+            return (this.watch((String) (url), messageHash, request, subscribeHash, request)).join();
         }).thenApply(Balances::new);
 
     }
@@ -185,7 +185,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             Object subscriptionHash = "MARKET_TICKER";
             String messageHash = ("ticker." + symbol);
@@ -265,7 +265,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(ticker, "instrument");
-            String symbol = this.safeSymbol(marketId);
+            String symbol = this.safeSymbol((String) (marketId));
             Helpers.addElementToObject(this.tickers, symbol, this.parseWSTicker((Map<String, Object>) (ticker)));
             Long timestamp = this.parse8601(datetime);
             Helpers.addElementToObject(Helpers.GetValue(this.tickers, symbol), "timestamp", timestamp);
@@ -290,8 +290,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "instrument");
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Onetrading.this.safeSymbol(marketId, market) );
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+            put( "symbol", Onetrading.this.safeSymbol((String) (marketId), market) );
             put( "timestamp", null );
             put( "datetime", null );
             put( "high", Onetrading.this.safeString(ticker, "high") );
@@ -311,7 +311,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             put( "baseVolume", null );
             put( "quoteVolume", Onetrading.this.safeNumber(ticker, "volume") );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -341,7 +341,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
@@ -357,7 +357,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
     }})) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            Object trades = (this.watch(url, messageHash, request, subscribeHash, request)).join();
+            Object trades = (this.watch((String) (url), messageHash, request, subscribeHash, request)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -394,7 +394,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("book:" + symbol);
             Object subscriptionHash = "ORDER_BOOK";
@@ -449,7 +449,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //
         String type = this.safeString(message, "type");
         String marketId = this.safeString(message, "instrument_code");
-        String symbol = this.safeSymbol(marketId);
+        String symbol = this.safeSymbol((String) (marketId));
         String dateTime = this.safeString(message, "time");
         Long timestamp = this.parse8601(dateTime);
         String channel = ("book:" + symbol);
@@ -460,7 +460,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
         if (java.util.Objects.equals(type, "ORDER_BOOK_SNAPSHOT"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, (String) (symbol), timestamp, "bids", "asks");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else if (java.util.Objects.equals(type, "ORDER_BOOK_UPDATE"))
         {
@@ -540,7 +540,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             String messageHash = "orders";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
@@ -556,7 +556,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
     }})) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            Object orders = (this.watch(url, messageHash, request, subscribeHash, request)).join();
+            Object orders = (this.watch((String) (url), messageHash, request, subscribeHash, request)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -719,8 +719,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String datetime = this.safeString(order, "time");
         String marketId = this.safeString(order, "instrument_code");
-        String symbol = this.safeSymbol(marketId, market, "_");
-        return this.safeOrder(new HashMap<String, Object>() {{
+        String symbol = this.safeSymbol((String) (marketId), market, "_");
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Onetrading.this.safeString(order, "order_id") );
             put( "clientOrderId", Onetrading.this.safeString(order, "client_id") );
             put( "info", order );
@@ -742,7 +742,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             put( "status", Onetrading.this.parseTradingOrderStatus(Onetrading.this.safeString(order, "status")) );
             put( "fee", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseTradingOrderStatus(String status)
@@ -835,14 +835,14 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         Object orders = this.orders;
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) ((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i))));
             String symbol = this.safeString(order, "symbol", "");
             Helpers.callDynamically(orders, "append", new Object[]{order});
             client.resolve(this.orders, ("orders:" + symbol));
             List<Object> rawTrades = (List<Object>) this.safeList((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var ii = 0; ii < ((List<?>)rawTrades).size(); ii++)
             {
-                Map<String, Object> trade = (Map<String, Object>) this.parseTrade((rawTrades == null || ii < 0 || ii >= rawTrades.size() ? null : rawTrades.get(ii)));
+                Map<String, Object> trade = (Map<String, Object>) this.parseTrade((Map<String, Object>) ((rawTrades == null || ii < 0 || ii >= rawTrades.size() ? null : rawTrades.get(ii))));
                 symbol = this.safeString(trade, "symbol", symbol);
                 Helpers.callDynamically(this.myTrades, "append", new Object[]{trade});
                 client.resolve(this.myTrades, ("myTrades:" + symbol));
@@ -1114,7 +1114,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Helpers.callDynamically(orders, "append", new Object[]{orderObject});
         } else
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(update);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((Map<String, Object>) (update));
             symbol = this.safeString(parsed, "symbol", "");
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
@@ -1134,7 +1134,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         // update trades
         if (java.util.Objects.equals(updateType, "TRADE_SETTLED"))
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(update);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade((Map<String, Object>) (update));
             symbol = this.safeString(parsed, "symbol", "");
             Object myTrades = this.myTrades;
             Helpers.callDynamically(myTrades, "append", new Object[]{parsed});
@@ -1164,7 +1164,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //     }
         //
         String currencyId = this.safeString(balance, "currency_code");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode((String) (currencyId));
         Object account = this.account();
         ((Map<String, Object>)account).put("free", this.safeString(balance, "new_available"));
         ((Map<String, Object>)account).put("used", this.safeString(balance, "new_locked"));
@@ -1172,7 +1172,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             Helpers.addElementToObject(this.balance, code, account);
         }
-        this.balance = this.safeBalance(this.balance);
+        this.balance = this.safeBalance((Map<String, Object>) (this.balance));
     }
 
     /**
@@ -1200,7 +1200,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             Object marketId = ((Map<String, Object>)market).get("id");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -1268,7 +1268,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         put( "properties", properties );
     }})) );
             }};
-            Object ohlcv = (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
+            Object ohlcv = (this.watch((String) (url), messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -1315,7 +1315,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //     }
         //
         String marketId = this.safeString(message, "instrument_code");
-        String symbol = this.safeSymbol(marketId);
+        String symbol = this.safeSymbol((String) (marketId));
         String dateTime = this.safeString(message, "time");
         Map<String, Object> timeframeId = (Map<String, Object>) this.safeDict(message, "granularity");
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
@@ -1528,7 +1528,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }
             ((Map<String, Object>)request).put("type", type);
             Helpers.addElementToObject(Helpers.GetValue(request.get("channels"), 0), "instrument_codes", new ArrayList<Object>(((Map<String, Object>)subscription).keySet()));
-            return (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
+            return (this.watch((String) (url), (String) (messageHash), this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
         });
 
     }
@@ -1540,7 +1540,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Client client = this.client(url);
+            Client client = this.client((String) (url));
             String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");
             Map<String, Object> authenticated = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash);
@@ -1551,7 +1551,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                     put( "type", "AUTHENTICATE" );
                     put( "api_token", Onetrading.this.apiKey );
                 }};
-                this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
+                this.watch((String) (url), messageHash, this.extend(request, parameters), messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });

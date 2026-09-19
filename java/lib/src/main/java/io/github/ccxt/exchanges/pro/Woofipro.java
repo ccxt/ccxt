@@ -119,7 +119,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "id", requestId );
             }};
             Map<String, Object> request = this.extend(subscribe, message);
-            return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
+            return (this.watch((String) (url), (String) (messageHash), request, messageHash, subscribe)).join();
         });
 
     }
@@ -146,7 +146,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 (this.loadMarkets()).join();
             }
             String name = "orderbook";
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             String topic = ((((Map<String, Object>)market).get("id") + "@") + name);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
@@ -193,7 +193,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(message, "ts");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, (String) (symbol), timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, topic);
     }
@@ -218,7 +218,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 (this.loadMarkets()).join();
             }
             String name = "ticker";
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             String topic = ((((Map<String, Object>)market).get("id") + "@") + name);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -246,8 +246,8 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Woofipro.this.safeSymbol(null, market) );
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+            put( "symbol", Woofipro.this.safeSymbol((String) (null), market) );
             put( "timestamp", null );
             put( "datetime", null );
             put( "high", Woofipro.this.safeString(ticker, "high") );
@@ -267,7 +267,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             put( "baseVolume", Woofipro.this.safeString(ticker, "volume") );
             put( "quoteVolume", Woofipro.this.safeString(ticker, "amount") );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     public Object handleTicker(Client client, Map<String, Object> message)
@@ -449,7 +449,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         market = this.safeMarket(marketId, market);
         String symbol = this.safeString(market, "symbol");
         Long timestamp = this.safeInteger(ticker, "ts");
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Woofipro.this.iso8601(timestamp) );
@@ -458,7 +458,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             put( "bid", Woofipro.this.safeString(ticker, "bid") );
             put( "bidVolume", Woofipro.this.safeString(ticker, "bidSize") );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -490,7 +490,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 throw new NotSupported((this.id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String name = "kline";
             String topic = ((((((Map<String, Object>)market).get("id") + "@") + name) + "_") + interval);
@@ -575,7 +575,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             symbol = ((Map<String, Object>)market).get("symbol");
             Object topic = (((Map<String, Object>)market).get("id") + "@trade");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -613,9 +613,9 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object trade = this.parseWsTrade(this.extend(data, new HashMap<String, Object>() {{
+        Object trade = this.parseWsTrade((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
-        }}), market);
+        }})), market);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -628,7 +628,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         client.resolve(trades, topic);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //     {
@@ -693,7 +693,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         }
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Woofipro.this.safeString(trade, "tradeId") );
             put( "timestamp", timestamp );
             put( "datetime", Woofipro.this.iso8601(timestamp) );
@@ -707,7 +707,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             put( "type", Woofipro.this.safeStringLower(trade, "type") );
             put( "fee", finalFee );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     public void handleAuth(Client client, Map<String, Object> message)
@@ -746,7 +746,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.accountId);
-            Client client = this.client(url);
+            Client client = this.client((String) (url));
             String messageHash = "authenticated";
             String eventVar = "auth";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
@@ -771,7 +771,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                     }} );
                 }};
                 Map<String, Object> message = this.extend(request, parameters);
-                this.watch(url, messageHash, message, messageHash, null);
+                this.watch((String) (url), messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
@@ -791,7 +791,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "id", requestId );
             }};
             Map<String, Object> request = this.extend(subscribe, message);
-            return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
+            return (this.watch((String) (url), (String) (messageHash), request, messageHash, subscribe)).join();
         });
 
     }
@@ -809,7 +809,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "id", requestId );
             }};
             Map<String, Object> request = this.extend(subscribe, message);
-            return (this.watchMultiple(url, messageHashes, request, messageHashes, subscribe)).join();
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, subscribe)).join();
         });
 
     }
@@ -846,7 +846,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Object messageHash = topic;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
@@ -897,7 +897,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
@@ -916,7 +916,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
 
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //     {
@@ -986,7 +986,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String orderId = this.safeString(order, "orderId");
         String marketId = this.safeString(order, "symbol");
-        market = this.market(marketId);
+        market = this.market((String) (marketId));
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(order, "timestamp");
         Map<String, Object> fee = new HashMap<String, Object>() {{
@@ -1017,7 +1017,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         final Object finalPrice = price;
         final Object finalRemaining = remaining;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
             put( "id", orderId );
@@ -1040,7 +1040,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             put( "status", status );
             put( "fee", fee );
             put( "trades", trades );
-        }});
+        }}));
     }
 
     public void handleOrderUpdate(Client client, Map<String, Object> message)
@@ -1102,7 +1102,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
 
     public void handleOrder(Client client, Map<String, Object> message, Object topic)
     {
-        Object parsed = this.parseWsOrder(message);
+        Object parsed = this.parseWsOrder((Map<String, Object>) (message));
         String symbol = this.safeString(parsed, "symbol");
         String orderId = this.safeString(parsed, "id");
         if (!java.util.Objects.equals(symbol, null))
@@ -1172,7 +1172,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object trade = this.parseWsTrade(message, market);
+        Object trade = this.parseWsTrade((Map<String, Object>) (message), market);
         Object trades = this.myTrades;
         if (java.util.Objects.equals(trades, null))
         {
@@ -1232,7 +1232,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 ((List<Object>)messageHashes).add("positions");
             }
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.accountId);
-            Client client = this.client(url);
+            Client client = this.client((String) (url));
             this.setPositionsCache(client, symbols);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
@@ -1406,7 +1406,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         final Object finalMarket = market;
         final Object finalSize = size;
         final Object finalSide = side;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Woofipro.this.safeString(finalMarket, "symbol") );
@@ -1435,7 +1435,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             put( "hedged", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     /**
@@ -1508,7 +1508,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = Helpers.GetValue(balances, key);
-            String code = this.safeCurrencyCode(key);
+            String code = this.safeCurrencyCode((String) (key));
             Object account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
             {
@@ -1524,7 +1524,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 Helpers.addElementToObject(this.balance, code, account);
             }
         }
-        this.balance = this.safeBalance(this.balance);
+        this.balance = this.safeBalance((Map<String, Object>) (this.balance));
         client.resolve(this.balance, "balance");
     }
 

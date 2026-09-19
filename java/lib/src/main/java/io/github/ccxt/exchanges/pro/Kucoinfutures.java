@@ -100,8 +100,8 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object amountToPrecision = this.currencyToPrecision(code, amount);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Object amountToPrecision = this.currencyToPrecision((String) (code), amount);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", Kucoinfutures.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
@@ -122,7 +122,7 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             final Object finalToAccount = toAccount;
-            return this.extend(this.parseTransfer(data, currency), new HashMap<String, Object>() {{
+            return this.extend(this.parseTransfer((Map<String, Object>) (data), currency), new HashMap<String, Object>() {{
                 put( "amount", Kucoinfutures.this.parseNumber(amountToPrecision) );
                 put( "fromAccount", fromAccount );
                 put( "toAccount", finalToAccount );

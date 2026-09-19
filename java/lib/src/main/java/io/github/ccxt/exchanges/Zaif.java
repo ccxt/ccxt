@@ -356,7 +356,7 @@ public class Zaif extends ZaifApi
 
     }
 
-    public Object parseMarket(Object market)
+    public Object parseMarket(Map<String, Object> market)
     {
         String id = this.safeString(market, "currency_pair");
         String name = this.safeString(market, "name");
@@ -367,8 +367,8 @@ public class Zaif extends ZaifApi
         var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("/"))));
         var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
         var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode((String) (baseId));
+        String quote = this.safeCurrencyCode((String) (quoteId));
         Object symbol = ((base + "/") + quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -436,7 +436,7 @@ public class Zaif extends ZaifApi
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             String balance = this.safeString(funds, currencyId);
             Object account = this.account();
             ((Map<String, Object>)account).put("free", balance);
@@ -453,7 +453,7 @@ public class Zaif extends ZaifApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -501,17 +501,17 @@ public class Zaif extends ZaifApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetDepthPair(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"));
+            return this.parseOrderBook(response, (String) (((Map<String, Object>)market).get("symbol")));
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // {
@@ -525,12 +525,12 @@ public class Zaif extends ZaifApi
         // }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String symbol = this.safeSymbol(null, market);
+        String symbol = this.safeSymbol((String) (null), market);
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = Precise.stringMul(baseVolume, vwap);
         String last = this.safeString(ticker, "last");
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -551,7 +551,7 @@ public class Zaif extends ZaifApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -573,7 +573,7 @@ public class Zaif extends ZaifApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -589,12 +589,12 @@ public class Zaif extends ZaifApi
             //     "ask": 1e-07
             // }
             //
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -618,7 +618,7 @@ public class Zaif extends ZaifApi
         String marketId = this.safeString(trade, "currency_pair");
         String symbol = this.safeSymbol(marketId, market, "_");
         final Object finalSide = side;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -632,7 +632,7 @@ public class Zaif extends ZaifApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -658,7 +658,7 @@ public class Zaif extends ZaifApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -718,7 +718,7 @@ public class Zaif extends ZaifApi
             {
                 throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             final Object finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency_pair", ((Map<String, Object>)market).get("id") );
@@ -728,10 +728,10 @@ public class Zaif extends ZaifApi
             }};
             Map<String, Object> response = (this.privatePostTrade(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", String.valueOf(((Map<String, Object>)data).get("order_id")) );
-            }}, market);
+            }}), market);
         }).thenApply(Order::new);
 
     }
@@ -772,12 +772,12 @@ public class Zaif extends ZaifApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data);
+            return this.parseOrder((Map<String, Object>) (data));
         }).thenApply(Order::new);
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //     {
@@ -811,7 +811,7 @@ public class Zaif extends ZaifApi
         String amount = this.safeString(order, "amount");
         String id = this.safeString2(order, "id", "order_id");
         final Object finalSide = side;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
@@ -833,7 +833,7 @@ public class Zaif extends ZaifApi
             put( "fee", null );
             put( "info", order );
             put( "average", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -864,7 +864,7 @@ public class Zaif extends ZaifApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
@@ -902,7 +902,7 @@ public class Zaif extends ZaifApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
@@ -939,7 +939,7 @@ public class Zaif extends ZaifApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             if (java.util.Objects.equals(code, "JPY"))
             {
                 throw new ExchangeError((((this.id + " withdraw() does not allow ") + code) + " withdrawals")) ;
@@ -971,12 +971,12 @@ public class Zaif extends ZaifApi
             //     }
             //
             Map<String, Object> returnData = (Map<String, Object>) this.safeDict(result, "return", new HashMap<String, Object>() {{}});
-            return this.parseTransaction(returnData, currency);
+            return this.parseTransaction((Map<String, Object>) (returnData), currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -992,7 +992,7 @@ public class Zaif extends ZaifApi
         //     }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        currency = this.safeCurrency(null, currency);
+        currency = this.safeCurrency((String) (null), currency);
         Object fee = null;
         Double feeCost = this.safeNumber(transaction, "fee");
         if (!java.util.Objects.equals(feeCost, null))

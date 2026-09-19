@@ -485,7 +485,7 @@ public class Delta extends DeltaApi
         }
         String settle = quote;
         String strike = this.safeString(optionParts, 2);
-        Object datetime = this.convertExpireDate(expiry);
+        Object datetime = this.convertExpireDate((String) (expiry));
         Long timestamp = this.parse8601(datetime);
         String optionTypeUnified = (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put";
         final Object finalOptionType = optionType;
@@ -724,7 +724,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
         Long numericId = this.safeInteger(rawCurrency, "id");
@@ -761,7 +761,7 @@ public class Delta extends DeltaApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "numericId", numericId );
             put( "code", code );
@@ -784,7 +784,7 @@ public class Delta extends DeltaApi
             }} );
             put( "networks", networks );
             put( "type", "crypto" );
-        }});
+        }}));
     }
 
     public CompletableFuture<Object> loadMarkets(Object... optionalArgs)
@@ -1169,7 +1169,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1299,7 +1299,7 @@ public class Delta extends DeltaApi
         String quoteId = this.safeStringUpper(market, "quoteId");
         Boolean baseDenominated = (!java.util.Objects.equals(turnoverSymbol, null)) && (!java.util.Objects.equals(quoteId, null)) && (!java.util.Objects.equals(turnoverSymbol, quoteId));
         Object quoteVolume = ((Boolean.TRUE.equals(baseDenominated))) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Delta.this.iso8601(timestamp) );
@@ -1322,7 +1322,7 @@ public class Delta extends DeltaApi
             put( "markPrice", Delta.this.safeNumber(ticker, "mark_price") );
             put( "indexPrice", Delta.this.safeNumber(ticker, "spot_price") );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1341,7 +1341,7 @@ public class Delta extends DeltaApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1471,7 +1471,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTicker(result, market);
+            return this.parseTicker((Map<String, Object>) (result), market);
         }).thenApply(Ticker::new);
 
     }
@@ -1635,7 +1635,7 @@ public class Delta extends DeltaApi
                 {
                     continue;
                 }
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (rawTicker));
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -1665,7 +1665,7 @@ public class Delta extends DeltaApi
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1693,12 +1693,12 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrderBook(result, ((Map<String, Object>)market).get("symbol"), null, "buy", "sell", "price", "size");
+            return this.parseOrderBook(result, (String) (((Map<String, Object>)market).get("symbol")), null, "buy", "sell", "price", "size");
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // public fetchTrades
@@ -1793,7 +1793,7 @@ public class Delta extends DeltaApi
         final Object finalType = type;
         final Object finalSide = side;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "order", orderId );
             put( "timestamp", finalTimestamp );
@@ -1807,7 +1807,7 @@ public class Delta extends DeltaApi
             put( "takerOrMaker", takerOrMaker );
             put( "fee", finalFee );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1830,7 +1830,7 @@ public class Delta extends DeltaApi
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1895,7 +1895,7 @@ public class Delta extends DeltaApi
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "resolution", Delta.this.safeString(Delta.this.timeframes, timeframe, timeframe) );
             }};
@@ -1969,7 +1969,7 @@ public class Delta extends DeltaApi
             ((Map<String, Object>)account).put("free", this.safeString(balance, "available_balance"));
             Helpers.addElementToObject(result, code, account);
         }
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -2030,7 +2030,7 @@ public class Delta extends DeltaApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_id", ((Map<String, Object>)market).get("numericId") );
             }};
@@ -2046,7 +2046,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parsePosition(result, market);
+            return this.parsePosition((Map<String, Object>) (result), market);
         }).thenApply(Position::new);
 
     }
@@ -2096,7 +2096,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         // fetchPosition
@@ -2145,7 +2145,7 @@ public class Delta extends DeltaApi
         final Object finalSizeString = sizeString;
         final Object finalMarket = market;
         final Object finalSide = side;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -2171,7 +2171,7 @@ public class Delta extends DeltaApi
             put( "marginRatio", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     public String parseOrderStatus(String status)
@@ -2185,7 +2185,7 @@ public class Delta extends DeltaApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
@@ -2295,7 +2295,7 @@ public class Delta extends DeltaApi
         final Object finalTimestamp = timestamp;
         final Object finalType = type;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -2314,7 +2314,7 @@ public class Delta extends DeltaApi
             put( "status", status );
             put( "fee", finalFee );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -2340,16 +2340,16 @@ public class Delta extends DeltaApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             String orderType = (type + "_order");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_id", ((Map<String, Object>)market).get("numericId") );
-                put( "size", Delta.this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount) );
+                put( "size", Delta.this.amountToPrecision((String) (((Map<String, Object>)market).get("symbol")), amount) );
                 put( "side", side );
                 put( "order_type", orderType );
             }};
             if (java.util.Objects.equals(type, "limit"))
             {
-                ((Map<String, Object>)request).put("limit_price", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), price));
+                ((Map<String, Object>)request).put("limit_price", this.priceToPrecision((String) (((Map<String, Object>)market).get("symbol")), price));
             }
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id")));
@@ -2401,7 +2401,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, market);
+            return this.parseOrder((Map<String, Object>) (result), market);
         }).thenApply(Order::new);
 
     }
@@ -2429,14 +2429,14 @@ public class Delta extends DeltaApi
             Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", Helpers.parseInt(id) );
                 put( "product_id", ((Map<String, Object>)market).get("numericId") );
             }};
             if (!java.util.Objects.equals(amount, null))
             {
-                Object sizeString = this.amountToPrecision(symbol, amount);
+                Object sizeString = this.amountToPrecision((String) (symbol), amount);
                 if (java.util.Objects.equals(sizeString, null))
                 {
                     sizeString = "0";
@@ -2445,7 +2445,7 @@ public class Delta extends DeltaApi
             }
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("limit_price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("limit_price", this.priceToPrecision((String) (symbol), price));
             }
             Map<String, Object> response = (this.privatePutOrders(this.extend(request, parameters))).join();
             //
@@ -2466,7 +2466,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, market);
+            return this.parseOrder((Map<String, Object>) (result), market);
         }).thenApply(Order::new);
 
     }
@@ -2493,7 +2493,7 @@ public class Delta extends DeltaApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", Helpers.parseInt(id) );
                 put( "product_id", ((Map<String, Object>)market).get("numericId") );
@@ -2536,7 +2536,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, market);
+            return this.parseOrder((Map<String, Object>) (result), market);
         }).thenApply(Order::new);
 
     }
@@ -2562,7 +2562,7 @@ public class Delta extends DeltaApi
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_id", ((Map<String, Object>)market).get("numericId") );
             }};
@@ -2573,9 +2573,9 @@ public class Delta extends DeltaApi
             //         "success":true
             //     }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2603,7 +2603,7 @@ public class Delta extends DeltaApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid", "clientOid")));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid", "clientOid")));
@@ -2643,7 +2643,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, market);
+            return this.parseOrder((Map<String, Object>) (result), market);
         }).thenApply(Order::new);
 
     }
@@ -2712,7 +2712,7 @@ public class Delta extends DeltaApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("product_ids", ((Map<String, Object>)market).get("numericId")); // accepts a comma-separated list of ids
             }
             if (!java.util.Objects.equals(since, null))
@@ -2785,7 +2785,7 @@ public class Delta extends DeltaApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("product_ids", ((Map<String, Object>)market).get("numericId")); // accepts a comma-separated list of ids
             }
             if (!java.util.Objects.equals(since, null))
@@ -2873,7 +2873,7 @@ public class Delta extends DeltaApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("asset_id", ((Map<String, Object>)currency).get("numericId"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2922,7 +2922,7 @@ public class Delta extends DeltaApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         //     {
@@ -3001,7 +3001,7 @@ public class Delta extends DeltaApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset_symbol", ((Map<String, Object>)currency).get("id") );
             }};
@@ -3082,7 +3082,7 @@ public class Delta extends DeltaApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
@@ -3339,7 +3339,7 @@ public class Delta extends DeltaApi
             Object type = type3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             amount = String.valueOf(amount);
             if (java.util.Objects.equals(type, "reduce"))
             {
@@ -3375,12 +3375,12 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseMarginModification(result, market);
+            return this.parseMarginModification((Map<String, Object>) (result), market);
         });
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         //
         //     {
@@ -3436,7 +3436,7 @@ public class Delta extends DeltaApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
@@ -3557,7 +3557,7 @@ public class Delta extends DeltaApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeIntegerProduct(interest, "timestamp", 0.001);
         String marketId = this.safeString(interest, "symbol");
-        return this.safeOpenInterest(new HashMap<String, Object>() {{
+        return this.safeOpenInterest((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", Delta.this.safeSymbol(marketId, market) );
             put( "baseVolume", Delta.this.safeNumber(interest, "oi_value") );
             put( "quoteVolume", Delta.this.safeNumber(interest, "oi_value_usd") );
@@ -3566,7 +3566,7 @@ public class Delta extends DeltaApi
             put( "timestamp", timestamp );
             put( "datetime", Delta.this.iso8601(timestamp) );
             put( "info", interest );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -3585,7 +3585,7 @@ public class Delta extends DeltaApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_id", ((Map<String, Object>)market).get("numericId") );
             }};
@@ -3604,12 +3604,12 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseLeverage(result, market);
+            return this.parseLeverage((Map<String, Object>) (result), market);
         }).thenApply(Leverage::new);
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(leverage, "index_symbol");
@@ -3645,7 +3645,7 @@ public class Delta extends DeltaApi
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_id", ((Map<String, Object>)market).get("numericId") );
                 put( "leverage", leverage );
@@ -3690,7 +3690,7 @@ public class Delta extends DeltaApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "states", "expired" );
@@ -3858,7 +3858,7 @@ public class Delta extends DeltaApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3916,12 +3916,12 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseGreeks(result, market);
+            return this.parseGreeks((Map<String, Object>) (result), market);
         }).thenApply(Greeks::new);
 
     }
 
-    public Object parseGreeks(Object greeks, Object... optionalArgs)
+    public Object parseGreeks(Map<String, Object> greeks, Object... optionalArgs)
     {
         //
         //     {
@@ -4025,7 +4025,7 @@ public class Delta extends DeltaApi
             //
             // {"result":{},"success":true}
             //
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(response, "result", new HashMap<String, Object>() {{}}));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(response, "result", new HashMap<String, Object>() {{}})));
             return new ArrayList<Object>(Arrays.asList(position));
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -4050,7 +4050,7 @@ public class Delta extends DeltaApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Map<String, Object> response = (this.privateGetProfile(parameters)).join();
             //
@@ -4117,12 +4117,12 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode(result, market);
+            return this.parseMarginMode((Map<String, Object>) (result), market);
         }).thenApply(MarginMode::new);
 
     }
 
-    public Object parseMarginMode(Object marginMode, Object... optionalArgs)
+    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = null;
@@ -4183,7 +4183,7 @@ public class Delta extends DeltaApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4241,12 +4241,12 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOption(result, null, market);
+            return this.parseOption((Map<String, Object>) (result), null, market);
         }).thenApply(Option::new);
 
     }
 
-    public Object parseOption(Object chain, Object... optionalArgs)
+    public Object parseOption(Map<String, Object> chain, Object... optionalArgs)
     {
         //
         //     {
@@ -4342,7 +4342,7 @@ public class Delta extends DeltaApi
             Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            symbols = this.marketSymbols(symbols, null, true, true, true);
+            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
             Map<String, Object> response = (this.privateGetPositionsMargined(parameters)).join();
             //
             //     {
@@ -4520,7 +4520,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parseADLRank(Object info, Object... optionalArgs)
+    public Object parseADLRank(Map<String, Object> info, Object... optionalArgs)
     {
         //
         // fetchPositionsADLRank

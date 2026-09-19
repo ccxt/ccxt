@@ -699,7 +699,7 @@ public class Kraken extends KrakenApi
 
     public String feeToPrecision(String symbol, Object fee)
     {
-        return this.decimalToPrecision(fee, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)this.market(symbol)).get("precision")).get("amount"), this.precisionMode);
+        return this.decimalToPrecision(fee, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)this.market((String) (symbol))).get("precision")).get("amount"), this.precisionMode);
     }
 
     /**
@@ -1010,7 +1010,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         // todo: will need to rethink the fees
         // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
@@ -1059,11 +1059,11 @@ public class Kraken extends KrakenApi
             throw new ExchangeError((this.id + " parseCurrency() missing code")) ;
         }
         Boolean isFiat = ((String)code).indexOf(".HOLD") >= 0;
-        rawCurrency = this.omit(rawCurrency, "_coin_id");
+        rawCurrency = (Map<String, Object>) (this.omit(rawCurrency, "_coin_id"));
         final Object finalId = id;
         final Object finalCode = code;
         final Object finalRawCurrency = rawCurrency;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "code", finalCode );
             put( "info", finalRawCurrency );
@@ -1085,10 +1085,10 @@ public class Kraken extends KrakenApi
                 }} );
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
-        }});
+        }}));
     }
 
-    public String safeCurrencyCode(Object currencyId, Object... optionalArgs)
+    public String safeCurrencyCode(String currencyId, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (java.util.Objects.equals(currencyId, null))
@@ -1103,7 +1103,7 @@ public class Kraken extends KrakenApi
             String secondPart = this.safeString(parts, 1);
             return ((super.safeCurrencyCode(firstPart, currency) + ".") + secondPart);
         }
-        return super.safeCurrencyCode(currencyId, currency);
+        return super.safeCurrencyCode((String) (currencyId), currency);
     }
 
     /**
@@ -1125,7 +1125,7 @@ public class Kraken extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
                 put( "fee-info", true );
@@ -1214,7 +1214,7 @@ public class Kraken extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1252,12 +1252,12 @@ public class Kraken extends KrakenApi
             {
                 orderbook = this.safeValue(result, wsName, orderbook);
             }
-            return this.parseOrderBook(orderbook, symbol);
+            return this.parseOrderBook(orderbook, (String) (symbol));
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1273,7 +1273,7 @@ public class Kraken extends KrakenApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String symbol = this.safeSymbol(null, market);
+        String symbol = this.safeSymbol((String) (null), market);
         List<Object> v = (List<Object>) this.safeList(ticker, "v", new ArrayList<Object>(Arrays.asList()));
         String baseVolume = this.safeString(v, 1);
         List<Object> p = (List<Object>) this.safeList(ticker, "p", new ArrayList<Object>(Arrays.asList()));
@@ -1285,7 +1285,7 @@ public class Kraken extends KrakenApi
         List<Object> low = (List<Object>) this.safeList(ticker, "l", new ArrayList<Object>(Arrays.asList()));
         List<Object> bid = (List<Object>) this.safeList(ticker, "b", new ArrayList<Object>(Arrays.asList()));
         List<Object> ask = (List<Object>) this.safeList(ticker, "a", new ArrayList<Object>(Arrays.asList()));
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1306,7 +1306,7 @@ public class Kraken extends KrakenApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1337,7 +1337,7 @@ public class Kraken extends KrakenApi
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                    Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
                     if (java.util.Objects.equals(((Map<String, Object>)market).get("active"), true))
                     {
                         ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
@@ -1355,7 +1355,7 @@ public class Kraken extends KrakenApi
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Object ticker = Helpers.GetValue(tickers, id);
-                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTicker((Map<String, Object>) (ticker), market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -1381,14 +1381,14 @@ public class Kraken extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             Map<String, Object> tickerResult = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object ticker = this.safeValue(tickerResult, ((Map<String, Object>)market).get("id"));
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
@@ -1445,7 +1445,7 @@ public class Kraken extends KrakenApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 720)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Long parsedTimeframe = this.safeInteger(this.timeframes, timeframe);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1500,7 +1500,7 @@ public class Kraken extends KrakenApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         //     {
@@ -1592,7 +1592,7 @@ public class Kraken extends KrakenApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1687,7 +1687,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -1777,7 +1777,7 @@ public class Kraken extends KrakenApi
         } else if ((trade instanceof String))
         {
             id = trade;
-        } else if (((Map<?, ?>)trade).containsKey("ordertxid"))
+        } else if (trade.containsKey("ordertxid"))
         {
             String marketId = this.safeString(trade, "pair");
             Object foundMarket = this.findMarketByAltnameOrId(marketId);
@@ -1796,7 +1796,7 @@ public class Kraken extends KrakenApi
             type = this.safeString(trade, "ordertype");
             price = this.safeString(trade, "price");
             amount = this.safeString(trade, "vol");
-            if (((Map<?, ?>)trade).containsKey("fee"))
+            if (trade.containsKey("fee"))
             {
                 Object currency = null;
                 if (!java.util.Objects.equals(market, null))
@@ -1848,7 +1848,7 @@ public class Kraken extends KrakenApi
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "order", finalOrderId );
             put( "info", trade );
@@ -1862,7 +1862,7 @@ public class Kraken extends KrakenApi
             put( "amount", finalAmount );
             put( "cost", cost );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1888,7 +1888,7 @@ public class Kraken extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Object id = ((Map<String, Object>)market).get("id");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", id );
@@ -1944,7 +1944,7 @@ public class Kraken extends KrakenApi
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
             Object account = this.account();
             ((Map<String, Object>)account).put("used", this.safeString(balance, "hold_trade"));
@@ -1954,7 +1954,7 @@ public class Kraken extends KrakenApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -2085,12 +2085,12 @@ public class Kraken extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
                 put( "type", side );
                 put( "ordertype", type );
-                put( "volume", Kraken.this.amountToPrecision(symbol, amount) );
+                put( "volume", Kraken.this.amountToPrecision((String) (symbol), amount) );
             }};
             Object orderRequest = this.orderRequest("createOrder", (String) (symbol), (String) (type), (Map<String, Object>) (request), amount, price, parameters);
             String flags = this.safeString(((List<Object>)orderRequest).get(0), "oflags", "");
@@ -2110,7 +2110,7 @@ public class Kraken extends KrakenApi
             // it's impossible to know if the order was created using cost or base currency
             // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
             // this usingCost flag is used to help the parsing but omitted from the order
-            return this.parseOrder(result);
+            return this.parseOrder((Map<String, Object>) (result));
         }).thenApply(Order::new);
 
     }
@@ -2159,7 +2159,7 @@ public class Kraken extends KrakenApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object parsedAmount = this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount);
+                Object parsedAmount = this.amountToPrecision((String) (((Map<String, Object>)market).get("symbol")), amount);
                 Map<String, Object> req = new HashMap<String, Object>() {{
                     put( "type", side );
                     put( "ordertype", type );
@@ -2168,7 +2168,7 @@ public class Kraken extends KrakenApi
                 Object orderRequest = this.orderRequest("createOrders", marketId, type, (Map<String, Object>) (req), amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(((List<Object>)orderRequest).get(0));
             }
-            orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
+            orderSymbols = this.marketSymbols(orderSymbols, (String) (null), false, true, true);
             Object response = null;
             final Object finalMarket = market;
             Object request = new HashMap<String, Object>() {{
@@ -2244,8 +2244,8 @@ public class Kraken extends KrakenApi
         }
         Object baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
         Object quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode((String) (baseId));
+        String quote = this.safeCurrencyCode((String) (quoteId));
         Object symbol = ((base + "/") + quote);
         final Object finalBase = base;
         market = new HashMap<String, Object>() {{
@@ -2287,7 +2287,7 @@ public class Kraken extends KrakenApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -2389,7 +2389,7 @@ public class Kraken extends KrakenApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Boolean isUsingCost = (Boolean) this.safeBool(order, "usingCost", false);
-        order = this.omit(order, "usingCost");
+        order = (Map<String, Object>) (this.omit(order, "usingCost"));
         Map<String, Object> description = (Map<String, Object>) this.safeDict(order, "descr", new HashMap<String, Object>() {{}});
         Map<String, Object> orderDescriptionObj = (Map<String, Object>) this.safeDict(order, "descr"); // can be null
         String orderDescription = null;
@@ -2473,7 +2473,7 @@ public class Kraken extends KrakenApi
         if (!java.util.Objects.equals(market, null))
         {
             symbol = ((Map<String, Object>)market).get("symbol");
-            if (((Map<?, ?>)order).containsKey("fee"))
+            if (order.containsKey("fee"))
             {
                 String feeCost = this.safeString(order, "fee");
                 fee = new HashMap<String, Object>() {{
@@ -2507,12 +2507,12 @@ public class Kraken extends KrakenApi
             {
 final Object finalId = id;
                 final Object finalSymbol = symbol;
-                                ((List<Object>)trades).add(this.safeTrade(new HashMap<String, Object>() {{
+                                ((List<Object>)trades).add(this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "id", rawTrade );
                     put( "orderId", finalId );
                     put( "symbol", finalSymbol );
                     put( "info", new HashMap<String, Object>() {{}} );
-                }}));
+                }})));
             } else
             {
                 ((List<Object>)trades).add(rawTrade);
@@ -2568,7 +2568,7 @@ final Object finalId = id;
         final Object finalCost = cost;
         final Object finalAmount = amount;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId_2 );
             put( "clientOrderId", clientOrderId );
             put( "info", finalOrder );
@@ -2594,7 +2594,7 @@ final Object finalId = id;
             put( "reduceOnly", Kraken.this.safeBool2(finalOrder, "reduceOnly", "reduce_only") );
             put( "fee", finalFee );
             put( "trades", trades );
-        }}, market);
+        }}), market);
     }
 
     public Object orderRequest(Object method, String symbol, String type, Map<String, Object> request, Object amount, Object... optionalArgs)
@@ -2628,23 +2628,23 @@ final Object finalId = id;
         {
             if (java.util.Objects.equals(cost, null) && (!java.util.Objects.equals(amount, null)))
             {
-                ((Map<String, Object>)request).put("volume", this.costToPrecision(symbol, this.numberToString(amount)));
+                ((Map<String, Object>)request).put("volume", this.costToPrecision((String) (symbol), this.numberToString(amount)));
             } else
             {
-                ((Map<String, Object>)request).put("volume", this.costToPrecision(symbol, cost));
+                ((Map<String, Object>)request).put("volume", this.costToPrecision((String) (symbol), cost));
             }
             Object extendedOflags = (((!java.util.Objects.equals(flags, null)))) ? (flags + ",viqc") : "viqc";
             ((Map<String, Object>)request).put("oflags", extendedOflags);
         } else if (Boolean.TRUE.equals(isLimitOrder) && !Boolean.TRUE.equals(isTrailingAmountOrder) && !Boolean.TRUE.equals(isTrailingPercentOrder))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
         {
             if (Boolean.TRUE.equals(isStopLossTriggerOrder))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, stopLossTriggerPrice));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), stopLossTriggerPrice));
                 if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     ((Map<String, Object>)request).put("ordertype", "stop-loss-limit");
@@ -2654,7 +2654,7 @@ final Object finalId = id;
                 }
             } else if (Boolean.TRUE.equals(isTakeProfitTriggerOrder))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), takeProfitTriggerPrice));
                 if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     ((Map<String, Object>)request).put("ordertype", "take-profit-limit");
@@ -2665,7 +2665,7 @@ final Object finalId = id;
             }
             if (Boolean.TRUE.equals(isLimitOrder))
             {
-                ((Map<String, Object>)request).put("price2", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("price2", this.priceToPrecision((String) (symbol), price));
             }
         } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder))
         {
@@ -2722,12 +2722,12 @@ final Object finalId = id;
             Object closePrice = this.safeValue(close, "price");
             if (!java.util.Objects.equals(closePrice, null))
             {
-                ((Map<String, Object>)close).put("price", this.priceToPrecision(symbol, closePrice));
+                ((Map<String, Object>)close).put("price", this.priceToPrecision((String) (symbol), closePrice));
             }
             Object closePrice2 = this.safeValue(close, "price2"); // stopPrice
             if (!java.util.Objects.equals(closePrice2, null))
             {
-                ((Map<String, Object>)close).put("price2", this.priceToPrecision(symbol, closePrice2));
+                ((Map<String, Object>)close).put("price2", this.priceToPrecision((String) (symbol), closePrice2));
             }
             ((Map<String, Object>)request).put("close", close);
         }
@@ -2789,7 +2789,7 @@ final Object finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((((this.id + " editOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders, only spot orders are accepted")) ;
@@ -2815,11 +2815,11 @@ final Object finalId = id;
             }
             if (!java.util.Objects.equals(amount, null))
             {
-                ((Map<String, Object>)request).put("order_qty", this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put("order_qty", this.amountToPrecision((String) (symbol), amount));
             }
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("limit_price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("limit_price", this.priceToPrecision((String) (symbol), price));
             }
             Object allTriggerPrices = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent")));
             if (!java.util.Objects.equals(allTriggerPrices, null))
@@ -2832,7 +2832,7 @@ final Object finalId = id;
                     ((Map<String, Object>)request).put("trigger_price", allTriggerPrices);
                 } else
                 {
-                    ((Map<String, Object>)request).put("trigger_price", this.priceToPrecision(symbol, allTriggerPrices));
+                    ((Map<String, Object>)request).put("trigger_price", this.priceToPrecision((String) (symbol), allTriggerPrices));
                 }
             }
             Map<String, Object> response = (this.privatePostAmendOrder(this.extend(request, parameters))).join();
@@ -2845,7 +2845,7 @@ final Object finalId = id;
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, market);
+            return this.parseOrder((Map<String, Object>) (result), market);
         }).thenApply(Order::new);
 
     }
@@ -2926,9 +2926,9 @@ final Object finalId = id;
             {
                 throw new OrderNotFound(((this.id + " fetchOrder() could not find order id ") + id)) ;
             }
-            return this.parseOrder(this.extend(new HashMap<String, Object>() {{
+            return this.parseOrder((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{
                 put( "id", finalId );
-            }}, Helpers.GetValue(result, id)));
+            }}, Helpers.GetValue(result, id))));
         }).thenApply(Order::new);
 
     }
@@ -2979,7 +2979,7 @@ final Object finalId = id;
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbol = this.symbol(symbol);
+                symbol = this.symbol((String) (symbol));
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOrderTrades", new HashMap<String, Object>() {{}});
             Long batchSize = this.safeInteger(options, "batchSize", 20);
@@ -3070,9 +3070,9 @@ final Object finalId = id;
             {
                 Object id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
                 Object item = Helpers.GetValue(result, id);
-                Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
-                }}, item));
+                }}, item)));
                 ((List<Object>)orders).add(order);
             }
             return orders;
@@ -3157,7 +3157,7 @@ final Object finalId = id;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             List<Object> tradesList = this.toArray(trades);
             return this.parseTrades(tradesList, market, since, limit);
@@ -3216,9 +3216,9 @@ final Object finalId = id;
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             final Object finalResponse = response;
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -3252,9 +3252,9 @@ final Object finalId = id;
             //         }
             //     }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3288,9 +3288,9 @@ final Object finalId = id;
             //        }
             //    }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3429,7 +3429,7 @@ final Object finalId = id;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> open = (Map<String, Object>) this.safeDict(result, "open", new HashMap<String, Object>() {{}});
@@ -3538,7 +3538,7 @@ final Object finalId = id;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> closed = (Map<String, Object>) this.safeDict(result, "closed", new HashMap<String, Object>() {{}});
@@ -3577,7 +3577,7 @@ final Object finalId = id;
         return this.safeString(withdrawMethods, network, network);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -3703,9 +3703,9 @@ final Object finalId = id;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)transactions).size(); i++)
         {
-            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(this.extend(new HashMap<String, Object>() {{
+            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{
                 put( "type", type );
-            }}, Helpers.GetValue(transactions, i)));
+            }}, Helpers.GetValue(transactions, i))));
             ((List<Object>)result).add(transaction);
         }
         return this.filterByCurrencySinceLimit(result, code, since, limit);
@@ -3741,7 +3741,7 @@ final Object finalId = id;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
                 ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -3846,7 +3846,7 @@ final Object finalId = id;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
                 ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -3970,7 +3970,7 @@ final Object finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
@@ -4022,7 +4022,7 @@ final Object finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String network = this.safeStringUpper(parameters, "network");
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
@@ -4099,7 +4099,7 @@ final Object finalId = id;
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String address = this.safeString(depositAddress, "address");
         String tag = this.safeString(depositAddress, "tag");
-        currency = this.safeCurrency(null, currency);
+        currency = this.safeCurrency((String) (null), currency);
         Object code = ((Map<String, Object>)currency).get("code");
         this.checkAddress(address);
         return new HashMap<String, Object>() {{
@@ -4136,7 +4136,7 @@ final Object finalId = id;
             if (((Map<?, ?>)parameters).containsKey("key"))
             {
                 (this.loadMarkets()).join();
-                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "asset", ((Map<String, Object>)currency).get("id") );
                     put( "amount", amount );
@@ -4156,7 +4156,7 @@ final Object finalId = id;
                 //     }
                 //
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-                return this.parseTransaction(result, currency);
+                return this.parseTransaction((Map<String, Object>) (result), currency);
             }
             throw new ExchangeError((this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
         }).thenApply(Transaction::new);
@@ -4241,7 +4241,7 @@ final Object finalId = id;
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //             {
@@ -4260,7 +4260,7 @@ final Object finalId = id;
         String marketId = this.safeString(position, "pair");
         String rawSide = this.safeString(position, "type");
         String side = (((java.util.Objects.equals(rawSide, "buy")))) ? "long" : "short";
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Kraken.this.safeSymbol(marketId, market) );
@@ -4289,7 +4289,7 @@ final Object finalId = id;
             put( "marginRatio", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     public String parseAccountType(Object account)
@@ -4345,12 +4345,12 @@ final Object finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String fromAccountParsed = this.parseAccountType(fromAccount);
             String toAccountParsed = this.parseAccountType(toAccount);
             final Object finalFromAccountParsed = fromAccountParsed;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "amount", Kraken.this.currencyToPrecision(code, amount) );
+                put( "amount", Kraken.this.currencyToPrecision((String) (code), amount) );
                 put( "from", finalFromAccountParsed );
                 put( "to", toAccountParsed );
                 put( "asset", ((Map<String, Object>)currency).get("id") );
@@ -4369,7 +4369,7 @@ final Object finalId = id;
             //       }
             //   }
             //
-            Object transfer = this.parseTransfer(response, currency);
+            Object transfer = this.parseTransfer((Map<String, Object>) (response), currency);
             return this.extend(transfer, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "fromAccount", finalFromAccountParsed );
@@ -4379,7 +4379,7 @@ final Object finalId = id;
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         // transfer
