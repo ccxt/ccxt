@@ -40,7 +40,7 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1450: bool = true;
             while { if !__for_first_1450 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1450 = false; i.as_f64().unwrap_or(f64::NAN) < currenciesLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut currency: Value = get_value(&values, &i);
+            let mut currency: Value = values.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             testCurrency(exchange.clone(), skippedProperties.clone(), method.clone(), currency.clone());
             // detailed check for deposit/withdraw
             let mut active: Value = exchange.safe_bool(currency.clone(), Value::Str("active".into()), &[]);
@@ -52,9 +52,9 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
             let mut withdraw: Value = exchange.safe_bool(currency.clone(), Value::Str("withdraw".into()), &[]);
             let mut deposit: Value = exchange.safe_bool(currency.clone(), Value::Str("deposit".into()), &[]);
             let mut isMicaCompliant: Value = exchange.safe_bool(get_value(&exchange, &Value::Str("options".into())), Value::Str("mica".into()), &[Value::Bool(false)]);
-            let mut skipUsdtForMica: Value = Value::Bool(is_true(&(isMicaCompliant.as_bool() == Some(true))) && is_true(&(code.as_str() == Some("USDT"))));
-            if is_true(&exchange.in_array(code.clone(), requiredActiveCurrencies.clone())) && !skipMajorCurrencyCheck && is_true(&(skipUsdtForMica.as_bool() != Some(true))) {
-                assert!(ccxt::runtime::is_true(&((is_true(&(withdraw.as_bool() == Some(true))) && is_true(&(deposit.as_bool() == Some(true)))))));
+            let mut skipUsdtForMica: Value = Value::Bool((isMicaCompliant.as_bool() == Some(true)) && (code.as_str() == Some("USDT")));
+            if is_true(&exchange.in_array(code.clone(), requiredActiveCurrencies.clone())) && !skipMajorCurrencyCheck && (skipUsdtForMica.as_bool() != Some(true)) {
+                assert!(ccxt::runtime::is_true(&(((withdraw.as_bool() == Some(true)) && (deposit.as_bool() == Some(true))))));
             }
         }
         }
@@ -78,7 +78,7 @@ fn detectCurrencyConflicts(mut exchange: Value, mut currencyValues: Value) -> Va
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1451: bool = true;
         while { if !__for_first_1451 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1451 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        let mut key: Value = get_value(&keys, &i);
+        let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         let mut currency: Value = get_value(&currencyValues, &key);
         let mut code: Value = get_value(&currency, &Value::Str("code".into()));
         if !(in_op(&ids, &code)) {

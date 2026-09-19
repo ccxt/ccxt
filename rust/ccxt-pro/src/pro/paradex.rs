@@ -198,7 +198,7 @@ impl ParadexCore {
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -253,21 +253,21 @@ impl ParadexCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://x.com/tradeparadex/photo".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://x.com/tradeparadex/photo".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://ws.api.prod.paradex.trade/v1".to_string()));
+        m.insert("ws".to_string(), Value::Str("wss://ws.api.prod.paradex.trade/v1".into()));
     m
 }));
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://ws.api.testnet.paradex.trade/v1".to_string()));
+        m.insert("ws".to_string(), Value::Str("wss://ws.api.testnet.paradex.trade/v1".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://www.paradex.trade/".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://docs.api.testnet.paradex.trade/".to_string()));
-        m.insert("fees".to_string(), Value::Str("https://docs.paradex.trade/getting-started/trading-fees".to_string()));
-        m.insert("referral".to_string(), Value::Str("".to_string()));
+        m.insert("www".to_string(), Value::Str("https://www.paradex.trade/".into()));
+        m.insert("doc".to_string(), Value::Str("https://docs.api.testnet.paradex.trade/".into()));
+        m.insert("fees".to_string(), Value::Str("https://docs.paradex.trade/getting-started/trading-fees".into()));
+        m.insert("referral".to_string(), Value::Str("".into()));
     m
 }));
         m.insert("options".to_string(), Value::Map({
@@ -299,16 +299,16 @@ impl ParadexCore {
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
-        let mut messageHash: Value = Value::Str("authenticated".to_string());
-        let mut future: Value = client.reusable_future(Value::Str("authenticated".to_string()));
-        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
+        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut future: Value = client.reusable_future(Value::Str("authenticated".into()));
+        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         if (authenticated == Value::Null) {
             let mut token: Value = self.parent.authenticate_rest(&[]).await;
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("jsonrpc".to_string(), Value::Str("2.0".to_string()));
+                    m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                     m.insert("id".to_string(), self.request_id());
-                    m.insert("method".to_string(), Value::Str("auth".to_string()));
+                    m.insert("method".to_string(), Value::Str("auth".into()));
                     m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("bearer".to_string(), token);
@@ -335,7 +335,7 @@ impl ParadexCore {
         let mut result: Value = self.safe_dict_k(message, "result", &[]);
         if (result != Value::Null) {
             // client.resolve (true, messageHash);
-            let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticated".to_string()), &[]);
+            let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), Value::Str("authenticated".into()), &[]);
             if (future != Value::Null) {
                 future.resolve(&[Value::Bool(true)]);
             }
@@ -363,18 +363,18 @@ impl ParadexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut messageHash: Value = Value::Str("trades.".to_string());
+        let mut messageHash: Value = Value::Str("trades.".into());
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            messageHash = Value::Str(format!("{}{}", messageHash, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+            messageHash = Value::Str(format!("{}{}", messageHash, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
         }  else {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("ALL".to_string())));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("ALL".into())).into());
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("jsonrpc".to_string(), Value::Str("2.0".to_string()));
-                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), messageHash.clone());
@@ -387,7 +387,7 @@ impl ParadexCore {
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol, limit.clone());
         }
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".to_string()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -454,12 +454,12 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("order_book.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".snapshot@15@100ms".to_string())));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("order_book.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".snapshot@15@100ms".into())).into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("jsonrpc".to_string(), Value::Str("2.0".to_string()));
-                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), messageHash.clone());
@@ -535,15 +535,15 @@ impl ParadexCore {
             let mut price: Value = self.safe_string_k(insert.clone(), "price", &[]);
             let mut size: Value = self.safe_string_k(insert, "size", &[]);
             if (side.as_deref() == Some("BUY")) {
-                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("bids".to_string()), Value::from(vec![price.clone(), size.clone()]));
+                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("bids".into()), Value::from(vec![price.clone(), size.clone()]));
             }  else {
-                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("asks".to_string()), Value::from(vec![price, size]));
+                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("asks".into()), Value::from(vec![price, size]));
             }
         }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut snapshot: Value = self.parse_order_book(orderbookData, symbol, &[timestamp, Value::Str("bids".to_string()), Value::Str("asks".to_string())]);
-        add_element_to_object(&mut snapshot, &Value::Str("nonce".to_string()), self.safe_integer_k(data, "seq_no", &[]));
+        let mut snapshot: Value = self.parse_order_book(orderbookData, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into())]);
+        add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), self.safe_integer_k(data, "seq_no", &[]));
         orderbook.reset(snapshot);
         let mut messageHash: Value = self.safe_string_k(params, "channel", &[]);
         client.resolve(&[orderbook, messageHash]);
@@ -567,12 +567,12 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         symbol = self.symbol(symbol.clone());
-        let mut channel: Value = Value::Str("markets_summary".to_string());
+        let mut channel: Value = Value::Str("markets_summary".into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("jsonrpc".to_string(), Value::Str("2.0".to_string()));
-                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), channel.clone());
@@ -580,7 +580,7 @@ impl ParadexCore {
 }));
             m
         });
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".to_string()))), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbol).into());
         let __ws_arg_3 = self.deep_extend(request, &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_3, messageHash.clone()]).await;
 
@@ -606,12 +606,12 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut channel: Value = Value::Str("markets_summary".to_string());
+        let mut channel: Value = Value::Str("markets_summary".into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("jsonrpc".to_string(), Value::Str("2.0".to_string()));
-                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), channel.clone());
@@ -620,12 +620,12 @@ impl ParadexCore {
             m
         });
         let mut messageHashes: Value = Value::from(vec![]);
-        if (symbols != Value::Null) && is_true(&(matches!(&symbols, Value::Arr(_)))) {
+        if (symbols != Value::Null) && (matches!(&symbols, Value::Arr(_))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_585: bool = true;
                 while { if !__for_first_585 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_585 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".to_string()))), get_value(&symbols, &i)));
+                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into());
                 append_to_array(&mut messageHashes, messageHash);
             }
             }
@@ -642,7 +642,7 @@ impl ParadexCore {
             add_element_to_object(&mut result, &crate::value::get_value_k(&newTicker, "symbol"), newTicker.clone());
             return result;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".to_string()), &[symbols]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }
@@ -670,21 +670,21 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         self.authenticate(&[]).await;
-        let mut messageHash: Value = Value::Str("orders".to_string());
-        let mut channel: Value = Value::Str("orders.".to_string());
+        let mut messageHash: Value = Value::Str("orders".into());
+        let mut channel: Value = Value::Str("orders.".into());
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            channel = Value::Str(format!("{}{}", channel, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), symbol))));
+            channel = Value::Str(format!("{}{}", channel, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
         }  else {
-            channel = Value::Str(format!("{}{}", channel, Value::Str("ALL".to_string())));
+            channel = Value::Str(format!("{}{}", channel, Value::Str("ALL".into())).into());
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("jsonrpc".to_string(), Value::Str("2.0".to_string()));
-                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), channel.clone());
@@ -745,10 +745,10 @@ impl ParadexCore {
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         self.orders.append(parsed);
-        let mut messageHash: Value = Value::Str("orders".to_string());
+        let mut messageHash: Value = Value::Str("orders".into());
         client.resolve(&[self.orders.clone(), messageHash.clone()]);
         if (symbol != Value::Null) {
-            let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol));
+            let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
             client.resolve(&[self.orders.clone(), symbolMessageHash]);
         }
 }
@@ -790,7 +790,7 @@ impl ParadexCore {
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut channel: Value = self.safe_string_k(params, "channel", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".to_string()))), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbol).into());
         let mut ticker: Value = self.parse_ticker(data, &[market]);
         add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         client.resolve(&[ticker.clone(), channel]);
@@ -818,12 +818,12 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         symbol = self.symbol(symbol.clone());
-        let mut channel: Value = Value::Str("funding_data".to_string());
+        let mut channel: Value = Value::Str("funding_data".into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("jsonrpc".to_string(), Value::Str("2.0".to_string()));
-                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), channel.clone());
@@ -831,7 +831,7 @@ impl ParadexCore {
 }));
             m
         });
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".to_string()))), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbol).into());
         let __ws_arg_6 = self.deep_extend(request, &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_6, messageHash.clone()]).await;
 
@@ -857,12 +857,12 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut channel: Value = Value::Str("funding_data".to_string());
+        let mut channel: Value = Value::Str("funding_data".into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("jsonrpc".to_string(), Value::Str("2.0".to_string()));
-                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), channel.clone());
@@ -878,7 +878,7 @@ impl ParadexCore {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_586: bool = true;
                     while { if !__for_first_586 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-                    let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".to_string()))), get_value(&symbols, &i)));
+                    let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into());
                     append_to_array(&mut messageHashes, messageHash);
                 }
                 }
@@ -898,7 +898,7 @@ impl ParadexCore {
             add_element_to_object(&mut result, &crate::value::get_value_k(&newFundingRates, "symbol"), newFundingRates.clone());
             return result;
         }
-        return self.filter_by_array(self.fundingRates.clone(), Value::Str("symbol".to_string()), &[symbols]);
+        return self.filter_by_array(self.fundingRates.clone(), Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }
@@ -934,7 +934,7 @@ impl ParadexCore {
         let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
         let mut channel: Value = self.safe_string_k(params, "channel", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".to_string()))), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbol).into());
         client.resolve(&[fundingRate, messageHash]);
 }
 
@@ -961,7 +961,7 @@ impl ParadexCore {
         m.insert("symbol".to_string(), symbol);
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
-        m.insert("interestRate".to_string(), self.parse_number(Value::Str("0".to_string()), &[]));
+        m.insert("interestRate".to_string(), self.parse_number(Value::Str("0".into()), &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -974,7 +974,7 @@ impl ParadexCore {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), Value::Str(format!("{}{}", fundingPeriod, Value::Str("h".to_string()))));
+        m.insert("interval".to_string(), Value::Str(format!("{}{}", fundingPeriod, Value::Str("h".into())).into()));
     m
 });
 
@@ -1002,8 +1002,8 @@ impl ParadexCore {
         }  else {
             let mut errorCode: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
             if (errorCode.is_some()) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&error)));
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::Str("-32600".to_string()), feedback.clone());
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&error)).into());
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::Str("-32600".into()), feedback.clone());
                 let mut messageString: Value = self.safe_value_k(error, "message", &[]);
                 if (messageString != Value::Null) {
                     self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), messageString, feedback);
@@ -1055,15 +1055,15 @@ impl ParadexCore {
         let mut data: Value = self.safe_dict_k(message.clone(), "params", &[]);
         if (data != Value::Null) {
             let mut channel: Value = self.safe_string_k(data, "channel", &[]);
-            let mut parts: Value = split(&channel, &Value::Str(".".to_string()));
+            let mut parts: Value = split(&channel, &Value::Str(".".into()));
             let mut name: Value = self.safe_string(parts, Value::Int(0), &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("trades".to_string(), Value::Str("handle_trade".to_string()).clone());
-                    m.insert("order_book".to_string(), Value::Str("handle_order_book".to_string()).clone());
-                    m.insert("markets_summary".to_string(), Value::Str("handle_ticker".to_string()).clone());
-                    m.insert("orders".to_string(), Value::Str("handle_order".to_string()).clone());
-                    m.insert("funding_data".to_string(), Value::Str("handle_funding_rate".to_string()).clone());
+                    m.insert("trades".to_string(), Value::Str("handle_trade".into()).clone());
+                    m.insert("order_book".to_string(), Value::Str("handle_order_book".into()).clone());
+                    m.insert("markets_summary".to_string(), Value::Str("handle_ticker".into()).clone());
+                    m.insert("orders".to_string(), Value::Str("handle_order".into()).clone());
+                    m.insert("funding_data".to_string(), Value::Str("handle_funding_rate".into()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods, name, &[]);

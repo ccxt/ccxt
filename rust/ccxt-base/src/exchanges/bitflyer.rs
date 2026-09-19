@@ -132,12 +132,12 @@ impl BitflyerCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("bitflyer".to_string()));
-        m.insert("name".to_string(), Value::Str("bitFlyer".to_string()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".to_string())]));
-        m.insert("version".to_string(), Value::Str("v1".to_string()));
+        m.insert("id".to_string(), Value::Str("bitflyer".into()));
+        m.insert("name".to_string(), Value::Str("bitFlyer".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".into())]));
+        m.insert("version".to_string(), Value::Str("v1".into()));
         m.insert("rateLimit".to_string(), Value::Int(1000));
-        m.insert("hostname".to_string(), Value::Str("bitflyer.com".to_string()));
+        m.insert("hostname".to_string(), Value::Str("bitflyer.com".into()));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
@@ -160,7 +160,7 @@ impl BitflyerCore {
         m.insert("fetchBorrowRateHistory".to_string(), Value::Bool(false));
         m.insert("fetchBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchBorrowRatesPerSymbol".to_string(), Value::Bool(false));
-        m.insert("fetchClosedOrders".to_string(), Value::Str("emulated".to_string()));
+        m.insert("fetchClosedOrders".to_string(), Value::Str("emulated".into()));
         m.insert("fetchCrossBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchCrossBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchCurrencies".to_string(), Value::Bool(false));
@@ -174,10 +174,10 @@ impl BitflyerCore {
         m.insert("fetchMarginMode".to_string(), Value::Bool(false));
         m.insert("fetchMarkets".to_string(), Value::Bool(true));
         m.insert("fetchMyTrades".to_string(), Value::Bool(true));
-        m.insert("fetchOpenOrders".to_string(), Value::Str("emulated".to_string()));
+        m.insert("fetchOpenOrders".to_string(), Value::Str("emulated".into()));
         m.insert("fetchOption".to_string(), Value::Bool(false));
         m.insert("fetchOptionChain".to_string(), Value::Bool(false));
-        m.insert("fetchOrder".to_string(), Value::Str("emulated".to_string()));
+        m.insert("fetchOrder".to_string(), Value::Str("emulated".into()));
         m.insert("fetchOrderBook".to_string(), Value::Bool(true));
         m.insert("fetchOrders".to_string(), Value::Bool(true));
         m.insert("fetchPositionMode".to_string(), Value::Bool(false));
@@ -198,14 +198,14 @@ impl BitflyerCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/d0217747-e54d-4533-8416-0d553dca74bb".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/d0217747-e54d-4533-8416-0d553dca74bb".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rest".to_string(), Value::Str("https://api.{hostname}".to_string()));
+        m.insert("rest".to_string(), Value::Str("https://api.{hostname}".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://bitflyer.com".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://lightning.bitflyer.com/docs?lang=en".to_string()));
+        m.insert("www".to_string(), Value::Str("https://bitflyer.com".into()));
+        m.insert("doc".to_string(), Value::Str("https://lightning.bitflyer.com/docs?lang=en".into()));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -416,8 +416,8 @@ impl BitflyerCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("maker".to_string(), self.parse_number(Value::Str("0.002".to_string()), &[]));
-        m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".to_string()), &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0.002".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".into()), &[]));
     m
 }));
     m
@@ -525,7 +525,7 @@ impl BitflyerCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("-2".to_string(), Value::Str("OnMaintenance".to_string()).clone());
+        m.insert("-2".to_string(), Value::Str("OnMaintenance".into()).clone());
     m
 }));
     m
@@ -542,22 +542,22 @@ impl BitflyerCore {
         let mut year: Value = slice(&expiry, &Value::Int(5), &Value::Int(9));
         let mut months: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("JAN".to_string(), Value::Str("01".to_string()));
-                m.insert("FEB".to_string(), Value::Str("02".to_string()));
-                m.insert("MAR".to_string(), Value::Str("03".to_string()));
-                m.insert("APR".to_string(), Value::Str("04".to_string()));
-                m.insert("MAY".to_string(), Value::Str("05".to_string()));
-                m.insert("JUN".to_string(), Value::Str("06".to_string()));
-                m.insert("JUL".to_string(), Value::Str("07".to_string()));
-                m.insert("AUG".to_string(), Value::Str("08".to_string()));
-                m.insert("SEP".to_string(), Value::Str("09".to_string()));
-                m.insert("OCT".to_string(), Value::Str("10".to_string()));
-                m.insert("NOV".to_string(), Value::Str("11".to_string()));
-                m.insert("DEC".to_string(), Value::Str("12".to_string()));
+                m.insert("JAN".to_string(), Value::Str("01".into()));
+                m.insert("FEB".to_string(), Value::Str("02".into()));
+                m.insert("MAR".to_string(), Value::Str("03".into()));
+                m.insert("APR".to_string(), Value::Str("04".into()));
+                m.insert("MAY".to_string(), Value::Str("05".into()));
+                m.insert("JUN".to_string(), Value::Str("06".into()));
+                m.insert("JUL".to_string(), Value::Str("07".into()));
+                m.insert("AUG".to_string(), Value::Str("08".into()));
+                m.insert("SEP".to_string(), Value::Str("09".into()));
+                m.insert("OCT".to_string(), Value::Str("10".into()));
+                m.insert("NOV".to_string(), Value::Str("11".into()));
+                m.insert("DEC".to_string(), Value::Str("12".into()));
             m
         });
         let mut month: Value = self.safe_string(months, monthName, &[]);
-        return self.parse8601(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&year, &Value::Str("-".to_string())), month)), Value::Str("-".to_string()))), &day), Value::Str("T00:00:00Z".to_string()))));
+        return self.parse8601(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&year, &Value::Str("-".into())), month).into()), Value::Str("-".into())).into()), &day), Value::Str("T00:00:00Z".into())).into()));
 
     Value::Null
 }
@@ -567,7 +567,7 @@ impl BitflyerCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        return self.super_safe_market(marketId, market, delimiter, Value::Str("spot".to_string()));
+        return self.super_safe_market(marketId, market, delimiter, Value::Str("spot".into()));
 
     Value::Null
 }
@@ -623,61 +623,60 @@ impl BitflyerCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_338: bool = true;
             while { if !__for_first_338 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_338 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
-            let mut market: Value = get_value(&markets, &i);
-            let mut market: Value = get_value(&markets, &i);
+            let mut market: Value = markets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "product_code", &[]);
-            let mut currencies: Value = split(&id, &Value::Str("_".to_string()));
+            let mut currencies: Value = split(&id, &Value::Str("_".into()));
             let mut marketType: Option<String> = self.safe_string_k(market.clone(), "market_type", &[]).as_str().map(str::to_owned);
             let mut swap: Value = (Value::Bool(marketType.as_deref() == Some("FX")));
             let mut future: Value = (Value::Bool(marketType.as_deref() == Some("Futures")));
-            let mut spot: Value = Value::Bool(!is_true(&swap) && !is_true(&future));
-            let mut type_var: Value = Value::Str("spot".to_string());
+            let mut spot: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))) && !(matches!(&future, Value::Bool(true))));
+            let mut type_var: Value = Value::Str("spot".into());
             let mut settle: Value = Value::Null;
             let mut baseId: Value = Value::Null;
             let mut quoteId: Value = Value::Null;
             let mut expiry: Value = Value::Null;
-            if is_true(&spot) {
+            if matches!(&spot, Value::Bool(true)) {
                 baseId = self.safe_string(currencies.clone(), Value::Int(0), &[]);
                 quoteId = self.safe_string(currencies.clone(), Value::Int(1), &[]);
-            }  else if is_true(&swap) {
-                type_var = Value::Str("swap".to_string());
+            }  else if matches!(&swap, Value::Bool(true)) {
+                type_var = Value::Str("swap".into());
                 baseId = self.safe_string(currencies.clone(), Value::Int(1), &[]);
                 quoteId = self.safe_string(currencies, Value::Int(2), &[]);
-            }  else if is_true(&future) {
+            }  else if matches!(&future, Value::Bool(true)) {
                 let mut alias: Value = self.safe_string_k(market.clone(), "alias", &[]);
                 if (alias == Value::Null) {
                     // no alias:
                     // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                     // TODO this will break if there are products with 4 chars
-                    baseId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
-                    quoteId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+                    baseId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+                    quoteId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                     // last 9 chars are expiry date
-                    let mut expiryDate: Value = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 9).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+                    let mut expiryDate: Value = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 9).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                     expiry = self.parse_expiry_date(expiryDate.clone());
                 }  else {
-                    let mut splitAlias: Value = split(&alias, &Value::Str("_".to_string()));
+                    let mut splitAlias: Value = split(&alias, &Value::Str("_".into()));
                     let mut currencyIds: Value = self.safe_string(splitAlias, Value::Int(0), &[]);
-                    baseId = currencyIds.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
-                    quoteId = currencyIds.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 3).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+                    baseId = currencyIds.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+                    quoteId = currencyIds.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 3).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                     let mut splitId: Value = split(&id, &currencyIds);
                     let mut expiryDate: Value = self.safe_string(splitId, Value::Int(1), &[]);
                     expiry = self.parse_expiry_date(expiryDate);
                 }
-                type_var = Value::Str("future".to_string());
+                type_var = Value::Str("future".into());
             }
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
             let mut taker: Value = self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null);
             let mut maker: Value = self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null);
-            let mut contract: Value = Value::Bool(is_true(&swap) || is_true(&future));
-            if is_true(&contract) {
+            let mut contract: Value = Value::Bool(matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true)));
+            if matches!(&contract, Value::Bool(true)) {
                 maker = Value::Int(0);
                 taker = Value::Int(0);
-                settle = Value::Str("JPY".to_string());
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
-                if is_true(&future) {
-                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
+                settle = Value::Str("JPY".into());
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
+                if matches!(&future, Value::Bool(true)) {
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into());
                 }
             }
             append_to_array(&mut result, Value::Map({
@@ -698,8 +697,8 @@ impl BitflyerCore {
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), Value::Bool(true));
                     m.insert("contract".to_string(), contract);
-                    m.insert("linear".to_string(), (if is_true(&spot) { Value::Null } else { Value::Bool(true) }));
-                    m.insert("inverse".to_string(), (if is_true(&spot) { Value::Null } else { Value::Bool(false) }));
+                    m.insert("linear".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { Value::Bool(true) }));
+                    m.insert("inverse".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { Value::Bool(false) }));
                     m.insert("taker".to_string(), taker);
                     m.insert("maker".to_string(), maker);
                     m.insert("contractSize".to_string(), Value::Null);
@@ -828,7 +827,7 @@ impl BitflyerCore {
         });
         let __ws_arg_0 = self.extend(request, &[params]);
         let mut orderbook: Value = self.public_get_getboard(&[__ws_arg_0]).await;
-        return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("size".to_string())]);
+        return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
 
     Value::Null
 }
@@ -924,7 +923,7 @@ impl BitflyerCore {
         //          "commission": 0,
         //      },
         //
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
+        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
         if (side != Value::Null) {
             if ((side.len() as i64) as f64) < ((1i64) as f64) {
                 side = Value::Null;
@@ -932,9 +931,9 @@ impl BitflyerCore {
         }
         let mut order: Value = Value::Null;
         if (side != Value::Null) {
-            let mut idInner: Value = Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".to_string())));
+            let mut idInner: Value = Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".into())).into());
             if (in_op(&trade, &idInner)) {
-                order = get_value(&trade, &idInner);
+                order = trade.as_map().and_then(|__m| idInner.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             }
         }
         if (order == Value::Null) {
@@ -994,7 +993,7 @@ impl BitflyerCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("count".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".to_string(), limit.clone()); }
         }
         let __ws_arg_2 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_getexecutions(&[__ws_arg_2]).await;
@@ -1110,7 +1109,7 @@ impl BitflyerCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1135,11 +1134,11 @@ impl BitflyerCore {
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("ACTIVE".to_string(), Value::Str("open".to_string()));
-                m.insert("COMPLETED".to_string(), Value::Str("closed".to_string()));
-                m.insert("CANCELED".to_string(), Value::Str("canceled".to_string()));
-                m.insert("EXPIRED".to_string(), Value::Str("canceled".to_string()));
-                m.insert("REJECTED".to_string(), Value::Str("canceled".to_string()));
+                m.insert("ACTIVE".to_string(), Value::Str("open".into()));
+                m.insert("COMPLETED".to_string(), Value::Str("closed".into()));
+                m.insert("CANCELED".to_string(), Value::Str("canceled".into()));
+                m.insert("EXPIRED".to_string(), Value::Str("canceled".into()));
+                m.insert("REJECTED".to_string(), Value::Str("canceled".into()));
             m
         });
         return self.safe_string(statuses, status.clone(), &[status.clone()]);
@@ -1155,8 +1154,8 @@ impl BitflyerCore {
         let mut filled: Value = self.safe_string_k(order.clone(), "executed_size", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "outstanding_size", &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "child_order_state", &[]));
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("child_order_type".to_string()), &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("child_order_type".into()), &[]);
+        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "product_code", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut fee: Value = Value::Null;
@@ -1220,7 +1219,7 @@ impl BitflyerCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1236,7 +1235,7 @@ impl BitflyerCore {
         let mut response: Value = self.private_get_getchildorders(&[__ws_arg_6]).await;
         let mut orders: Value = self.parse_orders(response, &[market, since, limit]);
         if (symbol != Value::Null) {
-            orders = self.filter_by(orders.clone(), Value::Str("symbol".to_string()), symbol, &[]);
+            orders = self.filter_by(orders.clone(), Value::Str("symbol".into()), symbol, &[]);
         }
         return orders;
 
@@ -1264,7 +1263,7 @@ impl BitflyerCore {
 }));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("child_order_state".to_string(), Value::Str("ACTIVE".to_string()));
+                m.insert("child_order_state".to_string(), Value::Str("ACTIVE".into()));
             m
         });
         let __ws_arg_7 = self.extend(request, &[params]);
@@ -1294,7 +1293,7 @@ impl BitflyerCore {
 }));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("child_order_state".to_string(), Value::Str("COMPLETED".to_string()));
+                m.insert("child_order_state".to_string(), Value::Str("COMPLETED".into()));
             m
         });
         let __ws_arg_8 = self.extend(request, &[params]);
@@ -1320,14 +1319,14 @@ impl BitflyerCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
         }
         let mut orders: Value = self.fetch_orders(&[symbol]).await;
-        let mut ordersById: Value = self.index_by(orders, Value::Str("id".to_string()));
+        let mut ordersById: Value = self.index_by(orders, Value::Str("id".into()));
         if (in_op(&ordersById, &id)) {
             return get_value(&ordersById, &id);
         }
-        panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" No order found with id ".to_string()))), id)));
+        panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" No order found with id ".into())).into()), id)));
 
     Value::Null
 }
@@ -1352,7 +1351,7 @@ impl BitflyerCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1364,7 +1363,7 @@ impl BitflyerCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("count".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".to_string(), limit.clone()); }
         }
         let __ws_arg_9 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_getexecutions(&[__ws_arg_9]).await;
@@ -1389,7 +1388,7 @@ impl BitflyerCore {
     m
 }));
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() requires a `symbols` argument, exactly one symbol in an array".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() requires a `symbols` argument, exactly one symbol in an array".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1429,7 +1428,7 @@ impl BitflyerCore {
             self.load_markets(&[]).await;
         }
         if (code.as_str() != Some("JPY")) && (code.as_str() != Some("USD")) && (code.as_str() != Some("EUR")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" allows withdrawing JPY, USD, EUR only, ".to_string()))), code)), Value::Str(" is not supported".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" allows withdrawing JPY, USD, EUR only, ".into())).into()), code).into()), Value::Str(" is not supported".into()))));
         }
         let mut currency: Value = self.currency(code);
         let mut request: Value = Value::Map({
@@ -1476,7 +1475,7 @@ impl BitflyerCore {
             currency = self.currency(code);
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("count".to_string(), limit.clone()); } // default 100
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".to_string(), limit.clone()); }; // default 100
         }
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_getcoinins(&[__ws_arg_12]).await;
@@ -1516,7 +1515,7 @@ impl BitflyerCore {
             currency = self.currency(code);
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("count".to_string(), limit.clone()); } // default 100
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".to_string(), limit.clone()); }; // default 100
         }
         let __ws_arg_13 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_getcoinouts(&[__ws_arg_13]).await;
@@ -1528,8 +1527,8 @@ impl BitflyerCore {
     pub fn parse_deposit_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("PENDING".to_string(), Value::Str("pending".to_string()));
-                m.insert("COMPLETED".to_string(), Value::Str("ok".to_string()));
+                m.insert("PENDING".to_string(), Value::Str("pending".into()));
+                m.insert("COMPLETED".to_string(), Value::Str("ok".into()));
             m
         });
         return self.safe_string(statuses, status.clone(), &[status.clone()]);
@@ -1540,8 +1539,8 @@ impl BitflyerCore {
     pub fn parse_withdrawal_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("PENDING".to_string(), Value::Str("pending".to_string()));
-                m.insert("COMPLETED".to_string(), Value::Str("ok".to_string()));
+                m.insert("PENDING".to_string(), Value::Str("pending".into()));
+                m.insert("COMPLETED".to_string(), Value::Str("ok".into()));
             m
         });
         return self.safe_string(statuses, status.clone(), &[status.clone()]);
@@ -1586,7 +1585,7 @@ impl BitflyerCore {
         //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
         //     }
         //
-        let mut id: Value = self.safe_string2(transaction.clone(), Value::Str("id".to_string()), Value::Str("message_id".to_string()), &[]);
+        let mut id: Value = self.safe_string2(transaction.clone(), Value::Str("id".into()), Value::Str("message_id".into()), &[]);
         let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency_code", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
@@ -1597,8 +1596,8 @@ impl BitflyerCore {
         let mut type_var: Value = Value::Null;
         let mut status: Value = Value::Null;
         let mut fee: Value = Value::Null;
-        if is_true(&(matches!(&transaction, Value::Dict(__d) if __d.contains_key("fee")))) {
-            type_var = Value::Str("withdrawal".to_string());
+        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("fee"))) {
+            type_var = Value::Str("withdrawal".into());
             status = self.parse_withdrawal_status(rawStatus.clone());
             let mut feeCost: Value = self.safe_string_k(transaction.clone(), "fee", &[]);
             let mut additionalFee: Value = self.safe_string_k(transaction.clone(), "additional_fee", &[]);
@@ -1609,7 +1608,7 @@ impl BitflyerCore {
                 m
             });
         }  else {
-            type_var = Value::Str("deposit".to_string());
+            type_var = Value::Str("deposit".into());
             status = self.parse_deposit_status(rawStatus);
         }
         return Value::Map({
@@ -1707,43 +1706,43 @@ impl BitflyerCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".to_string()), self.version.clone())), Value::Str("/".to_string())));
+        let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into());
         if (api.as_str() == Some("private")) {
-            request = Value::Str(format!("{}{}", request, Value::Str("me/".to_string())));
+            request = Value::Str(format!("{}{}", request, Value::Str("me/".into())).into());
         }
         request = add(&request, &path);
         if (method.as_str() == Some("GET")) {
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
-                request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));
+                request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])).into())).into());
             }
         }
         let mut baseUrl: Value = self.implode_hostname(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null));
-        let mut url: Value = Value::Str(format!("{}{}", baseUrl, request));
+        let mut url: Value = Value::Str(format!("{}{}", baseUrl, request).into());
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = to_string_val(&self.nonce());
             let mut content: Value = Value::from(vec![nonce.clone(), method.clone(), request]);
-            let mut auth: Value = join(&content, &Value::Str("".to_string()));
+            let mut auth: Value = join(&content, &Value::Str("".into()));
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 if (method.as_str() != Some("GET")) {
                     body = json_stringify(&params);
-                    auth = Value::Str(format!("{}{}", auth, body));
+                    auth = Value::Str(format!("{}{}", auth, body).into());
                 }
             }
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-TIMESTAMP".to_string(), nonce);
-                    m.insert("ACCESS-SIGN".to_string(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]));
-                    m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
+                    m.insert("ACCESS-SIGN".to_string(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+                    m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
             });
         }
@@ -1763,7 +1762,7 @@ impl BitflyerCore {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         let mut errorMessage: Option<String> = self.safe_string_k(response.clone(), "error_message", &[]).as_str().map(str::to_owned);
         let mut statusCode: Value = self.safe_integer_k(response, "status", &[]);

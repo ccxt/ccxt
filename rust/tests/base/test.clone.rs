@@ -131,7 +131,7 @@ pub fn testClone() {
     assert!(ccxt::runtime::is_true(&((simpleOrig.as_map().and_then(|__m| __m.get("x")).cloned().unwrap_or(Value::Null).as_f64() == Some(1.0)))));
     assert!(ccxt::runtime::is_true(&((simpleOrig.as_map().and_then(|__m| __m.get("y")).cloned().unwrap_or(Value::Null).as_str() == Some("hello")))));
     // mutating the original must not affect an already-taken clone
-    add_element_to_object(&mut simpleOrig, &Value::Str("x".into()), Value::Int(42));
+    if let Value::Dict(__d) = &mut simpleOrig { std::sync::Arc::make_mut(__d).insert("x".to_string(), Value::Int(42)); }
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&simpleClone, &Value::Str("x".into())), &Value::Int(999))))));
     // -------------------------------------------------------------------------
     // --- test B: nested object – verify clone is a shallow copy (top-level keys independent) ---
@@ -151,7 +151,7 @@ pub fn testClone() {
     add_element_to_object(&mut nestedClone, &Value::Str("top".into()), Value::Str("cloned".into()));
     assert!(ccxt::runtime::is_true(&((nestedOrig.as_map().and_then(|__m| __m.get("top")).cloned().unwrap_or(Value::Null).as_str() == Some("original")))));
     assert!(ccxt::runtime::is_true(&((get_value(&nestedClone, &Value::Str("top".into())).as_str() == Some("cloned")))));
-    add_element_to_object(&mut nestedOrig, &Value::Str("top".into()), Value::Str("changed_orig".into()));
+    if let Value::Dict(__d) = &mut nestedOrig { std::sync::Arc::make_mut(__d).insert("top".to_string(), Value::Str("changed_orig".into())); }
     assert!(ccxt::runtime::is_true(&((get_value(&nestedClone, &Value::Str("top".into())).as_str() == Some("cloned")))));
     // -------------------------------------------------------------------------
     // --- test C: cloning an empty object ---

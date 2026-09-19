@@ -102,9 +102,9 @@ impl CoinspotCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("coinspot".to_string()));
-        m.insert("name".to_string(), Value::Str("CoinSpot".to_string()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("AU".to_string())]));
+        m.insert("id".to_string(), Value::Str("coinspot".into()));
+        m.insert("name".to_string(), Value::Str("CoinSpot".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("AU".into())]));
         m.insert("rateLimit".to_string(), Value::Int(1000));
         m.insert("pro".to_string(), Value::Bool(false));
         m.insert("has".to_string(), Value::Map({
@@ -200,16 +200,16 @@ impl CoinspotCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("https://www.coinspot.com.au/pubapi".to_string()));
-        m.insert("private".to_string(), Value::Str("https://www.coinspot.com.au/api".to_string()));
+        m.insert("public".to_string(), Value::Str("https://www.coinspot.com.au/pubapi".into()));
+        m.insert("private".to_string(), Value::Str("https://www.coinspot.com.au/api".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://www.coinspot.com.au".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://www.coinspot.com.au/api".to_string()));
-        m.insert("referral".to_string(), Value::Str("https://www.coinspot.com.au/register?code=PJURCU".to_string()));
+        m.insert("www".to_string(), Value::Str("https://www.coinspot.com.au".into()));
+        m.insert("doc".to_string(), Value::Str("https://www.coinspot.com.au/api".into()));
+        m.insert("referral".to_string(), Value::Str("https://www.coinspot.com.au/register?code=PJURCU".into()));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -621,205 +621,205 @@ impl CoinspotCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("btc".to_string()));
-        m.insert("symbol".to_string(), Value::Str("BTC/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("BTC".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("btc".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("btc".into()));
+        m.insert("symbol".to_string(), Value::Str("BTC/AUD".into()));
+        m.insert("base".to_string(), Value::Str("BTC".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("btc".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("BTC/USDT".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("btc".to_string()));
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("base".to_string(), Value::Str("BTC".to_string()));
-        m.insert("quote".to_string(), Value::Str("USDT".to_string()));
-        m.insert("baseId".to_string(), Value::Str("btc".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("usdt".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("btc".into()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("base".to_string(), Value::Str("BTC".into()));
+        m.insert("quote".to_string(), Value::Str("USDT".into()));
+        m.insert("baseId".to_string(), Value::Str("btc".into()));
+        m.insert("quoteId".to_string(), Value::Str("usdt".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("USDT/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("usdt".to_string()));
-        m.insert("symbol".to_string(), Value::Str("USDT/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("USDT".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("usdt".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("usdt".into()));
+        m.insert("symbol".to_string(), Value::Str("USDT/AUD".into()));
+        m.insert("base".to_string(), Value::Str("USDT".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("usdt".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("ETH/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("eth".to_string()));
-        m.insert("symbol".to_string(), Value::Str("ETH/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("ETH".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("eth".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("eth".into()));
+        m.insert("symbol".to_string(), Value::Str("ETH/AUD".into()));
+        m.insert("base".to_string(), Value::Str("ETH".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("eth".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("ADA/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("ada".to_string()));
-        m.insert("symbol".to_string(), Value::Str("ADA/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("ADA".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("ada".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("ada".into()));
+        m.insert("symbol".to_string(), Value::Str("ADA/AUD".into()));
+        m.insert("base".to_string(), Value::Str("ADA".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("ada".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("SOL/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("sol".to_string()));
-        m.insert("symbol".to_string(), Value::Str("SOL/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("SOL".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("sol".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("sol".into()));
+        m.insert("symbol".to_string(), Value::Str("SOL/AUD".into()));
+        m.insert("base".to_string(), Value::Str("SOL".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("sol".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("XRP/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("xrp".to_string()));
-        m.insert("symbol".to_string(), Value::Str("XRP/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("XRP".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("xrp".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("xrp".into()));
+        m.insert("symbol".to_string(), Value::Str("XRP/AUD".into()));
+        m.insert("base".to_string(), Value::Str("XRP".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("xrp".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("DOGE/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("doge".to_string()));
-        m.insert("symbol".to_string(), Value::Str("DOGE/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("DOGE".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("doge".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("doge".into()));
+        m.insert("symbol".to_string(), Value::Str("DOGE/AUD".into()));
+        m.insert("base".to_string(), Value::Str("DOGE".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("doge".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("LTC/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("ltc".to_string()));
-        m.insert("symbol".to_string(), Value::Str("LTC/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("LTC".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("ltc".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("ltc".into()));
+        m.insert("symbol".to_string(), Value::Str("LTC/AUD".into()));
+        m.insert("base".to_string(), Value::Str("LTC".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("ltc".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("XLM/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("xlm".to_string()));
-        m.insert("symbol".to_string(), Value::Str("XLM/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("XLM".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("xlm".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("xlm".into()));
+        m.insert("symbol".to_string(), Value::Str("XLM/AUD".into()));
+        m.insert("base".to_string(), Value::Str("XLM".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("xlm".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("TRX/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("trx".to_string()));
-        m.insert("symbol".to_string(), Value::Str("TRX/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("TRX".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("trx".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("trx".into()));
+        m.insert("symbol".to_string(), Value::Str("TRX/AUD".into()));
+        m.insert("base".to_string(), Value::Str("TRX".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("trx".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("EOS/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("eos".to_string()));
-        m.insert("symbol".to_string(), Value::Str("EOS/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("EOS".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("eos".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("eos".into()));
+        m.insert("symbol".to_string(), Value::Str("EOS/AUD".into()));
+        m.insert("base".to_string(), Value::Str("EOS".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("eos".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("A/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("eos".to_string()));
-        m.insert("symbol".to_string(), Value::Str("A/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("A".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("eos".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("eos".into()));
+        m.insert("symbol".to_string(), Value::Str("A/AUD".into()));
+        m.insert("base".to_string(), Value::Str("A".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("eos".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("NEO/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("neo".to_string()));
-        m.insert("symbol".to_string(), Value::Str("NEO/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("NEO".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("ans".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("neo".into()));
+        m.insert("symbol".to_string(), Value::Str("NEO/AUD".into()));
+        m.insert("base".to_string(), Value::Str("NEO".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("ans".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("POWR/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("powr".to_string()));
-        m.insert("symbol".to_string(), Value::Str("POWR/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("POWR".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("powr".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("powr".into()));
+        m.insert("symbol".to_string(), Value::Str("POWR/AUD".into()));
+        m.insert("base".to_string(), Value::Str("POWR".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("powr".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("GAS/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("gas".to_string()));
-        m.insert("symbol".to_string(), Value::Str("GAS/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("GAS".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("gas".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("gas".into()));
+        m.insert("symbol".to_string(), Value::Str("GAS/AUD".into()));
+        m.insert("base".to_string(), Value::Str("GAS".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("gas".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
         m.insert("RHOC/AUD".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("rhoc".to_string()));
-        m.insert("symbol".to_string(), Value::Str("RHOC/AUD".to_string()));
-        m.insert("base".to_string(), Value::Str("RHOC".to_string()));
-        m.insert("quote".to_string(), Value::Str("AUD".to_string()));
-        m.insert("baseId".to_string(), Value::Str("rhoc".to_string()));
-        m.insert("quoteId".to_string(), Value::Str("aud".to_string()));
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("id".to_string(), Value::Str("rhoc".into()));
+        m.insert("symbol".to_string(), Value::Str("RHOC/AUD".into()));
+        m.insert("base".to_string(), Value::Str("RHOC".into()));
+        m.insert("quote".to_string(), Value::Str("AUD".into()));
+        m.insert("baseId".to_string(), Value::Str("rhoc".into()));
+        m.insert("quoteId".to_string(), Value::Str("aud".into()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
@@ -827,12 +827,12 @@ impl CoinspotCore {
 }));
         m.insert("commonCurrencies".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("DRK".to_string(), Value::Str("DASH".to_string()));
+        m.insert("DRK".to_string(), Value::Str("DASH".into()));
     m
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fetchBalance".to_string(), Value::Str("private_post_my_balances".to_string()));
+        m.insert("fetchBalance".to_string(), Value::Str("private_post_my_balances".into()));
     m
 }));
         m.insert("features".to_string(), Value::Map({
@@ -910,26 +910,24 @@ impl CoinspotCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_value2(response, Value::Str("balance".to_string()), Value::Str("balances".to_string()), &[]);
-        if is_true(&(matches!(&balances, Value::Arr(_)))) {
+        let mut balances: Value = self.safe_value2(response, Value::Str("balance".into()), Value::Str("balances".into()), &[]);
+        if (matches!(&balances, Value::Arr(_))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_588: bool = true;
                 while { if !__for_first_588 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_588 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-                let mut currencies: Value = get_value(&balances, &i);
-                let mut currencies: Value = get_value(&balances, &i);
+                let mut currencies: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut currencyIds: Value = object_keys(&currencies);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_587: bool = true;
                     while { if !__for_first_587 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_587 = false; j.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
-                    let mut currencyId: Value = get_value(&currencyIds, &j);
-                    let mut currencyId: Value = get_value(&currencyIds, &j);
+                    let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut balance: Value = get_value(&currencies, &currencyId);
                     let mut balance: Value = get_value(&currencies, &currencyId);
                     let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     let mut account: Value = self.account();
-                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance, "balance", &[]));
+                    add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(balance, "balance", &[]));
                     if (code != Value::Null) {
                         add_element_to_object(&mut result, &code, account.clone());
                     }
@@ -943,11 +941,10 @@ impl CoinspotCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_589: bool = true;
                 while { if !__for_first_589 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_589 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
-                let mut currencyId: Value = get_value(&currencyIds, &i);
-                let mut currencyId: Value = get_value(&currencyIds, &i);
+                let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(balances.clone(), currencyId, &[]));
+                add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string(balances.clone(), currencyId, &[]));
                 if (code != Value::Null) {
                     add_element_to_object(&mut result, &code, account);
                 }
@@ -975,9 +972,9 @@ impl CoinspotCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("private_post_my_balances".to_string())]).as_str().map(str::to_owned);
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("private_post_my_balances".into())]).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
-        if is_true(&(method.as_deref() == Some("private_post_ro_my_balances"))) || is_true(&(method.as_deref() == Some("privatePostRoMyBalances"))) {
+        if (method.as_deref() == Some("private_post_ro_my_balances")) || (method.as_deref() == Some("privatePostRoMyBalances")) {
             response = self.private_post_ro_my_balances(&[params.clone()]).await;
         }  else {
             response = self.private_post_my_balances(&[params.clone()]).await;
@@ -1014,7 +1011,7 @@ impl CoinspotCore {
         });
         let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.private_post_orders(&[__ws_arg_0]).await;
-        return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("buyorders".to_string()), Value::Str("sellorders".to_string()), Value::Str("rate".to_string()), Value::Str("amount".to_string())]);
+        return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("buyorders".into()), Value::Str("sellorders".into()), Value::Str("rate".into()), Value::Str("amount".into())]);
 
     Value::Null
 }
@@ -1079,7 +1076,7 @@ impl CoinspotCore {
         }
         let mut market: Value = self.market(symbol);
         let mut response: Value = self.public_get_latest(&[params.clone()]).await;
-        let mut id: Value = self.safe_string_k(market.clone(), "id", &[Value::Str("".to_string())]);
+        let mut id: Value = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]);
         id = to_lower(&id);
         let mut prices: Value = self.safe_dict_k(response.clone(), "prices", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1155,8 +1152,7 @@ impl CoinspotCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_590: bool = true;
             while { if !__for_first_590 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_590 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut id: Value = get_value(&ids, &i);
-            let mut id: Value = get_value(&ids, &i);
+            let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[id.clone()]);
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1166,7 +1162,7 @@ impl CoinspotCore {
             }
         }
         }
-        return self.filter_by_array_tickers(result.clone(), Value::Str("symbol".to_string()), &[symbols]);
+        return self.filter_by_array_tickers(result.clone(), Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }
@@ -1245,7 +1241,7 @@ impl CoinspotCore {
             market = self.market(symbol);
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startdate".to_string(), self.yyyymmdd(since.clone(), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startdate".to_string(), self.yyyymmdd(since.clone(), &[])); }
         }
         let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_ro_my_transactions(&[__ws_arg_2]).await;
@@ -1280,7 +1276,7 @@ impl CoinspotCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_591: bool = true;
             while { if !__for_first_591 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_591 = false; i.as_f64().unwrap_or(f64::NAN) < ((buyTrades.len() as i64) as f64) } {
-            add_element_to_object(get_value_mut(&mut buyTrades, &i), &Value::Str("side".to_string()), Value::Str("buy".to_string()));
+            add_element_to_object(get_value_mut(&mut buyTrades, &i), &Value::Str("side".into()), Value::Str("buy".into()));
         }
         }
         let mut sellTrades: Value = self.safe_list_k(response.clone(), "sellorders", &[Value::from(vec![])]);
@@ -1288,7 +1284,7 @@ impl CoinspotCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_592: bool = true;
             while { if !__for_first_592 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_592 = false; i.as_f64().unwrap_or(f64::NAN) < ((sellTrades.len() as i64) as f64) } {
-            add_element_to_object(get_value_mut(&mut sellTrades, &i), &Value::Str("side".to_string()), Value::Str("sell".to_string()));
+            add_element_to_object(get_value_mut(&mut sellTrades, &i), &Value::Str("side".into()), Value::Str("sell".into()));
         }
         }
         let mut trades: Value = self.array_concat(buyTrades, sellTrades);
@@ -1332,7 +1328,7 @@ impl CoinspotCore {
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "market", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("/".to_string())]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("/".into())]);
         let mut solddate: Value = self.safe_integer_k(trade.clone(), "solddate", &[]);
         if (solddate != Value::Null) {
             priceString = self.safe_string_k(trade.clone(), "rate", &[]);
@@ -1345,7 +1341,7 @@ impl CoinspotCore {
             let mut audGst: Value = self.safe_string_k(trade.clone(), "audGst", &[]);
             // The transaction fee which consumers pay is inclusive of GST by default
             let mut feeCost: Value = crate::precise::Precise::stringAdd(&audfeeExGst, &audGst);
-            let mut feeCurrencyId: Value = Value::Str("AUD".to_string());
+            let mut feeCurrencyId: Value = Value::Str("AUD".into());
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
@@ -1397,11 +1393,11 @@ impl CoinspotCore {
             self.load_markets(&[]).await;
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".into()))));
         }
         let mut sideUpper: Value = to_upper(&side);
         if (type_var.as_str() == Some("market")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
         }
         let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
@@ -1419,7 +1415,7 @@ impl CoinspotCore {
             let __ws_arg_4 = self.extend(request, &[params.clone()]);
             response = self.private_post_my_sell(&[__ws_arg_4]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support buy/sell side".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support buy/sell side".into()))));
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1449,9 +1445,9 @@ impl CoinspotCore {
 }));
         let mut side: Option<String> = self.safe_string_k(params.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.as_deref() != Some("buy")) && (side.as_deref() != Some("sell")) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a side parameter, \"buy\" or \"sell\"".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a side parameter, \"buy\" or \"sell\"".into()))));
         }
-        params = self.omit(params.clone(), Value::Str("side".to_string()), &[]);
+        params = self.omit(params.clone(), Value::Str("side".into()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
@@ -1480,7 +1476,7 @@ impl CoinspotCore {
         }
         let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         if (status.as_deref() == Some("error")) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response)));
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1489,8 +1485,8 @@ impl CoinspotCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1500,8 +1496,8 @@ impl CoinspotCore {
         let mut isVersionedApi: bool = matches!(&api, Value::Arr(_));
         let mut version: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut accessType: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) } else { api.clone() });
-        let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path, params.clone())));
-        let mut fullPath: Value = (if is_true(&(version != Value::Null)) { Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &version), endpoint)) } else { endpoint });
+        let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone())).into());
+        let mut fullPath: Value = (if (version != Value::Null) { Value::Str(format!("{}{}", add(&Value::Str("/".into()), &version), endpoint).into()) } else { endpoint });
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &accessType), &fullPath);
         if (accessType.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -1514,9 +1510,9 @@ impl CoinspotCore {
             body = self.json(__ws_arg_7);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
+                    m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
-                    m.insert("sign".to_string(), self.hmac(self.encode(body.clone()), self.encode(self.secret.clone()), Value::Str("sha512".to_string()), &[]));
+                    m.insert("sign".to_string(), self.hmac(self.encode(body.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]));
                 m
             });
         }

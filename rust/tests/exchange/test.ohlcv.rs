@@ -29,5 +29,5 @@ pub fn testOHLCV(mut exchange: Value, mut skippedProperties: Value, mut method: 
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("1".into()).clone(), low.clone()]);
     crate::tests_support::shared::assert_less_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("4".into()).clone(), high.clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("4".into()).clone(), low.clone()]);
-    assert!(ccxt::runtime::is_true(&((is_true(&(symbol == Value::Null)) || is_true(&(matches!(&symbol, Value::Str(_)))))))); // todo: check with standard symbol check
+    assert!(ccxt::runtime::is_true(&(((symbol == Value::Null) || (matches!(&symbol, Value::Str(_))))))); // todo: check with standard symbol check
 }

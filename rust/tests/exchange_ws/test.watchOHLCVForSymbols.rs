@@ -25,7 +25,7 @@ pub async fn testWatchOHLCVForSymbols(mut exchange: Value, mut skippedProperties
     let mut since: Value = (match (&((match (&(exchange.milliseconds()), &((match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
     let mut maxIdleTime: Value = Value::Int(5000);
     let mut idle: Value = Value::Bool(false);
-    while is_true(&(now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN))) && !is_true(&idle) {
+    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !is_true(&idle) {
         let mut response: Value = Value::Null;
         let mut success: Value = Value::Bool(true);
         let mut startTime: Value = exchange.milliseconds();
@@ -42,7 +42,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success = Value::Bool(false);
         }
         now = exchange.milliseconds();
-        if is_true(&(success.as_bool() == Some(true))) && is_true(&(response != Value::Null)) {
+        if (success.as_bool() == Some(true)) && (response != Value::Null) {
             let mut assertionMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str(" ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), chosenTimeframeKey).into()), Value::Str(" | ".into())).into()), exchange.json(response.clone())).into());
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
             assert!(ccxt::runtime::is_true(&((in_op(&response, &symbol)))));
@@ -55,7 +55,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1486: bool = true;
                 while { if !__for_first_1486 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1486 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ohlcvs.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&ohlcvs, &i), symbol.clone(), now.clone());
+                testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
             }
             }
             if ((match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {

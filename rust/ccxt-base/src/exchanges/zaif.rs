@@ -120,11 +120,11 @@ impl ZaifCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("zaif".to_string()));
-        m.insert("name".to_string(), Value::Str("Zaif".to_string()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".to_string())]));
+        m.insert("id".to_string(), Value::Str("zaif".into()));
+        m.insert("name".to_string(), Value::Str("Zaif".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".into())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
-        m.insert("version".to_string(), Value::Str("1".to_string()));
+        m.insert("version".to_string(), Value::Str("1".into()));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
@@ -188,15 +188,15 @@ impl ZaifCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rest".to_string(), Value::Str("https://api.zaif.jp".to_string()));
+        m.insert("rest".to_string(), Value::Str("https://api.zaif.jp".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://zaif.jp".to_string()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://techbureau-api-document.readthedocs.io/ja/latest/index.html".to_string()), Value::Str("https://corp.zaif.jp/api-docs".to_string()), Value::Str("https://corp.zaif.jp/api-docs/api_links".to_string()), Value::Str("https://www.npmjs.com/package/zaif.jp".to_string()), Value::Str("https://github.com/you21979/node-zaif".to_string())]));
-        m.insert("fees".to_string(), Value::Str("https://zaif.jp/fee?lang=en".to_string()));
+        m.insert("www".to_string(), Value::Str("https://zaif.jp".into()));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://techbureau-api-document.readthedocs.io/ja/latest/index.html".into()), Value::Str("https://corp.zaif.jp/api-docs".into()), Value::Str("https://corp.zaif.jp/api-docs/api_links".into()), Value::Str("https://www.npmjs.com/package/zaif.jp".into()), Value::Str("https://github.com/you21979/node-zaif".into())]));
+        m.insert("fees".to_string(), Value::Str("https://zaif.jp/fee?lang=en".into()));
     m
 }));
         m.insert("fees".to_string(), Value::Map({
@@ -204,8 +204,8 @@ impl ZaifCore {
         m.insert("trading".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("percentage".to_string(), Value::Bool(true));
-        m.insert("taker".to_string(), self.parse_number(Value::Str("0.001".to_string()), &[]));
-        m.insert("maker".to_string(), self.parse_number(Value::Str("0".to_string()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.001".into()), &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0".into()), &[]));
     m
 }));
     m
@@ -521,7 +521,7 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("unsupported currency_pair".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("unsupported currency_pair".to_string(), Value::Str("BadRequest".into()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
@@ -559,14 +559,14 @@ impl ZaifCore {
         let mut id: Value = self.safe_string_k(market.clone(), "currency_pair", &[]);
         let mut name: Value = self.safe_string_k(market.clone(), "name", &[]);
         if (name == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing name".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing name".into()))));
         }
-        let mut baseIdquoteIdVariable = split(&name, &Value::Str("/".to_string()));
+        let mut baseIdquoteIdVariable = split(&name, &Value::Str("/".into()));
         let mut baseId: Value = baseIdquoteIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut quoteId: Value = baseIdquoteIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -577,7 +577,7 @@ impl ZaifCore {
         m.insert("baseId".to_string(), baseId);
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), Value::Null);
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Null);
         m.insert("swap".to_string(), Value::Bool(false));
@@ -656,8 +656,7 @@ impl ZaifCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1159: bool = true;
             while { if !__for_first_1159 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1159 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
-            let mut currencyId: Value = get_value(&currencyIds, &i);
-            let mut currencyId: Value = get_value(&currencyIds, &i);
+            let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut balance: Value = self.safe_string(funds.clone(), currencyId.clone(), &[]);
             let mut account: Value = self.account();
@@ -823,13 +822,13 @@ impl ZaifCore {
         //      }
         //
         let mut side: Value = self.safe_string_k(trade.clone(), "trade_type", &[]);
-        side = (if is_true(&(side.as_str() == Some("bid"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
-        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("date".to_string()), &[]);
-        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("tid".to_string()), &[]);
+        side = (if (side.as_str() == Some("bid")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("date".into()), &[]);
+        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tid".into()), &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "currency_pair", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("_".to_string())]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("_".into())]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -931,13 +930,13 @@ impl ZaifCore {
             self.load_markets(&[]).await;
         }
         if (type_var.as_str() != Some("limit")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
         }
         let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency_pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("action".to_string(), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("bid".to_string()) } else { Value::Str("ask".to_string()) }));
+                m.insert("action".to_string(), (if (side.as_str() == Some("buy")) { Value::Str("bid".into()) } else { Value::Str("ask".into()) }));
                 m.insert("amount".to_string(), amount);
                 m.insert("price".to_string(), price);
             m
@@ -951,7 +950,7 @@ impl ZaifCore {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
-        m.insert("id".to_string(), to_string_val(&get_value(&data, &Value::Str("order_id".to_string()))));
+        m.insert("id".to_string(), to_string_val(&get_value(&data, &Value::Str("order_id".into()))));
     m
 }), &[market]);
 
@@ -1029,13 +1028,13 @@ impl ZaifCore {
         //    }
         //
         let mut side: Value = self.safe_string_k(order.clone(), "action", &[]);
-        side = (if is_true(&(side.as_str() == Some("bid"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
-        let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("timestamp".to_string()), &[]);
+        side = (if (side.as_str() == Some("bid")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+        let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("timestamp".into()), &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "currency_pair", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("_".to_string())]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("_".into())]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
-        let mut id: Value = self.safe_string2(order.clone(), Value::Str("id".to_string()), Value::Str("order_id".to_string()), &[]);
+        let mut id: Value = self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("order_id".into()), &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -1043,9 +1042,9 @@ impl ZaifCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), Value::Str("open".to_string()));
+        m.insert("status".to_string(), Value::Str("open".into()));
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), Value::Str("limit".to_string()));
+        m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side);
@@ -1094,7 +1093,7 @@ impl ZaifCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency_pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency_pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_active_orders(&[__ws_arg_5]).await;
@@ -1136,7 +1135,7 @@ impl ZaifCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency_pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency_pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_6 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_trade_history(&[__ws_arg_6]).await;
@@ -1167,14 +1166,14 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         self.check_address(&[address.clone()]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
         if (code.as_str() == Some("JPY")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not allow ".to_string()))), code)), Value::Str(" withdrawals".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not allow ".into())).into()), code).into()), Value::Str(" withdrawals".into()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1184,7 +1183,7 @@ impl ZaifCore {
             m
         });
         if (tag != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("message".to_string(), tag); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("message".to_string(), tag); }
         }
         let __ws_arg_7 = self.extend(request, &[params]);
         let mut result: Value = self.private_post_withdraw(&[__ws_arg_7]).await;
@@ -1276,27 +1275,27 @@ impl ZaifCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &Value::Str("/".to_string()));
+        let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &Value::Str("/".into()));
         if (api.as_str() == Some("public")) {
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("api/".to_string()), self.version.clone())), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())))));
+            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("api/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into())).into());
         }  else if (api.as_str() == Some("fapi")) {
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fapi/".to_string()), self.version.clone())), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())))));
+            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into())).into());
         }  else {
             self.check_required_credentials(&[]);
             if (api.as_str() == Some("ecapi")) {
-                url = Value::Str(format!("{}{}", url, Value::Str("ecapi".to_string())));
+                url = Value::Str(format!("{}{}", url, Value::Str("ecapi".into())).into());
             }  else if (api.as_str() == Some("tlapi")) {
-                url = Value::Str(format!("{}{}", url, Value::Str("tlapi".to_string())));
+                url = Value::Str(format!("{}{}", url, Value::Str("tlapi".into())).into());
             }  else {
-                url = Value::Str(format!("{}{}", url, Value::Str("tapi".to_string())));
+                url = Value::Str(format!("{}{}", url, Value::Str("tapi".into())).into());
             }
             let mut nonce: Value = self.custom_nonce();
             let __ws_arg_8 = self.extend(Value::Map({
@@ -1308,9 +1307,9 @@ impl ZaifCore {
             body = self.urlencode(__ws_arg_8, &[]);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".to_string()));
+                    m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
-                    m.insert("Sign".to_string(), self.hmac(self.encode(body.clone()), self.encode(self.secret.clone()), Value::Str("sha512".to_string()), &[]));
+                    m.insert("Sign".to_string(), self.hmac(self.encode(body.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]));
                 m
             });
         }
@@ -1333,7 +1332,7 @@ impl ZaifCore {
         //
         //     {"error": "unsupported currency_pair"}
         //
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
         let mut error: Value = self.safe_string_k(response.clone(), "error", &[]);
         if (error != Value::Null) {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
