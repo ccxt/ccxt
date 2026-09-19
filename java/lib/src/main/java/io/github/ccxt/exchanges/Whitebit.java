@@ -3057,7 +3057,7 @@ public class Whitebit extends WhitebitApi
             Object id = (balanceKeys == null || i < 0 || i >= balanceKeys.size() ? null : balanceKeys.get(i));
             String code = this.safeCurrencyCode(id);
             Object balance = Helpers.GetValue(response, id);
-            if (!java.util.Objects.equals(balance, null) && Helpers.isTrue(this.isDictionary(balance)))
+            if (!java.util.Objects.equals(balance, null) && Boolean.TRUE.equals(this.isDictionary(balance)))
             {
                 Object account = this.account();
                 ((Map<String, Object>)account).put("free", this.safeString2(balance, "available", "main_balance"));
@@ -3674,7 +3674,7 @@ public class Whitebit extends WhitebitApi
                 put( "ticker", ((Map<String, Object>)currency).get("id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(this.isFiat(code)))
+            if (Boolean.TRUE.equals(this.isFiat(code)))
             {
                 String provider = this.safeString(parameters, "provider");
                 if (java.util.Objects.equals(provider, null))
@@ -4004,7 +4004,7 @@ public class Whitebit extends WhitebitApi
             {
                 ((Map<String, Object>)request).put("memo", tag);
             }
-            if (Helpers.isTrue(this.isFiat(code)))
+            if (Boolean.TRUE.equals(this.isFiat(code)))
             {
                 Object provider = this.safeValue(parameters, "provider");
                 if (java.util.Objects.equals(provider, null))

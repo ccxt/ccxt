@@ -714,7 +714,7 @@ public class Deepcoin extends DeepcoinApi
         if (Boolean.TRUE.equals(swap))
         {
             isLinear = (!java.util.Objects.equals(quoteId, "USD"));
-            settleId = ((Helpers.isTrue(isLinear))) ? quoteId : baseId;
+            settleId = ((Boolean.TRUE.equals(isLinear))) ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
             symbol = ((symbol + ":") + settle);
         }

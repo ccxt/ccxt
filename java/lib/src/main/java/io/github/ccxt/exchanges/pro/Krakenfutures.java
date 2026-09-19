@@ -1883,7 +1883,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Object messageHash = this.getMessageHash(unifiedName, null, this.symbol(Helpers.GetValue(symbols, i)));
                 ((List<Object>)messageHashes).add(messageHash);
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
-                if (!Helpers.isTrue(this.subscriptionExistsForHash(url, messageHash)))
+                if (!Boolean.TRUE.equals(this.subscriptionExistsForHash(url, messageHash)))
                 {
                     ((List<Object>)rawSubs).add(((Map<String, Object>)market).get("id"));
                 }

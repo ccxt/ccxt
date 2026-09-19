@@ -2862,7 +2862,7 @@ public class Kucoin extends KucoinApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object uta = false;
-            if (Helpers.isTrue(this.checkRequiredCredentials(false)))
+            if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 uta = (this.isUTAEnabled()).join();
             }

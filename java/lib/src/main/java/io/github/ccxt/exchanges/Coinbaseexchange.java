@@ -1632,7 +1632,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 if (java.util.Objects.equals(until, null))
                 {
                     Object parsedTimeframeMilliseconds = Helpers.multiply(parsedTimeframe, 1000);
-                    if (Helpers.isTrue(this.isRoundNumber(Helpers.mod(since, parsedTimeframeMilliseconds))))
+                    if (Boolean.TRUE.equals(this.isRoundNumber(Helpers.mod(since, parsedTimeframeMilliseconds))))
                     {
                         ((Map<String, Object>)request).put("end", this.iso8601(this.sum(Helpers.multiply((Helpers.subtract(limit, 1)), parsedTimeframeMilliseconds), since)));
                     } else

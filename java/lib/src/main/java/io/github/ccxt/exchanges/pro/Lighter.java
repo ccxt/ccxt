@@ -1724,7 +1724,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     public void handleMessage(Client client, Object message)
     {
-        if (!Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (!Boolean.TRUE.equals(this.handleErrorMessage(client, message)))
         {
             return;
         }

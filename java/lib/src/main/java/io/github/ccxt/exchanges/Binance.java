@@ -4709,10 +4709,10 @@ public class Binance extends BinanceApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetTime(query)).join();
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 response = (this.dapiPublicGetTime(query)).join();
             } else
@@ -4748,7 +4748,7 @@ public class Binance extends BinanceApi
             // while fetchCurrencies is a public API method by design
             // therefore we check the keys here
             // and fallback to generating the currencies from the markets
-            if (!Helpers.isTrue(this.checkRequiredCredentials(false)))
+            if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -5069,7 +5069,7 @@ public class Binance extends BinanceApi
                 if (java.util.Objects.equals(marketType, "spot"))
                 {
                     ((List<Object>)promisesRaw).add(this.publicGetExchangeInfo(parameters));
-                    if ((java.util.Objects.equals(fetchMargins, true)) && Helpers.isTrue(this.checkRequiredCredentials(false)) && (!java.util.Objects.equals(isDemoEnv, true)))
+                    if ((java.util.Objects.equals(fetchMargins, true)) && Boolean.TRUE.equals(this.checkRequiredCredentials(false)) && (!java.util.Objects.equals(isDemoEnv, true)))
                     {
                         ((List<Object>)promisesRaw).add(this.sapiGetMarginAllPairs(parameters));
                         ((List<Object>)promisesRaw).add(this.sapiGetMarginIsolatedAllPairs(parameters));
@@ -5442,7 +5442,7 @@ public class Binance extends BinanceApi
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = java.util.Objects.equals(settle, quote);
             inverse = java.util.Objects.equals(settle, base);
-            String feesType = ((Helpers.isTrue(linear))) ? "linear" : "inverse";
+            String feesType = ((Boolean.TRUE.equals(linear))) ? "linear" : "inverse";
             fees = this.safeDict(this.fees, feesType, new HashMap<String, Object>() {{}});
         }
         Boolean active = (java.util.Objects.equals(status, "TRADING"));
@@ -5843,16 +5843,16 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(isPortfolioMargin) || (java.util.Objects.equals(type, "papi")))
             {
-                if (Helpers.isTrue(this.isLinear(type, subType)))
+                if (Boolean.TRUE.equals(this.isLinear(type, subType)))
                 {
                     type = "linear";
-                } else if (Helpers.isTrue(this.isInverse(type, subType)))
+                } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
                 {
                     type = "inverse";
                 }
                 isPortfolioMargin = true;
                 response = (this.papiGetBalance(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(this.isLinear(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 type = "linear";
                 Object useV2 = null;
@@ -5867,7 +5867,7 @@ public class Binance extends BinanceApi
                 {
                     response = (this.fapiPrivateV2GetAccount(parameters)).join();
                 }
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 type = "inverse";
                 response = (this.dapiPrivateGetAccount(this.extend(request, query))).join();
@@ -6568,7 +6568,7 @@ public class Binance extends BinanceApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if ((!java.util.Objects.equals(symbols, null)) && (Helpers.isTrue(this.isLinear(type, subType)) || Helpers.isTrue(this.isInverse(type, subType))))
+            if ((!java.util.Objects.equals(symbols, null)) && (Boolean.TRUE.equals(this.isLinear(type, subType)) || Boolean.TRUE.equals(this.isInverse(type, subType))))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
@@ -6580,10 +6580,10 @@ public class Binance extends BinanceApi
             if (java.util.Objects.equals(type, "option"))
             {
                 response = (this.eapiPublicGetTicker(parameters)).join();
-            } else if (Helpers.isTrue(this.isLinear(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetTickerBookTicker(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 response = (this.dapiPublicGetTickerBookTicker(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(type, "spot"))
@@ -6640,10 +6640,10 @@ public class Binance extends BinanceApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicV2GetTickerPrice(parameters)).join();
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 response = (this.dapiPublicGetTickerPrice(parameters)).join();
             } else if (java.util.Objects.equals(type, "spot"))
@@ -6740,10 +6740,10 @@ public class Binance extends BinanceApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetTicker24hr(parameters)).join();
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 response = (this.dapiPublicGetTicker24hr(parameters)).join();
             } else if (java.util.Objects.equals(type, "spot"))
@@ -6833,10 +6833,10 @@ public class Binance extends BinanceApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 response = (this.eapiPublicGetMark(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(this.isLinear(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetPremiumIndex(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 response = (this.dapiPublicGetPremiumIndex(this.extend(request, parameters))).join();
             } else
@@ -6893,10 +6893,10 @@ public class Binance extends BinanceApi
             if (java.util.Objects.equals(type, "option"))
             {
                 response = (this.eapiPublicGetMark(parameters)).join();
-            } else if (Helpers.isTrue(this.isLinear(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetPremiumIndex(parameters)).join();
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 response = (this.dapiPublicGetPremiumIndex(parameters)).join();
             } else
@@ -7372,7 +7372,7 @@ public class Binance extends BinanceApi
         Object takerOrMaker = null;
         if (!java.util.Objects.equals(buyerMaker, null))
         {
-            side = ((Helpers.isTrue(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
+            side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
         } else if (((Map<?, ?>)trade).containsKey("side"))
         {
             side = this.safeStringLower(trade, "side");
@@ -10412,7 +10412,7 @@ public class Binance extends BinanceApi
                     ((Map<String, Object>)request).put("limit", limit);
                 }
                 response = (this.eapiPrivateGetOpenOrders(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(this.isLinear(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -10433,7 +10433,7 @@ public class Binance extends BinanceApi
                         response = (this.fapiPrivateGetOpenOrders(this.extend(request, parameters))).join();
                     }
                 }
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -10525,7 +10525,7 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object isConditional = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
-            Boolean isPortfolioMarginConditional = (Helpers.isTrue(isPortfolioMargin) && Helpers.isTrue(isConditional));
+            Boolean isPortfolioMarginConditional = (Helpers.isTrue(isPortfolioMargin) && Boolean.TRUE.equals(isConditional));
             String orderIdRequest = (((java.util.Objects.equals(isPortfolioMarginConditional, true)))) ? "strategyId" : "orderId";
             ((Map<String, Object>)request).put((String)orderIdRequest, id);
             Object response = null;
@@ -13601,10 +13601,10 @@ public class Binance extends BinanceApi
                 ((Map<String, Object>)request).put("limit", limit);
             }
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetFundingRate(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 response = (this.dapiPublicGetFundingRate(this.extend(request, parameters))).join();
             } else
@@ -13674,10 +13674,10 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object query = this.omit(parameters, "type");
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetPremiumIndex(query)).join();
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 response = (this.dapiPublicGetPremiumIndex(query)).join();
             } else
@@ -14385,7 +14385,7 @@ public class Binance extends BinanceApi
                 isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
                 parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
                 Object response = null;
-                if (Helpers.isTrue(this.isLinear(type, subType)))
+                if (Boolean.TRUE.equals(this.isLinear(type, subType)))
                 {
                     if (Helpers.isTrue(isPortfolioMargin))
                     {
@@ -14394,7 +14394,7 @@ public class Binance extends BinanceApi
                     {
                         response = (this.fapiPrivateGetLeverageBracket(query)).join();
                     }
-                } else if (Helpers.isTrue(this.isInverse(type, subType)))
+                } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
                 {
                     if (Helpers.isTrue(isPortfolioMargin))
                     {
@@ -14473,7 +14473,7 @@ public class Binance extends BinanceApi
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -14482,7 +14482,7 @@ public class Binance extends BinanceApi
                 {
                     response = (this.fapiPrivateGetLeverageBracket(parameters)).join();
                 }
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -14887,7 +14887,7 @@ final Object finalMarket = market;
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -14906,7 +14906,7 @@ final Object finalMarket = market;
                         response = (this.fapiPrivateV2GetAccount(parameters)).join();
                     }
                 }
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -14980,7 +14980,7 @@ final Object finalMarket = market;
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             parameters = this.omit(parameters, "type");
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -15000,7 +15000,7 @@ final Object finalMarket = market;
                         response = (this.fapiPrivateV2GetPositionRisk(parameters)).join();
                     }
                 }
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -15181,7 +15181,7 @@ final Object finalMarket = market;
             String type = this.safeString(parameters, "type", defaultType);
             parameters = this.omit(parameters, "type");
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -15190,7 +15190,7 @@ final Object finalMarket = market;
                 {
                     response = (this.fapiPrivateGetIncome(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -15432,7 +15432,7 @@ final Object finalMarket = market;
                 put( "dualSidePosition", finalDualSidePosition );
             }};
             Object response = null;
-            if (Helpers.isTrue(this.isInverse(type, subType)))
+            if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -15441,7 +15441,7 @@ final Object finalMarket = market;
                 {
                     response = (this.dapiPrivatePostPositionSideDual(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(this.isLinear(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -15508,7 +15508,7 @@ final Object finalMarket = market;
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -15517,7 +15517,7 @@ final Object finalMarket = market;
                 {
                     response = (this.fapiPrivateGetSymbolConfig(parameters)).join();
                 }
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -15945,7 +15945,7 @@ final Object finalMarket = market;
                 }
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
                 response = (this.eapiPrivateGetBill(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(this.isLinear(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -15954,7 +15954,7 @@ final Object finalMarket = market;
                 {
                     response = (this.fapiPrivateGetIncome(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -18909,10 +18909,10 @@ final Object finalMarket = market;
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetFundingInfo(parameters)).join();
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 response = (this.dapiPublicGetFundingInfo(parameters)).join();
             } else

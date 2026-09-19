@@ -4316,7 +4316,7 @@ public Object describe()
         {
             return defaultValue;
         }
-        if (Helpers.isTrue(this.isDictionary(value)))
+        if (Boolean.TRUE.equals(this.isDictionary(value)))
         {
             return value;
         }
@@ -4337,7 +4337,7 @@ public Object describe()
         {
             return defaultValue;
         }
-        if (Helpers.isTrue(this.isDictionary(value)))
+        if (Boolean.TRUE.equals(this.isDictionary(value)))
         {
             return value;
         }
@@ -4354,12 +4354,12 @@ public Object describe()
         */
         Object defaultValue = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object value = this.safeValue(dictionaryOrList, key1);
-        if (Helpers.isTrue(this.isDictionary(value)))
+        if (Boolean.TRUE.equals(this.isDictionary(value)))
         {
             return value;
         }
         Object value2 = this.safeValue(dictionaryOrList, key2);
-        if (Helpers.isTrue(this.isDictionary(value2)))
+        if (Boolean.TRUE.equals(this.isDictionary(value2)))
         {
             return value2;
         }
@@ -6983,7 +6983,7 @@ public Object describe()
         }
         Object cost = this.numberToString(amount);
         String key = null;
-        if (Helpers.isTrue(useQuote))
+        if (Boolean.TRUE.equals(useQuote))
         {
             Object priceString = this.numberToString(price);
             cost = Precise.stringMul(cost, priceString);
@@ -7418,7 +7418,7 @@ public Object describe()
             if (java.util.Objects.equals(average, null) && !java.util.Objects.equals(close, null))
             {
                 Object precision = 18;
-                if (!java.util.Objects.equals(market, null) && Helpers.isTrue(this.isTickPrecision()))
+                if (!java.util.Objects.equals(market, null) && Boolean.TRUE.equals(this.isTickPrecision()))
                 {
                     Map<String, Object> marketPrecision = (Map<String, Object>) this.safeDict(market, "precision");
                     String precisionPrice = this.safeString(marketPrecision, "price");
@@ -10408,7 +10408,7 @@ public Object describe()
 
     public Object handleWithdrawTagAndParams(Object tag, Object parameters)
     {
-        if (Helpers.isTrue(this.isDictionary(tag)))
+        if (Boolean.TRUE.equals(this.isDictionary(tag)))
         {
             parameters = this.extend(tag, parameters);
             tag = null;

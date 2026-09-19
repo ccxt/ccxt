@@ -1320,7 +1320,7 @@ public class Bitstamp extends BitstampApi
     {
         String currencyType = "crypto";
         Object description = this.describe();
-        if (Helpers.isTrue(this.isFiat(code)))
+        if (Boolean.TRUE.equals(this.isFiat(code)))
         {
             currencyType = "fiat";
         }
@@ -3542,7 +3542,7 @@ public class Bitstamp extends BitstampApi
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(this.isFiat(code)))
+            if (Boolean.TRUE.equals(this.isFiat(code)))
             {
                 throw new NotSupported((((this.id + " fiat fetchDepositAddress() for ") + code) + " is not supported!")) ;
             }
@@ -3599,7 +3599,7 @@ public class Bitstamp extends BitstampApi
             }};
             Object currency = null;
             Object response = null;
-            if (!Helpers.isTrue(this.isFiat(code)))
+            if (!Boolean.TRUE.equals(this.isFiat(code)))
             {
                 Object name = this.getCurrencyName(code);
                 if (java.util.Objects.equals(code, "XRP"))

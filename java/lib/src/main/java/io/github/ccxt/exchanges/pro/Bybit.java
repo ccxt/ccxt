@@ -245,7 +245,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Object unified = (this.isUnifiedEnabled()).join();
                 Boolean isUnifiedMargin = (Boolean) this.safeBool(unified, 0, false);
                 Boolean isUnifiedAccount = (Boolean) this.safeBool(unified, 1, false);
-                if (Helpers.isTrue(isUsdcSettled) && (!java.util.Objects.equals(isUnifiedMargin, true)) && (!java.util.Objects.equals(isUnifiedAccount, true)))
+                if (Boolean.TRUE.equals(isUsdcSettled) && (!java.util.Objects.equals(isUnifiedMargin, true)) && (!java.util.Objects.equals(isUnifiedAccount, true)))
                 {
                     url = Helpers.GetValue(Helpers.GetValue(url, accessibility), "usdc");
                 } else
@@ -254,7 +254,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 }
             } else
             {
-                if (Helpers.isTrue(isSpot))
+                if (Boolean.TRUE.equals(isSpot))
                 {
                     url = Helpers.GetValue(Helpers.GetValue(url, accessibility), "spot");
                 } else if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))

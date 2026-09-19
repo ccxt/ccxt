@@ -1255,7 +1255,7 @@ public class Bit2c extends Bit2cApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            if (Helpers.isTrue(this.isFiat(code)))
+            if (Boolean.TRUE.equals(this.isFiat(code)))
             {
                 throw new NotSupported((this.id + " fetchDepositAddress() does not support fiat currencies")) ;
             }

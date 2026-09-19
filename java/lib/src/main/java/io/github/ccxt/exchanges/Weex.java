@@ -3964,7 +3964,7 @@ public class Weex extends WeexApi
         Boolean isEntryTrigger = !Boolean.TRUE.equals(this.safeBool(order, "reduceOnly", true));
         Object takeProfitPrice = null;
         Object stopLossPrice = null;
-        if (!Helpers.isTrue(isEntryTrigger))
+        if (!Boolean.TRUE.equals(isEntryTrigger))
         {
             if (java.util.Objects.equals(rawType, "TAKE_PROFIT_MARKET") || java.util.Objects.equals(rawType, "TAKE_PROFIT"))
             {

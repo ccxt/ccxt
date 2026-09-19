@@ -2172,7 +2172,7 @@ public class Gate extends GateApi
             {
                 (this.loadTimeDifference()).join();
             }
-            if (Helpers.isTrue(this.checkRequiredCredentials(false)))
+            if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 (this.loadUnifiedStatus()).join();
             }
@@ -2999,7 +2999,7 @@ public class Gate extends GateApi
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
-        String type = ((Helpers.isTrue(this.isLeveragedCurrency(currencyId)))) ? "leveraged" : "crypto";
+        String type = ((Boolean.TRUE.equals(this.isLeveragedCurrency(currencyId)))) ? "leveraged" : "crypto";
         List<Object> chains = (List<Object>) this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)chains).size(); j++)

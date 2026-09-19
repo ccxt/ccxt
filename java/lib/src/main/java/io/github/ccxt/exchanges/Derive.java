@@ -1764,7 +1764,7 @@ public class Derive extends DeriveApi
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 ((Map<String, Object>)request).put("reduce_only", reduceOnly);
-                if (Helpers.isTrue(reduceOnly) && (java.util.Objects.equals(postOnly, true)))
+                if (Boolean.TRUE.equals(reduceOnly) && (java.util.Objects.equals(postOnly, true)))
                 {
                     throw new InvalidOrder((this.id + " cannot use reduce only with post only time in force")) ;
                 }
@@ -1958,7 +1958,7 @@ public class Derive extends DeriveApi
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 ((Map<String, Object>)request).put("reduce_only", reduceOnly);
-                if (Helpers.isTrue(reduceOnly) && (java.util.Objects.equals(postOnly, true)))
+                if (Boolean.TRUE.equals(reduceOnly) && (java.util.Objects.equals(postOnly, true)))
                 {
                     throw new InvalidOrder((this.id + " cannot use reduce only with post only time in force")) ;
                 }

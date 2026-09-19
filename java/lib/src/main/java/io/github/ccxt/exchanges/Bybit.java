@@ -2765,7 +2765,7 @@ public class Bybit extends BybitApi
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (!Helpers.isTrue(this.checkRequiredCredentials(false)))
+            if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -8789,7 +8789,7 @@ public class Bybit extends BybitApi
         {
             hedged = (!java.util.Objects.equals(positionIdx, "0"));
         }
-        if ((!java.util.Objects.equals(hedged, null)) && Helpers.isTrue(hedged))
+        if ((!java.util.Objects.equals(hedged, null)) && Boolean.TRUE.equals(hedged))
         {
             side = (((java.util.Objects.equals(positionIdx, "1")))) ? "long" : "short";
         } else if (!java.util.Objects.equals(side, null))

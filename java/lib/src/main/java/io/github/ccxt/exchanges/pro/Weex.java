@@ -2436,7 +2436,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         //     }
         //
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Boolean.TRUE.equals(this.handleErrorMessage(client, message)))
         {
             return;
         }

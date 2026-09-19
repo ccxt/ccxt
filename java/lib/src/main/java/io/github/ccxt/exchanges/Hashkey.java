@@ -1710,7 +1710,7 @@ public class Hashkey extends HashkeyApi
         Object isMaker = this.safeBool2(trade, "isMaker", "isMarker");
         if (!java.util.Objects.equals(isMaker, null))
         {
-            takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "ibm");
         // if public trade

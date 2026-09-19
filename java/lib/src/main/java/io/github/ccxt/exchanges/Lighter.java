@@ -1708,7 +1708,7 @@ public class Lighter extends LighterApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetAssetDetails(parameters)).join();
-            if (Helpers.isTrue(this.checkRequiredCredentials(false)))
+            if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 (this.preLoadLighterLibrary()).join();
             }
@@ -2934,7 +2934,7 @@ public class Lighter extends LighterApi
         String side = null;
         if (!java.util.Objects.equals(isAsk, null))
         {
-            side = ((Helpers.isTrue(isAsk))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isAsk))) ? "sell" : "buy";
         }
         String type = this.safeString(order, "type");
         if (java.util.Objects.equals(type, null))

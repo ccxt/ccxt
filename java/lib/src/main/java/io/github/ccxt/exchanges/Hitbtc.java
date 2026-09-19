@@ -935,7 +935,7 @@ public class Hitbtc extends HitbtcApi
                 String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
                 String settleId = null;
                 Object settle = null;
-                Object symbol = ((base + "/") + quote);
+                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 String type = "spot";
                 Object contractSize = null;
                 Object linear = null;
@@ -946,8 +946,8 @@ public class Hitbtc extends HitbtcApi
                     settleId = feeCurrencyId;
                     settle = this.safeCurrencyCode(settleId);
                     linear = ((!java.util.Objects.equals(quote, null)) && (java.util.Objects.equals(quote, settle)));
-                    inverse = !Helpers.isTrue(linear);
-                    symbol = ((symbol + ":") + settle);
+                    inverse = !Boolean.TRUE.equals(linear);
+                    symbol = Helpers.add((symbol + ":"), settle);
                     if (Boolean.TRUE.equals(future))
                     {
                         symbol = Helpers.add((symbol + "-"), expiry);
@@ -1103,7 +1103,7 @@ public class Hitbtc extends HitbtcApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)rawNetworks).size(); j++)
         {
-            Object rawNetwork = (rawNetworks == null || j < 0 || j >= rawNetworks.size() ? null : rawNetworks.get(j));
+            Object rawNetwork = Helpers.GetValue(rawNetworks, j);
             String networkId = this.safeString2(rawNetwork, "protocol", "network");
             Object networkCode = this.networkIdToCode(networkId, code);
             networkCode = (((!java.util.Objects.equals(networkCode, null)))) ? ((String)networkCode).toUpperCase() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
@@ -2165,7 +2165,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(response, i));
+                Object fee = this.parseTradingFee(Helpers.GetValue(response, i));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -3531,7 +3531,7 @@ public class Hitbtc extends HitbtcApi
                 Object rawFundingRate = this.safeValue(response, marketId);
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(marketId);
                 Object symbol = ((Map<String, Object>)marketInner).get("symbol");
-                Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(rawFundingRate, marketInner);
+                Object fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
                 ((Map<String, Object>)fundingRates).put((String)symbol, fundingRate);
             }
             return this.filterByArray(fundingRates, "symbol", symbols);
@@ -3617,7 +3617,7 @@ public class Hitbtc extends HitbtcApi
                 List<Object> fundingRateData = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)fundingRateData).size(); j++)
                 {
-                    Object entry = (fundingRateData == null || j < 0 || j >= fundingRateData.size() ? null : fundingRateData.get(j));
+                    Object entry = Helpers.GetValue(fundingRateData, j);
                     String symbolInner = this.safeSymbol(((Map<String, Object>)marketInner).get("symbol"));
                     Double fundingRate = this.safeNumber(entry, "funding_rate");
                     String datetime = this.safeString(entry, "timestamp");
@@ -3865,7 +3865,7 @@ public class Hitbtc extends HitbtcApi
         Object contracts = null;
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
-            Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
+            Object entry = Helpers.GetValue(positions, i);
             liquidationPrice = this.safeNumber(entry, "price_liquidation");
             entryPrice = this.safeNumber(entry, "price_entry");
             contracts = this.safeNumber(entry, "quantity");
@@ -3874,7 +3874,7 @@ public class Hitbtc extends HitbtcApi
         Object collateral = null;
         for (var i = 0; i < ((List<?>)currencies).size(); i++)
         {
-            Object entry = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
+            Object entry = Helpers.GetValue(currencies, i);
             collateral = this.safeNumber(entry, "margin_balance");
         }
         String marketId = this.safeString(position, "symbol");
@@ -4551,7 +4551,7 @@ public class Hitbtc extends HitbtcApi
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; j < ((List<?>)networks).size(); j++)
         {
-            Object networkEntry = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
+            Object networkEntry = Helpers.GetValue(networks, j);
             String networkId = this.safeString(networkEntry, "network");
             String code = this.safeString(currency, "code");
             Object networkCode = this.networkIdToCode(networkId, code);
