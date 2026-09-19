@@ -51,6 +51,16 @@ java {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+    // Print wall time per test class and for the whole run so CI logs show
+    // which suites dominate the test step.
+    afterSuite(KotlinClosure2({ desc: TestDescriptor, result: TestResult ->
+        val ms = result.endTime - result.startTime
+        if (desc.className != null && desc.parent?.parent == null) {
+            println("TEST-CLASS ${desc.className} ${result.resultType} ${ms}ms tests=${result.testCount} skipped=${result.skippedTestCount} failed=${result.failedTestCount}")
+        } else if (desc.parent == null) {
+            println("TEST-TOTAL ${result.resultType} ${ms}ms tests=${result.testCount} skipped=${result.skippedTestCount} failed=${result.failedTestCount}")
+        }
+    }))
 }
 
 // The transpiled exchange sources are massive; fork the compiler with more heap.
