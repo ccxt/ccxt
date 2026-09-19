@@ -1193,7 +1193,7 @@ public partial class hashkey : Exchange
             }
         }
         IDictionary<string, object> tradingFees = this.safeDict(this.fees, "trading");
-        IDictionary<string, object> fees = (isSpot) ? this.safeDict(tradingFees, "spot") : this.safeDict(tradingFees, "swap");
+        IDictionary<string, object> fees = isSpot ? this.safeDict(tradingFees, "spot") : this.safeDict(tradingFees, "swap");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -1330,7 +1330,7 @@ public partial class hashkey : Exchange
             }
         }
         string? rawType = this.safeString(rawCurrency, "tokenType");
-        string type = (((rawType == "REAL_MONEY"))) ? "fiat" : "crypto";
+        string type = ((rawType == "REAL_MONEY")) ? "fiat" : "crypto";
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
@@ -1599,20 +1599,20 @@ public partial class hashkey : Exchange
         bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (!isEqual(isBuyer, null))
         {
-            side = ((isBuyer == true)) ? "buy" : "sell";
+            side = isBuyer == true ? "buy" : "sell";
         }
         string? takerOrMaker = null;
         bool? isMaker = this.safeBool2(trade, "isMaker", "isMarker");
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((isMaker == true)) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
         }
         bool? isBuyerMaker = this.safeBool(trade, "ibm");
         // if public trade
         if (!isEqual(isBuyerMaker, null))
         {
             takerOrMaker = "taker";
-            side = ((isBuyerMaker == true)) ? "sell" : "buy";
+            side = isBuyerMaker == true ? "sell" : "buy";
         }
         string? feeCost = this.safeString(trade, "commission");
         string? feeCurrncyId = this.safeString(trade, "commissionAsset");
@@ -4406,7 +4406,7 @@ public partial class hashkey : Exchange
             { "amount", null },
             { "total", this.safeNumber(data, "margin") },
             { "code", getValue(market, "settle") },
-            { "status", ((success)) ? "ok" : "failed" },
+            { "status", success ? "ok" : "failed" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };

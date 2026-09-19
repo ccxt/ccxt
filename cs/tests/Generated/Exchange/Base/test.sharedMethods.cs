@@ -12,9 +12,9 @@ public partial class testMainClass : BaseTest
         public object logTemplate(BaseExchange exchange, object method, object entry)
         {
             // there are cases when exchange is undefined (eg. base tests)
-            object id = (((exchange != null))) ? exchange.id : "undefined";
-            object methodString = (((method != null))) ? method : "undefined";
-            string? entryString = (((exchange != null) && (entry != null))) ? exchange.json(entry) : "";
+            object id = ((exchange != null)) ? exchange.id : "undefined";
+            object methodString = ((method != null)) ? method : "undefined";
+            string? entryString = ((exchange != null) && (entry != null)) ? exchange.json(entry) : "";
             return ((((((" <<< " + (id)) + " ") + (methodString)) + " ::: ") + entryString) + " >>> ");
         }
         public object isTemporaryFailure(object e)
@@ -425,8 +425,8 @@ public partial class testMainClass : BaseTest
                     object nextTs = getValue(getValue(items, i), "timestamp");
                     if ((currentTs != null) && (nextTs != null))
                     {
-                        string ascendingOrDescending = ((bool) isTrue(ascending)) ? "ascending" : "descending";
-                        bool comparison = ((bool) isTrue(ascending)) ? (isLessThanOrEqual(currentTs, nextTs)) : (isGreaterThanOrEqual(currentTs, nextTs));
+                        string ascendingOrDescending = isTrue(ascending) ? "ascending" : "descending";
+                        bool comparison = isTrue(ascending) ? (isLessThanOrEqual(currentTs, nextTs)) : (isGreaterThanOrEqual(currentTs, nextTs));
                         assert(comparison, add(add(add(add(add(add(add(add(add(add(add(add(exchange.id, " "), method), " "), stringValue(codeOrSymbol)), " must return a "), ascendingOrDescending), " sorted array of items by timestamp, but "), ((object)currentTs).ToString()), " is opposite with its next "), ((object)nextTs).ToString()), " "), exchange.json(items)));
                     }
                 }
@@ -601,7 +601,7 @@ public partial class testMainClass : BaseTest
             // check
             if (isEqual(assertedStatus, "open"))
             {
-                condition = ((bool) isTrue(strictCheck)) ? strictOpen : nonstrictOpen;
+                condition = isTrue(strictCheck) ? strictOpen : nonstrictOpen;
                 assert(condition, msg);
                 return;
             }
@@ -615,7 +615,7 @@ public partial class testMainClass : BaseTest
             // check
             if (isEqual(assertedStatus, "closed"))
             {
-                condition = ((bool) isTrue(strictCheck)) ? closedStrict : closedNonStrict;
+                condition = isTrue(strictCheck) ? closedStrict : closedNonStrict;
                 assert(condition, msg);
                 return;
             }
@@ -629,7 +629,7 @@ public partial class testMainClass : BaseTest
             // check
             if (isEqual(assertedStatus, "canceled"))
             {
-                condition = ((bool) isTrue(strictCheck)) ? canceledStrict : canceledNonStrict;
+                condition = isTrue(strictCheck) ? canceledStrict : canceledNonStrict;
                 assert(condition, msg);
                 return;
             }
@@ -638,7 +638,7 @@ public partial class testMainClass : BaseTest
             //
             if (isEqual(assertedStatus, "closed_or_canceled"))
             {
-                condition = ((bool) isTrue(strictCheck)) ? (closedStrict || canceledStrict) : (closedNonStrict || canceledNonStrict);
+                condition = isTrue(strictCheck) ? (closedStrict || canceledStrict) : (closedNonStrict || canceledNonStrict);
                 assert(condition, msg);
                 return;
             }

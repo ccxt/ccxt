@@ -274,11 +274,11 @@ public partial class btcbox : Exchange
             List<object> symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             string baseCurr = ((string)this.safeString(symbolParts, 0, ""));
             string? quote = this.safeString(symbolParts, 1, "");
-            string quoteId = ((string)quote).ToLower();
+            string quoteId = quote.ToLower();
             string id = ((string)baseCurr).ToLower();
             IDictionary<string, object> res = this.safeDict(response1, marketId, new Dictionary<string, object>() {});
             string symbol = ((baseCurr + "/") + quote);
-            double? fee = (((id == "BTC"))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
+            double? fee = ((id == "BTC")) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
             IDictionary<string, object> details = this.safeDict(result2Data, id, new Dictionary<string, object>() {});
             IDictionary<string, object> tradeDetails = this.safeDict(details, "trade", new Dictionary<string, object>() {});
             ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {

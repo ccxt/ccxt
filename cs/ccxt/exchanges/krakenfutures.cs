@@ -544,7 +544,7 @@ public partial class krakenfutures : Exchange
                 linear = (((string)marketType).IndexOf("_vanilla", StringComparison.Ordinal) >= 0);
                 inverse = !(linear == true);
                 string? settleTime = this.safeString(market, "lastTradingTime");
-                type = (((settleTime == null))) ? "swap" : "future";
+                type = ((settleTime == null)) ? "swap" : "future";
                 expiry = this.parse8601(settleTime);
             } else
             {
@@ -1416,7 +1416,7 @@ public partial class krakenfutures : Exchange
             { "side", side },
             { "takerOrMaker", takerOrMaker },
             { "price", price },
-            { "amount", (((linear == true))) ? amount : null },
+            { "amount", ((linear == true)) ? amount : null },
             { "cost", cost },
             { "fee", fee },
         });
@@ -1904,7 +1904,7 @@ public partial class krakenfutures : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "timeout", ((isGreaterThan(timeout, 0))) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
+            { "timeout", (isGreaterThan(timeout, 0)) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
         };
         Dictionary<string, object> response = await this.privatePostCancelallordersafter(this.extend(request, parameters));
         //
@@ -2705,7 +2705,7 @@ public partial class krakenfutures : Exchange
         string? cost = null;
         if (((filled != null)) && ((market != null)))
         {
-            string? whichPrice = (((average != null))) ? average : price;
+            string? whichPrice = ((average != null)) ? average : price;
             if ((whichPrice != null))
             {
                 if (isEqual(getValue(market, "linear"), true))
@@ -3227,15 +3227,15 @@ public partial class krakenfutures : Exchange
         }
         if ((type == null))
         {
-            type = (((symbol == null))) ? "flex" : symbol;
+            type = ((symbol == null)) ? "flex" : symbol;
         }
         object accountName = this.parseAccount(type);
         IDictionary<string, object> accounts = this.safeDict(response, "accounts");
         IDictionary<string, object> account = this.safeDict(accounts, accountName);
         if ((account == null))
         {
-            type = (((type == null))) ? "" : type;
-            symbol = (((symbol == null))) ? "" : symbol;
+            type = ((type == null)) ? "" : type;
+            symbol = ((symbol == null)) ? "" : symbol;
             throw new BadRequest ((string)((this.id + " fetchBalance has no account for ") + type)) ;
         }
         object balance = this.parseBalance(account);
@@ -3324,7 +3324,7 @@ public partial class krakenfutures : Exchange
             {
                 continue;
             }
-            List<object> splitCode = ((string)code).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            List<object> splitCode = code.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             int codeLength = splitCode.Count;
             if (codeLength > 1)
             {

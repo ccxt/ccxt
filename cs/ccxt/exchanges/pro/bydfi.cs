@@ -260,7 +260,7 @@ public partial class bydfi : ccxt.bydfi
                 string? subHash = this.safeString(subHashes, i);
                 if ((subHash != null))
                 {
-                    List<object> parts = ((string)subHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+                    List<object> parts = subHash.Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
                     string? symbol = this.safeString(parts, 1);
                     if ((symbol == "all"))
                     {

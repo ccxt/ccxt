@@ -64,7 +64,7 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        string method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
+        string method = isTrue(unwatch) ? "UNSUBSCRIBE" : "SUBSCRIBE";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
             { "params", topics },
@@ -86,7 +86,7 @@ public partial class backpack : ccxt.backpack
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         string instruction = "subscribe";
         string ts = ((object)this.nonce()).ToString();
-        string method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
+        string method = isTrue(unwatch) ? "UNSUBSCRIBE" : "SUBSCRIBE";
         string? recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
         string payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
         object secretBytes = this.base64ToBinary(this.secret);
@@ -644,7 +644,7 @@ public partial class backpack : ccxt.backpack
         Dictionary<string, object> market = this.market(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? stream = this.safeString(message, "stream", "");
-        List<object> parts = ((string)stream).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = stream.Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? timeframe = this.safeString(parts, 1, "");
         if (!(inOp(this.ohlcvs, symbol)))
         {

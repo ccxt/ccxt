@@ -182,7 +182,7 @@ public partial class lighter : ccxt.lighter
         //
         IDictionary<string, object> data = this.safeDict(message, "order_book", new Dictionary<string, object>() {});
         string? channel = this.safeString(message, "channel", "");
-        List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         string? marketId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -558,7 +558,7 @@ public partial class lighter : ccxt.lighter
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "size");
         bool? isMakerAsk = this.safeBool(trade, "is_maker_ask");
-        string side = (((isMakerAsk == true))) ? "buy" : "sell";
+        string side = ((isMakerAsk == true)) ? "buy" : "sell";
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", tradeId },
@@ -622,7 +622,7 @@ public partial class lighter : ccxt.lighter
         }
         List<object> data = this.safeList(message, "trades", new List<object>() {});
         string? channel = this.safeString(message, "channel", "");
-        List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         string? marketId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -745,24 +745,24 @@ public partial class lighter : ccxt.lighter
                 // Own trades should use the account's order side
                 side = "buy";
                 order = this.safeString(trade, "bid_id");
-                takerOrMaker = (((isMakerAsk == true))) ? "taker" : "maker";
+                takerOrMaker = ((isMakerAsk == true)) ? "taker" : "maker";
             } else if ((askAccountId == accountIndex))
             {
                 side = "sell";
                 order = this.safeString(trade, "ask_id");
-                takerOrMaker = (((isMakerAsk == true))) ? "maker" : "taker";
+                takerOrMaker = ((isMakerAsk == true)) ? "maker" : "taker";
             }
         }
         // public trades use Lighter's taker-side convention
         if ((side == null))
         {
-            side = (((isMakerAsk == true))) ? "buy" : "sell";
+            side = ((isMakerAsk == true)) ? "buy" : "sell";
         }
         Dictionary<string, object> fee = null;
         if ((takerOrMaker != null))
         {
-            string? feeRateRaw = (((takerOrMaker == "maker"))) ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
-            string? feeRate = (((feeRateRaw != null))) ? Precise.stringDiv(feeRateRaw, "1000000") : "0";
+            string? feeRateRaw = ((takerOrMaker == "maker")) ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
+            string? feeRate = ((feeRateRaw != null)) ? Precise.stringDiv(feeRateRaw, "1000000") : "0";
             string? feeAmount = Precise.stringMul(costString, feeRate);
             fee = new Dictionary<string, object>() {
                 { "cost", feeAmount },
@@ -824,7 +824,7 @@ public partial class lighter : ccxt.lighter
         //     }
         //
         string? channel = this.safeString(message, "channel", "");
-        List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         string? accountIndex = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         IDictionary<string, object> data = this.safeDict(message, "trades", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
@@ -968,7 +968,7 @@ public partial class lighter : ccxt.lighter
         //
         Int64? timestamp = this.safeInteger(liquidation, "timestamp");
         bool? isMakerAsk = this.safeBool(liquidation, "is_maker_ask");
-        string side = (((isMakerAsk == true))) ? "buy" : "sell";
+        string side = ((isMakerAsk == true)) ? "buy" : "sell";
         string? contracts = this.safeString(liquidation, "size");
         string? contractSize = this.safeString(market, "contractSize");
         string? price = this.safeString(liquidation, "price");
@@ -1032,7 +1032,7 @@ public partial class lighter : ccxt.lighter
         //
         List<object> data = this.safeList(message, "liquidation_trades", new List<object>() {});
         string? channel = this.safeString(message, "channel", "");
-        List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         string? marketId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -1637,7 +1637,7 @@ public partial class lighter : ccxt.lighter
         // "account_orders:{marketId}", so parts[1] is the market id on every family below
         //
         string? channel = this.safeString(message, "channel", "");
-        List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         string? name = this.safeString(parts, 0, "");
         string? channelId = this.safeString(parts, 1);
         if ((name == "order_book"))

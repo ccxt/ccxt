@@ -626,7 +626,7 @@ public partial class blockchaincom : Exchange
         string? marketId = this.safeString(order, "symbol");
         string? symbol = this.safeSymbol(marketId, market, "-");
         string? exchangeOrderId = this.safeString(order, "exOrdId");
-        string? price = (((type != "market"))) ? this.safeString(order, "price") : null;
+        string? price = ((type != "market")) ? this.safeString(order, "price") : null;
         double? average = this.safeNumber(order, "avgPx");
         Int64? timestamp = this.safeInteger(order, "timestamp");
         string? datetime = this.iso8601(timestamp);
@@ -678,7 +678,7 @@ public partial class blockchaincom : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? orderType = this.safeString(parameters, "ordType", type);
-        string uppercaseOrderType = ((string)orderType).ToUpper();
+        string uppercaseOrderType = orderType.ToUpper();
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
         parameters = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
         if ((side == null))
@@ -1010,7 +1010,7 @@ public partial class blockchaincom : Exchange
         string? address = null;
         if ((rawAddress != null))
         {
-            List<object> addressParts = ((string)rawAddress).Split(new [] {((string)";")}, StringSplitOptions.None).ToList<object>();
+            List<object> addressParts = rawAddress.Split(new [] {((string)";")}, StringSplitOptions.None).ToList<object>();
             // if a tag or memo is used it is separated by a colon in the 'address' value
             tag = this.safeString(addressParts, 0);
             address = this.safeString(addressParts, 1);
@@ -1073,7 +1073,7 @@ public partial class blockchaincom : Exchange
             type = "withdrawal";
             id = this.safeString(transaction, "withdrawalId");
         }
-        double? feeCost = (((type == "withdrawal"))) ? this.safeNumber(transaction, "fee") : null;
+        double? feeCost = ((type == "withdrawal")) ? this.safeNumber(transaction, "fee") : null;
         Dictionary<string, object> fee = null;
         if (!isEqual(feeCost, null))
         {

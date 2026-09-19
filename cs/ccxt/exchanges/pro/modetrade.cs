@@ -615,7 +615,7 @@ public partial class modetrade : ccxt.modetrade
         bool? maker = this.safeBool(trade, "maker");
         if (!isEqual(maker, null))
         {
-            takerOrMaker = ((maker == true)) ? "maker" : "taker";
+            takerOrMaker = maker == true ? "maker" : "taker";
         }
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         string? feeValue = this.safeString(trade, "fee");
@@ -755,7 +755,7 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = (((trigger == true))) ? "algoexecutionreport" : "executionreport";
+        string topic = ((trigger == true)) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = topic;
         if ((symbolVar != null))
@@ -800,7 +800,7 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = (((trigger == true))) ? "algoexecutionreport" : "executionreport";
+        string topic = ((trigger == true)) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, "stop");
         string messageHash = "myTrades";
         if ((symbolVar != null))
@@ -985,7 +985,7 @@ public partial class modetrade : ccxt.modetrade
             {
                 object order = getValue(data, i);
                 string? tradeIdStr = this.safeString(data, "tradeId");
-                object tradeId = (((tradeIdStr == null))) ? null : this.omitZero(tradeIdStr);
+                object tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
                 if ((tradeId != null))
                 {
                     this.handleMyTrade(client as WebSocketClient, order);
@@ -996,7 +996,7 @@ public partial class modetrade : ccxt.modetrade
         {
             // executionreport
             string? tradeIdStr = this.safeString(data, "tradeId");
-            object tradeId = (((tradeIdStr == null))) ? null : this.omitZero(tradeIdStr);
+            object tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
             if ((tradeId != null))
             {
                 this.handleMyTrade(client as WebSocketClient, data);
@@ -1019,7 +1019,7 @@ public partial class modetrade : ccxt.modetrade
             }
             object cachedOrders = this.orders;
             IDictionary<string, object> orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-            IDictionary<string, object> order = (((orderId == null))) ? null : this.safeDict(orders, orderId);
+            IDictionary<string, object> order = ((orderId == null)) ? null : this.safeDict(orders, orderId);
             if ((order != null))
             {
                 object fee = this.safeValue(order, "fee");
@@ -1465,7 +1465,7 @@ public partial class modetrade : ccxt.modetrade
             { "bbos", this.handleBidAsk },
         };
         string? eventVar = this.safeString(message, "event");
-        object method = (((eventVar == null))) ? null : this.safeValue(methods, eventVar);
+        object method = ((eventVar == null)) ? null : this.safeValue(methods, eventVar);
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -1480,7 +1480,7 @@ public partial class modetrade : ccxt.modetrade
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }
-            List<object> splitTopic = ((string)topic).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+            List<object> splitTopic = topic.Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
             int splitLength = splitTopic.Count;
             if ((splitLength == 2))
             {
@@ -1495,12 +1495,12 @@ public partial class modetrade : ccxt.modetrade
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                     return;
                 }
-                List<object> splitName = ((string)name).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                List<object> splitName = name.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                 int splitNameLength = splitTopic.Count;
                 if ((splitNameLength == 2))
                 {
                     string? splitNameFirst = this.safeString(splitName, 0);
-                    method = (((splitNameFirst == null))) ? null : this.safeValue(methods, splitNameFirst);
+                    method = ((splitNameFirst == null)) ? null : this.safeValue(methods, splitNameFirst);
                     if ((method != null))
                     {
                         DynamicInvoker.InvokeMethod(method, new object[] { client, message});

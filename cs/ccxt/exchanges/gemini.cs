@@ -699,7 +699,7 @@ public partial class gemini : Exchange
         string? code = this.safeCurrencyCode(id);
         string? fiatFlag = this.safeString(rawCurrency, 7);
         bool isFiat = ((fiatFlag != null)) && ((fiatFlag != ""));
-        string type = (isFiat) ? "fiat" : "crypto";
+        string type = isFiat ? "fiat" : "crypto";
         double? precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         string? networkId = this.safeString(rawCurrency, 9);
@@ -815,19 +815,19 @@ public partial class gemini : Exchange
             //         '</tr>'
             //     ]
             string marketId = ((string)(cells != null && 0 < cells.Count ? cells[0] : null)).Replace((string)"<td>", (string)"");
-            marketId = ((string)marketId).Replace((string)"*", (string)"");
+            marketId = marketId.Replace((string)"*", (string)"");
             // const base = this.safeCurrencyCode (baseId);
             string minAmountString = ((string)(cells != null && 1 < cells.Count ? cells[1] : null)).Replace((string)"<td>", (string)"");
-            List<object> minAmountParts = ((string)minAmountString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            List<object> minAmountParts = minAmountString.Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             double? minAmount = this.safeNumber(minAmountParts, 0);
             string amountPrecisionString = ((string)(cells != null && 2 < cells.Count ? cells[2] : null)).Replace((string)"<td>", (string)"");
-            List<object> amountPrecisionParts = ((string)amountPrecisionString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            List<object> amountPrecisionParts = amountPrecisionString.Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             object idLength = ((marketId?.Length ?? 0) - 0);
             object startingIndex = subtract(idLength, 3);
             string pricePrecisionString = ((string)(cells != null && 3 < cells.Count ? cells[3] : null)).Replace((string)"<td>", (string)"");
-            List<object> pricePrecisionParts = ((string)pricePrecisionString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            List<object> pricePrecisionParts = pricePrecisionString.Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             string? quoteId = this.safeStringLower(pricePrecisionParts, 1, slice(marketId, startingIndex, idLength));
-            string? baseId = this.safeStringLower(amountPrecisionParts, 1, ((string)marketId).Replace((string)quoteId, (string)""));
+            string? baseId = this.safeStringLower(amountPrecisionParts, 1, marketId.Replace((string)quoteId, (string)""));
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
@@ -1069,9 +1069,9 @@ public partial class gemini : Exchange
             }
             string marketIdUpper = ((string)((string)marketId)).ToUpper();
             bool isPerp = (((string)marketIdUpper).IndexOf("PERP", StringComparison.Ordinal) >= 0);
-            string marketIdWithoutPerp = ((string)marketIdUpper).Replace((string)"PERP", (string)"");
+            string marketIdWithoutPerp = marketIdUpper.Replace((string)"PERP", (string)"");
             IDictionary<string, object> conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new Dictionary<string, object>() {});
-            string lowerCaseId = ((string)marketIdWithoutPerp).ToLower();
+            string lowerCaseId = marketIdWithoutPerp.ToLower();
             if (conflictingMarkets.ContainsKey(lowerCaseId))
             {
                 object conflictingMarket = (conflictingMarkets != null && conflictingMarkets.ContainsKey(lowerCaseId) ? conflictingMarkets[lowerCaseId] : null);
@@ -1113,7 +1113,7 @@ public partial class gemini : Exchange
             linear = true; // always linear
             inverse = false;
         }
-        string type = (swap) ? "swap" : "spot";
+        string type = swap ? "swap" : "spot";
         bool isSpot = !swap;
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
@@ -1337,7 +1337,7 @@ public partial class gemini : Exchange
         string? quote = null;
         if (((marketId != null)) && ((market == null)))
         {
-            int idLength = (((string)marketId).Length - 0);
+            int idLength = (marketId.Length - 0);
             if ((idLength == 7))
             {
                 baseId = ((marketId == null) ? null : ((string)marketId).Substring(0, Math.Min(4, ((string)marketId).Length)));

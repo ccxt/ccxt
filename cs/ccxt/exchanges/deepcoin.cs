@@ -667,7 +667,7 @@ public partial class deepcoin : Exchange
         if (swap)
         {
             isLinear = ((quoteId != "USD"));
-            settleId = ((isLinear == true)) ? quoteId : baseId;
+            settleId = (isLinear == true) ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
             symbol = add(add(symbol, ":"), settle);
         }
@@ -679,7 +679,7 @@ public partial class deepcoin : Exchange
         double? maxAmount = this.parseNumber(Precise.stringMax(maxMarketSize, maxLimitSize));
         string? state = this.safeString(market, "state");
         bool isMargin = spot && (Precise.stringGt(maxLeverage, "1"));
-        bool? isInverse = (swap) ? (!isEqual(isLinear, true)) : null;
+        bool? isInverse = swap ? ((isLinear != true)) : null;
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -699,7 +699,7 @@ public partial class deepcoin : Exchange
             { "contract", swap },
             { "linear", isLinear },
             { "inverse", isInverse },
-            { "contractSize", (swap) ? this.safeNumber(market, "ctVal") : null },
+            { "contractSize", swap ? this.safeNumber(market, "ctVal") : null },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -864,7 +864,7 @@ public partial class deepcoin : Exchange
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
                 int duration = this.parseTimeframe(timeframeVar);
-                object numberOfCandles = (((limit == null))) ? maxLimit : limit;
+                object numberOfCandles = ((limit == null)) ? maxLimit : limit;
                 object endTime = add(since, multiply((multiply(duration, numberOfCandles)), 1000));
                 if (!isEqual(until, null))
                 {
@@ -1455,7 +1455,7 @@ public partial class deepcoin : Exchange
         string? network = this.safeString(parameters, "network");
         IDictionary<string, object> defaultNetworks = this.safeDict(this.options, "defaultNetworks", new Dictionary<string, object>() {});
         string? defaultNetwork = this.safeString(defaultNetworks, code);
-        network = (((network != null) && (network != ""))) ? network : defaultNetwork;
+        network = ((network != null) && (network != "")) ? network : defaultNetwork;
         if ((network != null))
         {
             parameters = this.omit(parameters, "network");
@@ -1604,7 +1604,7 @@ public partial class deepcoin : Exchange
         Int64? timestamp = this.safeInteger(item, "ts");
         string? change = this.safeString(item, "balChg");
         string? amount = Precise.stringAbs(change);
-        string direction = (Precise.stringLt(change, "0")) ? "out" : "in";
+        string direction = Precise.stringLt(change, "0") ? "out" : "in";
         string? currencyId = this.safeString(item, "ccy");
         currency = this.safeCurrency(currencyId, currency);
         string? type = this.safeString(item, "type");
@@ -1659,7 +1659,7 @@ public partial class deepcoin : Exchange
         IList<object> userIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "transfer", "userId");
         userId = ((IList<object>)userIdparametersVariable)[0];
         parameters = ((IList<object>)userIdparametersVariable)[1];
-        userId = (((userId != null) && !isEqual(userId, ""))) ? userId : this.safeString(parameters, "uid");
+        userId = ((userId != null) && !isEqual(userId, "")) ? userId : this.safeString(parameters, "uid");
         if ((userId == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " transfer() requires a userId parameter")) ;
@@ -2247,7 +2247,7 @@ public partial class deepcoin : Exchange
         int length = (data?.Count ?? 0);
         if ((length == 0))
         {
-            throw new OrderNotFound ((string)((this.id + " fetchOpenOrder() could not find order id ") + (id))) ;
+            throw new OrderNotFound ((string)((this.id + " fetchOpenOrder() could not find order id ") + id)) ;
         }
         IDictionary<string, object> entry = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(entry, market));
@@ -2662,7 +2662,7 @@ public partial class deepcoin : Exchange
         IList<object> mergedparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "merged", merged);
         merged = ((IList<object>)mergedparametersVariable)[0];
         parameters = ((IList<object>)mergedparametersVariable)[1];
-        int isMergedMode = ((bool) isTrue(merged)) ? 1 : 0;
+        int isMergedMode = isTrue(merged) ? 1 : 0;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "InstrumentID", (market.ContainsKey("id") ? market["id"] : null) },
             { "ProductGroup", productGroup },
@@ -2724,11 +2724,11 @@ public partial class deepcoin : Exchange
             }
             if (!isEqual(stopLossPrice, null))
             {
-                ((IDictionary<string,object>)request)["slTriggerPx"] = ((!isEqual(symbolVar, ""))) ? this.priceToPrecision(symbolVar, stopLossPrice) : this.numberToString(stopLossPrice);
+                ((IDictionary<string,object>)request)["slTriggerPx"] = (!isEqual(symbolVar, "")) ? this.priceToPrecision(symbolVar, stopLossPrice) : this.numberToString(stopLossPrice);
             }
             if (!isEqual(takeProfitPrice, null))
             {
-                ((IDictionary<string,object>)request)["tpTriggerPx"] = ((!isEqual(symbolVar, ""))) ? this.priceToPrecision(symbolVar, takeProfitPrice) : this.numberToString(takeProfitPrice);
+                ((IDictionary<string,object>)request)["tpTriggerPx"] = (!isEqual(symbolVar, "")) ? this.priceToPrecision(symbolVar, takeProfitPrice) : this.numberToString(takeProfitPrice);
             }
             parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
             response = await this.privatePostDeepcoinTradeReplaceOrderSltp(this.extend(request, parameters));
@@ -2910,7 +2910,7 @@ public partial class deepcoin : Exchange
             { "trades", null },
             { "fee", fee },
             { "reduceOnly", null },
-            { "postOnly", (((orderType != null) && (orderType != ""))) ? ((orderType == "post_only")) : null },
+            { "postOnly", ((orderType != null) && (orderType != "")) ? ((orderType == "post_only")) : null },
             { "info", order },
         }, market);
     }

@@ -415,7 +415,7 @@ public partial class cex : Exchange
         string? id = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(id);
         bool isFiat = ((this.safeBool(rawCurrency, "fiat") == true));
-        string type = (isFiat) ? "fiat" : "crypto";
+        string type = isFiat ? "fiat" : "crypto";
         double? currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
@@ -1771,7 +1771,7 @@ public partial class cex : Exchange
     {
         string? currencyId = this.safeString(transaction, "currency");
         string? direction = this.safeString(transaction, "direction");
-        string type = (((direction == "withdraw"))) ? "withdrawal" : "deposit";
+        string type = ((direction == "withdraw")) ? "withdrawal" : "deposit";
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? updatedAt = this.safeString(transaction, "updatedAt");
         Int64? timestamp = this.parse8601(updatedAt);
@@ -1853,7 +1853,7 @@ public partial class cex : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         bool fromMain = ((fromAccount == ""));
-        object targetAccount = (fromMain) ? toAccount : fromAccount;
+        object targetAccount = fromMain ? toAccount : fromAccount;
         string? guid = this.safeString(parameters, "guid", this.uuid());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },

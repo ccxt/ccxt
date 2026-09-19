@@ -1161,7 +1161,7 @@ public partial class backpack : Exchange
                 limitVar = defaultLimit;
             }
             int duration = this.parseTimeframe(timeframeVar);
-            Int64? endTime = ((!isEqual(until, null) && !isEqual(until, null) && !isEqual(until, 0))) ? this.parseToInt(divide(until, 1000)) : this.seconds();
+            Int64? endTime = (!isEqual(until, null) && !isEqual(until, null) && !isEqual(until, 0)) ? this.parseToInt(divide(until, 1000)) : this.seconds();
             object startTime = subtract(endTime, (multiply(limitVar, duration)));
             ((IDictionary<string,object>)request)["startTime"] = startTime;
         } else
@@ -1509,11 +1509,11 @@ public partial class backpack : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((isMaker == true)) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
         } else if (!isEqual(isBuyerMaker, null))
         {
             takerOrMaker = "taker";
-            side = ((isBuyerMaker == true)) ? "sell" : "buy";
+            side = isBuyerMaker == true ? "sell" : "buy";
         }
         string? orderId = this.safeString(trade, "orderId");
         Dictionary<string, object> fee = null;
@@ -1574,7 +1574,7 @@ public partial class backpack : Exchange
         {
             throw new ExchangeError ((string)(this.id + " fetchStatus() missing status")) ;
         }
-        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((string)status).ToLower() },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", status.ToLower() },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -2062,7 +2062,7 @@ public partial class backpack : Exchange
         };
         string? triggerPrice = this.safeString(parameters, "triggerPrice");
         bool isTriggerOrder = (triggerPrice != null);
-        string quantityKey = (isTriggerOrder) ? "triggerQuantity" : "quantity";
+        string quantityKey = isTriggerOrder ? "triggerQuantity" : "quantity";
         // handle basic limit/market order types
         if (isEqual(type, "limit"))
         {
@@ -2667,7 +2667,7 @@ public partial class backpack : Exchange
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + (path));
         object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
-        object sortedParams = (((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) ? parameters : this.keysort(parameters);
+        object sortedParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.keysort(parameters);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();

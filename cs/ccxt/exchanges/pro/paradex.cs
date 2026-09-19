@@ -250,7 +250,7 @@ public partial class paradex : ccxt.paradex
             { "asks", new List<object>() {} },
         };
         List<object> inserts = this.safeList(data, "inserts");
-        for (int i = 0; i < getArrayLength((IList<object>)(inserts)); i++)
+        for (int i = 0; i < (((IList<object>)(inserts))?.Count ?? 0); i++)
         {
             IDictionary<string, object> insert = this.safeDict(inserts, i);
             string? side = this.safeString(insert, "side");

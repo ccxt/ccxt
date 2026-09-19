@@ -168,7 +168,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 3);
         string? symbol = this.safeSymbol(marketId);
         ccxt.pro.IOrderBook storedOrderBook = this.safeOrderBook(this.orderbooks, symbol);
@@ -338,7 +338,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
         object symbol = getValue(market, "symbol");
         Int64? sideRaw = this.safeInteger(trade, "type");
-        string side = (((sideRaw == 0))) ? "buy" : "sell";
+        string side = ((sideRaw == 0)) ? "buy" : "sell";
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -383,7 +383,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -454,7 +454,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -622,7 +622,7 @@ public partial class bitstamp : ccxt.bitstamp
         //
         string? channel = this.safeString(message, "channel");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        IDictionary<string, object> subscription = (((channel == null))) ? null : this.safeDict(((WebSocketClient)client).subscriptions, channel);
+        IDictionary<string, object> subscription = ((channel == null)) ? null : this.safeDict(((WebSocketClient)client).subscriptions, channel);
         string? symbol = this.safeString(subscription, "symbol");
         if ((symbol == null))
         {
@@ -721,7 +721,7 @@ public partial class bitstamp : ccxt.bitstamp
         //
         string? channel = this.safeString(message, "channel");
         IDictionary<string, object> order = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        IDictionary<string, object> subscription = (((channel == null))) ? null : this.safeDict(((WebSocketClient)client).subscriptions, channel);
+        IDictionary<string, object> subscription = ((channel == null)) ? null : this.safeDict(((WebSocketClient)client).subscriptions, channel);
         string? symbol = this.safeString(subscription, "symbol");
         if ((symbol == null))
         {
@@ -768,7 +768,7 @@ public partial class bitstamp : ccxt.bitstamp
         //
         string? id = this.safeString(order, "id_str");
         string? orderTypeRaw = this.safeStringLower(order, "order_type");
-        string side = (((orderTypeRaw == "1"))) ? "sell" : "buy";
+        string side = ((orderTypeRaw == "1")) ? "sell" : "buy";
         string? orderSubTypeRaw = this.safeStringLower(order, "order_subtype"); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         string? orderType = null;
         string? timeInForce = null;
@@ -851,7 +851,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 3);
         string? symbol = this.safeSymbol(marketId);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();

@@ -467,7 +467,7 @@ public partial class deribit : ccxt.deribit
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel", "");
-        List<object> parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         string? interval = this.safeString(parts, 2);
         string? symbol = this.safeSymbol(marketId);
@@ -962,7 +962,7 @@ public partial class deribit : ccxt.deribit
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel", "");
-        List<object> parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
         string? rawTimeframe = this.safeString(parts, 3);
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1014,7 +1014,7 @@ public partial class deribit : ccxt.deribit
         List<object> rawSubscriptions = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         bool isOHLCV = (isEqual(channelName, "chart.trades"));
-        object symbols = (isOHLCV) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
+        object symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
         this.marketSymbols(symbols, null, false);
         if ((symbolsArray == null))
         {
@@ -1053,7 +1053,7 @@ public partial class deribit : ccxt.deribit
         Dictionary<string, object> extendedRequest = this.deepExtend(request, parameters);
         int maxMessageByteLimit = (32768 - 1); // 'Message Too Big: limit 32768B'
         string jsonedText = this.json(extendedRequest);
-        if (((string)jsonedText).Length >= maxMessageByteLimit)
+        if (jsonedText.Length >= maxMessageByteLimit)
         {
             throw new ExchangeError ((string)(this.id + " requested subscription length over limit, try to reduce symbols amount")) ;
         }
@@ -1130,7 +1130,7 @@ public partial class deribit : ccxt.deribit
         string? channel = this.safeString(parameters, "channel");
         if ((channel != null))
         {
-            List<object> parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = channel.Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             string? channelId = this.safeString(parts, 0);
             Dictionary<string, object> userHandlers = new Dictionary<string, object>() {
                 { "trades", this.handleMyTrades },

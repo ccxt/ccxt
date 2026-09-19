@@ -1082,7 +1082,7 @@ public partial class coinbaseexchange : Exchange
         string? low = null;
         string? open = null;
         string? volume = null;
-        object symbol = (((market == null))) ? null : getValue(market, "symbol");
+        object symbol = ((market == null)) ? null : getValue(market, "symbol");
         if (((ticker is IList<object>) || (ticker.GetType().IsGenericType && ticker.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             last = this.safeString(ticker, 4);
@@ -1269,7 +1269,7 @@ public partial class coinbaseexchange : Exchange
             string? liquidity = this.safeString(trade, "liquidity");
             if ((liquidity != null))
             {
-                takerOrMaker = (((liquidity == "T"))) ? "taker" : "maker";
+                takerOrMaker = ((liquidity == "T")) ? "taker" : "maker";
                 feeRate = this.safeString(market, takerOrMaker);
             }
         }
@@ -1280,14 +1280,14 @@ public partial class coinbaseexchange : Exchange
             { "rate", feeRate },
         };
         string? id = this.safeString(trade, "trade_id");
-        string side = ((isEqual(getValue(trade, "side"), "buy"))) ? "sell" : "buy";
+        string side = (isEqual(getValue(trade, "side"), "buy")) ? "sell" : "buy";
         string? orderId = this.safeString(trade, "order_id");
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         string? makerOrderId = this.safeString(trade, "maker_order_id");
         string? takerOrderId = this.safeString(trade, "taker_order_id");
         if (((orderId != null)) || (((makerOrderId != null)) && ((takerOrderId != null))))
         {
-            side = ((isEqual(getValue(trade, "side"), "buy"))) ? "buy" : "sell";
+            side = (isEqual(getValue(trade, "side"), "buy")) ? "buy" : "sell";
         }
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "size");

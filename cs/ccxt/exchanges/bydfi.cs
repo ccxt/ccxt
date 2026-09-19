@@ -1006,7 +1006,7 @@ public partial class bydfi : Exchange
             { "interval", interval },
         };
         object startTime = since;
-        object numberOfCandles = (((limit != null) && (limit != null) && (limit != 0))) ? limit : maxLimit;
+        object numberOfCandles = ((limit != null) && (limit != null) && (limit != 0)) ? limit : maxLimit;
         object until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
         until = ((IList<object>)untilparametersVariable)[0];
@@ -1451,7 +1451,7 @@ public partial class bydfi : Exchange
         string? stopPrice = null;
         if (isStopLossOrder || isTakeProfitOrder)
         {
-            stopPrice = (isStopLossOrder) ? stopLossPrice : takeProfitPrice;
+            stopPrice = isStopLossOrder ? stopLossPrice : takeProfitPrice;
             parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
             ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
         } else if (isTailingStopOrder)
@@ -1511,10 +1511,10 @@ public partial class bydfi : Exchange
             parameters = this.omit(parameters, "reduceOnly");
             if (isEqual(side, "buy"))
             {
-                ((IDictionary<string,object>)request)["positionSide"] = (((reduceOnly == true))) ? "SHORT" : "LONG";
+                ((IDictionary<string,object>)request)["positionSide"] = ((reduceOnly == true)) ? "SHORT" : "LONG";
             } else if (isEqual(side, "sell"))
             {
-                ((IDictionary<string,object>)request)["positionSide"] = (((reduceOnly == true))) ? "LONG" : "SHORT";
+                ((IDictionary<string,object>)request)["positionSide"] = ((reduceOnly == true)) ? "LONG" : "SHORT";
             }
         }
         bool? closePosition = this.safeBool(parameters, "closePosition", false);
@@ -2177,8 +2177,8 @@ public partial class bydfi : Exchange
             { "side", this.safeStringLower(order, "side") },
             { "price", this.safeString(order, "price") },
             { "triggerPrice", stopPrice },
-            { "stopLossPrice", (isStopLossOrder) ? stopPrice : null },
-            { "takeProfitPrice", (isTakeProfitOrder) ? stopPrice : null },
+            { "stopLossPrice", isStopLossOrder ? stopPrice : null },
+            { "takeProfitPrice", isTakeProfitOrder ? stopPrice : null },
             { "amount", this.safeString(order, "origQty") },
             { "filled", this.safeString(order, "executedQty") },
             { "remaining", null },
@@ -2783,7 +2783,7 @@ public partial class bydfi : Exchange
         {
             await this.loadMarkets();
         }
-        string positionType = ((bool) isTrue(hedged)) ? "HEDGE" : "ONEWAY";
+        string positionType = isTrue(hedged) ? "HEDGE" : "ONEWAY";
         object wallet = "W001";
         IList<object> walletparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "setPositionMode", "wallet", wallet);
         wallet = ((IList<object>)walletparametersVariable)[0];
@@ -3213,7 +3213,7 @@ public partial class bydfi : Exchange
 
     public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
     {
-        string methodName = ((isEqual(type, "deposit"))) ? "fetchDeposits" : "fetchWithdrawals";
+        string methodName = (isEqual(type, "deposit")) ? "fetchDeposits" : "fetchWithdrawals";
         if ((code == null))
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + methodName) + "() requires a code argument")) ;

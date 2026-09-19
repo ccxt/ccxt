@@ -872,7 +872,7 @@ public partial class pacifica : Exchange
         }
         if (isSpot)
         {
-            List<object> idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            List<object> idParts = id.Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             quoteId = this.safeString(idParts, 1, quoteId);
         }
         bool? isolatedOnly = this.safeBool(market, "isolated_only", false);
@@ -1104,7 +1104,7 @@ public partial class pacifica : Exchange
         // }
         bool? isIsolated = this.safeBool(setting, "isolated", false);
         Int64? leverage = this.safeInteger(setting, "leverage");
-        string marginMode = (((isIsolated == true))) ? "isolated" : "cross";
+        string marginMode = ((isIsolated == true)) ? "isolated" : "cross";
         return new Dictionary<string, object>() {
             { "info", setting },
             { "symbol", symbol },
@@ -1257,7 +1257,7 @@ public partial class pacifica : Exchange
         //
         // }
         bool? isIsolated = this.safeBool(setting, "isolated", false);
-        string marginMode = (((isIsolated == true))) ? "isolated" : "cross";
+        string marginMode = ((isIsolated == true)) ? "isolated" : "cross";
         return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "marginMode", marginMode },
@@ -1724,7 +1724,7 @@ public partial class pacifica : Exchange
         string? takerOrMaker = null;
         if ((eventType != null))
         {
-            takerOrMaker = (((eventType == "fulfill_maker"))) ? "maker" : "taker";
+            takerOrMaker = ((eventType == "fulfill_maker")) ? "maker" : "taker";
         }
         // public trades have no orderId
         if ((orderId == null))
@@ -2302,7 +2302,7 @@ public partial class pacifica : Exchange
         // }
         //
         bool? success = this.safeBool(response, "success", false);
-        string status = (((success == true))) ? "canceled" : "closed";
+        string status = ((success == true)) ? "canceled" : "closed";
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
     }
 
@@ -3043,7 +3043,7 @@ public partial class pacifica : Exchange
         string? side = this.safeString(order, "side", "d");
         if ((side != null))
         {
-            side = (((side == "bid"))) ? "buy" : "sell";
+            side = ((side == "bid")) ? "buy" : "sell";
         }
         string? totalAmount = this.safeString2(order, "initial_amount", "a");
         string? filledAmount = this.safeString2(order, "filled_amount", "f");
@@ -3165,12 +3165,12 @@ public partial class pacifica : Exchange
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         string? margin = this.safeString(position, "margin");
-        string marginMode = (((margin != null) && (margin != "0"))) ? "isolated" : "cross";
+        string marginMode = ((margin != null) && (margin != "0")) ? "isolated" : "cross";
         bool isIsolated = ((marginMode == "isolated"));
         string? side = this.safeString(position, "side");
         if ((side != null))
         {
-            side = (((side == "bid"))) ? "long" : "short";
+            side = ((side == "bid")) ? "long" : "short";
         }
         Int64? createdAt = this.safeInteger(position, "created_at");
         return this.safePosition(new Dictionary<string, object>() {
@@ -3760,7 +3760,7 @@ public partial class pacifica : Exchange
         string? status = null;
         if (!isEqual(success, null))
         {
-            status = (((success == true))) ? "ok" : "failed";
+            status = ((success == true)) ? "ok" : "failed";
         }
         return new Dictionary<string, object>() {
             { "info", transfer },
@@ -3996,7 +3996,7 @@ public partial class pacifica : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = ((isTestnet)) ? "test" : "api";
+        string urlKey = (isTestnet) ? "test" : "api";
         object host = this.implodeHostname(getValue(getValue(this.urls, urlKey), api));
         object url = add(add(add(add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));

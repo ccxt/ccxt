@@ -459,7 +459,7 @@ public partial class gemini : ccxt.gemini
             object delta = changes[i];
             double? price = this.safeNumber(delta, 1);
             double? size = this.safeNumber(delta, 2);
-            string side = ((isEqual(getValue(delta, 0), "buy"))) ? "bids" : "asks";
+            string side = (isEqual(getValue(delta, 0), "buy")) ? "bids" : "asks";
             object bookside = getValue(orderbook, side);
             (bookside as IOrderBookSide).store(price, size);
             ((IDictionary<string,object>)orderbook)[(string)side] = bookside;
@@ -1042,8 +1042,8 @@ public partial class gemini : ccxt.gemini
         this.checkRequiredCredentials();
         int startIndex = getArrayLength(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         int urlParamsIndex = ((string)url).IndexOf("?", StringComparison.Ordinal);
-        int urlLength = ((string)url).Length;
-        int endIndex = ((urlParamsIndex >= 0)) ? urlParamsIndex : urlLength;
+        int urlLength = url.Length;
+        int endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
         string? request = slice(url, startIndex, endIndex);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "request", request },

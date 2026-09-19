@@ -2267,7 +2267,7 @@ public partial class phemex : Exchange
                     side = sideId;
                 } else if ((sideId != null))
                 {
-                    side = (((sideId == "1"))) ? "buy" : "sell";
+                    side = ((sideId == "1")) ? "buy" : "sell";
                 }
                 string? ordType = this.safeString(trade, "ordType");
                 if ((ordType == "1"))
@@ -2403,7 +2403,7 @@ public partial class phemex : Exchange
             string? lockedWithdraw = this.fromEn(lockedWithdrawEv, scale);
             string? used = Precise.stringAdd(lockedTradingBalance, lockedWithdraw);
             Int64? lastUpdateTimeNs = this.safeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001);
-            timestamp = ((isEqual(timestamp, null))) ? lastUpdateTimeNs : mathMax(timestamp, lastUpdateTimeNs);
+            timestamp = (isEqual(timestamp, null)) ? lastUpdateTimeNs : mathMax(timestamp, lastUpdateTimeNs);
             ((IDictionary<string,object>)account)["total"] = total;
             ((IDictionary<string,object>)account)["used"] = used;
             ((IDictionary<string,object>)result)[(string)((string)code)] = account;
@@ -2458,8 +2458,8 @@ public partial class phemex : Exchange
         string? accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
         string? totalUsedBalanceEv = this.safeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv");
         bool needsConversion = ((code != "USDT"));
-        ((IDictionary<string,object>)account)["total"] = (needsConversion) ? this.fromEn(accountBalanceEv, valueScale) : accountBalanceEv;
-        ((IDictionary<string,object>)account)["used"] = (needsConversion) ? this.fromEn(totalUsedBalanceEv, valueScale) : totalUsedBalanceEv;
+        ((IDictionary<string,object>)account)["total"] = needsConversion ? this.fromEn(accountBalanceEv, valueScale) : accountBalanceEv;
+        ((IDictionary<string,object>)account)["used"] = needsConversion ? this.fromEn(totalUsedBalanceEv, valueScale) : totalUsedBalanceEv;
         ((IDictionary<string,object>)result)[(string)((string)code)] = account;
         return this.safeBalance(result);
     }
@@ -3142,7 +3142,7 @@ public partial class phemex : Exchange
                         throw new ArgumentsRequired ((string)(((this.id + " createOrder() ") + qtyType) + " requires a price argument or a cost parameter")) ;
                     }
                 }
-                cost = ((isEqual(cost, null))) ? amount : cost;
+                cost = (isEqual(cost, null)) ? amount : cost;
                 string? costString = this.costToPrecision(symbol, cost);
                 ((IDictionary<string,object>)request)["quoteQtyEv"] = this.toEv(costString, market);
             } else
@@ -3162,10 +3162,10 @@ public partial class phemex : Exchange
                     bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
                     if ((reduceOnly == true))
                     {
-                        sideVar = ((isEqual(sideVar, "buy"))) ? "sell" : "buy";
+                        sideVar = (isEqual(sideVar, "buy")) ? "sell" : "buy";
                         parameters = this.omit(parameters, "reduceOnly");
                     }
-                    posSide = ((isEqual(sideVar, "buy"))) ? "Long" : "Short";
+                    posSide = (isEqual(sideVar, "buy")) ? "Long" : "Short";
                 } else
                 {
                     posSide = "Merged";
@@ -3198,19 +3198,19 @@ public partial class phemex : Exchange
                 {
                     if (isEqual(sideVar, "sell"))
                     {
-                        ((IDictionary<string,object>)request)["ordType"] = ((isEqual(typeVar, "Market"))) ? "MarketIfTouched" : "LimitIfTouched";
+                        ((IDictionary<string,object>)request)["ordType"] = (isEqual(typeVar, "Market")) ? "MarketIfTouched" : "LimitIfTouched";
                     } else if (isEqual(sideVar, "buy"))
                     {
-                        ((IDictionary<string,object>)request)["ordType"] = ((isEqual(typeVar, "Market"))) ? "Stop" : "StopLimit";
+                        ((IDictionary<string,object>)request)["ordType"] = (isEqual(typeVar, "Market")) ? "Stop" : "StopLimit";
                     }
                 } else if ((triggerDirection == "descending") || (triggerDirection == "down"))
                 {
                     if (isEqual(sideVar, "sell"))
                     {
-                        ((IDictionary<string,object>)request)["ordType"] = ((isEqual(typeVar, "Market"))) ? "Stop" : "StopLimit";
+                        ((IDictionary<string,object>)request)["ordType"] = (isEqual(typeVar, "Market")) ? "Stop" : "StopLimit";
                     } else if (isEqual(sideVar, "buy"))
                     {
-                        ((IDictionary<string,object>)request)["ordType"] = ((isEqual(typeVar, "Market"))) ? "MarketIfTouched" : "LimitIfTouched";
+                        ((IDictionary<string,object>)request)["ordType"] = (isEqual(typeVar, "Market")) ? "MarketIfTouched" : "LimitIfTouched";
                     }
                 }
             }
@@ -4407,7 +4407,7 @@ public partial class phemex : Exchange
             code = "BTC";
         } else if ((code == null))
         {
-            code = ((isEqual(subType, "linear"))) ? "USD" : "BTC";
+            code = (isEqual(subType, "linear")) ? "USD" : "BTC";
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4697,7 +4697,7 @@ public partial class phemex : Exchange
         if ((rawSide != null))
         {
             bool isLong = ((rawSide == "Buy") || (rawSide == "1"));
-            side = (isLong) ? "long" : "short";
+            side = isLong ? "long" : "short";
         }
         // Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
         // Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
@@ -4755,7 +4755,7 @@ public partial class phemex : Exchange
             { "marginRatio", this.parseNumber(marginRatio) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "marginMode", (((isCross == true))) ? "cross" : "isolated" },
+            { "marginMode", ((isCross == true)) ? "cross" : "isolated" },
             { "side", side },
             { "hedged", (this.safeString(position, "posMode") == "Hedged") },
             { "percentage", null },
@@ -5047,7 +5047,7 @@ public partial class phemex : Exchange
         //
         market = this.safeMarket(null, market);
         bool? inverse = this.safeBool(market, "inverse");
-        string codeCurrency = (((inverse == true))) ? "base" : "quote";
+        string codeCurrency = ((inverse == true)) ? "base" : "quote";
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", this.safeSymbol(null, market) },
@@ -5105,7 +5105,7 @@ public partial class phemex : Exchange
             {
                 throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a \"leverage\" parameter for USDT markets")) ;
             }
-            ((IDictionary<string,object>)request)["leverageRr"] = (isCross) ? Precise.stringNeg(Precise.stringAbs(currentLeverage)) : Precise.stringAbs(currentLeverage);
+            ((IDictionary<string,object>)request)["leverageRr"] = isCross ? Precise.stringNeg(Precise.stringAbs(currentLeverage)) : Precise.stringAbs(currentLeverage);
             return ccxt.BaseExchange.ToDict(await this.privatePutGPositionsLeverage(this.extend(request, parameters)));
         }
         object leverage = this.safeInteger(parameters, "leverage");
@@ -5408,8 +5408,8 @@ public partial class phemex : Exchange
                 ((IDictionary<string,object>)request)["leverageRr"] = leverage;
             } else
             {
-                object longVar = ((!isEqual(longLeverageRr, null))) ? longLeverageRr : leverage;
-                object shortVar = ((!isEqual(shortLeverageRr, null))) ? shortLeverageRr : leverage;
+                object longVar = (!isEqual(longLeverageRr, null)) ? longLeverageRr : leverage;
+                object shortVar = (!isEqual(shortLeverageRr, null)) ? shortLeverageRr : leverage;
                 ((IDictionary<string,object>)request)["longLeverageRr"] = longVar;
                 ((IDictionary<string,object>)request)["shortLeverageRr"] = shortVar;
             }
@@ -6224,7 +6224,7 @@ public partial class phemex : Exchange
             code = "BTC";
         } else if ((code == null))
         {
-            code = ((isEqual(subType, "linear"))) ? "USD" : "BTC";
+            code = (isEqual(subType, "linear")) ? "USD" : "BTC";
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {

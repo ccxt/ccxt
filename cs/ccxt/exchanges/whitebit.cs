@@ -781,7 +781,7 @@ public partial class whitebit : Exchange
         string? id = this.safeString(market, "name");
         string? baseId = this.safeString(market, "stock");
         string? quoteId = this.safeString(market, "money");
-        quoteId = (((quoteId == "PERP"))) ? "USDT" : quoteId;
+        quoteId = ((quoteId == "PERP")) ? "USDT" : quoteId;
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         bool? active = this.safeBool(market, "tradesEnabled");
@@ -836,7 +836,7 @@ public partial class whitebit : Exchange
             { "inverse", inverse },
             { "taker", this.parseNumber(taker) },
             { "maker", this.parseNumber(maker) },
-            { "contractSize", (isSpot) ? null : this.parseNumber("1") },
+            { "contractSize", isSpot ? null : this.parseNumber("1") },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -1002,7 +1002,7 @@ public partial class whitebit : Exchange
             { "withdraw", this.safeBool(rawCurrency, "can_withdraw") },
             { "fee", null },
             { "networks", networks },
-            { "type", (hasProvider) ? "fiat" : "crypto" },
+            { "type", hasProvider ? "fiat" : "crypto" },
             { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "currency_precision"))) },
             { "limits", new Dictionary<string, object>() {
                 { "amount", new Dictionary<string, object>() {
@@ -1217,11 +1217,11 @@ public partial class whitebit : Exchange
                 double? depositFee = this.safeNumber(deposit, "fixed");
                 Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
                     { "fee", withdrawFee },
-                    { "percentage", ((!isEqual(withdrawFee, null))) ? false : null },
+                    { "percentage", (!isEqual(withdrawFee, null)) ? false : null },
                 };
                 Dictionary<string, object> depositResult = new Dictionary<string, object>() {
                     { "fee", depositFee },
-                    { "percentage", ((!isEqual(depositFee, null))) ? false : null },
+                    { "percentage", (!isEqual(depositFee, null)) ? false : null },
                 };
                 if ((networkId != null))
                 {
@@ -2216,7 +2216,7 @@ public partial class whitebit : Exchange
         string? takerOrMaker = null;
         if (!isEqual(role, null))
         {
-            takerOrMaker = (((role == 1))) ? "maker" : "taker";
+            takerOrMaker = ((role == 1)) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "fee");
@@ -2336,7 +2336,7 @@ public partial class whitebit : Exchange
         //      ]
         //
         string? status = this.safeString(response, 0);
-        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", (((status == "pong"))) ? "ok" : status },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((status == "pong")) ? "ok" : status },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -3745,11 +3745,11 @@ public partial class whitebit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "network", this.safeString(transaction, "network") },
-            { "addressFrom", (((method == "1"))) ? address : null },
+            { "addressFrom", ((method == "1")) ? address : null },
             { "address", address },
-            { "addressTo", (((method == "2"))) ? address : null },
+            { "addressTo", ((method == "2")) ? address : null },
             { "amount", this.safeNumber(transaction, "amount") },
-            { "type", (((method == "1"))) ? "deposit" : "withdrawal" },
+            { "type", ((method == "1")) ? "deposit" : "withdrawal" },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "status", this.parseTransactionStatus(status) },
             { "updated", null },
@@ -4977,7 +4977,7 @@ public partial class whitebit : Exchange
                         string? errorKey = ((string)(errorKeys != null && 0 < errorKeys.Count ? errorKeys[0] : null));
                         List<object> errorMessageArray = this.safeList(errorObject, errorKey, new List<object>() {});
                         int errorMessageLength = errorMessageArray.Count;
-                        errorInfo = ((errorMessageLength > 0)) ? (errorMessageArray != null && 0 < errorMessageArray.Count ? errorMessageArray[0] : null) : body;
+                        errorInfo = (errorMessageLength > 0) ? (errorMessageArray != null && 0 < errorMessageArray.Count ? errorMessageArray[0] : null) : body;
                     }
                 }
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorInfo, feedback);
@@ -4997,7 +4997,7 @@ public partial class whitebit : Exchange
                     string? errorKey = ((string)(errKeys != null && 0 < errKeys.Count ? errKeys[0] : null));
                     List<object> errorMessageArray = this.safeList(errMsg, errorKey, new List<object>() {});
                     int errorMessageLength = errorMessageArray.Count;
-                    errorInfo = ((errorMessageLength > 0)) ? (errorMessageArray != null && 0 < errorMessageArray.Count ? errorMessageArray[0] : null) : body;
+                    errorInfo = (errorMessageLength > 0) ? (errorMessageArray != null && 0 < errorMessageArray.Count ? errorMessageArray[0] : null) : body;
                 }
                 string feedback = ((this.id + " ") + (body));
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorInfo, feedback);

@@ -682,8 +682,8 @@ public partial class upbit : ccxt.upbit
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object cachedOrders = this.orders;
-        IDictionary<string, object> orders = (((symbol == null))) ? new Dictionary<string, object>() {} : this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-        IDictionary<string, object> order = (((orderId == null))) ? null : this.safeDict(orders, orderId);
+        IDictionary<string, object> orders = ((symbol == null)) ? new Dictionary<string, object>() {} : this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+        IDictionary<string, object> order = ((orderId == null)) ? null : this.safeDict(orders, orderId);
         if ((order != null))
         {
             object fee = this.safeValue(order, "fee");
@@ -780,7 +780,7 @@ public partial class upbit : ccxt.upbit
             { "candle.1s", this.handleOHLCV },
         };
         string? methodName = this.safeString(message, "type");
-        object method = (((methodName == null))) ? null : this.safeValue(methods, methodName);
+        object method = ((methodName == null)) ? null : this.safeValue(methods, methodName);
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

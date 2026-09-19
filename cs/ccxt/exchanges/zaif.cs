@@ -333,7 +333,7 @@ public partial class zaif : Exchange
         {
             throw new ExchangeError ((string)(this.id + " parseMarket() missing name")) ;
         }
-        var baseIdquoteIdVariable = ((string)name).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        var baseIdquoteIdVariable = name.Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
         var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
         object bs = this.safeCurrencyCode(baseId);
@@ -560,7 +560,7 @@ public partial class zaif : Exchange
         //      }
         //
         string? side = this.safeString(trade, "trade_type");
-        side = (((side == "bid"))) ? "buy" : "sell";
+        side = ((side == "bid")) ? "buy" : "sell";
         Int64? timestamp = this.safeTimestamp(trade, "date");
         string? id = this.safeString2(trade, "id", "tid");
         string? priceString = this.safeString(trade, "price");
@@ -659,7 +659,7 @@ public partial class zaif : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency_pair", (market.ContainsKey("id") ? market["id"] : null) },
-            { "action", (((side == "buy"))) ? "bid" : "ask" },
+            { "action", ((side == "buy")) ? "bid" : "ask" },
             { "amount", amount },
             { "price", price },
         };
@@ -728,7 +728,7 @@ public partial class zaif : Exchange
         //    }
         //
         string? side = this.safeString(order, "action");
-        side = (((side == "bid"))) ? "buy" : "sell";
+        side = ((side == "bid")) ? "buy" : "sell";
         Int64? timestamp = this.safeTimestamp(order, "timestamp");
         string? marketId = this.safeString(order, "currency_pair");
         string? symbol = this.safeSymbol(marketId, market, "_");

@@ -1062,13 +1062,13 @@ public partial class bit2c : Exchange
             price = this.safeString(trade, "price");
             price = this.removeCommaFromValue(price);
             amount = this.safeString(trade, "firstAmount");
-            List<object> reference_parts = ((string)reference).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            List<object> reference_parts = reference.Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             string? marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
             market = this.safeMarket((reference_parts != null && 0 < reference_parts.Count ? reference_parts[0] : null), market);
             bool? isMaker = this.safeBool(trade, "isMaker");
-            makerOrTaker = (((isMaker == true))) ? "maker" : "taker";
-            orderId = (((isMaker == true))) ? (reference_parts != null && 2 < reference_parts.Count ? reference_parts[2] : null) : (reference_parts != null && 1 < reference_parts.Count ? reference_parts[1] : null);
+            makerOrTaker = ((isMaker == true)) ? "maker" : "taker";
+            orderId = ((isMaker == true)) ? (reference_parts != null && 2 < reference_parts.Count ? reference_parts[2] : null) : (reference_parts != null && 1 < reference_parts.Count ? reference_parts[1] : null);
             Int64? action = this.safeInteger(trade, "action");
             if ((action == 0))
             {

@@ -842,9 +842,9 @@ public partial class blofin : Exchange
             { "taker", taker },
             { "maker", maker },
             { "contract", contract },
-            { "linear", (contract) ? ((contractType == "linear")) : null },
-            { "inverse", (contract) ? ((contractType == "inverse")) : null },
-            { "contractSize", (contract) ? this.safeNumber(market, "contractValue") : null },
+            { "linear", contract ? ((contractType == "linear")) : null },
+            { "inverse", contract ? ((contractType == "inverse")) : null },
+            { "contractSize", contract ? this.safeNumber(market, "contractValue") : null },
             { "expiry", expiry },
             { "expiryDatetime", expiry },
             { "strike", strikePrice },
@@ -869,7 +869,7 @@ public partial class blofin : Exchange
                 } },
                 { "cost", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", (contract) ? null : maxSpotCost },
+                    { "max", contract ? null : maxSpotCost },
                 } },
             } },
             { "info", market },
@@ -898,7 +898,7 @@ public partial class blofin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        limitVar = (((limitVar == null))) ? 50 : limitVar;
+        limitVar = ((limitVar == null)) ? 50 : limitVar;
         if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
@@ -959,7 +959,7 @@ public partial class blofin : Exchange
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         bool? spot = this.safeBool(market, "spot", false);
-        string? quoteVolume = (((spot == true))) ? this.safeString(ticker, "volCurrency24h") : null;
+        string? quoteVolume = ((spot == true)) ? this.safeString(ticker, "volCurrency24h") : null;
         string? baseVolume = this.safeString(ticker, "vol24h");
         string? high = this.safeString(ticker, "high24h");
         string? low = this.safeString(ticker, "low24h");
@@ -1636,7 +1636,7 @@ public partial class blofin : Exchange
         bool? isHedged = this.safeBool(parameters, "hedged", false);
         if ((isHedged == true))
         {
-            ((IDictionary<string,object>)request)["positionSide"] = ((isEqual(side, "buy"))) ? "long" : "short";
+            ((IDictionary<string,object>)request)["positionSide"] = (isEqual(side, "buy")) ? "long" : "short";
         }
         bool isMarketOrder = isEqual(type, "market");
         parameters = this.omit(parameters, new List<object>() {"timeInForce"});
@@ -1647,7 +1647,7 @@ public partial class blofin : Exchange
             ((IDictionary<string,object>)request)["orderType"] = "market";
         } else
         {
-            string key = (((triggerPriceAny != null))) ? "orderPrice" : "price";
+            string key = ((triggerPriceAny != null)) ? "orderPrice" : "price";
             ((IDictionary<string,object>)request)[(string)key] = this.priceToPrecision(symbol, price);
         }
         bool postOnly = false;
@@ -1890,7 +1890,7 @@ public partial class blofin : Exchange
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (!isEqual(reduceOnly, null))
         {
-            ((IDictionary<string,object>)parameters)["reduceOnly"] = ((reduceOnly == true)) ? "true" : "false";
+            ((IDictionary<string,object>)parameters)["reduceOnly"] = reduceOnly == true ? "true" : "false";
         }
         if (isCombinedSlTp)
         {
@@ -1926,7 +1926,7 @@ public partial class blofin : Exchange
         string positionSide = "net";
         if ((hedged == true))
         {
-            positionSide = ((isEqual(side, "buy"))) ? "short" : "long";
+            positionSide = (isEqual(side, "buy")) ? "short" : "long";
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2372,7 +2372,7 @@ public partial class blofin : Exchange
             // survive the php conversion (false-vs-int compare; length arg)
             List<object> parts = ((string)chainId).Split(new [] {((string)"(")}, StringSplitOptions.None).ToList<object>();
             string? tail = this.safeString(parts, 1, "");
-            List<object> tailParts = ((string)tail).Split(new [] {((string)")")}, StringSplitOptions.None).ToList<object>();
+            List<object> tailParts = tail.Split(new [] {((string)")")}, StringSplitOptions.None).ToList<object>();
             string? suffix = this.safeString(tailParts, 0);
             IDictionary<string, object> bySuffix = this.safeDict(this.options, "networkCodesBySuffix", new Dictionary<string, object>() {});
             return this.safeString(bySuffix, suffix, suffix);
@@ -3532,7 +3532,7 @@ public partial class blofin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "positionMode", ((bool) isTrue(hedged)) ? "long_short_mode" : "net_mode" },
+            { "positionMode", isTrue(hedged) ? "long_short_mode" : "net_mode" },
         };
         //
         //     {

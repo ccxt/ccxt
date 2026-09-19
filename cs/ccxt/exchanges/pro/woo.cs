@@ -84,7 +84,7 @@ public partial class woo : ccxt.woo
 
     public async virtual Task<object> watchPublic(object messageHash, object message)
     {
-        string urlUid = ((!isEqual(this.uid, ""))) ? ("/" + this.uid) : "";
+        string urlUid = (!isEqual(this.uid, "")) ? ("/" + this.uid) : "";
         object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -97,7 +97,7 @@ public partial class woo : ccxt.woo
     public async virtual Task<object> unwatchPublic(object subHash, object symbol, object topic, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string urlUid = ((!isEqual(this.uid, ""))) ? ("/" + this.uid) : "";
+        string urlUid = (!isEqual(this.uid, "")) ? ("/" + this.uid) : "";
         object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
         string unsubHash = ("unsubscribe::" + (subHash));
@@ -148,7 +148,7 @@ public partial class woo : ccxt.woo
         parameters = ((IList<object>)methodparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbol);
         object topic = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method);
-        string urlUid = ((!isEqual(this.uid, ""))) ? ("/" + this.uid) : "";
+        string urlUid = (!isEqual(this.uid, "")) ? ("/" + this.uid) : "";
         object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -231,7 +231,7 @@ public partial class woo : ccxt.woo
         {
             return;
         }
-        string? method = this.safeString(((string)topic).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 1);
+        string? method = this.safeString(topic.Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 1);
         if ((method == "orderbookupdate"))
         {
             if (!(inOp(this.orderbooks, symbol)))
@@ -978,7 +978,7 @@ public partial class woo : ccxt.woo
         string? takerOrMaker = null;
         if (!isEqual(maker, null))
         {
-            takerOrMaker = ((maker == true)) ? "maker" : "taker";
+            takerOrMaker = maker == true ? "maker" : "taker";
         }
         string? type = this.safeStringLower(trade, "type");
         Dictionary<string, object> fee = null;
@@ -1101,7 +1101,7 @@ public partial class woo : ccxt.woo
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = (((trigger == true))) ? "algoexecutionreportv2" : "executionreport";
+        string topic = ((trigger == true)) ? "algoexecutionreportv2" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = topic;
         if ((symbolVar != null))
@@ -1146,7 +1146,7 @@ public partial class woo : ccxt.woo
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = (((trigger == true))) ? "algoexecutionreportv2" : "executionreport";
+        string topic = ((trigger == true)) ? "algoexecutionreportv2" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = "myTrades";
         if ((symbolVar != null))
@@ -1827,7 +1827,7 @@ public partial class woo : ccxt.woo
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }
-            List<object> splitTopic = ((string)topic).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+            List<object> splitTopic = topic.Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
             int splitLength = splitTopic.Count;
             if ((splitLength == 2))
             {
@@ -1842,7 +1842,7 @@ public partial class woo : ccxt.woo
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                     return;
                 }
-                List<object> splitName = ((string)name).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                List<object> splitName = name.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                 int splitNameLength = splitTopic.Count;
                 if ((splitNameLength == 2))
                 {

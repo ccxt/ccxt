@@ -141,7 +141,7 @@ public partial class toobit : ccxt.toobit
             { "ticketInfo", this.handleMyTrade },
             { "outboundContractPositionInfo", this.handlePositions },
         };
-        object method = (((topic == null))) ? null : this.safeValue(methods, topic);
+        object method = ((topic == null)) ? null : this.safeValue(methods, topic);
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -152,7 +152,7 @@ public partial class toobit : ccxt.toobit
             {
                 object item = getValue(message, i);
                 string? eventVar = this.safeString(item, "e");
-                object method2 = (((eventVar == null))) ? null : this.safeValue(methods, eventVar);
+                object method2 = ((eventVar == null)) ? null : this.safeValue(methods, eventVar);
                 if ((method2 != null))
                 {
                     DynamicInvoker.InvokeMethod(method2, new object[] { client, item});
@@ -777,13 +777,13 @@ public partial class toobit : ccxt.toobit
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         bool isSpot = ((marketType == "spot"));
-        string type = (isSpot) ? "spot" : "contract";
+        string type = isSpot ? "spot" : "contract";
         string spotSubHash = "spot:balance";
         string swapSubHash = "contract:private";
         string spotMessageHash = "spot:balance";
         string swapMessageHash = "contract:balance";
-        string messageHash = (isSpot) ? spotMessageHash : swapMessageHash;
-        string subscriptionHash = (isSpot) ? spotSubHash : swapSubHash;
+        string messageHash = isSpot ? spotMessageHash : swapMessageHash;
+        string subscriptionHash = isSpot ? spotSubHash : swapSubHash;
         if ((subscriptionHash == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchBalance() requires a subscription hash")) ;
@@ -802,7 +802,7 @@ public partial class toobit : ccxt.toobit
         {
             return;
         }
-        string type = ((isEqual(marketType, "spot"))) ? "spot" : "contract";
+        string type = (isEqual(marketType, "spot")) ? "spot" : "contract";
         string messageHash = (type + ":fetchBalanceSnapshot");
         if (!(inOp(client.futures, messageHash)))
         {
@@ -849,7 +849,7 @@ public partial class toobit : ccxt.toobit
         string? channel = this.safeString(message, "e");
         List<object> data = this.safeList(message, "B", new List<object>() {});
         Int64? timestamp = this.safeInteger(message, "E");
-        string type = (((channel == "outboundContractAccountInfo"))) ? "contract" : "spot";
+        string type = ((channel == "outboundContractAccountInfo")) ? "contract" : "spot";
         if (!(inOp(this.balance, type)))
         {
             ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};
@@ -878,7 +878,7 @@ public partial class toobit : ccxt.toobit
     public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object marketType)
     {
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", marketType }, }));
-        string type = ((isEqual(marketType, "spot"))) ? "spot" : "contract";
+        string type = (isEqual(marketType, "spot")) ? "spot" : "contract";
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
@@ -1101,7 +1101,7 @@ public partial class toobit : ccxt.toobit
         string? marketId = this.safeString(trade, "s");
         string? ts = this.safeString(trade, "t");
         bool isMaker = ((this.safeBool(trade, "m") == true));
-        string takerOrMaker = (isMaker) ? "maker" : "taker";
+        string takerOrMaker = isMaker ? "maker" : "taker";
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "T") },

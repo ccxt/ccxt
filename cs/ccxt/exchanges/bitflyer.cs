@@ -403,7 +403,7 @@ public partial class bitflyer : Exchange
                     expiry = this.parseExpiryDate(expiryDate);
                 } else
                 {
-                    List<object> splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                    List<object> splitAlias = alias.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                     string? currencyIds = this.safeString(splitAlias, 0);
                     baseId = ((((string)currencyIds) == null) ? null : ((string)currencyIds).Substring(0, Math.Max(((string)currencyIds).Length - 3, 0)));
                     quoteId = ((((string)currencyIds) == null) ? null : ((string)currencyIds).Substring(Math.Max(((string)currencyIds).Length - 3, 0)));
@@ -447,8 +447,8 @@ public partial class bitflyer : Exchange
                 { "option", false },
                 { "active", true },
                 { "contract", contract },
-                { "linear", (spot) ? null : true },
-                { "inverse", (spot) ? null : false },
+                { "linear", spot ? null : true },
+                { "inverse", spot ? null : false },
                 { "taker", taker },
                 { "maker", maker },
                 { "contractSize", null },

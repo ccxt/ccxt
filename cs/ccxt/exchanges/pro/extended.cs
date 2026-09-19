@@ -554,7 +554,7 @@ public partial class extended : ccxt.extended
         {
             return;
         }
-        for (int i = 0; i < getArrayLength((IList<object>)(rawOrders)); i++)
+        for (int i = 0; i < (((IList<object>)(rawOrders))?.Count ?? 0); i++)
         {
             Dictionary<string, object> order = this.parseOrder(getValue((IList<object>)(rawOrders), i));
             string? symbol = this.safeString(order, "symbol");
@@ -904,7 +904,7 @@ public partial class extended : ccxt.extended
         string? symbol = this.safeString(subscription, "symbol");
         object timeframe = this.safeString(subscription, "timeframe");
         string? candleType = this.safeString(subscription, "candleType");
-        object cacheKey = (((candleType == "trades"))) ? timeframe : add(add(timeframe, ":"), candleType);
+        object cacheKey = ((candleType == "trades")) ? timeframe : add(add(timeframe, ":"), candleType);
         string? messageHash = this.safeString(subscription, "messageHash");
         ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, ((string)symbol)), cacheKey);

@@ -794,7 +794,7 @@ public partial class mercado : Exchange
         string? side = null;
         if ((order != null && ((IDictionary<string, object>)order).ContainsKey("order_type")))
         {
-            side = (((order_type == "1"))) ? "buy" : "sell";
+            side = ((order_type == "1")) ? "buy" : "sell";
         }
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? marketId = this.safeString(order, "coin_pair");

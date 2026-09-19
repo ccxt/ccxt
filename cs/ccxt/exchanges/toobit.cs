@@ -917,7 +917,7 @@ public partial class toobit : Exchange
             Dictionary<string, object> parsed = this.parseCurrency(coin);
             if ((parsed != null))
             {
-                string? code = ((string)getValue(parsed, "code"));
+                string? code = ((string)(parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null));
                 ((IDictionary<string,object>)result)[(string)code] = parsed;
             }
         }
@@ -1154,7 +1154,7 @@ public partial class toobit : Exchange
         string? id = this.safeString(market, "symbol");
         string? baseId = this.safeString(market, "baseAsset", "");
         string? quoteId = this.safeString(market, "quoteAsset");
-        List<object> baseParts = ((string)baseId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        List<object> baseParts = baseId.Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         string? baseIdClean = ((string)(baseParts != null && 0 < baseParts.Count ? baseParts[0] : null));
         object bs = this.safeCurrencyCode(baseIdClean);
         string? quote = this.safeCurrencyCode(quoteId);
@@ -1183,7 +1183,7 @@ public partial class toobit : Exchange
             { "baseId", baseId },
             { "quoteId", quoteId },
             { "settleId", settleId },
-            { "type", (isContract) ? "swap" : "spot" },
+            { "type", isContract ? "swap" : "spot" },
             { "spot", !isContract },
             { "margin", false },
             { "swap", isContract },
@@ -1191,8 +1191,8 @@ public partial class toobit : Exchange
             { "option", false },
             { "active", active },
             { "contract", isContract },
-            { "linear", (isContract) ? ((inverse != true)) : null },
-            { "inverse", (isContract) ? inverse : null },
+            { "linear", isContract ? ((inverse != true)) : null },
+            { "inverse", isContract ? inverse : null },
             { "contractSize", this.safeNumber(market, "contractMultiplier") },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -1378,7 +1378,7 @@ public partial class toobit : Exchange
             bool? isBuyerTaker = this.safeBool(trade, "m");
             if (!isEqual(isBuyerTaker, null))
             {
-                isBuyerMaker = !(isBuyerTaker == true);
+                isBuyerMaker = isBuyerTaker != true;
             }
         }
         if (!isEqual(isBuyerMaker, null))
@@ -1414,7 +1414,7 @@ public partial class toobit : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((isMaker == true)) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
         }
         market = this.safeMarket(null, market);
         object symbol = getValue(market, "symbol");
@@ -2028,7 +2028,7 @@ public partial class toobit : Exchange
         IList<object> isPostOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
         isPostOnly = (bool?)((IList<object>)isPostOnlyparametersVariable)[0];
         parameters = ((IList<object>)isPostOnlyparametersVariable)[1];
-        if (isEqual(isPostOnly, true))
+        if ((isPostOnly == true))
         {
             ((IDictionary<string,object>)request)["type"] = "LIMIT_MAKER";
         } else
@@ -2060,10 +2060,10 @@ public partial class toobit : Exchange
         parameters = ((IList<object>)reduceOnlyparametersVariable)[1];
         if (isEqual(side, "buy"))
         {
-            side = ((isEqual(reduceOnly, true))) ? "BUY_CLOSE" : "BUY_OPEN";
+            side = ((reduceOnly == true)) ? "BUY_CLOSE" : "BUY_OPEN";
         } else if (isEqual(side, "sell"))
         {
-            side = ((isEqual(reduceOnly, true))) ? "SELL_CLOSE" : "SELL_OPEN";
+            side = ((reduceOnly == true)) ? "SELL_CLOSE" : "SELL_OPEN";
         }
         ((IDictionary<string,object>)request)["side"] = side;
         if ((price != null))
@@ -2083,7 +2083,7 @@ public partial class toobit : Exchange
         IList<object> isPostOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
         isPostOnly = (bool?)((IList<object>)isPostOnlyparametersVariable)[0];
         parameters = ((IList<object>)isPostOnlyparametersVariable)[1];
-        if (isEqual(isPostOnly, true))
+        if ((isPostOnly == true))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "LIMIT_MAKER";
         }
@@ -2212,7 +2212,7 @@ public partial class toobit : Exchange
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             // the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
-            List<object> sideParts = ((string)rawSideLower).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            List<object> sideParts = rawSideLower.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             string? sideSuffix = this.safeString(sideParts, 1);
             if ((sideSuffix != null))
             {
@@ -2332,7 +2332,7 @@ public partial class toobit : Exchange
         string? status = this.parseOrderStatus(this.safeString(response, "status"));
         if ((status != "open"))
         {
-            throw new OrderNotFound ((string)((((this.id + " order ") + (id)) + " can not be canceled, ") + this.json(response))) ;
+            throw new OrderNotFound ((string)((((this.id + " order ") + id) + " can not be canceled, ") + this.json(response))) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
@@ -3073,7 +3073,7 @@ public partial class toobit : Exchange
         string? addressTo = this.safeString(transaction, "address");
         string? addressFrom = this.safeString(transaction, "fromAddress");
         bool isWithdraw = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("arriveQuantity")));
-        string type = (isWithdraw) ? "withdrawal" : "deposit";
+        string type = isWithdraw ? "withdrawal" : "deposit";
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString(transaction, "id") },
@@ -3334,7 +3334,7 @@ public partial class toobit : Exchange
         string? marketId = this.safeString2(leverage, "symbolId", "symbol");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
         string? marginType = this.safeStringLower(leverage, "marginType");
-        string marginMode = (((marginType == "cross"))) ? "cross" : "isolated";
+        string marginMode = ((marginType == "cross")) ? "cross" : "isolated";
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", this.safeSymbol(marketId, market) },

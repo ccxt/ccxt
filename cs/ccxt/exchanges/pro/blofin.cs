@@ -600,7 +600,7 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOrders";
-        List<object> symbolsArray = (((symbol != null))) ? new List<object>() {symbol} : new List<object>() {};
+        List<object> symbolsArray = ((symbol != null)) ? new List<object>() {symbol} : new List<object>() {};
         return await this.WatchOrdersForSymbols(symbolsArray,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
@@ -628,7 +628,7 @@ public partial class blofin : ccxt.blofin
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        string channel = (((trigger == true))) ? "orders-algo" : "orders";
+        string channel = ((trigger == true)) ? "orders-algo" : "orders";
         object orders = await this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, parameters);
         if (this.newUpdates)
         {
@@ -806,7 +806,7 @@ public partial class blofin : ccxt.blofin
         parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         bool isOHLCV = (isEqual(channelName, "candle"));
-        object symbols = (isOHLCV) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
+        object symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
         symbols = this.marketSymbols(symbols, null, true, true);
         IDictionary<string, object> firstMarket = null;
         string? firstSymbol = this.safeString(symbols, 0);
@@ -869,7 +869,7 @@ public partial class blofin : ccxt.blofin
 }};
         }
         Dictionary<string, object> request = this.getSubscriptionRequest(rawSubscriptions);
-        string privateOrPublic = ((bool) isTrue(isPublic)) ? "public" : "private";
+        string privateOrPublic = isTrue(isPublic) ? "public" : "private";
         object url = getValue(getValue(getValue(((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null)), "ws"), marketType), privateOrPublic);
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }

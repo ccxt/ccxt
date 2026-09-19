@@ -541,7 +541,7 @@ public partial class lbank : ccxt.lbank
         //    }
         //
         Int64? timestamp = this.safeInteger(trade, 0);
-        string? datetime = ((!isEqual(timestamp, null))) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
+        string? datetime = (!isEqual(timestamp, null)) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
         if (isEqual(timestamp, null))
         {
             timestamp = this.parse8601(datetime);
@@ -554,7 +554,7 @@ public partial class lbank : ccxt.lbank
         // reverse if it was 'maker'
         if ((secondPart != null) && (secondPart == "maker"))
         {
-            side = (((side == "buy"))) ? "sell" : "buy";
+            side = ((side == "buy")) ? "sell" : "buy";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "timestamp", timestamp },
@@ -702,13 +702,13 @@ public partial class lbank : ccxt.lbank
         //
         IDictionary<string, object> orderUpdate = this.safeDict(order, "orderUpdate", new Dictionary<string, object>() {});
         string? rawType = this.safeString(orderUpdate, "type", "");
-        List<object> typeParts = ((string)rawType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> typeParts = rawType.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         string? side = this.safeString(typeParts, 0);
         string? exchangeType = this.safeString(typeParts, 1);
         string? type = null;
         if ((rawType != "buy") && (rawType != "sell"))
         {
-            type = (((exchangeType == "market"))) ? "market" : "limit";
+            type = ((exchangeType == "market")) ? "market" : "limit";
         }
         string? marketId = this.safeString(order, "pair");
         string? symbol = this.safeSymbol(marketId, market, "_");

@@ -997,8 +997,8 @@ public partial class grvt : Exchange
             { "option", false },
             { "active", null },
             { "contract", isContract },
-            { "linear", (isSwap) ? true : null },
-            { "inverse", (isSwap) ? false : null },
+            { "linear", isSwap ? true : null },
+            { "inverse", isSwap ? false : null },
             { "contractSize", this.parseNumber("1") },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -1387,14 +1387,14 @@ public partial class grvt : Exchange
         string? side = null;
         if (!isEqual(isTakerBuyer, null))
         {
-            side = ((isTakerBuyer == true)) ? "buy" : "sell";
+            side = isTakerBuyer == true ? "buy" : "sell";
             takerOrMaker = "taker";
         } else
         {
             bool isTaker = ((this.safeBool(trade, "is_taker") == true));
             bool isBuyer = ((this.safeBool(trade, "is_buyer") == true));
-            takerOrMaker = (isTaker) ? "taker" : "maker";
-            side = (isBuyer) ? "buy" : "sell";
+            takerOrMaker = isTaker ? "taker" : "maker";
+            side = isBuyer ? "buy" : "sell";
         }
         Dictionary<string, object> fee = null;
         string? feeString = this.safeString(trade, "fee");
@@ -2160,8 +2160,8 @@ public partial class grvt : Exchange
             {
                 throw new ArgumentsRequired ((string)(this.id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")) ;
             }
-            fromAccountVar = ((isEqual(fromAccountVar, "trading"))) ? tradingAccountId : fundingAccountId;
-            toAccountVar = ((isEqual(toAccountVar, "trading"))) ? tradingAccountId : fundingAccountId;
+            fromAccountVar = (isEqual(fromAccountVar, "trading")) ? tradingAccountId : fundingAccountId;
+            toAccountVar = (isEqual(toAccountVar, "trading")) ? tradingAccountId : fundingAccountId;
         }
         object request = new Dictionary<string, object>() {
             { "from_account_id", this.safeString(parameters, "from_account_id", defaultFromAccountId) },
@@ -2489,10 +2489,10 @@ public partial class grvt : Exchange
             bool isBuy = ((side == "buy"));
             if ((stopLossPrice != null))
             {
-                selectedType = (isBuy) ? "STOP_LOSS" : "TAKE_PROFIT";
+                selectedType = isBuy ? "STOP_LOSS" : "TAKE_PROFIT";
             } else if ((takeProfitPrice != null))
             {
-                selectedType = (isBuy) ? "TAKE_PROFIT" : "STOP_LOSS";
+                selectedType = isBuy ? "TAKE_PROFIT" : "STOP_LOSS";
             } else
             {
                 string? triggerDirection = this.safeString(parameters, "triggerDirection");
@@ -2504,10 +2504,10 @@ public partial class grvt : Exchange
                 {
                     if ((triggerDirection == "ascending"))
                     {
-                        selectedType = (isBuy) ? "STOP_LOSS" : "TAKE_PROFIT";
+                        selectedType = isBuy ? "STOP_LOSS" : "TAKE_PROFIT";
                     } else if ((triggerDirection == "descending"))
                     {
-                        selectedType = (isBuy) ? "TAKE_PROFIT" : "STOP_LOSS";
+                        selectedType = isBuy ? "TAKE_PROFIT" : "STOP_LOSS";
                     }
                 }
             }
@@ -2622,7 +2622,7 @@ public partial class grvt : Exchange
             object size = getValue(leg, "size");
             List<object> sizeParts = ((string)size).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             string? sizeDec = this.safeString(sizeParts, 1, "");
-            object sizeDecLength = add(((string)sizeDec).Length, 0); // php tr
+            object sizeDecLength = add(sizeDec.Length, 0); // php tr
             string sizeDecLengthStr = ((object)sizeDecLength).ToString();
             object sizeInteger = divide(multiply(this.convertToBigIntCustom(((string)size).Replace((string)".", (string)"")), sizeMultiplier), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(this.convertToBigIntCustom(sizeDecLengthStr)))));
             Dictionary<string, object> legOrder = new Dictionary<string, object>() {
@@ -2636,9 +2636,9 @@ public partial class grvt : Exchange
                 object price = getValue(leg, "limit_price");
                 List<object> limitParts = ((string)price).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
                 string? limitDec = this.safeString(limitParts, 1, "");
-                object limitDecLength = add(((string)limitDec).Length, 0); // php tr
+                object limitDecLength = add(limitDec.Length, 0); // php tr
                 string limitDecLengthStr = ((object)limitDecLength).ToString();
-                object powerNum = (((limitDecLengthStr == "0"))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
+                object powerNum = ((limitDecLengthStr == "0")) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 object priceInteger = (divide(multiply(this.convertToBigIntCustom(((string)price).Replace((string)".", (string)"")), this.convertToBigIntCustom(priceMultiplier)), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(powerNum)))));
                 ((IDictionary<string,object>)legOrder)["limitPrice"] = this.parseToInt(priceInteger);
             } else
@@ -2839,7 +2839,7 @@ public partial class grvt : Exchange
         Int64? timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         string? sizeRaw = this.safeString(position, "size");
         bool isLong = (Precise.stringGe(sizeRaw, "0"));
-        string side = (isLong) ? "long" : "short";
+        string side = isLong ? "long" : "short";
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3472,11 +3472,11 @@ public partial class grvt : Exchange
             });
         }
         bool? isMarket = this.safeBool(order, "is_market");
-        string orderType = (((isMarket == true))) ? "market" : "limit";
+        string orderType = ((isMarket == true)) ? "market" : "limit";
         bool? isPostOnly = this.safeBool(order, "post_only");
         bool? isReduceOnly = this.safeBool(order, "reduce_only");
         string? timeInForceRaw = this.safeString(order, "time_in_force");
-        string? timeInForce = (((isPostOnly == true))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
+        string? timeInForce = ((isPostOnly == true)) ? "PO" : this.parseTimeInForce(timeInForceRaw);
         string? size = null;
         string? side = null;
         string? price = null;
@@ -3495,7 +3495,7 @@ public partial class grvt : Exchange
             market = this.safeMarket(marketId, market);
             size = this.safeString(firstLeg, "size");
             bool isBuyingAsset = ((this.safeBool(firstLeg, "is_buying_asset") == true));
-            side = (isBuyingAsset) ? "buy" : "sell";
+            side = isBuyingAsset ? "buy" : "sell";
             price = this.safeString(firstLeg, "limit_price");
             filled = this.safeString(filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString(avgPrices, primaryOrderIndex);
@@ -3652,7 +3652,7 @@ public partial class grvt : Exchange
         return new Dictionary<string, object>() {
             { "name", "GRVT Exchange" },
             { "version", "0" },
-            { "chainId", (this.isSandboxModeEnabled) ? 326 : 325 },
+            { "chainId", this.isSandboxModeEnabled ? 326 : 325 },
         };
     }
 
@@ -3724,13 +3724,13 @@ public partial class grvt : Exchange
         byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, getValue(definitions, structureType), messageData);
         string ethEncodedMessageHashed = ("0x" + (this.hash(ethEncodedMessage, keccak, "hex")));
         bool usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
-        string? secretOrPrivkey = (usesPrivKey) ? this.privateKey : this.secret;
+        string? secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Dictionary<string, object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
         ((IDictionary<string,object>)getValue(request, "signature"))["r"] = this.formatSignatureRS((signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
         ((IDictionary<string,object>)getValue(request, "signature"))["s"] = this.formatSignatureRS((signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
         ((IDictionary<string,object>)getValue(request, "signature"))["v"] = this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null));
-        ((IDictionary<string,object>)getValue(request, "signature"))["signer"] = (((signerAddress == null))) ? this.ethGetAddressFromPrivateKey(("0x" + (privateKeyWithoutZero))) : signerAddress;
+        ((IDictionary<string,object>)getValue(request, "signature"))["signer"] = ((signerAddress == null)) ? this.ethGetAddressFromPrivateKey(("0x" + (privateKeyWithoutZero))) : signerAddress;
         return request;
     }
 
@@ -3756,7 +3756,7 @@ public partial class grvt : Exchange
             { "v", 0 },
             { "expiration", ((object)expiration).ToString() },
             { "nonce", this.nonce() },
-            { "chain_id", (this.isSandboxModeEnabled) ? "326" : "325" },
+            { "chain_id", this.isSandboxModeEnabled ? "326" : "325" },
         };
     }
 
@@ -3856,7 +3856,7 @@ public partial class grvt : Exchange
             string? cookie = this.safeString2(headers, "Set-Cookie", "set-cookie");
             if ((cookie != null))
             {
-                object cookieValue = getValue(((string)cookie).Split(new [] {((string)";")}, StringSplitOptions.None).ToList<object>(), 0);
+                object cookieValue = getValue(cookie.Split(new [] {((string)";")}, StringSplitOptions.None).ToList<object>(), 0);
                 ((IDictionary<string,object>)this.options)["AuthCookieValue"] = cookieValue;
             }
             if (isEqual((this.options.ContainsKey("AuthCookieValue") ? this.options["AuthCookieValue"] : null), null) || isEqual((this.options.ContainsKey("AuthAccountId") ? this.options["AuthAccountId"] : null), null))

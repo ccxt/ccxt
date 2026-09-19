@@ -117,7 +117,7 @@ public partial class BaseTest
             Int64 value = exchange.microseconds();
             string valueString = ((object)value).ToString();
             Assert(value > 0);
-            Assert((((string)valueString).Length == 16));
+            Assert((valueString.Length == 16));
         }
         public void testMilliseconds()
         {
@@ -127,7 +127,7 @@ public partial class BaseTest
             Int64 value = exchange.milliseconds();
             string valueString = ((object)value).ToString();
             Assert(value > 0);
-            Assert((((string)valueString).Length == 13));
+            Assert((valueString.Length == 13));
         }
         public void testSeconds()
         {
@@ -137,7 +137,7 @@ public partial class BaseTest
             Int64 value = exchange.seconds();
             string valueString = ((object)value).ToString();
             Assert(value > 0);
-            Assert((((string)valueString).Length == 10));
+            Assert((valueString.Length == 10));
         }
         public void testConvertExpireDate()
         {

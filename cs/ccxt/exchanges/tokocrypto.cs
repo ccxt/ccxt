@@ -1147,7 +1147,7 @@ public partial class tokocrypto : Exchange
         string? takerOrMaker = null;
         if (!isEqual(buyerMaker, null))
         {
-            side = (((buyerMaker == true))) ? "sell" : "buy"; // this is reversed intentionally
+            side = ((buyerMaker == true)) ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
         } else if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("side")))
         {
@@ -1156,7 +1156,7 @@ public partial class tokocrypto : Exchange
         {
             if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isBuyer")))
             {
-                side = ((isEqual(((IDictionary<string,object>)trade)["isBuyer"], true))) ? "buy" : "sell"; // this is a true side
+                side = (isEqual(((IDictionary<string,object>)trade)["isBuyer"], true)) ? "buy" : "sell"; // this is a true side
             }
         }
         Dictionary<string, object> fee = null;
@@ -1169,11 +1169,11 @@ public partial class tokocrypto : Exchange
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isMaker")))
         {
-            takerOrMaker = ((isEqual(((IDictionary<string,object>)trade)["isMaker"], true))) ? "maker" : "taker";
+            takerOrMaker = (isEqual(((IDictionary<string,object>)trade)["isMaker"], true)) ? "maker" : "taker";
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker")))
         {
-            takerOrMaker = ((isEqual(((IDictionary<string,object>)trade)["maker"], true))) ? "maker" : "taker";
+            takerOrMaker = (isEqual(((IDictionary<string,object>)trade)["maker"], true)) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -1588,7 +1588,7 @@ public partial class tokocrypto : Exchange
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"price", "until"});
-        limitVar = (((limitVar == null))) ? defaultLimit : mathMin(limitVar, maxLimit);
+        limitVar = ((limitVar == null)) ? defaultLimit : mathMin(limitVar, maxLimit);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitVar },

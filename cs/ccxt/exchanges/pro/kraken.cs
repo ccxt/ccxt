@@ -164,11 +164,11 @@ public partial class kraken : ccxt.kraken
         bool isTrailingLimitAmountOrder = (trailingLimitAmount != null);
         bool isTrailingLimitPercentOrder = (trailingLimitPercent != null);
         object offset = this.safeString(parameters, "offset", ""); // can set this to - for minus
-        object trailingAmountString = (((trailingAmount != null))) ? add(offset, this.numberToString(trailingAmount)) : null;
-        object trailingPercentString = (((trailingPercent != null))) ? add(offset, this.numberToString(trailingPercent)) : null;
-        object trailingLimitAmountString = (((trailingLimitAmount != null))) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
-        object trailingLimitPercentString = (((trailingLimitPercent != null))) ? add(offset, this.numberToString(trailingLimitPercent)) : null;
-        string priceType = ((isTrailingPercentOrder || isTrailingLimitPercentOrder)) ? "pct" : "quote";
+        object trailingAmountString = ((trailingAmount != null)) ? add(offset, this.numberToString(trailingAmount)) : null;
+        object trailingPercentString = ((trailingPercent != null)) ? add(offset, this.numberToString(trailingPercent)) : null;
+        object trailingLimitAmountString = ((trailingLimitAmount != null)) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
+        object trailingLimitPercentString = ((trailingLimitPercent != null)) ? add(offset, this.numberToString(trailingLimitPercent)) : null;
+        string priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? "pct" : "quote";
         if (isEqual(method, "createOrderWs"))
         {
             bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -1408,7 +1408,7 @@ public partial class kraken : ccxt.kraken
         }
         string? datetime = this.safeString(trade, "timestamp");
         string? liquidityIndicator = this.safeString(trade, "liquidity_ind");
-        string takerOrMaker = (((liquidityIndicator == "t"))) ? "taker" : "maker";
+        string takerOrMaker = ((liquidityIndicator == "t")) ? "taker" : "maker";
         return new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "exec_id") },
@@ -1811,7 +1811,7 @@ public partial class kraken : ccxt.kraken
                 List<object> data = this.safeList(message, "data", new List<object>() {});
                 IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
                 string? execType = this.safeString(first, "exec_type");
-                channel = (((execType == "trade"))) ? "myTrades" : "orders";
+                channel = ((execType == "trade")) ? "myTrades" : "orders";
             }
             Dictionary<string, object> methods = new Dictionary<string, object>() {
                 { "balances", this.handleBalance },

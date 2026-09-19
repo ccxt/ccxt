@@ -1041,7 +1041,7 @@ public partial class hitbtc : Exchange
             object rawNetwork = rawNetworks[j];
             string? networkId = this.safeString2(rawNetwork, "protocol", "network");
             object networkCode = this.networkIdToCode(networkId, code);
-            networkCode = (((networkCode != null))) ? ((string)networkCode).ToUpper() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            networkCode = ((networkCode != null)) ? ((string)networkCode).ToUpper() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if ((networkCode != null))
             {
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
@@ -1202,7 +1202,7 @@ public partial class hitbtc : Exchange
         string? type = this.safeStringLower(parameters, "type", "spot");
         parameters = this.omit(parameters, new List<object>() {"type"});
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
-        string? account = (((type == null))) ? null : this.safeString(accountsByType, type, type);
+        string? account = ((type == null)) ? null : this.safeString(accountsByType, type, type);
         object response = null;
         if ((account == "wallet"))
         {
@@ -1553,7 +1553,7 @@ public partial class hitbtc : Exchange
         object takerOrMaker = null;
         if (!isEqual(taker, null))
         {
-            takerOrMaker = (((taker == true))) ? "taker" : "maker";
+            takerOrMaker = ((taker == true)) ? "taker" : "maker";
         } else
         {
             takerOrMaker = "taker"; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
@@ -4182,12 +4182,12 @@ public partial class hitbtc : Exchange
             string? networkId = this.safeString(networkEntry, "network");
             string? code = this.safeString(currency, "code");
             object networkCode = this.networkIdToCode(networkId, code);
-            networkCode = (((networkCode != null))) ? ((string)networkCode).ToUpper() : null;
+            networkCode = ((networkCode != null)) ? ((string)networkCode).ToUpper() : null;
             double? withdrawFee = this.safeNumber(networkEntry, "payout_fee");
             bool? isDefault = this.safeBool(networkEntry, "default");
             Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
                 { "fee", withdrawFee },
-                { "percentage", ((!isEqual(withdrawFee, null))) ? false : null },
+                { "percentage", (!isEqual(withdrawFee, null)) ? false : null },
             };
             if ((isDefault == true))
             {

@@ -114,7 +114,7 @@ public partial class bittrade : ccxt.bittrade
         {
             return message;
         }
-        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ch.Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> ticker = this.parseTicker(tick, market);
@@ -203,7 +203,7 @@ public partial class bittrade : ccxt.bittrade
         {
             return message;
         }
-        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ch.Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -297,7 +297,7 @@ public partial class bittrade : ccxt.bittrade
         {
             return;
         }
-        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ch.Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -342,7 +342,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         // only supports a limitVar of 150 at this time
-        limitVar = (((limitVar == null))) ? 150 : limitVar;
+        limitVar = ((limitVar == null)) ? 150 : limitVar;
         string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".mbp.") + ((object)limitVar).ToString());
         string? api = this.safeString(this.options, "api", "api");
         Dictionary<string, object> hostname = new Dictionary<string, object>() {

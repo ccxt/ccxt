@@ -323,7 +323,7 @@ public partial class binance : ccxt.binance
     {
         Dictionary<string, object> market = this.market(symbol);
         string? bs = this.safeString2(market, "base", "id");
-        return (((bs == null))) ? null : ((string)bs).ToLower();
+        return ((bs == null)) ? null : bs.ToLower();
     }
 
     public virtual object getStockUnifiedSymbol(object stockSymbol, object quote = null)
@@ -332,7 +332,7 @@ public partial class binance : ccxt.binance
         {
             return null;
         }
-        object safeQuote = (((quote == null))) ? "USDC" : quote;
+        object safeQuote = ((quote == null)) ? "USDC" : quote;
         string? parsed = this.safeSymbol(stockSymbol, null, "/", "spot");
         if (((parsed != null)) && (((string)parsed).IndexOf("/", StringComparison.Ordinal) >= 0))
         {
@@ -811,7 +811,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = (((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
+            type = ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true)) ? "future" : "delivery";
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
@@ -902,7 +902,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = (((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
+            type = ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true)) ? "future" : "delivery";
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
@@ -990,8 +990,8 @@ public partial class binance : ccxt.binance
         {
             ((IDictionary<string,object>)payload)["limit"] = limit;
         }
-        object marketType = this.getMarketType("fetchOrderBookWs", market, parameters);
-        if (!isEqual(marketType, "future"))
+        string? marketType = ((string)this.getMarketType("fetchOrderBookWs", market, parameters));
+        if ((marketType != "future"))
         {
             throw new BadRequest ((string)(this.id + " fetchOrderBookWs only supports swap markets")) ;
         }
@@ -1176,7 +1176,7 @@ public partial class binance : ccxt.binance
         // symbol and stalls the orderbook future (delivery/option ids are
         // unique, so the swap hint resolves those correctly too)
         bool isSpot = this.isSpotUrl(client);
-        string marketType = (isSpot) ? "spot" : "swap";
+        string marketType = isSpot ? "spot" : "swap";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook::" + symbol);
@@ -1394,7 +1394,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = (((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
+            type = ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true)) ? "future" : "delivery";
         }
         List<object> messageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
@@ -1494,7 +1494,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = (((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
+            type = ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true)) ? "future" : "delivery";
         }
         List<object> subMessageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
@@ -1721,8 +1721,8 @@ public partial class binance : ccxt.binance
             }
         }
         string? marketId = this.safeString(trade, "s");
-        string fallbackType = ((inOp(trade, "ps"))) ? "contract" : "spot";
-        object marketType = (((market != null))) ? getValue(market, "type") : fallbackType;
+        string fallbackType = (inOp(trade, "ps")) ? "contract" : "spot";
+        object marketType = ((market != null)) ? getValue(market, "type") : fallbackType;
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
         string? side = this.safeStringLower(trade, "S");
         string? takerOrMaker = null;
@@ -1731,9 +1731,9 @@ public partial class binance : ccxt.binance
         {
             if ((side == null))
             {
-                side = ((isEqual(getValue(trade, "m"), true))) ? "sell" : "buy"; // this is reversed intentionally
+                side = (isEqual(getValue(trade, "m"), true)) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = ((isEqual(getValue(trade, "m"), true))) ? "maker" : "taker";
+            takerOrMaker = (isEqual(getValue(trade, "m"), true)) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");
@@ -1772,7 +1772,7 @@ public partial class binance : ccxt.binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         bool isSpot = this.isSpotUrl(client);
-        string marketType = (isSpot) ? "spot" : "contract";
+        string marketType = isSpot ? "spot" : "contract";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trade::" + symbol);
@@ -1871,7 +1871,7 @@ public partial class binance : ccxt.binance
                 string? stockSymbolString = this.symbol(getValue(stockSymAndTf, 0));
                 Dictionary<string, object> stockMarket = this.market(stockSymbolString);
                 string? stockTicker = this.safeString2(stockMarket, "base", "id");
-                string stockTickerString = (((stockTicker == null))) ? "" : ((string)stockTicker).ToLower();
+                string stockTickerString = ((stockTicker == null)) ? "" : stockTicker.ToLower();
                 object stockTimeframeString = getValue(stockSymAndTf, 1);
                 string? stockInterval = this.safeString(this.timeframes, stockTimeframeString, stockTimeframeString);
                 if (((stockInterval != "5m")) && ((stockInterval != "1h")) && ((stockInterval != "1d")) && ((stockInterval != "1w")) && ((stockInterval != "1M")))
@@ -1908,7 +1908,7 @@ public partial class binance : ccxt.binance
             wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
         } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = (((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
+            type = ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true)) ? "future" : "delivery";
             wsUrlType = type;
         }
         bool isSpot = ((type == "spot"));
@@ -1938,7 +1938,7 @@ public partial class binance : ccxt.binance
             }
             bool shouldUseUTC8 = (isUtc8 && isSpot);
             string suffix = "@+08:00";
-            string utcSuffix = (shouldUseUTC8) ? suffix : "";
+            string utcSuffix = shouldUseUTC8 ? suffix : "";
             ((IList<object>)rawHashes).Add(add(add(add(add(add(marketId, "@"), klineType), "_"), interval), utcSuffix));
             ((IList<object>)messageHashes).Add(((("ohlcv::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + "::") + (timeframeString)));
         }
@@ -2000,7 +2000,7 @@ public partial class binance : ccxt.binance
             wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
         } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = (((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
+            type = ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true)) ? "future" : "delivery";
             wsUrlType = type;
         }
         bool isSpot = ((type == "spot"));
@@ -2031,7 +2031,7 @@ public partial class binance : ccxt.binance
             }
             bool shouldUseUTC8 = (isUtc8 && isSpot);
             string suffix = "@+08:00";
-            string utcSuffix = (shouldUseUTC8) ? suffix : "";
+            string utcSuffix = shouldUseUTC8 ? suffix : "";
             ((IList<object>)rawHashes).Add(add(add(add(add(add(marketId, "@"), klineType), "_"), interval), utcSuffix));
             ((IList<object>)subMessageHashes).Add(((("ohlcv::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + "::") + (timeframeString)));
             ((IList<object>)messageHashes).Add(((("unsubscribe::ohlcv::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + "::") + (timeframeString)));
@@ -2132,7 +2132,7 @@ public partial class binance : ccxt.binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         bool isSpot = this.isSpotUrl(client);
-        string marketType = (isSpot) ? "spot" : "contract";
+        string marketType = isSpot ? "spot" : "contract";
         string? symbol = this.safeSymbol(marketId, null, null, marketType);
         string messageHash = ((("ohlcv::" + symbol) + "::") + unifiedTimeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -2172,8 +2172,8 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object type = this.getMarketType("fetchTickerWs", market, parameters);
-        if (!isEqual(type, "future"))
+        string? type = ((string)this.getMarketType("fetchTickerWs", market, parameters));
+        if ((type != "future"))
         {
             throw new BadRequest ((string)(this.id + " fetchTickerWs only supports swap markets")) ;
         }
@@ -2228,8 +2228,8 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marketType = this.getMarketType("fetchOHLCVWs", market, parameters);
-        if (!isEqual(marketType, "spot") && !isEqual(marketType, "future"))
+        string? marketType = ((string)this.getMarketType("fetchOHLCVWs", market, parameters));
+        if ((marketType != "spot") && (marketType != "future"))
         {
             throw new BadRequest ((string)(this.id + " fetchOHLCVWs only supports spot or swap markets")) ;
         }
@@ -2621,7 +2621,7 @@ public partial class binance : ccxt.binance
             firstMarket = this.market(getValue(symbols, 0));
         }
         string? userDefaultType = this.safeString(this.options, "defaultType");
-        string? defaultMarket = ((isMarkPrice && (userDefaultType != "option"))) ? "swap" : null;
+        string? defaultMarket = (isMarkPrice && (userDefaultType != "option")) ? "swap" : null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
@@ -2636,7 +2636,7 @@ public partial class binance : ccxt.binance
         {
             // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
             // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
-            rawMarketType = ((isOptionMarkPrice)) ? "optionMarket" : "option";
+            rawMarketType = isOptionMarkPrice ? "optionMarket" : "option";
         } else if (this.isLinear(marketType, subType))
         {
             rawMarketType = "future";
@@ -2663,7 +2663,7 @@ public partial class binance : ccxt.binance
         string suffix = "";
         if (isMarkPrice && !isOptionMarkPrice)
         {
-            suffix = (((use1sFreq == true))) ? "@1s" : "";
+            suffix = ((use1sFreq == true)) ? "@1s" : "";
         }
         object unifiedPrefix = null;
         if (isBidAsk)
@@ -2704,7 +2704,7 @@ public partial class binance : ccxt.binance
                     // eOptions tickers: group by underlying + expiry date (<underlying>@optionTicker@<YYMMDD>)
                     // market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
                     string? marketId = this.safeString(market, "id", "");
-                    List<object> parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                    List<object> parts = marketId.Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     string? expiryDate = this.safeString(parts, 1);
                     string baseIdLower = ((string)this.safeStringLower(market, "baseId", ""));
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
@@ -2775,7 +2775,7 @@ public partial class binance : ccxt.binance
         object url = add(add(this.getWsUrl(rawMarketType, this.getFutureWsCategory(channelName)), "/"), this.stream(rawMarketType, streamHash));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", ((bool) isTrue(isUnsubscribe)) ? "UNSUBSCRIBE" : "SUBSCRIBE" },
+            { "method", isTrue(isUnsubscribe) ? "UNSUBSCRIBE" : "SUBSCRIBE" },
             { "params", subscriptionArgs },
             { "id", requestId },
         };
@@ -3097,14 +3097,14 @@ public partial class binance : ccxt.binance
             }
             string? tickerMarketId = this.safeString(ticker, "s");
             List<object> tickerMarketsByIdList = this.safeList(this.markets_by_id, tickerMarketId);
-            int numTickerMarkets = (((tickerMarketsByIdList == null))) ? 0 : tickerMarketsByIdList.Count;
+            int numTickerMarkets = ((tickerMarketsByIdList == null)) ? 0 : tickerMarketsByIdList.Count;
             // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
             // blind first pick, the stream url decides; only a unique match, like an
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
-            IDictionary<string, object> tickerMarketById = ((isEqual(numTickerMarkets, 1))) ? this.safeDict(tickerMarketsByIdList, 0) : null;
+            IDictionary<string, object> tickerMarketById = ((numTickerMarkets == 1)) ? this.safeDict(tickerMarketsByIdList, 0) : null;
             bool isSpot = this.isSpotUrl(client);
-            string tickerFallbackType = (isSpot) ? "spot" : "contract";
-            object tickerMarketType = (((tickerMarketById != null))) ? getValue(tickerMarketById, "type") : tickerFallbackType;
+            string tickerFallbackType = isSpot ? "spot" : "contract";
+            object tickerMarketType = ((tickerMarketById != null)) ? (tickerMarketById != null && tickerMarketById.ContainsKey("type") ? tickerMarketById["type"] : null) : tickerFallbackType;
             Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsTicker(ticker, tickerMarketType));
             string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
             if ((symbol != null))
@@ -3433,7 +3433,7 @@ public partial class binance : ccxt.binance
         bool isStock = (isEqual(type, "stock"));
         IDictionary<string, object> options = this.safeDict(this.options, type, new Dictionary<string, object>() {});
         Int64? lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
-        string refreshRateKey = (isStock) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
+        string refreshRateKey = isStock ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
         Int64 delay = ((Int64)this.sum(listenKeyRefreshRate, 10000));
         if (isGreaterThan(subtract(time, lastAuthenticatedTime), delay))
@@ -3635,7 +3635,7 @@ public partial class binance : ccxt.binance
         });
         // whether or not to schedule another listenKey keepAlive request
         List<object> clients = new List<object>(((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Values);
-        string refreshRateKey = (isStock) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
+        string refreshRateKey = isStock ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
         object delayParams = parameters;
         if (isStock)
@@ -3726,8 +3726,8 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        object type = this.getMarketType("fetchBalanceWs", null, parameters);
-        if (!isEqual(type, "spot") && !isEqual(type, "future") && !isEqual(type, "delivery"))
+        string? type = ((string)this.getMarketType("fetchBalanceWs", null, parameters));
+        if ((type != "spot") && (type != "future") && (type != "delivery"))
         {
             throw new BadRequest ((string)(this.id + " fetchBalanceWs only supports spot or swap markets")) ;
         }
@@ -3751,7 +3751,7 @@ public partial class binance : ccxt.binance
             { "params", this.signParams(this.extend(payload, parameters)) },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "method", ((isEqual(method, "account.status"))) ? this.handleAccountStatusWs : this.handleBalanceWs },
+            { "method", (isEqual(method, "account.status")) ? this.handleAccountStatusWs : this.handleBalanceWs },
         };
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, message, messageHash, subscription));
     }
@@ -3876,14 +3876,14 @@ public partial class binance : ccxt.binance
                 ((IDictionary<string,object>)payload)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
-        object type = this.getMarketType("fetchPositionsWs", market, parameters);
-        if ((symbols == null) && (isEqual(type, "spot")))
+        string? type = ((string)this.getMarketType("fetchPositionsWs", market, parameters));
+        if ((symbols == null) && ((type == "spot")))
         {
             // when symbols aren't provide
             // we shouldn't rely on the defaultType
             type = "future";
         }
-        if (!isEqual(type, "future") && !isEqual(type, "delivery"))
+        if ((type != "future") && (type != "delivery"))
         {
             throw new BadRequest ((string)(this.id + " fetchPositionsWs only supports swap markets")) ;
         }
@@ -4254,8 +4254,8 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marketType = this.getMarketType("createOrderWs", market, parameters);
-        if (!isEqual(marketType, "spot") && !isEqual(marketType, "future") && !isEqual(marketType, "delivery"))
+        string? marketType = ((string)this.getMarketType("createOrderWs", market, parameters));
+        if ((marketType != "spot") && (marketType != "future") && (marketType != "delivery"))
         {
             throw new BadRequest ((string)(this.id + " createOrderWs only supports spot or swap markets")) ;
         }
@@ -4435,17 +4435,17 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marketType = this.getMarketType("editOrderWs", market, parameters);
-        if (!isEqual(marketType, "spot") && !isEqual(marketType, "future") && !isEqual(marketType, "delivery"))
+        string? marketType = ((string)this.getMarketType("editOrderWs", market, parameters));
+        if ((marketType != "spot") && (marketType != "future") && (marketType != "delivery"))
         {
             throw new BadRequest ((string)(this.id + " editOrderWs only supports spot or swap markets")) ;
         }
         object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketType);
         Int64 requestId = ((Int64)this.requestId(url));
         string messageHash = ((object)requestId).ToString();
-        bool isSwap = (isEqual(marketType, "future") || isEqual(marketType, "delivery"));
+        bool isSwap = ((marketType == "future") || (marketType == "delivery"));
         Dictionary<string, object> payload = new Dictionary<string, object>() {};
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
         } else
@@ -4459,7 +4459,7 @@ public partial class binance : ccxt.binance
         ((IDictionary<string,object>)payload)["returnRateLimits"] = returnRateLimits;
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", messageHash },
-            { "method", ((isSwap)) ? "order.modify" : "order.cancelReplace" },
+            { "method", isSwap ? "order.modify" : "order.cancelReplace" },
             { "params", this.signParams(this.extend(payload, parameters)) },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -4609,7 +4609,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest ((string)(this.id + " cancelOrderWs requires a symbol")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        object type = this.getMarketType("cancelOrderWs", market, parameters);
+        string? type = ((string)this.getMarketType("cancelOrderWs", market, parameters));
         object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
         Int64 requestId = ((Int64)this.requestId(url));
         string messageHash = ((object)requestId).ToString();
@@ -4680,8 +4680,8 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object type = this.getMarketType("cancelAllOrdersWs", market, parameters);
-        if (!isEqual(type, "spot"))
+        string? type = ((string)this.getMarketType("cancelAllOrdersWs", market, parameters));
+        if ((type != "spot"))
         {
             throw new BadRequest ((string)(this.id + " cancelAllOrdersWs only supports spot markets")) ;
         }
@@ -4731,8 +4731,8 @@ public partial class binance : ccxt.binance
             throw new BadRequest ((string)(this.id + " cancelOrderWs requires a symbol")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        object type = this.getMarketType("fetchOrderWs", market, parameters);
-        if (!isEqual(type, "spot") && !isEqual(type, "future") && !isEqual(type, "delivery"))
+        string? type = ((string)this.getMarketType("fetchOrderWs", market, parameters));
+        if ((type != "spot") && (type != "future") && (type != "delivery"))
         {
             throw new BadRequest ((string)(this.id + " fetchOrderWs only supports spot or swap markets")) ;
         }
@@ -4793,8 +4793,8 @@ public partial class binance : ccxt.binance
             throw new BadRequest ((string)(this.id + " fetchOrdersWs requires a symbol")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        object type = this.getMarketType("fetchOrdersWs", market, parameters);
-        if (!isEqual(type, "spot"))
+        string? type = ((string)this.getMarketType("fetchOrdersWs", market, parameters));
+        if ((type != "spot"))
         {
             throw new BadRequest ((string)(this.id + " fetchOrdersWs only supports spot markets")) ;
         }
@@ -4867,8 +4867,8 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object type = this.getMarketType("fetchOpenOrdersWs", market, parameters);
-        if (!isEqual(type, "spot"))
+        string? type = ((string)this.getMarketType("fetchOpenOrdersWs", market, parameters));
+        if ((type != "spot"))
         {
             throw new BadRequest ((string)(this.id + " fetchOpenOrdersWs only supports spot markets")) ;
         }
@@ -5228,7 +5228,7 @@ public partial class binance : ccxt.binance
         string? executionType = this.safeString(order, "x");
         string? marketId = this.safeString(order, "s");
         // futures user-data events carry the position side field, spot ones do not
-        string marketType = ((inOp(order, "ps"))) ? "contract" : "spot";
+        string marketType = (inOp(order, "ps")) ? "contract" : "spot";
         string? symbol = this.safeSymbol(marketId, null, null, marketType);
         Int64? timestamp = this.safeInteger(order, "O");
         Int64? T = this.safeInteger(order, "T");
@@ -5258,7 +5258,7 @@ public partial class binance : ccxt.binance
         string? rawStatus = this.safeString(order, "X");
         string? status = this.parseOrderStatus(rawStatus);
         string? clientOrderId = this.safeString2(order, "C", "caid");
-        if (((clientOrderId == null)) || ((((string)clientOrderId).Length == 0)))
+        if (((clientOrderId == null)) || ((clientOrderId.Length == 0)))
         {
             clientOrderId = this.safeString(order, "c");
         }
@@ -5644,7 +5644,7 @@ public partial class binance : ccxt.binance
         // the same stream the old raw-type ordering produced in every case
         if (isEqual(type, "spot") || isEqual(type, "margin"))
         {
-            type = ((isEqual(subType, "inverse"))) ? "delivery" : "future";
+            type = (isEqual(subType, "inverse")) ? "delivery" : "future";
         }
         // 'option' stays as 'option', don't redirect to 'future' - the helper's
         // guard finally makes this comment true
@@ -5959,10 +5959,10 @@ public partial class binance : ccxt.binance
             throw new BadRequest ((string)(this.id + " fetchMyTradesWs requires a symbol")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        object type = this.getMarketType("fetchMyTradesWs", market, parameters);
-        if (!isEqual(type, "spot") && !isEqual(type, "future"))
+        string? type = ((string)this.getMarketType("fetchMyTradesWs", market, parameters));
+        if ((type != "spot") && (type != "future"))
         {
-            throw new BadRequest ((string)(((this.id + " fetchMyTradesWs does not support ") + (type)) + " markets")) ;
+            throw new BadRequest ((string)(((this.id + " fetchMyTradesWs does not support ") + type) + " markets")) ;
         }
         object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
         Int64 requestId = ((Int64)this.requestId(url));
@@ -6022,10 +6022,10 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object type = this.getMarketType("fetchTradesWs", market, parameters);
-        if (!isEqual(type, "spot") && !isEqual(type, "future"))
+        string? type = ((string)this.getMarketType("fetchTradesWs", market, parameters));
+        if ((type != "spot") && (type != "future"))
         {
-            throw new BadRequest ((string)(((this.id + " fetchTradesWs does not support ") + (type)) + " markets")) ;
+            throw new BadRequest ((string)(((this.id + " fetchTradesWs does not support ") + type) + " markets")) ;
         }
         object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
         Int64 requestId = ((Int64)this.requestId(url));
@@ -6224,35 +6224,35 @@ public partial class binance : ccxt.binance
                             for (int i = 0; i < getArrayLength(fees); i++)
                             {
                                 object orderFee = getValue(fees, i);
-                                if (isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency")))
+                                if (isEqual(getValue(orderFee, "currency"), (tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)))
                                 {
-                                    object feeCost = this.sum(getValue(tradeFee, "cost"), getValue(orderFee, "cost"));
-                                    string? feeCostString = this.currencyToPrecision(((string)getValue(tradeFee, "currency")), feeCost);
+                                    object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), getValue(orderFee, "cost"));
+                                    string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
                                     if ((feeCostString == null))
                                     {
                                         feeCostString = "0";
                                     }
-                                    ((IDictionary<string,object>)getValue(getValue(order, "fees"), i))["cost"] = parseFloat(feeCostString);
+                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
                             }
                             if (insertNewFeeCurrency)
                             {
-                                ((IList<object>)getValue(order, "fees")).Add(tradeFee);
+                                ((IList<object>)(order != null && order.ContainsKey("fees") ? order["fees"] : null)).Add(tradeFee);
                             }
                         } else if ((fee != null))
                         {
-                            if (isEqual(getValue(fee, "currency"), getValue(tradeFee, "currency")))
+                            if (isEqual((fee != null && fee.ContainsKey("currency") ? fee["currency"] : null), (tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)))
                             {
-                                object feeCost = this.sum(getValue(fee, "cost"), getValue(tradeFee, "cost"));
-                                string? feeCostString = this.currencyToPrecision(((string)getValue(tradeFee, "currency")), feeCost);
+                                object feeCost = this.sum((fee != null && fee.ContainsKey("cost") ? fee["cost"] : null), (tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null));
+                                string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
                                 if ((feeCostString == null))
                                 {
                                     feeCostString = "0";
                                 }
-                                ((IDictionary<string,object>)getValue(order, "fee"))["cost"] = parseFloat(feeCostString);
-                            } else if (isEqual(getValue(fee, "currency"), null))
+                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = parseFloat(feeCostString);
+                            } else if (isEqual((fee != null && fee.ContainsKey("currency") ? fee["currency"] : null), null))
                             {
                                 ((IDictionary<string,object>)order)["fee"] = tradeFee;
                             } else
@@ -6445,7 +6445,7 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> error = this.safeDict(message, "error", new Dictionary<string, object>() {});
         Int64? code = this.safeInteger(error, "code");
         string? msg = this.safeString(error, "msg");
-        Int64? codeValue = ((isEqual(code, null))) ? 0 : code;
+        Int64? codeValue = (isEqual(code, null)) ? 0 : code;
         try
         {
             this.handleErrors(codeValue, ((string)msg), client.url, "", new Dictionary<string, object>() {}, this.json(error), error, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});

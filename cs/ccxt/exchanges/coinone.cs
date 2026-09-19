@@ -463,7 +463,7 @@ public partial class coinone : Exchange
         string? code = this.safeCurrencyCode(id);
         bool isWithdrawEnabled = (this.safeString(rawCurrency, "withdraw_status", "") == "normal");
         bool isDepositEnabled = (this.safeString(rawCurrency, "deposit_status", "") == "normal");
-        string type = (((code != "KRW"))) ? "crypto" : "fiat";
+        string type = ((code != "KRW")) ? "crypto" : "fiat";
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
@@ -919,7 +919,7 @@ public partial class coinone : Exchange
         string? side = null;
         if (!isEqual(isSellerMaker, null))
         {
-            side = ((isSellerMaker == true)) ? "sell" : "buy";
+            side = isSellerMaker == true ? "sell" : "buy";
         }
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "qty");
@@ -931,7 +931,7 @@ public partial class coinone : Exchange
             feeCostString = Precise.stringAbs(feeCostString);
             string? feeRateString = this.safeString(trade, "feeRate");
             feeRateString = Precise.stringAbs(feeRateString);
-            object feeCurrencyCode = (((side == "sell"))) ? getValue(market, "quote") : getValue(market, "base");
+            object feeCurrencyCode = ((side == "sell")) ? getValue(market, "quote") : getValue(market, "base");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrencyCode },
@@ -1221,7 +1221,7 @@ public partial class coinone : Exchange
         string? feeCostString = this.safeString(order, "fee");
         if ((feeCostString != null))
         {
-            object feeCurrencyCode = (((side == "sell"))) ? quote : bs;
+            object feeCurrencyCode = ((side == "sell")) ? quote : bs;
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "rate", this.safeString2(order, "feeRate", "fee_rate") },

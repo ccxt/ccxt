@@ -669,7 +669,7 @@ public partial class alpaca : ccxt.alpaca
             { "order", this.safeString(trade, "id") },
             { "type", type },
             { "side", this.safeString(trade, "side") },
-            { "takerOrMaker", (((type == "market"))) ? "taker" : "maker" },
+            { "takerOrMaker", ((type == "market")) ? "taker" : "maker" },
             { "price", this.safeString(trade, "filled_avg_price") },
             { "amount", this.safeString(trade, "filled_qty") },
             { "cost", null },

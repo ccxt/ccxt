@@ -541,7 +541,7 @@ public partial class latoken : Exchange
                 {
                     continue;
                 }
-                string lowercaseQuote = ((string)quote).ToLower();
+                string lowercaseQuote = quote.ToLower();
                 string capitalizedQuote = this.capitalize(lowercaseQuote);
                 string? status = this.safeString(market, "status");
                 ((IList<object>)result).Add(new Dictionary<string, object>() {
@@ -656,7 +656,7 @@ public partial class latoken : Exchange
             { "code", code },
             { "info", currency },
             { "name", this.safeString(currency, "name") },
-            { "type", (isCrypto) ? "crypto" : "other" },
+            { "type", isCrypto ? "crypto" : "other" },
             { "active", (this.safeString(currency, "status") == "CURRENCY_STATUS_ACTIVE") },
             { "deposit", null },
             { "withdraw", null },
@@ -1014,7 +1014,7 @@ public partial class latoken : Exchange
         string? side = this.safeString(trade, "direction");
         if ((side == null))
         {
-            side = (((makerBuyer == true))) ? "sell" : "buy";
+            side = ((makerBuyer == true)) ? "sell" : "buy";
         } else
         {
             if ((side == "TRADE_DIRECTION_BUY"))
@@ -1027,7 +1027,7 @@ public partial class latoken : Exchange
         }
         bool isBuy = ((side == "buy"));
         bool isMaker = ((makerBuyer == true)) && isBuy;
-        string takerOrMaker = (isMaker) ? "maker" : "taker";
+        string takerOrMaker = isMaker ? "maker" : "taker";
         string? baseId = this.safeString(trade, "baseCurrency");
         string? quoteId = this.safeString(trade, "quoteCurrency");
         object bs = this.safeCurrencyCode(baseId);
@@ -1330,7 +1330,7 @@ public partial class latoken : Exchange
         string? side = null;
         if ((orderSide != null))
         {
-            List<object> parts = ((string)orderSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = orderSide.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             int partsLength = parts.Count;
             side = this.safeStringLower(parts, (partsLength - 1));
         }

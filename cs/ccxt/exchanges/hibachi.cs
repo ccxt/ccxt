@@ -748,7 +748,7 @@ public partial class hibachi : Exchange
 
     public virtual string? parseOrderStatus(object status)
     {
-        string? uppercaseStatus = (((status == null))) ? null : ((string)status).ToUpper();
+        string? uppercaseStatus = ((status == null)) ? null : ((string)status).ToUpper();
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "PENDING", "open" },
             { "CHILD_PENDING", "open" },
@@ -988,8 +988,8 @@ public partial class hibachi : Exchange
         Dictionary<string, object> market = this.market(symbol);
         double? takerFee = this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045));
         double? makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
-        double? takerFeeValue = ((isEqual(takerFee, null))) ? 0 : takerFee;
-        double? makerFeeValue = ((isEqual(makerFee, null))) ? 0 : makerFee;
+        double? takerFeeValue = (isEqual(takerFee, null)) ? 0 : takerFee;
+        double? makerFeeValue = (isEqual(makerFee, null)) ? 0 : makerFee;
         object feeRate = mathMax(takerFeeValue, makerFeeValue);
         string sideInternal = "";
         if (isEqual(side, "sell"))
@@ -1137,8 +1137,8 @@ public partial class hibachi : Exchange
         Dictionary<string, object> market = this.market(symbol);
         double? takerFee = this.safeNumber(market, "taker", 0);
         double? makerFee = this.safeNumber(market, "maker", 0);
-        double? takerFeeValue = ((isEqual(takerFee, null))) ? 0 : takerFee;
-        double? makerFeeValue = ((isEqual(makerFee, null))) ? 0 : makerFee;
+        double? takerFeeValue = (isEqual(takerFee, null)) ? 0 : takerFee;
+        double? makerFeeValue = (isEqual(makerFee, null)) ? 0 : makerFee;
         object feeRate = mathMax(takerFeeValue, makerFeeValue);
         object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         object signature = this.signMessage(message, this.privateKey);
@@ -2070,7 +2070,7 @@ public partial class hibachi : Exchange
             // response from CapitalHistory
             timestamp = this.safeIntegerProduct(item, "timestampSec", 1000);
             amount = this.safeNumber(item, "quantity");
-            direction = (((transactionType == "deposit") || (transactionType == "transfer-in"))) ? "in" : "out";
+            direction = ((transactionType == "deposit") || (transactionType == "transfer-in")) ? "in" : "out";
             type = this.parseTransactionType(transactionType);
             status = this.parseTransactionStatus(this.safeString(item, "status"));
             if ((transactionType == "transfer-in"))

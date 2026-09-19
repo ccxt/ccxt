@@ -1072,7 +1072,7 @@ public partial class coinmate : Exchange
             };
         }
         string? takerOrMaker = this.safeString(trade, "feeType");
-        takerOrMaker = (((takerOrMaker == "MAKER"))) ? "maker" : "taker";
+        takerOrMaker = ((takerOrMaker == "MAKER")) ? "maker" : "taker";
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
@@ -1492,7 +1492,7 @@ public partial class coinmate : Exchange
                 { "clientId", this.uid },
                 { "nonce", nonce },
                 { "publicKey", this.apiKey },
-                { "signature", ((string)signature).ToUpper() },
+                { "signature", signature.ToUpper() },
             }, parameters));
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },

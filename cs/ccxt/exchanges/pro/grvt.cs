@@ -122,7 +122,7 @@ public partial class grvt : ccxt.grvt
             { "params", request },
             { "id", this.requestId() },
         };
-        string apiPart = ((bool) isTrue(publicOrPrivate)) ? "publicMarket" : "privateTrading";
+        string apiPart = isTrue(publicOrPrivate) ? "publicMarket" : "privateTrading";
         return await this.watchMultiple(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), apiPart), messageHashes, payload, rawHashes);
     }
 
@@ -290,7 +290,7 @@ public partial class grvt : ccxt.grvt
         //
         IDictionary<string, object> data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         string? selector = this.safeString(message, "selector", "");
-        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = selector.Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -394,7 +394,7 @@ public partial class grvt : ccxt.grvt
         //
         IDictionary<string, object> data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         string? selector = this.safeString(message, "selector", "");
-        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = selector.Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -514,12 +514,12 @@ public partial class grvt : ccxt.grvt
         //
         IDictionary<string, object> data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         string? selector = this.safeString(message, "selector", "");
-        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = selector.Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? secondPart = this.safeString(parts, 1, "");
-        string timeframeId = ((string)secondPart).Replace((string)"-TRADE", (string)"");
+        string timeframeId = secondPart.Replace((string)"-TRADE", (string)"");
         string? timeframe = this.findTimeframe(timeframeId);
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -604,7 +604,7 @@ public partial class grvt : ccxt.grvt
         interval = ((IList<object>)intervalparametersVariable)[0];
         parameters = ((IList<object>)intervalparametersVariable)[1];
         symbols = this.marketSymbols(symbols);
-        string extraPart = (isSnapshot) ? (((((object)interval).ToString() + "-") + ((object)limitVar).ToString())) : ((object)interval).ToString();
+        string extraPart = isSnapshot ? (((((object)interval).ToString() + "-") + ((object)limitVar).ToString())) : ((object)interval).ToString();
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
@@ -653,7 +653,7 @@ public partial class grvt : ccxt.grvt
         //
         IDictionary<string, object> data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         string? selector = this.safeString(message, "selector", "");
-        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = selector.Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));

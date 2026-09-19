@@ -137,7 +137,7 @@ public partial class derive : ccxt.derive
         if (!(inOp(this.orderbooks, symbol)))
         {
             Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            object subscription = (((topic == null))) ? null : getValue(((WebSocketClient)client).subscriptions, topic);
+            object subscription = ((topic == null)) ? null : getValue(((WebSocketClient)client).subscriptions, topic);
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
@@ -255,7 +255,7 @@ public partial class derive : ccxt.derive
         {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-            List<object> parts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = topic.Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             string? marketId = this.safeString(parts, 1);
             Dictionary<string, object> market = this.safeMarket(marketId);
             IDictionary<string, object> stats = this.safeDict(data, "stats", new Dictionary<string, object>() {});
@@ -667,7 +667,7 @@ public partial class derive : ccxt.derive
                 }
                 object cachedOrders = this.orders;
                 IDictionary<string, object> orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-                IDictionary<string, object> order = (((orderId == null))) ? null : this.safeDict(orders, orderId);
+                IDictionary<string, object> order = ((orderId == null)) ? null : this.safeDict(orders, orderId);
                 if ((order != null))
                 {
                     object fee = this.safeValue(order, "fee");
@@ -829,7 +829,7 @@ public partial class derive : ccxt.derive
             string? channel = this.safeString(parameters, "channel");
             if ((channel != null))
             {
-                List<object> parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+                List<object> parsedChannel = channel.Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
                 if ((((string)channel).IndexOf("orders", StringComparison.Ordinal) >= 0) || ((string)channel).IndexOf("trades", StringComparison.Ordinal) > 0)
                 {
                     eventVar = this.safeString(parsedChannel, 1);
@@ -844,7 +844,7 @@ public partial class derive : ccxt.derive
                 }
             }
         }
-        object method = (((eventVar == null))) ? null : this.safeValue(methods, eventVar);
+        object method = ((eventVar == null)) ? null : this.safeValue(methods, eventVar);
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -854,7 +854,7 @@ public partial class derive : ccxt.derive
         {
             string? id = this.safeString(message, "id");
             Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-            IDictionary<string, object> subscription = (((id == null))) ? new Dictionary<string, object>() {} : this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
+            IDictionary<string, object> subscription = ((id == null)) ? new Dictionary<string, object>() {} : this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
             if (subscription.ContainsKey("method"))
             {
                 if (isEqual(((IDictionary<string,object>)subscription)["method"], "public/login"))

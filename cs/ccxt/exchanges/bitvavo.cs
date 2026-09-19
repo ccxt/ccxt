@@ -733,7 +733,7 @@ public partial class bitvavo : Exchange
             { "networks", networks },
             { "fee", withdrawFee },
             { "precision", null },
-            { "type", (isFiat) ? "fiat" : "crypto" },
+            { "type", isFiat ? "fiat" : "crypto" },
             { "limits", new Dictionary<string, object>() {
                 { "amount", new Dictionary<string, object>() {
                     { "min", null },
@@ -1007,7 +1007,7 @@ public partial class bitvavo : Exchange
         string? takerOrMaker = null;
         if (!isEqual(taker, null))
         {
-            takerOrMaker = (((taker == true))) ? "taker" : "maker";
+            takerOrMaker = ((taker == true)) ? "taker" : "maker";
         }
         string? feeCostString = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
@@ -1694,14 +1694,14 @@ public partial class bitvavo : Exchange
             {
                 triggerPrice = stopLossPrice;
             }
-            ((IDictionary<string,object>)request)["orderType"] = (isMarketOrder) ? "stopLoss" : "stopLossLimit";
+            ((IDictionary<string,object>)request)["orderType"] = isMarketOrder ? "stopLoss" : "stopLossLimit";
         } else if (isTakeProfit)
         {
             if ((takeProfitPrice != null))
             {
                 triggerPrice = takeProfitPrice;
             }
-            ((IDictionary<string,object>)request)["orderType"] = (isMarketOrder) ? "takeProfit" : "takeProfitLimit";
+            ((IDictionary<string,object>)request)["orderType"] = isMarketOrder ? "takeProfit" : "takeProfitLimit";
         }
         if ((triggerPrice != null))
         {
@@ -2032,7 +2032,7 @@ public partial class bitvavo : Exchange
         parameters = ((IList<object>)codGroupIdparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "codGroupId", codGroupId },
-            { "expiryAfterSeconds", ((isGreaterThan(timeout, 0))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
+            { "expiryAfterSeconds", (isGreaterThan(timeout, 0)) ? this.parseToInt(divide(timeout, 1000)) : 0 },
         };
         Dictionary<string, object> response = await this.privatePostCancelOrdersAfter(this.extend(request, parameters));
         //

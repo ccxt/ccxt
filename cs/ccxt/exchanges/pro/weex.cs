@@ -107,7 +107,7 @@ public partial class weex : ccxt.weex
         subscription = this.extend(subscription, new Dictionary<string, object>() {
             { "id", id },
         });
-        string type = ((bool) isTrue(isContract)) ? "contract" : "spot";
+        string type = isTrue(isContract) ? "contract" : "spot";
         object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type), "/public");
         return await this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscription);
     }
@@ -117,7 +117,7 @@ public partial class weex : ccxt.weex
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
-        string type = ((bool) isTrue(isContract)) ? "contract" : "spot";
+        string type = isTrue(isContract) ? "contract" : "spot";
         object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type), "/private");
         this.authenticate(url);
         string method = "SUBSCRIBE";
@@ -369,7 +369,7 @@ public partial class weex : ccxt.weex
         //
         Int64? timestamp = this.safeInteger(ticker, "C");
         string? close = this.safeString(ticker, "c");
-        object symbol = (((market == null))) ? null : getValue(market, "symbol");
+        object symbol = ((market == null)) ? null : getValue(market, "symbol");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -583,13 +583,13 @@ public partial class weex : ccxt.weex
         //     }
         //
         Int64? timestamp = this.safeInteger(trade, "T");
-        object symbol = (((market == null))) ? null : getValue(market, "symbol");
+        object symbol = ((market == null)) ? null : getValue(market, "symbol");
         bool? isBuyerMaker = this.safeBool(trade, "m"); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         string? side = null;
         string? takerOrMaker = null;
         if (!isEqual(isBuyerMaker, null))
         {
-            side = ((isBuyerMaker == true)) ? "sell" : "buy";
+            side = isBuyerMaker == true ? "sell" : "buy";
             takerOrMaker = "taker"; // a public trade is reported from the aggressor's side, same as parseTrade
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -1180,7 +1180,7 @@ public partial class weex : ccxt.weex
     public virtual object parseWsBidAsk(object message, object market = null)
     {
         Int64? timestamp = this.safeInteger(message, "E");
-        object symbol = (((market == null))) ? null : getValue(market, "symbol");
+        object symbol = ((market == null)) ? null : getValue(market, "symbol");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1226,7 +1226,7 @@ public partial class weex : ccxt.weex
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         bool isContract = ((marketType != "spot"));
-        string messageHash = (isContract) ? "myContractTrades" : "myTrades";
+        string messageHash = isContract ? "myContractTrades" : "myTrades";
         string subscriptionHash = messageHash;
         if ((symbolVar != null))
         {
@@ -1264,7 +1264,7 @@ public partial class weex : ccxt.weex
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         bool isContract = ((marketType != "spot"));
-        string subHash = (isContract) ? "myContractTrades" : "myTrades";
+        string subHash = isContract ? "myContractTrades" : "myTrades";
         string unSubHash = ("unsubscribe::" + subHash);
         string channel = "fill";
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -1461,7 +1461,7 @@ public partial class weex : ccxt.weex
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         bool isContract = ((marketType != "spot"));
-        string messageHash = (isContract) ? "contractOrders" : "orders";
+        string messageHash = isContract ? "contractOrders" : "orders";
         string subscriptionHash = messageHash;
         if ((symbolVar != null))
         {
@@ -1498,7 +1498,7 @@ public partial class weex : ccxt.weex
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         bool isContract = ((marketType != "spot"));
-        string subHash = (isContract) ? "contractOrders" : "orders";
+        string subHash = isContract ? "contractOrders" : "orders";
         string unSubHash = ("unsubscribe::" + subHash);
         string channel = "orders";
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -1777,7 +1777,7 @@ public partial class weex : ccxt.weex
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isContract = (!isEqual(type, "spot"));
-        string urlType = (isContract) ? "contract" : "spot";
+        string urlType = isContract ? "contract" : "spot";
         object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType), "/private");
         this.authenticate(url);
         var client = this.client(url);

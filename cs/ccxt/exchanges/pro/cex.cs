@@ -1061,7 +1061,7 @@ public partial class cex : ccxt.cex
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("orderbook:" + (symbolVar));
-        object depth = (((limit == null))) ? 0 : limit;
+        object depth = ((limit == null)) ? 0 : limit;
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "e", "order-book-subscribe" },
             { "data", new Dictionary<string, object>() {
@@ -1245,7 +1245,7 @@ public partial class cex : ccxt.cex
         {
             return;
         }
-        List<object> parts = ((string)pair).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = pair.Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         string? baseId = this.safeString(parts, 0);
         string? quoteId = this.safeString(parts, 1);
         object bs = this.safeCurrencyCode(baseId);
@@ -1725,7 +1725,7 @@ public partial class cex : ccxt.cex
                 { "e", "auth" },
                 { "auth", new Dictionary<string, object>() {
                     { "key", this.apiKey },
-                    { "signature", ((string)signature).ToUpper() },
+                    { "signature", signature.ToUpper() },
                     { "timestamp", nonce },
                 } },
             };

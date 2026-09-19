@@ -616,7 +616,7 @@ public partial class ndax : Exchange
         //     }
         //
         string? message = this.safeString(response, "msg");
-        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", (((message == "PONG"))) ? "ok" : "error" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((message == "PONG")) ? "ok" : "error" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -723,7 +723,7 @@ public partial class ndax : Exchange
         string? id = this.safeString(rawCurrency, "ProductId");
         string? code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
         string? ProductType = this.safeString(rawCurrency, "ProductType");
-        string type = (((ProductType == "NationalCurrency"))) ? "fiat" : "crypto";
+        string type = ((ProductType == "NationalCurrency")) ? "fiat" : "crypto";
         if ((ProductType == "Unknown"))
         {
             // such currency is just a blanket entry
@@ -925,7 +925,7 @@ public partial class ndax : Exchange
             }
             List<object> bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Int64? levelSide = this.safeInteger(level, 9);
-            object side = ((!isEqual(levelSide, null) && (levelSide != 0))) ? asksKey : bidsKey;
+            object side = (!isEqual(levelSide, null) && (levelSide != 0)) ? asksKey : bidsKey;
             ((IList<object>)getValue(result, side)).Add(bidask);
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
@@ -956,7 +956,7 @@ public partial class ndax : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        limitVar = (((limitVar == null))) ? 100 : limitVar; // default 100
+        limitVar = ((limitVar == null)) ? 100 : limitVar; // default 100
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "InstrumentId", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1888,7 +1888,7 @@ public partial class ndax : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"});
         Dictionary<string, object> market = this.market(symbol);
-        int orderSide = (((side == "buy"))) ? 0 : 1;
+        int orderSide = ((side == "buy")) ? 0 : 1;
         string? amountString = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "InstrumentId", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
@@ -1896,7 +1896,7 @@ public partial class ndax : Exchange
             { "AccountId", accountId },
             { "TimeInForce", 1 },
             { "Side", orderSide },
-            { "Quantity", (((amountString == null))) ? null : parseFloat(amountString) },
+            { "Quantity", ((amountString == null)) ? null : parseFloat(amountString) },
             { "OrderType", orderType },
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
@@ -1956,7 +1956,7 @@ public partial class ndax : Exchange
         Int64? clientOrderId = this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId", "clientOrderId", "ClientOrderId"});
         Dictionary<string, object> market = this.market(symbol);
-        int orderSide = (((side == "buy"))) ? 0 : 1;
+        int orderSide = ((side == "buy")) ? 0 : 1;
         string? amountString = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "OrderIdToReplace", parseInt(id) },
@@ -1965,7 +1965,7 @@ public partial class ndax : Exchange
             { "AccountId", accountId },
             { "TimeInForce", 1 },
             { "Side", orderSide },
-            { "Quantity", (((amountString == null))) ? null : parseFloat(amountString) },
+            { "Quantity", ((amountString == null)) ? null : parseFloat(amountString) },
             { "OrderType", this.safeInteger((this.options.ContainsKey("orderTypes") ? this.options["orderTypes"] : null), this.capitalize(type)) },
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
@@ -2586,7 +2586,7 @@ public partial class ndax : Exchange
         object depositInfo = parseJson(depositInfoString);
         int depositInfoLength = getArrayLength(depositInfo);
         string? lastString = this.safeString(depositInfo, (depositInfoLength - 1), "");
-        List<object> parts = ((string)lastString).Split(new [] {((string)"?memo=")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = lastString.Split(new [] {((string)"?memo=")}, StringSplitOptions.None).ToList<object>();
         string? address = this.safeString(parts, 0);
         string? tag = this.safeString(parts, 1);
         object code = null;
@@ -2795,7 +2795,7 @@ public partial class ndax : Exchange
                 { "Confirmed2Fa", "pending" },
             } },
         };
-        IDictionary<string, object> statuses = (((type == null))) ? new Dictionary<string, object>() {} : this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
+        IDictionary<string, object> statuses = ((type == null)) ? new Dictionary<string, object>() {} : this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
         if ((status == null))
         {
             return null;

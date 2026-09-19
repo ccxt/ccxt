@@ -511,23 +511,23 @@ public partial class zebpay : Exchange
             string? networkId = this.safeString(chain, "chainId");
             object networkCode = this.networkIdToCode(networkId, code);
             bool depositAllowed = (this.safeBool(chain, "isDepositEnabled") == true);
-            deposit = ((depositAllowed)) ? depositAllowed : deposit;
+            deposit = depositAllowed ? depositAllowed : deposit;
             bool withdrawAllowed = (this.safeBool(chain, "isWithdrawEnabled") == true);
-            withdraw = ((withdrawAllowed)) ? withdrawAllowed : withdraw;
+            withdraw = withdrawAllowed ? withdrawAllowed : withdraw;
             string? withdrawFeeString = this.safeString(chain, "withdrawalFee");
             if ((withdrawFeeString != null))
             {
-                minWithdrawFeeString = (((minWithdrawFeeString == null))) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
+                minWithdrawFeeString = ((minWithdrawFeeString == null)) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
             }
             string? minNetworkWithdrawString = this.safeString(chain, "withdrawalMinSize");
             if ((minNetworkWithdrawString != null))
             {
-                minWithdrawString = (((minWithdrawString == null))) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
+                minWithdrawString = ((minWithdrawString == null)) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
             }
             string? minNetworkDepositString = this.safeString(chain, "depositMinSize");
             if ((minNetworkDepositString != null))
             {
-                minDepositString = (((minDepositString == null))) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
+                minDepositString = ((minDepositString == null)) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
             }
             if ((networkCode != null))
             {
@@ -2190,7 +2190,7 @@ public partial class zebpay : Exchange
         parameters ??= new Dictionary<string, object>();
         parameters = this.omit(parameters, "defaultType");
         bool isV1 = getIndexOf(path, "v1/") > -1;
-        string marketType = (isV1) ? "swap" : "spot";
+        string marketType = isV1 ? "swap" : "spot";
         object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), marketType);
         string tail = ("/api/" + this.implodeParams(path, parameters));
         url = add(url, tail);

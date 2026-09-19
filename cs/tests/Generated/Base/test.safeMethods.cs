@@ -435,7 +435,7 @@ public partial class BaseTest
             var arrayCacheByTimestamp = new ArrayCacheByTimestamp(100);
             arrayCacheByTimestamp.append(new List<object>() {1000, 50000, 1, 2, 3});
             object arrayCacheByTimestampData = exchange.safeValue(arrayCacheByTimestamp, "Data");
-            object cacheByTimestampData = ((arrayCacheByTimestampData != null)) ? arrayCacheByTimestampData : arrayCacheByTimestamp;
+            object cacheByTimestampData = (arrayCacheByTimestampData != null) ? arrayCacheByTimestampData : arrayCacheByTimestamp;
             Assert(getArrayLength(cacheByTimestampData) > 0);
             // Test cache types - ArrayCacheBySymbolById
             var arrayCacheBySymbolById = new ArrayCacheBySymbolById(100);
@@ -449,7 +449,7 @@ public partial class BaseTest
             Assert(!isEqual(getValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), null));
             Assert(!isEqual(getValue(getValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), "order2"), null));
             object arrayCacheBySymbolByIdData = exchange.safeValue(arrayCacheBySymbolById, "Data");
-            object cacheBySymbolByIdData = ((arrayCacheBySymbolByIdData != null)) ? arrayCacheBySymbolByIdData : arrayCacheBySymbolById;
+            object cacheBySymbolByIdData = (arrayCacheBySymbolByIdData != null) ? arrayCacheBySymbolByIdData : arrayCacheBySymbolById;
             Assert(getArrayLength(cacheBySymbolByIdData) > 0);
             // Test cache types - ArrayCacheBySymbolBySide
             var arrayCacheBySymbolBySide = new ArrayCacheBySymbolBySide();
@@ -462,7 +462,7 @@ public partial class BaseTest
             object arrayCacheBySymbolBySideHashmap = arrayCacheBySymbolBySide.hashmap;
             Assert(!isEqual(getValue(arrayCacheBySymbolBySideHashmap, "BNB/USDT"), null));
             object arrayCacheBySymbolBySideData = exchange.safeValue(arrayCacheBySymbolBySide, "Data");
-            object cacheBySymbolBySideData = ((arrayCacheBySymbolBySideData != null)) ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;
+            object cacheBySymbolBySideData = (arrayCacheBySymbolBySideData != null) ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;
             Assert(getArrayLength(cacheBySymbolBySideData) > 0);
             // Test map[string]map[string]interface{} (ArrayCache.hashmap)
             // Use direct property access for object attributes

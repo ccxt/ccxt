@@ -500,7 +500,7 @@ public partial class apex : ccxt.apex
             symbol = (parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null);
         } else if ((updateType == "delta"))
         {
-            List<object> topicParts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            List<object> topicParts = topic.Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             int topicLength = topicParts.Count;
             string? marketId = this.safeString(topicParts, (topicLength - 1));
             Dictionary<string, object> market = this.safeMarket(marketId, null, null);
@@ -616,7 +616,7 @@ public partial class apex : ccxt.apex
         string? timeframe = this.findTimeframe(timeframeId);
         string? marketId = this.safeString(topicParts, (topicLength - 1));
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
-        string marketType = (isSpot) ? "spot" : "contract";
+        string marketType = isSpot ? "spot" : "contract";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.ohlcvs, symbol)))

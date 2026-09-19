@@ -832,22 +832,22 @@ public partial class btse : Exchange
             { "symbol", symbol },
             { "base", bs },
             { "quote", quote },
-            { "settle", (isSpot) ? null : quote },
+            { "settle", isSpot ? null : quote },
             { "baseId", baseId },
             { "quoteId", quoteId },
-            { "settleId", (isSpot) ? null : quoteId },
+            { "settleId", isSpot ? null : quoteId },
             { "type", type },
             { "spot", isSpot },
-            { "margin", (isSpot) ? false : null },
+            { "margin", isSpot ? false : null },
             { "swap", isSwap },
             { "future", isFuture },
             { "option", false },
             { "active", active },
             { "contract", isSwap || isFuture },
-            { "linear", (isSpot) ? null : true },
-            { "inverse", (isSpot) ? null : false },
-            { "taker", getValue(fees, "taker") },
-            { "maker", getValue(fees, "maker") },
+            { "linear", isSpot ? null : true },
+            { "inverse", isSpot ? null : false },
+            { "taker", (fees != null && fees.ContainsKey("taker") ? fees["taker"] : null) },
+            { "maker", (fees != null && fees.ContainsKey("maker") ? fees["maker"] : null) },
             { "contractSize", this.parseNumber(contractSize) },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
@@ -926,7 +926,7 @@ public partial class btse : Exchange
         if ((since != null))
         {
             // the endpoint accepts timestamps in seconds
-            ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["start"] = this.parseToInt((since / 1000));
         }
         object until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
@@ -1531,7 +1531,7 @@ public partial class btse : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new BadRequest ((string)((this.id + " fetchOpenInterest() symbol does not support market ") + (symbol))) ;
+            throw new BadRequest ((string)((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2843,7 +2843,7 @@ public partial class btse : Exchange
         if (isEqual(marketType, "spot"))
         {
             // the literal ALL value cancels every open order across all pairs
-            ((IDictionary<string,object>)request)["symbol"] = (((market != null))) ? (market.ContainsKey("id") ? market["id"] : null) : "ALL";
+            ((IDictionary<string,object>)request)["symbol"] = ((market != null)) ? (market.ContainsKey("id") ? market["id"] : null) : "ALL";
             response = await this.privateDeleteSpotApiV4TradeOrdersAll(this.extend(request, parameters));
         } else
         {
@@ -3700,7 +3700,7 @@ public partial class btse : Exchange
         string? marketId = this.safeString(position, "positionId");
         if ((marketId != null))
         {
-            List<object> parts = ((string)marketId).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = marketId.Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>();
             marketId = this.safeString(parts, 0);
         } else
         {
@@ -3828,7 +3828,7 @@ public partial class btse : Exchange
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        string positionMode = ((bool) isTrue(hedged)) ? "HEDGE" : "ONE_WAY";
+        string positionMode = isTrue(hedged) ? "HEDGE" : "ONE_WAY";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.futuresRequestId(market) },
             { "positionMode", positionMode },
@@ -4265,8 +4265,8 @@ public partial class btse : Exchange
     public virtual string cleanPath(object path)
     {
         string result = ((string)path).Replace((string)"spot", (string)"");
-        result = ((string)result).Replace((string)"futures", (string)"");
-        result = ((string)result).Replace((string)"otc", (string)"");
+        result = result.Replace((string)"futures", (string)"");
+        result = result.Replace((string)"otc", (string)"");
         return result;
     }
 

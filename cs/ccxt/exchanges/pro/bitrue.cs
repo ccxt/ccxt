@@ -310,7 +310,7 @@ public partial class bitrue : ccxt.bitrue
         Int64? sideId = this.safeInteger(order, "S");
         // 1: buy
         // 2: sell
-        string side = (((sideId == 1))) ? "buy" : "sell";
+        string side = ((sideId == 1)) ? "buy" : "sell";
         string? statusId = this.safeString(order, "X");
         string? feeCurrencyId = this.safeString(order, "N");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -747,7 +747,7 @@ public partial class bitrue : ccxt.bitrue
     {
         object symbol = getValue(market, "symbol");
         Int64? idSeconds = this.safeInteger(tick, "id");
-        object timestamp = ((isEqual(idSeconds, null))) ? null : (idSeconds * 1000);
+        object timestamp = (isEqual(idSeconds, null)) ? null : (idSeconds * 1000);
         double? open = this.safeNumber(tick, "open");
         double? high = this.safeNumber(tick, "high");
         double? low = this.safeNumber(tick, "low");
@@ -845,7 +845,7 @@ public partial class bitrue : ccxt.bitrue
         object quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
         double? close = this.safeNumber(tick, "close");
         double? rose = this.safeNumber(tick, "rose");
-        object percentage = ((isEqual(rose, null))) ? null : multiply(rose, 100);
+        object percentage = (isEqual(rose, null)) ? null : multiply(rose, 100);
         return this.safeTicker(new Dictionary<string, object>() {
             { "info", tick },
             { "symbol", symbol },

@@ -596,7 +596,7 @@ public partial class upbit : Exchange
         {
             throw new ExchangeError ((string)(this.id + " parseMarket() missing id")) ;
         }
-        var quoteIdbaseIdVariable = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        var quoteIdbaseIdVariable = id.Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         var quoteId = ((IList<object>) quoteIdbaseIdVariable)[0];
         var baseId = ((IList<object>) quoteIdbaseIdVariable)[1];
         object bs = this.safeCurrencyCode(baseId);

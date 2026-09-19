@@ -651,7 +651,7 @@ public partial class binance : PredictionExchange
         return new Dictionary<string, object>() {
             { "id", topicId },
             { "slug", slug },
-            { "event", (((slug != null))) ? this.shortenSlug(slug) : null },
+            { "event", ((slug != null)) ? this.shortenSlug(slug) : null },
             { "title", title },
             { "description", this.safeString(rawTopic, "description") },
             { "markets", marketsList },
@@ -741,7 +741,7 @@ public partial class binance : PredictionExchange
             if (resolved && ((price != null)))
             {
                 winnerRaw = Precise.stringEq(price, "1");
-                settleFractionRaw = ((winnerRaw == true)) ? 1 : 0;
+                settleFractionRaw = (winnerRaw == true) ? 1 : 0;
                 if ((winnerRaw == true))
                 {
                     resolvedOutcomeRaw = outcomeHandle;
@@ -2140,7 +2140,7 @@ public partial class binance : PredictionExchange
         api ??= "sapi";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiGroup = ((api is string)) ? api : getValue(api, 0);
+        object apiGroup = (api is string) ? api : getValue(api, 0);
         object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "sapi")));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));

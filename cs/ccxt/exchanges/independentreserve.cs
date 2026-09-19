@@ -1092,7 +1092,7 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string orderType = this.capitalize(type);
-        orderType = orderType + ((((side == "sell"))) ? "Offer" : "Bid");
+        orderType = orderType + (((side == "sell")) ? "Offer" : "Bid");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", (market.ContainsKey("baseId") ? market["baseId"] : null) },
             { "secondaryCurrencyCode", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
@@ -1351,7 +1351,7 @@ public partial class independentreserve : Exchange
             Dictionary<string, object> query = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)query)["apiKey"] = this.apiKey;
             ((IDictionary<string,object>)query)["nonce"] = nonce;
-            ((IDictionary<string,object>)query)["signature"] = ((string)signature).ToUpper();
+            ((IDictionary<string,object>)query)["signature"] = signature.ToUpper();
             for (int i = 0; i < keys.Count; i++)
             {
                 string? key = ((string)keys[i]);

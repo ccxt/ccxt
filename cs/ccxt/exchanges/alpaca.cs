@@ -648,12 +648,12 @@ public partial class alpaca : Exchange
         {
             throw new ExchangeError ((string)(this.id + " fetchTime() missing timestamp")) ;
         }
-        int jetlagStrStart = (((string)timestamp).Length - 6);
+        int jetlagStrStart = (timestamp.Length - 6);
         if ((timestamp == null))
         {
             throw new ExchangeError ((string)(this.id + " fetchTime() missing timestamp")) ;
         }
-        int jetlagStrEnd = (((string)timestamp).Length - 3);
+        int jetlagStrEnd = (timestamp.Length - 3);
         if ((timestamp == null))
         {
             throw new ExchangeError ((string)(this.id + " fetchTime() missing timestamp")) ;
@@ -731,7 +731,7 @@ public partial class alpaca : Exchange
         {
             throw new ExchangeError ((string)(this.id + " parseMarket() missing marketId")) ;
         }
-        List<object> parts = ((string)marketId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = marketId.Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         string? assetClass = this.safeString(asset, "class");
         string? baseId = this.safeString(parts, 0);
         string? quoteId = this.safeString(parts, 1);
@@ -1284,7 +1284,7 @@ public partial class alpaca : Exchange
     {
         string? clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         string uuid = this.uuid();
-        List<object> parts = ((string)uuid).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = uuid.Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         string random_id = String.Join("", ((IList<object>)parts).ToArray());
         string? defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
             { "id", random_id },
@@ -2167,7 +2167,7 @@ public partial class alpaca : Exchange
                 string? activityType = this.safeString(entry, "activity_type");
                 string? amount = this.safeString(entry, "net_amount");
                 bool isIncoming = ((activityType == "CSD")) || (((activityType == "TRANS")) && !Precise.stringLt(amount, "0"));
-                string entryDirection = (isIncoming) ? "INCOMING" : "OUTGOING";
+                string entryDirection = isIncoming ? "INCOMING" : "OUTGOING";
                 if ((isEqual(type, "BOTH")) || (isEqual(entryDirection, type)))
                 {
                     ((IList<object>)filtered).Add(entry);
@@ -2317,7 +2317,7 @@ public partial class alpaca : Exchange
             bool isIncoming = ((activityType == "CSD")) || (((activityType == "TRANS")) && !Precise.stringLt(netAmount, "0"));
             timestamp = this.parse8601((this.safeString(transaction, "date") + "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
-            type = (isIncoming) ? "deposit" : "withdrawal";
+            type = isIncoming ? "deposit" : "withdrawal";
             amount = this.parseNumber(Precise.stringAbs(netAmount));
             // cash ledger rows carry no per-entry asset field and are USD, while crypto
             // TRANS entries may carry symbol/asset - never blindly adopt the caller's
@@ -2532,12 +2532,12 @@ public partial class alpaca : Exchange
             string? baseId = null;
             if (((string)positionSymbol).IndexOf("/", StringComparison.Ordinal) >= 0)
             {
-                List<object> parts = ((string)positionSymbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = positionSymbol.Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
                 baseId = this.safeString(parts, 0);
             } else
             {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
-                int baseLength = (((string)positionSymbol).Length - 3);
+                int baseLength = (positionSymbol.Length - 3);
                 if ((baseLength > 0) && (isEqual(slice(positionSymbol, baseLength, null), "USD")))
                 {
                     baseId = slice(positionSymbol, 0, baseLength);
@@ -2566,7 +2566,7 @@ public partial class alpaca : Exchange
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + this.implodeParams(path, parameters));
         object url = this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), getValue(api, 0)));
-        headers = (((headers != null))) ? headers : new Dictionary<string, object>() {};
+        headers = ((headers != null)) ? headers : new Dictionary<string, object>() {};
         if (isEqual(getValue(api, 1), "private"))
         {
             this.checkRequiredCredentials();

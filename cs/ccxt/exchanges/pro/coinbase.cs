@@ -1156,7 +1156,7 @@ public partial class coinbase : ccxt.coinbase
         {
             string? errorMessage = this.safeString(message, "message");
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
-            string? errorMessageValue = (((errorMessage != null))) ? errorMessage : "unknown error";
+            string? errorMessageValue = ((errorMessage != null)) ? errorMessage : "unknown error";
             throw new ExchangeError ((string)errorMessageValue) ;
         }
         object method = this.safeValue(methods, channel);

@@ -232,7 +232,7 @@ public partial class mexc : ccxt.mexc
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isSpot = ((type == "spot"));
-        object url = ((isSpot)) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap");
+        object url = isSpot ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isSpot)
         {
@@ -321,9 +321,9 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> market = this.safeMarket(marketId);
         bool channelStartsWithSpot = ((string)channel).StartsWith(((string)"spot"));
         bool marketIdIsUndefined = (marketId == null);
-        object isSpot = (marketIdIsUndefined) ? channelStartsWithSpot : (market.ContainsKey("spot") ? market["spot"] : null);
+        object isSpot = marketIdIsUndefined ? channelStartsWithSpot : (market.ContainsKey("spot") ? market["spot"] : null);
         string spotPrefix = "spot:";
-        string messageHashPrefix = ((isEqual(isSpot, true))) ? spotPrefix : "";
+        string messageHashPrefix = (isEqual(isSpot, true)) ? spotPrefix : "";
         string topic = (messageHashPrefix + "ticker");
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
@@ -518,7 +518,7 @@ public partial class mexc : ccxt.mexc
         bool? unsubscribed = this.safeBool(parameters, "unsubscribed", false);
         parameters = this.omit(parameters, new List<object>() {"unsubscribed"});
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot"));
-        string method = (((unsubscribed == true))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
+        string method = ((unsubscribed == true)) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
             { "params", new List<object>() {channel} },
@@ -833,7 +833,7 @@ public partial class mexc : ccxt.mexc
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         string? msg = this.safeString(message, "msg", "");
-        List<object> parts = ((string)msg).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = msg.Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
         string? symbol = this.safeSymbol(marketId);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
@@ -1329,7 +1329,7 @@ public partial class mexc : ccxt.mexc
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "v", "quantity");
         string? rawSide = this.safeString2(trade, "S", "tradeType");
-        string side = (((rawSide == "1"))) ? "buy" : "sell";
+        string side = ((rawSide == "1")) ? "buy" : "sell";
         Int64? isMaker = this.safeInteger(trade, "m");
         string? feeAmount = this.safeString2(trade, "n", "feeAmount");
         string? feeCurrencyId = this.safeString2(trade, "N", "feeCurrency");
@@ -1342,7 +1342,7 @@ public partial class mexc : ccxt.mexc
             { "symbol", this.safeSymbol(null, market) },
             { "type", null },
             { "side", side },
-            { "takerOrMaker", ((!isEqual(isMaker, null) && (isMaker != 0))) ? "maker" : "taker" },
+            { "takerOrMaker", (!isEqual(isMaker, null) && (isMaker != 0)) ? "maker" : "taker" },
             { "price", priceString },
             { "amount", amountString },
             { "cost", this.safeString(trade, "amount") },
@@ -1605,7 +1605,7 @@ public partial class mexc : ccxt.mexc
             { "symbol", this.safeSymbol(null, market) },
             { "type", this.parseWsOrderType(type) },
             { "timeInForce", this.parseWsTimeInForce(type) },
-            { "side", (((side == "1"))) ? "buy" : "sell" },
+            { "side", ((side == "1")) ? "buy" : "sell" },
             { "price", this.safeString(order, "price") },
             { "stopPrice", this.safeString2(order, "triggerPrice", "P") },
             { "triggerPrice", this.safeString2(order, "triggerPrice", "P") },
@@ -1735,7 +1735,7 @@ public partial class mexc : ccxt.mexc
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        string type = (((channel == "spot@private.account.v3.api.pb"))) ? "spot" : "swap";
+        string type = ((channel == "spot@private.account.v3.api.pb")) ? "spot" : "swap";
         string messageHash = ("balance:" + type);
         IDictionary<string, object> data = this.safeDictN(message, new List<object>() {"data", "privateAccount"});
         Int64? futuresTimestamp = this.safeInteger2(message, "ts", "createTime");
@@ -1907,7 +1907,7 @@ public partial class mexc : ccxt.mexc
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isSpot = ((type == "spot"));
-        object url = ((isSpot)) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap");
+        object url = isSpot ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isSpot)
         {
@@ -2266,7 +2266,7 @@ public partial class mexc : ccxt.mexc
             this.handlePong(client as WebSocketClient, message);
         } else if (getIndexOf(msg, "@") > -1)
         {
-            List<object> parts = ((string)msg).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = msg.Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
             string? channel = this.safeString(parts, 1);
             Dictionary<string, object> methods = new Dictionary<string, object>() {
                 { "public.increase.depth.v3.api", this.handleOrderBookSubscription },
@@ -2301,7 +2301,7 @@ public partial class mexc : ccxt.mexc
         //    }
         // }
         string? channel = this.safeString(message, "channel", "");
-        List<object> channelParts = ((string)channel).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> channelParts = channel.Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? channelId = this.safeString(channelParts, 1);
         if ((channelId == "public.kline.v3.api.pb"))
         {
@@ -2357,7 +2357,7 @@ public partial class mexc : ccxt.mexc
             channel = this.safeString(message, "channel");
         } else
         {
-            List<object> parts = ((string)c).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = c.Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
             channel = this.safeString(parts, 1, "");
         }
         Dictionary<string, object> methods = new Dictionary<string, object>() {

@@ -873,7 +873,7 @@ public partial class lbank : Exchange
         string? symbol = this.safeSymbol(marketId, market);
         IDictionary<string, object> tickerData = this.safeDict(ticker, "ticker", new Dictionary<string, object>() {});
         market = this.safeMarket(marketId, market);
-        object data = ((isEqual(getValue(market, "contract"), true))) ? ticker : tickerData;
+        object data = (isEqual(getValue(market, "contract"), true)) ? ticker : tickerData;
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1203,7 +1203,7 @@ public partial class lbank : Exchange
         string? takerOrMaker = null;
         if ((side != null))
         {
-            List<object> parts = ((string)side).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = side.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             side = this.safeString(parts, 0);
             string? typePart = this.safeString(parts, 1);
             type = "limit";
@@ -1230,7 +1230,7 @@ public partial class lbank : Exchange
         string? feeCost = this.safeString(trade, "tradeFee");
         if ((feeCost != null))
         {
-            string? feeCurr = (((side == "buy"))) ? this.safeString(market, "base") : this.safeString(market, "quote");
+            string? feeCurr = ((side == "buy")) ? this.safeString(market, "base") : this.safeString(market, "quote");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
                 { "currency", feeCurr },
@@ -1734,7 +1734,7 @@ public partial class lbank : Exchange
         //        "code": 0
         //    }
         //
-        object balanceResponse = (((response == null))) ? new Dictionary<string, object>() {} : response;
+        object balanceResponse = ((response == null)) ? new Dictionary<string, object>() {} : response;
         object balanceResult = this.parseBalance(balanceResponse);
         if ((balanceResult == null))
         {

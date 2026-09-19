@@ -1686,15 +1686,15 @@ public partial class coinbaseinternational : Exchange
             settleId = quoteId;
             symbol = add(symbol, (":" + quoteId));
         }
-        bool? isLinear = (isSpot) ? null : ((settleId == quoteId));
-        bool? isInverse = (isSpot) ? null : ((settleId != quoteId));
+        bool? isLinear = isSpot ? null : ((settleId == quoteId));
+        bool? isInverse = isSpot ? null : ((settleId != quoteId));
         if ((marketId == null))
         {
             throw new ExchangeError ((string)(this.id + " parseMarket() missing marketId")) ;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
-            { "lowercaseId", ((string)marketId).ToLower() },
+            { "lowercaseId", marketId.ToLower() },
             { "symbol", symbol },
             { "base", baseId },
             { "quote", quoteId },
@@ -1702,7 +1702,7 @@ public partial class coinbaseinternational : Exchange
             { "baseId", baseId },
             { "quoteId", quoteId },
             { "settleId", settleId },
-            { "type", (isSpot) ? "spot" : "swap" },
+            { "type", isSpot ? "spot" : "swap" },
             { "spot", isSpot },
             { "margin", false },
             { "swap", !isSpot },
@@ -1714,7 +1714,7 @@ public partial class coinbaseinternational : Exchange
             { "inverse", isInverse },
             { "taker", getValue(getValue(fees, "trading"), "taker") },
             { "maker", getValue(getValue(fees, "trading"), "maker") },
-            { "contractSize", (isSpot) ? null : 1 },
+            { "contractSize", isSpot ? null : 1 },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -1731,7 +1731,7 @@ public partial class coinbaseinternational : Exchange
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", (isSpot) ? null : this.safeNumber(market, "position_limit_qty") },
+                    { "max", isSpot ? null : this.safeNumber(market, "position_limit_qty") },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", null },
@@ -2019,7 +2019,7 @@ public partial class coinbaseinternational : Exchange
         };
         Dictionary<string, object> response = await this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters));
         bool? success = this.safeBool(response, "success");
-        return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", null },             { "timestamp", null },             { "datetime", null },             { "currency", code },             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },             { "status", (((success == true))) ? "ok" : "failed" },         });
+        return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", null },             { "timestamp", null },             { "datetime", null },             { "currency", code },             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },             { "status", ((success == true)) ? "ok" : "failed" },         });
     }
 
     /**
@@ -2105,7 +2105,7 @@ public partial class coinbaseinternational : Exchange
             tif = "IOC";
         } else
         {
-            tif = (((tif == null))) ? "GTC" : tif;
+            tif = ((tif == null)) ? "GTC" : tif;
         }
         if (!isEqual(postOnly, null))
         {

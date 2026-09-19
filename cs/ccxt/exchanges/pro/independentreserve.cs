@@ -197,7 +197,7 @@ public partial class independentreserve : ccxt.independentreserve
         {
             return;
         }
-        List<object> parts = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         string? depth = this.safeString(parts, 1);
         string? baseId = this.safeString(parts, 2);
         string? quoteId = this.safeString(parts, 3);
@@ -332,7 +332,7 @@ public partial class independentreserve : ccxt.independentreserve
             { "OrderBookSnapshot", this.handleOrderBook },
             { "OrderBookChange", this.handleOrderBook },
         };
-        object handler = (((eventVar == null))) ? null : this.safeValue(handlers, eventVar);
+        object handler = ((eventVar == null)) ? null : this.safeValue(handlers, eventVar);
         if ((handler != null))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

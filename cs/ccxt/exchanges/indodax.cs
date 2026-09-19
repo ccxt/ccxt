@@ -428,7 +428,7 @@ public partial class indodax : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "active", (inMaintenance) ? false : true },
+                { "active", inMaintenance ? false : true },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },
@@ -1505,7 +1505,7 @@ public partial class indodax : Exchange
             { "address", this.safeString(transaction, "withdraw_address") },
             { "addressTo", null },
             { "amount", this.safeNumberN(transaction, new List<object>() {"amount", "withdraw_amount", "deposit_amount"}) },
-            { "type", (((depositId == null))) ? "withdraw" : "deposit" },
+            { "type", ((depositId == null)) ? "withdraw" : "deposit" },
             { "currency", this.safeCurrencyCode(null, currency) },
             { "status", this.parseTransactionStatus(status) },
             { "updated", null },
@@ -1609,7 +1609,7 @@ public partial class indodax : Exchange
                         {
                             throw new ExchangeError ((string)(this.id + " fetchDepositAddresses() missing networkId")) ;
                         }
-                        List<object> networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+                        List<object> networkIds = networkId.Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
                         for (int j = 0; j < networkIds.Count; j++)
                         {
                             object _netIdTmp = this.networkIdToCode(networkIds[j], code);

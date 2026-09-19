@@ -585,7 +585,7 @@ public partial class PredictionExchange : BaseExchange
             { "percent", "pct" },
         };
         List<object> stopWords = new List<object>() {"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"};
-        string lower = (((slug == null))) ? "" : ((string)slug).ToLower();
+        string lower = ((slug == null)) ? "" : ((string)slug).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         object chars = this.stringToCharsArray(lower);
         object s = "";
@@ -624,7 +624,7 @@ public partial class PredictionExchange : BaseExchange
             }
         }
         string joined = String.Join("_", ((IList<object>)parts).ToArray());
-        return ((string)joined).ToUpper();
+        return joined.ToUpper();
     }
 
     public virtual object slugToMarketSymbol(object eventSlug, object marketSlug)
@@ -755,7 +755,7 @@ public partial class PredictionExchange : BaseExchange
                     string? existingId = this.safeString(existing, "outcomeId");
                     if (((existingId != null)) && ((ocId != null)) && ((existingId != ocId)))
                     {
-                        int idLen = ((string)ocId).Length;
+                        int idLen = ocId.Length;
                         string? suffix = ocId;
                         if (idLen > 6)
                         {
@@ -962,7 +962,7 @@ public partial class PredictionExchange : BaseExchange
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
         string normalized = ((string)((string)marketPart).ToLower()).Replace((string)"-", (string)"_");
-        List<object> rawWords = ((string)normalized).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> rawWords = normalized.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         List<object> words = new List<object>() {};
         bool hasLetters = false;
         string letters = "abcdefghijklmnopqrstuvwxyz";
@@ -1561,7 +1561,7 @@ public partial class PredictionExchange : BaseExchange
         }
         if (((cost == null)) && ((filled != null)))
         {
-            string? multiplyPrice = (((average != null))) ? average : price;
+            string? multiplyPrice = ((average != null)) ? average : price;
             if ((multiplyPrice != null))
             {
                 cost = Precise.stringMul(filled, multiplyPrice);
@@ -1775,9 +1775,9 @@ public partial class PredictionExchange : BaseExchange
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         string? fallback = this.safeString2(orderbook, "outcome", "symbol");
-        ((IDictionary<string,object>)orderbook)["outcome"] = (((outcomeObj == null))) ? fallback : this.safeString(outcomeObj, "outcome", fallback);
-        ((IDictionary<string,object>)orderbook)["outcomeId"] = (((outcomeObj == null))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId");
-        ((IDictionary<string,object>)orderbook)["market"] = (((outcomeObj == null))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market");
+        ((IDictionary<string,object>)orderbook)["outcome"] = ((outcomeObj == null)) ? fallback : this.safeString(outcomeObj, "outcome", fallback);
+        ((IDictionary<string,object>)orderbook)["outcomeId"] = ((outcomeObj == null)) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId");
+        ((IDictionary<string,object>)orderbook)["market"] = ((outcomeObj == null)) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market");
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
         return this.omit(orderbook, "symbol");
     }

@@ -794,7 +794,7 @@ public partial class coinsph : Exchange
             { "id", id },
             { "name", this.safeString(rawCurrency, "name") },
             { "code", code },
-            { "type", (((isFiat == true))) ? "fiat" : "crypto" },
+            { "type", ((isFiat == true)) ? "fiat" : "crypto" },
             { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "transferPrecision"))) },
             { "info", rawCurrency },
             { "active", null },
@@ -1489,13 +1489,13 @@ public partial class coinsph : Exchange
         string? side = null;
         if (!isEqual(isBuyer, null))
         {
-            side = (((isBuyer == true))) ? "buy" : "sell";
+            side = ((isBuyer == true)) ? "buy" : "sell";
         }
         string? isMaker = this.safeString(trade, "isMaker");
         string? takerOrMaker = null;
         if ((isMaker != null))
         {
-            takerOrMaker = (((isMaker == "true"))) ? "maker" : "taker";
+            takerOrMaker = ((isMaker == "true")) ? "maker" : "taker";
         }
         string? costString = null;
         if ((orderId != null))
@@ -2201,7 +2201,7 @@ public partial class coinsph : Exchange
             throw new InvalidAddress ((string)(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
         }
         string? networkCode = this.safeString(parameters, "network");
-        object networkId = (((networkCode == null))) ? null : this.networkCodeToId(networkCode, code);
+        object networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
             throw new BadRequest ((string)(this.id + " withdraw() require network parameter")) ;
@@ -2494,7 +2494,7 @@ public partial class coinsph : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? networkCode = this.safeString(parameters, "network");
-        object networkId = (((networkCode == null))) ? null : this.networkCodeToId(networkCode, code);
+        object networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
             throw new BadRequest ((string)(this.id + " fetchDepositAddress() require network parameter")) ;
@@ -2573,8 +2573,8 @@ public partial class coinsph : Exchange
     public virtual object parseArrayParam(object array, object key)
     {
         string stringifiedArray = this.json(array);
-        stringifiedArray = ((string)stringifiedArray).Replace((string)"[", (string)"%5B");
-        stringifiedArray = ((string)stringifiedArray).Replace((string)"]", (string)"%5D");
+        stringifiedArray = stringifiedArray.Replace((string)"[", (string)"%5B");
+        stringifiedArray = stringifiedArray.Replace((string)"]", (string)"%5D");
         object urlEncodedParam = add(add(key, "="), stringifiedArray);
         return urlEncodedParam;
     }

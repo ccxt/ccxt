@@ -1118,7 +1118,7 @@ public partial class aster : Exchange
             return ((bool)((object)((isEqual(type, "delivery"))))!);
         } else
         {
-            return ((bool)((object)(isEqual(subType, "inverse")))!);
+            return ((bool)((object)((subType == "inverse")))!);
         }
     }
 
@@ -1367,7 +1367,7 @@ public partial class aster : Exchange
         {
             pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
         }
-        double? amountPrecision = (((filterLotSize != null))) ? this.safeNumber(filterLotSize, "stepSize") : this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
+        double? amountPrecision = ((filterLotSize != null)) ? this.safeNumber(filterLotSize, "stepSize") : this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1377,7 +1377,7 @@ public partial class aster : Exchange
             { "baseId", baseId },
             { "quoteId", quoteId },
             { "settleId", settleId },
-            { "type", (isContract) ? "swap" : "spot" },
+            { "type", isContract ? "swap" : "spot" },
             { "spot", spot },
             { "margin", false },
             { "swap", swap },
@@ -1604,7 +1604,7 @@ public partial class aster : Exchange
         //
         string? id = this.safeString2(trade, "id", "a");
         string? marketId = this.safeString(trade, "symbol");
-        string marketType = (((trade != null && ((IDictionary<string, object>)trade).ContainsKey("positionSide")))) ? "swap" : "spot";
+        string marketType = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("positionSide"))) ? "swap" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         string? currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
         string? currencyCode = this.safeCurrencyCode(currencyId);
@@ -1617,20 +1617,20 @@ public partial class aster : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((isMaker == true)) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
             if ((side == null))
             {
                 bool? isBuyer = this.safeBool(trade, "buyer");
                 if (!isEqual(isBuyer, null))
                 {
-                    side = ((isBuyer == true)) ? "buy" : "sell";
+                    side = isBuyer == true ? "buy" : "sell";
                 }
             }
         }
         bool? isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
         if (!isEqual(isBuyerMaker, null))
         {
-            side = ((isBuyerMaker == true)) ? "sell" : "buy";
+            side = isBuyerMaker == true ? "sell" : "buy";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -1903,10 +1903,10 @@ public partial class aster : Exchange
         string? marketType = null;
         if (isTickerResponse)
         {
-            marketType = (((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("baseAsset")))) ? "spot" : "swap";
+            marketType = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("baseAsset"))) ? "spot" : "swap";
         } else
         {
-            marketType = (((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("lastUpdateId")))) ? "swap" : "spot";
+            marketType = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("lastUpdateId"))) ? "swap" : "spot";
         }
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);
@@ -2558,7 +2558,7 @@ public partial class aster : Exchange
     public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string strValue = ((bool) isTrue(hedged)) ? "true" : "false";
+        string strValue = isTrue(hedged) ? "true" : "false";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "dualSidePosition", strValue },
         };
@@ -2707,7 +2707,7 @@ public partial class aster : Exchange
         //
         object info = order;
         string? positionSide = this.safeString(order, "positionSide");
-        string defaultType = (((positionSide != null))) ? "swap" : "spot";
+        string defaultType = ((positionSide != null)) ? "swap" : "spot";
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, defaultType);
         string? side = this.safeStringLower(order, "side");
@@ -3755,7 +3755,7 @@ public partial class aster : Exchange
         };
         if ((type != null))
         {
-            ((IDictionary<string,object>)request)["type"] = (((type == "add"))) ? 1 : 2;
+            ((IDictionary<string,object>)request)["type"] = ((type == "add")) ? 1 : 2;
         }
         if ((limit != null))
         {
@@ -3815,12 +3815,12 @@ public partial class aster : Exchange
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", getValue(market, "symbol") },
-            { "type", (((rawType == 1))) ? "add" : "reduce" },
+            { "type", ((rawType == 1)) ? "add" : "reduce" },
             { "marginMode", "isolated" },
             { "amount", this.safeNumber(data, "amount") },
             { "code", this.safeString(data, "asset") },
             { "total", null },
-            { "status", ((success || noErrorCode)) ? "ok" : "failed" },
+            { "status", (success || noErrorCode) ? "ok" : "failed" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
@@ -4118,7 +4118,7 @@ public partial class aster : Exchange
         string? marginMode = this.safeString(position, "marginType");
         if ((marginMode == null) && (isolatedMarginString != null))
         {
-            marginMode = (Precise.stringEq(isolatedMarginString, "0")) ? "cross" : "isolated";
+            marginMode = Precise.stringEq(isolatedMarginString, "0") ? "cross" : "isolated";
         }
         string? side = null;
         if (Precise.stringGt(notionalString, "0"))
@@ -4189,7 +4189,7 @@ public partial class aster : Exchange
         {
             collateralString = this.safeString(position, "isolatedMargin");
         }
-        collateralString = (((collateralString == null))) ? "0" : collateralString;
+        collateralString = ((collateralString == null)) ? "0" : collateralString;
         double? collateral = this.parseNumber(collateralString);
         double? markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         Int64? timestamp = this.safeInteger(position, "updateTime");
@@ -4387,7 +4387,7 @@ public partial class aster : Exchange
             object position = positions[i];
             string? marketId = this.safeString(position, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
-            object code = (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))) ? (market.ContainsKey("quote") ? market["quote"] : null) : (market.ContainsKey("base") ? market["base"] : null);
+            object code = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) ? (market.ContainsKey("quote") ? market["quote"] : null) : (market.ContainsKey("base") ? market["base"] : null);
             string? maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             bool isPositionOpen = ((maintenanceMargin != "0")) && ((maintenanceMargin != "0.00000000"));
@@ -4413,7 +4413,7 @@ public partial class aster : Exchange
         market = this.safeMarket(marketId, market, null, "contract");
         string? symbol = this.safeString(market, "symbol");
         string? leverageString = this.safeString(position, "leverage");
-        object leverage = (((leverageString != null))) ? parseInt(leverageString) : null;
+        object leverage = ((leverageString != null)) ? parseInt(leverageString) : null;
         string? initialMarginString = this.safeString(position, "initialMargin");
         double? initialMargin = this.parseNumber(initialMarginString);
         string? initialMarginPercentageString = null;
@@ -4502,7 +4502,7 @@ public partial class aster : Exchange
             entryPrice = null;
         } else
         {
-            side = (Precise.stringLt(notionalString, "0")) ? "short" : "long";
+            side = Precise.stringLt(notionalString, "0") ? "short" : "long";
             marginRatio = this.parseNumber(Precise.stringDiv(Precise.stringAdd(Precise.stringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
             if (usdm)
@@ -5051,7 +5051,7 @@ public partial class aster : Exchange
             object key = keys[i];
             object value = getValue(values, key);
             bool isObj = ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) || isTrue(this.isDictionary(value));
-            string? valueJsonified = (isObj) ? this.json(value) : ((object)value).ToString();
+            string? valueJsonified = isObj ? this.json(value) : ((object)value).ToString();
             object encoded = this.encodeURIComponent(valueJsonified);
             encodedString = add(encodedString, add(add(add(key, "="), encoded), "&"));
         }

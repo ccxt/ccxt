@@ -529,7 +529,7 @@ public partial class coinex : ccxt.coinex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "market");
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
-        string defaultType = (isSpot) ? "spot" : "swap";
+        string defaultType = isSpot ? "spot" : "swap";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("myTrades:" + symbol);
@@ -593,7 +593,7 @@ public partial class coinex : ccxt.coinex
         List<object> trades = this.safeList(data, "deal_list", new List<object>() {});
         string? marketId = this.safeString(data, "market");
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
-        string defaultType = (isSpot) ? "spot" : "swap";
+        string defaultType = isSpot ? "spot" : "swap";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trades:" + symbol);
@@ -655,7 +655,7 @@ public partial class coinex : ccxt.coinex
         //
         Int64? timestamp = this.safeInteger(trade, "created_at");
         bool isSpot = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("margin_market")));
-        string defaultType = (isSpot) ? "spot" : "swap";
+        string defaultType = isSpot ? "spot" : "swap";
         string? marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
@@ -982,7 +982,7 @@ public partial class coinex : ccxt.coinex
         //     }
         //
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
-        string defaultType = (isSpot) ? "spot" : "swap";
+        string defaultType = isSpot ? "spot" : "swap";
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "market");
@@ -1329,7 +1329,7 @@ public partial class coinex : ccxt.coinex
         string? marketId = this.safeString(order, "market");
         string? status = this.safeString(order, "status");
         bool isSpot = ((order != null && ((IDictionary<string, object>)order).ContainsKey("margin_market")));
-        string defaultType = (isSpot) ? "spot" : "swap";
+        string defaultType = isSpot ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
         Dictionary<string, object> fee = null;
         string? feeCost = ((string)this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee")));
@@ -1616,7 +1616,7 @@ public partial class coinex : ccxt.coinex
             { "method", "server.sign" },
             { "params", new Dictionary<string, object>() {
                 { "access_id", this.apiKey },
-                { "signed_str", ((string)hmac).ToLower() },
+                { "signed_str", hmac.ToLower() },
                 { "timestamp", time },
             } },
         };

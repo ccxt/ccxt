@@ -589,7 +589,7 @@ public partial class bithumb : Exchange
                 string? quote = null;
                 if ((marketId != null))
                 {
-                    List<object> parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                    List<object> parts = marketId.Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     // to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = (parts != null && 1 < parts.Count ? parts[1] : null);
                     quoteId = (parts != null && 0 < parts.Count ? parts[0] : null);
@@ -1117,7 +1117,7 @@ public partial class bithumb : Exchange
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
             List<object> marketIds = new List<object>() {};
-            object symbolsForMarketIds = (((symbols == null))) ? this.symbols : symbols;
+            object symbolsForMarketIds = ((symbols == null)) ? this.symbols : symbols;
             int symbolsForMarketIdsLength = getArrayLength(symbolsForMarketIds);
             for (int i = 0; i < symbolsForMarketIdsLength; i++)
             {
@@ -1623,7 +1623,7 @@ public partial class bithumb : Exchange
         string? transactionDatetime = this.safeString(trade, "transaction_date");
         if ((transactionDatetime != null))
         {
-            List<object> parts = ((string)transactionDatetime).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = transactionDatetime.Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             int numParts = parts.Count;
             if (numParts > 1)
             {
@@ -1940,7 +1940,7 @@ public partial class bithumb : Exchange
                     }
                 } else
                 {
-                    cost = (((cost == null))) ? this.numberToString(amount) : cost;
+                    cost = ((cost == null)) ? this.numberToString(amount) : cost;
                 }
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, cost);
             } else
@@ -2641,7 +2641,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool? twap = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
-        if (!(twap == true))
+        if (twap != true)
         {
             List<object> clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
             if ((clientOrderIds != null))
@@ -3089,7 +3089,7 @@ public partial class bithumb : Exchange
         object timestamp = this.parse8601(datetime);
         if (((datetime != null)) && (((string)datetime).IndexOf("+09:00", StringComparison.Ordinal) > -1))
         {
-            string normalized = ((string)datetime).Replace((string)"+09:00", (string)"Z");
+            string normalized = datetime.Replace((string)"+09:00", (string)"Z");
             Int64? normalizedTimestamp = this.parse8601(normalized);
             if (!isEqual(normalizedTimestamp, null))
             {
@@ -3733,7 +3733,7 @@ public partial class bithumb : Exchange
                 }
                 if (hasQuery)
                 {
-                    object authString = (((auth == null))) ? "" : auth;
+                    object authString = ((auth == null)) ? "" : auth;
                     ((IDictionary<string,object>)request)["query_hash"] = this.hash(this.encode(authString), sha512);
                     ((IDictionary<string,object>)request)["query_hash_alg"] = "SHA512";
                 }
