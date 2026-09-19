@@ -173,10 +173,7 @@ impl crate::exchange_generated::ExchangeBase for BitvavoCore {
     {
         Box::pin(async move {
             match method {
-                "action_and_market_message_hash" => self.action_and_market_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "action_and_order_id_message_hash" => self.action_and_order_id_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "authenticate" => self.authenticate(&args[..]).await,
-                "build_message_hash" => self.build_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "cancel_all_orders_ws" => self.cancel_all_orders_ws(&args[..]).await,
                 "cancel_order_ws" => self.cancel_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_order_ws" => self.create_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
@@ -236,10 +233,7 @@ impl BitvavoCore {
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
         let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
-            "action_and_market_message_hash" => self.action_and_market_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "action_and_order_id_message_hash" => self.action_and_order_id_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "build_message_hash" => self.build_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "cancel_all_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_all_orders_ws", args.to_vec()); crate::Value::Null },
             "cancel_order_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_order_ws", args.to_vec()); crate::Value::Null },
             "create_order_ws" => { crate::exchange_stubs::enqueue_spawn("create_order_ws", args.to_vec()); crate::Value::Null },
@@ -2412,7 +2406,7 @@ impl BitvavoCore {
         client.resolve(&[markets, messageHash]);
 }
 
-    pub fn build_message_hash(&mut self, mut action: Value, optional_args: &[Value]) -> Value {
+    pub fn build_message_hash(&mut self, mut action: Value, optional_args: &[Value]) -> Option<String> {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2431,23 +2425,19 @@ impl BitvavoCore {
         if (method != Value::Null) {
             messageHash = self.dispatch_ws_handler(&method, &[action, params]);
         }
-        return messageHash;
-
-    Value::Null
+        return messageHash.as_str().map(str::to_owned);
 }
 
-    pub fn action_and_market_message_hash(&self, mut action: Value, optional_args: &[Value]) -> Value {
+    pub fn action_and_market_message_hash(&self, mut action: Value, optional_args: &[Value]) -> Option<String> {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut symbol: Value = self.safe_string_k(params, "market", &[Value::Str("".into())]);
-        return Value::Str(format!("{}{}", action, symbol).into());
-
-    Value::Null
+        return Value::Str(format!("{}{}", action, symbol).into()).as_str().map(str::to_owned);
 }
 
-    pub fn action_and_order_id_message_hash(&self, mut action: Value, optional_args: &[Value]) -> Value {
+    pub fn action_and_order_id_message_hash(&self, mut action: Value, optional_args: &[Value]) -> Option<String> {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2456,9 +2446,7 @@ impl BitvavoCore {
         if (orderId == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" privateUpdateOrderMessageHash requires a orderId parameter".into()))));
         }
-        return Value::Str(format!("{}{}", action, orderId).into());
-
-    Value::Null
+        return Value::Str(format!("{}{}", action, orderId).into()).as_str().map(str::to_owned);
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
@@ -2636,7 +2624,7 @@ impl BitvavoCore {
         let mut error: Value = self.safe_string_k(message.clone(), "error", &[]);
         let mut code: Value = self.safe_integer_k(error.clone(), "errorCode", &[]);
         let mut action: Value = self.safe_string_k(message.clone(), "action", &[]);
-        let mut buildMessage: Value = self.build_message_hash(action, &[message.clone()]);
+        let mut buildMessage: Value = self.build_message_hash(action, &[message.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = self.safe_string_k(message.clone(), "requestId", &[buildMessage]);
         let mut rejected: bool = false;
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {

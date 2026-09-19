@@ -117,7 +117,6 @@ impl crate::exchange_generated::ExchangeBase for BitfinexCore {
                 "cancel_all_orders" => self.cancel_all_orders(&args[..]).await,
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "convert_derivatives_id" => self.convert_derivatives_id(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "create_deposit_address" => self.create_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
@@ -166,15 +165,11 @@ impl crate::exchange_generated::ExchangeBase for BitfinexCore {
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order_flags" => self.parse_order_flags(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer_status" => self.parse_transfer_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "price_to_precision" => self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "set_margin" => self.set_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1962,8 +1957,8 @@ impl BitfinexCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() toAccount must be one of ".into())).into()), join(&keys, &Value::Str(", ".into())))));
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut fromCurrencyId: Value = self.convert_derivatives_id(currency.clone(), fromAccount);
-        let mut toCurrencyId: Value = self.convert_derivatives_id(currency.clone(), toAccount);
+        let mut fromCurrencyId: Value = self.convert_derivatives_id(currency.clone(), fromAccount).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut toCurrencyId: Value = self.convert_derivatives_id(currency.clone(), toAccount).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut requestedAmount: Value = self.currency_to_precision(code.clone(), amount, &[]);
         // this request is slightly different from v1 fromAccount -> from
         let mut request: Value = Value::Map({
@@ -2051,7 +2046,7 @@ impl BitfinexCore {
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("status".to_string(), self.parse_transfer_status(status));
+        m.insert("status".to_string(), self.parse_transfer_status(status).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number(info, Value::Int(7), &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId, &[currency]));
         m.insert("fromAccount".to_string(), fromAccount);
@@ -2063,7 +2058,7 @@ impl BitfinexCore {
     Value::Null
 }
 
-    pub fn parse_transfer_status(&self, mut status: Value) -> Value {
+    pub fn parse_transfer_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("SUCCESS".to_string(), Value::Str("ok".into()));
@@ -2071,12 +2066,10 @@ impl BitfinexCore {
                 m.insert("FAILURE".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn convert_derivatives_id(&self, mut currency: Value, mut type_var: Value) -> Value {
+    pub fn convert_derivatives_id(&self, mut currency: Value, mut type_var: Value) -> Option<String> {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
         //   "id": "fUSTF0",
@@ -2098,9 +2091,7 @@ impl BitfinexCore {
         }  else {
             currencyId = transferId;
         }
-        return currencyId;
-
-    Value::Null
+        return currencyId.as_str().map(str::to_owned);
 }
 
 /*
@@ -2581,9 +2572,9 @@ impl BitfinexCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         if (status == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let mut parts: Value = split(&status, &Value::Str(" ".into()));
         let mut state: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
@@ -2601,9 +2592,7 @@ impl BitfinexCore {
                 m.insert("FILLORKILL CANCELED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, state, &[status]);
-
-    Value::Null
+        return self.safe_string(statuses, state, &[status]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_flags(&self, mut flags: Value) -> Value {
@@ -2620,7 +2609,7 @@ impl BitfinexCore {
     Value::Null
 }
 
-    pub fn parse_time_in_force(&self, mut orderType: Value) -> Value {
+    pub fn parse_time_in_force(&self, mut orderType: Value) -> Option<String> {
         let mut orderTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("EXCHANGE IOC".to_string(), Value::Str("IOC".into()));
@@ -2629,9 +2618,7 @@ impl BitfinexCore {
                 m.insert("FOK".to_string(), Value::Str("FOK".into()));
             m
         });
-        return self.safe_string(orderTypes, orderType, &[Value::Str("GTC".into())]);
-
-    Value::Null
+        return self.safe_string(orderTypes, orderType, &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2649,7 +2636,7 @@ impl BitfinexCore {
         let mut side: Value = (if is_true(&crate::precise::Precise::stringLt(&signedAmount, &Value::Str("0".into()))) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         let mut orderType: Value = self.safe_string(orderList.clone(), Value::Int(8), &[]);
         let mut type_var: Value = self.safe_string(self.safe_dict_k(self.options.clone(), "exchangeTypes", &[]), orderType.clone(), &[]);
-        let mut timeInForce: Value = self.parse_time_in_force(orderType.clone());
+        let mut timeInForce: Value = self.parse_time_in_force(orderType.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut rawFlags: Value = self.safe_string(orderList.clone(), Value::Int(12), &[]);
         let mut flags: Value = self.parse_order_flags(rawFlags);
         let mut postOnly: Value = Value::Bool(false);
@@ -2677,7 +2664,7 @@ impl BitfinexCore {
         let mut statusString: Value = self.safe_string(orderList.clone(), Value::Int(13), &[]);
         if (statusString != Value::Null) {
             let mut parts: Value = split(&statusString, &Value::Str(" @ ".into()));
-            status = self.parse_order_status(self.safe_string(parts.clone(), Value::Int(0), &[]));
+            status = self.parse_order_status(self.safe_string(parts.clone(), Value::Int(0), &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         let mut average: Value = self.safe_string(orderList.clone(), Value::Int(17), &[]);
         let mut clientOrderId: Value = self.safe_string(orderList.clone(), Value::Int(2), &[]);
@@ -3699,7 +3686,7 @@ impl BitfinexCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("SUCCESS".to_string(), Value::Str("ok".into()));
@@ -3715,9 +3702,7 @@ impl BitfinexCore {
                 m.insert("USER APPROVED".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -3816,7 +3801,7 @@ impl BitfinexCore {
             network = self.network_id_to_code(&[networkId, code.clone()]);
             timestamp = self.safe_integer(transaction.clone(), Value::Int(5), &[]);
             updated = self.safe_integer(transaction.clone(), Value::Int(6), &[]);
-            status = self.parse_transaction_status(self.safe_string(transaction.clone(), Value::Int(9), &[]));
+            status = self.parse_transaction_status(self.safe_string(transaction.clone(), Value::Int(9), &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             let mut signedAmount: Value = self.safe_string(transaction.clone(), Value::Int(12), &[]);
             amount = crate::precise::Precise::stringAbs(&signedAmount);
             if (signedAmount != Value::Null) {

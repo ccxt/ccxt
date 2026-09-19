@@ -842,7 +842,7 @@ impl DeriveCore {
         if (authenticated == Value::Null) {
             let mut requestId: Value = self.request_id(url.clone());
             let mut now: Value = to_string_val(&self.milliseconds());
-            let mut signature: Value = self.parent.sign_message(now.clone(), self.privateKey.clone());
+            let mut signature: Value = self.parent.sign_message(now.clone(), self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             let mut deriveWalletAddress: Value = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

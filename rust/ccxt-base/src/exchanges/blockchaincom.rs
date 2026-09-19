@@ -97,11 +97,9 @@ impl crate::exchange_generated::ExchangeBase for BlockchaincomCore {
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_state" => self.parse_order_state(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_state" => self.parse_transaction_state(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -864,7 +862,7 @@ impl BlockchaincomCore {
     Value::Null
 }
 
-    pub fn parse_order_state(&self, mut state: Value) -> Value {
+    pub fn parse_order_state(&self, mut state: Value) -> Option<String> {
         let mut states: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OPEN".to_string(), Value::Str("open".into()));
@@ -875,9 +873,7 @@ impl BlockchaincomCore {
                 m.insert("EXPIRED".to_string(), Value::Str("expired".into()));
             m
         });
-        return self.safe_string(states, state.clone(), &[state.clone()]);
-
-    Value::Null
+        return self.safe_string(states, state.clone(), &[state.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -903,7 +899,7 @@ impl BlockchaincomCore {
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clOrdId", &[]);
         let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("ordType".into()), &[]);
         let mut statusId: Value = self.safe_string_k(order.clone(), "ordStatus", &[]);
-        let mut state: Value = self.parse_order_state(statusId);
+        let mut state: Value = self.parse_order_state(statusId).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market, Value::Str("-".into())]);
@@ -1388,7 +1384,7 @@ impl BlockchaincomCore {
     Value::Null
 }
 
-    pub fn parse_transaction_state(&self, mut state: Value) -> Value {
+    pub fn parse_transaction_state(&self, mut state: Value) -> Option<String> {
         let mut states: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("COMPLETED".to_string(), Value::Str("ok".into()));
@@ -1398,9 +1394,7 @@ impl BlockchaincomCore {
                 m.insert("REFUNDED".to_string(), Value::Str("refunded".into()));
             m
         });
-        return self.safe_string(states, state.clone(), &[state.clone()]);
-
-    Value::Null
+        return self.safe_string(states, state.clone(), &[state.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -1473,7 +1467,7 @@ impl BlockchaincomCore {
         m.insert("type".to_string(), type_var);
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
-        m.insert("status".to_string(), self.parse_transaction_state(state));
+        m.insert("status".to_string(), self.parse_transaction_state(state).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
