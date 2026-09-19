@@ -1766,7 +1766,7 @@ impl WoofiproCore {
         })]);
         let mut keys: Value = object_keys(&balances);
         let mut ts: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), data.clone()); }
         add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), ts.clone());
         { let __be_tmp = self.iso8601(ts.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };
         {

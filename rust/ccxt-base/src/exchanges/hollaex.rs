@@ -694,7 +694,8 @@ impl HollaexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_755: bool = true;
             while { if !__for_first_755 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_755 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut key: Value = get_value(&keys, &i);
+            let mut key: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&pairs, &key);
             let mut market: Value = get_value(&pairs, &key);
             let mut baseId: Value = self.safe_string_k(market.clone(), "pair_base", &[]);
@@ -866,7 +867,7 @@ impl HollaexCore {
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut withdrawalLimits: Value = self.safe_list_k(rawCurrency.clone(), "withdrawal_limits", &[Value::from(vec![])]);
         let mut rawType: Option<String> = self.safe_string_k(rawCurrency.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if (rawType.as_deref() == Some("blockchain")) { Value::Str("crypto".to_string()) } else { Value::Str("other".to_string()) });
+        let mut type_var: Value = (if is_true(&(rawType.as_deref() == Some("blockchain"))) { Value::Str("crypto".to_string()) } else { Value::Str("other".to_string()) });
         let mut rawNetworks: Value = self.safe_dict_k(rawCurrency.clone(), "withdrawal_fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -880,7 +881,8 @@ impl HollaexCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_756: bool = true;
             while { if !__for_first_756 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_756 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkIds.len() as i64) as f64) } {
-            let mut networkId: Value = networkIds.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut networkId: Value = get_value(&networkIds, &j);
+            let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkEntry: Value = self.safe_dict(rawNetworks.clone(), networkId.clone(), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             if (networkCode != Value::Null) {
@@ -975,7 +977,8 @@ impl HollaexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_757: bool = true;
             while { if !__for_first_757 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_757 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-            let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut marketId: Value = get_value(&marketIds, &i);
+            let mut marketId: Value = get_value(&marketIds, &i);
             let mut orderbook: Value = self.safe_dict(response.clone(), marketId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1113,7 +1116,8 @@ impl HollaexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_758: bool = true;
             while { if !__for_first_758 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_758 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut key: Value = get_value(&keys, &i);
+            let mut key: Value = get_value(&keys, &i);
             let mut ticker: Value = get_value(&tickers, &key);
             let mut ticker: Value = get_value(&tickers, &key);
             let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[key.clone()]);
@@ -1371,7 +1375,7 @@ impl HollaexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_759: bool = true;
             while { if !__for_first_759 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_759 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.symbols.len() as i64) as f64) } {
-            let mut symbol: Value = self.symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut makerString: Value = self.safe_string(makerFees.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
             let mut takerString: Value = self.safe_string(takerFees.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
@@ -1439,8 +1443,8 @@ impl HollaexCore {
         if (start == Value::Null) {
             start = (match (&(until), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("from".to_string(), self.parse_to_int((match ((start).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); } // convert to seconds
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("to".to_string(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); } // convert to seconds
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".to_string(), self.parse_to_int((match ((start).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }; // convert to seconds
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".to_string(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }; // convert to seconds
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_chart(&[__ws_arg_4]).await;
@@ -1474,7 +1478,8 @@ impl HollaexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_760: bool = true;
             while { if !__for_first_760 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_760 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
-            let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut currencyId: Value = get_value(&currencyIds, &i);
+            let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_available".to_string()))), &[])); }
@@ -1691,10 +1696,10 @@ impl HollaexCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("start_date".to_string(), self.iso8601(since.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_date".to_string(), self.iso8601(since.clone())); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 50, max 100
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }; // default 50, max 100
         }
         let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_orders(&[__ws_arg_9]).await;
@@ -1862,14 +1867,14 @@ impl HollaexCore {
         let mut exchangeSpecificParam: Value = self.safe_bool_k(meta.clone(), "post_only", &[Value::Bool(false)]);
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), exchangeSpecificParam.clone(), &[params.clone()]);
-        if !(matches!(&isMarketOrder, Value::Bool(true))) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+        if !is_true(&isMarketOrder) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stop".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stop".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         }
         if is_true(&postOnly) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("meta".to_string(), Value::Map({
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("meta".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("post_only".to_string(), Value::Bool(true));
     m
@@ -1981,10 +1986,10 @@ impl HollaexCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 50, max 100
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }; // default 50, max 100
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("start_date".to_string(), self.iso8601(since.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_date".to_string(), self.iso8601(since.clone())); }
         }
         let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_user_trades(&[__ws_arg_13]).await;
@@ -2112,7 +2117,7 @@ impl HollaexCore {
         //     }
         //
         let mut wallet: Value = self.safe_list_k(response, "wallet", &[Value::from(vec![])]);
-        let mut addresses: Value = (if (network == Value::Null) { wallet.clone() } else { self.filter_by(wallet.clone(), Value::Str("network".to_string()), network.clone(), &[]) });
+        let mut addresses: Value = (if is_true(&(network == Value::Null)) { wallet.clone() } else { self.filter_by(wallet.clone(), Value::Str("network".to_string()), network.clone(), &[]) });
         return self.parse_deposit_addresses(addresses.clone(), &[codes.clone(), Value::Bool(false)]);
 
     Value::Null
@@ -2147,13 +2152,13 @@ impl HollaexCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 50, max 100
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }; // default 50, max 100
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("start_date".to_string(), self.iso8601(since.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_date".to_string(), self.iso8601(since.clone())); }
         }
         let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_user_deposits(&[__ws_arg_14]).await;
@@ -2213,7 +2218,7 @@ impl HollaexCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_user_withdrawals(&[__ws_arg_15]).await;
@@ -2279,13 +2284,13 @@ impl HollaexCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 50, max 100
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }; // default 50, max 100
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("start_date".to_string(), self.iso8601(since.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_date".to_string(), self.iso8601(since.clone())); }
         }
         let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_user_withdrawals(&[__ws_arg_16]).await;
@@ -2442,7 +2447,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.check_address(&[address.clone()]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2541,7 +2546,8 @@ impl HollaexCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_761: bool = true;
                 while { if !__for_first_761 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_761 = false; i.as_f64().unwrap_or(f64::NAN) < keysLength } {
-                let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut key: Value = get_value(&keys, &i);
+                let mut key: Value = get_value(&keys, &i);
                 let mut value: Value = get_value(&withdrawalFees, &key);
                 let mut value: Value = get_value(&withdrawalFees, &key);
                 let mut currencyId: Value = self.safe_string_k(value.clone(), "symbol", &[]);
@@ -2637,7 +2643,7 @@ impl HollaexCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         path = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".to_string()), self.version.clone())), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
-        if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
+        if is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE"))) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 path = add(&path, &Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[]))));
             }
@@ -2682,7 +2688,7 @@ impl HollaexCore {
         if (response == Value::Null) {
             return Value::Null;
         }
-        if (code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64)) && (code.as_f64().unwrap_or(f64::NAN) <= ((503i64) as f64)) {
+        if is_true(&(code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64))) && is_true(&(code.as_f64().unwrap_or(f64::NAN) <= ((503i64) as f64))) {
             //
             //  { "message": "Invalid token" }
             //

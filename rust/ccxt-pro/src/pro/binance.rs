@@ -1482,7 +1482,7 @@ impl BinanceCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut payload, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut marketType: Value = self.get_market_type(Value::Str("fetchOrderBookWs".to_string()), market.clone(), &[params.clone()]);
         if (marketType.as_str() != Some("future")) {
@@ -1493,7 +1493,7 @@ impl BinanceCore {
         let mut messageHash: Value = to_string_val(&requestId);
         let mut returnRateLimits: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrderBookWs".to_string()), Value::Str("returnRateLimits".to_string()), &[Value::Bool(false)]); returnRateLimits = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        add_element_to_object(&mut payload, &Value::Str("returnRateLimits".to_string()), returnRateLimits.clone());
+        if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("returnRateLimits".to_string(), returnRateLimits.clone()); }
         params = self.omit(params.clone(), Value::Str("test".to_string()), &[]);
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2686,7 +2686,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         });
         let mut returnRateLimits: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTickerWs".to_string()), Value::Str("returnRateLimits".to_string()), &[Value::Bool(false)]); returnRateLimits = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        add_element_to_object(&mut payload, &Value::Str("returnRateLimits".to_string()), returnRateLimits.clone());
+        if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("returnRateLimits".to_string(), returnRateLimits.clone()); }
         params = self.omit(params.clone(), Value::Str("test".to_string()), &[]);
         let mut method: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTickerWs".to_string()), Value::Str("method".to_string()), &[Value::Str("ticker.book".to_string())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -2751,13 +2751,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         if (since != Value::Null) {
-            add_element_to_object(&mut payload, &Value::Str("startTime".to_string()), since.clone());
+            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut payload, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         if (until != Value::Null) {
-            add_element_to_object(&mut payload, &Value::Str("endTime".to_string()), until.clone());
+            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until.clone()); }
         }
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3820,10 +3820,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }
                     let mut marketId: Value = self.market_id(symbol.clone());
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), marketId.clone()); }
-                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("isIsolated".to_string(), Value::Bool(true)); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("isIsolated".to_string(), Value::Bool(true)); }
                 }
                 if (validity != Value::Null) {
-                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("validity".to_string(), validity.clone()); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("validity".to_string(), validity.clone()); }
                 }
                 let mut response: Value = self.parent.sapi_post_user_listen_token(&[request.clone()]).await;
                 let mut listenToken: Value = self.safe_string_k(response.clone(), "token", &[]);
@@ -3912,10 +3912,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut renewParams, &Value::Str("symbol".to_string()), symbol.clone());
         }
         if (isIsolated.as_bool() == Some(true)) {
-            add_element_to_object(&mut renewParams, &Value::Str("isIsolated".to_string()), isIsolated.clone());
+            if let Value::Dict(__d) = &mut renewParams { std::sync::Arc::make_mut(__d).insert("isIsolated".to_string(), isIsolated.clone()); }
         }
         if (validity != Value::Null) {
-            add_element_to_object(&mut renewParams, &Value::Str("validity".to_string()), validity.clone());
+            if let Value::Dict(__d) = &mut renewParams { std::sync::Arc::make_mut(__d).insert("validity".to_string(), validity.clone()); }
         }
         self.ensure_user_data_stream_ws_subscribe_listen_token(&[type_var.clone(), renewParams.clone()]).await;
 
@@ -3952,7 +3952,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut marginParams, &Value::Str("symbol".to_string()), symbol.clone());
             }
             if isIsolatedMargin {
-                add_element_to_object(&mut marginParams, &Value::Str("isIsolated".to_string()), Value::Bool(true));
+                if let Value::Dict(__d) = &mut marginParams { std::sync::Arc::make_mut(__d).insert("isIsolated".to_string(), Value::Bool(true)); }
             }
             self.ensure_user_data_stream_ws_subscribe_listen_token(&[Value::Str("margin".to_string()), marginParams.clone()]).await;
             return Value::Null;
@@ -4115,7 +4115,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
                 self.parent.eapi_private_put_listen_key(&[__ws_arg_18]).await;
             }  else {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("listenKey".to_string(), listenKey.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), listenKey.clone()); }
                 let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
                 self.parent.public_put_user_data_stream(&[__ws_arg_19]).await;
             }
@@ -4446,7 +4446,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: Value = to_string_val(&requestId);
         let mut returnRateLimits: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositionsWs".to_string()), Value::Str("returnRateLimits".to_string()), &[Value::Bool(false)]); returnRateLimits = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        add_element_to_object(&mut payload, &Value::Str("returnRateLimits".to_string()), returnRateLimits.clone());
+        if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("returnRateLimits".to_string(), returnRateLimits.clone()); }
         let mut method: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositionsWs".to_string()), Value::Str("method".to_string()), &[Value::Str("account.position".to_string())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut message: Value = Value::Map({
@@ -4840,13 +4840,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         if (test.as_bool() == Some(true)) {
             if (sor.as_bool() == Some(true)) {
-                add_element_to_object(&mut message, &Value::Str("method".to_string()), Value::Str("sor.order.test".to_string()));
+                if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("method".to_string(), Value::Str("sor.order.test".to_string())); }
             }  else {
-                add_element_to_object(&mut message, &Value::Str("method".to_string()), Value::Str("order.test".to_string()));
+                if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("method".to_string(), Value::Str("order.test".to_string())); }
             }
         }
         if is_true(&(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && isConditional {
-            add_element_to_object(&mut message, &Value::Str("method".to_string()), Value::Str("algoOrder.place".to_string()));
+            if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("method".to_string(), Value::Str("algoOrder.place".to_string())); }
         }
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5183,15 +5183,15 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut shouldUseAlgoOrder: bool = is_true(&(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&(isConditional.as_bool() == Some(true)));
         if (clientOrderId != Value::Null) {
             if (shouldUseAlgoOrder) {
-                add_element_to_object(&mut payload, &Value::Str("clientAlgoId".to_string()), clientOrderId.clone());
+                if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("clientAlgoId".to_string(), clientOrderId.clone()); }
             }  else {
-                add_element_to_object(&mut payload, &Value::Str("origClientOrderId".to_string()), clientOrderId.clone());
+                if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("origClientOrderId".to_string(), clientOrderId.clone()); }
             }
         }  else {
             if (shouldUseAlgoOrder) {
-                add_element_to_object(&mut payload, &Value::Str("algoId".to_string()), self.number_to_string(id.clone()));
+                if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("algoId".to_string(), self.number_to_string(id.clone())); }
             }  else {
-                add_element_to_object(&mut payload, &Value::Str("orderId".to_string()), self.number_to_string(id.clone()));
+                if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), self.number_to_string(id.clone())); }
             }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("conditional".to_string())]), &[]);
@@ -5204,7 +5204,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         if (shouldUseAlgoOrder) {
-            add_element_to_object(&mut message, &Value::Str("method".to_string()), Value::Str("algoOrder.cancel".to_string()));
+            if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("method".to_string(), Value::Str("algoOrder.cancel".to_string())); }
         }
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5313,9 +5313,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut payload, &Value::Str("origClientOrderId".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("origClientOrderId".to_string(), clientOrderId.clone()); }
         }  else {
-            add_element_to_object(&mut payload, &Value::Str("orderId".to_string()), self.number_to_string(id.clone()));
+            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), self.number_to_string(id.clone())); }
         }
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -6254,8 +6254,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut m = indexmap::IndexMap::new();
             m
         });
-        add_element_to_object(&mut marketTypeObject, &Value::Str("type".to_string()), type_var.clone());
-        add_element_to_object(&mut marketTypeObject, &Value::Str("subType".to_string()), subType.clone());
+        if let Value::Dict(__d) = &mut marketTypeObject { std::sync::Arc::make_mut(__d).insert("type".to_string(), type_var.clone()); }
+        if let Value::Dict(__d) = &mut marketTypeObject { std::sync::Arc::make_mut(__d).insert("subType".to_string(), subType.clone()); }
         let __ws_arg_33 = self.extend(marketTypeObject, &[params.clone()]);
         self.authenticate(&[__ws_arg_33]).await;
         messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":positions".to_string()))), messageHash));
@@ -6588,10 +6588,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         if (since != Value::Null) {
-            add_element_to_object(&mut payload, &Value::Str("startTime".to_string()), since.clone());
+            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut payload, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut fromId: Option<i64> = self.safe_integer_k(params.clone(), "fromId", &[]).as_i64();
         if (fromId.is_some()) && (since != Value::Null) {
@@ -6657,7 +6657,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut payload, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

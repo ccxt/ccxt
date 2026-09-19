@@ -918,9 +918,9 @@ impl BitgetCore {
             m
         });
         if is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("topic".to_string()), Value::Str("kline".to_string()));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("topic".to_string(), Value::Str("kline".to_string())); }
             add_element_to_object(&mut args, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut args, &Value::Str("interval".to_string()), interval.clone());
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("interval".to_string(), interval.clone()); }
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
@@ -928,8 +928,8 @@ impl BitgetCore {
             })]);
             messageHash = Value::Str(format!("{}{}", Value::Str("kline:".to_string()), symbol));
         }  else {
-            add_element_to_object(&mut args, &Value::Str("channel".to_string()), Value::Str(format!("{}{}", Value::Str("candle".to_string()), interval)));
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("candle".to_string()), interval))); }
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), timeframe)), Value::Str(":".to_string()))), symbol));
         }
         let mut ohlcv: Value = self.watch_public(uta.clone(), messageHash.clone(), args.clone(), &[params.clone()]).await;
@@ -979,9 +979,9 @@ impl BitgetCore {
         });
         if is_true(&uta) {
             channel = Value::Str("kline".to_string());
-            add_element_to_object(&mut args, &Value::Str("topic".to_string()), channel.clone());
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("topic".to_string(), channel.clone()); }
             add_element_to_object(&mut args, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut args, &Value::Str("interval".to_string()), interval.clone());
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("interval".to_string(), interval.clone()); }
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
@@ -991,8 +991,8 @@ impl BitgetCore {
             messageHash = Value::Str(format!("{}{}", channel, symbol));
         }  else {
             channel = Value::Str(format!("{}{}", Value::Str("candle".to_string()), interval));
-            add_element_to_object(&mut args, &Value::Str("channel".to_string()), channel.clone());
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("channel".to_string(), channel.clone()); }
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             messageHash = Value::Str(format!("{}{}", Value::Str("candles:".to_string()), interval));
         }
         return self.un_watch_channel(symbol.clone(), channel.clone(), messageHash.clone(), Value::Str("watchOHLCV".to_string()), &[params.clone()]).await;
@@ -1220,9 +1220,9 @@ impl BitgetCore {
             m
         });
         if is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("topic".to_string()), channel.clone());
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("topic".to_string(), channel.clone()); }
             add_element_to_object(&mut args, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut args, &Value::Str("interval".to_string()), self.safe_string_k(params.clone(), "interval", &[Value::Str("1m".to_string())]));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("interval".to_string(), self.safe_string_k(params.clone(), "interval", &[Value::Str("1m".to_string())])); }
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
@@ -1230,8 +1230,8 @@ impl BitgetCore {
             })]);
             params = self.omit(params.clone(), Value::Str("interval".to_string()), &[]);
         }  else {
-            add_element_to_object(&mut args, &Value::Str("channel".to_string()), channel.clone());
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("channel".to_string(), channel.clone()); }
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         return self.un_watch_public(uta.clone(), messageHash.clone(), args.clone(), &[params.clone()]).await;
 
@@ -1856,7 +1856,7 @@ impl BitgetCore {
         let mut channel: Value = (if is_true(&uta) { Value::Str("position".to_string()) } else { Value::Str("positions".to_string()) });
         add_element_to_object(&mut args, &topicOrChannel, channel.clone());
         if !is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), Value::Str("default".to_string()));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), Value::Str("default".to_string())); }
         }  else {
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2204,7 +2204,7 @@ impl BitgetCore {
         let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".to_string()) } else { Value::Str("channel".to_string()) });
         add_element_to_object(&mut args, &topicOrChannel, channel.clone());
         if !is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), instId.clone());
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), instId.clone()); }
         }  else {
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2725,7 +2725,7 @@ impl BitgetCore {
         let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".to_string()) } else { Value::Str("channel".to_string()) });
         add_element_to_object(&mut args, &topicOrChannel, Value::Str("fill".to_string()));
         if !is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), Value::Str("default".to_string()));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), Value::Str("default".to_string())); }
         }  else {
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2948,7 +2948,7 @@ impl BitgetCore {
         let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".to_string()) } else { Value::Str("channel".to_string()) });
         add_element_to_object(&mut args, &topicOrChannel, channel.clone());
         if !is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("coin".to_string()), Value::Str("default".to_string()));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("coin".to_string(), Value::Str("default".to_string())); }
         }  else {
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3113,7 +3113,7 @@ impl BitgetCore {
         }
         // REST parseBalance sets info, keep the ws structure at parity,
         // see https://github.com/ccxt/ccxt/issues/21973
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), message.clone());
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), message.clone()); }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".to_string()), instType));
         client.resolve(&[self.balance.clone(), messageHash.clone()]);

@@ -769,7 +769,7 @@ impl PaymiumCore {
             m
         });
         if (type_var.as_str() != Some("market")) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), price.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), price.clone()); }
         }
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_user_orders(&[__ws_arg_4]).await;

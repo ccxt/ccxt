@@ -673,10 +673,10 @@ impl BinanceCore {
                 m
             });
             if (l1Category != Value::Null) {
-                add_element_to_object(&mut listingRequest, &Value::Str("l1Category".to_string()), l1Category.clone());
+                if let Value::Dict(__d) = &mut listingRequest { std::sync::Arc::make_mut(__d).insert("l1Category".to_string(), l1Category.clone()); }
             }
             if (l2Category != Value::Null) {
-                add_element_to_object(&mut listingRequest, &Value::Str("l2Category".to_string()), l2Category.clone());
+                if let Value::Dict(__d) = &mut listingRequest { std::sync::Arc::make_mut(__d).insert("l2Category".to_string(), l2Category.clone()); }
             }
             let mut sortBy: Value = self.safe_string_upper2(params.clone(), Value::Str("sortBy".to_string()), Value::Str("sort".to_string()), &[]);
             if (sortBy != Value::Null) {
@@ -690,7 +690,7 @@ impl BinanceCore {
                     sortBy = Value::Null;
                 }
                 if (sortBy != Value::Null) {
-                    add_element_to_object(&mut listingRequest, &Value::Str("sortBy".to_string()), sortBy.clone());
+                    if let Value::Dict(__d) = &mut listingRequest { std::sync::Arc::make_mut(__d).insert("sortBy".to_string(), sortBy.clone()); }
                     params = self.omit(params.clone(), Value::from(vec![Value::Str("sort".to_string()), Value::Str("sortBy".to_string())]), &[]);
                 }
             }
@@ -768,7 +768,7 @@ impl BinanceCore {
                     m.insert("query".to_string(), queries.as_array().and_then(|__arr| match &qi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 m
             });
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("topK".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("topK".to_string(), limit.clone()); }
             let __ws_arg_3 = self.extend(request, &[rest.clone()]);
             let mut response: Value = self.sapi_private_get_market_search(&[__ws_arg_3]).await;
             //
@@ -1534,20 +1534,20 @@ impl BinanceCore {
         });
         let mut offSet: Value = self.safe_integer_k(params.clone(), "offset", &[(match (&(page), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
         if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("offset".to_string(), offSet.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("offset".to_string(), offSet.clone()); }
         }
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             outcomeObj = self.outcome(outcome.clone());
             let mut market: Value = self.market(crate::value::get_value_k(&outcomeObj, "market"));
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("marketId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut wallet: Value = self.fetch_wallet(Value::Str("fetchOpenOrders".to_string()), &[params.clone()]).await;
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("walletAddress".to_string(), crate::value::get_value_k(&wallet, "walletAddress")); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("walletAddress".to_string(), crate::value::get_value_k(&wallet, "walletAddress")); }
         let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_get_order_list(&[__ws_arg_8]).await;
         //
@@ -1630,7 +1630,7 @@ impl BinanceCore {
         });
         let mut offSet: Value = self.safe_integer_k(params.clone(), "offset", &[(match (&(page), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
         if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("offset".to_string(), offSet.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("offset".to_string(), offSet.clone()); }
         }
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
@@ -1638,18 +1638,18 @@ impl BinanceCore {
             outcomeObj = self.outcome(outcome.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startDate".to_string(), self.yyyymmdd(since.clone(), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startDate".to_string(), self.yyyymmdd(since.clone(), &[])); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endDate".to_string(), self.yyyymmdd(until.clone(), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endDate".to_string(), self.yyyymmdd(until.clone(), &[])); }
         }
         let mut wallet: Value = self.fetch_wallet(Value::Str("fetchOrders".to_string()), &[params.clone()]).await;
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("walletAddress".to_string(), crate::value::get_value_k(&wallet, "walletAddress")); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("walletAddress".to_string(), crate::value::get_value_k(&wallet, "walletAddress")); }
         let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_get_order_history(&[__ws_arg_9]).await;
         //
@@ -1830,10 +1830,10 @@ impl BinanceCore {
             self.load_outcome(outcome.clone(), &[]).await;
             outcomeObj = self.outcome(outcome.clone());
             let mut market: Value = self.market(crate::value::get_value_k(&outcomeObj, "market"));
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("marketTopicId".to_string(), crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "marketTopicId")); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketTopicId".to_string(), crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "marketTopicId")); }
         }
         let mut wallet: Value = self.fetch_wallet(Value::Str("fetchOrders".to_string()), &[params.clone()]).await;
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("walletAddress".to_string(), crate::value::get_value_k(&wallet, "walletAddress")); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("walletAddress".to_string(), crate::value::get_value_k(&wallet, "walletAddress")); }
         let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_get_position_filter(&[__ws_arg_11]).await;
         //
@@ -1945,7 +1945,7 @@ impl BinanceCore {
         });
         let mut offSet: Value = self.safe_integer_k(params.clone(), "offset", &[(match (&(page), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
         if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("offset".to_string(), offSet.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("offset".to_string(), offSet.clone()); }
         }
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
@@ -1953,18 +1953,18 @@ impl BinanceCore {
             outcomeObj = self.outcome(outcome.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startDate".to_string(), self.yyyymmdd(since.clone(), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startDate".to_string(), self.yyyymmdd(since.clone(), &[])); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endDate".to_string(), self.yyyymmdd(until.clone(), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endDate".to_string(), self.yyyymmdd(until.clone(), &[])); }
         }
         let mut wallet: Value = self.fetch_wallet(Value::Str("fetchMyTrades".to_string()), &[params.clone()]).await;
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("walletAddress".to_string(), crate::value::get_value_k(&wallet, "walletAddress")); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("walletAddress".to_string(), crate::value::get_value_k(&wallet, "walletAddress")); }
         let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_get_order_history(&[__ws_arg_12]).await;
         //
@@ -2268,7 +2268,7 @@ impl BinanceCore {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("createOrder requires price for limit order".to_string()))));
             }
-            add_element_to_object(&mut commonRequest, &Value::Str("priceLimit".to_string()), self.price_to_precision(marketSymbol.clone(), price.clone()));
+            if let Value::Dict(__d) = &mut commonRequest { std::sync::Arc::make_mut(__d).insert("priceLimit".to_string(), self.price_to_precision(marketSymbol.clone(), price.clone())); }
             defaultTif = Value::Str("GTC".to_string());
         }
         if (sideUpper.as_str() == Some("BUY")) {

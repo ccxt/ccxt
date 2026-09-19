@@ -738,10 +738,10 @@ impl NadoCore {
             m
         });
         if (requestId != Value::Null) {
-            add_element_to_object(&mut placeOrder, &Value::Str("id".to_string()), requestId.clone());
+            if let Value::Dict(__d) = &mut placeOrder { std::sync::Arc::make_mut(__d).insert("id".to_string(), requestId.clone()); }
         }
         if (spotLeverage != Value::Null) {
-            add_element_to_object(&mut placeOrder, &Value::Str("spot_leverage".to_string()), spotLeverage.clone());
+            if let Value::Dict(__d) = &mut placeOrder { std::sync::Arc::make_mut(__d).insert("spot_leverage".to_string(), spotLeverage.clone()); }
         }
         let mut isBuy: bool = side.as_str() == Some("buy");
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
@@ -770,7 +770,7 @@ impl NadoCore {
 }));
                 m
             });
-            add_element_to_object(&mut placeOrder, &Value::Str("trigger".to_string()), trigger.clone());
+            if let Value::Dict(__d) = &mut placeOrder { std::sync::Arc::make_mut(__d).insert("trigger".to_string(), trigger.clone()); }
         }  else if isStopLossOrder || isTakeProfitOrder {
             let mut triggerDirection: Value = Value::Str("".to_string());
             if isBuy {
@@ -794,18 +794,18 @@ impl NadoCore {
 }));
                 m
             });
-            add_element_to_object(&mut placeOrder, &Value::Str("trigger".to_string()), trigger.clone());
+            if let Value::Dict(__d) = &mut placeOrder { std::sync::Arc::make_mut(__d).insert("trigger".to_string(), trigger.clone()); }
         }
         let mut appendix: Value = self.safe_string_k(params.clone(), "appendix", &[]);
         if (appendix == Value::Null) {
             appendix = self.create_order_appendix(isTriggerOrder.clone(), &[params.clone()]);
         }
-        add_element_to_object(&mut order, &Value::Str("appendix".to_string()), appendix.clone());
+        if let Value::Dict(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("appendix".to_string(), appendix.clone()); }
         let mut contracts: Value = self.query_contracts(&[]).await;
         let mut chainId: Value = self.safe_string_k(contracts.clone(), "chain_id", &[]);
         let mut signature: Value = self.sign_order(order.clone(), productId.clone(), chainId.clone());
-        add_element_to_object(&mut placeOrder, &Value::Str("order".to_string()), order.clone());
-        add_element_to_object(&mut placeOrder, &Value::Str("signature".to_string()), signature.clone());
+        if let Value::Dict(__d) = &mut placeOrder { std::sync::Arc::make_mut(__d).insert("order".to_string(), order.clone()); }
+        if let Value::Dict(__d) = &mut placeOrder { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature.clone()); }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("expiration".to_string()), Value::Str("nonce".to_string()), Value::Str("appendix".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("postOnly".to_string()), Value::Str("timeInForce".to_string()), Value::Str("id".to_string()), Value::Str("spotLeverage".to_string()), Value::Str("spot_leverage".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerDirection".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -979,10 +979,10 @@ impl NadoCore {
             m
         });
         if (requestId != Value::Null) {
-            add_element_to_object(&mut placeOrder, &Value::Str("id".to_string()), requestId.clone());
+            if let Value::Dict(__d) = &mut placeOrder { std::sync::Arc::make_mut(__d).insert("id".to_string(), requestId.clone()); }
         }
         if (spotLeverage != Value::Null) {
-            add_element_to_object(&mut placeOrder, &Value::Str("spot_leverage".to_string()), spotLeverage.clone());
+            if let Value::Dict(__d) = &mut placeOrder { std::sync::Arc::make_mut(__d).insert("spot_leverage".to_string(), spotLeverage.clone()); }
         }
         let mut cancelAndPlace: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1132,7 +1132,7 @@ impl NadoCore {
             m
         });
         if (requestId != Value::Null) {
-            add_element_to_object(&mut cancelProductOrders, &Value::Str("id".to_string()), requestId.clone());
+            if let Value::Dict(__d) = &mut cancelProductOrders { std::sync::Arc::make_mut(__d).insert("id".to_string(), requestId.clone()); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1260,12 +1260,12 @@ impl NadoCore {
             m
         });
         if (requiredUnfilledAmountRaw != Value::Null) {
-            add_element_to_object(&mut cancelOrders, &Value::Str("required_unfilled_amount".to_string()), requiredUnfilledAmountRaw.clone());
+            if let Value::Dict(__d) = &mut cancelOrders { std::sync::Arc::make_mut(__d).insert("required_unfilled_amount".to_string(), requiredUnfilledAmountRaw.clone()); }
         }  else if (requiredUnfilledAmount != Value::Null) {
-            add_element_to_object(&mut cancelOrders, &Value::Str("required_unfilled_amount".to_string()), self.convert_to_x18(requiredUnfilledAmount.clone()));
+            if let Value::Dict(__d) = &mut cancelOrders { std::sync::Arc::make_mut(__d).insert("required_unfilled_amount".to_string(), self.convert_to_x18(requiredUnfilledAmount.clone())); }
         }
         if (requestId != Value::Null) {
-            add_element_to_object(&mut cancelOrders, &Value::Str("id".to_string()), requestId.clone());
+            if let Value::Dict(__d) = &mut cancelOrders { std::sync::Arc::make_mut(__d).insert("id".to_string(), requestId.clone()); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1387,13 +1387,13 @@ impl NadoCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
         }
         let mut contracts: Value = self.query_contracts(&[]).await;
         let mut chainId: Value = self.safe_string_k(contracts.clone(), "chain_id", &[]);
         let mut endpointAddress: Value = self.safe_string_k(contracts.clone(), "endpoint_addr", &[]);
         let mut signature: Value = self.sign_fetch_trigger_orders(tx.clone(), chainId.clone(), endpointAddress.clone());
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("signature".to_string(), signature.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature.clone()); }
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.trigger_private_post_query(&[__ws_arg_5]).await;
         //
@@ -1576,11 +1576,11 @@ impl NadoCore {
             m
         });
         if (market != Value::Null) {
-            add_element_to_object(&mut ordersRequest, &Value::Str("product_ids".to_string()), Value::from(vec![self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]));
+            if let Value::Dict(__d) = &mut ordersRequest { std::sync::Arc::make_mut(__d).insert("product_ids".to_string(), Value::from(vec![self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))])); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("max_time".to_string()), ordersRequest.clone(), params.clone(), &[Value::Float(0.001)]); ordersRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (limit != Value::Null) {
-            add_element_to_object(&mut ordersRequest, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(500)));
+            if let Value::Dict(__d) = &mut ordersRequest { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1725,11 +1725,11 @@ impl NadoCore {
             m
         });
         if (market != Value::Null) {
-            add_element_to_object(&mut matchesRequest, &Value::Str("product_ids".to_string()), Value::from(vec![self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]));
+            if let Value::Dict(__d) = &mut matchesRequest { std::sync::Arc::make_mut(__d).insert("product_ids".to_string(), Value::from(vec![self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))])); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("max_time".to_string()), matchesRequest.clone(), params.clone(), &[Value::Float(0.001)]); matchesRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (limit != Value::Null) {
-            add_element_to_object(&mut matchesRequest, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(500)));
+            if let Value::Dict(__d) = &mut matchesRequest { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1925,7 +1925,7 @@ impl NadoCore {
             m
         });
         if (currency != Value::Null) {
-            add_element_to_object(&mut eventsRequest, &Value::Str("product_ids".to_string()), Value::from(vec![self.parse_to_int(currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]));
+            if let Value::Dict(__d) = &mut eventsRequest { std::sync::Arc::make_mut(__d).insert("product_ids".to_string(), Value::from(vec![self.parse_to_int(currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))])); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("max_time".to_string()), eventsRequest.clone(), params.clone(), &[Value::Float(0.001)]); eventsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
@@ -2877,7 +2877,7 @@ impl NadoCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
         }
         let __ws_arg_18 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.archive_v2_public_get_trades(&[__ws_arg_18]).await;

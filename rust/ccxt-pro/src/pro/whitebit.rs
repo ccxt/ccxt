@@ -1243,7 +1243,7 @@ impl WhitebitCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), balanceDict.clone());
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), balanceDict.clone()); }
             if isMargin {
                 let mut currencyId: Value = self.safe_string_k(balanceDict.clone(), "a", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);

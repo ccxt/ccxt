@@ -440,7 +440,7 @@ impl DeribitCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), data.clone()); }
         let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
         let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut balance: Value = self.parse_balance(data.clone());

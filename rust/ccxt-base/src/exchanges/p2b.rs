@@ -875,7 +875,7 @@ impl P2bCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_depth_result(&[__ws_arg_3]).await;
@@ -948,7 +948,7 @@ impl P2bCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_history(&[__ws_arg_4]).await;
@@ -1084,7 +1084,7 @@ impl P2bCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_market_kline(&[__ws_arg_5]).await;
@@ -1367,7 +1367,7 @@ impl P2bCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_8]).await;
@@ -1435,7 +1435,7 @@ impl P2bCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_account_order(&[__ws_arg_9]).await;
@@ -1527,7 +1527,7 @@ impl P2bCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_account_market_deal_history(&[__ws_arg_10]).await;
@@ -1621,10 +1621,10 @@ impl P2bCore {
             m
         });
         if (market != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_account_order_history(&[__ws_arg_11]).await;

@@ -1796,7 +1796,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("marketId".to_string(), self.safe_integer_k(info.clone(), "marketId", &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".to_string(), self.safe_integer_k(info.clone(), "marketId", &[])); }
         }
         let __ws_arg_20 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.opinion_private_get_order(&[__ws_arg_20]).await;
@@ -1947,7 +1947,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("marketId".to_string(), self.safe_integer_k(info.clone(), "marketId", &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".to_string(), self.safe_integer_k(info.clone(), "marketId", &[])); }
         }
         let __ws_arg_24 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.opinion_private_get_trade_user_wallet_address(&[__ws_arg_24]).await;

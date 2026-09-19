@@ -368,10 +368,10 @@ impl PacificaCore {
             m
         });
         if (key != Value::Null) {
-            add_element_to_object(&mut headers, &Value::Str("PF-API-KEY".to_string()), key.clone());
+            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PF-API-KEY".to_string(), key.clone()); }
         }  else {
             if (self.handle_option(Value::Str("setupApiKeyHeaders".to_string()), Value::Str("apiKey".to_string()), &[]) != Value::Null) {
-                add_element_to_object(&mut headers, &Value::Str("PF-API-KEY".to_string()), self.options.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null));
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PF-API-KEY".to_string(), self.options.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null)); }
             }
         }
         add_element_to_object(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("ws".to_string())), &Value::Str("options".to_string())), &Value::Str("headers".to_string()), headers.clone());

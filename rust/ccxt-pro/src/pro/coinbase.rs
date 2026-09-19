@@ -570,9 +570,9 @@ impl CoinbaseCore {
         let mut isCloudAPiKey: bool = (Value::Int(self.apiKey.as_str().and_then(|__s| __s.find("organizations/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (starts_with(&self.secret, &Value::Str("-----BEGIN".to_string())));
         let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, name)), join(&productIds, &Value::Str(",".to_string()))));
         if !isCloudAPiKey {
-            add_element_to_object(&mut subscribe, &Value::Str("api_key".to_string()), self.apiKey.clone());
+            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("api_key".to_string(), self.apiKey.clone()); }
             add_element_to_object(&mut subscribe, &Value::Str("timestamp".to_string()), timestamp.clone());
-            add_element_to_object(&mut subscribe, &Value::Str("signature".to_string()), self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]));
+            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("signature".to_string(), self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[])); }
         }  else {
             if (starts_with(&self.apiKey, &Value::Str("-----BEGIN".to_string()))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".to_string()))));
@@ -586,7 +586,7 @@ impl CoinbaseCore {
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsToken".to_string(), token.clone()); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsTokenTimestamp".to_string(), seconds.clone()); }
             }
-            add_element_to_object(&mut subscribe, &Value::Str("jwt".to_string()), self.safe_string_k(self.options.clone(), "wsToken", &[]));
+            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("jwt".to_string(), self.safe_string_k(self.options.clone(), "wsToken", &[])); }
         }
         return subscribe;
 

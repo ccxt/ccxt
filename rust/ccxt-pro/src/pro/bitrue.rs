@@ -451,7 +451,7 @@ impl BitrueCore {
         //         "t": 1657799510000
         //     }]
         //
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), balances.clone());
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), balances.clone()); }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_154: bool = true;

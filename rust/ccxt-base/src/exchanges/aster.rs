@@ -1812,7 +1812,7 @@ impl AsterCore {
     pub fn is_linear(&self, mut type_var: Value, optional_args: &[Value]) -> Value {
         let mut subType = get_arg(optional_args, 0, Value::Null);
         if (subType == Value::Null) {
-            return Value::Bool((type_var.as_str() == Some("future")) || (type_var.as_str() == Some("swap")));
+            return Value::Bool(is_true(&(type_var.as_str() == Some("future"))) || is_true(&(type_var.as_str() == Some("swap"))));
         }  else {
             return Value::Bool(subType.as_str() == Some("linear"));
         }
@@ -2012,7 +2012,8 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_221: bool = true;
             while { if !__for_first_221 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_221 = false; i.as_f64().unwrap_or(f64::NAN) < ((fapiRows.len() as i64) as f64) } {
-            let mut market: Value = fapiRows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut market: Value = get_value(&fapiRows, &i);
+            let mut market: Value = get_value(&fapiRows, &i);
             // tmp skip some markets with base = undefined
             if (self.safe_string_k(market.clone(), "baseAsset", &[]) != Value::Null) {
                 append_to_array(&mut fapiRowsFiltered, market.clone());
@@ -2071,7 +2072,7 @@ impl AsterCore {
         if (pricePrecision == Value::Null) {
             pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]);
         }
-        let mut amountPrecision: Value = (if (filterLotSize != Value::Null) { self.safe_number_k(filterLotSize.clone(), "stepSize", &[]) } else { self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]) });
+        let mut amountPrecision: Value = (if is_true(&(filterLotSize != Value::Null)) { self.safe_number_k(filterLotSize.clone(), "stepSize", &[]) } else { self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -2217,13 +2218,13 @@ impl AsterCore {
             m
         });
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1500)));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1500))); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        add_element_to_object(&mut request, &Value::Str("interval".to_string()), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut isMark: bool = price.as_deref() == Some("mark");
         let mut isIndex: bool = price.as_deref() == Some("index");
@@ -2234,7 +2235,7 @@ impl AsterCore {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_public_get_v3_mark_price_klines(&[__ws_arg_0]).await;
         }  else if isIndex {
-            add_element_to_object(&mut request, &Value::Str("pair".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_public_get_v3_index_price_klines(&[__ws_arg_1]).await;
         }  else {
@@ -2305,7 +2306,7 @@ impl AsterCore {
         //
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("a".to_string()), &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
-        let mut marketType: Value = (if (matches!(&trade, Value::Dict(__d) if __d.contains_key("positionSide"))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut marketType: Value = (if is_true(&(matches!(&trade, Value::Dict(__d) if __d.contains_key("positionSide")))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
         let mut currencyId: Value = self.safe_string2(trade.clone(), Value::Str("commissionAsset".to_string()), Value::Str("marginAsset".to_string()), &[]);
         let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2398,7 +2399,7 @@ impl AsterCore {
             request = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]);
         }
         // use historical endpoint for targeted requests
-        if (matches!(&request, Value::Dict(__d) if __d.contains_key("startTime"))) {
+        if is_true(&(matches!(&request, Value::Dict(__d) if __d.contains_key("startTime")))) {
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_public_get_v3_agg_trades(&[__ws_arg_4]).await;
@@ -2454,10 +2455,10 @@ impl AsterCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchMyTrades".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
@@ -2501,7 +2502,7 @@ impl AsterCore {
         });
         let mut response: Value = Value::Null;
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), self.find_nearest_ceiling(Value::from(vec![Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(500), Value::Int(1000)]), limit.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), self.find_nearest_ceiling(Value::from(vec![Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(500), Value::Int(1000)]), limit.clone())); }
         }
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
@@ -2592,9 +2593,9 @@ impl AsterCore {
         let mut isTickerResponse: bool = matches!(&ticker, Value::Dict(__d) if __d.contains_key("priceChange"));
         let mut marketType: Value = Value::Null;
         if isTickerResponse {
-            marketType = (if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("baseAsset"))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
+            marketType = (if is_true(&(matches!(&ticker, Value::Dict(__d) if __d.contains_key("baseAsset")))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         }  else {
-            marketType = (if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("lastUpdateId"))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+            marketType = (if is_true(&(matches!(&ticker, Value::Dict(__d) if __d.contains_key("lastUpdateId")))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         }
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
@@ -2752,7 +2753,7 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_222: bool = true;
             while { if !__for_first_222 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_222 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut marketId: Value = self.safe_string(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("symbol".to_string()), &[]);
+            let mut marketId: Value = self.safe_string_k(get_value(&rows, &i), "symbol", &[]);
             let mut safeMarket: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
             let __ws_arg_14 = self.parse_last_price(get_value(&rows, &i), &[safeMarket.clone()]);
             let mut priceData: Value = self.extend(__ws_arg_14, &[params.clone()]);
@@ -3006,10 +3007,10 @@ impl AsterCore {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_17 = self.extend(request, &[params.clone()]);
@@ -3125,7 +3126,7 @@ impl AsterCore {
         if (marginMode.as_str() == Some("CROSS")) {
             marginMode = Value::Str("CROSSED".to_string());
         }
-        if (marginMode.as_str() != Some("ISOLATED")) && (marginMode.as_str() != Some("CROSSED")) {
+        if is_true(&(marginMode.as_str() != Some("ISOLATED"))) && is_true(&(marginMode.as_str() != Some("CROSSED"))) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" marginMode must be either isolated or cross".to_string()))));
         }
         self.load_markets_and_sign_in().await;
@@ -3340,7 +3341,7 @@ impl AsterCore {
         //
         let mut info: Value = order.clone();
         let mut positionSide: Option<String> = self.safe_string_k(order.clone(), "positionSide", &[]).as_str().map(str::to_owned);
-        let mut defaultType: Value = (if (positionSide.is_some()) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut defaultType: Value = (if is_true(&(positionSide.is_some())) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, defaultType.clone()]);
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
@@ -3411,9 +3412,9 @@ impl AsterCore {
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientOid".to_string()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("clientOid".to_string())]), &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("origClientOrderId".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("origClientOrderId".to_string(), clientOrderId.clone()); }
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id.clone()); }
         }
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -3458,9 +3459,9 @@ impl AsterCore {
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientOid".to_string()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("clientOid".to_string())]), &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("origClientOrderId".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("origClientOrderId".to_string(), clientOrderId.clone()); }
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id.clone()); }
         }
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -3507,10 +3508,10 @@ impl AsterCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
@@ -3649,7 +3650,8 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_224: bool = true;
             while { if !__for_first_224 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_224 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut currentMarket: Value = self.market(marketId.clone());
             append_to_array(&mut orderSymbols, currentMarket.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -3719,7 +3721,7 @@ impl AsterCore {
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("newClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newClientOrderId".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("newClientOrderId".to_string(), clientOrderId.clone()); }
         }
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[triggerPrice.clone()]);
@@ -3735,9 +3737,9 @@ impl AsterCore {
         if isTrailingPercentOrder {
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 uppercaseType = Value::Str("TRAILING_STOP_MARKET".to_string());
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("callbackRate".to_string(), trailingPercent.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("callbackRate".to_string(), trailingPercent.clone()); }
                 if (trailingTriggerPrice != Value::Null) {
-                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("activationPrice".to_string(), self.price_to_precision(symbol.clone(), trailingTriggerPrice.clone())); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("activationPrice".to_string(), self.price_to_precision(symbol.clone(), trailingTriggerPrice.clone())); }
                 }
             }
         }  else if isStopLoss {
@@ -3757,7 +3759,7 @@ impl AsterCore {
         }
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Null, &[params.clone()]);
         if is_true(&postOnly) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("timeInForce".to_string(), Value::Str("GTX".to_string())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".to_string(), Value::Str("GTX".to_string())); }
         }
         // additional required fields per order type
         // spot: LIMIT timeInForce, quantity, price; MARKET quantity or quoteOrderQty;
@@ -3769,7 +3771,7 @@ impl AsterCore {
         let mut priceIsRequired: bool = false;
         let mut triggerPriceIsRequired: bool = false;
         let mut quantityIsRequired: bool = false;
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), uppercaseType.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), uppercaseType.clone()); }
         if (uppercaseType.as_str() == Some("MARKET")) {
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 let mut quoteOrderQty: Value = self.handle_option(Value::Str("createOrder".to_string()), Value::Str("quoteOrderQty".to_string()), &[Value::Bool(true)]);
@@ -3777,12 +3779,12 @@ impl AsterCore {
                     let mut quoteOrderQtyNew: Value = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".to_string()), Value::Str("cost".to_string()), &[]);
                     let mut precision: Value = market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null);
                     if (quoteOrderQtyNew != Value::Null) {
-                        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quoteOrderQty".to_string(), self.decimal_to_precision(quoteOrderQtyNew.clone(), Value::Int(crate::runtime::TRUNCATE), precision.clone(), &[self.precisionMode.clone()])); }
+                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".to_string(), self.decimal_to_precision(quoteOrderQtyNew.clone(), Value::Int(crate::runtime::TRUNCATE), precision.clone(), &[self.precisionMode.clone()])); }
                     }  else if (price != Value::Null) {
                         let mut amountString: Value = self.number_to_string(amount.clone());
                         let mut priceString: Value = self.number_to_string(price.clone());
                         let mut quoteOrderQuantity: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
-                        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quoteOrderQty".to_string(), self.decimal_to_precision(quoteOrderQuantity.clone(), Value::Int(crate::runtime::TRUNCATE), precision.clone(), &[self.precisionMode.clone()])); }
+                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".to_string(), self.decimal_to_precision(quoteOrderQuantity.clone(), Value::Int(crate::runtime::TRUNCATE), precision.clone(), &[self.precisionMode.clone()])); }
                     }  else {
                         quantityIsRequired = true;
                     }
@@ -3796,28 +3798,28 @@ impl AsterCore {
             timeInForceIsRequired = true;
             quantityIsRequired = true;
             priceIsRequired = true;
-        }  else if (uppercaseType.as_str() == Some("STOP")) || (uppercaseType.as_str() == Some("TAKE_PROFIT")) {
+        }  else if is_true(&(uppercaseType.as_str() == Some("STOP"))) || is_true(&(uppercaseType.as_str() == Some("TAKE_PROFIT"))) {
             quantityIsRequired = true;
             priceIsRequired = true;
             triggerPriceIsRequired = true;
-        }  else if (uppercaseType.as_str() == Some("STOP_MARKET")) || (uppercaseType.as_str() == Some("TAKE_PROFIT_MARKET")) {
+        }  else if is_true(&(uppercaseType.as_str() == Some("STOP_MARKET"))) || is_true(&(uppercaseType.as_str() == Some("TAKE_PROFIT_MARKET"))) {
             if (closePosition.as_bool() != Some(true)) {
                 quantityIsRequired = true;
             }
             triggerPriceIsRequired = true;
         }  else if (uppercaseType.as_str() == Some("TRAILING_STOP_MARKET")) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("callbackRate".to_string(), trailingPercent.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("callbackRate".to_string(), trailingPercent.clone()); }
             if (trailingTriggerPrice != Value::Null) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("activationPrice".to_string(), self.price_to_precision(symbol.clone(), trailingTriggerPrice.clone())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("activationPrice".to_string(), self.price_to_precision(symbol.clone(), trailingTriggerPrice.clone())); }
             }
         }
         if quantityIsRequired {
             let mut marketAmountPrecision: Option<String> = self.safe_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("amount".to_string()), &[]).as_str().map(str::to_owned);
             let mut isPrecisionAvailable: bool = marketAmountPrecision.is_some();
             if isPrecisionAvailable {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             }  else {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quantity".to_string(), self.parse_to_numeric(amount.clone())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.parse_to_numeric(amount.clone())); }
             }
         }
         if priceIsRequired {
@@ -3827,9 +3829,9 @@ impl AsterCore {
             let mut pricePrecision: Option<String> = self.safe_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("price".to_string()), &[]).as_str().map(str::to_owned);
             let mut isPricePrecisionAvailable: bool = pricePrecision.is_some();
             if isPricePrecisionAvailable {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             }  else {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.parse_to_numeric(price.clone())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.parse_to_numeric(price.clone())); }
             }
         }
         if triggerPriceIsRequired {
@@ -3837,18 +3839,18 @@ impl AsterCore {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a stopPrice extra param for a ".to_string()))), type_var)), Value::Str(" order".to_string()))));
             }
             if (stopPrice != Value::Null) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopPrice".to_string(), self.price_to_precision(symbol.clone(), stopPrice.clone())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPrice".to_string(), self.price_to_precision(symbol.clone(), stopPrice.clone())); }
             }
         }
-        if timeInForceIsRequired && (self.safe_string_k(params.clone(), "timeInForce", &[]) == Value::Null) && (self.safe_string_k(request.clone(), "timeInForce", &[]) == Value::Null) {
+        if timeInForceIsRequired && is_true(&(self.safe_string_k(params.clone(), "timeInForce", &[]) == Value::Null)) && is_true(&(self.safe_string_k(request.clone(), "timeInForce", &[]) == Value::Null)) {
             let mut tif: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("timeInForce".to_string()), &[]); tif = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("timeInForce".to_string(), tif.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".to_string(), tif.clone()); }
         }
         let mut requestParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("newClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("trailingTriggerPrice".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trailingDelta".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
-        if (self.safe_bool_k(self.options.clone(), "builderFee", &[]).as_bool() == Some(true)) && (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("builder".to_string(), self.safe_string_k(self.options.clone(), "builder", &[])); }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("feeRate".to_string(), self.safe_string_k(self.options.clone(), "builderRate", &[])); }
+        if is_true(&(self.safe_bool_k(self.options.clone(), "builderFee", &[]).as_bool() == Some(true))) && is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("builder".to_string(), self.safe_string_k(self.options.clone(), "builder", &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("feeRate".to_string(), self.safe_string_k(self.options.clone(), "builderRate", &[])); }
         }
         return self.extend(request.clone(), &[requestParams.clone()]);
 
@@ -3927,9 +3929,9 @@ impl AsterCore {
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("origClientOrderId".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("origClientOrderId".to_string(), clientOrderId.clone()); }
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id.clone()); }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         let mut response: Value = Value::Null;
@@ -3978,9 +3980,9 @@ impl AsterCore {
         });
         let mut clientOrderIdList: Value = self.safe_list_k(params.clone(), "origClientOrderIdList", &[]);
         if (clientOrderIdList != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("origClientOrderIdList".to_string(), clientOrderIdList.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("origClientOrderIdList".to_string(), clientOrderIdList.clone()); }
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderIdList".to_string(), ids.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderIdList".to_string(), ids.clone()); }
         }
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -4014,7 +4016,7 @@ impl AsterCore {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
-        if (leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverage.as_f64().unwrap_or(f64::NAN) > ((125i64) as f64)) {
+        if is_true(&(leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64))) || is_true(&(leverage.as_f64().unwrap_or(f64::NAN) > ((125i64) as f64))) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" leverage should be between 1 and 125".to_string()))));
         }
         self.load_markets_and_sign_in().await;
@@ -4081,7 +4083,7 @@ impl AsterCore {
         let mut longLeverage: Value = Value::Null;
         let mut shortLeverage: Value = Value::Null;
         let mut leverageValue: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
-        if (side.is_none()) || (side.as_deref() == Some("both")) {
+        if is_true(&(side.is_none())) || is_true(&(side.as_deref() == Some("both"))) {
             longLeverage = leverageValue.clone();
             shortLeverage = leverageValue.clone();
         }  else if (side.as_deref() == Some("long")) {
@@ -4193,16 +4195,16 @@ impl AsterCore {
             m
         });
         if (type_var != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), (if (type_var.as_str() == Some("add")) { Value::Int(1) } else { Value::Int(2) })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), (if is_true(&(type_var.as_str() == Some("add"))) { Value::Int(1) } else { Value::Int(2) })); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
         }
         if (until != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), until.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until.clone()); }
         }
         let __ws_arg_38 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_private_get_v3_position_margin_history(&[__ws_arg_38]).await;
@@ -4254,7 +4256,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), (if (rawType == Some(1)) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(rawType == Some(1))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), self.safe_number_k(data.clone(), "amount", &[]));
         m.insert("code".to_string(), self.safe_string_k(data.clone(), "asset", &[]));
@@ -4403,10 +4405,10 @@ impl AsterCore {
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000))); // max 1000
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }; // max 1000
         }
         let __ws_arg_41 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_private_get_v3_income(&[__ws_arg_41]).await;
@@ -4512,15 +4514,15 @@ impl AsterCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); } // max 1000
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }; // max 1000
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), until.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until.clone()); }
         }
         let __ws_arg_42 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_private_get_v3_income(&[__ws_arg_42]).await;
@@ -4564,7 +4566,8 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_225: bool = true;
             while { if !__for_first_225 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_225 = false; i.as_f64().unwrap_or(f64::NAN) < ((leverageBracket.len() as i64) as f64) } {
-            let mut bracket: Value = leverageBracket.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut bracket: Value = get_value(&leverageBracket, &i);
+            let mut bracket: Value = get_value(&leverageBracket, &i);
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
@@ -4603,7 +4606,7 @@ impl AsterCore {
 })]);
             let mut basePrecisionValue: Option<String> = self.safe_string_k(precision.clone(), "base", &[]).as_str().map(str::to_owned);
             let mut quotePrecisionValue: Option<String> = self.safe_string2(precision.clone(), Value::Str("quote".to_string()), Value::Str("price".to_string()), &[]).as_str().map(str::to_owned);
-            let mut precisionIsUndefined: bool = (basePrecisionValue.is_none()) && (quotePrecisionValue.is_none());
+            let mut precisionIsUndefined: bool = is_true(&(basePrecisionValue.is_none())) && is_true(&(quotePrecisionValue.is_none()));
             if !precisionIsUndefined {
                 if linear {
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
@@ -4642,7 +4645,7 @@ impl AsterCore {
         }  else {
             collateralString = self.safe_string_k(position.clone(), "isolatedMargin", &[]);
         }
-        collateralString = (if (collateralString == Value::Null) { Value::Str("0".to_string()) } else { collateralString.clone() });
+        collateralString = (if is_true(&(collateralString == Value::Null)) { Value::Str("0".to_string()) } else { collateralString.clone() });
         let mut collateral: Value = self.parse_number(collateralString.clone(), &[]);
         let mut markPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "markPrice", &[])), &[]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "updateTime", &[]);
@@ -4730,7 +4733,7 @@ impl AsterCore {
     m
 }));
         if (symbols != Value::Null) {
-            if !(matches!(&symbols, Value::Arr(_))) {
+            if !is_true(&(matches!(&symbols, Value::Arr(_)))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPositionsRisk() requires an array argument for symbols".to_string()))));
             }
         }
@@ -4767,7 +4770,8 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_226: bool = true;
             while { if !__for_first_226 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_226 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
-            let mut rawPosition: Value = rawPositions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = get_value(&rawPositions, &i);
+            let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut entryPriceString: Value = self.safe_string_k(rawPosition.clone(), "entryPrice", &[]);
             if is_true(&crate::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".to_string()))) {
                 append_to_array(&mut result, self.parse_position_risk(rawPosition.clone(), &[]));
@@ -4829,7 +4833,8 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_227: bool = true;
             while { if !__for_first_227 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_227 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
-            let mut entry: Value = assets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = get_value(&assets, &i);
+            let mut entry: Value = get_value(&assets, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut crossWalletBalance: Value = self.safe_string_k(entry.clone(), "crossWalletBalance", &[]);
@@ -4849,13 +4854,14 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_228: bool = true;
             while { if !__for_first_228 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_228 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
-            let mut position: Value = positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut position: Value = get_value(&positions, &i);
+            let mut position: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("contract".to_string())]);
-            let mut code: Value = (if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
+            let mut code: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
             let mut maintenanceMargin: Option<String> = self.safe_string_k(position.clone(), "maintMargin", &[]).as_str().map(str::to_owned);
             // check for maintenance margin so empty positions are not returned
-            let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
+            let mut isPositionOpen: bool = is_true(&(maintenanceMargin.as_deref() != Some("0"))) && is_true(&(maintenanceMargin.as_deref() != Some("0.00000000")));
             if !is_true(&filterClosed) || isPositionOpen {
                 // sometimes not all the codes are correctly returned...
                 if (in_op(&balances, &code)) {
@@ -4882,7 +4888,7 @@ impl AsterCore {
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut leverageString: Value = self.safe_string_k(position.clone(), "leverage", &[]);
-        let mut leverage: Value = (if (leverageString != Value::Null) { (match &leverageString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }) } else { Value::Null });
+        let mut leverage: Value = (if is_true(&(leverageString != Value::Null)) { (match &leverageString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }) } else { Value::Null });
         let mut initialMarginString: Value = self.safe_string_k(position.clone(), "initialMargin", &[]);
         let mut initialMargin: Value = self.parse_number(initialMarginString.clone(), &[]);
         let mut initialMarginPercentageString: Value = Value::Null;
@@ -4924,7 +4930,8 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_229: bool = true;
             while { if !__for_first_229 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_229 = false; i.as_f64().unwrap_or(f64::NAN) < ((leverageBracket.len() as i64) as f64) } {
-            let mut bracket: Value = leverageBracket.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut bracket: Value = get_value(&leverageBracket, &i);
+            let mut bracket: Value = get_value(&leverageBracket, &i);
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
@@ -5074,7 +5081,7 @@ impl AsterCore {
     m
 }));
         if (symbols != Value::Null) {
-            if !(matches!(&symbols, Value::Arr(_))) {
+            if !is_true(&(matches!(&symbols, Value::Arr(_)))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() requires an array argument for symbols".to_string()))));
             }
         }
@@ -5100,7 +5107,7 @@ impl AsterCore {
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         let mut leverageBrackets: Value = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[]);
-        if (leverageBrackets == Value::Null) || is_true(&(reload)) {
+        if is_true(&(leverageBrackets == Value::Null)) || is_true(&(reload)) {
             let mut response: Value = self.fapi_private_get_v3_leverage_bracket(&[params.clone()]).await;
             //
             //    [
@@ -5131,7 +5138,8 @@ impl AsterCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_231: bool = true;
                 while { if !__for_first_231 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_231 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
-                let mut entry: Value = entries.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = get_value(&entries, &i);
+                let mut entry: Value = get_value(&entries, &i);
                 let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
                 let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Null, Value::Str("contract".to_string())]);
                 let mut brackets: Value = self.safe_list_k(entry.clone(), "brackets", &[Value::from(vec![])]);
@@ -5140,7 +5148,8 @@ impl AsterCore {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_230: bool = true;
                     while { if !__for_first_230 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_230 = false; j.as_f64().unwrap_or(f64::NAN) < ((brackets.len() as i64) as f64) } {
-                    let mut bracket: Value = brackets.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    let mut bracket: Value = get_value(&brackets, &j);
+                    let mut bracket: Value = get_value(&brackets, &j);
                     let mut floorValue: Value = self.safe_string_k(bracket.clone(), "notionalFloor", &[]);
                     let mut maintenanceMarginPercentage: Value = self.safe_string_k(bracket.clone(), "maintMarginRatio", &[]);
                     append_to_array(&mut result, Value::from(vec![floorValue.clone(), maintenanceMarginPercentage.clone()]));
@@ -5281,7 +5290,7 @@ impl AsterCore {
 })]);
         let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]);
         network = self.safe_string(networks.clone(), network.clone(), &[network.clone()]);
-        if (chainId == Value::Null) && (network != Value::Null) {
+        if is_true(&(chainId == Value::Null)) && is_true(&(network != Value::Null)) {
             let mut chainIds: Value = self.safe_dict_k(self.options.clone(), "networksToChainId", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5291,15 +5300,15 @@ impl AsterCore {
         if (chainId == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw require chainId or network parameter".to_string()))));
         }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("chainId".to_string(), chainId.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chainId".to_string(), chainId.clone()); }
         let mut fee: Value = self.safe_string_k(params.clone(), "fee", &[]);
         if (fee == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw require fee parameter".to_string()))));
         }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("fee".to_string(), fee.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fee".to_string(), fee.clone()); }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("chainId".to_string()), Value::Str("network".to_string()), Value::Str("fee".to_string())]), &[]);
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[network.clone()])); }
-        { let __be_tmp = self.sign_withdraw_payload(request.clone(), network.clone()); if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("userSignature".to_string(), __be_tmp); } };
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[network.clone()])); }
+        { let __be_tmp = self.sign_withdraw_payload(request.clone(), network.clone()); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("userSignature".to_string(), __be_tmp); } }
         let __ws_arg_45 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_post_v3_aster_user_withdraw(&[__ws_arg_45]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
@@ -5382,8 +5391,8 @@ impl AsterCore {
         }
         let mut defaultClientTranId: Value = self.number_to_string(self.milliseconds());
         let mut clientTranId: Value = self.safe_string_k(params.clone(), "clientTranId", &[defaultClientTranId.clone()]);
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("kindType".to_string(), type_var.clone()); }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientTranId".to_string(), clientTranId.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("kindType".to_string(), type_var.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientTranId".to_string(), clientTranId.clone()); }
         let __ws_arg_46 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_post_v3_asset_wallet_transfer(&[__ws_arg_46]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
@@ -5467,7 +5476,7 @@ impl AsterCore {
             let mut walletAddress: Value = self.safe_string_k(self.options.clone(), "cachedWalletAddress", &[]);
             let mut privateKeyHash: Value = self.hash(self.encode(self.privateKey.clone()), Value::Str("keccak".to_string()), &[Value::Str("hex".to_string())]);
             let mut cachedPrivateKeyHash: Value = self.safe_string_k(self.options.clone(), "privateKeyHashForCachedWalletAddress", &[]);
-            if (walletAddress == Value::Null) || (!is_equal(&cachedPrivateKeyHash, &privateKeyHash)) {
+            if is_true(&(walletAddress == Value::Null)) || (!is_equal(&cachedPrivateKeyHash, &privateKeyHash)) {
                 walletAddress = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
                 if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("cachedWalletAddress".to_string(), walletAddress.clone()); }
                 if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("privateKeyHashForCachedWalletAddress".to_string(), privateKeyHash.clone()); }
@@ -5587,10 +5596,11 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_232: bool = true;
             while { if !__for_first_232 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_232 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut key: Value = get_value(&keys, &i);
+            let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&values, &key);
             let mut value: Value = get_value(&values, &key);
-            let mut isObj: bool = (matches!(&value, Value::Arr(_))) || is_true(&self.is_dictionary(value.clone()));
+            let mut isObj: bool = is_true(&(matches!(&value, Value::Arr(_)))) || is_true(&self.is_dictionary(value.clone()));
             let mut valueJsonified: Value = (if isObj { json_stringify(&value) } else { to_string_val(&value) });
             let mut encoded: Value = self.encode_uri_component(valueJsonified.clone());
             encodedString = Value::Str(format!("{}{}", encodedString, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".to_string()))), encoded)), Value::Str("&".to_string())))));
@@ -5611,7 +5621,8 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_233: bool = true;
             while { if !__for_first_233 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_233 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut key: Value = get_value(&keys, &i);
+            let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&dict, &key);
             let mut value: Value = get_value(&dict, &key);
             let mut capitalizedKey: Value = self.capitalize(key.clone());

@@ -449,7 +449,7 @@ impl WooCore {
         });
         let mut symbolsAndTimeframes: Value = self.safe_list_k(params.clone(), "symbolsAndTimeframes", &[]);
         if (symbolsAndTimeframes != Value::Null) {
-            add_element_to_object(&mut subscription, &Value::Str("symbolsAndTimeframes".to_string()), symbolsAndTimeframes.clone());
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".to_string(), symbolsAndTimeframes.clone()); }
             params = self.omit(params.clone(), Value::Str("symbolsAndTimeframes".to_string()), &[]);
         }
         let __ws_arg_0 = self.extend(message, &[params.clone()]);
@@ -503,7 +503,7 @@ impl WooCore {
             m
         });
         if (method.as_str() == Some("orderbookupdate")) {
-            add_element_to_object(&mut subscription, &Value::Str("method".to_string()), Value::Str("handle_order_book_subscription".to_string()).clone());
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("method".to_string(), Value::Str("handle_order_book_subscription".to_string()).clone()); }
         }
         let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.watch(url.clone(), topic.clone(), &[__ws_arg_1, topic.clone(), subscription.clone()]).await;
@@ -2048,7 +2048,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut balances: Value = self.safe_value_k(data.clone(), "balances", &[]);
         let mut keys: Value = object_keys(&balances);
         let mut ts: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), data.clone()); }
         add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), ts.clone());
         { let __be_tmp = self.iso8601(ts.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };
         {

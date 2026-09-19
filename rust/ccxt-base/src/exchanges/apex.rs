@@ -1271,10 +1271,10 @@ impl ApexCore {
         if (limit == Value::Null) {
             limit = Value::Int(200); // default is 200 when requested with `since`
         }
-        add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // max 200, default 200
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }; // max 200, default 200
         { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[Value::Float(0.001)]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("start".to_string()), math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
         }
         let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_klines(&[__ws_arg_1]).await;
@@ -1323,7 +1323,7 @@ impl ApexCore {
         if (limit == Value::Null) {
             limit = Value::Int(100); // default is 200 when requested with `since`
         }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // max 100, default 100
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }; // max 100, default 100
         let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_depth(&[__ws_arg_2]).await;
         //
@@ -1396,7 +1396,7 @@ impl ApexCore {
         if (limit == Value::Null) {
             limit = Value::Int(500); // default is 50
         }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_trades(&[__ws_arg_3]).await;
         //
@@ -1576,18 +1576,18 @@ impl ApexCore {
         let mut market: Value = self.market(symbol.clone());
         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("beginTimeInclusive".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("beginTimeInclusive".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut page: Value = self.safe_integer_k(params.clone(), "page", &[]);
         if (page != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("page".to_string(), page.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page".to_string(), page.clone()); }
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         if (endTimeExclusive != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
         }
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_history_funding(&[__ws_arg_5]).await;
@@ -1962,7 +1962,7 @@ impl ApexCore {
             m
         });
         if (triggerPrice != Value::Null) {
-            add_element_to_object(&mut orderToSign, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
+            if let Value::Dict(__d) = &mut orderToSign { std::sync::Arc::make_mut(__d).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         }
         let mut signature: Value = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds()), &[orderToSign.clone()]).await;
         let mut request: Value = Value::Map({
@@ -1980,9 +1980,9 @@ impl ApexCore {
             m
         });
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("signature".to_string(), signature.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature.clone()); }
         let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v3_order(&[__ws_arg_6]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
@@ -2278,12 +2278,12 @@ impl ApexCore {
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("id".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("id".to_string(), clientOrderId.clone()); }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
             let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_v3_delete_client_order_id(&[__ws_arg_15]).await;
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("id".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("id".to_string(), id.clone()); }
             let __ws_arg_16 = self.extend(request, &[params.clone()]);
             response = self.private_post_v3_delete_order(&[__ws_arg_16]).await;
         }
@@ -2324,12 +2324,12 @@ impl ApexCore {
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("id".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("id".to_string(), clientOrderId.clone()); }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
             let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_v3_order_by_client_order_id(&[__ws_arg_17]).await;
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("id".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("id".to_string(), id.clone()); }
             let __ws_arg_18 = self.extend(request, &[params.clone()]);
             response = self.private_get_v3_order(&[__ws_arg_18]).await;
         }
@@ -2409,14 +2409,14 @@ impl ApexCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("beginTimeInclusive".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("beginTimeInclusive".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         if (endTimeExclusive != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         }
         let __ws_arg_19 = self.extend(request, &[params.clone()]);
@@ -2460,9 +2460,9 @@ impl ApexCore {
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientId".to_string()), &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientOrderId".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOrderId".to_string(), clientOrderId.clone()); }
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id.clone()); }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("clientId".to_string())]), &[]);
         let __ws_arg_20 = self.extend(request, &[params.clone()]);
@@ -2513,14 +2513,14 @@ impl ApexCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("beginTimeInclusive".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("beginTimeInclusive".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         if (endTimeExclusive != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         }
         let __ws_arg_21 = self.extend(request, &[params.clone()]);
@@ -2570,15 +2570,15 @@ impl ApexCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("beginTimeInclusive".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("beginTimeInclusive".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         if (endTimeExclusive != Value::Null) {
             params = self.omit(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
         }
         let __ws_arg_22 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v3_funding(&[__ws_arg_22]).await;

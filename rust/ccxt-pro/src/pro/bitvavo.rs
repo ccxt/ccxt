@@ -1777,14 +1777,14 @@ impl BitvavoCore {
         let mut operatorId: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelAllOrdersWs".to_string()), Value::Str("operatorId".to_string()), &[]); operatorId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (operatorId != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("operatorId".to_string(), self.parse_to_int(operatorId.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("operatorId".to_string(), self.parse_to_int(operatorId.clone())); }
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".to_string()))));
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_1 = self.extend(request, &[params.clone()]);
         return self.watch_request(Value::Str("privateCancelOrders".to_string()), __ws_arg_1).await;
@@ -1931,7 +1931,7 @@ impl BitvavoCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut orders: Value = self.watch_request(Value::Str("privateGetOrdersOpen".to_string()), __ws_arg_3).await;

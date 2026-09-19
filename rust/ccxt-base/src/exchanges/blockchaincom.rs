@@ -733,7 +733,7 @@ impl BlockchaincomCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("depth".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("depth".to_string(), limit.clone()); }
         }
         let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_l3_symbol(&[__ws_arg_0]).await;
@@ -758,7 +758,7 @@ impl BlockchaincomCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("depth".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("depth".to_string(), limit.clone()); }
         }
         let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_l2_symbol(&[__ws_arg_1]).await;
@@ -990,9 +990,9 @@ impl BlockchaincomCore {
         }
         if (triggerPrice != Value::Null) {
             if (uppercaseOrderType.as_str() == Some("MARKET")) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("ordType".to_string(), Value::Str("STOP".to_string())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".to_string(), Value::Str("STOP".to_string())); }
             }  else if (uppercaseOrderType.as_str() == Some("LIMIT")) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("ordType".to_string(), Value::Str("STOPLIMIT".to_string())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".to_string(), Value::Str("STOPLIMIT".to_string())); }
             }
         }
         let mut priceRequired: bool = false;
@@ -1004,10 +1004,10 @@ impl BlockchaincomCore {
             stopPriceRequired = true;
         }
         if priceRequired {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         if stopPriceRequired {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopPx".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPx".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         }
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_3]).await;
@@ -1327,7 +1327,7 @@ impl BlockchaincomCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -1548,7 +1548,7 @@ impl BlockchaincomCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("from".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".to_string(), since.clone()); }
         }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
@@ -1619,7 +1619,7 @@ impl BlockchaincomCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("from".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".to_string(), since.clone()); }
         }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {

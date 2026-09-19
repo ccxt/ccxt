@@ -993,7 +993,7 @@ impl BitflyerCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("count".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".to_string(), limit.clone()); }
         }
         let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_getexecutions(&[__ws_arg_2]).await;
@@ -1363,7 +1363,7 @@ impl BitflyerCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("count".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".to_string(), limit.clone()); }
         }
         let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_getexecutions(&[__ws_arg_9]).await;
@@ -1475,7 +1475,7 @@ impl BitflyerCore {
             currency = self.currency(code.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("count".to_string(), limit.clone()); } // default 100
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".to_string(), limit.clone()); }; // default 100
         }
         let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_getcoinins(&[__ws_arg_12]).await;
@@ -1515,7 +1515,7 @@ impl BitflyerCore {
             currency = self.currency(code.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("count".to_string(), limit.clone()); } // default 100
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".to_string(), limit.clone()); }; // default 100
         }
         let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_getcoinouts(&[__ws_arg_13]).await;

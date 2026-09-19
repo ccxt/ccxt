@@ -3080,7 +3080,7 @@ impl BybitCore {
             messageHash = Value::Str(format!("{}{}", Value::Str("balances:".to_string()), account));
             client.resolve(&[get_value(&self.balance, &account), messageHash.clone()]);
         }  else {
-            add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), info.clone());
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), info.clone()); }
             let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
             add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), timestamp.clone());
             { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };

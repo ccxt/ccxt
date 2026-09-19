@@ -765,7 +765,8 @@ impl ZebpayCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1160: bool = true;
             while { if !__for_first_1160 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1160 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
-            let mut type_var: Value = types.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut type_var: Value = get_value(&types, &i);
+            let mut type_var: Value = get_value(&types, &i);
             if (type_var.as_str() == Some("spot")) {
                 append_to_array(&mut promisesUnresolved, self.fetch_spot_markets(&[params.clone()]).await);
             }  else if (type_var.as_str() == Some("swap")) {
@@ -853,24 +854,25 @@ impl ZebpayCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1161: bool = true;
             while { if !__for_first_1161 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1161 = false; j.as_f64().unwrap_or(f64::NAN) < ((chains.len() as i64) as f64) } {
-            let mut chain: Value = chains.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut depositAllowed: Value = Value::Bool(self.safe_bool_k(chain.clone(), "isDepositEnabled", &[]).as_bool() == Some(true));
-            deposit = (if matches!(&depositAllowed, Value::Bool(true)) { depositAllowed.clone() } else { deposit.clone() });
+            deposit = (if is_true(&(depositAllowed)) { depositAllowed.clone() } else { deposit.clone() });
             let mut withdrawAllowed: Value = Value::Bool(self.safe_bool_k(chain.clone(), "isWithdrawEnabled", &[]).as_bool() == Some(true));
-            withdraw = (if matches!(&withdrawAllowed, Value::Bool(true)) { withdrawAllowed.clone() } else { withdraw.clone() });
+            withdraw = (if is_true(&(withdrawAllowed)) { withdrawAllowed.clone() } else { withdraw.clone() });
             let mut withdrawFeeString: Value = self.safe_string_k(chain.clone(), "withdrawalFee", &[]);
             if (withdrawFeeString != Value::Null) {
-                minWithdrawFeeString = (if (minWithdrawFeeString == Value::Null) { withdrawFeeString.clone() } else { crate::precise::Precise::stringMin(&withdrawFeeString, &minWithdrawFeeString) });
+                minWithdrawFeeString = (if is_true(&(minWithdrawFeeString == Value::Null)) { withdrawFeeString.clone() } else { crate::precise::Precise::stringMin(&withdrawFeeString, &minWithdrawFeeString) });
             }
             let mut minNetworkWithdrawString: Value = self.safe_string_k(chain.clone(), "withdrawalMinSize", &[]);
             if (minNetworkWithdrawString != Value::Null) {
-                minWithdrawString = (if (minWithdrawString == Value::Null) { minNetworkWithdrawString.clone() } else { crate::precise::Precise::stringMin(&minNetworkWithdrawString, &minWithdrawString) });
+                minWithdrawString = (if is_true(&(minWithdrawString == Value::Null)) { minNetworkWithdrawString.clone() } else { crate::precise::Precise::stringMin(&minNetworkWithdrawString, &minWithdrawString) });
             }
             let mut minNetworkDepositString: Value = self.safe_string_k(chain.clone(), "depositMinSize", &[]);
             if (minNetworkDepositString != Value::Null) {
-                minDepositString = (if (minDepositString == Value::Null) { minNetworkDepositString.clone() } else { crate::precise::Precise::stringMin(&minNetworkDepositString, &minDepositString) });
+                minDepositString = (if is_true(&(minDepositString == Value::Null)) { minNetworkDepositString.clone() } else { crate::precise::Precise::stringMin(&minNetworkDepositString, &minDepositString) });
             }
             if (networkCode != Value::Null) {
                 add_element_to_object(&mut networks, &networkCode, Value::Map({
@@ -878,7 +880,7 @@ impl ZebpayCore {
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
-        m.insert("active".to_string(), Value::Bool(matches!(&depositAllowed, Value::Bool(true)) && matches!(&withdrawAllowed, Value::Bool(true))));
+        m.insert("active".to_string(), Value::Bool(is_true(&depositAllowed) && is_true(&withdrawAllowed)));
         m.insert("deposit".to_string(), depositAllowed.clone());
         m.insert("withdraw".to_string(), withdrawAllowed.clone());
         m.insert("fee".to_string(), self.parse_number(withdrawFeeString, &[]));
@@ -1063,7 +1065,7 @@ impl ZebpayCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1162: bool = true;
             while { if !__for_first_1162 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1162 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
-            let mut fee: Value = self.parse_trading_fee(fees.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
+            let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = fee.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
                 add_element_to_object(&mut result, &symbol, fee.clone());
@@ -1104,7 +1106,7 @@ impl ZebpayCore {
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             if (limit != Value::Null) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
             }
             //
             //       {
@@ -1260,23 +1262,23 @@ impl ZebpayCore {
             m
         });
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("interval".to_string(), timeframe.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("interval".to_string(), timeframe.clone()); }
         }
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+        if is_true(&(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&(limit != Value::Null)) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         if (since != Value::Null) {
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), since.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
             }  else {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("since".to_string(), since.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("since".to_string(), since.clone()); }
             }
         }
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("endtime".to_string()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), until.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until.clone()); }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("endtime".to_string()), Value::Str("until".to_string())]), &[]);
         }
         let mut response: Value = Value::Null;
@@ -1355,8 +1357,8 @@ impl ZebpayCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+        if is_true(&(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && (limit != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -1737,7 +1739,7 @@ impl ZebpayCore {
             m
         });
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id.clone()); }
             let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_spot_delete_v2_ex_order(&[__ws_arg_14]).await;
         }  else {
@@ -1745,7 +1747,7 @@ impl ZebpayCore {
             if (clientOrderId == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter for swap orders".to_string()))));
             }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientOrderId".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOrderId".to_string(), clientOrderId.clone()); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_swap_delete_v1_trade_order(&[__ws_arg_15]).await;
@@ -1833,9 +1835,9 @@ impl ZebpayCore {
         let mut response: Value = Value::Null;
         let mut orders: Value = Value::from(vec![]);
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currentPage".to_string(), Value::Int(1)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currentPage".to_string(), Value::Int(1)); }
             if (limit != Value::Null) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pageSize".to_string(), limit.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".to_string(), limit.clone()); }
             }
             let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_spot_get_v2_ex_orders(&[__ws_arg_16]).await;
@@ -1846,10 +1848,10 @@ impl ZebpayCore {
             orders = self.safe_list_k(responseData.clone(), "items", &[Value::from(vec![])]);
         }  else {
             if (since != Value::Null) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("since".to_string(), since.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("since".to_string(), since.clone()); }
             }
             if (limit != Value::Null) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
             }
             let __ws_arg_17 = self.extend(request, &[params.clone()]);
             response = self.private_swap_get_v1_trade_order_open_orders(&[__ws_arg_17]).await;
@@ -1893,11 +1895,11 @@ impl ZebpayCore {
         });
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id.clone()); }
             let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_spot_get_v2_ex_order(&[__ws_arg_18]).await;
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("id".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("id".to_string(), id.clone()); }
             let __ws_arg_19 = self.extend(request, &[params.clone()]);
             response = self.private_swap_get_v1_trade_order(&[__ws_arg_19]).await;
         }
@@ -2174,7 +2176,7 @@ impl ZebpayCore {
             m
         });
         if (symbols != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbols".to_string(), self.market_ids(&[symbols.clone()])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".to_string(), self.market_ids(&[symbols.clone()])); }
         }
         let __ws_arg_23 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_swap_get_v1_trade_positions(&[__ws_arg_23]).await;
@@ -2350,7 +2352,8 @@ impl ZebpayCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1163: bool = true;
             while { if !__for_first_1163 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1163 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
-            let mut market: Value = markets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut market: Value = get_value(&markets, &i);
+            let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
@@ -2454,7 +2457,8 @@ impl ZebpayCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1164: bool = true;
             while { if !__for_first_1164 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1164 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
-            let mut market: Value = markets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut market: Value = get_value(&markets, &i);
+            let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
@@ -2522,7 +2526,8 @@ impl ZebpayCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1165: bool = true;
             while { if !__for_first_1165 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1165 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyList.len() as i64) as f64) } {
-            let mut entry: Value = currencyList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = get_value(&currencyList, &i);
+            let mut entry: Value = get_value(&currencyList, &i);
             let mut account: Value = self.account();
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(entry.clone(), "total", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(entry.clone(), "free", &[])); }
@@ -2733,7 +2738,7 @@ impl ZebpayCore {
         let mut access: Option<String> = self.safe_string(api.clone(), Value::Int(0), &[Value::Str("public".to_string())]).as_str().map(str::to_owned);
         if (access.as_deref() == Some("public")) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-                if (queryLength != Value::Null) && (queryLength.as_f64() != Some(0.0)) {
+                if is_true(&(queryLength != Value::Null)) && is_true(&(queryLength.as_f64() != Some(0.0))) {
                     url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[]))));
                 }
             }  else {
@@ -2749,7 +2754,7 @@ impl ZebpayCore {
             self.check_required_credentials(&[]);
             let mut isSpot: bool = marketType.as_str() == Some("spot");
             add_element_to_object(&mut params, &Value::Str("timestamp".to_string()), timestamp.clone());
-            if (method.as_str() == Some("GET")) || ((method.as_str() == Some("DELETE")) && isSpot) {
+            if (method.as_str() == Some("GET")) || is_true(&((method.as_str() == Some("DELETE")) && isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
                 let mut queryString: Value = self.urlencode(params.clone(), &[]);
                 signature = self.hmac(self.encode(queryString.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("hex".to_string())]);

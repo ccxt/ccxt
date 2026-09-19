@@ -397,8 +397,8 @@ impl BydfiCore {
         if (unsubscribe.as_bool() == Some(true)) {
             method = Value::Str("UNSUBSCRIBE".to_string());
             params = self.omit(params.clone(), Value::Str("unsubscribe".to_string()), &[]);
-            add_element_to_object(&mut subscriptionParams, &Value::Str("unsubscribe".to_string()), Value::Bool(true));
-            add_element_to_object(&mut subscriptionParams, &Value::Str("messageHashes".to_string()), messageHashes.clone());
+            if let Value::Dict(__d) = &mut subscriptionParams { std::sync::Arc::make_mut(__d).insert("unsubscribe".to_string(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut subscriptionParams { std::sync::Arc::make_mut(__d).insert("messageHashes".to_string(), messageHashes.clone()); }
         }
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -447,7 +447,7 @@ impl BydfiCore {
                 m
             });
             params = self.deep_extend(request.clone(), &[params.clone()]);
-            add_element_to_object(&mut subscription, &Value::Str("id".to_string()), id.clone());
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("id".to_string(), id.clone()); }
         }
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[params.clone(), Value::from(vec![Value::Str("private".to_string())]), subscription.clone()]).await;
 
@@ -574,7 +574,7 @@ impl BydfiCore {
             // all tickers and tickers for specific symbols are different channels
             // we need to unsubscribe from all ticker channels
             let mut subHashes: Value = self.get_message_hashes_for_tickers_unsubscription();
-            add_element_to_object(&mut subscription, &Value::Str("subHashIsPrefix".to_string()), Value::Bool(true));
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("subHashIsPrefix".to_string(), Value::Bool(true)); }
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_235: bool = true;
@@ -604,7 +604,7 @@ impl BydfiCore {
                 append_to_array(&mut channels, Value::Str(format!("{}{}", marketId, channel)));
             }
             }
-            add_element_to_object(&mut subscription, &Value::Str("symbols".to_string()), symbols.clone());
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbols".to_string(), symbols.clone()); }
         }
         params = self.extend(params.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();

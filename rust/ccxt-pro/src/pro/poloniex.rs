@@ -455,7 +455,7 @@ impl PoloniexCore {
             marketIds = (if (ids == Value::Null) { Value::from(vec![]) } else { ids.clone() });
         }
         if (name.as_str() != Some("balances")) {
-            add_element_to_object(&mut subscribe, &Value::Str("symbols".to_string()), marketIds.clone());
+            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("symbols".to_string(), marketIds.clone()); }
         }
         let mut request: Value = self.extend(subscribe, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
@@ -559,11 +559,11 @@ impl PoloniexCore {
             }  else {
                 quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone());
             }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amount".to_string(), quoteAmount.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".to_string(), quoteAmount.clone()); }
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quantity".to_string(), self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount.clone())); }
             if (price != Value::Null) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             }
         }
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);

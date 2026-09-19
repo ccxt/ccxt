@@ -1548,11 +1548,11 @@ impl LighterCore {
             m
         });
         if (type_var.as_str() == Some("spot")) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_assets/".to_string()), self.number_to_string(accountIndex.clone())))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_assets/".to_string()), self.number_to_string(accountIndex.clone())))); }
             let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
             return self.subscribe_private(messageHash.clone(), &[__ws_arg_14]).await;
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("user_stats/".to_string()), self.number_to_string(accountIndex.clone())))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("user_stats/".to_string()), self.number_to_string(accountIndex.clone())))); }
             let __ws_arg_15 = self.extend(request, &[params.clone()]);
             return self.subscribe_public(messageHash.clone(), &[__ws_arg_15]).await;
         }
@@ -1700,10 +1700,10 @@ impl LighterCore {
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             messageHash = self.get_message_hash(Value::Str("orders".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str("/".to_string()))), self.number_to_string(accountIndex.clone())))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str("/".to_string()))), self.number_to_string(accountIndex.clone())))); }
         }  else {
             messageHash = self.get_message_hash(Value::Str("orders".to_string()), &[]);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".to_string()), self.number_to_string(accountIndex.clone())))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".to_string()), self.number_to_string(accountIndex.clone())))); }
         }
         let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut orders: Value = self.subscribe_private(messageHash.clone(), &[__ws_arg_16]).await;
@@ -1743,10 +1743,10 @@ impl LighterCore {
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             subMessageHash = self.get_message_hash(Value::Str("orders".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str("/".to_string()))), self.number_to_string(accountIndex.clone())))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str("/".to_string()))), self.number_to_string(accountIndex.clone())))); }
         }  else {
             subMessageHash = self.get_message_hash(Value::Str("orders".to_string()), &[]);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".to_string()), self.number_to_string(accountIndex.clone())))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".to_string()), self.number_to_string(accountIndex.clone())))); }
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         let __ws_arg_17 = self.extend(request, &[params.clone()]);

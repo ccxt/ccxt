@@ -1599,11 +1599,11 @@ impl HyperliquidCore {
         });
         if (isSpot) {
             if (isUnifiedEnabled.as_bool() == Some(true)) {
-                add_element_to_object(&mut subscription, &Value::Str("isPortfolioMargin".to_string()), Value::Bool(true));
+                if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("isPortfolioMargin".to_string(), Value::Bool(true)); }
             }
         }  else {
             if (dex != Value::Null) {
-                add_element_to_object(&mut subscription, &Value::Str("dex".to_string()), dex.clone());
+                if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("dex".to_string(), dex.clone()); }
             }
         }
         let mut request: Value = Value::Map({
@@ -1873,7 +1873,7 @@ impl HyperliquidCore {
         });
         let mut dexName: Value = self.parent.get_dex_from_symbols(Value::Str("watchPositions".to_string()), &[symbols.clone()]);
         if (dexName != Value::Null) {
-            add_element_to_object(&mut subscription, &Value::Str("dex".to_string()), dexName.clone());
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("dex".to_string(), dexName.clone()); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

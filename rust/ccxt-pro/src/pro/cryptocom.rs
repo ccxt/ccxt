@@ -1659,7 +1659,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = self.safe_string_k(message.clone(), "subscription", &[]);
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         let mut positionBalances: Value = self.safe_list(data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("position_balances".to_string()), &[Value::from(vec![])]);
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), data.clone()); }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_304: bool = true;

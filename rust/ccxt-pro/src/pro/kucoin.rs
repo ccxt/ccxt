@@ -844,9 +844,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
         if is_true(&uta) {
             subMessageHash = Value::Str(format!("{}{}", Value::Str("uta:".to_string()), subMessageHash));
-            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::from(vec![subMessageHash.clone()]));
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("subMessageHashes".to_string(), Value::from(vec![subMessageHash.clone()])); }
             let mut utaMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
-            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::from(vec![utaMessageHash.clone()]));
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("messageHashes".to_string(), Value::from(vec![utaMessageHash.clone()])); }
             return self.subscribe_public_uta(utaMessageHash.clone(), Value::Str("ticker".to_string()), symbol.clone(), &[params.clone(), subscription.clone()]).await;
         }  else {
             let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesMethod.clone()]).await;
@@ -861,8 +861,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we have to add the topic to the messageHashes and subMessageHashes
             // because handleSubscriptionStatus needs them to remove the subscription from the client
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::from(vec![messageHash.clone(), topic.clone()]));
-            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::from(vec![subMessageHash.clone(), topic.clone()]));
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("messageHashes".to_string(), Value::from(vec![messageHash.clone(), topic.clone()])); }
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("subMessageHashes".to_string(), Value::from(vec![subMessageHash.clone(), topic.clone()])); }
             return self.un_subscribe(url.clone(), messageHash.clone(), topic.clone(), subMessageHash.clone(), &[params.clone(), subscription.clone()]).await;
         }
 
@@ -1517,9 +1517,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), symbol)), Value::Str(":".to_string()))), timeframe));
         if is_true(&uta) {
             subMessageHash = Value::Str(format!("{}{}", Value::Str("uta:".to_string()), subMessageHash));
-            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::from(vec![subMessageHash.clone()]));
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("subMessageHashes".to_string(), Value::from(vec![subMessageHash.clone()])); }
             let mut utaMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
-            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::from(vec![utaMessageHash.clone()]));
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("messageHashes".to_string(), Value::from(vec![utaMessageHash.clone()])); }
             let mut extendedParams: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("interval".to_string(), period.clone());
@@ -1539,8 +1539,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we have to add the topic to the messageHashes and subMessageHashes
             // because handleSubscriptionStatus needs them to remove the subscription from the client
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::from(vec![messageHash.clone(), topic.clone()]));
-            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::from(vec![subMessageHash.clone(), topic.clone()]));
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("messageHashes".to_string(), Value::from(vec![messageHash.clone(), topic.clone()])); }
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("subMessageHashes".to_string(), Value::from(vec![subMessageHash.clone(), topic.clone()])); }
             return self.un_subscribe(url.clone(), messageHash.clone(), topic.clone(), messageHash.clone(), &[params.clone(), subscription.clone()]).await;
         }
 

@@ -1673,7 +1673,7 @@ impl NadoCore {
             m
         });
         if (market != Value::Null) {
-            add_element_to_object(&mut stream, &Value::Str("product_id".to_string()), self.parse_to_int(crate::value::get_value_k(&market, "id")));
+            if let Value::Dict(__d) = &mut stream { std::sync::Arc::make_mut(__d).insert("product_id".to_string(), self.parse_to_int(crate::value::get_value_k(&market, "id"))); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1870,7 +1870,7 @@ impl NadoCore {
             m
         });
         if (market != Value::Null) {
-            add_element_to_object(&mut stream, &Value::Str("product_id".to_string()), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+            if let Value::Dict(__d) = &mut stream { std::sync::Arc::make_mut(__d).insert("product_id".to_string(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))); }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

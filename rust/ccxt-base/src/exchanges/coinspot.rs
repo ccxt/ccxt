@@ -1241,7 +1241,7 @@ impl CoinspotCore {
             market = self.market(symbol);
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startdate".to_string(), self.yyyymmdd(since.clone(), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startdate".to_string(), self.yyyymmdd(since.clone(), &[])); }
         }
         let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_ro_my_transactions(&[__ws_arg_2]).await;

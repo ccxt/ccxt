@@ -1155,14 +1155,14 @@ impl IndependentreserveCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("primaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("secondaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("primaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("secondaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit == Value::Null) {
             limit = Value::Int(50);
         }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pageIndex".to_string(), Value::Int(1)); }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pageSize".to_string(), limit.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageIndex".to_string(), Value::Int(1)); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".to_string(), limit.clone()); }
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_open_orders(&[__ws_arg_3]).await;
         let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
@@ -1199,14 +1199,14 @@ impl IndependentreserveCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("primaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("secondaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("primaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("secondaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit == Value::Null) {
             limit = Value::Int(50);
         }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pageIndex".to_string(), Value::Int(1)); }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pageSize".to_string(), limit.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageIndex".to_string(), Value::Int(1)); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".to_string(), limit.clone()); }
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_closed_orders(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
@@ -1452,9 +1452,9 @@ impl IndependentreserveCore {
             m
         });
         let mut response: Value = Value::Null;
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("volume".to_string(), amount.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("volume".to_string(), amount.clone()); }
         if (type_var.as_str() == Some("limit")) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), price.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), price.clone()); }
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_place_limit_order(&[__ws_arg_7]).await;
         }  else {
@@ -1591,7 +1591,7 @@ impl IndependentreserveCore {
             m
         });
         if (tag != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("destinationTag".to_string(), tag.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("destinationTag".to_string(), tag.clone()); }
         }
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1699,9 +1699,9 @@ impl IndependentreserveCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut query, &Value::Str("apiKey".to_string()), self.apiKey.clone());
+            if let Value::Dict(__d) = &mut query { std::sync::Arc::make_mut(__d).insert("apiKey".to_string(), self.apiKey.clone()); }
             add_element_to_object(&mut query, &Value::Str("nonce".to_string()), nonce.clone());
-            add_element_to_object(&mut query, &Value::Str("signature".to_string()), to_upper(&signature));
+            if let Value::Dict(__d) = &mut query { std::sync::Arc::make_mut(__d).insert("signature".to_string(), to_upper(&signature)); }
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_831: bool = true;
