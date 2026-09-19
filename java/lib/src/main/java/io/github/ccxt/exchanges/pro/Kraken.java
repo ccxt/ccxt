@@ -702,7 +702,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         List<Object> parsed = this.parseTrades(data, market);
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsed, i)});
+            Helpers.callDynamically(stored, "append", new Object[]{(parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i))});
         }
         client.resolve(stored, messageHash);
     }
@@ -753,7 +753,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Object ohlcvsLength = ((List<?>)data).size();
         for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
         {
-            Object candle = Helpers.GetValue(data, i);
+            Object candle = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String datetime = this.safeString(candle, "interval_begin");
             Long timestamp = this.parse8601(datetime);
             List<Object> parsed = new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber(candle, "open"), this.safeNumber(candle, "high"), this.safeNumber(candle, "low"), this.safeNumber(candle, "close"), this.safeNumber(candle, "volume")));
@@ -1037,7 +1037,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 {
                     for (var i = 0; i < ((List<?>)symbols).size(); i++)
                     {
-                        Object symbol = Helpers.GetValue(symbols, i);
+                        Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                         Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                         Object wsName = this.safeString(info, "wsname");
@@ -1858,10 +1858,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            String currencyId = this.safeString(Helpers.GetValue(data, i), "asset");
+            String currencyId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "asset");
             Object code = ((String)this.safeCurrencyCode(currencyId));
             Object account = this.account();
-            String eq = this.safeString(Helpers.GetValue(data, i), "balance");
+            String eq = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "balance");
             ((Map<String, Object>)account).put("total", eq);
             ((Map<String, Object>)result).put((String)code, account);
         }

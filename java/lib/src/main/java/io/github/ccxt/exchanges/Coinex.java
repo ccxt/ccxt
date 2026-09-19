@@ -1287,7 +1287,7 @@ public class Coinex extends CoinexApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "chain");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (java.util.Objects.equals(networkId, null))
@@ -1411,7 +1411,7 @@ public class Coinex extends CoinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "market");
                 String baseId = this.safeString(market, "base_ccy");
                 String quoteId = this.safeString(market, "quote_ccy");
@@ -1507,7 +1507,7 @@ public class Coinex extends CoinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object entry = Helpers.GetValue(markets, i);
+                Object entry = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 Object fees = this.fees;
                 List<Object> leverages = (List<Object>) this.safeList(entry, "leverage", new ArrayList<Object>(Arrays.asList()));
                 String subType = this.safeString(entry, "contract_type");
@@ -2126,7 +2126,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "market");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, type);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -2287,7 +2287,7 @@ public class Coinex extends CoinexApi
             List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object entry = Helpers.GetValue(balances, i);
+                Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 Map<String, Object> free = (Map<String, Object>) this.safeDict(entry, "available", new HashMap<String, Object>() {{}});
                 Map<String, Object> used = (Map<String, Object>) this.safeDict(entry, "frozen", new HashMap<String, Object>() {{}});
                 Map<String, Object> loan = (Map<String, Object>) this.safeDict(entry, "repaid", new HashMap<String, Object>() {{}});
@@ -2340,7 +2340,7 @@ public class Coinex extends CoinexApi
             List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object entry = Helpers.GetValue(balances, i);
+                Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(entry, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -2389,7 +2389,7 @@ public class Coinex extends CoinexApi
             List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object entry = Helpers.GetValue(balances, i);
+                Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(entry, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -2435,7 +2435,7 @@ public class Coinex extends CoinexApi
             List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object entry = Helpers.GetValue(balances, i);
+                Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(entry, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -3149,7 +3149,7 @@ public class Coinex extends CoinexApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String status = null;
                 Long code = this.safeInteger(entry, "code");
                 if (!java.util.Objects.equals(code, null))
@@ -3252,7 +3252,7 @@ public class Coinex extends CoinexApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Map<String, Object> item = (Map<String, Object>) this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
                 Object order = this.parseOrder(item, market);
                 ((List<Object>)results).add(order);
@@ -3438,7 +3438,7 @@ public class Coinex extends CoinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String code = this.safeString(entry, "code");
                 String message = this.safeString(entry, "message", "");
                 if ((!java.util.Objects.equals(code, "0")) || ((!java.util.Objects.equals(message, "Success")) && (!java.util.Objects.equals(message, "Succeeded")) && (!java.util.Objects.equals(message.toLowerCase(), "ok")) && (java.util.Objects.equals(data, null))))
@@ -4164,7 +4164,7 @@ public class Coinex extends CoinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)position).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition(Helpers.GetValue(position, i), market));
+                ((List<Object>)result).add(this.parsePosition((position == null || i < 0 || i >= position.size() ? null : position.get(i)), market));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -4497,7 +4497,7 @@ public class Coinex extends CoinexApi
         Object minNotional = 0;
         for (var i = 0; i < ((List<?>)brackets).size(); i++)
         {
-            Object tier = Helpers.GetValue(brackets, i);
+            Object tier = (brackets == null || i < 0 || i >= brackets.size() ? null : brackets.get(i));
             String marketId = this.safeString(info, "market");
             market = this.safeMarket(marketId, market, null, "swap");
             Double maxNotional = this.safeNumber(tier, "amount");
@@ -4779,7 +4779,7 @@ final Object finalI = i;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Long timestamp = this.safeInteger(entry, "created_at");
                 String currencyId = this.safeString(entry, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
@@ -5159,7 +5159,7 @@ final Object finalI = i;
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "market");
                 String symbolInner = this.safeSymbol(marketId, market, null, "swap");
                 Long timestamp = this.safeInteger(entry, "funding_time");
@@ -6085,7 +6085,7 @@ final Object finalI = i;
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object item = Helpers.GetValue(data, i);
+                Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Map<String, Object> asset = (Map<String, Object>) this.safeDict(item, "asset", new HashMap<String, Object>() {{}});
                 String currencyId = this.safeString(asset, "ccy");
                 if (java.util.Objects.equals(currencyId, null))
@@ -6154,7 +6154,7 @@ final Object finalI = i;
         Map<String, Object> asset = (Map<String, Object>) this.safeDict(fee, "asset", new HashMap<String, Object>() {{}});
         for (var i = 0; i < ((List<?>)chains).size(); i++)
         {
-            Object entry = Helpers.GetValue(chains, i);
+            Object entry = (chains == null || i < 0 || i >= chains.size() ? null : chains.get(i));
             Boolean isWithdrawEnabled = (Boolean) this.safeBool(entry, "withdraw_enabled");
             if (java.util.Objects.equals(isWithdrawEnabled, true))
             {

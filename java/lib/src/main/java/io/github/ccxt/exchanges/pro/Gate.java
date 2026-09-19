@@ -1289,7 +1289,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         List<Object> parsedTrades = this.parseTrades(result);
         for (var i = 0; i < ((List<?>)parsedTrades).size(); i++)
         {
-            Object trade = Helpers.GetValue(parsedTrades, i);
+            Object trade = (parsedTrades == null || i < 0 || i >= parsedTrades.size() ? null : parsedTrades.get(i));
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             Object cachedTrades = this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(cachedTrades, null))
@@ -1528,7 +1528,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
-            Object trade = Helpers.GetValue(parsed, i);
+            Object trade = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             Helpers.callDynamically(cachedTrades, "append", new Object[]{trade});
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -1663,7 +1663,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Helpers.addElementToObject(this.balance, "info", result);
         for (var i = 0; i < ((List<?>)result).size(); i++)
         {
-            Object rawBalance = Helpers.GetValue(result, i);
+            Object rawBalance = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
             Object account = this.account();
             String currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
             String code = this.safeCurrencyCode(currencyId);
@@ -1871,7 +1871,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(data, i);
+            Object rawPosition = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object position = this.parsePosition(rawPosition);
             String symbol = this.safeString(position, "symbol");
             String side = this.safeString(position, "side");
@@ -2075,7 +2075,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         List<Object> parsedOrders = this.parseOrders(orders);
         for (var i = 0; i < ((List<?>)parsedOrders).size(); i++)
         {
-            Object parsed = Helpers.GetValue(parsedOrders, i);
+            Object parsed = (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
             // inject order status
             Map<String, Object> info = (Map<String, Object>) this.safeDict(parsed, "info");
             String eventVar = this.safeString(info, "event");
@@ -2263,7 +2263,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Object cache = this.liquidations;
         for (var i = 0; i < ((List<?>)rawLiquidations).size(); i++)
         {
-            Object rawLiquidation = Helpers.GetValue(rawLiquidations, i);
+            Object rawLiquidation = (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
             Object liquidation = this.parseWsLiquidation(rawLiquidation);
             Helpers.callDynamically(cache, "append", new Object[]{liquidation});
             String symbol = this.safeString(liquidation, "symbol");
@@ -2408,7 +2408,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                     for (var i = 0; i < ((List<?>)payload).size(); i++)
                     {
                         Object marketType = ((java.util.Objects.equals(Helpers.GetValue(parsedChannel, 0), "futures"))) ? "swap" : Helpers.GetValue(parsedChannel, 0);
-                        String symbol = this.safeSymbol(Helpers.GetValue(payload, i), null, "_", marketType);
+                        String symbol = this.safeSymbol((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)), null, "_", marketType);
                         String messageHashSymbol = ((Helpers.GetValue(parsedChannel, 1) + ":") + symbol);
                         if ((!java.util.Objects.equals(messageHashSymbol, null)) && (((Map<?, ?>)client.subscriptions).containsKey(messageHashSymbol)))
                         {
@@ -2486,7 +2486,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         List<Object> keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(keys, i);
+            Object messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
             {
                 continue;
@@ -2503,8 +2503,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                 {
-                    Object unsubHash = Helpers.GetValue(messageHashes, j);
-                    Object subHash = Helpers.GetValue(subMessageHashes, j);
+                    Object unsubHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
+                    Object subHash = (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
                     this.cleanUnsubscription(client, subHash, unsubHash);
                 }
                 this.cleanCache(subscription);

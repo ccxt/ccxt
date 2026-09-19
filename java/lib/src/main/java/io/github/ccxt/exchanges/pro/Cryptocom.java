@@ -576,7 +576,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; j < ((List<?>)parsedTrades).size(); j++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
+            Helpers.callDynamically(stored, "append", new Object[]{(parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j))});
         }
         Object channelReplaced = Helpers.replace(channel, (String)Helpers.add(".", marketId), (String)"");
         client.resolve(stored, symbolSpecificMessageHash);
@@ -796,7 +796,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object ticker = Helpers.GetValue(data, i);
+            Object ticker = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object parsed = this.parseWsTicker(ticker, market);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -1144,7 +1144,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             List<Object> parsed = this.parseOrders(orders);
             for (var i = 0; i < ((List<?>)parsed).size(); i++)
             {
-                Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsed, i)});
+                Helpers.callDynamically(stored, "append", new Object[]{(parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i))});
             }
             client.resolve(stored, symbolSpecificMessageHash);
             // non-symbol specific
@@ -1302,7 +1302,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
+            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Object position = this.parsePosition(rawPosition);
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
@@ -1396,7 +1396,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Helpers.addElementToObject(this.balance, "info", data);
         for (var i = 0; i < ((List<?>)positionBalances).size(); i++)
         {
-            Object balance = Helpers.GetValue(positionBalances, i);
+            Object balance = (positionBalances == null || i < 0 || i >= positionBalances.size() ? null : positionBalances.get(i));
             String currencyId = this.safeString(balance, "instrument_name");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -1895,7 +1895,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         List<Object> keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(keys, i);
+            Object messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
             {
                 continue;
@@ -1912,8 +1912,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                 {
-                    Object unsubHash = Helpers.GetValue(messageHashes, j);
-                    Object subHash = Helpers.GetValue(subMessageHashes, j);
+                    Object unsubHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
+                    Object subHash = (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
                     this.cleanUnsubscription(client, subHash, unsubHash);
                 }
                 this.cleanCache(subscription);

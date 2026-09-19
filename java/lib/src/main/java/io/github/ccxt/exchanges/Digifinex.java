@@ -893,7 +893,7 @@ public class Digifinex extends DigifinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object market = Helpers.GetValue(response, i);
+                Object market = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                 String id = this.safeString2(market, "symbol", "instrument_id");
                 String baseId = this.safeString2(market, "base_asset", "base_currency");
                 String quoteId = this.safeString2(market, "quote_asset", "quote_currency");
@@ -1019,7 +1019,7 @@ public class Digifinex extends DigifinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "market");
                 if (java.util.Objects.equals(id, null))
                 {
@@ -1410,7 +1410,7 @@ public class Digifinex extends DigifinexApi
             {
                 Map<String, Object> rawTicker = this.extend(new HashMap<String, Object>() {{
                     put( "date", date );
-                }}, Helpers.GetValue(tickers, i));
+                }}, (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)));
                 Object ticker = this.parseTicker(rawTicker);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -2558,7 +2558,7 @@ public class Digifinex extends DigifinexApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)success).size(); i++)
         {
-            Object order = Helpers.GetValue(success, i);
+            Object order = (success == null || i < 0 || i >= success.size() ? null : success.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
@@ -2567,7 +2567,7 @@ public class Digifinex extends DigifinexApi
         }
         for (var i = 0; i < ((List<?>)error).size(); i++)
         {
-            Object order = Helpers.GetValue(error, i);
+            Object order = (error == null || i < 0 || i >= error.size() ? null : error.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Digifinex.this.safeString2(order, "order-id", "order_id") );
@@ -4081,7 +4081,7 @@ public class Digifinex extends DigifinexApi
             Object result = null;
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if (java.util.Objects.equals(this.safeString(entry, "currency"), code))
                 {
                     result = entry;
@@ -4366,7 +4366,7 @@ public class Digifinex extends DigifinexApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object entry = Helpers.GetValue(result, i);
+                Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String marketId = this.safeString(data, "instrument_id");
                 String symbolInner = this.safeSymbol(marketId);
                 Long timestamp = this.safeInteger(entry, "time");
@@ -4576,7 +4576,7 @@ public class Digifinex extends DigifinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition(Helpers.GetValue(positions, i), market));
+                ((List<Object>)result).add(this.parsePosition((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)), market));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));

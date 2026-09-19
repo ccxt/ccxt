@@ -1169,8 +1169,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object subHash = Helpers.GetValue(subMessageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
             this.cleanUnsubscription(client, subHash, messageHash);
         }
         this.cleanCache(subscription);
@@ -1379,7 +1379,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object value = Helpers.GetValue(data, i);
+                Object value = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Object parsed = this.parseWsOrder(value);
                 Object symbol = ((Map<String, Object>)parsed).get("symbol");
                 ((Map<String, Object>)symbolIds).put((String)((String)symbol), true);

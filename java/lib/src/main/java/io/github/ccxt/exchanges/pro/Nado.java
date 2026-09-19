@@ -1269,7 +1269,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "status", "canceled" );
-                }}, Helpers.GetValue(cancelledOrders, i)), market));
+                }}, (cancelledOrders == null || i < 0 || i >= cancelledOrders.size() ? null : cancelledOrders.get(i))), market));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1324,7 +1324,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "status", "canceled" );
-                }}, Helpers.GetValue(cancelledOrders, i)), market));
+                }}, (cancelledOrders == null || i < 0 || i >= cancelledOrders.size() ? null : cancelledOrders.get(i))), market));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2176,7 +2176,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
             for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
             {
-                Object subscriptionHash = Helpers.GetValue(subscriptions, i);
+                Object subscriptionHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
                 Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, subscriptionHash);
                 String streamType = this.safeString(subscription, "streamType");
                 String subscriptionSymbol = this.safeString(subscription, "symbol");
@@ -2278,7 +2278,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
-            Object unsubscribeHash = Helpers.GetValue(subscriptions, i);
+            Object unsubscribeHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
             Object subscription = Helpers.GetValue(client.subscriptions, unsubscribeHash);
             String subscriptionId = this.safeString(subscription, "id");
             if (!java.util.Objects.equals(subscriptionId, id))
@@ -2337,7 +2337,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             List<Object> symbols = Helpers.objectKeys(this.tickers);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                ((Map<String,Object>)this.tickers).remove((String)Helpers.GetValue(symbols, i));
+                ((Map<String,Object>)this.tickers).remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
             }
         } else if (Helpers.isEqual(((String)messageHash).indexOf("bidask:"), 0))
         {
@@ -2351,7 +2351,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             List<Object> symbols = Helpers.objectKeys(this.bidsasks);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                ((Map<String,Object>)this.bidsasks).remove((String)Helpers.GetValue(symbols, i));
+                ((Map<String,Object>)this.bidsasks).remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
             }
         } else if (Helpers.isEqual(((String)messageHash).indexOf("orders"), 0))
         {

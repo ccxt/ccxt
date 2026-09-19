@@ -590,7 +590,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         List<Object> units = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)units).size(); i++)
         {
-            Object entry = Helpers.GetValue(units, i);
+            Object entry = (units == null || i < 0 || i >= units.size() ? null : units.get(i));
             Double bidPrice = this.safeNumber(entry, "bid_price");
             Double bidSize = this.safeNumber(entry, "bid_size");
             Double askPrice = this.safeNumber(entry, "ask_price");
@@ -756,7 +756,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Object rawTrade = Helpers.GetValue(rawTrades, i);
+            Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
             String marketId = this.safeString2(rawTrade, "symbol", "code");
             if (java.util.Objects.equals(marketId, null))
             {
@@ -968,7 +968,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         for (var i = 0; i < ((List<?>)assets).size(); i++)
         {
-            Object asset = Helpers.GetValue(assets, i);
+            Object asset = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
             String currencyId = this.safeString(asset, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();

@@ -234,7 +234,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)tickers).size(); i++)
         {
-            Object data = Helpers.GetValue(tickers, i);
+            Object data = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(data, "market");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
             Object messageHash = Helpers.add(Helpers.add(eventVar, "@"), marketId);
@@ -282,7 +282,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)tickers).size(); i++)
         {
-            Object data = Helpers.GetValue(tickers, i);
+            Object data = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             Object ticker = this.parseWsBidAsk(data);
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
@@ -598,7 +598,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
         for (var i = 0; i < ((List<?>)candles).size(); i++)
         {
-            Object candle = Helpers.GetValue(candles, i);
+            Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
             Object parsed = this.parseOHLCV(candle, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
@@ -1183,7 +1183,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         List<Object> keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!(((Map<?, ?>)client.subscriptions).containsKey(key)))
             {
                 continue;

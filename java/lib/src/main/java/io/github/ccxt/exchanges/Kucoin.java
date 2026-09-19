@@ -2483,7 +2483,7 @@ public class Kucoin extends KucoinApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object market = Helpers.GetValue(data, i);
+                Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(market, "symbol");
                 Long expiry = this.safeInteger(market, "expireDate");
                 Boolean future = java.util.Objects.equals(this.safeString(market, "nextFundingRateTime"), null);
@@ -2679,7 +2679,7 @@ public class Kucoin extends KucoinApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsData).size(); i++)
             {
-                Object market = Helpers.GetValue(symbolsData, i);
+                Object market = (symbolsData == null || i < 0 || i >= symbolsData.size() ? null : symbolsData.get(i));
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseCurrency");
                 String quoteId = this.safeString(market, "quoteCurrency");
@@ -2932,7 +2932,7 @@ public class Kucoin extends KucoinApi
         Object chainsLength = ((List<?>)chains).size();
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String chainId = this.safeString(chain, "chainId");
             Object networkCode = this.networkIdToCode(chainId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -3218,7 +3218,7 @@ public class Kucoin extends KucoinApi
             List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)chains).size(); i++)
             {
-                Object chain = Helpers.GetValue(chains, i);
+                Object chain = (chains == null || i < 0 || i >= chains.size() ? null : chains.get(i));
                 String chainId = this.safeString(chain, "chainId");
                 Object networkCodeNew = this.networkIdToCode(chainId, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(networkCodeNew, null))
@@ -3656,7 +3656,7 @@ public class Kucoin extends KucoinApi
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(tickers, i), "time", time);
-                Object ticker = this.parseSpotOrUtaTicker(Helpers.GetValue(tickers, i));
+                Object ticker = this.parseSpotOrUtaTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)));
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -10076,7 +10076,7 @@ public class Kucoin extends KucoinApi
                 List<Object> accounts = (List<Object>) this.safeList(data, "accounts", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)accounts).size(); i++)
                 {
-                    Object balance = Helpers.GetValue(accounts, i);
+                    Object balance = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
                     String currencyId = this.safeString(balance, "currency");
                     String codeInner = this.safeCurrencyCode(currencyId);
                     if (!java.util.Objects.equals(codeInner, null))
@@ -10089,7 +10089,7 @@ public class Kucoin extends KucoinApi
                 List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)data).size(); i++)
                 {
-                    Object balance = Helpers.GetValue(data, i);
+                    Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                     String balanceType = this.safeString(balance, "type");
                     if (java.util.Objects.equals(balanceType, type))
                     {
@@ -10304,7 +10304,7 @@ public class Kucoin extends KucoinApi
             {
                 for (var i = 0; i < ((List<?>)accounts).size(); i++)
                 {
-                    Object entry = Helpers.GetValue(accounts, i);
+                    Object entry = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
                     List<Object> currencies = (List<Object>) this.safeList(entry, "currencies", new ArrayList<Object>(Arrays.asList()));
                     for (var j = 0; j < ((List<?>)currencies).size(); j++)
                     {
@@ -12266,7 +12266,7 @@ public class Kucoin extends KucoinApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
                 Boolean isFundingIndex = (!java.util.Objects.equals(marketId, null)) && Helpers.isTrue((marketId.startsWith(((String)"."))));

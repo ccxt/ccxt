@@ -2692,7 +2692,7 @@ public class Htx extends HtxApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 Object baseId = null;
                 Object quoteId = null;
                 Object settleId = null;
@@ -2956,7 +2956,7 @@ public class Htx extends HtxApi
         }};
         for (var i = 0; i < ((List<?>)futureMarkets).size(); i++)
         {
-            Object market = Helpers.GetValue(futureMarkets, i);
+            Object market = (futureMarkets == null || i < 0 || i >= futureMarkets.size() ? null : futureMarkets.get(i));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             String contractType = this.safeString(info, "contract_type");
             String contractSuffix = this.safeString(futuresCharsMaps, contractType);
@@ -4075,10 +4075,10 @@ public class Htx extends HtxApi
             Object result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                List<Object> trades = (List<Object>) this.safeList(Helpers.GetValue(data, i), "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> trades = (List<Object>) this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "data", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)trades).size(); j++)
                 {
-                    Object trade = this.parseTrade(Helpers.GetValue(trades, j), market);
+                    Object trade = this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
                     ((List<Object>)result).add(trade);
                 }
             }
@@ -4501,7 +4501,7 @@ public class Htx extends HtxApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
-            Object chainEntry = Helpers.GetValue(chains, j);
+            Object chainEntry = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
             String title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(title, null))
@@ -4857,7 +4857,7 @@ public class Htx extends HtxApi
                 List<Object> details = (List<Object>) this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)details).size(); i++)
                 {
-                    Object balance = Helpers.GetValue(details, i);
+                    Object balance = (details == null || i < 0 || i >= details.size() ? null : details.get(i));
                     String currencyId = this.safeString(balance, "currency");
                     String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
@@ -4901,7 +4901,7 @@ public class Htx extends HtxApi
                     List<Object> balances = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
                     for (var i = 0; i < ((List<?>)balances).size(); i++)
                     {
-                        Object balance = Helpers.GetValue(balances, i);
+                        Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                         String currencyId = this.safeString(balance, "currency");
                         String code = this.safeCurrencyCode(currencyId);
                         if (!java.util.Objects.equals(code, null))
@@ -7884,7 +7884,7 @@ public class Htx extends HtxApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object order = Helpers.GetValue(data, i);
+            Object order = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Htx.this.safeString(order, "order_id") );
@@ -7903,7 +7903,7 @@ public class Htx extends HtxApi
         }
         for (var i = 0; i < ((List<?>)failed).size(); i++)
         {
-            Object order = Helpers.GetValue(failed, i);
+            Object order = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Htx.this.safeString2(order, "order-id", "order_id") );
@@ -9090,7 +9090,7 @@ public class Htx extends HtxApi
                 List<Object> result = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)result).size(); i++)
                 {
-                    Object entry = Helpers.GetValue(result, i);
+                    Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                     Helpers.addElementToObject(entry, "current_page", cursor);
                     String marketId = this.safeString(entry, "contract_code");
                     String symbolInner = this.safeSymbol(marketId);
@@ -10144,7 +10144,7 @@ public class Htx extends HtxApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object position = Helpers.GetValue(data, i);
+                Object position = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Object parsed = this.parsePosition(position);
                 ((List<Object>)result).add(this.extend(parsed, new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
@@ -10477,12 +10477,12 @@ public class Htx extends HtxApi
         List<Object> brackets = (List<Object>) this.safeList(info, "list", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)brackets).size(); i++)
         {
-            Object item = Helpers.GetValue(brackets, i);
+            Object item = (brackets == null || i < 0 || i >= brackets.size() ? null : brackets.get(i));
             String leverage = this.safeString(item, "lever_rate");
             List<Object> ladders = (List<Object>) this.safeList(item, "ladders", new ArrayList<Object>(Arrays.asList()));
             for (var k = 0; k < ((List<?>)ladders).size(); k++)
             {
-                Object bracket = Helpers.GetValue(ladders, k);
+                Object bracket = (ladders == null || k < 0 || k >= ladders.size() ? null : ladders.get(k));
                 String adjustFactor = this.safeString(bracket, "adjust_factor");
                 ((List<Object>)tiers).add(new HashMap<String, Object>() {{
                     put( "tier", Htx.this.safeInteger(bracket, "ladder") );
@@ -11361,7 +11361,7 @@ public class Htx extends HtxApi
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
-            Object chainEntry = Helpers.GetValue(chains, j);
+            Object chainEntry = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chainEntry, "chain");
             String withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
             Object networkCode = this.networkIdToCode(networkId, code);
@@ -11468,7 +11468,7 @@ public class Htx extends HtxApi
                 }};
                 for (var j = 0; j < ((List<?>)list).size(); j++)
                 {
-                    Object item = Helpers.GetValue(list, j);
+                    Object item = (list == null || j < 0 || j >= list.size() ? null : list.get(j));
                     Object parsedSettlement = this.parseSettlement(item, market);
                     ((List<Object>)result).add(this.extend(parsedSettlement, timestampDetails));
                 }

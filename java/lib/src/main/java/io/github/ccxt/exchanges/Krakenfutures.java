@@ -571,7 +571,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)instruments).size(); i++)
             {
-                Object market = Helpers.GetValue(instruments, i);
+                Object market = (instruments == null || i < 0 || i >= instruments.size() ? null : instruments.get(i));
                 String id = this.safeString(market, "symbol");
                 String marketType = this.safeString(market, "type");
                 String type = null;
@@ -1014,7 +1014,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> schedulesByUid = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)feeSchedules).size(); i++)
             {
-                Object schedule = Helpers.GetValue(feeSchedules, i);
+                Object schedule = (feeSchedules == null || i < 0 || i >= feeSchedules.size() ? null : feeSchedules.get(i));
                 String uid = this.safeString(schedule, "uid");
                 if (!java.util.Objects.equals(uid, null))
                 {
@@ -1025,7 +1025,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String uid = this.safeString(((Map<String, Object>)market).get("info"), "feeScheduleUid");
                 Map<String, Object> schedule = (Map<String, Object>) this.safeDict(schedulesByUid, uid);
@@ -1061,7 +1061,7 @@ public class Krakenfutures extends KrakenfuturesApi
         String takerFee = null;
         for (var i = 0; i < ((List<?>)tiers).size(); i++)
         {
-            Object tier = Helpers.GetValue(tiers, i);
+            Object tier = (tiers == null || i < 0 || i >= tiers.size() ? null : tiers.get(i));
             String tierVolume = this.safeString(tier, "usdVolume");
             if ((java.util.Objects.equals(volume, null)) || Precise.stringGe(volume, tierVolume))
             {
@@ -2238,7 +2238,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> closedOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
-                Object order = Helpers.GetValue(allOrders, i);
+                Object order = (allOrders == null || i < 0 || i >= allOrders.size() ? null : allOrders.get(i));
                 Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(order, "event", new HashMap<String, Object>() {{}});
                 Object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerActivated");
                 Map<String, Object> orderUpdated = (Map<String, Object>) this.safeDict(eventVar, "OrderUpdated");
@@ -2320,7 +2320,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> canceledAndRejected = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
-                Object order = Helpers.GetValue(allOrders, i);
+                Object order = (allOrders == null || i < 0 || i >= allOrders.size() ? null : allOrders.get(i));
                 Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(order, "event", new HashMap<String, Object>() {{}});
                 Boolean isCancelledTriggerOrder = (eventVar.containsKey("OrderTriggerCancelled"));
                 Object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerCancelled");
@@ -2796,7 +2796,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> executions = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orderEvents).size(); i++)
             {
-                Object item = Helpers.GetValue(orderEvents, i);
+                Object item = (orderEvents == null || i < 0 || i >= orderEvents.size() ? null : orderEvents.get(i));
                 if (java.util.Objects.equals(this.safeString(item, "type"), "EXECUTION"))
                 {
                     ((List<Object>)executions).add(item);
@@ -2860,7 +2860,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Object vwapSum = "0.0";
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
-                Object trade = Helpers.GetValue(trades, i);
+                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 String tradeAmount = this.safeString(trade, "amount");
                 String tradePrice = this.safeString(trade, "price");
                 filled2 = ((String)Precise.stringAdd(filled2, tradeAmount));
@@ -3111,7 +3111,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)logs).size(); i++)
             {
-                Object row = Helpers.GetValue(logs, i);
+                Object row = (logs == null || i < 0 || i >= logs.size() ? null : logs.get(i));
                 String asset = this.safeString(row, "asset");
                 String contract = this.safeString(row, "contract");
                 if ((!java.util.Objects.equals(asset, null)) && (!java.util.Objects.equals(asset, contract)))
@@ -3625,7 +3625,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> fundingRates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Object entry = Helpers.GetValue(tickers, i);
+                Object entry = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 String entry_symbol = this.safeString(entry, "symbol");
                 if (!java.util.Objects.equals(marketIds, null))
                 {
@@ -3850,7 +3850,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
-            Object position = this.parsePosition(Helpers.GetValue(positions, i));
+            Object position = this.parsePosition((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)));
             ((List<Object>)result).add(position);
         }
         return result;
@@ -4043,7 +4043,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         for (var i = 0; i < ((List<?>)marginLevels).size(); i++)
         {
-            Object tier = Helpers.GetValue(marginLevels, i);
+            Object tier = (marginLevels == null || i < 0 || i >= marginLevels.size() ? null : marginLevels.get(i));
             String initialMargin = this.safeString(tier, "initialMargin");
             Double minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
             if ((i != 0))

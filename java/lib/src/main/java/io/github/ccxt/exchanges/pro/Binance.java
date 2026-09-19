@@ -1402,7 +1402,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // handle list of symbols
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object symbol = Helpers.GetValue(symbols, i);
+            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             if (Helpers.inOp(this.orderbooks, symbol))
             {
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
@@ -1448,8 +1448,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
         {
-            Object unsubHash = Helpers.GetValue(messageHashes, j);
-            Object subHash = Helpers.GetValue(subMessageHashes, j);
+            Object unsubHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
+            Object subHash = (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);
@@ -3901,7 +3901,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 List<Object> messageHashes = Helpers.objectKeys(client.futures);
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
                 {
-                    Object messageHash = Helpers.GetValue(messageHashes, i);
+                    Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                     client.reject(error, messageHash);
                 }
                 Helpers.addElementToObject(this.options, type, this.extend(options, new HashMap<String, Object>() {{
@@ -4265,7 +4265,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> positions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)result).size(); i++)
         {
-            Object parsed = this.parsePositionRisk(Helpers.GetValue(result, i));
+            Object parsed = this.parsePositionRisk((result == null || i < 0 || i >= result.size() ? null : result.get(i)));
             String entryPrice = this.safeString(parsed, "entryPrice");
             if ((!java.util.Objects.equals(entryPrice, "0")) && (!java.util.Objects.equals(entryPrice, "0.0")) && (!java.util.Objects.equals(entryPrice, "0.00000000")))
             {
@@ -4463,7 +4463,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             for (var i = 0; i < ((List<?>)B).size(); i++)
             {
-                Object entry = Helpers.GetValue(B, i);
+                Object entry = (B == null || i < 0 || i >= B.size() ? null : B.get(i));
                 String currencyId = this.safeString(entry, "a");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -5963,7 +5963,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> orders = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object order = Helpers.GetValue(orders, i);
+            Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
             List<Object> fills = (List<Object>) this.safeList(order, "fi", new ArrayList<Object>(Arrays.asList()));
             String rawQty = this.safeString(order, "q", "0");
             String side = "BUY";
@@ -6000,7 +6000,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             this.handleOrder(client, normalizedOrder);
             for (var j = 0; j < ((List<?>)fills).size(); j++)
             {
-                Object fill = Helpers.GetValue(fills, j);
+                Object fill = (fills == null || j < 0 || j >= fills.size() ? null : fills.get(j));
                 Boolean isMaker = (java.util.Objects.equals(this.safeString(fill, "m"), "MAKER"));
                 // normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
                 Map<String, Object> normalizedTrade = new HashMap<String, Object>() {{
@@ -6238,7 +6238,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
+            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Object position = this.parseWsPosition(rawPosition);
             Long timestamp = this.safeInteger(message, "E");
             Helpers.addElementToObject(position, "timestamp", timestamp);
@@ -6852,7 +6852,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> B = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)B).size(); i++)
         {
-            Object entry = Helpers.GetValue(B, i);
+            Object entry = (B == null || i < 0 || i >= B.size() ? null : B.get(i));
             String currencyId = this.safeString(entry, "a");
             String code = this.safeCurrencyCode(currencyId);
             if (!java.util.Objects.equals(code, null))
@@ -6881,7 +6881,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)P).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(P, i);
+            Object rawPosition = (P == null || i < 0 || i >= P.size() ? null : P.get(i));
             Object position = this.parseWsOptionsPosition(rawPosition);
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
@@ -6933,7 +6933,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> subscriptionKeys = Helpers.objectKeys(client.subscriptions);
             for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
             {
-                Object subscriptionHash = Helpers.GetValue(subscriptionKeys, i);
+                Object subscriptionHash = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
                 String subscriptionId = this.safeString(Helpers.GetValue(client.subscriptions, subscriptionHash), "id");
                 String subscription = this.safeString(Helpers.GetValue(client.subscriptions, subscriptionHash), "subscription");
                 if (java.util.Objects.equals(id, subscriptionId))
