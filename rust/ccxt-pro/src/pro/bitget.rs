@@ -529,8 +529,8 @@ impl BitgetCore {
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_110: bool = true;
-            while { if !__for_first_110 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_110 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_0 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut marketInner: Value = self.market(symbol.clone());
@@ -803,8 +803,8 @@ impl BitgetCore {
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_111: bool = true;
-            while { if !__for_first_111 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_111 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut marketInner: Value = self.market(symbol.clone());
@@ -920,9 +920,9 @@ impl BitgetCore {
             m
         });
         if is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("topic".to_string()), Value::Str("kline".to_string()));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("topic".to_string(), Value::Str("kline".to_string())); }
             add_element_to_object(&mut args, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut args, &Value::Str("interval".to_string()), interval.clone());
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("interval".to_string(), interval.clone()); }
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
@@ -930,8 +930,8 @@ impl BitgetCore {
             })]);
             messageHash = Value::Str(format!("{}{}", Value::Str("kline:".to_string()), symbol));
         }  else {
-            add_element_to_object(&mut args, &Value::Str("channel".to_string()), Value::Str(format!("{}{}", Value::Str("candle".to_string()), interval)));
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("candle".to_string()), interval))); }
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), timeframe)), Value::Str(":".to_string()))), symbol));
         }
         let mut ohlcv: Value = self.watch_public(uta.clone(), messageHash.clone(), args.clone(), &[params.clone()]).await;
@@ -981,9 +981,9 @@ impl BitgetCore {
         });
         if is_true(&uta) {
             channel = Value::Str("kline".to_string());
-            add_element_to_object(&mut args, &Value::Str("topic".to_string()), channel.clone());
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("topic".to_string(), channel.clone()); }
             add_element_to_object(&mut args, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut args, &Value::Str("interval".to_string()), interval.clone());
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("interval".to_string(), interval.clone()); }
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
@@ -993,8 +993,8 @@ impl BitgetCore {
             messageHash = Value::Str(format!("{}{}", channel, symbol));
         }  else {
             channel = Value::Str(format!("{}{}", Value::Str("candle".to_string()), interval));
-            add_element_to_object(&mut args, &Value::Str("channel".to_string()), channel.clone());
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("channel".to_string(), channel.clone()); }
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             messageHash = Value::Str(format!("{}{}", Value::Str("candles:".to_string()), interval));
         }
         return self.un_watch_channel(symbol.clone(), channel.clone(), messageHash.clone(), Value::Str("watchOHLCV".to_string()), &[params.clone()]).await;
@@ -1096,8 +1096,8 @@ impl BitgetCore {
         let mut data: Value = self.safe_list_k(message, "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_112: bool = true;
-            while { if !__for_first_112 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_112 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_2 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut parsed: Value = self.parse_ws_ohlcv(get_value(&data, &i), &[market.clone()]);
             stored.append(parsed.clone());
         }
@@ -1222,9 +1222,9 @@ impl BitgetCore {
             m
         });
         if is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("topic".to_string()), channel.clone());
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("topic".to_string(), channel.clone()); }
             add_element_to_object(&mut args, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut args, &Value::Str("interval".to_string()), self.safe_string_k(params.clone(), "interval", &[Value::Str("1m".to_string())]));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("interval".to_string(), self.safe_string_k(params.clone(), "interval", &[Value::Str("1m".to_string())])); }
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
@@ -1232,8 +1232,8 @@ impl BitgetCore {
             })]);
             params = self.omit(params.clone(), Value::Str("interval".to_string()), &[]);
         }  else {
-            add_element_to_object(&mut args, &Value::Str("channel".to_string()), channel.clone());
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("channel".to_string(), channel.clone()); }
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         return self.un_watch_public(uta.clone(), messageHash.clone(), args.clone(), &[params.clone()]).await;
 
@@ -1275,8 +1275,8 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBookForSymbols".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_113: bool = true;
-            while { if !__for_first_113 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_113 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_3 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1401,8 +1401,8 @@ impl BitgetCore {
                 let mut payloadArray: Value = Value::from(vec![]);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_114: bool = true;
-                    while { if !__for_first_114 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_114 = false; i.as_f64().unwrap_or(f64::NAN) < ((25i64) as f64) } {
+                    let mut __for_first_4: bool = true;
+                    while { if !__for_first_4 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_4 = false; i.as_f64().unwrap_or(f64::NAN) < ((25i64) as f64) } {
                     if i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) {
                         append_to_array(&mut payloadArray, get_value(&get_value(&get_value(&storedBids, &i), &Value::Int(2)), &Value::Int(0)));
                         append_to_array(&mut payloadArray, get_value(&get_value(&get_value(&storedBids, &i), &Value::Int(2)), &Value::Int(1)));
@@ -1464,8 +1464,8 @@ impl BitgetCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_115: bool = true;
-            while { if !__for_first_115 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_115 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_5 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1532,8 +1532,8 @@ impl BitgetCore {
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_116: bool = true;
-            while { if !__for_first_116 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_116 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_6 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1655,8 +1655,8 @@ impl BitgetCore {
         let mut length: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_117: bool = true;
-            while { if !__for_first_117 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_117 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_7 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(length), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut rawTrade: Value = get_value(&data, &index);
             let mut rawTrade: Value = get_value(&data, &index);
@@ -1860,7 +1860,7 @@ impl BitgetCore {
         let mut channel: Value = (if is_true(&uta) { Value::Str("position".to_string()) } else { Value::Str("positions".to_string()) });
         add_element_to_object(&mut args, &topicOrChannel, channel.clone());
         if !is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), Value::Str("default".to_string()));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), Value::Str("default".to_string())); }
         }  else {
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1974,8 +1974,8 @@ impl BitgetCore {
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_118: bool = true;
-            while { if !__for_first_118 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_118 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_8 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut marketId: Value = self.safe_string2(rawPosition.clone(), Value::Str("instId".to_string()), Value::Str("symbol".to_string()), &[]);
@@ -1988,8 +1988,8 @@ impl BitgetCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str(format!("{}{}", instType, Value::Str(":positions::".to_string()))));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_119: bool = true;
-            while { if !__for_first_119 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_119 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+            let mut __for_first_9: bool = true;
+            while { if !__for_first_9 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_9 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -2210,7 +2210,7 @@ impl BitgetCore {
         let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".to_string()) } else { Value::Str("channel".to_string()) });
         add_element_to_object(&mut args, &topicOrChannel, channel.clone());
         if !is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), instId.clone());
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), instId.clone()); }
         }  else {
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2358,8 +2358,8 @@ impl BitgetCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_120: bool = true;
-            while { if !__for_first_120 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_120 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_10 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut order: Value = get_value(&data, &i);
             let mut order: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string2(order.clone(), Value::Str("instId".to_string()), Value::Str("symbol".to_string()), &[argInstId.clone()]);
@@ -2375,8 +2375,8 @@ impl BitgetCore {
         let mut keys: Value = object_keys(&marketSymbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_121: bool = true;
-            while { if !__for_first_121 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_121 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_11: bool = true;
+            while { if !__for_first_11 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_11 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&keys, &i);
             let mut symbol: Value = get_value(&keys, &i);
             let mut innerMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol));
@@ -2733,7 +2733,7 @@ impl BitgetCore {
         let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".to_string()) } else { Value::Str("channel".to_string()) });
         add_element_to_object(&mut args, &topicOrChannel, Value::Str("fill".to_string()));
         if !is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("instId".to_string()), Value::Str("default".to_string()));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".to_string(), Value::Str("default".to_string())); }
         }  else {
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2875,8 +2875,8 @@ impl BitgetCore {
         let mut instType: Option<String> = self.safe_string_lower(arg.clone(), Value::Str("instType".to_string()), &[]).as_str().map(str::to_owned);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_122: bool = true;
-            while { if !__for_first_122 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_122 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_12 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
             let mut trade: Value = get_value(&data, &i);
             let mut trade: Value = get_value(&data, &i);
             let mut market: Value = Value::Null;
@@ -2957,7 +2957,7 @@ impl BitgetCore {
         let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".to_string()) } else { Value::Str("channel".to_string()) });
         add_element_to_object(&mut args, &topicOrChannel, channel.clone());
         if !is_true(&uta) {
-            add_element_to_object(&mut args, &Value::Str("coin".to_string()), Value::Str("default".to_string()));
+            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("coin".to_string(), Value::Str("default".to_string())); }
         }  else {
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3069,16 +3069,16 @@ impl BitgetCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_124: bool = true;
-            while { if !__for_first_124 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_124 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_14: bool = true;
+            while { if !__for_first_14 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_14 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut rawBalance: Value = get_value(&data, &i);
             let mut rawBalance: Value = get_value(&data, &i);
             if (instType.as_str() == Some("uta")) {
                 let mut coins: Value = self.safe_list_k(rawBalance.clone(), "coin", &[Value::from(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_123: bool = true;
-                    while { if !__for_first_123 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_123 = false; j.as_f64().unwrap_or(f64::NAN) < ((coins.len() as i64) as f64) } {
+                    let mut __for_first_13: bool = true;
+                    while { if !__for_first_13 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_13 = false; j.as_f64().unwrap_or(f64::NAN) < ((coins.len() as i64) as f64) } {
                     let mut entry: Value = get_value(&coins, &j);
                     let mut entry: Value = get_value(&coins, &j);
                     let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
@@ -3124,7 +3124,7 @@ impl BitgetCore {
         }
         // REST parseBalance sets info, keep the ws structure at parity,
         // see https://github.com/ccxt/ccxt/issues/21973
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), message.clone());
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), message.clone()); }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".to_string()), instType));
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
@@ -3663,8 +3663,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_125: bool = true;
-            while { if !__for_first_125 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_125 = false; i.as_f64().unwrap_or(f64::NAN) < ((argsList.len() as i64) as f64) } {
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_15 = false; i.as_f64().unwrap_or(f64::NAN) < ((argsList.len() as i64) as f64) } {
             let mut arg: Value = get_value(&argsList, &i);
             let mut arg: Value = get_value(&argsList, &i);
             let mut channel: Value = self.safe_string2(arg.clone(), Value::Str("channel".to_string()), Value::Str("topic".to_string()), &[Value::Str("".to_string())]);
