@@ -1694,7 +1694,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
             }
             Helpers.addElementToObject(this.balance, "cash", holdingResult);
-            Helpers.addElementToObject(this.balance, "cash", this.safeBalance(Helpers.GetValue(this.balance, "cash")));
+            Helpers.addElementToObject(this.balance, "cash", this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get("cash"))));
             client.resolve(holdingResult, messageHash);
         }
         if (!java.util.Objects.equals(futures, null))
@@ -1723,8 +1723,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
             }
             Helpers.addElementToObject(this.balance, "margin", futuresResult);
-            Helpers.addElementToObject(this.balance, "margin", this.safeBalance(Helpers.GetValue(this.balance, "margin")));
-            client.resolve(Helpers.GetValue(this.balance, "margin"), (messageHash + "futures"));
+            Helpers.addElementToObject(this.balance, "margin", this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin"))));
+            client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), (messageHash + "futures"));
         }
         if (!java.util.Objects.equals(flexFutures, null))
         {
@@ -1750,8 +1750,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
             }
             Helpers.addElementToObject(this.balance, "flex", flexFuturesResult);
-            Helpers.addElementToObject(this.balance, "flex", this.safeBalance(Helpers.GetValue(this.balance, "flex")));
-            client.resolve(Helpers.GetValue(this.balance, "flex"), (messageHash + "flex_futures"));
+            Helpers.addElementToObject(this.balance, "flex", this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex"))));
+            client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex")), (messageHash + "flex_futures"));
         }
         client.resolve(this.balance, messageHash);
     }
