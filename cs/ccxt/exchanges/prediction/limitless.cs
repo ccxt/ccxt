@@ -554,7 +554,7 @@ public partial class limitless : PredictionExchange
         Int64? winningOutcomeIndex = this.safeInteger(raw, "winningOutcomeIndex");
         bool marketResolved = (!isEqual(winningOutcomeIndex, null));
         object resolvedOutcome = null;
-        object marketSymbol = this.slugToMarketSymbol(groupId, slug);
+        string? marketSymbol = ((string)this.slugToMarketSymbol(groupId, slug));
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
         IDictionary<string, object> collateralToken = this.safeDict(raw, "collateralToken", new Dictionary<string, object>() {});
@@ -2563,7 +2563,7 @@ public partial class limitless : PredictionExchange
     public override object signEvmTransaction(object tx, object privateKey)
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
-        object accessList = this.rlpEncodeList(new List<object>() {});
+        string? accessList = ((string)this.rlpEncodeList(new List<object>() {}));
         List<object> fields = new List<object> {this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList};
         string payload = ("02" + (this.rlpEncodeList(fields)));
         object hashHex = this.hash(this.base16ToBinary(payload), keccak, "hex");

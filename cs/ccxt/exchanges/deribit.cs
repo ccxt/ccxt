@@ -2082,7 +2082,7 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        object code = this.codeFromOptions("fetchTradingFees", parameters);
+        string? code = ((string)this.codeFromOptions("fetchTradingFees", parameters));
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
@@ -2793,7 +2793,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> response = null;
         if ((symbol == null))
         {
-            object code = this.codeFromOptions("fetchOpenOrders", parameters);
+            string? code = ((string)this.codeFromOptions("fetchOpenOrders", parameters));
             Dictionary<string, object> currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             response = await this.privateGetGetOpenOrdersByCurrency(this.extend(request, parameters));
@@ -2838,7 +2838,7 @@ public partial class deribit : Exchange
         }
         if ((symbol == null))
         {
-            object code = this.codeFromOptions("fetchClosedOrders", parameters);
+            string? code = ((string)this.codeFromOptions("fetchClosedOrders", parameters));
             Dictionary<string, object> currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             response = await this.privateGetGetOrderHistoryByCurrency(this.extend(request, parameters));
@@ -2944,7 +2944,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> response = null;
         if ((symbol == null))
         {
-            object code = this.codeFromOptions("fetchMyTrades", parameters);
+            string? code = ((string)this.codeFromOptions("fetchMyTrades", parameters));
             Dictionary<string, object> currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             if ((since == null))

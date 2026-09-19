@@ -293,7 +293,7 @@ public partial class opinion : PredictionExchange
         {
             effectiveEventSlug = null;
         }
-        object marketSymbol = this.slugToMarketSymbol(effectiveEventSlug, slug);
+        string? marketSymbol = ((string)this.slugToMarketSymbol(effectiveEventSlug, slug));
         string? statusEnum = this.safeString(raw, "statusEnum");
         bool active = ((statusEnum == "Activated"));
         bool resolved = ((statusEnum == "Resolved"));
@@ -1183,7 +1183,7 @@ public partial class opinion : PredictionExchange
             { "side", sideInt },
             { "signatureType", signatureType },
         };
-        object signature = this.signOpinionOrder(order, exchangeAddress);
+        string? signature = ((string)this.signOpinionOrder(order, exchangeAddress));
         object signatureNo0x = this.remove0xPrefix(signature);
         Dictionary<string, object> orderBody = this.extend(new Dictionary<string, object>() {
             { "salt", salt },

@@ -766,7 +766,7 @@ public partial class kalshi : PredictionExchange
         }
         // market symbol (no outcome suffix)
         object subtitleOrTicker = ((bool) ((subtitle != null))) ? subtitle : ticker;
-        object marketSymbol = this.slugToMarketSymbol(eventTicker, subtitleOrTicker);
+        string? marketSymbol = ((string)this.slugToMarketSymbol(eventTicker, subtitleOrTicker));
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
         // used tick_size (in cents). amount is a whole number of contracts
