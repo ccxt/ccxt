@@ -6009,11 +6009,7 @@ class BaseExchange(object):
         if key in mapping:
             return mapping[key]
         else:
-            keys = list(mapping.keys())
-            # "mapping" must stay literal-final and the list must not be introduced with ": ":
-            # the php transpiler rewrites a param name inside string literals ("$mapping",
-            # "mapping->") and turns ": " after a non-space into " => ".
-            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping' + ', must be one of ' + ', '.join(keys))
+            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
 
     def fetch_cross_borrow_rate(self, code: str, params={}):
         self.load_markets()

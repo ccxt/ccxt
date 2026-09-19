@@ -349,7 +349,7 @@ class lighter extends \ccxt\async\lighter {
          *
          * @see https://apidocs.lighter.xyz/docs/websocket-reference#$market-stats
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
@@ -358,9 +358,6 @@ class lighter extends \ccxt\async\lighter {
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        if ($market['swap'] !== true) {
-            throw new NotSupported($this->id . ' watchTicker() is only supported for swap markets');
-        }
         $request = array(
             'channel' => 'market_stats/' . $market['id'],
         );
@@ -378,7 +375,7 @@ class lighter extends \ccxt\async\lighter {
          *
          * @see https://apidocs.lighter.xyz/docs/websocket-reference#$market-stats
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
@@ -387,9 +384,6 @@ class lighter extends \ccxt\async\lighter {
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        if ($market['swap'] !== true) {
-            throw new NotSupported($this->id . ' unWatchTicker() is only supported for swap markets');
-        }
         $request = array(
             'channel' => 'market_stats/' . $market['id'],
         );
@@ -408,18 +402,15 @@ class lighter extends \ccxt\async\lighter {
          * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
          *
          * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
+         * @param {string[]} [$symbols] unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, true, true);
-        $firstMarket = $this->get_market_from_symbols($symbols);
-        if (($firstMarket !== null) && ($firstMarket['swap'] !== true)) {
-            throw new NotSupported($this->id . ' watchTickers() is only supported for swap markets');
-        }
+        $symbols = $this->market_symbols($symbols);
         $request = array(
             'channel' => 'market_stats/all',
         );
@@ -455,17 +446,12 @@ class lighter extends \ccxt\async\lighter {
          *
          * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
          *
-         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
+         * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
-        }
-        $symbols = $this->market_symbols($symbols, null, true, true);
-        $firstMarket = $this->get_market_from_symbols($symbols);
-        if (($firstMarket !== null) && ($firstMarket['swap'] !== true)) {
-            throw new NotSupported($this->id . ' unWatchTickers() is only supported for swap markets');
         }
         $request = array(
             'channel' => 'market_stats/all',
