@@ -32,6 +32,7 @@ SOFTWARE.
 import { Exchange, BaseExchange }  from './src/base/Exchange.js'
 import PredictionExchange from './src/base/PredictionExchange.js'
 import { Precise }   from './src/base/Precise.js'
+import { OrderRouter } from './src/base/OrderRouter.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
 import type { Int, int, Str, Strings, Num, Bool, IndexType, NullableIndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, FeeString, OHLCV, OHLCVC, safeInputType, Market, Currency, Dictionary, Endpoint, NestedDictionary, MinMax, FeeInterface, FeeStringInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, DepositAddresses, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, DepositWithdrawFees, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, AllGreeks, Conversion, Option, LastPrice, Leverage, MarginModification, MarginLoan, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, Status, PositionModeInfo } from './src/base/types.js'
@@ -443,7 +444,7 @@ const prediction = {
 (prediction as Dict)['Exchange'] = PredictionExchange
 //-----------------------------------------------------------------------------
 
-const ccxt = Object.assign ({ version, Exchange, BaseExchange, PredictionExchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)
+const ccxt = Object.assign ({ version, Exchange, BaseExchange, PredictionExchange, Precise, OrderRouter, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)
 
 export {
     version,
@@ -454,6 +455,7 @@ export {
     pro,
     prediction,
     Precise,
+    OrderRouter,
     functions,
     errors,
     BaseError,

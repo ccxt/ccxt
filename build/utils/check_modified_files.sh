@@ -11,6 +11,13 @@ diff=$(echo "$diff" | sed -e "s/^build\.sh//")
 diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
 diff=$(echo "$diff" | sed -e "s/^run\-tests\-simul\.sh//")
 diff=$(echo "$diff" | sed -e "s/^\w+.yml//") # tmp remove actions files
+# order-router/ is a standalone service with its own package.json, lockfile, tsconfig and
+# workflow, depending on the PUBLISHED ccxt package rather than the workspace. Its paths are
+# stripped before the critical check because the shared arm is an unanchored "test", which
+# matches order-router/src/api/server.test.ts and scheduled a full six-language transpile and
+# live-test matrix for one service unit test. The language workflows also paths-ignore the
+# directory; this covers the mixed commit those filters deliberately do not skip.
+diff=$(echo "$diff" | sed -e "s|^order-router/.*||")
 diff_without_statics=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//")
 
 # ts/ccxt.ts sits in the critical set because structural changes to the entry file affect every
@@ -78,7 +85,8 @@ critical_go='go\/v4\/exchange_' # hand-written go base files, see https://github
 critical_cs_java_ws='ccxt\/ws\/' # covers hand-written cs/ccxt/ws/ and java .../io/github/ccxt/ws/ base files, see https://github.com/ccxt/ccxt/pull/29747
 critical_java='io\/github\/ccxt\/(BaseExchange|Client|Exchange|Helpers|IOrderBookSide|PredictionExchange|Throttler)\.java|io\/github\/ccxt\/types\/|build\.gradle' # file list because a blanket io/github/ccxt/*.java would fire on auto-bumped Version.java (build/vss.js) and generated MetaData.java (build/export-exchanges.ts); types/ is listed because java base types escape the \/base and go\/v4\/exchange_ arms their cs/go siblings match; build\.gradle (also matches .gradle.kts) because ^build is anchored and the gradle wiring otherwise escapes
 critical_shared='\/base|^build|static_dependencies|^run-tests|ccxt\.ts|test' # add \/test| # remove package json temporarily todo revert this!!
-critical_pattern="$critical_php|$critical_python|$critical_go|$critical_cs_java_ws|$critical_java|$critical_shared"
+critical_order_router='[Oo]rder[_]?[Rr]outer' # OrderRouter is hand-written five times over and its only defence against the five drifting apart is the offline suite the base-test steps run. The ts/python/cs copies live under \/base and the go one under go\/v4\/exchange_, but php\/OrderRouter.php matches no other arm — without this a PHP-only divergence would ship with the suite that catches it never having run
+critical_pattern="$critical_php|$critical_python|$critical_go|$critical_cs_java_ws|$critical_java|$critical_shared|$critical_order_router"
 # critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
 
 COMMIT_MESSAGE=$(git log -1 --pretty=%B)

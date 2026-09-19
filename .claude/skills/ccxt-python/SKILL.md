@@ -1046,6 +1046,229 @@ asyncio.run(main())
 - Price/trade methods (`fetch_ticker`, `fetch_order_book`, `fetch_ohlcv`, `fetch_trades`, `create_order`, `cancel_order`, …) take an **outcome handle or outcomeId** (the `outcome` / `outcomes` parameter), not `symbol`.
 - Check support with `exchange.has['prediction']`; discover markets via `fetch_events` / `fetch_event` (or `load_markets`).
 
+## Order Router
+
+Two things, either usable without the other. **A client** for the CCXT order-router service — a
+separate process holding live books across many venues, which answers "what is the cheapest way to
+turn asset A into asset B right now?", including bridges (`SOL -> USDT -> BTC` when no `SOL/BTC`
+market exists). And **an execution engine for plans you build yourself**, which needs no router
+service and no API key. It is **not** an exchange: it does not subclass `Exchange`, has no unified
+methods, and is constructed directly.
+
+```python
+import os, ccxt
+
+router = ccxt.OrderRouter({'apiKey': os.environ['ORDER_ROUTER_API_KEY']})
+
+# exactly one of amountIn / amountOut
+route = router.fetch_route('USDT', 'BTC', {'amountIn': 1000})
+print(route['effectiveRate'], route['impactBps'], route['fillRatio'])
+
+# routing and executing are separate steps; everything between is PURE (no I/O)
+plan = router.build_execution_plan(route, {})
+violations = router.check_execution_plan_safety(plan, markets, {})
+if not violations:
+    report = router.execute(plan, {'binance': binance, 'kraken': kraken}, {
+        'strategy': 'sequential',
+        'live': True,
+        'usdRates': {'USDT': 1},
+    })
+```
+
+`execute` defaults to `dry_run`, and **anything other than an explicit live flag forces `dry_run`
+regardless of the strategy requested** — a call that looks live but forgot the flag places nothing.
+
+### The service, and what it costs
+
+`https://docs.ccxt.com/router/api`. Everything except `/health` and `/ready` needs the key, sent
+as `x-api-key`; get one at [docs.ccxt.com/router/signup](https://docs.ccxt.com/router/signup).
+
+**The full contract is published as OpenAPI 3.1 at
+`https://docs.ccxt.com/router/openapi.yaml`, and it is public — no key needed.**
+`curl -O https://docs.ccxt.com/router/openapi.yaml` and point codegen at it, import it into
+Postman/Insomnia, or diff it between deploys. It is the authority on every field this client
+reads; where the two disagree, the spec is right. Rendered prose version:
+[/router/docs](https://docs.ccxt.com/router/docs) and
+[/router/docs/api](https://docs.ccxt.com/router/docs/api).
+
+**Free to use for now, up to the published rate limit** — not a permanent commitment, so expect a
+paid tier eventually. Your existing key is how that would be billed; nothing in the client changes.
+Read the limit off the response headers (`x-ratelimit-limit`, `x-ratelimit-remaining`,
+`x-ratelimit-reset`) rather than hardcoding a number. A `429` raises `RateLimitExceeded` with the
+retry interval folded into the message.
+
+A router that has restarted is alive long before it can price anything. Asked to route in that
+window it refuses with `503 cache_cold`, and the client raises **`ExchangeNotAvailable`** — a
+retry, distinct from the `ExchangeError` that means something is actually wrong.
+
+**Holdings are POSTed, never put in a URL.** `fetch_route` normally sends a `GET`, but when you pass
+`balances` the client switches to `POST /route` and puts every parameter in the body: the service
+scrubs holdings from its own logs, but a reverse proxy, an ALB, a CDN, browser history and a
+`Referer` all see the full request line, and no in-process redaction reaches them.
+`fetch_route_with_balances` does this for you.
+
+
+**Two flags the client verifies for you**, because one silently lost in transit looks identical to
+one never sent. `balances`: the service ignores them entirely if it predates the feature and
+answers byte-identically, so `fetch_route` throws unless the router echoes `balancesApplied` (or
+`balanceEntryCount`, which is how an *empty* wallet is confirmed) — pass `requireBalancesApplied:
+false` to opt out. `requireFullFill`: the one flag that fails *open*, so the client stamps what you
+asked for and the safety check makes `partial_fill` **blocking** when you asked for a full fill and
+did not get one.
+
+**An empty value is not an omitted one.** Omit `bridges` and you get the default bridge set; send
+`bridges=` and you have asked for no bridging at all. Same for `exchanges=` (no venues) and
+`balances=` (you hold nothing). The client forwards an empty value rather than dropping it.
+
+**`requestId`** is sent as the `x-request-id` header, so your log and the router's decision log can
+be joined; the service mints one when absent.
+
+### Asking the service about itself
+
+| Method | Endpoint | Key? | Answers |
+|---|---|---|---|
+| `fetch_health()` | `/health` | no | is the process alive — `200` from the first millisecond of boot |
+| `fetch_readiness()` | `/ready` | no | can it route yet: book counts, and how many are fresh |
+| `fetch_version()` | `/version` | yes | which commit is deployed |
+| `fetch_symbols()` | `/symbols` | yes | the symbols it holds a book for |
+| `fetch_exchanges_status()` | `/exchanges/status` | yes | per-venue connection health |
+| `fetch_cached_order_book(exchange_id, symbol)` | `/orderbook/{exchange}/{symbol}` | yes | the exact book a route was ranked on |
+
+Gate deploys on readiness, not health — `/health` is `200` before a single websocket has connected.
+`fetch_readiness()` does **not** raise when the answer is no: the service replies `503` carrying the same
+body it returns on `200`, and you need those counts to know why.
+
+```python
+readiness = router.fetch_readiness()
+if readiness['status'] != 'ready':
+    print(readiness['freshCount'], 'of', readiness['bookCount'], 'books are fresh')
+```
+
+`/metrics` (Prometheus) has no client method — it answers `text/plain` and this class parses every
+response as JSON.
+
+**Watching a route.** `/stream/route` pushes the same RouteResult whenever any market the route
+depends on moves. `watch_route` raises **`NotSupported`** in Python: this port is synchronous and has no
+websocket client to drive, and polling `fetch_route` on a timer is not the same thing, so it is refused
+rather than silently substituted. `streamUrl` IS implemented, so the url grammar and the
+client-side refusals stay verified here. The endpoint refuses `balances` and `balanceMode` — a
+socket outlives the holdings it was opened with — and defaults `includeQuotes` to false.
+
+### Watching a run, and stopping it
+
+`execute` is not opaque. `options.onStep` is called after each step completes AND after its
+reconciliation — never mid-order — and its return value decides whether the route continues.
+
+```python
+def on_step(event):
+    print(event['stepIndex'], event['status'], event['outAmount'])
+    return 'halt' if event['status'] == 'partial' else ''   # 'halt' stops the route
+
+report = router.execute(plan, venues, {
+    'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1},
+    'retryFailedSteps': 2,               # only a DEFINITIVELY REJECTED step is retried
+    'onStep': on_step,
+})
+```
+
+The event is a plain dictionary: `planId`, `stepIndex`, `hopIndex`, `legIndex`, `exchangeId`,
+`symbol`, `side`, `status`, `requestedAmount`, `filledAmount`, `outAsset`, `outAmount`, `orderId`,
+`clientOrderId`, `errorCode`, `attempt`, `reconciliation`, `ordersPlaced`, `halted`, `haltReason`,
+`stepsTotal`, `stepsRemaining`.
+
+- **It can only narrow.** `'halt'` stops the route and sets `haltReason` to `halted_by_on_step`;
+  nothing it returns resumes a route the reconciliation already halted.
+- It is called on the halt paths too, with an empty `reconciliation`, so it always learns how the
+  route ended.
+- **Do no network I/O in it** — it sits between orders on the money path.
+- A hook that throws is recorded in `report['errors']` as `on_step_hook_failed` and the run
+  continues; losing the report would destroy the only account of orders already live.
+
+For decisions that need I/O, slice the plan and call `execute` per hop with its own
+`idempotencyKey` instead.
+
+`options.retryFailedSteps` (default 0, `retryDelayMs` default 1000) re-places a step the venue
+**definitively rejected**. An `outcome_unknown` step is never retried at any setting: it may
+already be a live position, and re-placing it is the double-fill this class exists to prevent. The
+winning attempt is reported as `attempt`. The router sets no client order id of its own — venues
+disagree on length and charset, so whatever you pass in `orderParams` travels untouched.
+
+### Executing your own plans
+
+`execute` takes a **plan**, not a route, and never checks where the plan came from — so your own
+strategy can supply its own trades and still get the notional cap, halt-and-reconcile between hops,
+resting-order cleanup and the unwind plan. A plan that has been through JSON or a database, or a
+hand-rebuilt tail of a halted route, is equally valid.
+
+A step is one order on one venue. Required: `exchangeId`, `symbol`, `side`, `amount`, `base`,
+`quote`. Optional: `stepIndex` (defaults to position), `hopIndex`/`legIndex` (steps sharing a
+`hopIndex` are one hop — what `parallel_within_hop` parallelises), `expectedPrice`, `limitPrice`,
+`notionalQuote`.
+
+```python
+plan = {
+    'requestId': 'my-strategy-0001',            # identity; a live run refuses without one
+    'calculatedAt': exchange.milliseconds(),
+    'steps': [
+        {'exchangeId': 'binance', 'symbol': 'BTC/USDT', 'side': 'buy', 'amount': 0.01,
+         'base': 'BTC', 'quote': 'USDT', 'hopIndex': 0, 'expectedPrice': 64000},
+    ],
+}
+report = router.execute(plan, {'binance': binance}, {
+    'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'maxNotionalUsd': 25,
+})
+```
+
+A live `execute` requires an identity and refuses without one: the identity is remembered in-process
+so a second `execute` of the same plan is refused before any venue is contacted. Supply it as the
+plan's `requestId` or as the options' `idempotencyKey`. `execute` never sets a `clientOrderId` of its
+own: each exchange's `create_order` keeps sending whatever identifier it generates internally, and a
+`clientOrderId` you put in the options' `orderParams` travels untouched (to every step alike).
+
+Make it stable and tied to the intent (a strategy name plus the signal's timestamp). A fresh value
+per call — a wall-clock timestamp and friends — turns the guard off while looking like it is on. To
+re-run deliberately, pass `allowReexecution`. The guard does not survive a restart.
+
+`checkExecutionPlanSafety` is worth running on a hand-written plan first: it checks every step
+against that venue's real market rules — minimum amount, minimum cost, precision — which is where a
+hand-picked amount usually goes wrong.
+
+
+Strategies: `dry_run` (default), `sequential`, `parallel_within_hop` (concurrent across venues,
+serialised within a venue), `limit_protected` (rests a limit order and cancels it at
+`orderTimeoutMs`, polling every `pollIntervalMs`), `atomic_ish` (requires the route pre-funded),
+`best_effort` (single-hop, never halts).
+
+Every report carries `planAgeMs` — how old the plan's prices were when `execute` was called (`-1`
+when the route carried no `calculatedAt`, which means unknown, not fresh). Pass
+`options.maxPlanAgeMs` to refuse a live execution of a plan older than that; there is no default
+limit, and under an active limit a plan whose age cannot be determined is refused too.
+
+There is **no notional cap by default** — trade cents or trade thousands. `maxNotionalUsd` is an
+opt-in guardrail: pass it to the constructor, or per call in the options, and it is honoured
+exactly at whatever value you choose, in either direction; omit it (or pass 0) and no notional
+check runs. Only a negative value is refused.
+
+A market order cannot be placed under a cap: the cap is checked against the plan's limit price and
+a market order carries no price at all, so asking for `allowMarketOrders` together with a cap is
+refused rather than silently unbounded.
+
+When a cap IS set it is enforced immediately before **every** order — not just at plan time,
+because a reconciliation may have resized the plan since — and a step that cannot be valued in USD
+**blocks**, so supply a USD rate for every quote asset in the plan. With no cap set there is
+nothing to evaluate and USD rates are not required either.
+
+In the report, `status: 'outcome_unknown'` means the request may or may not have reached the venue
+— execution halts rather than reconciling, because reconciling would read the fill as 0 and report
+"nothing filled", asserting the one thing nobody knows. Check the open orders and the venue before
+retrying. `placementAttempted` is false until an order was actually dispatched.
+
+`buildExecutionPlan` refuses a route that does not run from the asset you offered to the asset you
+wanted, or whose hops do not connect — the answer is checked against the client's own record of
+the question, so a compromised or buggy router response cannot steer orders into another market.
+
+Full reference: [Order Router in the CCXT Manual](https://docs.ccxt.com/#/?id=order-router).
+
 ## Learn More
 
 - [CCXT Manual](https://docs.ccxt.com/)
