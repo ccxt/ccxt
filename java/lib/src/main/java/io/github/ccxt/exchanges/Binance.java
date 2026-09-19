@@ -7771,7 +7771,7 @@ public class Binance extends BinanceApi
         Object initialUppercaseType = ((String)type).toUpperCase();
         Object uppercaseType = initialUppercaseType;
         Object postOnly = this.isPostOnly(java.util.Objects.equals(initialUppercaseType, "MARKET"), java.util.Objects.equals(initialUppercaseType, "LIMIT_MAKER"), parameters);
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             uppercaseType = "LIMIT_MAKER";
         }
@@ -9389,7 +9389,7 @@ public class Binance extends BinanceApi
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) || java.util.Objects.equals(marketType, "margin"))
             {
                 // only supported for spot/margin api (all margin markets are spot markets)
-                if (Helpers.isTrue(postOnly))
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     uppercaseType = "LIMIT_MAKER";
                 }
@@ -9401,7 +9401,7 @@ public class Binance extends BinanceApi
         } else
         {
             postOnly = this.isPostOnly(isMarketOrder, java.util.Objects.equals(initialUppercaseType, "LIMIT_MAKER"), parameters);
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
                 {
@@ -9633,7 +9633,7 @@ public class Binance extends BinanceApi
         {
             ((Map<String, Object>)request).put("timeInForce", this.handleOption("createOrder", "timeInForce")); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if (!Helpers.isTrue(isPortfolioMargin) && (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && Helpers.isTrue(postOnly))
+        if (!Helpers.isTrue(isPortfolioMargin) && (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && Boolean.TRUE.equals(postOnly))
         {
             ((Map<String, Object>)request).put("timeInForce", "GTX");
         }
@@ -13909,7 +13909,7 @@ public class Binance extends BinanceApi
                 throw new ExchangeError((this.id + " method() missing leverage")) ;
             }
             Object rational = this.isRoundNumber(Helpers.mod(1000, leverage));
-            if (!Helpers.isTrue(rational))
+            if (!Boolean.TRUE.equals(rational))
             {
                 initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
             }
@@ -14298,7 +14298,7 @@ public class Binance extends BinanceApi
             Object leverage = Helpers.parseInt(leverageString);
             Object rational = this.isRoundNumber(Helpers.mod(1000, leverage));
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
-            if (!Helpers.isTrue(rational))
+            if (!Boolean.TRUE.equals(rational))
             {
                 initialMarginPercentageString = Precise.stringAdd(initialMarginPercentageString, "1e-8");
             }

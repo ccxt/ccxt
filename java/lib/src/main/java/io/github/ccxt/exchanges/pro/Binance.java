@@ -1282,7 +1282,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // symbol and stalls the orderbook future (delivery/option ids are
         // unique, so the swap hint resolves those correctly too)
         Object isSpot = this.isSpotUrl(client);
-        String marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
+        String marketType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("orderbook::" + symbol);
@@ -1912,7 +1912,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         Object isSpot = this.isSpotUrl(client);
-        String marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
+        String marketType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trade::" + symbol);
@@ -2293,7 +2293,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         Object isSpot = this.isSpotUrl(client);
-        String marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
+        String marketType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
         String symbol = this.safeSymbol(marketId, null, null, marketType);
         String messageHash = ((("ohlcv::" + symbol) + "::") + unifiedTimeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -3349,7 +3349,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
             Object tickerMarketById = (((Helpers.isEqual(numTickerMarkets, 1)))) ? this.safeDict(tickerMarketsByIdList, 0) : null;
             Object isSpot = this.isSpotUrl(client);
-            String tickerFallbackType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
+            String tickerFallbackType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
             Object tickerMarketType = (((!java.util.Objects.equals(tickerMarketById, null)))) ? ((Map<String, Object>)tickerMarketById).get("type") : tickerFallbackType;
             Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(ticker, tickerMarketType);
             Object symbol = ((Map<String, Object>)parsedTicker).get("symbol");

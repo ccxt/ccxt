@@ -4819,7 +4819,7 @@ public Object describe()
                 Object entryKeyValue = this.safeValue(entry, key);
                 Object entryKeyGESince = (!java.util.Objects.equals(entryKeyValue, null)) && (!java.util.Objects.equals(entryKeyValue, null)) && (!Helpers.isEqual(entryKeyValue, 0)) && (!java.util.Objects.equals(since, null)) && (Helpers.isGreaterThanOrEqual(entryKeyValue, since));
                 Object secondCondition = ((Boolean.TRUE.equals(sinceIsDefined))) ? entryKeyGESince : true;
-                if (Helpers.isTrue(firstCondition) && Helpers.isTrue(secondCondition))
+                if (Boolean.TRUE.equals(firstCondition) && Boolean.TRUE.equals(secondCondition))
                 {
                     ((List<Object>)result).add(entry);
                 }
