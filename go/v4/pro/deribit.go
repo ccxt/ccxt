@@ -169,8 +169,8 @@ func (this *Deribit) HandleBalance(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeValue(message, "params", map[string]any{})
-	var data any = this.SafeValue(params, "data", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var data any = this.SafeDict(params, "data", map[string]any{})
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	var currencyId *string = this.SafeString(data, "currency")
 	var currencyCode *string = this.SafeCurrencyCode(currencyId)
@@ -337,8 +337,8 @@ func (this *Deribit) HandleTicker(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeValue(message, "params", map[string]any{})
-	var data any = this.SafeValue(params, "data", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var data any = this.SafeDict(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
 	var ticker any = this.ParseTicker(data)
@@ -558,7 +558,7 @@ func (this *Deribit) HandleTrades(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var market any = this.SafeMarket(marketId)
 	var trades any = this.SafeList(params, "data", []any{})
-	if ccxt.IsEqual(this.SafeValue(this.Trades, symbol), nil) {
+	if ccxt.IsEqual(this.SafeDict(this.Trades, symbol), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
 	}
@@ -663,9 +663,9 @@ func (this *Deribit) HandleMyTrades(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeValue(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel", "")
-	var trades any = this.SafeValue(params, "data", []any{})
+	var trades any = this.SafeList(params, "data", []any{})
 	var cachedTrades any = this.MyTrades
 	if ccxt.IsEqual(cachedTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -815,8 +815,8 @@ func (this *Deribit) HandleOrderBook(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeValue(message, "params", map[string]any{})
-	var data any = this.SafeValue(params, "data", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var data map[string]any = ccxt.SafeMapTyped(params, "data")
 	var channel *string = this.SafeString(params, "channel")
 	var parts []string = ccxt.Split(channel, ".")
 	var descriptor any = ""
@@ -982,7 +982,7 @@ func (this *Deribit) HandleOrders(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var params any = this.SafeValue(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel", "")
 	var data any = this.SafeValue(params, "data", map[string]any{})
 	var orders any = []any{}
@@ -1112,7 +1112,7 @@ func (this *Deribit) HandleOHLCV(client any, message any) {
 	var timeframes any = this.SafeDict(wsOptions, "timeframes", map[string]any{})
 	var unifiedTimeframe any = this.FindTimeframe(rawTimeframe, timeframes)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-	if ccxt.IsEqual(this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe), nil) {
+	if ccxt.IsEqual(this.SafeDict(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe, ccxt.NewArrayCacheByTimestamp(limit))
 	}
@@ -1275,7 +1275,7 @@ func (this *Deribit) HandleMessage(client any, message any) {
 	if !ccxt.IsEqual(error, nil) {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(error))))
 	}
-	var params any = this.SafeValue(message, "params")
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel")
 	if channel != nil {
 		var parts []string = ccxt.Split(channel, ".")
@@ -1300,7 +1300,7 @@ func (this *Deribit) HandleMessage(client any, message any) {
 		}
 		panic(ccxt.NotSupported(ccxt.Add(this.Id+" no handler found for this message ", this.Json(message))))
 	}
-	var result any = this.SafeValue(message, "result", map[string]any{})
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	var accessToken *string = this.SafeString(result, "access_token")
 	if accessToken != nil {
 		this.HandleAuthenticationMessage(client, message)

@@ -1256,8 +1256,8 @@ func (this *Bigone) ParseContractBidsAsks(bidsAsks any) any {
 func (this *Bigone) ParseContractOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
 	limit := GetArg(optionalArgs, 0, nil)
 	_ = limit
-	var responseBids any = this.SafeValue(orderbook, "bids")
-	var responseAsks any = this.SafeValue(orderbook, "asks")
+	var responseBids any = this.SafeDict(orderbook, "bids")
+	var responseAsks any = this.SafeDict(orderbook, "asks")
 	var bids any = this.ParseContractBidsAsks(responseBids)
 	var asks any = this.ParseContractBidsAsks(responseAsks)
 	return map[string]any{

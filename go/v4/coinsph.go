@@ -1008,9 +1008,9 @@ func (this *Coinsph) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var limits map[string]any = this.IndexBy(this.SafeList(market, "filters", []any{}), "filterType")
-		var amountLimits any = this.SafeValue(limits, "LOT_SIZE", map[string]any{})
-		var priceLimits any = this.SafeValue(limits, "PRICE_FILTER", map[string]any{})
-		var costLimits any = this.SafeValue(limits, "NOTIONAL", map[string]any{})
+		var amountLimits map[string]any = SafeMapTyped(limits, "LOT_SIZE")
+		var priceLimits map[string]any = SafeMapTyped(limits, "PRICE_FILTER")
+		var costLimits map[string]any = SafeMapTyped(limits, "NOTIONAL")
 		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
@@ -1785,7 +1785,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"type":   orderType,
 		"side":   orderSide,
 	}
-	var options any = this.SafeValue(this.Options, "createOrder", map[string]any{})
+	var options any = this.SafeDict(this.Options, "createOrder", map[string]any{})
 	var newOrderRespType any = this.SafeValue(options, "newOrderRespType", map[string]any{})
 	// if limit order
 	if IsEqual(orderType, "LIMIT") || IsEqual(orderType, "STOP_LOSS_LIMIT") || IsEqual(orderType, "TAKE_PROFIT_LIMIT") || IsEqual(orderType, "LIMIT_MAKER") {
@@ -2432,7 +2432,7 @@ func (this *Coinsph) withdrawBody(ch chan any, code any, amount any, address any
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var options any = this.SafeValue(this.Options, "withdraw")
+	var options any = this.SafeDict(this.Options, "withdraw")
 	var warning *bool = this.SafeBool(options, "warning", true)
 	if warning != nil && *warning == true {
 		panic(InvalidAddress(this.Id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account"))

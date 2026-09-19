@@ -361,7 +361,7 @@ func (this *Gate) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) an
 		}
 		return this.Market(symbol)
 	}()
-	var trigger any = this.SafeValueN(params, []any{"is_stop_order", "stop", "trigger"}, false)
+	var trigger *bool = this.SafeBoolN(params, []any{"is_stop_order", "stop", "trigger"}, false)
 	params = this.Omit(params, []any{"is_stop_order", "stop", "trigger"})
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	typeVar := ccxt.GetValue(typeVarqueryVariable, 0)
@@ -921,7 +921,7 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 		}
 		return "contract"
 	}()
-	var delta any = this.SafeValue(message, "result")
+	var delta any = this.SafeDict(message, "result")
 	var deltaStart *int64 = this.SafeInteger(delta, "U")
 	var deltaEnd *int64 = this.SafeInteger(delta, "u")
 	var marketId *string = this.SafeString(delta, "s")
@@ -998,8 +998,8 @@ func (this *Gate) HandleDelta(orderbook any, delta any) {
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "u"))
-	var bids any = this.SafeValue(delta, "b", []any{})
-	var asks any = this.SafeValue(delta, "a", []any{})
+	var bids any = this.SafeList(delta, "b", []any{})
+	var asks any = this.SafeList(delta, "a", []any{})
 	var storedBids any = ccxt.GetValue(orderbook, "bids")
 	var storedAsks any = ccxt.GetValue(orderbook, "asks")
 	this.HandleBidAsks(storedBids, bids)
@@ -1336,7 +1336,7 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	trades := (<-this.SubscribePublicMultipleAsync(url, messageHashes, marketIds, channel, params))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -2216,7 +2216,7 @@ func (this *Gate) HandleOrder(client any, message any) {
 	//         ]
 	//     }
 	//
-	var orders any = this.SafeValue(message, "result", []any{})
+	var orders any = this.SafeList(message, "result", []any{})
 	var channel *string = this.SafeString(message, "channel", "")
 	var isTrigger bool = (func() int {
 		if channel == nil {
@@ -2251,7 +2251,7 @@ func (this *Gate) HandleOrder(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(parsedOrders); i++ {
 		var parsed any = ccxt.GetValue(parsedOrders, i)
 		// inject order status
-		var info any = this.SafeValue(parsed, "info")
+		var info map[string]any = ccxt.SafeMapTyped(parsed, "info")
 		var event *string = this.SafeString(info, "event")
 		if (event != nil && *event == "put") || (event != nil && *event == "update") {
 			ccxt.AddElementToObject(parsed, "status", "open")
@@ -2451,7 +2451,7 @@ func (this *Gate) HandleLiquidation(client any, message any) {
 		var liquidation any = this.ParseWsLiquidation(rawLiquidation)
 		cache.(ccxt.Appender).Append(liquidation)
 		var symbol *string = this.SafeString(liquidation, "symbol")
-		var symbolLiquidations any = this.SafeValue(cache, symbol, []any{})
+		var symbolLiquidations any = this.SafeList(cache, symbol, []any{})
 		client.(ccxt.ClientInterface).Resolve(symbolLiquidations, ccxt.Add("myLiquidations::", symbol))
 	}
 	client.(ccxt.ClientInterface).Resolve(newLiquidations, "myLiquidations")
@@ -2815,7 +2815,7 @@ func (this *Gate) HandleMessage(client any, message any) {
 		return
 	}
 	var channelParts []string = ccxt.Split(channel, ".")
-	var channelType any = this.SafeValue(channelParts, 1)
+	var channelType *string = this.SafeString(channelParts, 1)
 	var v4Methods map[string]any = map[string]any{
 		"usertrades":        this.HandleMyTrades,
 		"candlesticks":      this.HandleOHLCV,

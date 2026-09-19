@@ -2085,7 +2085,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	var newMarkets []any = []any{}
 	for i := 0; i < len(result); i++ {
 		var market any = GetValue(result, i)
-		var info any = this.SafeValue(market, "info", map[string]any{})
+		var info map[string]any = SafeMapTyped(market, "info")
 		var realMarketIds any = this.SafeList(info, "alias_to", []any{})
 		var length int = GetArrayLength(realMarketIds)
 		if length > 0 {

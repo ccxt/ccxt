@@ -450,7 +450,7 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"swap":           false,
 			"future":         false,
 			"option":         false,
-			"active":         this.SafeValue(market, "active"),
+			"active":         this.SafeBool(market, "active"),
 			"contract":       false,
 			"linear":         nil,
 			"inverse":        nil,
@@ -638,7 +638,7 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 			},
 			"withdraw": map[string]any{
 				"min": nil,
-				"max": this.SafeValue(withdrawalLimits, 0),
+				"max": this.SafeNumber(withdrawalLimits, 0),
 			},
 		},
 		"networks": networks,
@@ -745,7 +745,7 @@ func (this *Hollaex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         // ...
 	//     }
 	//
-	var orderbook any = this.SafeValue(response, GetValue(market, "id"))
+	var orderbook any = this.SafeDict(response, GetValue(market, "id"))
 	var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
 
 	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp)
@@ -1092,10 +1092,10 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//         ...
 	//     }
 	//
-	var firstTier any = this.SafeValue(response, "1", map[string]any{})
-	var fees any = this.SafeValue(firstTier, "fees", map[string]any{})
-	var makerFees any = this.SafeValue(fees, "maker", map[string]any{})
-	var takerFees any = this.SafeValue(fees, "taker", map[string]any{})
+	var firstTier map[string]any = SafeMapTyped(response, "1")
+	var fees any = this.SafeDict(firstTier, "fees", map[string]any{})
+	var makerFees map[string]any = SafeMapTyped(fees, "maker")
+	var takerFees map[string]any = SafeMapTyped(fees, "taker")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
@@ -1615,7 +1615,7 @@ func (this *Hollaex) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "size")
 	var filled *string = this.SafeString(order, "filled")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
-	var meta any = this.SafeValue(order, "meta", map[string]any{})
+	var meta map[string]any = SafeMapTyped(order, "meta")
 	var postOnly *bool = this.SafeBool(meta, "post_only", false)
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
@@ -1682,7 +1682,7 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"type":   typeVar,
 	}
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop"})
-	var meta any = this.SafeValue(params, "meta", map[string]any{})
+	var meta map[string]any = SafeMapTyped(params, "meta")
 	var exchangeSpecificParam *bool = this.SafeBool(meta, "post_only", false)
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
 	var postOnly bool = this.IsPostOnly(isMarketOrder, exchangeSpecificParam, params)
@@ -2012,7 +2012,7 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	//         ]
 	//     }
 	//
-	var wallet any = this.SafeValue(response, "wallet", []any{})
+	var wallet any = this.SafeList(response, "wallet", []any{})
 	var addresses any = func() any {
 		if network == nil {
 			return wallet
@@ -2161,7 +2161,7 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var transaction any = this.SafeDict(data, 0, map[string]any{})
 
 	ch <- this.ParseTransaction(transaction, currency)
@@ -2299,13 +2299,13 @@ func (this *Hollaex) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var currencyId *string = this.SafeString(transaction, "currency")
 	currency = this.SafeCurrency(currencyId, currency)
 	var status any = this.SafeValue(transaction, "status")
-	var dismissed any = this.SafeValue(transaction, "dismissed")
-	var rejected any = this.SafeValue(transaction, "rejected")
+	var dismissed *bool = this.SafeBool(transaction, "dismissed")
+	var rejected *bool = this.SafeBool(transaction, "rejected")
 	if status == true {
 		status = "ok"
-	} else if dismissed == true {
+	} else if dismissed != nil && *dismissed == true {
 		status = "canceled"
-	} else if rejected == true {
+	} else if rejected != nil && *rejected == true {
 		status = "failed"
 	} else {
 		status = "pending"
@@ -2454,14 +2454,14 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		},
 		"networks": map[string]any{},
 	}
-	var allowWithdrawal any = this.SafeValue(fee, "allow_withdrawal")
-	if allowWithdrawal == true {
+	var allowWithdrawal *bool = this.SafeBool(fee, "allow_withdrawal")
+	if allowWithdrawal != nil && *allowWithdrawal == true {
 		result["withdraw"] = map[string]any{
 			"fee":        this.SafeNumber(fee, "withdrawal_fee"),
 			"percentage": false,
 		}
 	}
-	var withdrawalFees any = this.SafeValue(fee, "withdrawal_fees")
+	var withdrawalFees any = this.SafeDict(fee, "withdrawal_fees")
 	if !IsEqual(withdrawalFees, nil) {
 		var keys []string = ObjectKeys(withdrawalFees)
 		var keysLength int = len(keys)

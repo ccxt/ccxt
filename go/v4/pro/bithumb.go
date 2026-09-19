@@ -621,7 +621,7 @@ func (this *Bithumb) HandleOrderBook(client any, message any) {
 		return
 	}
 	var streamType *string = this.SafeString(message, "stream_type")
-	var options any = this.SafeValue(this.Options, "watchOrderBook", map[string]any{})
+	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var obLimit *int64 = this.SafeInteger(options, "limit", 1000)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) || (streamType != nil && *streamType == "SNAPSHOT") {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, obLimit))

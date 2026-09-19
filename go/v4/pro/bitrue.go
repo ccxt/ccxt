@@ -166,7 +166,7 @@ func (this *Bitrue) HandleBalance(client any, message any) {
 	//      "u": 2285311
 	//    }
 	//
-	var balances any = this.SafeValue(message, "B", []any{})
+	var balances any = this.SafeList(message, "B", []any{})
 	this.ParseWSBalances(balances)
 	var messageHash string = "balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
@@ -469,7 +469,7 @@ func (this *Bitrue) HandleOrderBook(client any, message any) {
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var tick any = this.SafeValue(message, "tick", map[string]any{})
+	var tick any = this.SafeDict(message, "tick", map[string]any{})
 	var parseable any = tick
 	if isFutures {
 		var rawAsks any = this.SafeList(tick, "asks", []any{})
@@ -618,7 +618,7 @@ func (this *Bitrue) HandleTrades(client any, message any) {
 		return
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var tick any = this.SafeValue(message, "tick", map[string]any{})
+	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	var data any = this.SafeList(tick, "data", []any{})
 	var appended bool = false
 	var stored any = this.SafeValue(this.Trades, symbol)
@@ -760,7 +760,7 @@ func (this *Bitrue) HandleOHLCV(client any, message any) {
 	var wsInterval *string = this.SafeString(parts, 4)
 	var futuresTimeframes any = this.SafeDict(this.Options, "futuresTimeframes", map[string]any{})
 	var timeframe any = this.FindTimeframe(wsInterval, futuresTimeframes)
-	var tick any = this.SafeValue(message, "tick")
+	var tick any = this.SafeDict(message, "tick")
 	if ccxt.IsEqual(tick, nil) {
 		return
 	}
@@ -871,7 +871,7 @@ func (this *Bitrue) HandleTicker(client any, message any) {
 		return
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var tick any = this.SafeValue(message, "tick")
+	var tick any = this.SafeDict(message, "tick")
 	if ccxt.IsEqual(tick, nil) {
 		return
 	}
@@ -1000,8 +1000,8 @@ func (this *Bitrue) authenticateBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var listenKey any = this.SafeValue(this.Options, "listenKey")
-	if ccxt.IsEqual(listenKey, nil) {
+	var listenKey *string = this.SafeString(this.Options, "listenKey")
+	if listenKey == nil {
 		// single-flight leader election on a never-dialed client, see
 		// https://github.com/ccxt/ccxt/issues/29393: the key rides the
 		// stream url, so racing fetches mint several listenKeys and the
@@ -1055,7 +1055,7 @@ func (this *Bitrue) authenticateBody(ch chan any, optionalArgs ...any) any {
 				//         }
 				//     }
 				//
-				var data any = this.SafeValue(response, "data", map[string]any{})
+				var data map[string]any = ccxt.SafeMapTyped(response, "data")
 				var key *string = this.SafeString(data, "listenKey")
 				if key == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))

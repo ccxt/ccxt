@@ -290,8 +290,8 @@ func (this *Luno) CustomParseOrderBook(orderbook any, symbol any, optionalArgs .
 	_ = amountKey
 	countOrIdKey := ccxt.GetArg(optionalArgs, 5, 2)
 	_ = countOrIdKey
-	var bids any = this.ParseOrderBookBidsAsks(this.SafeValue(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
-	var asks any = this.ParseOrderBookBidsAsks(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var bids any = this.ParseOrderBookBidsAsks(this.SafeList(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var asks any = this.ParseOrderBookBidsAsks(this.SafeList(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
 	return map[string]any{
 		"symbol":    symbol,
 		"bids":      this.SortBy(bids, 0, true),

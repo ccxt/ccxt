@@ -130,7 +130,7 @@ func (this *Coinone) HandleOrderBook(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var baseId *string = this.SafeStringUpper(data, "target_currency")
 	var quoteId *string = this.SafeStringUpper(data, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -144,8 +144,8 @@ func (this *Coinone) HandleOrderBook(client any, message any) {
 		orderbook.(ccxt.OrderBookInterface).Reset()
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	var asks any = this.SafeValue(data, "asks", []any{})
-	var bids any = this.SafeValue(data, "bids", []any{})
+	var asks any = this.SafeList(data, "asks", []any{})
+	var bids any = this.SafeList(data, "bids", []any{})
 	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -231,7 +231,7 @@ func (this *Coinone) HandleTicker(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var ticker any = this.ParseWsTicker(data)
 	var symbol any = ccxt.GetValue(ticker, "symbol")
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -365,7 +365,7 @@ func (this *Coinone) HandleTrades(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var trade any = this.ParseWsTrade(data)
 	var symbol any = ccxt.GetValue(trade, "symbol")
 	var stored any = this.SafeValue(this.Trades, symbol)
@@ -399,11 +399,11 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	market = this.SafeMarket(symbol, market)
-	var isSellerMaker any = this.SafeValue(trade, "is_seller_maker")
+	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side any = nil
-	if !ccxt.IsEqual(isSellerMaker, nil) {
+	if isSellerMaker != nil {
 		side = func() string {
-			if isSellerMaker == true {
+			if isSellerMaker != nil && *isSellerMaker == true {
 				return "sell"
 			}
 			return "buy"

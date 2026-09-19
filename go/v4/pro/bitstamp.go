@@ -218,14 +218,14 @@ func (this *Bitstamp) HandleOrderBook(client any, message any) {
 	var marketId *string = this.SafeString(parts, 3)
 	var symbol *string = this.SafeSymbol(marketId)
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol)
-	var nonce any = this.SafeValue(storedOrderBook, "nonce")
-	var delta any = this.SafeValue(message, "data")
+	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
+	var delta any = this.SafeDict(message, "data")
 	var deltaNonce *int64 = this.SafeInteger(delta, "microtimestamp")
 	if deltaNonce == nil {
 		return
 	}
 	var messageHash any = "orderbook:" + *symbol
-	if ccxt.IsEqual(nonce, nil) {
+	if nonce == nil {
 		var cacheLength int = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
 		// the rest API is very delayed
 		// usually it takes at least 4-5 deltas to resolve
@@ -235,7 +235,7 @@ func (this *Bitstamp) HandleOrderBook(client any, message any) {
 		}
 		ccxt.AppendToArray(storedOrderBook.(ccxt.OrderBookInterface).GetCache(), delta)
 		return
-	} else if ccxt.IsGreaterThanOrEqual(nonce, deltaNonce) {
+	} else if deltaNonce == nil || (nonce != nil && *nonce >= *deltaNonce) {
 		return
 	}
 	this.HandleDelta(storedOrderBook, delta)
@@ -246,8 +246,8 @@ func (this *Bitstamp) HandleDelta(orderbook any, delta any) {
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "microtimestamp"))
-	var bids any = this.SafeValue(delta, "bids", []any{})
-	var asks any = this.SafeValue(delta, "asks", []any{})
+	var bids any = this.SafeList(delta, "bids", []any{})
+	var asks any = this.SafeList(delta, "asks", []any{})
 	var storedBids any = ccxt.GetValue(orderbook, "bids")
 	var storedAsks any = ccxt.GetValue(orderbook, "asks")
 	this.HandleBidAsks(storedBids, bids)
@@ -1129,7 +1129,7 @@ func (this *Bitstamp) HandleErrorMessage(client any, message any) any {
 	var event *string = this.SafeString(message, "event")
 	if event != nil && *event == "bts:error" {
 		var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
-		var data any = this.SafeValue(message, "data", map[string]any{})
+		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		var code *float64 = this.SafeNumber(data, "code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 	}

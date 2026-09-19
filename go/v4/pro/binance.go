@@ -234,7 +234,7 @@ func (this *Binance) Stream(typeVar any, subscriptionHash any, optionalArgs ...a
 	var stream *string = this.SafeString(streamBySubscriptionsHash, subscriptionHash)
 	if stream == nil {
 		var streamIndex any = ccxt.DerefScalar(this.SafeInteger(this.Options, "streamIndex", ccxt.OpNeg(1)))
-		var streamLimits any = this.SafeValue(this.Options, "streamLimits")
+		var streamLimits map[string]any = ccxt.SafeMapTyped(this.Options, "streamLimits")
 		var streamLimit *int64 = this.SafeInteger(streamLimits, typeVar)
 		streamIndex = ccxt.Add(streamIndex, 1)
 		var normalizedIndex any = ccxt.Mod(streamIndex, streamLimit)
@@ -243,7 +243,7 @@ func (this *Binance) Stream(typeVar any, subscriptionHash any, optionalArgs ...a
 		if subscriptionHash != nil {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Options, "streamBySubscriptionsHash"), subscriptionHash, stream)
 		}
-		var subscriptionsByStreams any = this.SafeValue(this.Options, "numSubscriptionsByStream")
+		var subscriptionsByStreams any = this.SafeDict(this.Options, "numSubscriptionsByStream")
 		if ccxt.IsEqual(subscriptionsByStreams, nil) {
 			this.Options.Store("numSubscriptionsByStream", this.CreateSafeDictionary())
 		}
@@ -537,7 +537,7 @@ func (this *Binance) HandleLiquidation(client any, message any) {
 	//        }
 	//    }
 	//
-	var rawLiquidation any = this.SafeValue(message, "o", map[string]any{})
+	var rawLiquidation any = this.SafeDict(message, "o", map[string]any{})
 	var marketId *string = this.SafeString(rawLiquidation, "s")
 	var market any = this.SafeMarket(marketId, nil, "", "contract")
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1197,9 +1197,9 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan any, client any, message
 			}()
 			// try block:
 			var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-			var typeVar any = this.SafeValue(subscription, "type")
+			var typeVar *string = this.SafeString(subscription, "type")
 			var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
-			var params any = this.SafeValue(subscription, "params")
+			var params any = this.SafeDict(subscription, "params")
 			// 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
 			// todo: this is a synch blocking call - make it async
 			// default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
@@ -1223,7 +1223,7 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan any, client any, message
 					continue
 				}
 				var pu *int64 = this.SafeInteger(messageItem, "pu")
-				if ccxt.IsEqual(typeVar, "future") {
+				if typeVar != nil && *typeVar == "future" {
 					// 4. Drop any event where u is < lastUpdateId in the snapshot
 					if ccxt.IsLessThan(u, ccxt.GetValue(orderbook, "nonce")) {
 						continue
@@ -1265,8 +1265,8 @@ func (this *Binance) HandleDeltas(bookside any, deltas any) {
 }
 func (this *Binance) HandleOrderBookMessage(client any, message any, orderbook any) any {
 	var u *int64 = this.SafeInteger(message, "u")
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeValue(message, "a", []any{}))
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeValue(message, "b", []any{}))
+	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(message, "a", []any{}))
+	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(message, "b", []any{}))
 	ccxt.AddElementToObject(orderbook, "nonce", u)
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -1409,8 +1409,8 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 func (this *Binance) HandleOrderBookSubscription(client any, message any, subscription any) {
 	var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 	// const messageHash = this.safeString (subscription, 'messageHash')
-	var symbolOfSubscription *string = this.SafeString(subscription, "symbol")             // watchOrderBook
-	var symbols any = this.SafeValue(subscription, "symbols", []any{symbolOfSubscription}) // watchOrderBookForSymbols
+	var symbolOfSubscription *string = this.SafeString(subscription, "symbol")            // watchOrderBook
+	var symbols any = this.SafeList(subscription, "symbols", []any{symbolOfSubscription}) // watchOrderBookForSymbols
 	var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 	// handle list of symbols
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -1435,7 +1435,7 @@ func (this *Binance) HandleSubscriptionStatus(client any, message any) any {
 	//
 	var id *string = this.SafeString(message, "id")
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
-	var subscription any = this.SafeValue(subscriptionsById, id, map[string]any{})
+	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var method any = this.SafeValue(subscription, "method")
 	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message, subscription)
@@ -1561,7 +1561,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	trades := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, query), messageHashes, subscribe))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -2352,7 +2352,7 @@ func (this *Binance) HandleOHLCV(client any, message any) {
 		"markPrice_kline":  "markPriceKline",
 	}
 	event = this.SafeString(eventMap, event, event)
-	var kline any = this.SafeValue(message, "k")
+	var kline map[string]any = ccxt.SafeMapTyped(message, "k")
 	var marketId *string = this.SafeString2(kline, "s", "ps")
 	if event != nil && *event == "indexPriceKline" {
 		// indexPriceKline doesn't have the _PERP suffix
@@ -2373,8 +2373,8 @@ func (this *Binance) HandleOHLCV(client any, message any) {
 	}()
 	var symbol *string = this.SafeSymbol(marketId, nil, nil, marketType)
 	var messageHash any = ccxt.Add("ohlcv::"+*symbol+"::", unifiedTimeframe)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
-	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), unifiedTimeframe)
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), unifiedTimeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -3378,7 +3378,7 @@ func (this *Binance) HandleTickerWs(client any, message any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var result any = this.SafeValue(message, "result", map[string]any{})
+	var result any = this.SafeDict(message, "result", map[string]any{})
 	var ticker any = this.ParseWsTicker(result, "future")
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
@@ -3463,7 +3463,7 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 			continue
 		}
 		var tickerMarketId *string = this.SafeString(ticker, "s")
-		var tickerMarketsByIdList any = this.SafeValue(this.Markets_by_id, tickerMarketId)
+		var tickerMarketsByIdList any = this.SafeList(this.Markets_by_id, tickerMarketId)
 		var numTickerMarkets int = func() int {
 			if ccxt.IsEqual(tickerMarketsByIdList, nil) {
 				return 0
@@ -3474,8 +3474,8 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 		// blind first pick, the stream url decides; only a unique match, like an
 		// option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
 		var tickerMarketById any = func() any {
-			if ccxt.IsEqual(numTickerMarkets, 1) {
-				return this.SafeValue(tickerMarketsByIdList, 0)
+			if numTickerMarkets == 1 {
+				return this.SafeDict(tickerMarketsByIdList, 0)
 			}
 			return nil
 		}()
@@ -3864,7 +3864,7 @@ func (this *Binance) authenticateBody(ch chan any, optionalArgs ...any) any {
 	}
 	params = this.Omit(params, "symbol")
 	var isStock bool = (ccxt.IsEqual(typeVar, "stock"))
-	var options any = this.SafeValue(this.Options, typeVar, map[string]any{})
+	var options any = this.SafeDict(this.Options, typeVar, map[string]any{})
 	var lastAuthenticatedTime *int64 = this.SafeInteger(options, "lastAuthenticatedTime", 0)
 	var refreshRateKey string = func() string {
 		if isStock {
@@ -4016,7 +4016,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 		return nil
 	}
 	var isStock bool = (ccxt.IsEqual(typeVar, "stock"))
-	var options any = this.SafeValue(this.Options, typeVar, map[string]any{})
+	var options any = this.SafeDict(this.Options, typeVar, map[string]any{})
 	var listenKey *string = this.SafeString(options, "listenKey")
 	if listenKey == nil {
 
@@ -4145,7 +4145,7 @@ func (this *Binance) SetBalanceCache(client any, typeVar any, optionalArgs ...an
 	if (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
 		return
 	}
-	var options any = this.SafeValue(this.Options, "watchBalance")
+	var options any = this.SafeDict(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
@@ -4174,7 +4174,7 @@ func (this *Binance) loadBalanceSnapshotBody(ch chan any, client any, messageHas
 
 	response := (<-this.FetchBalanceAsync(params))
 	ccxt.PanicOnError(response)
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeValue(this.Balance, typeVar, map[string]any{})))
+	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
 	// don't remove the future from the .futures cache
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
@@ -6825,12 +6825,12 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 		if (orderId != nil) && !ccxt.IsEqual(tradeFee, nil) && (symbol != nil) {
 			var cachedOrders any = this.Orders
 			if !ccxt.IsEqual(cachedOrders, nil) {
-				var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
-				var order any = this.SafeValue(orders, orderId)
+				var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+				var order any = this.SafeDict(orders, orderId)
 				if !ccxt.IsEqual(order, nil) {
 					// accumulate order fees
 					var fees any = this.SafeValue(order, "fees")
-					var fee any = this.SafeValue(order, "fee")
+					var fee any = this.SafeDict(order, "fee")
 					if !this.IsEmpty(fees) {
 						var insertNewFeeCurrency bool = true
 						for i := 0; i < ccxt.GetArrayLength(fees); i++ {
@@ -6902,8 +6902,8 @@ func (this *Binance) HandleOrder(client any, message any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var cachedOrders any = this.Orders
-		var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
-		var order any = this.SafeValue(orders, orderId)
+		var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+		var order any = this.SafeDict(orders, orderId)
 		if !ccxt.IsEqual(order, nil) {
 			var fee any = this.SafeValue(order, "fee")
 			if !ccxt.IsEqual(fee, nil) {
@@ -7116,7 +7116,7 @@ func (this *Binance) HandleMessage(client any, message any) {
 	}
 	// user subscription wraps message in subscriptionId and event
 	var id *string = this.SafeString(message, "id")
-	var subscriptions any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), id)
+	var subscriptions any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), id)
 	var method any = this.SafeValue(subscriptions, "method")
 	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)

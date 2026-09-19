@@ -5207,7 +5207,7 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	var clientOrderIds any = this.SafeValue(params, "clientOrderIds")
+	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
 	params = this.Omit(params, "clientOrderIds")
 	var idsToParse any = ids
 	var areClientOrderIds bool = (!IsEqual(clientOrderIds, nil))
@@ -6509,7 +6509,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var data any = this.SafeValue(transaction, "data")
+	var data any = this.SafeDict(transaction, "data")
 	var dataId any = func() any {
 		if IsEqual(data, nil) {
 			return nil

@@ -406,8 +406,8 @@ func (this *Zaif) ParseMarket(market any) any {
 	})
 }
 func (this *Zaif) ParseBalance(response any) any {
-	var balances any = this.SafeValue(response, "return", map[string]any{})
-	var deposit any = this.SafeValue(balances, "deposit")
+	var balances map[string]any = SafeMapTyped(response, "return")
+	var deposit any = this.SafeDict(balances, "deposit")
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -1047,8 +1047,8 @@ func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	currency = this.SafeCurrency(nil, currency)
 	var fee any = nil
-	var feeCost any = this.SafeValue(transaction, "fee")
-	if !IsEqual(feeCost, nil) {
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": GetValue(currency, "code"),

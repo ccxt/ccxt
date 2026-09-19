@@ -367,7 +367,7 @@ func (this *Mercado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	//
 	var result []any = []any{}
-	var amountLimits any = this.SafeValue(this.Options, "limits", map[string]any{})
+	var amountLimits map[string]any = SafeMapTyped(this.Options, "limits")
 	var coins []any = this.ToArray(response)
 	for i := 0; i < len(coins); i++ {
 		var coin any = GetValue(coins, i)
@@ -543,7 +543,7 @@ func (this *Mercado) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 	response := (<-this.PublicGetCoinTicker(this.Extend(request, params)))
 	PanicOnError(response)
-	var ticker any = this.SafeValue(response, "ticker", map[string]any{})
+	var ticker any = this.SafeDict(response, "ticker", map[string]any{})
 
 	//
 	//     {
@@ -653,7 +653,7 @@ func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	return nil
 }
 func (this *Mercado) ParseBalance(response any) any {
-	var data any = this.SafeValue(response, "response_data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "response_data")
 	var balances map[string]any = SafeMapTyped(data, "balance")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -663,7 +663,7 @@ func (this *Mercado) ParseBalance(response any) any {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if func() bool { _, ok := balances[currencyId]; return ok }() {
-			var balance any = this.SafeValue(balances, currencyId, map[string]any{})
+			var balance map[string]any = SafeMapTyped(balances, currencyId)
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(balance, "available"))
 			AddElementToObject(account, "total", this.SafeString(balance, "total"))
@@ -839,7 +839,7 @@ func (this *Mercado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//         "server_unix_timestamp": "1536956499"
 	//     }
 	//
-	var responseData any = this.SafeValue(response, "response_data", map[string]any{})
+	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var order any = this.SafeDict(responseData, "order", map[string]any{})
 
 	ch <- this.ParseOrder(order, market)
@@ -906,7 +906,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed_quantity")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "updated_timestamp")
-	var rawTrades any = this.SafeValue(order, "operations", []any{})
+	var rawTrades any = this.SafeList(order, "operations", []any{})
 	var symbol any = GetValue(market, "symbol")
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -970,7 +970,7 @@ func (this *Mercado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 	response := (<-this.PrivatePostGetOrder(this.Extend(request, params)))
 	PanicOnError(response)
-	var responseData any = this.SafeValue(response, "response_data", map[string]any{})
+	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var order any = this.SafeDict(responseData, "order")
 
 	ch <- this.ParseOrder(order, market)
@@ -1057,7 +1057,7 @@ func (this *Mercado) withdrawBody(ch chan any, code any, amount any, address any
 	//         "server_unix_timestamp": "1453912088"
 	//     }
 	//
-	var responseData any = this.SafeValue(response, "response_data", map[string]any{})
+	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var withdrawal any = this.SafeDict(responseData, "withdrawal")
 
 	ch <- this.ParseTransaction(withdrawal, currency)
@@ -1207,7 +1207,7 @@ func (this *Mercado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivatePostListOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var responseData any = this.SafeValue(response, "response_data", map[string]any{})
+	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var orders any = this.SafeList(responseData, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -1256,7 +1256,7 @@ func (this *Mercado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivatePostListOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var responseData any = this.SafeValue(response, "response_data", map[string]any{})
+	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var orders any = this.SafeList(responseData, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -1305,8 +1305,8 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivatePostListOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var responseData any = this.SafeValue(response, "response_data", map[string]any{})
-	var ordersRaw any = this.SafeValue(responseData, "orders", []any{})
+	var responseData map[string]any = SafeMapTyped(response, "response_data")
+	var ordersRaw any = this.SafeList(responseData, "orders", []any{})
 	var orders any = this.ParseOrders(ordersRaw, market, since, limit)
 	var trades any = this.OrdersToTrades(orders)
 

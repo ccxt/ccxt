@@ -123,9 +123,9 @@ func (this *Cex) HandleBalance(client any, message any) {
 	//         "ok": "ok"
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var freeBalance map[string]any = ccxt.SafeMapTyped(data, "balance")
-	var usedBalance any = this.SafeValue(data, "obalance", map[string]any{})
+	var usedBalance map[string]any = ccxt.SafeMapTyped(data, "obalance")
 	var result map[string]any = map[string]any{
 		"info": data,
 	}
@@ -456,7 +456,7 @@ func (this *Cex) HandleTicker(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var ticker any = this.ParseWsTicker(data)
 	var symbol any = ccxt.GetValue(ticker, "symbol")
 	if symbol == nil {
@@ -497,7 +497,7 @@ func (this *Cex) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	//    }
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var pair any = this.SafeValue(ticker, "pair", []any{})
+	var pair any = this.SafeList(ticker, "pair", []any{})
 	var baseId *string = this.SafeString(ticker, "symbol1")
 	if baseId == nil {
 		baseId = this.SafeString(pair, 0)
@@ -695,7 +695,7 @@ func (this *Cex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Cex) HandleTransaction(client any, message any) {
-	var data any = this.SafeValue(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var symbol2 *string = this.SafeString(data, "symbol2")
 	if symbol2 == nil {
 		return
@@ -746,7 +746,7 @@ func (this *Cex) HandleMyTrades(client any, message any) {
 	//             "id": "59091012962"
 	//         }
 	//     }
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var stored any = this.MyTrades
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -891,13 +891,13 @@ func (this *Cex) HandleOrderUpdate(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var isTransaction bool = ccxt.IsEqual(this.SafeString(message, "e"), "tx")
 	var orderId *string = this.SafeString2(data, "id", "order")
 	var remains any = ccxt.DerefScalar(this.SafeString(data, "remains"))
 	var baseId *string = this.SafeString(data, "symbol")
 	var quoteId *string = this.SafeString(data, "symbol2")
-	var pair any = this.SafeValue(data, "pair")
+	var pair any = this.SafeDict(data, "pair")
 	if !ccxt.IsEqual(pair, nil) {
 		baseId = this.SafeString(pair, "symbol1")
 		quoteId = this.SafeString(pair, "symbol2")
@@ -912,7 +912,7 @@ func (this *Cex) HandleOrderUpdate(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var storedOrders any = this.Orders
-	var ordersBySymbol any = this.SafeValue(storedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+	var ordersBySymbol map[string]any = ccxt.SafeMapTyped(storedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 	var order any = this.SafeValue(ordersBySymbol, orderId)
 	if ccxt.IsEqual(order, nil) {
 		order = this.ParseWsOrderUpdate(data, market)
@@ -980,7 +980,7 @@ func (this *Cex) ParseWsOrderUpdate(order any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var isTransaction bool = !ccxt.IsEqual(this.SafeValue(order, "d"), nil)
+	var isTransaction bool = (this.SafeString(order, "d") != nil)
 	var remainsPrecision *string = this.SafeString(order, "remains")
 	var remaining any = nil
 	if remainsPrecision != nil {
@@ -998,7 +998,7 @@ func (this *Cex) ParseWsOrderUpdate(order any, optionalArgs ...any) any {
 	}
 	var baseId *string = this.SafeString(order, "symbol")
 	var quoteId *string = this.SafeString(order, "symbol2")
-	var pair any = this.SafeValue(order, "pair")
+	var pair any = this.SafeDict(order, "pair")
 	if !ccxt.IsEqual(pair, nil) {
 		baseId = this.SafeString(order, "symbol1")
 		quoteId = this.SafeString(order, "symbol2")
@@ -1186,7 +1186,7 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message any) {
 	//         "ok": "ok"
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var pair *string = this.SafeString(data, "pair")
 	var symbol any = this.PairToSymbol(pair)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
@@ -1226,7 +1226,7 @@ func (this *Cex) HandleOrderBookUpdate(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var incrementalId *int64 = this.SafeInteger(data, "id")
 	var pair *string = this.SafeString(data, "pair", "")
 	var symbol any = this.PairToSymbol(pair)
@@ -1238,8 +1238,8 @@ func (this *Cex) HandleOrderBookUpdate(client any, message any) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(data, "time")
-	var asks any = this.SafeValue(data, "asks", []any{})
-	var bids any = this.SafeValue(data, "bids", []any{})
+	var asks any = this.SafeList(data, "asks", []any{})
+	var bids any = this.SafeList(data, "bids", []any{})
 	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "asks"), asks)
 	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "bids"), bids)
 	ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
@@ -1339,7 +1339,7 @@ func (this *Cex) HandleInitOHLCV(client any, message any) {
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
 	var market any = this.SafeMarket(symbol)
 	var messageHash any = ccxt.Add("ohlcv:", symbol)
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 	stored := ccxt.NewArrayCacheByTimestamp(limit)
 	var sorted []any = this.SortBy(data, 0)
@@ -1378,7 +1378,7 @@ func (this *Cex) HandleOHLCV1m(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var pair *string = this.SafeString(data, "pair")
 	var symbol any = this.PairToSymbol(pair)
 	var messageHash any = ccxt.Add("ohlcv:", symbol)
@@ -1754,7 +1754,7 @@ func (this *Cex) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) a
 	//        "placed-cancelled": []
 	//    }
 	//
-	var canceledOrders any = this.SafeValue(response, "cancel-orders")
+	var canceledOrders any = this.SafeList(response, "cancel-orders")
 
 	ch <- this.ParseOrders(canceledOrders, nil, nil, nil, params)
 	return nil
@@ -1813,7 +1813,7 @@ func (this *Cex) HandleErrorMessage(client any, message any) any {
 				}
 			}()
 			// try block:
-			var data any = this.SafeValue(message, "data", map[string]any{})
+			var data map[string]any = ccxt.SafeMapTyped(message, "data")
 			var error *string = this.SafeString(data, "error")
 			var event *string = this.SafeString(message, "e", "")
 			var feedback any = ccxt.Add(this.Id+" "+*event+" ", error)

@@ -265,7 +265,7 @@ func (this *Gemini) HandleTrades(client any, message any) {
 	//
 	var marketId *string = this.SafeStringLower(message, "symbol")
 	var market any = this.SafeMarket(marketId)
-	var trades any = this.SafeValue(message, "trades")
+	var trades any = this.SafeList(message, "trades")
 	if !ccxt.IsEqual(trades, nil) {
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -406,11 +406,11 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var changes any = this.SafeList(message, "changes", []any{})
 	var timeframe any = this.FindTimeframe(timeframeId)
-	var ohlcvsBySymbol any = this.SafeValue(this.Ohlcvs, symbol)
+	var ohlcvsBySymbol any = this.SafeDict(this.Ohlcvs, symbol)
 	if ccxt.IsEqual(ohlcvsBySymbol, nil) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
-	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)

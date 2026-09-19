@@ -725,7 +725,7 @@ func (this *Bittrade) fetchTradingLimitsByIdBody(ch chan any, id any, optionalAr
 	//                 "market-sell-order-rate-must-less-than":  0.1,
 	//                  "market-buy-order-rate-must-less-than":  0.1        } }
 	//
-	ch <- this.ParseTradingLimits(this.SafeValue(response, "data", map[string]any{}))
+	ch <- this.ParseTradingLimits(this.SafeDict(response, "data", map[string]any{}))
 	return nil
 }
 func (this *Bittrade) ParseTradingLimits(limits any, optionalArgs ...any) any {
@@ -1053,7 +1053,7 @@ func (this *Bittrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		if (IsEqual(GetValue(response, "tick"), nil)) || (IsEqual(GetValue(response, "tick"), nil)) {
 			panic(BadSymbol(Add(this.Id+" fetchOrderBook() returned empty response: ", this.Json(response))))
 		}
-		var tick any = this.SafeValue(response, "tick")
+		var tick any = this.SafeDict(response, "tick")
 		var timestamp *int64 = this.SafeInteger(tick, "ts", this.SafeInteger(response, "ts"))
 		var result any = this.ParseOrderBook(tick, symbol, timestamp)
 		AddElementToObject(result, "nonce", this.SafeInteger(tick, "version"))
@@ -1599,20 +1599,20 @@ func (this *Bittrade) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	//         ]
 	//     }
 	//
-	var currencies any = this.SafeValue(response, "data", []any{})
+	var currencies any = this.SafeList(response, "data", []any{})
 
 	ch <- this.ParseCurrencies(currencies)
 	return nil
 }
 func (this *Bittrade) ParseCurrency(currency any) any {
-	var id any = this.SafeValue(currency, "name")
+	var id *string = this.SafeString(currency, "name")
 	var code *string = this.SafeCurrencyCode(id)
-	var depositEnabled any = this.SafeValue(currency, "deposit-enabled")
-	var withdrawEnabled any = this.SafeValue(currency, "withdraw-enabled")
-	var countryDisabled any = this.SafeValue(currency, "country-disabled")
+	var depositEnabled *bool = this.SafeBool(currency, "deposit-enabled")
+	var withdrawEnabled *bool = this.SafeBool(currency, "withdraw-enabled")
+	var countryDisabled *bool = this.SafeBool(currency, "country-disabled")
 	var visible *bool = this.SafeBool(currency, "visible", false)
 	var state *string = this.SafeString(currency, "state")
-	var active bool = (visible != nil && *visible == true) && (depositEnabled == true) && (withdrawEnabled == true) && (state != nil && *state == "online") && (countryDisabled != true)
+	var active bool = (visible != nil && *visible == true) && (depositEnabled != nil && *depositEnabled == true) && (withdrawEnabled != nil && *withdrawEnabled == true) && (state != nil && *state == "online") && (countryDisabled == nil || *countryDisabled != true)
 	var name *string = this.SafeString(currency, "display-name")
 	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "withdraw-precision")))
 	return this.SafeCurrencyStructure(map[string]any{
@@ -2214,7 +2214,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client-order-id") // must be 64 chars max and unique within 24 hours
 	if clientOrderId == nil {
-		var broker any = this.SafeValue(this.Options, "broker", map[string]any{})
+		var broker map[string]any = SafeMapTyped(this.Options, "broker")
 		var brokerId *string = this.SafeString(broker, "id")
 		request["client-order-id"] = Add(brokerId, this.Uuid())
 	} else {
@@ -2528,7 +2528,7 @@ func (this *Bittrade) ParseDepositAddress(depositAddress any, optionalArgs ...an
 	currency = this.SafeCurrency(currencyId, currency)
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var networkId *string = this.SafeString(depositAddress, "chain")
-	var networks any = this.SafeValue(currency, "networks", map[string]any{})
+	var networks any = this.SafeDict(currency, "networks", map[string]any{})
 	var networksById map[string]any = this.IndexBy(networks, "id")
 	var networkValue any = this.SafeValue(networksById, networkId, networkId)
 	var network *string = this.SafeString(networkValue, "network")
@@ -2801,7 +2801,7 @@ func (this *Bittrade) withdrawBody(ch chan any, code any, amount any, address an
 	if tag != nil {
 		request["addr-tag"] = tag // only for XRP?
 	}
-	var networks any = this.SafeValue(this.Options, "networks", map[string]any{})
+	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(params, "network") // this line allows the user to specify either ERC20 or ETH
 	network = this.SafeStringLower(networks, network, network)    // handle ETH>ERC20 alias
 	if network != nil {

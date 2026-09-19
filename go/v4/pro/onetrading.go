@@ -479,7 +479,7 @@ func (this *Onetrading) HandleOrderBook(client any, message any) {
 		var snapshot any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else if typeVar != nil && *typeVar == "ORDER_BOOK_UPDATE" {
-		var changes any = this.SafeValue(message, "changes", []any{})
+		var changes any = this.SafeList(message, "changes", []any{})
 		this.HandleDeltas(orderbook, changes)
 	} else {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id+" watchOrderBook() did not recognize message type ", typeVar)))
@@ -1089,7 +1089,7 @@ func (this *Onetrading) HandleAccountUpdate(client any, message any) {
 	}
 	var symbol any = nil
 	var orders any = this.Orders
-	var update any = this.SafeValue(message, "update", map[string]any{})
+	var update any = this.SafeDict(message, "update", map[string]any{})
 	var updateType *string = this.SafeString(update, "type")
 	if (updateType != nil && *updateType == "ORDER_REJECTED") || (updateType != nil && *updateType == "ORDER_CLOSED") || (updateType != nil && *updateType == "STOP_ORDER_TRIGGERED") {
 		var orderId *string = this.SafeString(update, "order_id")
@@ -1201,8 +1201,8 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	symbol = ccxt.GetValue(market, "symbol")
 	var marketId any = ccxt.GetValue(market, "id")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
-	var timeframeId any = this.SafeValue(timeframes, timeframe)
+	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
+	var timeframeId any = this.SafeDict(timeframes, timeframe)
 	if ccxt.IsEqual(timeframeId, nil) {
 		panic(ccxt.NotSupported(this.Id + " this interval is not supported, please provide one of the supported timeframes"))
 	}
@@ -1214,7 +1214,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	if !ccxt.IsEqual(client, nil) {
 		subscription = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 		if !ccxt.IsEqual(subscription, nil) {
-			var ohlcvMarket any = this.SafeValue(subscription, marketId, map[string]any{})
+			var ohlcvMarket map[string]any = ccxt.SafeMapTyped(subscription, marketId)
 			var marketSubscribed *bool = this.SafeBool(ohlcvMarket, timeframe, false)
 			if marketSubscribed == nil || *marketSubscribed != true {
 				typeVar = "UPDATE_SUBSCRIPTION"
@@ -1224,7 +1224,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 			subscription = map[string]any{}
 		}
 	}
-	var subscriptionMarketId any = this.SafeValue(subscription, marketId)
+	var subscriptionMarketId any = this.SafeDict(subscription, marketId)
 	if ccxt.IsEqual(subscriptionMarketId, nil) {
 		if marketId != nil {
 			ccxt.AddElementToObject(subscription, marketId, map[string]any{})
@@ -1238,7 +1238,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	for i := 0; i < len(marketIds); i++ {
 		var marketIdtimeframes []string = ccxt.ObjectKeys(ccxt.GetValue(subscription, ccxt.GetValue(marketIds, i)))
 		for ii := 0; ii < len(marketIdtimeframes); ii++ {
-			var marketTimeframeId any = this.SafeValue(timeframes, timeframe)
+			var marketTimeframeId any = this.SafeDict(timeframes, timeframe)
 			var property map[string]any = map[string]any{
 				"instrument_code":  ccxt.GetValue(marketIds, i),
 				"time_granularity": marketTimeframeId,
@@ -1301,13 +1301,13 @@ func (this *Onetrading) HandleOHLCV(client any, message any) {
 	var marketId *string = this.SafeString(message, "instrument_code")
 	var symbol *string = this.SafeSymbol(marketId)
 	var dateTime *string = this.SafeString(message, "time")
-	var timeframeId any = this.SafeValue(message, "granularity")
-	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
+	var timeframeId any = this.SafeDict(message, "granularity")
+	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe any = this.FindTimeframe(timeframeId, timeframes)
 	var channel any = ccxt.Add("ohlcv."+*symbol+".", timeframe)
 	var parsed []any = []any{this.Parse8601(dateTime), this.SafeNumber(message, "open"), this.SafeNumber(message, "high"), this.SafeNumber(message, "low"), this.SafeNumber(message, "close"), this.SafeNumber(message, "volume")}
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
-	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -1365,12 +1365,12 @@ func (this *Onetrading) HandleErrorMessage(client any, message any) any {
 	panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(message))))
 }
 func (this *Onetrading) HandleMessage(client any, message any) {
-	var error any = this.SafeValue(message, "error")
-	if !ccxt.IsEqual(error, nil) {
+	var error *string = this.SafeString(message, "error")
+	if error != nil {
 		this.HandleErrorMessage(client, message)
 		return
 	}
-	var typeVar any = this.SafeValue(message, "type")
+	var typeVar *string = this.SafeString(message, "type")
 	var handlers map[string]any = map[string]any{
 		"ORDER_BOOK_UPDATE":        this.HandleOrderBook,
 		"ORDER_BOOK_SNAPSHOT":      this.HandleOrderBook,
@@ -1507,7 +1507,7 @@ func (this *Onetrading) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
 		this.CheckRequiredCredentials()
 		var request map[string]any = map[string]any{

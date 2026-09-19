@@ -1101,11 +1101,11 @@ func (this *Btcbox) HandleErrors(httpCode any, reason any, url any, method any, 
 	if IsGreaterThanOrEqual(httpCode, 400) {
 		return nil // resort to defaultErrorHandler
 	}
-	var result any = this.SafeValue(response, "result")
-	if IsEqual(result, nil) || (result == true) {
+	var result *bool = this.SafeBool(response, "result")
+	if (result == nil) || (result != nil && *result == true) {
 		return nil // either public API (no error codes expected) or success
 	}
-	var code any = this.SafeValue(response, "code")
+	var code *string = this.SafeString(response, "code")
 	var feedback any = Add(this.Id+" ", body)
 	this.ThrowExactlyMatchedException(this.Exceptions, code, feedback)
 	panic(ExchangeError(feedback))

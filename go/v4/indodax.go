@@ -503,9 +503,9 @@ func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Indodax) ParseBalance(response any) any {
-	var balances any = this.SafeValue(response, "return", map[string]any{})
+	var balances map[string]any = SafeMapTyped(response, "return")
 	var free map[string]any = SafeMapTyped(balances, "balance")
-	var used any = this.SafeValue(balances, "balance_hold", map[string]any{})
+	var used map[string]any = SafeMapTyped(balances, "balance_hold")
 	var timestamp *int64 = this.SafeTimestamp(balances, "server_time")
 	var result map[string]any = map[string]any{
 		"info":      response,
@@ -1284,7 +1284,7 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 
 	result := (<-this.PrivatePostTrade(this.Extend(request, params)))
 	PanicOnError(result)
-	var data any = this.SafeValue(result, "return", map[string]any{})
+	var data map[string]any = SafeMapTyped(result, "return")
 	var id *string = this.SafeString(data, "order_id")
 
 	ch <- this.SafeOrder(map[string]any{
@@ -1403,7 +1403,7 @@ func (this *Indodax) fetchTransactionFeeBody(ch chan any, code any, optionalArgs
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "return", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "return")
 	var currencyId *string = this.SafeString(data, "currency")
 
 	ch <- map[string]any{
@@ -1562,7 +1562,7 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "return", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "return")
 	var withdraw map[string]any = SafeMapTyped(data, "withdraw")
 	var deposit map[string]any = SafeMapTyped(data, "deposit")
 	var transactions []any = []any{}
@@ -1580,8 +1580,8 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 		}
 	} else {
 		currency = this.Currency(code)
-		var withdraws any = this.SafeValue(withdraw, GetValue(currency, "id"), []any{})
-		var deposits any = this.SafeValue(deposit, GetValue(currency, "id"), []any{})
+		var withdraws any = this.SafeList(withdraw, GetValue(currency, "id"), []any{})
+		var deposits any = this.SafeList(deposit, GetValue(currency, "id"), []any{})
 		transactions = this.ArrayConcat(withdraws, deposits)
 	}
 
@@ -1925,8 +1925,8 @@ func (this *Indodax) HandleErrors(code any, reason any, url any, method any, hea
 	if IsArray(response) {
 		return nil // public endpoints may return []-arrays
 	}
-	var error any = this.SafeValue(response, "error", "")
-	if !(InOp(response, "success")) && (IsEqual(error, "")) {
+	var error *string = this.SafeString(response, "error", "")
+	if !(InOp(response, "success")) && (error != nil && *error == "") {
 		return nil // no 'success' property on public responses
 	}
 	var status *string = this.SafeString(response, "success")

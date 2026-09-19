@@ -1671,7 +1671,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "data", []any{})
-	var orderBook any = this.SafeValue(data, 0)
+	var orderBook any = this.SafeDict(data, 0)
 	var timestamp *int64 = this.SafeInteger(orderBook, "t")
 
 	ch <- this.ParseOrderBook(orderBook, symbol, timestamp)
@@ -3292,7 +3292,7 @@ func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) any {
 	var created *int64 = this.SafeInteger(order, "create_time")
 	var marketId *string = this.SafeString(order, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var execInst any = this.SafeValue(order, "exec_inst")
+	var execInst any = this.SafeList(order, "exec_inst")
 	var postOnly any = nil
 	if !IsEqual(execInst, nil) {
 		postOnly = false
@@ -3563,7 +3563,7 @@ func (this *Cryptocom) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ..
 
 	response := (<-this.V1PrivatePostPrivateGetCurrencyNetworks(params))
 	PanicOnError(response)
-	var data any = this.SafeValue(response, "result")
+	var data map[string]any = SafeMapTyped(response, "result")
 	var currencyMap any = this.SafeList(data, "currency_map")
 
 	ch <- this.ParseDepositWithdrawFees(currencyMap, codes, "full_name")

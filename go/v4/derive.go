@@ -2379,7 +2379,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
 	// }
 	//
-	var data any = this.SafeValue(response, "result")
+	var data map[string]any = SafeMapTyped(response, "result")
 	var page *int64 = this.SafeInteger(params, "page")
 	if page != nil {
 		var pagination map[string]any = SafeMapTyped(data, "pagination")

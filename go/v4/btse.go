@@ -850,9 +850,9 @@ func (this *Btse) ParseMarket(market any) any {
 			typeVar = "swap"
 		}
 	}
-	var fees any = this.SafeValue(this.Fees, "contract")
+	var fees any = this.SafeDict(this.Fees, "contract", map[string]any{})
 	if isSpot {
-		fees = this.SafeValue(this.Fees, "spot")
+		fees = this.SafeDict(this.Fees, "spot", map[string]any{})
 	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":     id,
@@ -4592,7 +4592,7 @@ func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	return nil
 }
 func (this *Btse) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if (response == nil) {
 		return nil // fallback to default error handler
 	}
 	//

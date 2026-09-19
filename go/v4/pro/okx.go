@@ -320,7 +320,7 @@ func (this *Okx) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 	trades := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -448,7 +448,7 @@ func (this *Okx) HandleTrades(client any, message any) {
 	//         ]
 	//     }
 	//
-	var arg any = this.SafeValue(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel")
 	var marketId *string = this.SafeString(arg, "instId")
 	var symbol *string = this.SafeSymbol(marketId)
@@ -861,7 +861,7 @@ func (this *Okx) HandleTicker(client any, message any) {
 	//     }
 	//
 	this.HandleBidAsk(client, message)
-	var arg any = this.SafeValue(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market any = this.SafeMarket(marketId, nil, "-")
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1179,10 +1179,10 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, opt
 		retRes87812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes87812)
 	}
-	var isTrigger any = this.SafeValue2(params, "stop", "trigger", false)
+	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var accessType string = func() string {
-		if isTrigger == true {
+		if isTrigger != nil && *isTrigger == true {
 			return "business"
 		}
 		return "private"
@@ -1583,7 +1583,7 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 	//         ]
 	//     }
 	//
-	var arg any = this.SafeValue(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel")
 	if channel == nil {
 		return
@@ -1597,8 +1597,8 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 	var timeframe any = this.FindTimeframe(interval)
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var parsed any = this.ParseOHLCV(ccxt.GetValue(data, i), market)
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
-		var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -1866,8 +1866,8 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var asks any = this.SafeValue(message, "asks", []any{})
-	var bids any = this.SafeValue(message, "bids", []any{})
+	var asks any = this.SafeList(message, "asks", []any{})
+	var bids any = this.SafeList(message, "bids", []any{})
 	var storedAsks any = ccxt.GetValue(orderbook, "asks")
 	var storedBids any = ccxt.GetValue(orderbook, "bids")
 	this.HandleDeltas(storedAsks, asks)
@@ -2219,7 +2219,7 @@ func (this *Okx) HandleBalance(client any, message any) {
 	//         ]
 	//     }
 	//
-	var arg any = this.SafeValue(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel")
 	var balance any = this.ParseTradingBalance(message)
 	var newBalance map[string]any = this.DeepExtend(this.Balance, balance)
@@ -2229,7 +2229,7 @@ func (this *Okx) HandleBalance(client any, message any) {
 func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var info any = this.SafeValue(order, "info", map[string]any{})
+	var info any = this.SafeDict(order, "info", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(info, "fillTime")
 	var feeMarketId *string = this.SafeString(info, "fillFeeCcy")
 	var isTaker bool = ccxt.IsEqual(this.SafeString(info, "execType", ""), "T")
@@ -2496,7 +2496,7 @@ func (this *Okx) HandlePositions(client any, message any) {
 	//        }]
 	//    }
 	//
-	var arg any = this.SafeValue(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market any = this.SafeMarket(marketId, nil, "-")
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -2562,7 +2562,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "type", "ANY")
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
-	var isTrigger any = this.SafeValue2(params, "stop", "trigger", false)
+	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	params = this.Omit(params, []any{"stop", "trigger"})
 	if this.Markets == nil {
 
@@ -2570,7 +2570,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes199812)
 	}
 	var accessType string = func() string {
-		if isTrigger == true {
+		if isTrigger != nil && *isTrigger == true {
 			return "business"
 		}
 		return "private"
@@ -2606,7 +2606,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"instType": uppercaseType,
 	}
 	var channel string = func() string {
-		if isTrigger == true {
+		if isTrigger != nil && *isTrigger == true {
 			return "orders-algo"
 		}
 		return "orders"
@@ -2677,7 +2677,7 @@ func (this *Okx) HandleOrders(client any, message any) {
 	//     }
 	//
 	this.HandleMyTrades(client, message)
-	var arg any = this.SafeValue(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel")
 	var orders any = this.SafeList(message, "data", []any{})
 	var ordersLength int = ccxt.GetArrayLength(orders)
@@ -2764,7 +2764,7 @@ func (this *Okx) HandleMyTrades(client any, message any) {
 	//         ]
 	//     }
 	//
-	var arg any = this.SafeValue(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel")
 	var rawOrders any = this.SafeList(message, "data", []any{})
 	var filteredOrders []any = []any{}
@@ -2896,7 +2896,7 @@ func (this *Okx) HandlePlaceOrders(client any, message any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var args any = this.SafeValue(message, "data", []any{})
+	var args any = this.SafeList(message, "data", []any{})
 	// filter out partial errors
 	args = this.FilterBy(args, "sCode", "0")
 	// if empty means request failed and handle error
@@ -3162,7 +3162,7 @@ func (this *Okx) HandleCancelAllOrders(client any, message any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	client.(ccxt.ClientInterface).Resolve(data, messageHash)
 }
 func (this *Okx) HandleSubscriptionStatus(client any, message any) any {
@@ -3234,8 +3234,8 @@ func (this *Okx) HandleErrorMessage(client any, message any) any {
 				if errorCode == nil || *errorCode != "1" {
 					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 				}
-				var messageString any = this.SafeValue(message, "msg")
-				if !ccxt.IsEqual(messageString, nil) {
+				var messageString *string = this.SafeString(message, "msg")
+				if messageString != nil {
 					this.ThrowBroadlyMatchedException(this.Exceptions["broad"], messageString, feedback)
 				} else {
 					var data any = this.SafeList(message, "data", []any{})
@@ -3245,8 +3245,8 @@ func (this *Okx) HandleErrorMessage(client any, message any) any {
 						if errorCode != nil {
 							this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 						}
-						messageString = this.SafeValue(d, "sMsg")
-						if !ccxt.IsEqual(messageString, nil) {
+						messageString = this.SafeString(d, "sMsg")
+						if messageString != nil {
 							this.ThrowBroadlyMatchedException(this.Exceptions["broad"], messageString, feedback)
 						}
 					}
@@ -3326,7 +3326,7 @@ func (this *Okx) HandleMessage(client any, message any) {
 			ccxt.CallDynamically(method, client, message)
 		}
 	} else {
-		var arg any = this.SafeValue(message, "arg", map[string]any{})
+		var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 		var channel *string = this.SafeString(arg, "channel")
 		if channel == nil {
 			return

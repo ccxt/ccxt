@@ -1464,7 +1464,7 @@ func (this *Pacifica) HandleOHLCV(client any, message any) {
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
-	var symbolOhlcvs any = this.SafeValue(this.Ohlcvs, symbol, map[string]any{})
+	var symbolOhlcvs any = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
 	var ohlcv any = this.SafeValue(symbolOhlcvs, timeframe)
 	if ccxt.IsEqual(ohlcv, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)

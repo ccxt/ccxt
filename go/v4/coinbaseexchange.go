@@ -872,7 +872,7 @@ func (this *Coinbaseexchange) fetchMarketsBody(ch chan any, optionalArgs ...any)
 			"settleId":       nil,
 			"type":           "spot",
 			"spot":           true,
-			"margin":         this.SafeValue(market, "margin_enabled"),
+			"margin":         this.SafeBool(market, "margin_enabled"),
 			"swap":           false,
 			"future":         false,
 			"option":         false,
@@ -1149,7 +1149,7 @@ func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) any {
 		last = DerefScalar(this.SafeString(ticker, 4))
 		timestamp = this.Milliseconds()
 	} else {
-		timestamp = DerefScalar(this.Parse8601(this.SafeValue(ticker, "time")))
+		timestamp = DerefScalar(this.Parse8601(this.SafeString(ticker, "time")))
 		bid = DerefScalar(this.SafeString(ticker, "bid"))
 		ask = DerefScalar(this.SafeString(ticker, "ask"))
 		high = DerefScalar(this.SafeString(ticker, "high"))
@@ -1238,8 +1238,8 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 	var delimiter string = "-"
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
-		var entry any = this.SafeValue(response, marketId, []any{})
-		var first any = this.SafeValue(entry, 0, []any{})
+		var entry any = this.SafeList(response, marketId, []any{})
+		var first any = this.SafeList(entry, 0, []any{})
 		var market any = this.SafeMarket(marketId, nil, delimiter)
 		var symbol any = GetValue(market, "symbol")
 		AddElementToObject(result, symbol, this.ParseTicker(first, market))
@@ -1782,7 +1782,7 @@ func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(order, "type")
 	var side *string = this.SafeString(order, "side")
 	var timeInForce *string = this.SafeString(order, "time_in_force")
-	var postOnly any = this.SafeValue(order, "post_only")
+	var postOnly *bool = this.SafeBool(order, "post_only")
 	var triggerPrice *float64 = this.SafeNumber(order, "stop_price")
 	var clientOrderId *string = this.SafeString(order, "client_oid")
 	return this.SafeOrder(map[string]any{
@@ -2098,8 +2098,8 @@ func (this *Coinbaseexchange) createOrderBody(ch chan any, symbol any, typeVar a
 	if timeInForce != nil {
 		request["time_in_force"] = timeInForce
 	}
-	var postOnly any = this.SafeValue2(params, "postOnly", "post_only", false)
-	if postOnly == true {
+	var postOnly *bool = this.SafeBool2(params, "postOnly", "post_only", false)
+	if postOnly != nil && *postOnly == true {
 		request["post_only"] = true
 	}
 	params = this.Omit(params, []any{"timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"})
@@ -2378,10 +2378,10 @@ func (this *Coinbaseexchange) ParseLedgerEntry(item any, optionalArgs ...any) an
 	var amount any = this.ParseNumber(amountString)
 	var after any = this.ParseNumber(afterString)
 	var before any = this.ParseNumber(beforeString)
-	var timestamp *int64 = this.Parse8601(this.SafeValue(item, "created_at"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(item, "created_at"))
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	var code *string = this.SafeCurrencyCode(nil, currency)
-	var details any = this.SafeValue(item, "details", map[string]any{})
+	var details map[string]any = SafeMapTyped(item, "details")
 	var account any = nil
 	var referenceAccount any = nil
 	var referenceId any = nil
@@ -2454,7 +2454,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 	PanicOnError(retRes18678)
 	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
-	var account any = this.SafeValue(accountsByCurrencyCode, code)
+	var account any = this.SafeDict(accountsByCurrencyCode, code)
 	if IsEqual(account, nil) {
 		panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
 	}
@@ -2527,7 +2527,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 		if code != nil {
 			currency = this.Currency(code)
 			var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
-			var account any = this.SafeValue(accountsByCurrencyCode, code)
+			var account any = this.SafeDict(accountsByCurrencyCode, code)
 			if IsEqual(account, nil) {
 				panic(ExchangeError(Add(this.Id+" fetchDepositsWithdrawals() could not find account id for ", code)))
 			}
@@ -2577,7 +2577,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 		response = this.ToArray(transfers)
 		for i := 0; i < GetArrayLength(response); i++ {
 			var account_id *string = this.SafeString(GetValue(response, i), "account_id")
-			var account any = this.SafeValue(this.AccountsById, account_id)
+			var account any = this.SafeDict(this.AccountsById, account_id)
 			var codeInner *string = this.SafeString(account, "code")
 			AddElementToObject(GetValue(response, i), "currency", codeInner)
 		}
@@ -2742,7 +2742,7 @@ func (this *Coinbaseexchange) ParseTransaction(transaction any, optionalArgs ...
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var details any = this.SafeValue(transaction, "details", map[string]any{})
+	var details map[string]any = SafeMapTyped(transaction, "details")
 	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "created_at"))
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -2826,7 +2826,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 		this.Options.Store("coinbaseAccountsByCurrencyId", this.IndexBy(accounts, "currency"))
 	}
 	var currencyId any = currency["id"]
-	var account any = this.SafeValue(GetValue(this.Options, "coinbaseAccountsByCurrencyId"), currencyId)
+	var account any = this.SafeDict(GetValue(this.Options, "coinbaseAccountsByCurrencyId"), currencyId)
 	if IsEqual(account, nil) {
 		panic(InvalidAddress(Add(Add(Add(Add(this.Id+" createDepositAddress() could not find currency code ", code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")))
 	}

@@ -904,7 +904,7 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 	trades := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -1666,7 +1666,7 @@ func (this *Aster) HandleOHLCV(client any, message any) {
 	if timeframe == nil {
 		return
 	}
-	var ohlcvsByTimeframe any = this.SafeValue(this.Ohlcvs, symbol)
+	var ohlcvsByTimeframe any = this.SafeDict(this.Ohlcvs, symbol)
 	if ccxt.IsEqual(ohlcvsByTimeframe, nil) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
@@ -1906,7 +1906,7 @@ func (this *Aster) SetBalanceCache(client any, typeVar any) {
 	if (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
 		return
 	}
-	var options any = this.SafeValue(this.Options, "watchBalance")
+	var options any = this.SafeDict(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
@@ -1932,7 +1932,7 @@ func (this *Aster) loadBalanceSnapshotBody(ch chan any, client any, messageHash 
 
 	response := (<-this.FetchBalanceAsync(params))
 	ccxt.PanicOnError(response)
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeValue(this.Balance, typeVar, map[string]any{})))
+	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
 	// don't remove the future from the .futures cache
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
@@ -2414,12 +2414,12 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 		if (orderId != nil) && !ccxt.IsEqual(tradeFee, nil) && (symbol != nil) {
 			var cachedOrders any = this.Orders
 			if !ccxt.IsEqual(cachedOrders, nil) {
-				var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
-				var order any = this.SafeValue(orders, orderId)
+				var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+				var order any = this.SafeDict(orders, orderId)
 				if !ccxt.IsEqual(order, nil) {
 					// accumulate order fees
-					var fees any = this.SafeValue(order, "fees")
-					var fee any = this.SafeValue(order, "fee")
+					var fees any = this.SafeList(order, "fees", []any{})
+					var fee any = this.SafeDict(order, "fee")
 					if !this.IsEmpty(fees) {
 						var insertNewFeeCurrency bool = true
 						for i := 0; i < ccxt.GetArrayLength(fees); i++ {

@@ -503,7 +503,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 
 	response := (<-this.PrivateGetExchangeOrdersOpens(params))
 	PanicOnError(response)
-	var rawOrders any = this.SafeValue(response, "orders", []any{})
+	var rawOrders any = this.SafeList(response, "orders", []any{})
 	var parsedOrders any = this.ParseOrders(rawOrders, market, since, limit)
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(parsedOrders); i++ {
@@ -747,7 +747,7 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 		} else if IsEqual(this.SafeString(trade, "liquidity"), "M") {
 			takerOrMaker = "maker"
 		}
-		var funds any = this.SafeValue(trade, "funds", map[string]any{})
+		var funds map[string]any = SafeMapTyped(trade, "funds")
 		amountString = DerefScalar(this.SafeString(funds, baseId))
 		costString = DerefScalar(this.SafeString(funds, quoteId))
 		fee = map[string]any{
@@ -946,7 +946,7 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var fees any = this.SafeValue(response, "exchange_fees", map[string]any{})
+	var fees map[string]any = SafeMapTyped(response, "exchange_fees")
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	if IsEqual(symbols, nil) {
@@ -957,7 +957,7 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var fee any = this.SafeValue(fees, GetValue(market, "id"), map[string]any{})
+		var fee any = this.SafeDict(fees, GetValue(market, "id"), map[string]any{})
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       fee,
 			"symbol":     symbol,
@@ -1349,7 +1349,7 @@ func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *Coincheck) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	//

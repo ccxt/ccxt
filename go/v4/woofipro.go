@@ -2319,7 +2319,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(order, "order_quantity", "quantity") // This is base amount
 	var cost *string = this.SafeString2(order, "order_amount", "amount")       // This is quote amount
 	var orderType *string = this.SafeStringLower2(order, "order_type", "type")
-	var status any = this.SafeValue2(order, "status", "algoStatus")
+	var status any = DerefScalar(this.SafeString2(order, "status", "algoStatus"))
 	var success *bool = this.SafeBool(order, "success")
 	if success != nil {
 		status = func() string {
@@ -2339,14 +2339,14 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var triggerPrice *float64 = this.SafeNumber(order, "triggerPrice")
 	var takeProfitPrice *float64 = nil
 	var stopLossPrice *float64 = nil
-	var childOrders any = this.SafeValue(order, "childOrders")
+	var childOrders any = this.SafeList(order, "childOrders")
 	if !IsEqual(childOrders, nil) {
-		var first any = this.SafeValue(childOrders, 0)
+		var first map[string]any = SafeMapTyped(childOrders, 0)
 		var innerChildOrders any = this.SafeList(first, "childOrders", []any{})
 		var innerChildOrdersLength int = GetArrayLength(innerChildOrders)
 		if innerChildOrdersLength > 0 {
-			var takeProfitOrder any = this.SafeValue(innerChildOrders, 0)
-			var stopLossOrder any = this.SafeValue(innerChildOrders, 1)
+			var takeProfitOrder map[string]any = SafeMapTyped(innerChildOrders, 0)
+			var stopLossOrder map[string]any = SafeMapTyped(innerChildOrders, 1)
 			takeProfitPrice = this.SafeNumber(takeProfitOrder, "triggerPrice")
 			stopLossPrice = this.SafeNumber(stopLossOrder, "triggerPrice")
 		}
@@ -2452,8 +2452,8 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		"side":   orderSide,
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-	var stopLoss any = this.SafeValue(params, "stopLoss")
-	var takeProfit any = this.SafeValue(params, "takeProfit")
+	var stopLoss any = this.SafeDict(params, "stopLoss")
+	var takeProfit any = this.SafeDict(params, "takeProfit")
 	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
 	var algoType *string = this.SafeString(params, "algoType")
@@ -2592,9 +2592,9 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var market any = this.Market(symbol)
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-	var stopLoss any = this.SafeValue(params, "stopLoss")
-	var takeProfit any = this.SafeValue(params, "takeProfit")
-	var isConditional bool = (triggerPrice != nil) || !IsEqual(stopLoss, nil) || !IsEqual(takeProfit, nil) || (!IsEqual(this.SafeValue(params, "childOrders"), nil))
+	var stopLoss any = this.SafeDict(params, "stopLoss")
+	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var isConditional bool = (triggerPrice != nil) || !IsEqual(stopLoss, nil) || !IsEqual(takeProfit, nil) || (!IsEqual(this.SafeList(params, "childOrders"), nil))
 	var response any = nil
 	if isConditional {
 
@@ -2648,9 +2648,9 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
-		var stopLoss any = this.SafeValue(orderParams, "stopLoss")
-		var takeProfit any = this.SafeValue(orderParams, "takeProfit")
-		var isConditional bool = (triggerPrice != nil) || !IsEqual(stopLoss, nil) || !IsEqual(takeProfit, nil) || (!IsEqual(this.SafeValue(orderParams, "childOrders"), nil))
+		var stopLoss any = this.SafeDict(orderParams, "stopLoss")
+		var takeProfit any = this.SafeDict(orderParams, "takeProfit")
+		var isConditional bool = (triggerPrice != nil) || !IsEqual(stopLoss, nil) || !IsEqual(takeProfit, nil) || (!IsEqual(this.SafeList(orderParams, "childOrders"), nil))
 		if isConditional {
 			panic(NotSupported(this.Id + " createOrders() only support non-stop order"))
 		}
@@ -3271,7 +3271,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", response)
+	var data any = this.SafeDict(response, "data", response)
 	var orders any = this.SafeList(data, "rows")
 
 	ch <- this.ParseOrders(orders, market, since, limit)

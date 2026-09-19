@@ -226,7 +226,7 @@ func (this *Upbit) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 	trades := (<-this.WatchPublicMultipleAsync(symbols, "trade"))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -372,7 +372,7 @@ func (this *Upbit) HandleOrderBook(client any, message any) {
 	var marketId *string = this.SafeString(message, "code")
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var typeVar *string = this.SafeString(message, "stream_type")
-	var options any = this.SafeValue(this.Options, "watchOrderBook", map[string]any{})
+	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var limit *int64 = this.SafeInteger(options, "limit", 15)
 	if typeVar != nil && *typeVar == "SNAPSHOT" {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
@@ -798,13 +798,13 @@ func (this *Upbit) HandleOrder(client any, message any) {
 		if symbol == nil {
 			return map[string]any{}
 		}
-		return this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+		return this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
 	}()
 	var order any = func() any {
 		if orderId == nil {
 			return nil
 		}
-		return this.SafeValue(orders, orderId)
+		return this.SafeDict(orders, orderId)
 	}()
 	if !ccxt.IsEqual(order, nil) {
 		var fee any = this.SafeValue(order, "fee")

@@ -232,11 +232,11 @@ func (this *Blockchaincom) HandleOHLCV(client any, message any) {
 		var marketId *string = this.SafeString(message, "symbol")
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var messageHash any = "ohlcv:" + *symbol
-		var request any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		var request map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var timeframeId *string = this.SafeString(request, "granularity")
 		var timeframe any = this.FindTimeframe(timeframeId)
-		var ohlcv any = this.SafeValue(message, "price", []any{})
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+		var ohlcv any = this.SafeList(message, "price", []any{})
+		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -329,7 +329,7 @@ func (this *Blockchaincom) HandleTicker(client any, message any) {
 	} else if event != nil && *event == "snapshot" {
 		ticker = this.ParseTicker(message, market)
 	} else if event != nil && *event == "updated" {
-		var lastTicker any = this.SafeValue(this.Tickers, symbol)
+		var lastTicker any = this.SafeDict(this.Tickers, symbol)
 		ticker = this.ParseWsUpdatedTicker(message, lastTicker, market)
 	}
 	var messageHash any = ccxt.Add("ticker:", symbol)
@@ -373,7 +373,7 @@ func (this *Blockchaincom) ParseWsUpdatedTicker(ticker any, optionalArgs ...any)
 		"average":       nil,
 		"baseVolume":    this.SafeString(lastTicker, "baseVolume"),
 		"quoteVolume":   nil,
-		"info":          this.Extend(this.SafeValue(lastTicker, "info", map[string]any{}), ticker),
+		"info":          this.Extend(this.SafeDict(lastTicker, "info", map[string]any{}), ticker),
 	}, market)
 }
 

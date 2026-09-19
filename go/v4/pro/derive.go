@@ -61,7 +61,7 @@ func (this *Derive) Describe() any {
 	})
 }
 func (this *Derive) RequestId(url any) any {
-	var options any = this.SafeValue(this.Options, "requestId", map[string]any{})
+	var options any = this.SafeDict(this.Options, "requestId", map[string]any{})
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue any = this.Sum(previousValue, 1)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
@@ -764,12 +764,12 @@ func (this *Derive) HandleOrder(client any, message any) {
 				this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 			}
 			var cachedOrders any = this.Orders
-			var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+			var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
 			var order any = func() any {
 				if orderId == nil {
 					return nil
 				}
-				return this.SafeValue(orders, orderId)
+				return this.SafeDict(orders, orderId)
 			}()
 			if !ccxt.IsEqual(order, nil) {
 				var fee any = this.SafeValue(order, "fee")
@@ -983,7 +983,7 @@ func (this *Derive) HandleMessage(client any, message any) {
 			if id == nil {
 				return map[string]any{}
 			}
-			return this.SafeValue(subscriptionsById, id, map[string]any{})
+			return this.SafeDict(subscriptionsById, id, map[string]any{})
 		}()
 		if ccxt.InOp(subscription, "method") {
 			if ccxt.IsEqual(ccxt.GetValue(subscription, "method"), "public/login") {

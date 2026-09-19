@@ -706,7 +706,7 @@ func (this *Mexc) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", symbol), ":"), timeframe)
 	var ohlcv any = nil
@@ -808,10 +808,10 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 		timeframe = this.FindTimeframe(timeframeId, ccxt.GetValue(this.Options, "timeframes"))
 		parsed = this.ParseWsOHLCV(data, this.SafeMarket(symbol))
 	} else {
-		var d any = this.SafeValue2(message, "d", "data", map[string]any{})
-		var rawOhlcv any = this.SafeValue(d, "k", d)
+		var d any = this.SafeDict2(message, "d", "data", map[string]any{})
+		var rawOhlcv any = this.SafeDict(d, "k", d)
 		var timeframeId *string = this.SafeString2(rawOhlcv, "i", "interval")
-		var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
+		var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 		timeframe = this.FindTimeframe(timeframeId, timeframes)
 		var marketId *string = this.SafeString2(message, "s", "symbol")
 		var market any = this.SafeMarket(marketId)
@@ -819,7 +819,7 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 		parsed = this.ParseWsOHLCV(rawOhlcv, market)
 	}
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", symbol), ":"), timeframe)
-	var symbolOhlcvs any = this.SafeValue(this.Ohlcvs, symbol, map[string]any{})
+	var symbolOhlcvs any = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, symbolOhlcvs)
 	var stored any = this.SafeValue(symbolOhlcvs, timeframe)
 	if ccxt.IsEqual(stored, nil) {
@@ -956,7 +956,7 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message any) {
 func (this *Mexc) GetCacheIndex(orderbook any, cache any) any {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
-	var firstDelta any = this.SafeValue(cache, 0)
+	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
 	var firstDeltaNonce *int64 = this.SafeIntegerN(firstDelta, []any{"r", "version", "fromVersion"})
 	if (nonce == nil) || (firstDeltaNonce == nil) {
 		return ccxt.OpNeg(1)
@@ -1047,7 +1047,7 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 	var marketId *string = this.SafeString2(message, "s", "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash any = "orderbook:" + *symbol
-	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -2205,7 +2205,7 @@ func (this *Mexc) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:candles:", symbol), ":"), timeframe)
 	var url any = nil

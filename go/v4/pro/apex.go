@@ -147,7 +147,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	trades := (<-this.WatchTopicsAsync(url, messageHashes, topics, params))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -1244,10 +1244,10 @@ func (this *Apex) HandleErrorMessage(client any, message any) any {
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], msg, feedback)
 				panic(ccxt.ExchangeError(feedback))
 			}
-			var success any = this.SafeValue(message, "success")
-			if (!ccxt.IsEqual(success, nil)) && (success != true) {
+			var success *bool = this.SafeBool(message, "success")
+			if (success != nil) && (success == nil || *success != true) {
 				var ret_msg *string = this.SafeString(message, "ret_msg")
-				var request any = this.SafeValue(message, "request", map[string]any{})
+				var request map[string]any = ccxt.SafeMapTyped(message, "request")
 				var op *string = this.SafeString(request, "op")
 				// Benign re-subscribe notice (same shape as bitmart 90008 /
 				// krakenfutures "Already subscribed"): the original subscription
@@ -1414,10 +1414,10 @@ func (this *Apex) HandleAuthenticate(client any, message any) any {
 	//        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
 	//    }
 	//
-	var success any = this.SafeValue(message, "success")
+	var success *bool = this.SafeBool(message, "success")
 	var code *int64 = this.SafeInteger(message, "retCode")
 	var messageHash string = "authenticated"
-	if (success == true) || (code != nil && *code == 0) {
+	if (success != nil && *success == true) || (code != nil && *code == 0) {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {

@@ -791,7 +791,7 @@ func (this *Paradex) HandleMessage(client any, message any) {
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(message, "result")
+	var result any = this.SafeDict(message, "result")
 	if !ccxt.IsEqual(result, nil) {
 		this.HandleAuthenticationMessage(client, message)
 		return

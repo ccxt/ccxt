@@ -600,8 +600,8 @@ func (this *Alpaca) HandleOrder(client any, message any) {
 	//        }
 	//      }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
-	var rawOrder any = this.SafeValue(data, "order", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var rawOrder any = this.SafeDict(data, "order", map[string]any{})
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -660,12 +660,12 @@ func (this *Alpaca) HandleMyTrade(client any, message any) {
 	//        }
 	//      }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var event *string = this.SafeString(data, "event")
 	if (event == nil || *event != "fill") && (event == nil || *event != "partial_fill") {
 		return
 	}
-	var rawOrder any = this.SafeValue(data, "order", map[string]any{})
+	var rawOrder any = this.SafeDict(data, "order", map[string]any{})
 	var myTrades any = this.MyTrades
 	if ccxt.IsEqual(myTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -888,7 +888,7 @@ func (this *Alpaca) HandleAuthenticate(client any, message any) {
 	//    }
 	//
 	var T *string = this.SafeString(message, "T")
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var status *string = this.SafeString(data, "status")
 	if (T != nil && *T == "success") || (status != nil && *status == "authorized") {
 		var promise any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")

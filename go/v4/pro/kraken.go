@@ -747,7 +747,7 @@ func (this *Kraken) HandleOHLCV(client any, message any) {
 	var timeframe any = this.FindTimeframe(interval)
 	var messageHash any = this.GetMessageHash("ohlcv", nil, symbol)
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -1095,7 +1095,7 @@ func (this *Kraken) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	markets := (<-this.base.LoadMarketsAsync(reload, params))
 	ccxt.PanicOnError(markets)
-	var marketsByWsName any = this.SafeValue(this.Options, "marketsByWsName")
+	var marketsByWsName any = this.SafeDict(this.Options, "marketsByWsName")
 	if (ccxt.IsEqual(marketsByWsName, nil)) || ccxt.EvalTruthy(reload) {
 		marketsByWsName = map[string]any{}
 		var symbols any = this.Symbols // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
@@ -1103,7 +1103,7 @@ func (this *Kraken) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 			for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 				var symbol any = ccxt.GetValue(symbols, i)
 				var market any = this.Market(symbol)
-				var info any = this.SafeValue(market, "info", map[string]any{})
+				var info map[string]any = ccxt.SafeMapTyped(market, "info")
 				var wsName *string = this.SafeString(info, "wsname")
 				ccxt.AddElementToObject(marketsByWsName, wsName, market)
 			}
@@ -1219,7 +1219,7 @@ func (this *Kraken) HandleOrderBook(client any, message any) {
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var symbol *string = this.SafeString(first, "symbol")
 	var a any = this.SafeList(first, "asks", []any{})
-	var b any = this.SafeValue(first, "bids", []any{})
+	var b any = this.SafeList(first, "bids", []any{})
 	var c *int64 = this.SafeInteger(first, "checksum")
 	var messageHash any = this.GetMessageHash("orderbook", nil, symbol)
 	var orderbook any = nil
@@ -1725,8 +1725,8 @@ func (this *Kraken) HandleOrders(client any, message any, optionalArgs ...any) {
 			var id *string = this.SafeString(order, "order_id")
 			var parsed any = this.ParseWsOrder(order)
 			var symbol *string = this.SafeString(order, "symbol")
-			var previousOrders any = this.SafeValue(stored.(*ccxt.ArrayCache).Hashmap, symbol)
-			var previousOrder any = this.SafeValue(previousOrders, id)
+			var previousOrders map[string]any = ccxt.SafeMapTyped(stored.(*ccxt.ArrayCache).Hashmap, symbol)
+			var previousOrder any = this.SafeDict(previousOrders, id)
 			var newOrder any = parsed
 			if !ccxt.IsEqual(previousOrder, nil) {
 				var newRawOrder map[string]any = this.Extend(ccxt.GetValue(previousOrder, "info"), ccxt.GetValue(newOrder, "info"))
@@ -1954,7 +1954,7 @@ func (this *Kraken) HandleBalance(client any, message any) {
 	}
 	var typeVar string = "spot"
 	var balance any = this.SafeBalance(result)
-	var oldBalance any = this.SafeValue(this.Balance, typeVar, map[string]any{})
+	var oldBalance any = this.SafeDict(this.Balance, typeVar, map[string]any{})
 	var newBalance map[string]any = this.DeepExtend(oldBalance, balance)
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(newBalance))
 	var channel *string = this.SafeString(message, "channel")

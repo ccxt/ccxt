@@ -3704,7 +3704,7 @@ func (this *Bitget) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.SafeInteger(data, "serverTime")
 	return nil
@@ -3892,7 +3892,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var base *string = this.SafeCurrencyCode(baseId)
-		var supportMarginCoins any = this.SafeValue(market, "supportMarginCoins", []any{})
+		var supportMarginCoins any = this.SafeList(market, "supportMarginCoins", []any{})
 		var settleId any = nil
 		if this.InArray(baseId, supportMarginCoins) {
 			settleId = baseId
@@ -4384,7 +4384,7 @@ func (this *Bitget) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//            ...
 	//
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 
 	ch <- this.ParseCurrencies(data)
 	return nil
@@ -4639,7 +4639,7 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
 	//         ]
 	//     }
 	//
-	var result any = this.SafeValue(response, "data", []any{})
+	var result any = this.SafeList(response, "data", []any{})
 
 	ch <- this.ParseMarketLeverageTiers(result, market)
 	return nil
@@ -4947,10 +4947,10 @@ func (this *Bitget) withdrawBody(ch chan any, code any, amount any, address any,
 	//          }
 	//      }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 	var result any = this.ParseTransaction(data, currency)
 	AddElementToObject(result, "type", "withdrawal")
-	var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
+	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var fillResponseFromRequest *bool = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
 		AddElementToObject(result, "currency", code)
@@ -5419,7 +5419,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 	var bidsKey string = func() string {
 		if uta == true {
 			return "b"
@@ -5846,7 +5846,7 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	if symbols != nil {
-		var symbol any = this.SafeValue(symbols, 0)
+		var symbol *string = this.SafeString(symbols, 0)
 		market = this.Market(symbol)
 	}
 	var response any = nil
@@ -6241,7 +6241,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 			AddElementToObject(request, "limit", limit)
 		}
 	}
-	var options any = this.SafeValue(this.Options, "fetchTrades", map[string]any{})
+	var options any = this.SafeDict(this.Options, "fetchTrades", map[string]any{})
 	var response any = nil
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
@@ -6262,7 +6262,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		response = (<-this.PublicUtaGetV3MarketFills(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if GetValue(market, "spot") == true {
-		var spotOptions any = this.SafeValue(options, "spot", map[string]any{})
+		var spotOptions map[string]any = SafeMapTyped(options, "spot")
 		var defaultSpotMethod *string = this.SafeString(spotOptions, "method", "publicSpotGetV2SpotMarketFillsHistory")
 		var spotMethod *string = this.SafeString(params, "method", defaultSpotMethod)
 		params = this.Omit(params, "method")
@@ -6282,7 +6282,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 			PanicOnError(response)
 		}
 	} else {
-		var swapOptions any = this.SafeValue(options, "swap", map[string]any{})
+		var swapOptions map[string]any = SafeMapTyped(options, "swap")
 		var defaultSwapMethod *string = this.SafeString(swapOptions, "method", "publicMixGetV2MixMarketFillsHistory")
 		var swapMethod *string = this.SafeString(params, "method", defaultSwapMethod)
 		params = this.Omit(params, "method")
@@ -6450,7 +6450,7 @@ func (this *Bitget) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 
 	ch <- this.ParseTradingFee(data, market)
 	return nil
@@ -7139,7 +7139,7 @@ func (this *Bitget) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 
 	ch <- this.ParseBalance(data)
 	return nil
@@ -7754,14 +7754,14 @@ func (this *Bitget) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var market any = this.Market(symbol)
 	var marginParams any = this.HandleMarginModeAndParams("createOrder", params)
 	var marginMode any = GetValue(marginParams, 0)
-	var triggerPrice any = this.SafeValue2(params, "stopPrice", "triggerPrice")
-	var stopLossTriggerPrice any = this.SafeValue(params, "stopLossPrice")
-	var takeProfitTriggerPrice any = this.SafeValue(params, "takeProfitPrice")
+	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
+	var stopLossTriggerPrice *float64 = this.SafeNumber(params, "stopLossPrice")
+	var takeProfitTriggerPrice *float64 = this.SafeNumber(params, "takeProfitPrice")
 	var trailingPercent *string = this.SafeString2(params, "trailingPercent", "callbackRatio")
 	var isTrailingPercentOrder bool = (trailingPercent != nil)
-	var isTriggerOrder bool = !IsEqual(triggerPrice, nil)
-	var isStopLossTriggerOrder bool = !IsEqual(stopLossTriggerPrice, nil)
-	var isTakeProfitTriggerOrder bool = !IsEqual(takeProfitTriggerPrice, nil)
+	var isTriggerOrder bool = (triggerPrice != nil)
+	var isStopLossTriggerOrder bool = (stopLossTriggerPrice != nil)
+	var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
 	var isStopLossOrTakeProfitTrigger bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder
 	var response any = nil
 	var uta any = nil
@@ -7869,8 +7869,8 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	}
 	var stopLossTriggerPrice *float64 = this.SafeNumber(params, "stopLossPrice")
 	var takeProfitTriggerPrice *float64 = this.SafeNumber(params, "takeProfitPrice")
-	var stopLoss any = this.SafeValue(params, "stopLoss")
-	var takeProfit any = this.SafeValue(params, "takeProfit")
+	var stopLoss any = this.SafeDict(params, "stopLoss")
+	var takeProfit any = this.SafeDict(params, "takeProfit")
 	var hasStopLoss bool = !IsEqual(stopLoss, nil)
 	var hasTakeProfit bool = !IsEqual(takeProfit, nil)
 	var isStopLossTrigger bool = (stopLossTriggerPrice != nil)
@@ -8017,14 +8017,14 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 		hedged = !EvalTruthy(oneWayMode)
 	}
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
-	var triggerPrice any = this.SafeValue2(params, "stopPrice", "triggerPrice")
-	var stopLossTriggerPrice any = this.SafeValue(params, "stopLossPrice")
-	var takeProfitTriggerPrice any = this.SafeValue(params, "takeProfitPrice")
-	var stopLoss any = this.SafeValue(params, "stopLoss")
-	var takeProfit any = this.SafeValue(params, "takeProfit")
-	var isTriggerOrder bool = !IsEqual(triggerPrice, nil)
-	var isStopLossTriggerOrder bool = !IsEqual(stopLossTriggerPrice, nil)
-	var isTakeProfitTriggerOrder bool = !IsEqual(takeProfitTriggerPrice, nil)
+	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
+	var stopLossTriggerPrice *float64 = this.SafeNumber(params, "stopLossPrice")
+	var takeProfitTriggerPrice *float64 = this.SafeNumber(params, "takeProfitPrice")
+	var stopLoss any = this.SafeDict(params, "stopLoss")
+	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var isTriggerOrder bool = (triggerPrice != nil)
+	var isStopLossTriggerOrder bool = (stopLossTriggerPrice != nil)
+	var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
 	var hasStopLoss bool = !IsEqual(stopLoss, nil)
 	var hasTakeProfit bool = !IsEqual(takeProfit, nil)
 	var isStopLossOrTakeProfitTrigger bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder
@@ -8147,26 +8147,26 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 			}
 		} else {
 			if hasStopLoss {
-				var slTriggerPrice any = this.SafeValue2(stopLoss, "triggerPrice", "stopPrice")
-				if IsEqual(slTriggerPrice, nil) {
+				var slTriggerPrice *float64 = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
+				if slTriggerPrice == nil {
 					panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter"))
 				}
 				request["presetStopLossPrice"] = this.PriceToPrecision(symbol, slTriggerPrice)
-				var slLimitPrice any = this.SafeValue(stopLoss, "price")
-				if !IsEqual(slLimitPrice, nil) {
+				var slLimitPrice *float64 = this.SafeNumber(stopLoss, "price")
+				if slLimitPrice != nil {
 					// without the execute price the exchange fills the attached stop loss
 					// at the market price, see https://github.com/ccxt/ccxt/issues/23459
 					request["presetStopLossExecutePrice"] = this.PriceToPrecision(symbol, slLimitPrice)
 				}
 			}
 			if hasTakeProfit {
-				var tpTriggerPrice any = this.SafeValue2(takeProfit, "triggerPrice", "stopPrice")
-				if IsEqual(tpTriggerPrice, nil) {
+				var tpTriggerPrice *float64 = this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice")
+				if tpTriggerPrice == nil {
 					panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter"))
 				}
 				request["presetStopSurplusPrice"] = this.PriceToPrecision(symbol, tpTriggerPrice)
-				var tpLimitPrice any = this.SafeValue(takeProfit, "price")
-				if !IsEqual(tpLimitPrice, nil) {
+				var tpLimitPrice *float64 = this.SafeNumber(takeProfit, "price")
+				if tpLimitPrice != nil {
 					request["presetStopSurplusExecutePrice"] = this.PriceToPrecision(symbol, tpLimitPrice)
 				}
 			}
@@ -8250,7 +8250,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 			if quantity != nil {
 				request["size"] = quantity
 			}
-			if !IsEqual(triggerPrice, nil) {
+			if triggerPrice != nil {
 				request["planType"] = planType
 				request["triggerType"] = triggerPriceType
 				request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -8294,9 +8294,9 @@ func (this *Bitget) createUtaOrdersBody(ch chan any, orders any, optionalArgs ..
 		}
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeValue(rawOrder, "params", map[string]any{})
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
 		var currentMarginMode any = GetValue(marginResult, 0)
 		if !IsEqual(currentMarginMode, nil) {
@@ -8389,9 +8389,9 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		}
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeValue(rawOrder, "params", map[string]any{})
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
 		var currentMarginMode any = GetValue(marginResult, 0)
 		if !IsEqual(currentMarginMode, nil) {
@@ -8468,9 +8468,9 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
-	var failure any = this.SafeValue(data, "failureList", []any{})
-	var orderInfo any = this.SafeValue(data, "successList", []any{})
+	var data map[string]any = SafeMapTyped(response, "data")
+	var failure any = this.SafeList(data, "failureList", []any{})
+	var orderInfo any = this.SafeList(data, "successList", []any{})
 	var both []any = this.ArrayConcat(orderInfo, failure)
 
 	ch <- this.ParseOrders(both, market)
@@ -8541,14 +8541,14 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		request["orderId"] = id
 	}
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
-	var triggerPrice any = this.SafeValue2(params, "stopPrice", "triggerPrice")
-	var isTriggerOrder bool = !IsEqual(triggerPrice, nil)
-	var stopLossPrice any = this.SafeValue(params, "stopLossPrice")
-	var isStopLossOrder bool = !IsEqual(stopLossPrice, nil)
-	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice")
-	var isTakeProfitOrder bool = !IsEqual(takeProfitPrice, nil)
-	var stopLoss any = this.SafeValue(params, "stopLoss")
-	var takeProfit any = this.SafeValue(params, "takeProfit")
+	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
+	var isTriggerOrder bool = (triggerPrice != nil)
+	var stopLossPrice *float64 = this.SafeNumber(params, "stopLossPrice")
+	var isStopLossOrder bool = (stopLossPrice != nil)
+	var takeProfitPrice *float64 = this.SafeNumber(params, "takeProfitPrice")
+	var isTakeProfitOrder bool = (takeProfitPrice != nil)
+	var stopLoss any = this.SafeDict(params, "stopLoss")
+	var takeProfit any = this.SafeDict(params, "takeProfit")
 	var hasStopLoss bool = !IsEqual(stopLoss, nil)
 	var hasTakeProfit bool = !IsEqual(takeProfit, nil)
 	var trailingTriggerPrice *string = this.SafeString(params, "trailingTriggerPrice", this.NumberToString(price))
@@ -8633,7 +8633,7 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 			request["size"] = this.AmountToPrecision(symbol, amount)
 		}
 		request["orderType"] = typeVar
-		if !IsEqual(triggerPrice, nil) {
+		if triggerPrice != nil {
 			request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 			// market plan orders carry no execute price, follow up to
 			// https://github.com/ccxt/ccxt/issues/25427
@@ -8643,7 +8643,7 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		} else {
 			request["price"] = this.PriceToPrecision(symbol, price)
 		}
-		if !IsEqual(triggerPrice, nil) {
+		if triggerPrice != nil {
 
 			response = (<-this.PrivateSpotPostV2SpotTradeModifyPlanOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -8719,11 +8719,11 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 			params = this.Omit(params, "newClientOrderId")
 			request["newClientOid"] = newClientOrderId
 			if hasStopLoss {
-				var slTriggerPrice any = this.SafeValue2(stopLoss, "triggerPrice", "stopPrice")
+				var slTriggerPrice *float64 = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
 				request["newPresetStopLossPrice"] = this.PriceToPrecision(symbol, slTriggerPrice)
 			}
 			if hasTakeProfit {
-				var tpTriggerPrice any = this.SafeValue2(takeProfit, "triggerPrice", "stopPrice")
+				var tpTriggerPrice *float64 = this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice")
 				request["newPresetStopSurplusPrice"] = this.PriceToPrecision(symbol, tpTriggerPrice)
 			}
 
@@ -8798,17 +8798,17 @@ func (this *Bitget) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
 	var request map[string]any = map[string]any{}
-	var trailing any = this.SafeValue(params, "trailing")
-	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	var trailing *bool = this.SafeBool(params, "trailing")
+	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger", "trailing"})
-	if !((GetValue(market, "spot") == true) && (trigger == true)) {
+	if !((GetValue(market, "spot") == true) && (trigger != nil && *trigger == true)) {
 		request["symbol"] = GetValue(market, "id")
 	}
 	var uta any = nil
 	utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "cancelOrder", false))
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
-	var isPlanOrder bool = (trigger == true) || (trailing == true)
+	var isPlanOrder bool = (trigger != nil && *trigger == true) || (trailing != nil && *trailing == true)
 	var isContract bool = (GetValue(market, "swap") == true) || (GetValue(market, "future") == true)
 	var isContractTriggerEndpoint bool = isContract && isPlanOrder && (uta != true)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientOid")
@@ -8832,7 +8832,7 @@ func (this *Bitget) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		}
 	}
 	if uta == true {
-		if trigger == true {
+		if trigger != nil && *trigger == true {
 
 			response = (<-this.PrivateUtaPostV3TradeCancelStrategyOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -8847,13 +8847,13 @@ func (this *Bitget) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		productType = GetValue(productTypeparamsVariable, 0)
 		params = GetValue(productTypeparamsVariable, 1)
 		request["productType"] = productType
-		if trailing == true {
+		if trailing != nil && *trailing == true {
 			var planType *string = this.SafeString(params, "planType", "track_plan")
 			request["planType"] = planType
 
 			response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if trigger == true {
+		} else if trigger != nil && *trigger == true {
 
 			response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -8874,7 +8874,7 @@ func (this *Bitget) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 				PanicOnError(response)
 			}
 		} else {
-			if trigger == true {
+			if trigger != nil && *trigger == true {
 
 				response = (<-this.PrivateSpotPostV2SpotTradeCancelPlanOrder(this.Extend(request, params)))
 				PanicOnError(response)
@@ -8937,13 +8937,13 @@ func (this *Bitget) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	//         "data": null
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 	var order any = map[string]any{}
 	if isContractTriggerEndpoint {
-		var orderInfo any = this.SafeValue(data, "successList", []any{})
+		var orderInfo any = this.SafeList(data, "successList", []any{})
 		order = this.SafeDict(orderInfo, 0, map[string]any{})
 	} else {
-		if (uta == true) && (trigger == true) {
+		if (uta == true) && (trigger != nil && *trigger == true) {
 			order = response
 		} else {
 			order = data
@@ -9064,7 +9064,7 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	marginModeparamsVariable := this.HandleMarginModeAndParams("cancelOrders", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var orderIdList []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
@@ -9105,7 +9105,7 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		productType = GetValue(productTypeparamsVariable, 0)
 		params = GetValue(productTypeparamsVariable, 1)
 		request["productType"] = productType
-		if trigger == true {
+		if trigger != nil && *trigger == true {
 
 			response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -9131,7 +9131,7 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "successList", []any{})
 
 	ch <- this.ParseOrders(orders, market)
@@ -10390,16 +10390,16 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	if IsEqual(marketType, "spot") {
 		if (marginMode != nil) || (trigger != nil && *trigger == true) {
 
-			ch <- this.ParseOrders(this.SafeValue(data, "orderList", []any{}), market, since, limit)
+			ch <- this.ParseOrders(this.SafeList(data, "orderList"), market, since, limit)
 			return nil
 		}
 	} else {
 
-		ch <- this.ParseOrders(this.SafeValue(data, "entrustedList", []any{}), market, since, limit)
+		ch <- this.ParseOrders(this.SafeList(data, "entrustedList"), market, since, limit)
 		return nil
 	}
 	if IsString(response) {
@@ -10714,7 +10714,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeValue(response, "data")
 	if (IsEqual(marketType, "swap")) || (IsEqual(marketType, "future")) {
-		var bills any = this.SafeValue(data, "bills", []any{})
+		var bills any = this.SafeList(data, "bills", []any{})
 
 		ch <- this.ParseLedger(bills, currency, since, limit)
 		return nil
@@ -11625,7 +11625,7 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) any {
 	}
 	var side *string = this.SafeString2(position, "holdSide", "posSide")
 	var leverage *string = this.SafeString(position, "leverage")
-	var contractSizeNumber any = this.SafeValue(market, "contractSize")
+	var contractSizeNumber *float64 = this.SafeNumber(market, "contractSize")
 	var contractSize *string = this.NumberToString(contractSizeNumber)
 	var baseAmount *string = this.SafeString2(position, "total", "openTotalPos")
 	var entryPrice *string = this.SafeStringN(position, []any{"openPriceAvg", "openAvgPrice", "avgPrice"})
@@ -11929,7 +11929,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	}
 	var market any = nil
 	if symbols != nil {
-		var symbol any = this.SafeValue(symbols, 0)
+		var symbol *string = this.SafeString(symbols, 0)
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{}
@@ -12229,7 +12229,7 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		response = (<-this.PrivateMixGetV2MixAccountBill(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var bills any = this.SafeList2(data, "bills", "list", []any{})
 	if uta == true {
 		bills = this.FilterByArray(bills, "type", []any{"CONTRACT_MAIN_SETTLE_FEE_USER_IN", "CONTRACT_MAIN_SETTLE_FEE_USER_OUT"}, false)
@@ -12901,7 +12901,7 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(typeVarparamsVariable, 1)
 	var fromAccount *string = this.SafeString(params, "fromAccount", typeVar)
 	params = this.Omit(params, "fromAccount")
-	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	typeVar = DerefScalar(this.SafeString(accountsByType, fromAccount))
 	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request any = map[string]any{
@@ -12983,7 +12983,7 @@ func (this *Bitget) transferBody(ch chan any, code any, amount any, fromAccount 
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromType *string = this.SafeString(accountsByType, fromAccount)
 	var toType *string = this.SafeString(accountsByType, toAccount)
 	var request map[string]any = map[string]any{
@@ -13057,7 +13057,7 @@ func (this *Bitget) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var status *string = this.SafeStringLower(transfer, "status")
 	var currencyId *string = this.SafeString(transfer, "coin")
 	var fromAccountRaw *string = this.SafeString(transfer, "fromType")
-	var accountsById any = this.SafeValue(this.Options, "accountsById", map[string]any{})
+	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	var fromAccount *string = this.SafeString(accountsById, fromAccountRaw, fromAccountRaw)
 	var toAccountRaw *string = this.SafeString(transfer, "toType")
 	var toAccount *string = this.SafeString(accountsById, toAccountRaw, toAccountRaw)
@@ -13252,7 +13252,7 @@ func (this *Bitget) borrowCrossMarginBody(ch chan any, code any, amount any, opt
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 
 	ch <- this.ParseMarginLoan(data, currency)
 	return nil
@@ -13307,7 +13307,7 @@ func (this *Bitget) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 
 	ch <- this.ParseMarginLoan(data, currency, market)
 	return nil
@@ -13363,7 +13363,7 @@ func (this *Bitget) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 
 	ch <- this.ParseMarginLoan(data, currency, market)
 	return nil
@@ -13415,7 +13415,7 @@ func (this *Bitget) repayCrossMarginBody(ch chan any, code any, amount any, opti
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 
 	ch <- this.ParseMarginLoan(data, currency)
 	return nil
@@ -13619,7 +13619,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var liquidations any = this.SafeList(data, "resultList", []any{})
 
 	ch <- this.ParseLiquidations(liquidations, market, since, limit)
@@ -13749,7 +13749,7 @@ func (this *Bitget) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optiona
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "requestTime")
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var first any = this.SafeDict(data, 0, map[string]any{})
 	AddElementToObject(first, "timestamp", timestamp)
 
@@ -13894,7 +13894,7 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
 		//         ]
 		//     }
 		//
-		var data any = this.SafeValue(response, "data", []any{})
+		var data any = this.SafeList(response, "data", []any{})
 		result = this.SafeDict(data, 0, map[string]any{})
 	}
 	var timestamp *int64 = this.SafeInteger(response, "requestTime")
@@ -14081,8 +14081,8 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
-	var rows any = this.SafeValue(data, "resultList", []any{})
+	var data map[string]any = SafeMapTyped(response, "data")
+	var rows any = this.SafeList(data, "resultList", []any{})
 	var interest any = this.ParseBorrowInterests(rows, market)
 
 	ch <- this.FilterByCurrencySinceLimit(interest, code, since, limit)
@@ -14200,7 +14200,7 @@ func (this *Bitget) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		response = (<-this.PrivateMixPostV2MixOrderClosePositions(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var order any = this.SafeList2(data, "successList", "list", []any{})
 
 	ch <- this.ParseOrder(GetValue(order, 0), market)
@@ -14254,7 +14254,7 @@ func (this *Bitget) closeAllPositionsBody(ch chan any, optionalArgs ...any) any 
 		response = (<-this.PrivateMixPostV2MixOrderClosePositions(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orderInfo any = this.SafeList2(data, "successList", "list", []any{})
 
 	ch <- this.ParsePositions(orderInfo, nil, params)

@@ -4499,7 +4499,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	// BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
 	// BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
 	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "versions"), "private"), "GET"), "deposit-addresses", version)
-	var data any = this.SafeValue(response, "data")
+	var data any = this.SafeDict(response, "data")
 	if IsEqual(data, nil) {
 		panic(ExchangeError(this.Id + " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again"))
 	}
@@ -5922,7 +5922,7 @@ func (this *Kucoin) createSpotOrdersBody(ch chan any, orders any, optionalArgs .
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeValue(rawOrder, "params", map[string]any{})
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateSpotOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -6028,7 +6028,7 @@ func (this *Kucoin) createContractOrdersBody(ch chan any, orders any, optionalAr
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeValue(rawOrder, "params", map[string]any{})
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -8067,12 +8067,12 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) any {
 	// precision reported by their api is 8 d.p.
 	// const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
 	// bool
-	var isActive any = this.SafeValue(order, "isActive")
+	var isActive *bool = this.SafeBool(order, "isActive")
 	var cancelExist *bool = this.SafeBool(order, "cancelExist", false)
 	var status any = nil
-	if !IsEqual(isActive, nil) {
+	if isActive != nil {
 		status = func() string {
-			if isActive == true {
+			if isActive != nil && *isActive == true {
 				return "open"
 			}
 			return "closed"
@@ -8093,8 +8093,8 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) any {
 	}
 	var clientOrderId *string = this.SafeString(order, "clientOid")
 	var timeInForce *string = this.SafeString(order, "timeInForce")
-	var postOnly any = this.SafeValue(order, "postOnly")
-	var reduceOnly any = this.SafeValue(order, "reduceOnly")
+	var postOnly *bool = this.SafeBool(order, "postOnly")
+	var reduceOnly *bool = this.SafeBool(order, "reduceOnly")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "updatedAt")
 	return this.SafeOrder(map[string]any{
 		"id":                  orderId,
@@ -10479,7 +10479,7 @@ func (this *Kucoin) fetchContractBalanceBody(ch chan any, optionalArgs ...any) a
 	}
 	// only fetches one balance at a time
 	var defaultCode *string = this.SafeString(this.Options, "code")
-	var fetchBalanceOptions any = this.SafeValue(this.Options, "fetchBalance", map[string]any{})
+	var fetchBalanceOptions map[string]any = SafeMapTyped(this.Options, "fetchBalance")
 	defaultCode = this.SafeString(fetchBalanceOptions, "code", defaultCode)
 	var code *string = this.SafeString(params, "code", defaultCode)
 	if code == nil {
@@ -10512,7 +10512,7 @@ func (this *Kucoin) fetchContractBalanceBody(ch chan any, optionalArgs ...any) a
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var data any = this.SafeValue(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	var currencyId *string = this.SafeString(data, "currency")
 	var currencyCode *string = this.SafeCurrencyCode(currencyId, currency)
 	var account any = this.Account()
@@ -13070,7 +13070,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		//        }
 		//    }
 		//
-		var data any = this.SafeValue(response, "data")
+		var data any = this.SafeDict(response, "data")
 		dataList = this.SafeList(data, "dataList", []any{})
 	}
 	var fees []any = []any{}
@@ -13575,12 +13575,12 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any {
 	var initialMarginPercentage *string = Precise.StringDiv(initialMargin, notional)
 	// const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
 	var unrealisedPnl *string = this.SafeString2(position, "unrealisedPnl", "unrealizedPnL")
-	var crossMode any = this.SafeValue(position, "crossMode")
+	var crossMode *bool = this.SafeBool(position, "crossMode")
 	// currently crossMode is always set to false and only isolated positions are supported
 	var marginMode any = this.SafeStringLower(position, "marginMode")
-	if !IsEqual(crossMode, nil) {
+	if crossMode != nil {
 		marginMode = func() string {
-			if crossMode == true {
+			if crossMode != nil && *crossMode == true {
 				return "cross"
 			}
 			return "isolated"
@@ -13844,7 +13844,7 @@ func (this *Kucoin) addMarginBody(ch chan any, symbol any, amount any, optionalA
 	//        "msg":"Position does not exist"
 	//    }
 	//
-	var data any = this.SafeValue(response, "data")
+	var data any = this.SafeDict(response, "data")
 
 	ch <- this.Extend(this.ParseMarginModification(data, market), map[string]any{
 		"amount":    this.AmountToPrecision(symbol, amount),
@@ -13967,9 +13967,9 @@ func (this *Kucoin) ParseMarginModification(info any, optionalArgs ...any) any {
 	var id *string = this.SafeString(info, "id")
 	market = this.SafeMarket(id, market)
 	var currencyId *string = this.SafeString(info, "settleCurrency")
-	var crossMode any = this.SafeValue(info, "crossMode")
+	var crossMode *bool = this.SafeBool(info, "crossMode")
 	var mode string = func() string {
-		if crossMode == true {
+		if crossMode != nil && *crossMode == true {
 			return "cross"
 		}
 		return "isolated"

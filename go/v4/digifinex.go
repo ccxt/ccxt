@@ -771,7 +771,7 @@ func (this *Digifinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options any = this.SafeValue(this.Options, "fetchMarkets", map[string]any{})
+	var options any = this.SafeDict(this.Options, "fetchMarkets", map[string]any{})
 	var method *string = this.SafeString(options, "method", "fetch_markets_v2")
 	if method != nil && *method == "fetch_markets_v2" {
 
@@ -864,8 +864,8 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 	//         ]
 	//     }
 	//
-	var spotData any = this.SafeValue(spotMarkets, "symbol_list", []any{})
-	var swapData any = this.SafeValue(swapMarkets, "data", []any{})
+	var spotData any = this.SafeList(spotMarkets, "symbol_list", []any{})
+	var swapData any = this.SafeList(swapMarkets, "data", []any{})
 	var response []any = this.ArrayConcat(spotData, swapData)
 	var result []any = []any{}
 	for i := 0; i < len(response); i++ {
@@ -908,15 +908,15 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 		if swap {
 			typeVar = "swap"
 			symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-			isInverse = this.SafeValue(market, "is_inverse")
+			isInverse = DerefScalar(this.SafeBool(market, "is_inverse"))
 			isLinear = func() bool {
-				if isInverse != true {
+				if !IsEqual(isInverse, true) {
 					return true
 				}
 				return false
 			}()
-			var isTrading any = this.SafeValue(market, "isTrading")
-			if isTrading == true {
+			var isTrading *bool = this.SafeBool(market, "isTrading")
+			if isTrading != nil && *isTrading == true {
 				isAllowed = 1
 			}
 		}
@@ -1205,7 +1205,7 @@ func (this *Digifinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		}
 		return "list"
 	}()
-	var balances any = this.SafeValue(response, balanceRequest, []any{})
+	var balances any = this.SafeList(response, balanceRequest, []any{})
 
 	ch <- this.ParseBalance(balances)
 	return nil
@@ -1300,7 +1300,7 @@ func (this *Digifinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var timestamp *int64 = nil
 	var orderBook any = nil
 	if marketType == "swap" {
-		orderBook = this.SafeValue(response, "data", map[string]any{})
+		orderBook = this.SafeDict(response, "data", map[string]any{})
 		timestamp = this.SafeInteger(orderBook, "timestamp")
 	} else {
 		orderBook = response
@@ -1510,9 +1510,9 @@ func (this *Digifinex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
 	//     }
 	//
 	var date *int64 = this.SafeInteger(response, "date")
-	var tickers any = this.SafeValue(response, "ticker", []any{})
-	var data any = this.SafeValue(response, "data", map[string]any{})
-	var firstTicker any = this.SafeValue(tickers, 0, map[string]any{})
+	var tickers any = this.SafeList(response, "ticker", []any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var firstTicker any = this.SafeDict(tickers, 0, map[string]any{})
 	var result any = nil
 	if GetValue(market, "swap") == true {
 		result = data
@@ -1729,9 +1729,9 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
 		if IsEqual(typeVar, nil) {
 			typeVar = "limit"
 		}
-		var isMaker any = this.SafeValue(trade, "is_maker")
+		var isMaker *bool = this.SafeBool(trade, "is_maker")
 		takerOrMaker = func() string {
-			if isMaker == true {
+			if isMaker != nil && *isMaker == true {
 				return "maker"
 			}
 			return "taker"
@@ -2087,10 +2087,10 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	//
 	var candles any = nil
 	if GetValue(market, "swap") == true {
-		var data any = this.SafeValue(response, "data", map[string]any{})
-		candles = this.SafeValue(data, "candles", []any{})
+		var data map[string]any = SafeMapTyped(response, "data")
+		candles = this.SafeList(data, "candles", []any{})
 	} else {
-		candles = this.SafeValue(response, "data", []any{})
+		candles = this.SafeList(response, "data", []any{})
 	}
 
 	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
@@ -2224,7 +2224,7 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeValue(rawOrder, "params", map[string]any{})
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
 		var currentMarginMode any = GetValue(marginResult, 0)
 		if !IsEqual(currentMarginMode, nil) {
@@ -2282,9 +2282,9 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	//
 	var data any = []any{}
 	if GetValue(market, "swap") == true {
-		data = this.SafeValue(response, "data", []any{})
+		data = this.SafeList(response, "data", []any{})
 	} else {
-		data = this.SafeValue(response, "order_ids", []any{})
+		data = this.SafeList(response, "order_ids", []any{})
 	}
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
@@ -3548,10 +3548,10 @@ func (this *Digifinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//
 	var ledger any = nil
 	if IsEqual(marketType, "swap") {
-		ledger = this.SafeValue(response, "data", []any{})
+		ledger = this.SafeList(response, "data", []any{})
 	} else {
-		var data any = this.SafeValue(response, "data", map[string]any{})
-		ledger = this.SafeValue(data, "finance", []any{})
+		var data map[string]any = SafeMapTyped(response, "data")
+		ledger = this.SafeList(data, "finance", []any{})
 	}
 
 	ch <- this.ParseLedger(ledger, currency, since, limit)
@@ -3625,7 +3625,7 @@ func (this *Digifinex) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	//         "code":200
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var addresses any = this.ParseDepositAddresses(data, []any{currency["code"]})
 	var address any = this.SafeValue(addresses, code)
 	if IsEqual(address, nil) {
@@ -3942,7 +3942,7 @@ func (this *Digifinex) transferBody(ch chan any, code any, amount any, fromAccou
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)
 	var currencyId any = currency["id"]
-	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{}
@@ -4104,7 +4104,7 @@ func (this *Digifinex) fetchBorrowInterestBody(ch chan any, optionalArgs ...any)
 	//         "unrealized_pnl": "-0.049158102631998504"
 	//     }
 	//
-	var rows any = this.SafeValue(response, "positions")
+	var rows any = this.SafeList(response, "positions")
 	var interest any = this.ParseBorrowInterests(rows, market)
 
 	ch <- this.FilterByCurrencySinceLimit(interest, code, since, limit)
@@ -4253,7 +4253,7 @@ func (this *Digifinex) fetchCrossBorrowRatesBody(ch chan any, optionalArgs ...an
 	//         "equity": 45.133305540922
 	//     }
 	//
-	var result any = this.SafeValue(response, "list", []any{})
+	var result any = this.SafeList(response, "list", []any{})
 
 	ch <- this.ParseBorrowRates(result, "currency")
 	return nil
@@ -4495,7 +4495,7 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var result any = this.SafeList(data, "funding_rates", []any{})
 	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
@@ -4561,7 +4561,7 @@ func (this *Digifinex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 
 	ch <- this.ParseTradingFee(data, market)
 	return nil
@@ -5149,7 +5149,7 @@ func (this *Digifinex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) 
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	symbols = this.MarketSymbols(symbols)
 
 	ch <- this.ParseLeverageTiers(data, symbols, "instrument_id")
@@ -5217,7 +5217,7 @@ func (this *Digifinex) fetchMarketLeverageTiersBody(ch chan any, symbol any, opt
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 
 	ch <- this.ParseMarketLeverageTiers(data, market)
 	return nil
@@ -5552,7 +5552,7 @@ func (this *Digifinex) modifyMarginHelperBody(ch chan any, symbol any, amount an
 		}
 		return "failed"
 	}()
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 
 	ch <- this.Extend(this.ParseMarginModification(data, market), map[string]any{
 		"status": status,

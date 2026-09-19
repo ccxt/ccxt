@@ -1938,7 +1938,7 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(order, "order_quantity", "quantity") // This is base amount
 	var cost *string = this.SafeString2(order, "order_amount", "amount")       // This is quote amount
 	var orderType *string = this.SafeStringLower2(order, "order_type", "type")
-	var status any = this.SafeValue2(order, "status", "algoStatus")
+	var status any = DerefScalar(this.SafeString2(order, "status", "algoStatus"))
 	var success *bool = this.SafeBool(order, "success")
 	if success != nil {
 		status = func() string {
@@ -1949,23 +1949,23 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) any {
 		}()
 	}
 	var side *string = this.SafeStringLower(order, "side")
-	var filled any = this.OmitZero(this.SafeValue2(order, "executed", "totalExecutedQuantity"))
+	var filled any = this.OmitZero(this.SafeString2(order, "executed", "totalExecutedQuantity"))
 	var average any = this.OmitZero(this.SafeString2(order, "average_executed_price", "averageExecutedPrice"))
 	var remaining *string = Precise.StringSub(cost, filled)
-	var fee any = this.SafeValue2(order, "total_fee", "totalFee")
+	var fee *float64 = this.SafeNumber2(order, "total_fee", "totalFee")
 	var feeCurrency *string = this.SafeString2(order, "fee_asset", "feeAsset")
 	var transactions any = this.SafeValue(order, "Transactions")
 	var triggerPrice *float64 = this.SafeNumber(order, "triggerPrice")
 	var takeProfitPrice *float64 = nil
 	var stopLossPrice *float64 = nil
-	var childOrders any = this.SafeValue(order, "childOrders")
+	var childOrders any = this.SafeList(order, "childOrders")
 	if !IsEqual(childOrders, nil) {
-		var first any = this.SafeValue(childOrders, 0)
+		var first map[string]any = SafeMapTyped(childOrders, 0)
 		var innerChildOrders any = this.SafeList(first, "childOrders", []any{})
 		var innerChildOrdersLength int = GetArrayLength(innerChildOrders)
 		if innerChildOrdersLength > 0 {
-			var takeProfitOrder any = this.SafeValue(innerChildOrders, 0)
-			var stopLossOrder any = this.SafeValue(innerChildOrders, 1)
+			var takeProfitOrder map[string]any = SafeMapTyped(innerChildOrders, 0)
+			var stopLossOrder map[string]any = SafeMapTyped(innerChildOrders, 1)
 			takeProfitPrice = this.SafeNumber(takeProfitOrder, "triggerPrice")
 			stopLossPrice = this.SafeNumber(stopLossOrder, "triggerPrice")
 		}
@@ -2282,8 +2282,8 @@ func (this *Modetrade) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
-		var stopLoss any = this.SafeValue(orderParams, "stopLoss")
-		var takeProfit any = this.SafeValue(orderParams, "takeProfit")
+		var stopLoss any = this.SafeDict(orderParams, "stopLoss")
+		var takeProfit any = this.SafeDict(orderParams, "takeProfit")
 		var isConditional bool = (triggerPrice != nil) || !IsEqual(stopLoss, nil) || !IsEqual(takeProfit, nil) || (!IsEqual(this.SafeValue(orderParams, "childOrders"), nil))
 		if isConditional {
 			panic(NotSupported(this.Id + " createOrders() only support non-stop order"))
@@ -2892,7 +2892,7 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", response)
+	var data any = this.SafeDict(response, "data", response)
 	var orders any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)

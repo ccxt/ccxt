@@ -512,7 +512,7 @@ func (this *P2b) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//        current_time: '1699252644.487566'
 	//    }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result any = this.SafeDict(response, "result", map[string]any{})
 
 	ch <- this.ParseTickers(result, symbols)
 	return nil
@@ -569,7 +569,7 @@ func (this *P2b) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	//        current_time: '1699252958.859391'
 	//    }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result any = this.SafeDict(response, "result", map[string]any{})
 	var timestamp *int64 = this.SafeIntegerProduct(response, "cache_time", 1000)
 
 	ch <- this.Extend(map[string]any{
@@ -614,7 +614,7 @@ func (this *P2b) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "at", 1000)
 	if InOp(ticker, "ticker") {
-		ticker = this.SafeValue(ticker, "ticker")
+		ticker = this.SafeDict(ticker, "ticker")
 	}
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
@@ -706,7 +706,7 @@ func (this *P2b) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	//        "current_time": 1698733470.469274
 	//    }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result any = this.SafeDict(response, "result", map[string]any{})
 	var timestamp *int64 = this.SafeIntegerProduct(response, "current_time", 1000)
 
 	ch <- this.ParseOrderBook(result, GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1)
@@ -986,7 +986,7 @@ func (this *P2b) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result any = this.SafeDict(response, "result", map[string]any{})
 
 	ch <- this.ParseBalance(result)
 	return nil
@@ -1308,7 +1308,7 @@ func (this *P2b) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 	//        }
 	//    }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var records any = this.SafeList(result, "records", []any{})
 
 	ch <- this.ParseTrades(records, market, since, limit)
@@ -1409,7 +1409,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var deals any = this.SafeList(result, "deals", []any{})
 
 	ch <- this.ParseTrades(deals, market, since, limit)
@@ -1512,12 +1512,12 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var result any = this.SafeValue(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 	var orders []any = []any{}
 	var keys []string = ObjectKeys(result)
 	for i := 0; i < len(keys); i++ {
 		var marketId string = GetValue(keys, i).(string)
-		var marketOrders any = GetValue(result, marketId)
+		var marketOrders any = result[marketId]
 		var parsedOrders any = this.ParseOrders(marketOrders, market, since, limit)
 		orders = this.ArrayConcat(orders, parsedOrders)
 	}

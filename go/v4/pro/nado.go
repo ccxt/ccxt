@@ -2598,7 +2598,7 @@ func (this *Nado) HandleMessage(client any, message any) {
 	}
 	var id *string = this.SafeString(message, "id")
 	var hasResult bool = (ccxt.InOp(message, "result"))
-	var result any = this.SafeValue(message, "result")
+	var result any = this.SafeDict(message, "result")
 	var method *string = this.SafeString(result, "method")
 	if method != nil && *method == "pong" {
 		// pong replies carry both 'id' and 'result' so they must be routed
@@ -2613,12 +2613,12 @@ func (this *Nado) HandleMessage(client any, message any) {
 		return
 	}
 	if (id != nil) && hasResult {
-		var authentication any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authentication:"+*id)
-		if !ccxt.IsEqual(authentication, nil) {
+		var authentication *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), "authentication:"+*id)
+		if authentication != nil {
 			this.HandleAuthentication(client, message)
 			return
 		}
-		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "subscription:"+*id)
+		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), "subscription:"+*id)
 		if !ccxt.IsEqual(subscription, nil) {
 			this.HandleSubscription(client, message)
 			return

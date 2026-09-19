@@ -693,7 +693,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(keys); i++ {
 		var marketId string = GetValue(keys, i).(string)
 		var symbol *string = this.SafeSymbol(marketId)
-		var fee any = this.SafeValue(fees, marketId)
+		var fee any = this.SafeDict(fees, marketId)
 		var makerString *string = this.SafeString(fee, "FeeMaker")
 		var takerString *string = this.SafeString(fee, "FeeTaker")
 		var maker any = this.ParseNumber(Precise.StringDiv(makerString, "100"))
@@ -848,8 +848,8 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetOrderMyOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var orders any = this.SafeValue(response, GetValue(market, "id"), map[string]any{})
-	var asks any = this.SafeValue(orders, "ask", []any{})
+	var orders map[string]any = SafeMapTyped(response, GetValue(market, "id"))
+	var asks any = this.SafeList(orders, "ask", []any{})
 	var bids any = this.SafeList(orders, "bid", []any{})
 
 	ch <- this.ParseOrders(this.ArrayConcat(asks, bids), market, since, limit)
@@ -1181,15 +1181,15 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(trade, "pair")
 		market = this.SafeMarket(marketId, market)
 		market = this.SafeMarket(GetValue(reference_parts, 0), market)
-		var isMaker any = this.SafeValue(trade, "isMaker")
+		var isMaker *bool = this.SafeBool(trade, "isMaker")
 		makerOrTaker = func() string {
-			if isMaker == true {
+			if isMaker != nil && *isMaker == true {
 				return "maker"
 			}
 			return "taker"
 		}()
 		orderId = func() any {
-			if isMaker == true {
+			if isMaker != nil && *isMaker == true {
 				return GetValue(reference_parts, 2)
 			}
 			return GetValue(reference_parts, 1)

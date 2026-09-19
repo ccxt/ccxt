@@ -810,8 +810,8 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 			})
 		}
 	}
-	var currencyEnabled any = this.SafeValue(currency, "enabled")
-	var currencyActive bool = (currencyEnabled == true) || (depositEnabled || withdrawEnabled)
+	var currencyEnabled *bool = this.SafeBool(currency, "enabled")
+	var currencyActive bool = (currencyEnabled != nil && *currencyEnabled == true) || (depositEnabled || withdrawEnabled)
 	var minWithdrawalString *string = this.SafeString(currency, "minWithdrawalAmount")
 	var minWithdrawal any = this.ParseNumber(Precise.StringMul(minWithdrawalString, precisionString))
 	var maxWithdrawalString *string = this.SafeString(currency, "maxWithdrawalAmount")
@@ -872,8 +872,8 @@ func (this *Bitmex) ConvertToRealAmount(code any, amount any) any {
 func (this *Bitmex) AmountToPrecision(symbol any, amount any) any {
 	symbol = DerefScalar(this.SafeSymbol(symbol))
 	var market any = this.Market(symbol)
-	var oldPrecision any = this.SafeValue(this.Options, "oldPrecision")
-	if (GetValue(market, "spot") == true) && (oldPrecision != true) {
+	var oldPrecision *bool = this.SafeBool(this.Options, "oldPrecision")
+	if (GetValue(market, "spot") == true) && (oldPrecision == nil || *oldPrecision != true) {
 		amount = this.ConvertFromRealAmount(GetValue(market, "base"), amount)
 	}
 	return this.Exchange.AmountToPrecision(symbol, amount)
@@ -881,7 +881,7 @@ func (this *Bitmex) AmountToPrecision(symbol any, amount any) any {
 func (this *Bitmex) ConvertFromRawQuantity(symbol any, rawQuantity any, optionalArgs ...any) any {
 	currencySide := GetArg(optionalArgs, 0, "base")
 	_ = currencySide
-	if this.SafeValue(this.Options, "oldPrecision") == true {
+	if IsEqual(this.SafeBool(this.Options, "oldPrecision"), true) {
 		return this.ParseNumber(rawQuantity)
 	}
 	symbol = DerefScalar(this.SafeSymbol(symbol))
@@ -2160,7 +2160,7 @@ func (this *Bitmex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 	response := (<-this.PublicGetInstrument(this.Extend(request, params)))
 	PanicOnError(response)
-	var ticker any = this.SafeValue(response, 0)
+	var ticker any = this.SafeDict(response, 0)
 	if IsEqual(ticker, nil) {
 		panic(BadSymbol(Add(Add(this.Id+" fetchTicker() symbol ", symbol), " not found")))
 	}
@@ -3011,7 +3011,7 @@ func (this *Bitmex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 	response := (<-this.PrivateDeleteOrder(this.Extend(request, params)))
 	PanicOnError(response)
-	var order any = this.SafeValue(response, 0, map[string]any{})
+	var order any = this.SafeDict(response, 0, map[string]any{})
 	var error *string = this.SafeString(order, "error")
 	if error != nil {
 		if func() int {
@@ -3479,9 +3479,9 @@ func (this *Bitmex) ParsePosition(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(this.SafeString(position, "symbol"), market)
 	var symbol any = GetValue(market, "symbol")
 	var datetime *string = this.SafeString(position, "timestamp")
-	var crossMargin any = this.SafeValue(position, "crossMargin")
+	var crossMargin *bool = this.SafeBool(position, "crossMargin")
 	var marginMode string = func() string {
-		if crossMargin == true {
+		if crossMargin != nil && *crossMargin == true {
 			return "cross"
 		}
 		return "isolated"
@@ -4755,7 +4755,7 @@ func (this *Bitmex) HandleErrors(code any, reason any, url any, method any, head
 		panic(DDoSProtection(Add(this.Id+" ", body)))
 	}
 	if IsGreaterThanOrEqual(code, 400) {
-		var error any = this.SafeValue(response, "error", map[string]any{})
+		var error map[string]any = SafeMapTyped(response, "error")
 		var message *string = this.SafeString(error, "message")
 		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)

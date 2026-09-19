@@ -192,7 +192,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 func (this *Xt) GetCacheIndex(orderbook any, cache any) any {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
-	var firstDelta any = this.SafeValue(cache, 0)
+	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
 	var firstDeltaNonce *int64 = this.SafeInteger2(firstDelta, "i", "u")
 	if (nonce != nil) && (firstDeltaNonce != nil) && (ccxt.IsLessThan(nonce, ccxt.Subtract(firstDeltaNonce, 1))) {
 		return ccxt.OpNeg(1)

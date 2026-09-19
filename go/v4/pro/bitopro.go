@@ -224,7 +224,7 @@ func (this *Bitopro) HandleTrade(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
-	var rawData any = this.SafeValue(message, "data", []any{})
+	var rawData any = this.SafeList(message, "data", []any{})
 	var trades any = this.ParseTrades(rawData, market)
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesCache, nil) {
@@ -312,7 +312,7 @@ func (this *Bitopro) HandleMyTrade(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var baseId *string = this.SafeString(data, "base")
 	var quoteId *string = this.SafeString(data, "quote")
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -380,10 +380,10 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"rate":     nil,
 		}
 	}
-	var isMaker any = this.SafeValue(trade, "isMaker")
+	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker any = nil
-	if !ccxt.IsEqual(isMaker, nil) {
-		if isMaker == true {
+	if isMaker != nil {
+		if isMaker != nil && *isMaker == true {
 			takerOrMaker = "maker"
 		} else {
 			takerOrMaker = "taker"
@@ -560,7 +560,7 @@ func (this *Bitopro) HandleBalance(client any, message any) {
 	//     }
 	//
 	var event *string = this.SafeString(message, "event")
-	var data any = this.SafeValue(message, "data")
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	var datetime *string = this.SafeString(message, "datetime")
 	var currencies []string = ccxt.ObjectKeys(data)
@@ -571,7 +571,7 @@ func (this *Bitopro) HandleBalance(client any, message any) {
 	}
 	for i := 0; i < len(currencies); i++ {
 		var currency *string = this.SafeString(currencies, i)
-		var balance any = this.SafeValue(data, currency)
+		var balance any = this.SafeDict(data, currency, map[string]any{})
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()

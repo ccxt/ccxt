@@ -137,7 +137,7 @@ func (this *P2b) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		retRes9812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes9812)
 	}
-	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var channel *int64 = this.SafeInteger(timeframes, timeframe)
 	if channel == nil {
 		panic(ccxt.BadRequest(ccxt.Add(this.Id+" watchOHLCV cannot take a timeframe of ", timeframe)))
@@ -336,7 +336,7 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 	trades := (<-this.WatchMultiple(url, messageHashes, query, messageHashes))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -557,7 +557,7 @@ func (this *P2b) HandleOrderBook(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
-	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
+	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
@@ -573,7 +573,7 @@ func (this *P2b) HandleOrderBook(client any, message any) {
 	}
 	if !ccxt.IsEqual(bids, nil) {
 		for i := 0; i < ccxt.GetArrayLength(bids); i++ {
-			var bid any = this.SafeValue(bids, i)
+			var bid any = this.SafeList(bids, i)
 			var price *float64 = this.SafeNumber(bid, 0)
 			var amount *float64 = this.SafeNumber(bid, 1)
 			var bookSide any = ccxt.GetValue(orderbook, "bids")
@@ -582,7 +582,7 @@ func (this *P2b) HandleOrderBook(client any, message any) {
 	}
 	if !ccxt.IsEqual(asks, nil) {
 		for i := 0; i < ccxt.GetArrayLength(asks); i++ {
-			var ask any = this.SafeValue(asks, i)
+			var ask any = this.SafeList(asks, i)
 			var price *float64 = this.SafeNumber(ask, 0)
 			var amount *float64 = this.SafeNumber(ask, 1)
 			var bookside any = ccxt.GetValue(orderbook, "asks")

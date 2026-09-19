@@ -1031,7 +1031,7 @@ func (this *Coinbase) HandleTrade(client any, message any) {
 	if ccxt.IsEqual(events, nil) {
 		return
 	}
-	var event any = this.SafeValue(events, 0)
+	var event map[string]any = ccxt.SafeMapTyped(events, 0)
 	var trades any = this.SafeList(event, "trades")
 	var trade map[string]any = ccxt.SafeMapTyped(trades, 0)
 	var marketId *string = this.SafeString(trade, "product_id")
@@ -1230,7 +1230,7 @@ func (this *Coinbase) HandleOrderBook(client any, message any) {
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var messageHash any = ccxt.Add("level2::", symbol)
-		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
+		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		var typeVar *string = this.SafeString(event, "type")
 		if typeVar != nil && *typeVar == "snapshot" {

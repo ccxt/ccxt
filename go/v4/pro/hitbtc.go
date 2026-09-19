@@ -298,7 +298,7 @@ func (this *Hitbtc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var options any = this.SafeValue(this.Options, "watchOrderBook")
+	var options any = this.SafeDict(this.Options, "watchOrderBook")
 	var defaultMethod *string = this.SafeString(options, "method", "orderbook/full")
 	var name any = ccxt.DerefScalar(this.SafeString2(params, "method", "defaultMethod", defaultMethod))
 	var depth *string = this.SafeString(params, "depth", "20")
@@ -456,7 +456,7 @@ func (this *Hitbtc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes35412)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var options any = this.SafeValue(this.Options, "watchTicker")
+	var options any = this.SafeDict(this.Options, "watchTicker")
 	var defaultMethod *string = this.SafeString(options, "method", "ticker/{speed}/batch")
 	var method *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
 	var speed *string = this.SafeString(params, "speed", "1s")
@@ -638,7 +638,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes51512)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var options any = this.SafeValue(this.Options, "watchBidsAsks")
+	var options any = this.SafeDict(this.Options, "watchBidsAsks")
 	var defaultMethod *string = this.SafeString(options, "method", "orderbook/top/{speed}/batch")
 	var method *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
 	var speed *string = this.SafeString(params, "speed", "100ms")
@@ -977,7 +977,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message any) any {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1733,9 +1733,9 @@ func (this *Hitbtc) HandleAuthenticate(client any, message any) any {
 	//        "result": true
 	//    }
 	//
-	var success any = this.SafeValue(message, "result")
+	var success *bool = this.SafeBool(message, "result")
 	var messageHash string = "authenticated"
-	if success == true {
+	if success != nil && *success == true {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {
@@ -1759,7 +1759,7 @@ func (this *Hitbtc) HandleError(client any, message any) any {
 	//        id: 1700228604325
 	//    }
 	//
-	var error any = this.SafeValue(message, "error")
+	var error any = this.SafeDict(message, "error")
 	if !ccxt.IsEqual(error, nil) {
 
 		{

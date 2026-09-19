@@ -93,7 +93,7 @@ func (this *Ndax) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	return nil
 }
 func (this *Ndax) HandleTicker(client any, message any) {
-	var payload any = this.SafeValue(message, "o", map[string]any{})
+	var payload any = this.SafeDict(message, "o", map[string]any{})
 	//
 	//     {
 	//         "OMSId": 1,
@@ -341,7 +341,7 @@ func (this *Ndax) HandleOHLCV(client any, message any) {
 		if marketId != nil {
 			ccxt.AddElementToObject(updates, marketId, map[string]any{})
 		}
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var keys []string = ccxt.ObjectKeys(this.Timeframes)
 		for j := 0; j < len(keys); j++ {
 			var timeframe string = ccxt.GetValue(keys, j).(string)
@@ -399,7 +399,7 @@ func (this *Ndax) HandleOHLCV(client any, message any) {
 			var messageHash any = name + ":" + timeframe + ":" + marketId
 			var market any = this.SafeMarket(marketId)
 			var symbol any = ccxt.GetValue(market, "symbol")
-			var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})
+			var stored any = this.SafeList(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		}
 	}
@@ -498,7 +498,7 @@ func (this *Ndax) HandleOrderBook(client any, message any) {
 	//         0,   // 9 Side
 	//     ],
 	//
-	var firstBidAsk any = this.SafeValue(payload, 0, []any{})
+	var firstBidAsk any = this.SafeList(payload, 0, []any{})
 	var marketId *string = this.SafeString(firstBidAsk, 7)
 	if marketId == nil {
 		return
@@ -587,7 +587,7 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message any, subscript
 	//         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
 	//     }
 	//
-	var payload any = this.SafeValue(message, "o", []any{})
+	var payload any = this.SafeList(message, "o", []any{})
 	//
 	//     [
 	//         [
@@ -629,7 +629,7 @@ func (this *Ndax) HandleSubscriptionStatus(client any, message any) {
 		if id == nil {
 			return nil
 		}
-		return this.SafeValue(subscriptionsById, id)
+		return this.SafeDict(subscriptionsById, id)
 	}()
 	if !ccxt.IsEqual(subscription, nil) {
 		var method any = this.SafeValue(subscription, "method")

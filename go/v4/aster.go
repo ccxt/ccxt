@@ -4635,7 +4635,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	}
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
 	var entryPrice any = this.ParseNumber(entryPriceString)
-	var contractSize any = this.SafeValue(market, "contractSize")
+	var contractSize *float64 = this.SafeNumber(market, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
 	// as oppose to notionalValue
 	var linear bool = (InOp(position, "notional"))
@@ -5006,7 +5006,7 @@ func (this *Aster) ParseAccountPosition(position any, optionalArgs ...any) any {
 	var percentage any = nil
 	var liquidationPriceStringRaw any = nil
 	var liquidationPrice any = nil
-	var contractSize any = this.SafeValue(market, "contractSize")
+	var contractSize *float64 = this.SafeNumber(market, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
 	if Precise.StringEquals(notionalString, "0") {
 		entryPrice = nil

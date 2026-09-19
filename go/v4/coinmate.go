@@ -594,7 +594,7 @@ func (this *Coinmate) ParseBalance(response any) any {
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var balance any = this.SafeValue(balances, currencyId)
+		var balance map[string]any = SafeMapTyped(balances, currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "used", this.SafeString(balance, "reserved"))
@@ -785,7 +785,7 @@ func (this *Coinmate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var market any = this.Market(GetValue(keys, i))
-		var ticker any = this.ParseTicker(this.SafeValue(data, GetValue(keys, i)), market)
+		var ticker any = this.ParseTicker(this.SafeDict(data, GetValue(keys, i)), market)
 		AddElementToObject(result, GetValue(market, "symbol"), ticker)
 	}
 
@@ -1012,7 +1012,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 		PanicOnError(retRes77112)
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
+	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var methods map[string]any = SafeMapTyped(withdrawOptions, "methods")
 	var method *string = this.SafeString(methods, code)
 	if method == nil {
@@ -1076,7 +1076,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data")
+	var data any = this.SafeDict(response, "data")
 	var transaction any = this.ParseTransaction(data, currency)
 	var fillResponseFromRequest *bool = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
@@ -1314,7 +1314,7 @@ func (this *Coinmate) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	//         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 	var makerString *string = this.SafeString(data, "maker")
 	var takerString *string = this.SafeString(data, "taker")
 	var maker any = this.ParseNumber(Precise.StringDiv(makerString, "100"))

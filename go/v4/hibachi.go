@@ -836,15 +836,15 @@ func (this *Hibachi) ParseOrder(order any, optionalArgs ...any) any {
 		remainingString = Precise.StringSub(totalQuantity, filled)
 	}
 	var timeInForce string = "GTC"
-	var orderFlags any = this.SafeValue(order, "orderFlags")
+	var orderFlags *string = this.SafeString(order, "orderFlags")
 	var postOnly bool = false
 	var reduceOnly bool = false
-	if IsEqual(orderFlags, "POST_ONLY") {
+	if orderFlags != nil && *orderFlags == "POST_ONLY" {
 		timeInForce = "PO"
 		postOnly = true
-	} else if IsEqual(orderFlags, "IOC") {
+	} else if orderFlags != nil && *orderFlags == "IOC" {
 		timeInForce = "IOC"
-	} else if IsEqual(orderFlags, "REDUCE_ONLY") {
+	} else if orderFlags != nil && *orderFlags == "REDUCE_ONLY" {
 		reduceOnly = true
 	}
 	var timestamp *int64 = this.SafeInteger(order, "createdAt")
@@ -1177,8 +1177,8 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateOrderRequest(Add(nonce, i), symbol, typeVar, side, amount, price, orderParams)
 		AddElementToObject(orderRequest, "action", "place")
@@ -1333,8 +1333,8 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.EditOrderRequest(Add(nonce, i), id, symbol, typeVar, side, amount, price, orderParams)
 		AddElementToObject(orderRequest, "action", "modify")

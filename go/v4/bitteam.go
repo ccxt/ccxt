@@ -515,8 +515,8 @@ func (this *Bitteam) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
-	var markets any = this.SafeValue(result, "pairs", []any{})
+	var result map[string]any = SafeMapTyped(response, "result")
+	var markets any = this.SafeList(result, "pairs", []any{})
 
 	ch <- this.ParseMarkets(markets)
 	return nil
@@ -529,14 +529,14 @@ func (this *Bitteam) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(parts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var active any = this.SafeValue(market, "active")
+	var active *bool = this.SafeBool(market, "active")
 	var timeStart *string = this.SafeString(market, "timeStart")
 	var created *int64 = this.Parse8601(timeStart)
 	var minCost *float64 = nil
 	var currenciesValuedInUsd any = this.HandleOption("fetchMarkets", "currenciesValuedInUsd", map[string]any{})
 	var quoteInUsd *bool = this.SafeBool(currenciesValuedInUsd, quote, false)
 	if quoteInUsd != nil && *quoteInUsd == true {
-		var settings any = this.SafeValue(market, "settings", map[string]any{})
+		var settings map[string]any = SafeMapTyped(market, "settings")
 		minCost = this.SafeNumber(settings, "limit_usd")
 	}
 	return this.SafeMarketStructure(map[string]any{
@@ -702,8 +702,8 @@ func (this *Bitteam) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var responseResult any = this.SafeValue(response, "result", map[string]any{})
-	var currencies any = this.SafeValue(responseResult, "currencies", []any{})
+	var responseResult map[string]any = SafeMapTyped(response, "result")
+	var currencies any = this.SafeList(responseResult, "currencies", []any{})
 	// using another endpoint to fetch statuses of deposits and withdrawals
 
 	statusesResponse := (<-this.PublicGetTradeApiCmcAssets())
@@ -737,18 +737,18 @@ func (this *Bitteam) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Bitteam) ParseCurrency(currency any) any {
-	var statusesResponse any = this.SafeValue(this.Options, "_temp_currencies_statuses", map[string]any{})
+	var statusesResponse map[string]any = SafeMapTyped(this.Options, "_temp_currencies_statuses")
 	var id *string = this.SafeString(currency, "symbol")
 	var numericId *int64 = this.SafeInteger(currency, "id")
 	var code *string = this.SafeCurrencyCode(id)
 	var active *bool = this.SafeBool(currency, "active", false)
 	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "precision")))
-	var txLimits any = this.SafeValue(currency, "txLimits", map[string]any{})
+	var txLimits map[string]any = SafeMapTyped(currency, "txLimits")
 	var minWithdraw *string = this.SafeString(txLimits, "minWithdraw")
 	var maxWithdraw *string = this.SafeString(txLimits, "maxWithdraw")
 	var minDeposit *string = this.SafeString(txLimits, "minDeposit")
 	var fee any = nil
-	var withdrawCommissionFixed any = this.SafeValue(txLimits, "withdrawCommissionFixed", map[string]any{})
+	var withdrawCommissionFixed any = this.SafeDict(txLimits, "withdrawCommissionFixed", map[string]any{})
 	var feesByNetworkId any = map[string]any{}
 	var blockChain *string = this.SafeString(currency, "blockChain")
 	// if only one blockChain
@@ -758,9 +758,9 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 	} else {
 		feesByNetworkId = withdrawCommissionFixed
 	}
-	var statuses any = this.SafeValue(statusesResponse, numericId, map[string]any{})
-	var deposit any = this.SafeValue(statuses, "depositStatus")
-	var withdraw any = this.SafeValue(statuses, "withdrawStatus")
+	var statuses map[string]any = SafeMapTyped(statusesResponse, numericId)
+	var deposit *bool = this.SafeBool(statuses, "depositStatus")
+	var withdraw *bool = this.SafeBool(statuses, "withdrawStatus")
 	var networkIds []string = ObjectKeys(feesByNetworkId)
 	var networks map[string]any = map[string]any{}
 	var networkPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals")))
@@ -894,7 +894,7 @@ func (this *Bitteam) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "data", []any{})
 
 	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
@@ -1114,7 +1114,7 @@ func (this *Bitteam) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var orders any = this.SafeList(result, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -1495,7 +1495,7 @@ func (this *Bitteam) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result any = this.SafeDict(response, "result", map[string]any{})
 	var orders []any = []any{result}
 
 	ch <- this.ParseOrders(orders, market)
@@ -1605,7 +1605,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var typeVar *string = this.ParseOrderType(this.SafeString(order, "type"))
 	var side *string = this.SafeString(order, "side")
-	var feeRaw any = this.SafeValue(order, "fee")
+	var feeRaw any = this.SafeDict(order, "fee")
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed")
@@ -1963,7 +1963,7 @@ func (this *Bitteam) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var pair any = this.SafeDict(result, "pair", map[string]any{})
 
 	ch <- this.ParseTicker(pair, market)
@@ -2057,13 +2057,13 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) any {
 	var bestAskPrice any = nil
 	var bestBidVolume any = nil
 	var bestAskVolume any = nil
-	var bids any = this.SafeValue(ticker, "bids")
-	var asks any = this.SafeValue(ticker, "asks")
+	var bids any = this.SafeList(ticker, "bids")
+	var asks any = this.SafeList(ticker, "asks")
 	if (!IsEqual(bids, nil)) && (IsArray(bids)) && (!IsEqual(asks, nil)) && (IsArray(asks)) {
-		var bestBid any = this.SafeValue(bids, 0, map[string]any{})
+		var bestBid map[string]any = SafeMapTyped(bids, 0)
 		bestBidPrice = DerefScalar(this.SafeString(bestBid, "price"))
 		bestBidVolume = DerefScalar(this.SafeString(bestBid, "quantity"))
-		var bestAsk any = this.SafeValue(asks, 0, map[string]any{})
+		var bestAsk map[string]any = SafeMapTyped(asks, 0)
 		bestAskPrice = DerefScalar(this.SafeString(bestAsk, "price"))
 		bestAskVolume = DerefScalar(this.SafeString(bestAsk, "quantity"))
 	} else {
@@ -2339,7 +2339,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var trades any = this.SafeList(result, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -2425,10 +2425,10 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 			side = "sell"
 		}
 		order = DerefScalar(this.SafeString(trade, "makerOrderId"))
-		feeInfo = this.SafeValue(trade, "feeMaker", map[string]any{})
+		feeInfo = this.SafeDict(trade, "feeMaker", map[string]any{})
 	} else if takerOrMaker != nil && *takerOrMaker == "taker" {
 		order = DerefScalar(this.SafeString(trade, "takerOrderId"))
-		feeInfo = this.SafeValue(trade, "feeTaker", map[string]any{})
+		feeInfo = this.SafeDict(trade, "feeTaker", map[string]any{})
 	}
 	var feeCurrencyId *string = this.SafeString(feeInfo, "symbol")
 	var feeCost *string = this.SafeString(feeInfo, "amount")
@@ -2532,12 +2532,12 @@ func (this *Bitteam) ParseBalance(response any) any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result any = this.SafeDict(response, "result", map[string]any{})
 	var balanceByCurrencies any = this.Omit(result, []any{"free", "used", "total"})
 	var rawCurrencyIds []string = ObjectKeys(balanceByCurrencies)
 	for i := 0; i < len(rawCurrencyIds); i++ {
 		var rawCurrencyId string = GetValue(rawCurrencyIds, i).(string)
-		var currencyBalance any = this.SafeValue(result, rawCurrencyId)
+		var currencyBalance map[string]any = SafeMapTyped(result, rawCurrencyId)
 		var free *string = this.SafeString(currencyBalance, "free")
 		var used *string = this.SafeString(currencyBalance, "used")
 		var total *string = this.SafeString(currencyBalance, "total")
@@ -2685,7 +2685,7 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var transactions any = this.SafeList(result, "transactions", []any{})
 
 	ch <- this.ParseTransactions(transactions, currency, since, limit)
@@ -2741,17 +2741,17 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) any 
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyObject any = this.SafeValue(transaction, "currency")
+	var currencyObject any = this.SafeDict(transaction, "currency")
 	var currencyId *string = this.SafeString(currencyObject, "symbol")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var id *string = this.SafeString(transaction, "id")
-	var params any = this.SafeValue(transaction, "params")
+	var params map[string]any = SafeMapTyped(transaction, "params")
 	var txid *string = this.SafeString(params, "tx_id")
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var networkId *string = this.SafeString(transaction, "blockChain")
 	if networkId == nil {
-		var links any = this.SafeValue(currencyObject, "links", []any{})
-		var blockChain any = this.SafeValue(links, 0, map[string]any{})
+		var links any = this.SafeList(currencyObject, "links", []any{})
+		var blockChain map[string]any = SafeMapTyped(links, 0)
 		networkId = this.SafeString(blockChain, "blockChain")
 	}
 	var addressFrom *string = this.SafeString(transaction, "sender")
@@ -2759,7 +2759,7 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var tag *string = this.SafeString(transaction, "message")
 	var typeVar *string = this.ParseTransactionType(this.SafeString(transaction, "type"))
 	var amount any = this.ParseValueToPricision(transaction, "amount", currencyObject, "decimals")
-	var status *string = this.ParseTransactionStatus(this.SafeValue(transaction, "status"))
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,

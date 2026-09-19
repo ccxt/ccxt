@@ -774,7 +774,7 @@ func (this *Latoken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var maxTimestamp any = nil
 	var defaultType *string = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
 	var typeVar *string = this.SafeString(params, "type", defaultType)
-	var types any = this.SafeValue(this.Options, "types", map[string]any{})
+	var types map[string]any = SafeMapTyped(this.Options, "types")
 	var accountType *string = this.SafeString(types, typeVar, typeVar)
 	var balancesByType map[string]any = this.GroupBy(response, "type")
 	var balances any = this.SafeList(balancesByType, accountType, []any{})
@@ -1094,11 +1094,11 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "quantity")
 	var costString *string = this.SafeString(trade, "cost")
-	var makerBuyer any = this.SafeValue(trade, "makerBuyer")
+	var makerBuyer *bool = this.SafeBool(trade, "makerBuyer")
 	var side any = DerefScalar(this.SafeString(trade, "direction"))
 	if IsEqual(side, nil) {
 		side = func() string {
-			if makerBuyer == true {
+			if makerBuyer != nil && *makerBuyer == true {
 				return "sell"
 			}
 			return "buy"
@@ -1111,7 +1111,7 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var isBuy bool = (IsEqual(side, "buy"))
-	var isMaker bool = (makerBuyer == true) && isBuy
+	var isMaker bool = (makerBuyer != nil && *makerBuyer == true) && isBuy
 	var takerOrMaker string = func() string {
 		if isMaker {
 			return "maker"
@@ -1226,7 +1226,7 @@ func (this *Latoken) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options any = this.SafeValue(this.Options, "fetchTradingFee", map[string]any{})
+	var options any = this.SafeDict(this.Options, "fetchTradingFee", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateTradingFee")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	params = this.Omit(params, "method")
@@ -1582,7 +1582,7 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes124212)
 	}
 	var response any = nil
-	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
+	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, "stop")
 	// privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
 	var market any = this.Market(symbol)
@@ -1590,7 +1590,7 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"currency": GetValue(market, "baseId"),
 		"quote":    GetValue(market, "quoteId"),
 	}
-	if isTrigger == true {
+	if isTrigger != nil && *isTrigger == true {
 
 		response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1664,7 +1664,7 @@ func (this *Latoken) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
+	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit // default 100
@@ -1674,7 +1674,7 @@ func (this *Latoken) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["currency"] = GetValue(market, "baseId")
 		request["quote"] = GetValue(market, "quoteId")
-		if isTrigger == true {
+		if isTrigger != nil && *isTrigger == true {
 
 			response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1684,7 +1684,7 @@ func (this *Latoken) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			PanicOnError(response)
 		}
 	} else {
-		if isTrigger == true {
+		if isTrigger != nil && *isTrigger == true {
 
 			response = (<-this.PrivateGetAuthStopOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1753,10 +1753,10 @@ func (this *Latoken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
-	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
+	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var response any = nil
-	if isTrigger == true {
+	if isTrigger != nil && *isTrigger == true {
 
 		response = (<-this.PrivateGetAuthStopOrderGetOrderId(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1906,10 +1906,10 @@ func (this *Latoken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
-	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
+	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var response any = nil
-	if isTrigger == true {
+	if isTrigger != nil && *isTrigger == true {
 
 		response = (<-this.PrivatePostAuthStopOrderCancel(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1962,14 +1962,14 @@ func (this *Latoken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
+	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var response any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["currency"] = GetValue(market, "baseId")
 		request["quote"] = GetValue(market, "quoteId")
-		if isTrigger == true {
+		if isTrigger != nil && *isTrigger == true {
 
 			response = (<-this.PrivatePostAuthStopOrderCancelAllCurrencyQuote(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1979,7 +1979,7 @@ func (this *Latoken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			PanicOnError(response)
 		}
 	} else {
-		if isTrigger == true {
+		if isTrigger != nil && *isTrigger == true {
 
 			response = (<-this.PrivatePostAuthStopOrderCancelAll(this.Extend(request, params)))
 			PanicOnError(response)

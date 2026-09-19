@@ -1699,12 +1699,12 @@ func (this *Mexc) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var status *string = this.SafeString(market, "status")
-		var isSpotTradingAllowed any = this.SafeValue(market, "isSpotTradingAllowed")
+		var isSpotTradingAllowed *bool = this.SafeBool(market, "isSpotTradingAllowed")
 		var active bool = false
-		if (status != nil && *status == "1") && (isSpotTradingAllowed == true) {
+		if (status != nil && *status == "1") && (isSpotTradingAllowed != nil && *isSpotTradingAllowed == true) {
 			active = true
 		}
-		var isMarginTradingAllowed any = this.SafeValue(market, "isMarginTradingAllowed")
+		var isMarginTradingAllowed *bool = this.SafeBool(market, "isMarginTradingAllowed")
 		var makerCommission *float64 = this.SafeNumber(market, "makerCommission")
 		var takerCommission *float64 = this.SafeNumber(market, "takerCommission")
 		var maxQuoteAmount *float64 = this.SafeNumber(market, "maxQuoteAmount")
@@ -1982,7 +1982,7 @@ func (this *Mexc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "data")
+		var data any = this.SafeDict(response, "data")
 		var timestamp *int64 = this.SafeInteger(data, "timestamp")
 		orderbook = this.ParseOrderBook(data, symbol, timestamp)
 		AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "version"))
@@ -2219,28 +2219,28 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 			timestamp = this.SafeInteger2(trade, "time", "T")
 			amountString = DerefScalar(this.SafeString2(trade, "qty", "q"))
 			costString = DerefScalar(this.SafeString(trade, "quoteQty"))
-			var isBuyer any = this.SafeValue(trade, "isBuyer")
-			var isMaker any = this.SafeValue(trade, "isMaker")
-			var buyerMaker any = this.SafeValue2(trade, "isBuyerMaker", "m")
-			if !IsEqual(isMaker, nil) {
+			var isBuyer *bool = this.SafeBool(trade, "isBuyer")
+			var isMaker *bool = this.SafeBool(trade, "isMaker")
+			var buyerMaker *bool = this.SafeBool2(trade, "isBuyerMaker", "m")
+			if isMaker != nil {
 				takerOrMaker = func() string {
-					if isMaker == true {
+					if isMaker != nil && *isMaker == true {
 						return "maker"
 					}
 					return "taker"
 				}()
 			}
-			if !IsEqual(isBuyer, nil) {
+			if isBuyer != nil {
 				side = func() string {
-					if isBuyer == true {
+					if isBuyer != nil && *isBuyer == true {
 						return "buy"
 					}
 					return "sell"
 				}()
 			}
-			if !IsEqual(buyerMaker, nil) {
+			if buyerMaker != nil {
 				side = func() string {
-					if buyerMaker == true {
+					if buyerMaker != nil && *buyerMaker == true {
 						return "sell"
 					}
 					return "buy"
@@ -2332,8 +2332,8 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		ch <- retRes185819
 		return nil
 	}
-	var options any = this.SafeValue(this.Options, "timeframes", map[string]any{})
-	var timeframes any = this.SafeValue(options, GetValue(market, "type"), map[string]any{})
+	var options any = this.SafeDict(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any = SafeMapTyped(options, GetValue(market, "type"))
 	var timeframeValue *string = this.SafeString(timeframes, timeframe)
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	var request map[string]any = map[string]any{
@@ -2521,7 +2521,7 @@ func (this *Mexc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		//         ]
 		//     }
 		//
-		tickers = this.SafeValue(response, "data", []any{})
+		tickers = this.SafeList(response, "data", []any{})
 	}
 	// when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
 	if isSingularMarket {
@@ -2598,7 +2598,7 @@ func (this *Mexc) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		//         }
 		//     }
 		//
-		ticker = this.SafeValue(response, "data", map[string]any{})
+		ticker = this.SafeDict(response, "data", map[string]any{})
 	}
 
 	// when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
@@ -2623,9 +2623,9 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) any {
 	var changePcnt any = nil
 	var changeValue any = nil
 	var prevClose any = nil
-	var isSwap any = this.SafeValue(market, "swap")
+	var isSwap *bool = this.SafeBool(market, "swap")
 	// if swap
-	if (isSwap == true) || (InOp(ticker, "timestamp")) {
+	if (isSwap != nil && *isSwap == true) || (InOp(ticker, "timestamp")) {
 		//
 		//     {
 		//         "symbol": "ETH_USDT",
@@ -3282,7 +3282,7 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeValue(rawOrder, "params", map[string]any{})
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -4068,9 +4068,9 @@ func (this *Mexc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		//     }
 		//
 		data = this.SafeValue(response, "data")
-		var order any = this.SafeValue(data, 0)
-		var errorMsg any = this.SafeValue(order, "errorMsg", "")
-		if !IsEqual(errorMsg, "success") {
+		var order map[string]any = SafeMapTyped(data, 0)
+		var errorMsg *string = this.SafeString(order, "errorMsg", "")
+		if errorMsg == nil || *errorMsg != "success" {
 			panic(InvalidOrder(Add(Add(Add(this.Id+" cancelOrder() the order with id ", id), " cannot be cancelled: "), errorMsg)))
 		}
 	}
@@ -4568,7 +4568,7 @@ func (this *Mexc) fetchAccountHelperBody(ch chan any, typeVar any, params any) a
 		// wrap the swap asset list so this helper always returns an account
 		// dict with a `balances` array — fetchAccounts reads response['balances']
 		ch <- map[string]any{
-			"balances": this.SafeValue(response, "data", []any{}),
+			"balances": this.SafeList(response, "data", []any{}),
 		}
 		return nil
 	}
@@ -4757,8 +4757,8 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 	if IsEqual(marketType, "margin") {
 		for i := 0; i < GetArrayLength(wallet); i++ {
 			var entry any = GetValue(wallet, i)
-			var base any = this.SafeValue(entry, "baseAsset", map[string]any{})
-			var quote any = this.SafeValue(entry, "quoteAsset", map[string]any{})
+			var base any = this.SafeDict(entry, "baseAsset", map[string]any{})
+			var quote any = this.SafeDict(entry, "quoteAsset", map[string]any{})
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "asset"))
 			var quoteCode *string = this.SafeCurrencyCode(this.SafeString(quote, "asset"))
 			if baseCode != nil {
@@ -4847,7 +4847,7 @@ func (this *Mexc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var parsedSymbols any = nil
 		var symbol *string = this.SafeString(params, "symbol")
 		if symbol == nil {
-			var symbols any = this.SafeValue(params, "symbols")
+			var symbols any = this.SafeList(params, "symbols")
 			if !IsEqual(symbols, nil) {
 				var symbolIds any = this.MarketIds(symbols)
 				if !IsEqual(symbolIds, nil) {
@@ -5380,7 +5380,7 @@ func (this *Mexc) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var resultList any = this.SafeList(data, "resultList", []any{})
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(resultList); i++ {
@@ -5526,7 +5526,7 @@ func (this *Mexc) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(response, "data", map[string]any{})
+	var result any = this.SafeDict(response, "data", map[string]any{})
 
 	ch <- this.ParseFundingRate(result, market)
 	return nil
@@ -5601,7 +5601,7 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	//        }
 	//    }
 	//
-	var data any = this.SafeValue(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	var result any = this.SafeList(data, "resultList", []any{})
 	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
@@ -5852,7 +5852,7 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan any, code any, opti
 				}
 				return this.SafeDict(networks, networkUnified, map[string]any{})
 			}()
-			var networkInfo any = this.SafeValue(network, "info", map[string]any{})
+			var networkInfo map[string]any = SafeMapTyped(network, "info")
 			networkId = DerefScalar(this.SafeString(networkInfo, "network"))
 		} else {
 			networkId = this.NetworkCodeToId(networkCode, code)
@@ -5926,7 +5926,7 @@ func (this *Mexc) createDepositAddressBody(ch chan any, code any, optionalArgs .
 			}
 			return this.SafeDict(networks, networkUnified, map[string]any{})
 		}()
-		var networkInfo any = this.SafeValue(network, "info", map[string]any{})
+		var networkInfo map[string]any = SafeMapTyped(network, "info")
 		networkId = DerefScalar(this.SafeString(networkInfo, "network"))
 	} else {
 		networkId = this.NetworkCodeToId(networkCode, code)
@@ -6300,7 +6300,7 @@ func (this *Mexc) ParseTransactionStatusByType(status any, optionalArgs ...any) 
 			"10": "pending",
 		},
 	}
-	var statuses any = this.SafeValue(statusesByType, typeVar, map[string]any{})
+	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
 
@@ -6375,7 +6375,7 @@ func (this *Mexc) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
 	response := (<-this.FetchPositionsAsync(nil, this.Extend(request, params)))
 	PanicOnError(response)
 
-	ch <- this.SafeValue(response, 0)
+	ch <- this.SafeDict(response, 0)
 	return nil
 }
 
@@ -6728,7 +6728,7 @@ func (this *Mexc) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 		response := (<-this.ContractPrivateGetAccountTransferRecord(this.Extend(request, params)))
 		PanicOnError(response)
-		var data any = this.SafeValue(response, "data")
+		var data map[string]any = SafeMapTyped(response, "data")
 		resultList = this.SafeValue(data, "resultList")
 	}
 

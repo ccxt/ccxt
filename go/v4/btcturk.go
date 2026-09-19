@@ -677,7 +677,7 @@ func (this *Btcturk) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	tickers := (<-this.FetchTickersAsync([]any{symbol}, params))
 	PanicOnError(tickers)
 
-	ch <- this.SafeValue(tickers, symbol)
+	ch <- this.SafeDict(tickers, symbol)
 	return nil
 }
 func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) any {
@@ -865,7 +865,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":     GetValue(market, "id"),
-		"resolution": this.SafeValue(this.Timeframes, timeframe, timeframe),
+		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	request["to"] = this.ParseToInt((Divide(until, 1000)))

@@ -797,7 +797,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			_, ok := cachedCurrencies[*base]
 			return ok
 		}()) {
-			var currency any = this.SafeValue(cachedCurrencies, base)
+			var currency map[string]any = SafeMapTyped(cachedCurrencies, base)
 			var currencyPrecision *float64 = this.SafeNumber(currency, "precision")
 			// if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
 			if currencyPrecision == nil {
@@ -1159,16 +1159,16 @@ func (this *Kraken) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 	//        }
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result any = this.SafeDict(response, "result", map[string]any{})
 
 	ch <- this.ParseTradingFee(result, market)
 	return nil
 }
 func (this *Kraken) ParseTradingFee(response any, market any) any {
-	var makerFees any = this.SafeValue(response, "fees_maker", map[string]any{})
-	var takerFees any = this.SafeValue(response, "fees", map[string]any{})
-	var symbolMakerFee any = this.SafeValue(makerFees, GetValue(market, "id"), map[string]any{})
-	var symbolTakerFee any = this.SafeValue(takerFees, GetValue(market, "id"), map[string]any{})
+	var makerFees map[string]any = SafeMapTyped(response, "fees_maker")
+	var takerFees map[string]any = SafeMapTyped(response, "fees")
+	var symbolMakerFee map[string]any = SafeMapTyped(makerFees, GetValue(market, "id"))
+	var symbolTakerFee map[string]any = SafeMapTyped(takerFees, GetValue(market, "id"))
 	return map[string]any{
 		"info":       response,
 		"symbol":     GetValue(market, "symbol"),
@@ -1247,13 +1247,13 @@ func (this *Kraken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var orderbook any = this.SafeValue(result, GetValue(market, "id"))
 	// sometimes kraken returns wsname instead of market id
 	// https://github.com/ccxt/ccxt/issues/8662
-	var marketInfo any = this.SafeValue(market, "info", map[string]any{})
-	var wsName any = this.SafeValue(marketInfo, "wsname")
-	if !IsEqual(wsName, nil) {
+	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var wsName *string = this.SafeString(marketInfo, "wsname")
+	if wsName != nil {
 		orderbook = this.SafeValue(result, wsName, orderbook)
 	}
 
@@ -1277,17 +1277,17 @@ func (this *Kraken) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
-	var v any = this.SafeValue(ticker, "v", []any{})
+	var v any = this.SafeList(ticker, "v", []any{})
 	var baseVolume *string = this.SafeString(v, 1)
-	var p any = this.SafeValue(ticker, "p", []any{})
+	var p any = this.SafeList(ticker, "p", []any{})
 	var vwap *string = this.SafeString(p, 1)
 	var quoteVolume *string = Precise.StringMul(baseVolume, vwap)
-	var c any = this.SafeValue(ticker, "c", []any{})
+	var c any = this.SafeList(ticker, "c", []any{})
 	var last *string = this.SafeString(c, 0)
-	var high any = this.SafeValue(ticker, "h", []any{})
-	var low any = this.SafeValue(ticker, "l", []any{})
-	var bid any = this.SafeValue(ticker, "b", []any{})
-	var ask any = this.SafeValue(ticker, "a", []any{})
+	var high any = this.SafeList(ticker, "h", []any{})
+	var low any = this.SafeList(ticker, "l", []any{})
+	var bid any = this.SafeList(ticker, "b", []any{})
+	var ask any = this.SafeList(ticker, "a", []any{})
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -1503,7 +1503,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	//             "last":1591517580
 	//         }
 	//     }
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var ohlcvs any = this.SafeList(result, GetValue(market, "id"), []any{})
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
@@ -1638,7 +1638,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//                                                 "amount": "-0.2805800000",
 	//                                                    "fee": "0.0050000000",
 	//                                                "balance": "0.0000051000"           },
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var ledger map[string]any = SafeMapTyped(result, "ledger")
 	var keys []string = ObjectKeys(ledger)
 	var items []any = []any{}
@@ -1971,7 +1971,7 @@ func (this *Kraken) ParseBalance(response any) any {
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var balance any = this.SafeValue(balances, currencyId, map[string]any{})
+		var balance map[string]any = SafeMapTyped(balances, currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "used", this.SafeString(balance, "hold_trade"))
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
@@ -2960,7 +2960,7 @@ func (this *Kraken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", []any{})
+	var result any = this.SafeDict(response, "result", []any{})
 	if !(InOp(result, id)) {
 		panic(OrderNotFound(Add(this.Id+" fetchOrder() could not find order id ", id)))
 	}
@@ -3021,7 +3021,7 @@ func (this *Kraken) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	if symbol != nil {
 		symbol = this.Symbol(symbol)
 	}
-	var options any = this.SafeValue(this.Options, "fetchOrderTrades", map[string]any{})
+	var options any = this.SafeDict(this.Options, "fetchOrderTrades", map[string]any{})
 	var batchSize *int64 = this.SafeInteger(options, "batchSize", 20)
 	var numTradeIds int = len(tradeIds)
 	var numBatches any = this.ParseToInt(Divide(numTradeIds, batchSize))
@@ -3671,7 +3671,7 @@ func (this *Kraken) ParseTransactionStatus(status any) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Kraken) ParseNetwork(network any) any {
-	var withdrawMethods any = this.SafeValue(this.Options, "withdrawMethods", map[string]any{})
+	var withdrawMethods map[string]any = SafeMapTyped(this.Options, "withdrawMethods")
 	return this.SafeString(withdrawMethods, network, network)
 }
 func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) any {
@@ -3905,7 +3905,7 @@ func (this *Kraken) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.SafeTimestamp(result, "unixtime")
 	return nil
@@ -4151,13 +4151,13 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)
 	var network *string = this.SafeStringUpper(params, "network")
-	var networks any = this.SafeValue(this.Options, "networks", map[string]any{})
+	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	network = this.SafeString(networks, network, network) // support ETH > ERC20 aliases
 	params = this.Omit(params, "network")
 	if (IsEqual(code, "USDT")) && (network != nil && *network == "TRC20") {
 		code = Add(Add(code, "-"), network)
 	}
-	var defaultDepositMethods any = this.SafeValue(this.Options, "depositMethods", map[string]any{})
+	var defaultDepositMethods map[string]any = SafeMapTyped(this.Options, "depositMethods")
 	var defaultDepositMethod *string = this.SafeString(defaultDepositMethods, code)
 	var depositMethod *string = this.SafeString(params, "method", defaultDepositMethod)
 	// if the user has specified an exchange-specific method in params
@@ -4181,7 +4181,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		}
 		// if depositMethod was not specified, fallback to the first available deposit method
 		if depositMethod == nil {
-			var firstDepositMethod any = this.SafeValue(depositMethods, 0, map[string]any{})
+			var firstDepositMethod map[string]any = SafeMapTyped(depositMethods, 0)
 			depositMethod = this.SafeString(firstDepositMethod, "method")
 		}
 	}
@@ -4200,8 +4200,8 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	//         ]
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", []any{})
-	var firstResult any = this.SafeValue(result, 0, map[string]any{})
+	var result any = this.SafeList(response, "result", []any{})
+	var firstResult any = this.SafeDict(result, 0, map[string]any{})
 	if IsEqual(firstResult, nil) {
 		panic(InvalidAddress(Add(this.Id+" privatePostDepositAddresses() returned no addresses for ", code)))
 	}
@@ -4541,7 +4541,7 @@ func (this *Kraken) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var result any = this.SafeValue(transfer, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(transfer, "result")
 	var refid *string = this.SafeString(result, "refid")
 	return map[string]any{
 		"info":        transfer,

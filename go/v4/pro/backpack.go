@@ -921,7 +921,7 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	trades := (<-this.WatchPublicAsync(topics, messageHashes, params))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}

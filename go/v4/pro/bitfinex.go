@@ -325,9 +325,9 @@ func (this *Bitfinex) HandleOHLCV(client any, message any, subscription any) {
 	//       ]
 	//   ]
 	//
-	var data any = this.SafeValue(message, 1, []any{})
+	var data any = this.SafeList(message, 1, []any{})
 	var ohlcvs any = []any{}
-	var first any = this.SafeValue(data, 0)
+	var first any = this.SafeList(data, 0)
 	if ccxt.IsArray(first) {
 		// snapshot
 		ohlcvs = data
@@ -335,7 +335,7 @@ func (this *Bitfinex) HandleOHLCV(client any, message any, subscription any) {
 		// update
 		ohlcvs = []any{data}
 	}
-	var channel any = this.SafeValue(subscription, "channel")
+	var channel *string = this.SafeString(subscription, "channel")
 	var key *string = this.SafeString(subscription, "key", "")
 	var keyParts []string = ccxt.Split(key, ":")
 	var interval *string = this.SafeString(keyParts, 1)
@@ -346,7 +346,7 @@ func (this *Bitfinex) HandleOHLCV(client any, message any, subscription any) {
 	var timeframe any = this.FindTimeframe(interval)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channel, ":"), interval), ":"), marketId)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -591,7 +591,7 @@ func (this *Bitfinex) HandleTrades(client any, message any, subscription any) {
 	//    ]
 	//
 	//
-	var channel any = this.SafeValue(subscription, "channel")
+	var channel *string = this.SafeString(subscription, "channel")
 	var marketId *string = this.SafeString(subscription, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
@@ -621,7 +621,7 @@ func (this *Bitfinex) HandleTrades(client any, message any, subscription any) {
 			// since te and tu updates are duplicated on the public stream
 			return
 		}
-		var trade any = this.SafeValue(message, 2, []any{})
+		var trade any = this.SafeList(message, 2, []any{})
 		var parsed any = this.ParseWsTrade(trade, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
@@ -864,7 +864,7 @@ func (this *Bitfinex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 			panic(ccxt.ExchangeError(this.Id + " watchOrderBook limit argument must be undefined, 25 or 100"))
 		}
 	}
-	var options any = this.SafeValue(this.Options, "watchOrderBook", map[string]any{})
+	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var prec *string = this.SafeString(options, "prec", "P0")
 	var freq *string = this.SafeString(options, "freq", "F0")
 	var request map[string]any = map[string]any{
@@ -1034,7 +1034,7 @@ func (this *Bitfinex) HandleChecksum(client any, message any, subscription any) 
 	var symbol *string = this.SafeSymbol(marketId)
 	var channel string = "book"
 	var messageHash any = ccxt.Add(channel+":", marketId)
-	var book any = this.SafeValue(this.Orderbooks, symbol)
+	var book any = this.SafeDict(this.Orderbooks, symbol)
 	if ccxt.IsEqual(book, nil) {
 		return
 	}
@@ -1052,8 +1052,8 @@ func (this *Bitfinex) HandleChecksum(client any, message any, subscription any) 
 	}()
 	// pepperoni pizza from bitfinex
 	for i := 0; i < depth; i++ {
-		var bid any = this.SafeValue(bids, i)
-		var ask any = this.SafeValue(asks, i)
+		var bid any = this.SafeList(bids, i)
+		var ask any = this.SafeList(asks, i)
 		if !ccxt.IsEqual(bid, nil) {
 			stringArray = append(stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(bids, i), idToCheck)))
 			stringArray = append(stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(bids, i), 1)))
@@ -1606,7 +1606,7 @@ func (this *Bitfinex) HandleMessage(client any, message any) {
 		if ccxt.IsEqual(ccxt.GetValue(message, 1), "hb") {
 			return // skip heartbeats within subscription channels for now
 		}
-		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channelId, map[string]any{})
+		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), channelId, map[string]any{})
 		var channel *string = this.SafeString(subscription, "channel")
 		var name *string = this.SafeString(message, 1)
 		var publicMethods map[string]any = map[string]any{

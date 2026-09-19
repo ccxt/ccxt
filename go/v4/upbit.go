@@ -484,21 +484,21 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan any, id any, optionalArgs ...an
 	//         }
 	//     }
 	//
-	var memberInfo any = this.SafeValue(response, "member_level", map[string]any{})
-	var currencyInfo any = this.SafeValue(response, "currency", map[string]any{})
-	var withdrawLimits any = this.SafeValue(response, "withdraw_limit", map[string]any{})
-	var canWithdraw any = this.SafeValue(withdrawLimits, "can_withdraw")
+	var memberInfo map[string]any = SafeMapTyped(response, "member_level")
+	var currencyInfo map[string]any = SafeMapTyped(response, "currency")
+	var withdrawLimits map[string]any = SafeMapTyped(response, "withdraw_limit")
+	var canWithdraw *bool = this.SafeBool(withdrawLimits, "can_withdraw")
 	var walletState *string = this.SafeString(currencyInfo, "wallet_state")
-	var walletLocked any = this.SafeValue(memberInfo, "wallet_locked")
-	var locked any = this.SafeValue(memberInfo, "locked")
+	var walletLocked *bool = this.SafeBool(memberInfo, "wallet_locked")
+	var locked *bool = this.SafeBool(memberInfo, "locked")
 	var active bool = true
-	if (!IsEqual(canWithdraw, nil)) && (canWithdraw != true) {
+	if (canWithdraw != nil) && (canWithdraw == nil || *canWithdraw != true) {
 		active = false
 	} else if walletState == nil || *walletState != "working" {
 		active = false
-	} else if (!IsEqual(walletLocked, nil)) && (walletLocked == true) {
+	} else if walletLocked != nil && *walletLocked == true {
 		active = false
-	} else if (!IsEqual(locked, nil)) && (locked == true) {
+	} else if locked != nil && *locked == true {
 		active = false
 	}
 	var maxOnetimeWithdrawal *string = this.SafeString(withdrawLimits, "onetime")
@@ -604,9 +604,9 @@ func (this *Upbit) fetchMarketByIdBody(ch chan any, id any, optionalArgs ...any)
 	//         }
 	//     }
 	//
-	var marketInfo any = this.SafeValue(response, "market")
-	var bid any = this.SafeValue(marketInfo, "bid")
-	var ask any = this.SafeValue(marketInfo, "ask")
+	var marketInfo map[string]any = SafeMapTyped(response, "market")
+	var bid map[string]any = SafeMapTyped(marketInfo, "bid")
+	var ask map[string]any = SafeMapTyped(marketInfo, "ask")
 	var marketId *string = this.SafeString(marketInfo, "id")
 	var baseId *string = this.SafeString(ask, "currency")
 	var quoteId *string = this.SafeString(bid, "currency")
@@ -1566,11 +1566,11 @@ func (this *Upbit) CalcOrderPrice(symbol any, amount any, optionalArgs ...any) a
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var quoteAmount any = nil
-	var createMarketBuyOrderRequiresPrice any = this.SafeValue(this.Options, "createMarketBuyOrderRequiresPrice")
+	var createMarketBuyOrderRequiresPrice *bool = this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice")
 	var cost *string = this.SafeString(params, "cost")
 	if cost != nil {
 		quoteAmount = this.CostToPrecision(symbol, cost)
-	} else if createMarketBuyOrderRequiresPrice == true {
+	} else if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice == true {
 		if IsEqual(price, nil) || IsEqual(amount, nil) {
 			panic(InvalidOrder(this.Id + " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 		}
@@ -2408,7 +2408,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 			var trade any = GetValue(trades, i)
 			cost = Precise.StringAdd(cost, this.SafeString(trade, "cost"))
 			if getFeesFromTrades {
-				var tradeFee any = this.SafeValue(GetValue(trades, i), "fee", map[string]any{})
+				var tradeFee map[string]any = SafeMapTyped(GetValue(trades, i), "fee")
 				var tradeFeeCost *string = this.SafeString(tradeFee, "cost")
 				if tradeFeeCost != nil {
 					feeCost = Precise.StringAdd(feeCost, tradeFeeCost)
@@ -3106,7 +3106,7 @@ func (this *Upbit) HandleErrors(httpCode any, reason any, url any, method any, h
 	//   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
 	//   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
 	//
-	var error any = this.SafeValue(response, "error")
+	var error any = this.SafeDict(response, "error")
 	if !IsEqual(error, nil) {
 		var message *string = this.SafeString(error, "message")
 		var name *string = this.SafeString(error, "name")

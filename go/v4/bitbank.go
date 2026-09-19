@@ -374,8 +374,8 @@ func (this *Bitbank) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//       }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data")
-	var pairs any = this.SafeValue(data, "pairs", []any{})
+	var data map[string]any = SafeMapTyped(response, "data")
+	var pairs any = this.SafeList(data, "pairs", []any{})
 
 	ch <- this.ParseMarkets(pairs)
 	return nil
@@ -401,7 +401,7 @@ func (this *Bitbank) ParseMarket(entry any) any {
 		"swap":           false,
 		"future":         false,
 		"option":         false,
-		"active":         this.SafeValue(entry, "is_enabled"),
+		"active":         this.SafeBool(entry, "is_enabled"),
 		"contract":       false,
 		"linear":         nil,
 		"inverse":        nil,
@@ -539,7 +539,7 @@ func (this *Bitbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 	response := (<-this.PublicGetPairDepth(this.Extend(request, params)))
 	PanicOnError(response)
-	var orderbook any = this.SafeValue(response, "data", map[string]any{})
+	var orderbook any = this.SafeDict(response, "data", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 
 	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp)
@@ -630,7 +630,7 @@ func (this *Bitbank) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 	response := (<-this.PublicGetPairTransactions(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "transactions", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -691,7 +691,7 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var pairs any = this.SafeList(data, "pairs", []any{})
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(pairs); i++ {
@@ -795,9 +795,9 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
-	var candlestick any = this.SafeValue(data, "candlestick", []any{})
-	var first any = this.SafeValue(candlestick, 0, map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
+	var candlestick any = this.SafeList(data, "candlestick", []any{})
+	var first map[string]any = SafeMapTyped(candlestick, 0)
 	var ohlcv any = this.SafeList(first, "ohlcv", []any{})
 
 	ch <- this.ParseOHLCVs(ohlcv, market, timeframe, since, limit)
@@ -809,7 +809,7 @@ func (this *Bitbank) ParseBalance(response any) any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var assets any = this.SafeList(data, "assets", []any{})
 	for i := 0; i < GetArrayLength(assets); i++ {
 		var balance any = GetValue(assets, i)
@@ -1160,7 +1160,7 @@ func (this *Bitbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetUserSpotActiveOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -1214,7 +1214,7 @@ func (this *Bitbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetUserSpotTradeHistory(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -1252,10 +1252,10 @@ func (this *Bitbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 
 	response := (<-this.PrivateGetUserWithdrawalAccount(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	// Not sure about this if there could be more than one account...
-	var accounts any = this.SafeValue(data, "accounts", []any{})
-	var firstAccount any = this.SafeValue(accounts, 0, map[string]any{})
+	var accounts any = this.SafeList(data, "accounts", []any{})
+	var firstAccount map[string]any = SafeMapTyped(accounts, 0)
 	var address *string = this.SafeString(firstAccount, "address")
 
 	ch <- map[string]any{

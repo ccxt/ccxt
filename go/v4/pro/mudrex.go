@@ -305,8 +305,8 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	var market any = this.SafeMarket(ccxt.ToUpper(s))
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var parsed []any = []any{this.SafeTimestamp(data, "t"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
-	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), tf)
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), tf)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)

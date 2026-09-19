@@ -545,8 +545,8 @@ func (this *Woofipro) HandleOHLCV(client any, message any) {
 	var interval *string = this.SafeString(data, "type")
 	var timeframe any = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
-	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -728,8 +728,8 @@ func (this *Woofipro) HandleAuth(client any, message any) {
 	//     }
 	//
 	var messageHash string = "authenticated"
-	var success any = this.SafeValue(message, "success")
-	if success == true {
+	var success *bool = this.SafeBool(message, "success")
+	if success != nil && *success == true {
 		// client.resolve (message, messageHash)
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
 		future.(*ccxt.Future).Resolve(true)

@@ -936,7 +936,7 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	response := (<-this.PublicGetProvisioningLimitationsAndFees(params))
 	PanicOnError(response)
 	var tradingFeeRate map[string]any = SafeMapTyped(response, "tradingFeeRate")
-	var first any = this.SafeValue(tradingFeeRate, 0)
+	var first any = this.SafeDict(tradingFeeRate, 0)
 	//
 	//     {
 	//         "tradingFeeRate":[
@@ -1371,9 +1371,9 @@ func (this *Bitopro) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	}
 	if orderType == "STOP_LIMIT" {
 		request["price"] = this.PriceToPrecision(symbol, price)
-		var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
+		var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 		params = this.Omit(params, []any{"triggerPrice", "stopPrice"})
-		if IsEqual(triggerPrice, nil) {
+		if triggerPrice == nil {
 			panic(InvalidOrder(this.Id + " createOrder() requires a triggerPrice parameter for " + orderType + " orders"))
 		} else {
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)

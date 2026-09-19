@@ -1025,7 +1025,7 @@ func (this *Krakenfutures) HandleOrder(client any, message any) any {
 		orders = ccxt.NewArrayCacheBySymbolById(limit)
 		this.Orders = orders
 	}
-	var order any = this.SafeValue(message, "order")
+	var order any = this.SafeDict(message, "order")
 	if !ccxt.IsEqual(order, nil) {
 		var marketId *string = this.SafeString(order, "instrument")
 		var feed *string = this.SafeString(message, "feed")
@@ -1035,8 +1035,8 @@ func (this *Krakenfutures) HandleOrder(client any, message any) any {
 		}
 		var symbol *string = this.SafeSymbol(marketId)
 		var orderId *string = this.SafeString(order, "order_id")
-		var previousOrders any = this.SafeValue(orders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
-		var previousOrder any = this.SafeValue(previousOrders, orderId)
+		var previousOrders map[string]any = ccxt.SafeMapTyped(orders.(*ccxt.ArrayCache).Hashmap, symbol)
+		var previousOrder any = this.SafeDict(previousOrders, orderId)
 		var reason *string = this.SafeString(message, "reason")
 		if (ccxt.IsEqual(previousOrder, nil)) || (reason != nil && *reason == "edited_by_user") {
 			var parsed any = this.ParseWsOrder(order)
@@ -1088,8 +1088,8 @@ func (this *Krakenfutures) HandleOrder(client any, message any) any {
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		}
 	} else {
-		var isCancel any = this.SafeValue(message, "is_cancel")
-		if isCancel == true {
+		var isCancel *bool = this.SafeBool(message, "is_cancel")
+		if isCancel != nil && *isCancel == true {
 			// Kraken documents is_cancel as "fully filled, cancelled, or
 			// rejected". Derive unified status from `reason` instead of
 			// mapping every removal to canceled. Preserve reason on info
@@ -1243,12 +1243,12 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var isCancelled any = this.SafeValue(order, "is_cancel")
+	var isCancelled *bool = this.SafeBool(order, "is_cancel")
 	var unparsedOrder any = order
 	var status any = nil
-	if !ccxt.IsEqual(isCancelled, nil) {
+	if isCancelled != nil {
 		unparsedOrder = this.SafeValue(order, "order")
-		if isCancelled == true {
+		if isCancelled != nil && *isCancelled == true {
 			status = "cancelled"
 		}
 	}
@@ -1686,9 +1686,9 @@ func (this *Krakenfutures) HandleBalance(client any, message any) {
 	//        "seq": 2
 	//    }
 	//
-	var holding any = this.SafeValue(message, "holding")
-	var futures any = this.SafeValue(message, "futures")
-	var flexFutures any = this.SafeValue(message, "flex_futures")
+	var holding any = this.SafeDict(message, "holding")
+	var futures any = this.SafeDict(message, "futures")
+	var flexFutures any = this.SafeDict(message, "flex_futures")
 	var messageHash string = "balances"
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if !ccxt.IsEqual(holding, nil) {
@@ -1722,7 +1722,7 @@ func (this *Krakenfutures) HandleBalance(client any, message any) {
 			var key string = ccxt.GetValue(futuresKeys, i).(string)
 			var symbol *string = this.SafeSymbol(key)
 			var newAccount any = this.Account()
-			var future any = this.SafeValue(futures, key)
+			var future map[string]any = ccxt.SafeMapTyped(futures, key)
 			var currencyId *string = this.SafeString(future, "unit")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			ccxt.AddElementToObject(newAccount, "free", this.SafeString(future, "available"))
@@ -1747,7 +1747,7 @@ func (this *Krakenfutures) HandleBalance(client any, message any) {
 		}
 		for i := 0; i < len(flexFuturesKeys); i++ {
 			var key string = ccxt.GetValue(flexFuturesKeys, i).(string)
-			var flexFuture any = this.SafeValue(flexFutureCurrencies, key)
+			var flexFuture map[string]any = ccxt.SafeMapTyped(flexFutureCurrencies, key)
 			var code *string = this.SafeCurrencyCode(key)
 			var newAccount any = this.Account()
 			ccxt.AddElementToObject(newAccount, "free", this.SafeString(flexFuture, "available"))
@@ -1837,7 +1837,7 @@ func (this *Krakenfutures) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "time")
 	var marketId *string = this.SafeString(trade, "instrument")
 	market = this.SafeMarket(marketId, market)
-	var isBuy any = this.SafeValue(trade, "buy")
+	var isBuy *bool = this.SafeBool(trade, "buy")
 	var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
 	return this.SafeTrade(map[string]any{
 		"info":      trade,
@@ -1848,7 +1848,7 @@ func (this *Krakenfutures) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 		"order":     this.SafeString(trade, "order_id"),
 		"type":      this.SafeString(trade, "type"),
 		"side": func() string {
-			if isBuy == true {
+			if isBuy != nil && *isBuy == true {
 				return "buy"
 			}
 			return "sell"
@@ -2030,9 +2030,9 @@ func (this *Krakenfutures) HandleAuthenticate(client any, message any) any {
 	//        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
 	//    }
 	//
-	var event any = this.SafeValue(message, "event")
+	var event *string = this.SafeString(message, "event")
 	var messageHash string = "challenge"
-	if !ccxt.IsEqual(event, "error") {
+	if event == nil || *event != "error" {
 		var challenge any = this.SafeValue(message, "message")
 		var hashedChallenge any = this.Hash(this.Encode(challenge), ccxt.Sha256, "binary")
 		var base64Secret []byte = this.Base64ToBinary(this.Secret)

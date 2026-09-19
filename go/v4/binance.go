@@ -4385,7 +4385,7 @@ func (this *Binance) Market(symbol any) any {
 			// end diff
 			for i := 0; i < GetArrayLength(markets); i++ {
 				var market any = GetValue(markets, i)
-				if this.SafeValue(market, defaultType) == true {
+				if IsEqual(this.SafeBool(market, defaultType), true) {
 					return market
 				}
 			}
@@ -5991,9 +5991,9 @@ func (this *Binance) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		response = (<-this.EapiPublicGetDepth(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if GetValue(market, "linear") == true {
-		var rpi any = this.SafeValue(params, "rpi", false)
+		var rpi *bool = this.SafeBool(params, "rpi", false)
 		params = this.Omit(params, "rpi")
-		if rpi == true {
+		if rpi != nil && *rpi == true {
 			// rpi limit only supports 1000
 			request["limit"] = 1000
 
@@ -7755,7 +7755,7 @@ func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side 
 	} else {
 		request["newClientOrderId"] = clientOrderId
 	}
-	request["newOrderRespType"] = this.SafeValue(GetValue(this.Options, "newOrderRespType"), typeVar, "RESULT") // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+	request["newOrderRespType"] = this.SafeString(GetValue(this.Options, "newOrderRespType"), typeVar, "RESULT") // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
 	var timeInForceIsRequired bool = false
 	var priceIsRequired bool = false
 	var triggerPriceIsRequired bool = false
@@ -9386,7 +9386,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	if uppercaseType == "MARKET" {
 		if stock != nil && *stock == true {
 			if upperCaseSide == "BUY" {
-				var precision any = this.SafeValue(GetValue(market, "precision"), "price")
+				var precision *float64 = this.SafeNumber(GetValue(market, "precision"), "price")
 				var quoteOrderQtyNew *string = this.SafeString2(params, "quoteOrderQty", "cost")
 				var notional any = nil
 				if quoteOrderQtyNew != nil {
@@ -9398,7 +9398,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				} else {
 					notional = DerefScalar(this.NumberToString(amount))
 				}
-				if IsEqual(precision, nil) {
+				if precision == nil {
 					request["notional"] = notional
 				} else {
 					request["notional"] = this.DecimalToPrecision(notional, TRUNCATE, precision, this.PrecisionMode)
@@ -9418,7 +9418,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
 			if quoteOrderQty == true {
 				var quoteOrderQtyNew *string = this.SafeString2(params, "quoteOrderQty", "cost")
-				var precision any = this.SafeValue(GetValue(market, "precision"), "price")
+				var precision *float64 = this.SafeNumber(GetValue(market, "precision"), "price")
 				if quoteOrderQtyNew != nil {
 					request["quoteOrderQty"] = this.DecimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.PrecisionMode)
 				} else if !IsEqual(price, nil) {
@@ -12324,8 +12324,8 @@ func (this *Binance) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	if typeVar != nil {
 		var parts []string = Split(typeVar, "_")
-		fromAccount = this.SafeValue(parts, 0)
-		toAccount = this.SafeValue(parts, 1)
+		fromAccount = DerefScalar(this.SafeString(parts, 0))
+		toAccount = DerefScalar(this.SafeString(parts, 1))
 		fromAccount = DerefScalar(this.SafeString(accountsById, fromAccount, fromAccount))
 		toAccount = DerefScalar(this.SafeString(accountsById, toAccount, toAccount))
 	}
@@ -13958,7 +13958,7 @@ func (this *Binance) ParseAccountPosition(position any, optionalArgs ...any) any
 	var percentage any = nil
 	var liquidationPriceStringRaw any = nil
 	var liquidationPrice any = nil
-	var contractSize any = this.SafeValue(market, "contractSize")
+	var contractSize *float64 = this.SafeNumber(market, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
 	if Precise.StringEquals(notionalString, "0") {
 		entryPrice = nil
@@ -14180,7 +14180,7 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	}
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
 	var entryPrice any = this.ParseNumber(entryPriceString)
-	var contractSize any = this.SafeValue(market, "contractSize")
+	var contractSize *float64 = this.SafeNumber(market, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
 	// as oppose to notionalValue
 	var linear bool = (InOp(position, "notional"))
@@ -16468,7 +16468,7 @@ func (this *Binance) CalculateRateLimiterCost(api any, method any, path any, par
 			}
 		}
 	}
-	return this.SafeValue(config, "cost", 1)
+	return this.SafeNumber(config, "cost", 1)
 }
 func (this *Binance) RequestAsync(path any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)

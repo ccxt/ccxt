@@ -894,7 +894,7 @@ func (this *Ndax) ParseMarket(market any) any {
 	var base *string = this.SafeCurrencyCode(this.SafeString(market, "Product1Symbol"))
 	var quote *string = this.SafeCurrencyCode(this.SafeString(market, "Product2Symbol"))
 	var sessionStatus *string = this.SafeString(market, "SessionStatus")
-	var isDisable any = this.SafeValue(market, "IsDisable")
+	var isDisable *bool = this.SafeBool(market, "IsDisable")
 	var sessionRunning bool = (sessionStatus != nil && *sessionStatus == "Running")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -911,7 +911,7 @@ func (this *Ndax) ParseMarket(market any) any {
 		"swap":           false,
 		"future":         false,
 		"option":         false,
-		"active":         (sessionRunning && (isDisable != true)),
+		"active":         (sessionRunning && (isDisable == nil || *isDisable != true)),
 		"contract":       false,
 		"linear":         nil,
 		"inverse":        nil,
@@ -3186,7 +3186,7 @@ func (this *Ndax) ParseTransactionStatusByType(optionalArgs ...any) *string {
 		if typeVar == nil {
 			return map[string]any{}
 		}
-		return this.SafeValue(statusesByType, typeVar, map[string]any{})
+		return this.SafeDict(statusesByType, typeVar, map[string]any{})
 	}()
 	if status == nil {
 		return nil
@@ -3365,8 +3365,8 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	//         ]
 	//     }
 	//
-	var templateTypes any = this.SafeValue(withdrawTemplateTypesResponse, "TemplateTypes", []any{})
-	var firstTemplateType any = this.SafeValue(templateTypes, 0)
+	var templateTypes any = this.SafeList(withdrawTemplateTypesResponse, "TemplateTypes", []any{})
+	var firstTemplateType any = this.SafeDict(templateTypes, 0)
 	if IsEqual(firstTemplateType, nil) {
 		panic(ExchangeError(Add(this.Id+" withdraw() could not find a withdraw template type for ", currency["code"])))
 	}

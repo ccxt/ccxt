@@ -989,7 +989,7 @@ func (this *Poloniex) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	markets := (<-this.Exchange.LoadMarketsAsync(reload, params))
 	PanicOnError(markets)
-	var currenciesByNumericId any = this.SafeValue(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
 	if (IsEqual(currenciesByNumericId, nil)) || EvalTruthy(reload) {
 		this.Options.Store("currenciesByNumericId", this.IndexBy(this.Currencies, "numericId"))
 	}
@@ -1137,7 +1137,7 @@ func (this *Poloniex) ParseSpotMarket(market any) any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var state *string = this.SafeString(market, "state")
 	var active bool = (state != nil && *state == "NORMAL")
-	var symbolTradeLimit any = this.SafeValue(market, "symbolTradeLimit")
+	var symbolTradeLimit map[string]any = SafeMapTyped(market, "symbolTradeLimit")
 	// these are known defaults
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -2320,7 +2320,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		}()
 		request["limit"] = mathMax(limit, max)
 	}
-	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
+	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var response any = []any{}
 	if !IsEqual(marketType, "spot") {
@@ -2367,7 +2367,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		//            },
 		//
 		response = this.SafeList(raw, "data", []any{})
-	} else if isTrigger == true {
+	} else if isTrigger != nil && *isTrigger == true {
 
 		response = (<-this.PrivateGetSmartorders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2823,10 +2823,10 @@ func (this *Poloniex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		id = clientOrderId
 	}
 	request["id"] = id
-	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
+	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"clientOrderId", "trigger", "stop"})
 	var response any = map[string]any{}
-	if isTrigger == true {
+	if isTrigger != nil && *isTrigger == true {
 
 		response = (<-this.PrivateDeleteSmartordersId(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2912,9 +2912,9 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		ch <- this.ParseOrders(response, market)
 		return nil
 	}
-	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
+	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
-	if isTrigger == true {
+	if isTrigger != nil && *isTrigger == true {
 
 		response = (<-this.PrivateDeleteSmartorders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2988,10 +2988,10 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if !IsEqual(marketType, "spot") {
 		panic(NotSupported(Add(Add(this.Id+" fetchOrder() is not supported for ", marketType), " markets yet")))
 	}
-	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
+	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var response any = map[string]any{}
-	if isTrigger == true {
+	if isTrigger != nil && *isTrigger == true {
 
 		response = (<-this.PrivateGetSmartordersId(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3146,10 +3146,10 @@ func (this *Poloniex) ParseBalance(response any) any {
 	}
 	// for spot
 	for i := 0; i < GetArrayLength(response); i++ {
-		var account any = this.SafeValue(response, i, map[string]any{})
+		var account any = this.SafeDict(response, i, map[string]any{})
 		var balances any = this.SafeValue(account, "balances")
 		for j := 0; j < GetArrayLength(balances); j++ {
-			var balance any = this.SafeValue(balances, j)
+			var balance any = this.SafeDict(balances, j)
 			var currencyId *string = this.SafeString(balance, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var newAccount any = this.Account()
@@ -3580,7 +3580,7 @@ func (this *Poloniex) transferBody(ch chan any, code any, amount any, fromAccoun
 	retRes28148 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes28148)
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, fromAccount)
 	var request map[string]any = map[string]any{
@@ -3828,8 +3828,8 @@ func (this *Poloniex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var withdrawals any = this.SafeValue(response, "withdrawals", []any{})
-	var deposits any = this.SafeValue(response, "deposits", []any{})
+	var withdrawals any = this.SafeList(response, "withdrawals", []any{})
+	var deposits any = this.SafeList(response, "deposits", []any{})
 	var withdrawalTransactions any = this.ParseTransactions(withdrawals, currency, since, limit)
 	var depositTransactions any = this.ParseTransactions(deposits, currency, since, limit)
 	var transactions []any = this.ArrayConcat(depositTransactions, withdrawalTransactions)
@@ -3872,7 +3872,7 @@ func (this *Poloniex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var withdrawals any = this.SafeValue(response, "withdrawals", []any{})
+	var withdrawals any = this.SafeList(response, "withdrawals", []any{})
 	var transactions any = this.ParseTransactions(withdrawals, currency, since, limit)
 
 	ch <- this.FilterByCurrencySinceLimit(transactions, code, since, limit)
@@ -3989,7 +3989,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 					var networkId any = GetValue(childChains, j)
 					networkId = Replace(networkId, code, "")
 					var networkCode any = this.NetworkIdToCode(networkId, currency["code"])
-					var networkInfo any = this.SafeValue(response, networkId)
+					var networkInfo map[string]any = SafeMapTyped(response, networkId)
 					var networkObject map[string]any = map[string]any{}
 					var withdrawFee *float64 = this.SafeNumber(networkInfo, "withdrawalFee")
 					if networkCode != nil {
@@ -4088,7 +4088,7 @@ func (this *Poloniex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var deposits any = this.SafeValue(response, "deposits", []any{})
+	var deposits any = this.SafeList(response, "deposits", []any{})
 	var transactions any = this.ParseTransactions(deposits, currency, since, limit)
 
 	ch <- this.FilterByCurrencySinceLimit(transactions, code, since, limit)

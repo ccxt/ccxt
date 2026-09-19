@@ -1847,7 +1847,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 		currency = this.Currency(code)
 		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
-		var account any = this.SafeValue(accountsByCurrencyCode, code)
+		var account any = this.SafeDict(accountsByCurrencyCode, code)
 		if IsEqual(account, nil) {
 			panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
 		}
@@ -1877,7 +1877,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetAccountsIdTransactions(this.Extend(params, request)))
 	PanicOnError(response)
-	var entries any = this.SafeValue(response, "transactions", []any{})
+	var entries any = this.SafeList(response, "transactions", []any{})
 
 	ch <- this.ParseLedger(entries, currency, since, limit)
 	return nil

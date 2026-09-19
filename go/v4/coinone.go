@@ -573,7 +573,7 @@ func (this *Coinone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var tickers any = this.SafeList(response, "tickers", []any{})
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(tickers); i++ {
-		var entry any = this.SafeValue(tickers, i)
+		var entry any = this.SafeDict(tickers, i)
 		var id *string = this.SafeString(entry, "id")
 		var baseId *string = this.SafeStringUpper(entry, "target_currency")
 		var quoteId *string = this.SafeStringUpper(entry, "quote_currency")
@@ -1616,10 +1616,10 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 			continue
 		}
 		var parts []string = strings.Split(key, "_")
-		var currencyId any = this.SafeValue(parts, 0)
-		var secondPart any = this.SafeValue(parts, 1)
+		var currencyId *string = this.SafeString(parts, 0)
+		var secondPart *string = this.SafeString(parts, 1)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var depositAddress any = this.SafeValue(result, code)
+		var depositAddress any = this.SafeDict(result, code)
 		if IsEqual(depositAddress, nil) {
 			depositAddress = map[string]any{
 				"info":     value,
@@ -1633,7 +1633,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		this.CheckAddress(address)
 		AddElementToObject(depositAddress, "address", address)
 		AddElementToObject(depositAddress, "info", address)
-		if (IsEqual(secondPart, "tag")) || (IsEqual(secondPart, "memo")) {
+		if (secondPart != nil && *secondPart == "tag") || (secondPart != nil && *secondPart == "memo") {
 			AddElementToObject(depositAddress, "tag", value)
 			AddElementToObject(depositAddress, "info", []any{address, value})
 		}

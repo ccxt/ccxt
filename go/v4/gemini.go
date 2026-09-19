@@ -720,7 +720,7 @@ func (this *Gemini) fetchCurrenciesFromWebBody(ch chan any, optionalArgs ...any)
 	//    }
 	//
 	this.Options.Store("tradingPairs", this.SafeList(data, "tradingPairs"))
-	var currenciesArray any = this.SafeValue(data, "currencies", []any{})
+	var currenciesArray any = this.SafeList(data, "currencies", []any{})
 
 	ch <- this.ParseCurrencies(currenciesArray)
 	return nil
@@ -808,8 +808,8 @@ func (this *Gemini) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var method any = this.SafeValue(this.Options, "fetchMarketsMethod", "fetch_markets_from_api")
-	if IsEqual(method, "fetch_markets_from_web") {
+	var method *string = this.SafeString(this.Options, "fetchMarketsMethod", "fetch_markets_from_api")
+	if method != nil && *method == "fetch_markets_from_web" {
 		var promises []any = []any{}
 		promises = append(promises, this.FetchMarketsFromWebAsync(params)) // get usd markets
 		promises = append(promises, this.FetchUSDTMarketsAsync(params))    // get usdt markets
@@ -1386,15 +1386,15 @@ func (this *Gemini) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var method any = this.SafeValue(this.Options, "fetchTickerMethod", "fetchTickerV1")
-	if IsEqual(method, "fetchTickerV1") {
+	var method *string = this.SafeString(this.Options, "fetchTickerMethod", "fetchTickerV1")
+	if method != nil && *method == "fetchTickerV1" {
 
 		retRes103119 := (<-this.FetchTickerV1Async(symbol, params))
 		PanicOnError(retRes103119)
 		ch <- retRes103119
 		return nil
 	}
-	if IsEqual(method, "fetchTickerV2") {
+	if method != nil && *method == "fetchTickerV2" {
 
 		retRes103419 := (<-this.FetchTickerV2Async(symbol, params))
 		PanicOnError(retRes103419)
@@ -1446,7 +1446,7 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var volume any = this.SafeValue(ticker, "volume", map[string]any{})
+	var volume map[string]any = SafeMapTyped(ticker, "volume")
 	var timestamp *int64 = this.SafeInteger(volume, "timestamp")
 	var symbol any = nil
 	var marketId *string = this.SafeStringLower(ticker, "pair")
@@ -1956,7 +1956,7 @@ func (this *Gemini) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString(order, "order_id")
 	var side *string = this.SafeStringLower(order, "side")
 	var clientOrderId *string = this.SafeString(order, "client_order_id")
-	var optionsArray any = this.SafeValue(order, "options", []any{})
+	var optionsArray any = this.SafeList(order, "options", []any{})
 	var option *string = this.SafeString(optionsArray, 0)
 	var timeInForce string = "GTC"
 	var postOnly bool = false

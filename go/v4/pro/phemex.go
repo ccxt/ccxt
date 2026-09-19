@@ -411,7 +411,7 @@ func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
 		var balance any = ccxt.GetValue(message, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var currency any = this.SafeValue(this.Currencies, code, map[string]any{})
+		var currency map[string]any = ccxt.SafeMapTyped(this.Currencies, code)
 		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
 		var account any = this.Account()
 		var used any = ccxt.DerefScalar(this.SafeString(balance, "totalUsedBalanceRv"))
@@ -477,7 +477,7 @@ func (this *Phemex) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var trades any = this.SafeValue2(message, "trades", "trades_p", []any{})
+	var trades any = this.SafeList2(message, "trades", "trades_p", []any{})
 	var parsed any = this.ParseTrades(trades, market)
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsed, i))
@@ -519,15 +519,15 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var candles any = this.SafeValue2(message, "kline", "kline_p", []any{})
-	var first any = this.SafeValue(candles, 0, []any{})
+	var candles any = this.SafeList2(message, "kline", "kline_p", []any{})
+	var first any = this.SafeList(candles, 0, []any{})
 	var interval *string = this.SafeString(first, 1)
 	var timeframe any = this.FindTimeframe(interval)
 	if timeframe != nil {
 		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("kline:", timeframe), ":"), symbol)
 		var ohlcvs any = this.ParseOHLCVs(candles, market)
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
-		var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -924,7 +924,7 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 	var nonce *int64 = this.SafeInteger(message, "sequence")
 	var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
 	if typeVar != nil && *typeVar == "snapshot" {
-		var book any = this.SafeValue2(message, "book", "orderbook_p", map[string]any{})
+		var book any = this.SafeDict2(message, "book", "orderbook_p", map[string]any{})
 		var snapshot any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
 		ccxt.AddElementToObject(snapshot, "nonce", nonce)
 		var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot, depth)
@@ -1375,8 +1375,8 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	var trades any = []any{}
 	var parsedOrders []any = []any{}
 	if (ccxt.InOp(message, "closed")) || (ccxt.InOp(message, "fills")) || (ccxt.InOp(message, "open")) {
-		var closed any = this.SafeValue(message, "closed", []any{})
-		var open any = this.SafeValue(message, "open", []any{})
+		var closed any = this.SafeList(message, "closed", []any{})
+		var open any = this.SafeList(message, "open", []any{})
 		var orders []any = this.ArrayConcat(open, closed)
 		var ordersLength int = len(orders)
 		if ordersLength == 0 {
@@ -1737,7 +1737,7 @@ func (this *Phemex) HandleMessage(client any, message any) {
 		return
 	}
 	if (ccxt.InOp(message, "orders")) || (ccxt.InOp(message, "orders_p")) {
-		var orders any = this.SafeValue2(message, "orders", "orders_p", map[string]any{})
+		var orders any = this.SafeDict2(message, "orders", "orders_p", map[string]any{})
 		this.HandleOrders(client, orders)
 	}
 	if (ccxt.InOp(message, "accounts")) || (ccxt.InOp(message, "accounts_p")) || (ccxt.InOp(message, "wallets")) {
@@ -1750,7 +1750,7 @@ func (this *Phemex) HandleMessage(client any, message any) {
 		if ccxt.InOp(message, "accounts_p") {
 			typeVar = "perpetual"
 		}
-		var accounts any = this.SafeValueN(message, []any{"accounts", "accounts_p", "wallets"}, []any{})
+		var accounts any = this.SafeListN(message, []any{"accounts", "accounts_p", "wallets"}, []any{})
 		this.HandleBalance(typeVar, client, accounts)
 	}
 }
@@ -1764,7 +1764,7 @@ func (this *Phemex) HandleAuthenticate(client any, message any) {
 	//     }
 	// }
 	//
-	var result any = this.SafeValue(message, "result")
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	var status *string = this.SafeString(result, "status")
 	var messageHash string = "authenticated"
 	if status != nil && *status == "success" {
@@ -1797,7 +1797,7 @@ func (this *Phemex) subscribePrivateBody(ch chan any, typeVar any, messageHash a
 	ccxt.PanicOnError(retRes15728)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId int64 = this.Seconds()
-	var settleIsUSDT bool = (this.SafeValue(params, "settle", "") == "USDT")
+	var settleIsUSDT bool = (ccxt.IsEqual(this.SafeString(params, "settle", ""), "USDT"))
 	params = this.Omit(params, "settle")
 	var channel string = "aop.subscribe"
 	if ccxt.IsEqual(typeVar, "spot") {

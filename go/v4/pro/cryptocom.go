@@ -380,7 +380,7 @@ func (this *Cryptocom) HandleOrderBook(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var data any = this.SafeValue(message, "data")
-	data = this.SafeValue(data, 0)
+	data = this.SafeDict(data, 0)
 	var timestamp *int64 = this.SafeInteger(data, "t")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var limit *int64 = this.SafeInteger(message, "depth")
@@ -397,7 +397,7 @@ func (this *Cryptocom) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 		ccxt.AddElementToObject(orderbook, "nonce", nonce)
 	} else {
-		books = this.SafeValue(data, "update", map[string]any{})
+		books = this.SafeDict(data, "update", map[string]any{})
 		var previousNonce *int64 = this.SafeInteger(data, "pu")
 		var currentNonce any = ccxt.GetValue(orderbook, "nonce")
 		if !ccxt.IsEqual(currentNonce, previousNonce) {
@@ -407,8 +407,8 @@ func (this *Cryptocom) HandleOrderBook(client any, message any) {
 			}
 		}
 	}
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeValue(books, "asks", []any{}))
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeValue(books, "bids", []any{}))
+	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(books, "asks", []any{}))
+	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(books, "bids", []any{}))
 	ccxt.AddElementToObject(orderbook, "nonce", nonce)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
@@ -515,7 +515,7 @@ func (this *Cryptocom) watchTradesForSymbolsBody(ch chan any, symbols any, optio
 	trades := (<-this.WatchPublicMultipleAsync(topics, topics, params))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -1124,7 +1124,7 @@ func (this *Cryptocom) HandleOHLCV(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var interval *string = this.SafeString(message, "interval")
 	var timeframe any = this.FindTimeframe(interval)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1395,8 +1395,8 @@ func (this *Cryptocom) HandlePositions(client any, message any) {
 	//
 	// each account is connected to a different endpoint
 	// and has exactly one subscriptionhash which is the account type
-	var data any = this.SafeValue(message, "data", []any{})
-	var firstData any = this.SafeValue(data, 0, map[string]any{})
+	var data any = this.SafeList(message, "data", []any{})
+	var firstData map[string]any = ccxt.SafeMapTyped(data, 0)
 	var rawPositions any = this.SafeList(firstData, "positions", []any{})
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
@@ -1619,7 +1619,7 @@ func (this *Cryptocom) HandleOrder(client any, message any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var rawOrder any = this.SafeValue(message, "result", map[string]any{})
+	var rawOrder any = this.SafeDict(message, "result", map[string]any{})
 	var order any = this.ParseOrder(rawOrder)
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
@@ -1900,8 +1900,8 @@ func (this *Cryptocom) HandleErrorMessage(client any, message any) any {
 			if ((errorCode != nil) && (errorCode == nil || *errorCode != "")) && (errorCode == nil || *errorCode != "0") {
 				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
-				var messageString any = this.SafeValue(message, "message")
-				if !ccxt.IsEqual(messageString, nil) {
+				var messageString *string = this.SafeString(message, "message")
+				if messageString != nil {
 					this.ThrowBroadlyMatchedException(this.Exceptions["broad"], messageString, feedback)
 				}
 				panic(ccxt.ExchangeError(feedback))

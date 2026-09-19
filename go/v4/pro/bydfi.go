@@ -876,7 +876,7 @@ func (this *Bydfi) watchOrdersForSymbolsBody(ch chan any, symbols any, optionalA
 	orders := (<-this.WatchPrivateAsync(messageHashes, params))
 	ccxt.PanicOnError(orders)
 	if this.NewUpdates {
-		var first any = this.SafeValue(orders, 0)
+		var first map[string]any = ccxt.SafeMapTyped(orders, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(orders).GetLimit(tradeSymbol, limit)
 	}
@@ -1220,7 +1220,7 @@ func (this *Bydfi) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Bydfi) FetchBalanceSnapshot(client any) {
-	var options any = this.SafeValue(this.Options, "watchBalance")
+	var options any = this.SafeDict(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
 		var messageHash string = "fetchBalanceSnapshot"

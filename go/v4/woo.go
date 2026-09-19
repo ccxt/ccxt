@@ -2473,7 +2473,7 @@ func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.V3PrivateGetTradeOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -2693,7 +2693,7 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "quantity") // This is base amount
 	var cost *string = this.SafeString(order, "amount")     // This is quote amount
 	var orderType *string = this.SafeStringLower(order, "type")
-	var status any = this.SafeValue2(order, "status", "algoStatus")
+	var status *string = this.SafeString2(order, "status", "algoStatus")
 	var side *string = this.SafeStringLower(order, "side")
 	var filled *string = this.SafeString2(order, "executed", "totalExecutedQuantity")
 	var average any = this.OmitZero(this.SafeString(order, "averageExecutedPrice"))
@@ -5909,7 +5909,7 @@ func (this *Woo) DefaultNetworkCodeForCurrency(code any) any {
 		}
 	}
 	// if it was not returned according to above options, then return the first network of currency
-	return this.SafeValue(networkKeys, 0)
+	return this.SafeString(networkKeys, 0)
 }
 func (this *Woo) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)

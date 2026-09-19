@@ -775,10 +775,10 @@ func (this *Blofin) watchOrdersForSymbolsBody(ch chan any, symbols any, optional
 		retRes55412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes55412)
 	}
-	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var channel string = func() string {
-		if trigger == true {
+		if trigger != nil && *trigger == true {
 			return "orders-algo"
 		}
 		return "orders"
@@ -787,7 +787,7 @@ func (this *Blofin) watchOrdersForSymbolsBody(ch chan any, symbols any, optional
 	orders := (<-this.WatchMultipleWrapperAsync(false, channel, "watchOrdersForSymbols", symbols, params))
 	ccxt.PanicOnError(orders)
 	if this.NewUpdates {
-		var first any = this.SafeValue(orders, 0)
+		var first map[string]any = ccxt.SafeMapTyped(orders, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(orders).GetLimit(tradeSymbol, limit)
 	}

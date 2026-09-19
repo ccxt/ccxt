@@ -1760,7 +1760,7 @@ func (this *Coinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var market any = nil
 	if symbols != nil {
-		var symbol any = this.SafeValue(symbols, 0)
+		var symbol *string = this.SafeString(symbols, 0)
 		market = this.Market(symbol)
 	}
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
@@ -2165,7 +2165,7 @@ func (this *Coinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 func (this *Coinex) ParseTradingFee(fee any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeValue(fee, "market")
+	var marketId *string = this.SafeString(fee, "market")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	return map[string]any{
 		"info":       fee,
@@ -3139,9 +3139,9 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		}
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeValue(rawOrder, "params", map[string]any{})
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		if typeVar == nil || *typeVar != "limit" {
 			panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", typeVar), " orders, only limit orders are accepted")))
 		}
@@ -3435,8 +3435,8 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 			AppendToArray(&orderSymbols, marketId)
 		}
 		var id *string = this.SafeString(rawOrder, "id")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var marginMode any = nil
 		marginModeorderParamsVariable := this.HandleMarginModeAndParams("editOrders", orderParams)
@@ -3453,10 +3453,10 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 			"market":      GetValue(market, "id"),
 			"market_type": market_type,
 		}
-		if !IsEqual(amount, nil) {
+		if amount != nil {
 			orderRequest["amount"] = this.AmountToPrecision(marketId, amount)
 		}
-		if !IsEqual(price, nil) {
+		if price != nil {
 			orderRequest["price"] = this.PriceToPrecision(marketId, price)
 		}
 		ordersRequests = append(ordersRequests, this.Extend(orderRequest, orderParams))
@@ -5100,7 +5100,7 @@ func (this *Coinex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{}
 	var market any = nil
 	if symbols != nil {
-		var symbol any = this.SafeValue(symbols, 0)
+		var symbol *string = this.SafeString(symbols, 0)
 		market = this.Market(symbol)
 		if GetValue(market, "swap") != true {
 			panic(BadSymbol(this.Id + " fetchFundingRates() supports swap contracts only"))
@@ -5536,7 +5536,7 @@ func (this *Coinex) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(transfer, "ccy")
 	var fromId *string = this.SafeString(transfer, "from_account_type")
 	var toId *string = this.SafeString(transfer, "to_account_type")
-	var accountsById any = this.SafeValue(this.Options, "accountsById", map[string]any{})
+	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	return map[string]any{
 		"id":          nil,
 		"timestamp":   timestamp,
@@ -5963,7 +5963,7 @@ func (this *Coinex) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	//         "message": "OK"
 	//     }
 	//
-	var rows any = this.SafeValue(response, "data", []any{})
+	var rows any = this.SafeList(response, "data", []any{})
 	var interest any = this.ParseBorrowInterests(rows, market)
 
 	ch <- this.FilterByCurrencySinceLimit(interest, code, since, limit)

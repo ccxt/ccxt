@@ -1424,8 +1424,8 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "symbol")
 	var side *string = this.SafeString(trade, "side")
 	var typeVar any = nil
-	var priorEdit any = this.SafeValue(trade, "orderPriorEdit")
-	var priorExecution any = this.SafeValue(trade, "orderPriorExecution")
+	var priorEdit any = this.SafeDict(trade, "orderPriorEdit")
+	var priorExecution any = this.SafeDict(trade, "orderPriorExecution")
 	if !IsEqual(priorExecution, nil) {
 		order = this.SafeString(priorExecution, "orderId")
 		marketId = this.SafeString(priorExecution, "symbol")
@@ -1743,7 +1743,7 @@ func (this *Krakenfutures) createOrdersBody(ch chan any, orders any, optionalArg
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeValue(rawOrder, "params", map[string]any{})
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		if !(func() bool { _, ok := extendedParams["order_tag"]; return ok }()) {
 			// order tag is mandatory so we will generate one if not provided
@@ -1868,7 +1868,7 @@ func (this *Krakenfutures) cancelOrderBody(ch chan any, id any, optionalArgs ...
 		"order_id": id,
 	}, params)))
 	PanicOnError(response)
-	var status *string = this.SafeString(this.SafeValue(response, "cancelStatus", map[string]any{}), "status")
+	var status *string = this.SafeString(this.SafeDict(response, "cancelStatus", map[string]any{}), "status")
 	this.VerifyOrderActionSuccess(status, "cancelOrder")
 	var order any = map[string]any{}
 	if InOp(response, "cancelStatus") {
@@ -2841,7 +2841,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 					fixed = true
 				} else if !fixed {
 					var executedPrice *string = this.SafeString(item, "price")
-					var orderPriorExecution any = this.SafeValue(item, "orderPriorExecution")
+					var orderPriorExecution map[string]any = SafeMapTyped(item, "orderPriorExecution")
 					details = this.SafeValue2(item, "orderPriorExecution", "orderPriorEdit")
 					if executedPrice == nil {
 						price = DerefScalar(this.SafeString(orderPriorExecution, "limitPrice"))
@@ -3489,8 +3489,8 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 		}()
 	}
 	var accountName any = this.ParseAccount(typeVar)
-	var accounts any = this.SafeValue(response, "accounts")
-	var account any = this.SafeValue(accounts, accountName)
+	var accounts map[string]any = SafeMapTyped(response, "accounts")
+	var account any = this.SafeDict(accounts, accountName)
 	if IsEqual(account, nil) {
 		typeVar = func() any {
 			if IsEqual(typeVar, nil) {
@@ -3603,7 +3603,7 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 			AddElementToObject(account, "used", "0.0")
 			AddElementToObject(account, "total", balance)
 		} else {
-			var auxiliary any = this.SafeValue(response, "auxiliary")
+			var auxiliary map[string]any = SafeMapTyped(response, "auxiliary")
 			AddElementToObject(account, "free", this.SafeString(auxiliary, "af"))
 			AddElementToObject(account, "total", this.SafeString(auxiliary, "pv"))
 		}
@@ -3648,7 +3648,7 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan any, optionalArgs ...an
 	var fundingRates []any = []any{}
 	for i := 0; i < GetArrayLength(tickers); i++ {
 		var entry any = GetValue(tickers, i)
-		var entry_symbol any = this.SafeValue(entry, "symbol")
+		var entry_symbol *string = this.SafeString(entry, "symbol")
 		if !IsEqual(marketIds, nil) {
 			if !this.InArray(entry_symbol, marketIds) {
 				continue
@@ -4060,7 +4060,7 @@ func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...an
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marginLevels any = this.SafeValue(info, "marginLevels")
+	var marginLevels any = this.SafeList(info, "marginLevels")
 	var marketId *string = this.SafeString(info, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var tiers []any = []any{}
@@ -4400,8 +4400,8 @@ func (this *Krakenfutures) HandleErrors(code any, reason any, url any, method an
 	if IsEqual(code, 429) {
 		panic(DDoSProtection(Add(this.Id+" ", body)))
 	}
-	var errors any = this.SafeValue(response, "errors")
-	var firstError any = this.SafeValue(errors, 0)
+	var errors any = this.SafeList(response, "errors")
+	var firstError map[string]any = SafeMapTyped(errors, 0)
 	var firtErrorMessage *string = this.SafeString(firstError, "message")
 	var message *string = this.SafeString(response, "error", firtErrorMessage)
 	if message == nil {
@@ -4426,13 +4426,13 @@ func (this *Krakenfutures) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var apiVersions any = this.SafeValue(GetValue(this.Options, "versions"), api, map[string]any{})
-	var methodVersions any = this.SafeValue(apiVersions, method, map[string]any{})
+	var apiVersions map[string]any = SafeMapTyped(GetValue(this.Options, "versions"), api)
+	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
 	var defaultVersion *string = this.SafeString(methodVersions, path, this.Version)
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	params = this.Omit(params, "version")
-	var apiAccess any = this.SafeValue(GetValue(this.Options, "access"), api, map[string]any{})
-	var methodAccess any = this.SafeValue(apiAccess, method, map[string]any{})
+	var apiAccess map[string]any = SafeMapTyped(GetValue(this.Options, "access"), api)
+	var methodAccess map[string]any = SafeMapTyped(apiAccess, method)
 	var access *string = this.SafeString(methodAccess, path, "public")
 	var endpoint any = Add(Add(version, "/"), this.ImplodeParams(path, params))
 	params = this.Omit(params, this.ExtractParams(path))

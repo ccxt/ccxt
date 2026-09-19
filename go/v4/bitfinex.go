@@ -1449,7 +1449,7 @@ func (this *Bitfinex) ParseTransfer(transfer any, optionalArgs ...any) any {
 	_ = currency
 	var result any = this.SafeList(transfer, "result")
 	var timestamp *int64 = this.SafeInteger(result, 0)
-	var info any = this.SafeValue(result, 4)
+	var info any = this.SafeList(result, 4)
 	var fromAccount *string = this.SafeString(info, 1)
 	var toAccount *string = this.SafeString(info, 2)
 	var currencyId *string = this.SafeString(info, 5)
@@ -1480,9 +1480,9 @@ func (this *Bitfinex) ConvertDerivativesId(currency any, typeVar any) any {
 	//   "id": "fUSTF0",
 	//   "code": "USTF0",
 	//   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
-	var info any = this.SafeValue(currency, "info")
+	var info any = this.SafeList(currency, "info")
 	var transferId *string = this.SafeString(info, 0)
-	var underlying any = this.SafeValue(info, 4, []any{})
+	var underlying any = this.SafeList(info, 4, []any{})
 	var currencyId any = nil
 	if IsEqual(typeVar, "derivatives") {
 		currencyId = DerefScalar(this.SafeString(underlying, 0, transferId))
@@ -2119,7 +2119,7 @@ func (this *Bitfinex) ParseOrderFlags(flags any) any {
 		"4096": []any{"postOnly"},
 		"5120": []any{"reduceOnly", "postOnly"},
 	}
-	return this.SafeValue(flagValues, flags, nil)
+	return this.SafeList(flagValues, flags, nil)
 }
 func (this *Bitfinex) ParseTimeInForce(orderType any) *string {
 	var orderTypes map[string]any = map[string]any{
@@ -2150,7 +2150,7 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 		return "buy"
 	}()
 	var orderType *string = this.SafeString(orderList, 8)
-	var typeVar *string = this.SafeString(this.SafeValue(this.Options, "exchangeTypes"), orderType)
+	var typeVar *string = this.SafeString(this.SafeDict(this.Options, "exchangeTypes"), orderType)
 	var timeInForce *string = this.ParseTimeInForce(orderType)
 	var rawFlags *string = this.SafeString(orderList, 12)
 	var flags any = this.ParseOrderFlags(rawFlags)
@@ -3184,8 +3184,8 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	var currency map[string]any = this.Currency(code).(map[string]any)
 	// if not provided explicitly we will try to match using the currency name
 	var network *string = this.SafeString(params, "network", code)
-	var currencyNetworks any = this.SafeValue(currency, "networks", map[string]any{})
-	var currencyNetwork any = this.SafeValue(currencyNetworks, network)
+	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
+	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
 	if networkId == nil {
 		panic(ArgumentsRequired(Add(Add(this.Id+" fetchDepositAddress() could not find a network for '", code), "'. You can specify it by providing the 'network' value inside params")))
@@ -3219,7 +3219,7 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	//         "success", // TEXT Text of the notification
 	//     ]
 	//
-	var result any = this.SafeValue(response, 4, []any{})
+	var result any = this.SafeList(response, 4, []any{})
 	var poolAddress *string = this.SafeString(result, 5)
 	var address any = func() any {
 		if poolAddress == nil {
@@ -3329,7 +3329,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 	var network any = nil
 	var comment any = nil
 	if transactionLength == 8 {
-		var data any = this.SafeValue(transaction, 4, []any{})
+		var data any = this.SafeList(transaction, 4, []any{})
 		timestamp = this.SafeInteger(transaction, 0)
 		if currency != nil {
 			code = GetValue(currency, "code")
@@ -3498,9 +3498,9 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	//
 	var result map[string]any = map[string]any{}
 	var fiat map[string]any = SafeMapTyped(this.Options, "fiat")
-	var feeData any = this.SafeValue(response, 4, []any{})
-	var makerData any = this.SafeValue(feeData, 0, []any{})
-	var takerData any = this.SafeValue(feeData, 1, []any{})
+	var feeData any = this.SafeList(response, 4, []any{})
+	var makerData any = this.SafeList(feeData, 0, []any{})
+	var takerData any = this.SafeList(feeData, 1, []any{})
 	var makerFee *float64 = this.SafeNumber(makerData, 0)
 	var makerFeeFiat *float64 = this.SafeNumber(makerData, 2)
 	var makerFeeDeriv *float64 = this.SafeNumber(makerData, 5)
@@ -3655,8 +3655,8 @@ func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address an
 	// if not provided explicitly we will try to match using the currency name
 	var network *string = this.SafeString(params, "network", code)
 	params = this.Omit(params, "network")
-	var currencyNetworks any = this.SafeValue(currency, "networks", map[string]any{})
-	var currencyNetwork any = this.SafeValue(currencyNetworks, network)
+	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
+	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
 	if networkId == nil {
 		panic(ArgumentsRequired(Add(Add(this.Id+" withdraw() could not find a network for '", code), "'. You can specify it by providing the 'network' value inside params")))
@@ -3672,7 +3672,7 @@ func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address an
 	if tag != nil {
 		request["payment_id"] = tag
 	}
-	var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
+	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var includeFee *bool = this.SafeBool(withdrawOptions, "includeFee", false)
 	if includeFee != nil && *includeFee == true {
 		request["fee_deduct"] = 1

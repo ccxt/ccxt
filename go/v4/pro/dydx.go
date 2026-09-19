@@ -499,7 +499,7 @@ func (this *Dydx) HandleOHLCV(client any, message any) {
 	var messageHash any = ccxt.Add("ohlcv:", symbol)
 	var ohlcv any = this.SafeDict(candles, 0, content)
 	var parsed any = this.ParseOHLCV(ohlcv, market)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)

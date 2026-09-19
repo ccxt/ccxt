@@ -259,7 +259,7 @@ func (this *Toobit) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	trades := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -1580,7 +1580,7 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options any = this.SafeValue(this.Options, "ws", map[string]any{})
+	var options any = this.SafeDict(this.Options, "ws", map[string]any{})
 	var listenKey *string = this.SafeString(options, "listenKey")
 	if listenKey == nil {
 

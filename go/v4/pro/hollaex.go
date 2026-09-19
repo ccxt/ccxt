@@ -126,7 +126,7 @@ func (this *Hollaex) HandleOrderBook(client any, message any) {
 	if symbol == nil {
 		return
 	}
-	var data any = this.SafeValue(message, "data")
+	var data any = this.SafeDict(message, "data")
 	var timestamp *string = this.SafeString(data, "timestamp")
 	var timestampMs *int64 = this.Parse8601(timestamp)
 	var snapshot any = this.ParseOrderBook(data, symbol, timestampMs)
@@ -214,7 +214,7 @@ func (this *Hollaex) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var parsedTrades any = this.ParseTrades(data, market)
 	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
@@ -755,7 +755,7 @@ func (this *Hollaex) HandleMessage(client any, message any) {
 		"wallet":    this.HandleBalance,
 		"usertrade": this.HandleMyTrades,
 	}
-	var topic any = this.SafeValue(message, "topic")
+	var topic *string = this.SafeString(message, "topic")
 	var method any = this.SafeValue(methods, topic)
 	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)

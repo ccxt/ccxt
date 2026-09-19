@@ -1351,7 +1351,7 @@ func (this *Bitstamp) fetchMarketsFromCacheBody(ch chan any, optionalArgs ...any
 	// currencies are now fetched before markets
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options any = this.SafeValue(this.Options, "fetchMarkets", map[string]any{})
+	var options any = this.SafeDict(this.Options, "fetchMarkets", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(options, "timestamp")
 	var expires *int64 = this.SafeInteger(options, "expires", 1000)
 	var now int64 = this.Milliseconds()
@@ -2041,7 +2041,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var ohlc any = this.SafeList(data, "ohlc", []any{})
 
 	ch <- this.ParseOHLCVs(ohlc, market, timeframe, since, limit)
@@ -2293,7 +2293,7 @@ func (this *Bitstamp) ParseTransactionFees(response any, optionalArgs ...any) an
 	var ids []string = ObjectKeys(currencies)
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
-		var fees any = this.SafeValue(response, i, map[string]any{})
+		var fees map[string]any = SafeMapTyped(response, i)
 		var code *string = this.SafeCurrencyCode(id)
 		if (codes != nil) && !this.InArray(code, codes) {
 			continue
@@ -2882,7 +2882,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	//         ]
 	//     }
 	//
-	var values any = this.SafeValue(response, "funding_rate_history", []any{})
+	var values any = this.SafeList(response, "funding_rate_history", []any{})
 
 	ch <- this.ParseFundingRateHistories(values, market, since, limit)
 	return nil
@@ -3271,7 +3271,7 @@ func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market, "/")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var amount *string = this.SafeString(order, "amount")
-	var transactions any = this.SafeValue(order, "transactions", []any{})
+	var transactions any = this.SafeList(order, "transactions", []any{})
 	var price *string = this.SafeString(order, "price")
 	return this.SafeOrder(map[string]any{
 		"id":                 id,

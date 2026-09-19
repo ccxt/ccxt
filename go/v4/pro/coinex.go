@@ -388,7 +388,7 @@ func (this *Coinex) HandleBalance(client any, message any) {
 	}
 	var messageHash any = nil
 	if account != nil {
-		if ccxt.IsEqual(this.SafeValue(this.Balance, account), nil) {
+		if ccxt.IsEqual(this.SafeDict(this.Balance, account), nil) {
 			ccxt.AddElementToObject(this.Balance, account, map[string]any{})
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "info", info)
@@ -429,7 +429,7 @@ func (this *Coinex) ParseWsBalance(balance any, optionalArgs ...any) {
 	ccxt.AddElementToObject(account, "free", this.SafeString(balance, "available"))
 	ccxt.AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
 	if accountType != nil {
-		if ccxt.IsEqual(this.SafeValue(this.Balance, accountType), nil) {
+		if ccxt.IsEqual(this.SafeDict(this.Balance, accountType), nil) {
 			ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
 		}
 		if (accountType != nil) && (code != nil) {
@@ -1673,7 +1673,7 @@ func (this *Coinex) HandleAuthenticationMessage(client any, message any) {
 }
 func (this *Coinex) HandleSubscriptionStatus(client any, message any) {
 	var id *int64 = this.SafeInteger(message, "id")
-	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), id)
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), id)
 	if !ccxt.IsEqual(subscription, nil) {
 		var futureIndex *string = this.SafeString(subscription, "future")
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), futureIndex)

@@ -809,15 +809,15 @@ func (this *Whitebit) ParseMarket(market any) any {
 	}()
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var active any = this.SafeValue(market, "tradesEnabled")
-	var isCollateral any = this.SafeValue(market, "isCollateral")
+	var active *bool = this.SafeBool(market, "tradesEnabled")
+	var isCollateral *bool = this.SafeBool(market, "isCollateral")
 	var typeId *string = this.SafeString(market, "type")
 	var typeVar string
 	var settle any = nil
 	var settleId any = nil
 	var symbol any = Add(Add(base, "/"), quote)
 	var swap bool = (typeId != nil && *typeId == "futures") || (typeId != nil && *typeId == "tradfiFutures")
-	var margin bool = (isCollateral == true) && !swap
+	var margin bool = (isCollateral != nil && *isCollateral == true) && !swap
 	var contract bool = false
 	var amountPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "stockPrec")))
 	var linear any = nil
@@ -1123,11 +1123,11 @@ func (this *Whitebit) fetchTransactionFeesBody(ch chan any, optionalArgs ...any)
 		var currency string = GetValue(currenciesIds, i).(string)
 		var data map[string]any = SafeMapTyped(response, currency)
 		var code *string = this.SafeCurrencyCode(currency)
-		var withdraw any = this.SafeValue(data, "withdraw", map[string]any{})
+		var withdraw map[string]any = SafeMapTyped(data, "withdraw")
 		if code != nil {
 			AddElementToObject(withdrawFees, code, this.SafeString(withdraw, "fixed"))
 		}
-		var deposit any = this.SafeValue(data, "deposit", map[string]any{})
+		var deposit map[string]any = SafeMapTyped(data, "deposit")
 		if code != nil {
 			AddElementToObject(depositFees, code, this.SafeString(deposit, "fixed"))
 		}
@@ -1273,14 +1273,14 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 		var feeInfo any = GetValue(response, entry)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
-			var depositWithdrawFee any = this.SafeValue(depositWithdrawFees, code)
+			var depositWithdrawFee any = this.SafeDict(depositWithdrawFees, code)
 			if IsEqual(depositWithdrawFee, nil) {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
 			}
 			AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "info"), entry, feeInfo)
 			var networkId any = DerefScalar(this.SafeString(splitEntry, 1))
-			var withdraw any = this.SafeValue(feeInfo, "withdraw")
-			var deposit any = this.SafeValue(feeInfo, "deposit")
+			var withdraw map[string]any = SafeMapTyped(feeInfo, "withdraw")
+			var deposit map[string]any = SafeMapTyped(feeInfo, "deposit")
 			var withdrawFee *float64 = this.SafeNumber(withdraw, "fixed")
 			var depositFee *float64 = this.SafeNumber(deposit, "fixed")
 			var withdrawResult map[string]any = map[string]any{
@@ -1374,7 +1374,7 @@ func (this *Whitebit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var fee any = this.SafeValue(response, GetValue(market, "baseId"), map[string]any{})
+		var fee any = this.SafeDict(response, GetValue(market, "baseId"), map[string]any{})
 		var makerFee *string = this.SafeString(fee, "maker_fee")
 		var takerFee *string = this.SafeString(fee, "taker_fee")
 		makerFee = Precise.StringDiv(makerFee, "100")
@@ -2348,7 +2348,7 @@ func (this *Whitebit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < len(keys); i++ {
 			var marketId string = GetValue(keys, i).(string)
 			var marketNew any = this.SafeMarket(marketId, nil, "_")
-			var rawTrades any = this.SafeValue(response, marketId, []any{})
+			var rawTrades any = this.SafeList(response, marketId, []any{})
 			var parsed any = this.ParseTrades(rawTrades, marketNew, since, limit)
 			results = this.ArrayConcat(results, parsed)
 		}
@@ -3204,7 +3204,7 @@ func (this *Whitebit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.V4PrivatePostCollateralAccountBalance(params))
 		PanicOnError(response)
 	} else {
-		var options any = this.SafeValue(this.Options, "fetchBalance", map[string]any{})
+		var options any = this.SafeDict(this.Options, "fetchBalance", map[string]any{})
 		var defaultAccount *string = this.SafeString(options, "account")
 		var account *string = this.SafeString2(params, "account", "type", defaultAccount)
 		params = this.Omit(params, []any{"account", "type"})
@@ -3839,7 +3839,7 @@ func (this *Whitebit) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	//     }
 	//
 	var url *string = this.SafeString(response, "url")
-	var account any = this.SafeValue(response, "account", map[string]any{})
+	var account map[string]any = SafeMapTyped(response, "account")
 	var address *string = this.SafeString(account, "address", url)
 	var tag *string = this.SafeString(account, "memo")
 	this.CheckAddress(address)
@@ -4062,7 +4062,7 @@ func (this *Whitebit) transferBody(ch chan any, code any, amount any, fromAccoun
 		PanicOnError(retRes308712)
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var accountsByType any = this.SafeValue(this.Options, "accountsByType")
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromAccountId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toAccountId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var amountString any = this.CurrencyToPrecision(code, amount)
@@ -4347,7 +4347,7 @@ func (this *Whitebit) fetchDepositBody(ch chan any, id any, optionalArgs ...any)
 	//         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
 	//     }
 	//
-	var records any = this.SafeValue(response, "records", []any{})
+	var records any = this.SafeList(response, "records", []any{})
 	var first any = this.SafeDict(records, 0, map[string]any{})
 
 	ch <- this.ParseTransaction(first, currency)
@@ -5468,7 +5468,7 @@ func (this *Whitebit) ParsePosition(position any, optionalArgs ...any) any {
 	})
 }
 func (this *Whitebit) IsFiat(currency any) any {
-	var fiatCurrencies any = this.SafeValue(this.Options, "fiatCurrencies", []any{})
+	var fiatCurrencies any = this.SafeList(this.Options, "fiatCurrencies", []any{})
 	return this.InArray(currency, fiatCurrencies)
 }
 
@@ -5633,7 +5633,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 		// For cases where we have a meaningful status
 		// {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
 		var status *string = this.SafeString(response, "status")
-		var errors any = this.SafeValue(response, "errors")
+		var errors any = this.SafeDict(response, "errors")
 		// {"code":10,"message":"Unauthorized request."}
 		var message *string = this.SafeString(response, "message")
 		// For these cases where we have a generic code variable error key

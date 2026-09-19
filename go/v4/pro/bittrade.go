@@ -126,7 +126,7 @@ func (this *Bittrade) HandleTicker(client any, message any) any {
 	//         }
 	//     }
 	//
-	var tick any = this.SafeValue(message, "tick", map[string]any{})
+	var tick any = this.SafeDict(message, "tick", map[string]any{})
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message
@@ -135,7 +135,7 @@ func (this *Bittrade) HandleTicker(client any, message any) any {
 	var marketId *string = this.SafeString(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var ticker any = this.ParseTicker(tick, market)
-	var timestamp any = this.SafeValue(message, "ts")
+	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ccxt.AddElementToObject(ticker, "timestamp", timestamp)
 	ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
 	var symbol any = ccxt.GetValue(ticker, "symbol")
@@ -224,8 +224,8 @@ func (this *Bittrade) HandleTrades(client any, message any) any {
 	//         }
 	//     }
 	//
-	var tick any = this.SafeValue(message, "tick", map[string]any{})
-	var data any = this.SafeValue(tick, "data", map[string]any{})
+	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
+	var data any = this.SafeList(tick, "data", []any{})
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message
@@ -338,7 +338,7 @@ func (this *Bittrade) HandleOHLCV(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe any = this.FindTimeframe(interval)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -441,7 +441,7 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message any, subscript
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var data any = this.SafeValue(message, "data")
+	var data any = this.SafeDict(message, "data")
 	var snapshot any = this.ParseOrderBook(data, symbol)
 	ccxt.AddElementToObject(snapshot, "nonce", this.SafeInteger(data, "seqNum"))
 	ccxt.AddElementToObject(snapshot, "timestamp", timestamp)
@@ -554,15 +554,15 @@ func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook 
 	//         }
 	//     }
 	//
-	var tick any = this.SafeValue(message, "tick", map[string]any{})
+	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	var seqNum *int64 = this.SafeInteger(tick, "seqNum")
 	var prevSeqNum *int64 = this.SafeInteger(tick, "prevSeqNum")
 	if (prevSeqNum == nil) || (seqNum == nil) {
 		return orderbook
 	}
 	if (ccxt.IsLessThanOrEqual(prevSeqNum, ccxt.GetValue(orderbook, "nonce"))) && (ccxt.IsGreaterThan(seqNum, ccxt.GetValue(orderbook, "nonce"))) {
-		var asks any = this.SafeValue(tick, "asks", []any{})
-		var bids any = this.SafeValue(tick, "bids", []any{})
+		var asks any = this.SafeList(tick, "asks", []any{})
+		var bids any = this.SafeList(tick, "bids", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "nonce", seqNum)
@@ -635,7 +635,7 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message any) any {
 		return message
 	}
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
-	var subscription any = this.SafeValue(subscriptionsById, id)
+	var subscription any = this.SafeDict(subscriptionsById, id)
 	if !ccxt.IsEqual(subscription, nil) {
 		var method any = this.SafeValue(subscription, "method")
 		if !ccxt.IsEqual(method, nil) {
@@ -737,7 +737,7 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) any {
 			return false
 		}
 		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
-		var subscription any = this.SafeValue(subscriptionsById, id)
+		var subscription any = this.SafeDict(subscriptionsById, id)
 		if !ccxt.IsEqual(subscription, nil) {
 			var errorCode *string = this.SafeString(message, "err-code")
 

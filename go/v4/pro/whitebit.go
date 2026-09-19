@@ -107,7 +107,7 @@ func (this *Whitebit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *int64 = this.SafeInteger(timeframes, timeframe)
 	var marketId any = ccxt.GetValue(market, "id")
 	// currently there is no way of knowing
@@ -204,7 +204,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var messageHash any = ccxt.Add("orderbook"+":", ccxt.GetValue(market, "symbol"))
 	var method string = "depth_subscribe"
-	var options any = this.SafeValue(this.Options, "watchOrderBook", map[string]any{})
+	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var defaultPriceInterval *string = this.SafeString(options, "priceInterval", "0")
 	var priceInterval *string = this.SafeString(params, "priceInterval", defaultPriceInterval)
 	params = this.Omit(params, "priceInterval")
@@ -254,12 +254,12 @@ func (this *Whitebit) HandleOrderBook(client any, message any) {
 	//     "id":null
 	//  }
 	//
-	var params any = this.SafeValue(message, "params", []any{})
+	var params any = this.SafeList(message, "params", []any{})
 	var isSnapshot any = this.SafeValue(params, 0)
 	var marketId *string = this.SafeString(params, 2)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var data any = this.SafeValue(params, 1)
+	var data any = this.SafeDict(params, 1)
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook()
@@ -272,8 +272,8 @@ func (this *Whitebit) HandleOrderBook(client any, message any) {
 		var snapshot any = this.ParseOrderBook(data, symbol)
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
-		var asks any = this.SafeValue(data, "asks", []any{})
-		var bids any = this.SafeValue(data, "bids", []any{})
+		var asks any = this.SafeList(data, "asks", []any{})
+		var bids any = this.SafeList(data, "bids", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 	}
@@ -396,11 +396,11 @@ func (this *Whitebit) HandleTicker(client any, message any) any {
 	//       "id": null
 	//   }
 	//
-	var tickers any = this.SafeValue(message, "params", []any{})
+	var tickers any = this.SafeList(message, "params", []any{})
 	var marketId *string = this.SafeString(tickers, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var rawTicker any = this.SafeValue(tickers, 1, map[string]any{})
+	var rawTicker any = this.SafeDict(tickers, 1, map[string]any{})
 	var messageHash any = ccxt.Add("ticker"+":", symbol)
 	var ticker any = this.ParseTicker(rawTicker, market)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -496,7 +496,7 @@ func (this *Whitebit) HandleTrades(client any, message any) {
 	//        ]
 	//    }
 	//
-	var params any = this.SafeValue(message, "params", []any{})
+	var params any = this.SafeList(message, "params", []any{})
 	var marketId *string = this.SafeString(params, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -506,7 +506,7 @@ func (this *Whitebit) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var data any = this.SafeValue(params, 1, []any{})
+	var data any = this.SafeList(params, 1, []any{})
 	var parsedTrades any = this.ParseTrades(data, market)
 	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
@@ -753,8 +753,8 @@ func (this *Whitebit) HandleOrder(client any, message any, optionalArgs ...any) 
 	//
 	subscription := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = subscription
-	var params any = this.SafeValue(message, "params", []any{})
-	var data any = this.SafeValue(params, 1)
+	var params any = this.SafeList(message, "params", []any{})
+	var data any = this.SafeDict(params, 1)
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)

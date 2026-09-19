@@ -1000,7 +1000,7 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 		return ccxt.Add(ccxt.Add(timeframe, ":"), candleType)
 	}()
 	var messageHash *string = this.SafeString(subscription, "messageHash")
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), cacheKey)
 	if ccxt.IsEqual(stored, nil) {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1037,7 +1037,7 @@ func (this *Extended) HandleErrorMessage(client any, message any) any {
 	//
 	//     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
 	//
-	var error any = this.SafeValue(message, "error")
+	var error any = this.SafeDict(message, "error")
 	if ccxt.IsEqual(error, nil) {
 		return false
 	}

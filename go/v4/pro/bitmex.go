@@ -684,7 +684,7 @@ func (this *Bitmex) HandleBalance(client any, message any) {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(message, "data")
+	var data any = this.SafeList(message, "data")
 	var balance any = this.ParseBalance(data)
 	this.Balance = this.Extend(this.Balance, balance)
 	var messageHash *string = this.SafeString(message, "table")
@@ -751,7 +751,7 @@ func (this *Bitmex) HandleTrades(client any, message any) {
 	//     }
 	//
 	var table string = "trade"
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var dataByMarketIds map[string]any = this.GroupBy(data, "symbol")
 	var marketIds []string = ccxt.ObjectKeys(dataByMarketIds)
 	for i := 0; i < len(marketIds); i++ {
@@ -1325,7 +1325,7 @@ func (this *Bitmex) HandleOrders(client any, message any) {
 		for i := 0; i < dataLength; i++ {
 			var currentOrder any = ccxt.GetValue(data, i)
 			var orderId *string = this.SafeString(currentOrder, "orderID")
-			var previousOrder any = this.SafeValue(stored.(*ccxt.ArrayCache).Hashmap, orderId)
+			var previousOrder any = this.SafeDict(stored.(*ccxt.ArrayCache).Hashmap, orderId)
 			var rawOrder any = currentOrder
 			if !ccxt.IsEqual(previousOrder, nil) {
 				rawOrder = this.Extend(ccxt.GetValue(previousOrder, "info"), currentOrder)
@@ -1460,9 +1460,9 @@ func (this *Bitmex) HandleMyTrades(client any, message any) {
 	//     }
 	//
 	var messageHash *string = this.SafeString(message, "table")
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var dataByExecType map[string]any = this.GroupBy(data, "execType")
-	var rawTrades any = this.SafeValue(dataByExecType, "Trade", []any{})
+	var rawTrades any = this.SafeList(dataByExecType, "Trade", []any{})
 	var trades any = this.ParseTrades(rawTrades)
 	if ccxt.IsEqual(this.MyTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1627,7 +1627,7 @@ func (this *Bitmex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	trades := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), topics))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -1767,7 +1767,7 @@ func (this *Bitmex) HandleOHLCV(client any, message any) {
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var messageHash any = ccxt.Add(ccxt.Add(table, ":"), ccxt.GetValue(market, "id"))
 		var result []any = []any{ccxt.Subtract(this.ParseToInt(this.Parse8601(this.SafeString(candle, "timestamp"))), ccxt.Multiply(duration, 1000)), nil, this.SafeFloat(candle, "high"), this.SafeFloat(candle, "low"), this.SafeFloat(candle, "close"), this.SafeFloat(candle, "volume")}
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1865,8 +1865,8 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 	// if it's an initial snapshot
 	if action != nil && *action == "partial" {
 		var filter map[string]any = ccxt.SafeMapTyped(message, "filter")
-		var marketId any = this.SafeValue(filter, "symbol")
-		if ccxt.IsEqual(marketId, nil) {
+		var marketId *string = this.SafeString(filter, "symbol")
+		if marketId == nil {
 			return // protecting from weird update
 		}
 		var market any = this.SafeMarket(marketId)
@@ -1902,14 +1902,25 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 	} else {
 		var numUpdatesByMarketId map[string]any = map[string]any{}
 		for i := 0; i < ccxt.GetArrayLength(data); i++ {
-			var marketId any = this.SafeValue(ccxt.GetValue(data, i), "symbol")
-			if ccxt.IsEqual(marketId, nil) {
+			var marketId *string = this.SafeString(ccxt.GetValue(data, i), "symbol")
+			if marketId == nil {
 				return // protecting from weird update
 			}
-			if !(ccxt.InOp(numUpdatesByMarketId, marketId)) {
+			if !(func() bool {
+				if marketId == nil {
+					return false
+				}
+				_, ok := numUpdatesByMarketId[*marketId]
+				return ok
+			}()) {
 				ccxt.AddElementToObject(numUpdatesByMarketId, marketId, 0)
 			}
-			ccxt.AddElementToObject(numUpdatesByMarketId, marketId, this.Sum(ccxt.GetValue(numUpdatesByMarketId, marketId), 1))
+			ccxt.AddElementToObject(numUpdatesByMarketId, marketId, this.Sum(func() any {
+				if marketId == nil {
+					return nil
+				}
+				return numUpdatesByMarketId[*marketId]
+			}(), 1))
 			var market any = this.SafeMarket(marketId)
 			var symbol any = ccxt.GetValue(market, "symbol")
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
@@ -1990,7 +2001,7 @@ func (this *Bitmex) HandleErrorMessage(client any, message any) any {
 	//
 	var error *string = this.SafeString(message, "error")
 	if error != nil {
-		var request any = this.SafeValue(message, "request", map[string]any{})
+		var request map[string]any = ccxt.SafeMapTyped(message, "request")
 		var args any = this.SafeList(request, "args", []any{})
 		var numArgs int = ccxt.GetArrayLength(args)
 		if numArgs > 0 {
@@ -2064,9 +2075,9 @@ func (this *Bitmex) HandleMessage(client any, message any) {
 		}
 		var method any = this.SafeValue(methods, table)
 		if ccxt.IsEqual(method, nil) {
-			var request any = this.SafeValue(message, "request", map[string]any{})
-			var op any = this.SafeValue(request, "op")
-			if ccxt.IsEqual(op, "authKeyExpires") {
+			var request map[string]any = ccxt.SafeMapTyped(message, "request")
+			var op *string = this.SafeString(request, "op")
+			if op != nil && *op == "authKeyExpires" {
 				this.HandleAuthenticationMessage(client, message)
 			}
 		} else {

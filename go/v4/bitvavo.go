@@ -1085,11 +1085,11 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(trade, "id", "fillId")
 	var marketId *string = this.SafeString(trade, "market")
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
-	var taker any = this.SafeValue(trade, "taker")
+	var taker *bool = this.SafeBool(trade, "taker")
 	var takerOrMaker any = nil
-	if !IsEqual(taker, nil) {
+	if taker != nil {
 		takerOrMaker = func() string {
-			if taker == true {
+			if taker != nil && *taker == true {
 				return "taker"
 			}
 			return "maker"
@@ -1174,7 +1174,7 @@ func (this *Bitvavo) ParseTradingFees(fees any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var feesValue any = this.SafeValue(fees, "fees")
+	var feesValue map[string]any = SafeMapTyped(fees, "fees")
 	var maker *float64 = this.SafeNumber(feesValue, "maker")
 	var taker *float64 = this.SafeNumber(feesValue, "taker")
 	var result map[string]any = map[string]any{}
@@ -1855,10 +1855,10 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var isMarketOrder bool = (IsEqual(typeVar, "market")) || (IsEqual(typeVar, "stopLoss")) || (IsEqual(typeVar, "takeProfit"))
 	var isLimitOrder bool = (IsEqual(typeVar, "limit")) || (IsEqual(typeVar, "stopLossLimit")) || (IsEqual(typeVar, "takeProfitLimit"))
 	var timeInForce *string = this.SafeString(params, "timeInForce")
-	var triggerPrice any = DerefScalar(this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"}))
+	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
 	var postOnly bool = this.IsPostOnly(isMarketOrder, false, params)
-	var stopLossPrice any = this.SafeValue(params, "stopLossPrice")     // trigger when price crosses from above to below this value
-	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice") // trigger when price crosses from below to above this value
+	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")     // trigger when price crosses from above to below this value
+	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice") // trigger when price crosses from below to above this value
 	params = this.Omit(params, []any{"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"})
 	if isMarketOrder {
 		var cost any = nil
@@ -1881,10 +1881,10 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 	}
-	var isTakeProfit bool = (!IsEqual(takeProfitPrice, nil)) || (IsEqual(typeVar, "takeProfit")) || (IsEqual(typeVar, "takeProfitLimit"))
-	var isStopLoss bool = (!IsEqual(stopLossPrice, nil)) || (!IsEqual(triggerPrice, nil)) && (!isTakeProfit) || (IsEqual(typeVar, "stopLoss")) || (IsEqual(typeVar, "stopLossLimit"))
+	var isTakeProfit bool = (takeProfitPrice != nil) || (IsEqual(typeVar, "takeProfit")) || (IsEqual(typeVar, "takeProfitLimit"))
+	var isStopLoss bool = (stopLossPrice != nil) || (triggerPrice != nil) && (!isTakeProfit) || (IsEqual(typeVar, "stopLoss")) || (IsEqual(typeVar, "stopLossLimit"))
 	if isStopLoss {
-		if !IsEqual(stopLossPrice, nil) {
+		if stopLossPrice != nil {
 			triggerPrice = stopLossPrice
 		}
 		request["orderType"] = func() string {
@@ -1894,7 +1894,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			return "stopLossLimit"
 		}()
 	} else if isTakeProfit {
-		if !IsEqual(takeProfitPrice, nil) {
+		if takeProfitPrice != nil {
 			triggerPrice = takeProfitPrice
 		}
 		request["orderType"] = func() string {
@@ -1904,7 +1904,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			return "takeProfitLimit"
 		}()
 	}
-	if !IsEqual(triggerPrice, nil) {
+	if triggerPrice != nil {
 		request["triggerAmount"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["triggerType"] = "price"
 		request["triggerReference"] = "lastTrade" // 'bestBid', 'bestAsk', 'midPrice'
@@ -2672,7 +2672,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var rawTrades any = this.SafeValue(order, "fills", []any{})
+	var rawTrades any = this.SafeList(order, "fills", []any{})
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var postOnly any = this.SafeValue(order, "postOnly")
 	// https://github.com/ccxt/ccxt/issues/8489
@@ -3295,10 +3295,10 @@ func (this *Bitvavo) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		},
 		"networks": map[string]any{},
 	}
-	var networks any = this.SafeValue(fee, "networks")
-	var networkId any = this.SafeValue(networks, 0) // Bitvavo currently only supports one network per currency
+	var networks any = this.SafeList(fee, "networks")
+	var networkId *string = this.SafeString(networks, 0) // Bitvavo currently only supports one network per currency
 	var currencyCode *string = this.SafeString(currency, "code")
-	if IsEqual(networkId, "Mainnet") {
+	if networkId != nil && *networkId == "Mainnet" {
 		networkId = currencyCode
 	}
 	var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
@@ -3438,7 +3438,7 @@ func (this *Bitvavo) CalculateRateLimiterCost(api any, method any, path any, par
 	if (InOp(config, "noMarket")) && !(InOp(params, "market")) {
 		return GetValue(config, "noMarket")
 	}
-	return this.SafeValue(config, "cost", 1)
+	return this.SafeNumber(config, "cost", 1)
 }
 
 func NewBitvavo(userConfig map[string]any) *Bitvavo {

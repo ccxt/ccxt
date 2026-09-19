@@ -318,7 +318,7 @@ func (this *Bingx) HandleTicker(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	// const marketId = messageHash.split('@')[0]
 	var isSwap bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
@@ -1035,7 +1035,7 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 		candles = []any{this.SafeDict(data, "K", map[string]any{})}
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var rawTimeframe any = ccxt.GetValue(ccxt.Split(dataType, "_"), 1)
 	var marketOptions map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
 	var timeframes any = this.SafeDict(marketOptions, "timeframes", map[string]any{})
@@ -1118,8 +1118,8 @@ func (this *Bingx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	if ccxt.IsEqual(url, nil) {
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" watchOHLCV is not supported for ", marketType), " markets.")))
 	}
-	var options any = this.SafeValue(this.Options, marketType, map[string]any{})
-	var timeframes any = this.SafeValue(options, "timeframes", map[string]any{})
+	var options any = this.SafeDict(this.Options, marketType, map[string]any{})
+	var timeframes map[string]any = ccxt.SafeMapTyped(options, "timeframes")
 	var rawTimeframe *string = this.SafeString(timeframes, timeframe, timeframe)
 	var messageHash any = this.GetMessageHash("ohlcv", ccxt.GetValue(market, "symbol"), timeframe)
 	var subscriptionHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@kline_"), rawTimeframe)
@@ -1179,8 +1179,8 @@ func (this *Bingx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		ccxt.PanicOnError(retRes96912)
 	}
 	var market any = this.Market(symbol)
-	var options any = this.SafeValue(this.Options, ccxt.GetValue(market, "type"), map[string]any{})
-	var timeframes any = this.SafeValue(options, "timeframes", map[string]any{})
+	var options any = this.SafeDict(this.Options, ccxt.GetValue(market, "type"), map[string]any{})
+	var timeframes map[string]any = ccxt.SafeMapTyped(options, "timeframes")
 	var rawTimeframe *string = this.SafeString(timeframes, timeframe, timeframe)
 	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@kline_"), rawTimeframe)
 	var messageHash any = ccxt.Add("unsubscribe::", subMessageHash)
@@ -1527,7 +1527,7 @@ func (this *Bingx) loadBalanceSnapshotBody(ch chan any, client any, messageHash 
 		"subType": subType,
 	}))
 	ccxt.PanicOnError(response)
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeValue(this.Balance, typeVar, map[string]any{})))
+	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
 	// don't remove the future from the .futures cache
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
@@ -2108,7 +2108,7 @@ func (this *Bingx) HandleOrder(client any, message any) {
 	//    }
 	//
 	var isSpot bool = (ccxt.InOp(message, "dataType"))
-	var data any = this.SafeValue2(message, "data", "o", map[string]any{})
+	var data any = this.SafeDict2(message, "data", "o", map[string]any{})
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -2336,7 +2336,7 @@ func (this *Bingx) HandleMessage(client any, message any) {
 		}
 		return strings.Index(*dataType, "executionReport")
 	}() >= 0 {
-		var data any = this.SafeValue(message, "data", map[string]any{})
+		var data any = this.SafeDict(message, "data", map[string]any{})
 		var typeVar *string = this.SafeString(data, "x")
 		if typeVar != nil && *typeVar == "TRADE" {
 			this.HandleMyTrades(client, message)
@@ -2351,14 +2351,14 @@ func (this *Bingx) HandleMessage(client any, message any) {
 	}
 	if e != nil && *e == "ORDER_TRADE_UPDATE" {
 		this.HandleOrder(client, message)
-		var data any = this.SafeValue(message, "o", map[string]any{})
+		var data any = this.SafeDict(message, "o", map[string]any{})
 		var typeVar *string = this.SafeString(data, "x")
 		var status *string = this.SafeString(data, "X")
 		if (typeVar != nil && *typeVar == "TRADE") && (status != nil && *status == "FILLED") {
 			this.HandleMyTrades(client, message)
 		}
 	}
-	var msgData any = this.SafeValue(message, "data")
+	var msgData map[string]any = ccxt.SafeMapTyped(message, "data")
 	var msgEvent *string = this.SafeString(msgData, "e")
 	if msgEvent != nil && *msgEvent == "24hTicker" {
 		this.HandleTicker(client, message)

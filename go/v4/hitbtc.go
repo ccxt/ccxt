@@ -1139,7 +1139,7 @@ func (this *Hitbtc) createDepositAddressBody(ch chan any, code any, optionalArgs
 	}
 	var network *string = this.SafeStringUpper(params, "network")
 	if (network != nil) && (IsEqual(code, "USDT")) {
-		var networks any = this.SafeValue(this.Options, "networks")
+		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
 			request["currency"] = parsedNetwork
@@ -1194,7 +1194,7 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 	var network *string = this.SafeStringUpper(params, "network")
 	if (network != nil) && (IsEqual(code, "USDT")) {
-		var networks any = this.SafeValue(this.Options, "networks")
+		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
 			request["currency"] = parsedNetwork
@@ -1207,7 +1207,7 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	//
 	//  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
 	//
-	var firstAddress any = this.SafeValue(response, 0)
+	var firstAddress map[string]any = SafeMapTyped(response, 0)
 	var address *string = this.SafeString(firstAddress, "address")
 	var currencyId *string = this.SafeString(firstAddress, "currency")
 	var tag *string = this.SafeString(firstAddress, "payment_id")
@@ -1674,11 +1674,11 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var fee any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
-	var taker any = this.SafeValue(trade, "taker")
+	var taker *bool = this.SafeBool(trade, "taker")
 	var takerOrMaker string
-	if !IsEqual(taker, nil) {
+	if taker != nil {
 		takerOrMaker = func() string {
-			if taker == true {
+			if taker != nil && *taker == true {
 				return "taker"
 			}
 			return "maker"
@@ -1687,7 +1687,7 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) any {
 		takerOrMaker = "taker" // the only case when `taker` field is missing, is public fetchTrades and it must be taker
 	}
 	if feeCostString != nil {
-		var info any = this.SafeValue(market, "info", map[string]any{})
+		var info map[string]any = SafeMapTyped(market, "info")
 		var feeCurrency *string = this.SafeString(info, "fee_currency")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrency)
 		fee = map[string]any{
@@ -1837,7 +1837,7 @@ func (this *Hitbtc) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var updated *int64 = this.Parse8601(this.SafeString(transaction, "updated_at"))
 	var typeVar *string = this.ParseTransactionType(this.SafeString(transaction, "type"))
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var native any = this.SafeValue(transaction, "native", map[string]any{})
+	var native map[string]any = SafeMapTyped(transaction, "native")
 	var currencyId *string = this.SafeString(native, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var txhash *string = this.SafeString(native, "hash")
@@ -3122,7 +3122,7 @@ func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, 
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var isLimit bool = (IsEqual(typeVar, "limit"))
-	var reduceOnly any = this.SafeValue(params, "reduceOnly")
+	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	var timeInForce *string = this.SafeString(params, "timeInForce")
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var isPostOnly bool = this.IsPostOnly((IsEqual(typeVar, "market")), nil, params)
@@ -3132,12 +3132,12 @@ func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, 
 		"quantity": this.AmountToPrecision(GetValue(market, "symbol"), amount),
 		"symbol":   GetValue(market, "id"),
 	}
-	if !IsEqual(reduceOnly, nil) {
+	if reduceOnly != nil {
 		if (!IsEqual(GetValue(market, "type"), "swap")) && (!IsEqual(GetValue(market, "type"), "margin")) {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduce_only for ", GetValue(market, "type")), " orders, reduce_only orders are supported for swap and margin markets only")))
 		}
 	}
-	if reduceOnly == true {
+	if reduceOnly != nil && *reduceOnly == true {
 		request["reduce_only"] = reduceOnly
 	}
 	if isPostOnly {
@@ -3407,7 +3407,7 @@ func (this *Hitbtc) transferBody(ch chan any, code any, amount any, fromAccount 
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)
 	var requestAmount any = this.CurrencyToPrecision(code, amount)
-	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	fromAccount = ToLower(fromAccount)
 	toAccount = ToLower(toAccount)
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -3541,7 +3541,7 @@ func (this *Hitbtc) withdrawBody(ch chan any, code any, amount any, address any,
 	if tag != nil {
 		request["payment_id"] = tag
 	}
-	var networks any = this.SafeValue(this.Options, "networks", map[string]any{})
+	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(params, "network")
 	if (network != nil) && (IsEqual(code, "USDT")) {
 		var parsedNetwork *string = this.SafeString(networks, network)
@@ -3550,7 +3550,7 @@ func (this *Hitbtc) withdrawBody(ch chan any, code any, amount any, address any,
 		}
 		params = this.Omit(params, "network")
 	}
-	var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
+	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var includeFee *bool = this.SafeBool(withdrawOptions, "includeFee", false)
 	if includeFee != nil && *includeFee == true {
 		request["include_fee"] = true
@@ -4383,8 +4383,8 @@ func (this *Hitbtc) ParseMarginModification(data any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var currencies any = this.SafeValue(data, "currencies", []any{})
-	var currencyInfo any = this.SafeValue(currencies, 0)
+	var currencies any = this.SafeList(data, "currencies", []any{})
+	var currencyInfo map[string]any = SafeMapTyped(currencies, 0)
 	var datetime *string = this.SafeString(data, "updated_at")
 	return map[string]any{
 		"info":       data,
@@ -4721,7 +4721,7 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			return nil
 		}()
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "payout_fee")
-		var isDefault any = this.SafeValue(networkEntry, "default")
+		var isDefault *bool = this.SafeBool(networkEntry, "default")
 		var withdrawResult map[string]any = map[string]any{
 			"fee": withdrawFee,
 			"percentage": func() any {
@@ -4731,7 +4731,7 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 				return nil
 			}(),
 		}
-		if isDefault == true {
+		if isDefault != nil && *isDefault == true {
 			AddElementToObject(result, "withdraw", withdrawResult)
 		}
 		if networkCode != nil {
@@ -4849,7 +4849,7 @@ func (this *Hitbtc) HandleErrors(code any, reason any, url any, method any, head
 	//       }
 	//     }
 	//
-	var error any = this.SafeValue(response, "error")
+	var error map[string]any = SafeMapTyped(response, "error")
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
 		var feedback any = Add(this.Id+" ", body)

@@ -685,7 +685,7 @@ func (this *Btcmarkets) ParseMarket(market any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
-	var fees any = this.SafeValue(this.SafeDict(this.Options, "fees", map[string]any{}), quote, this.Fees)
+	var fees any = this.SafeDict(this.SafeDict(this.Options, "fees", map[string]any{}), quote, this.Fees)
 	var pricePrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "priceDecimals")))
 	var minAmount *float64 = this.SafeNumber(market, "minOrderAmount")
 	var maxAmount *float64 = this.SafeNumber(market, "maxOrderAmount")
@@ -1252,7 +1252,7 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar any, si
 		}(),
 	}
 	var lowercaseType string = ToLower(typeVar)
-	var orderTypes any = this.SafeValue(this.Options, "orderTypes", map[string]any{
+	var orderTypes any = this.SafeDict(this.Options, "orderTypes", map[string]any{
 		"limit":       "Limit",
 		"market":      "Market",
 		"stop":        "Stop",

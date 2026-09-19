@@ -377,7 +377,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	this.CheckRequiredCredentials()
-	var utaToken any = this.SafeValue(this.Options, "utaToken")
+	var utaToken *string = this.SafeString(this.Options, "utaToken")
 	var lastUpdate *int64 = this.SafeInteger(this.Options, "utaTokenLastUpdate", 0)
 	var refreshInterval any = ccxt.Multiply(ccxt.Multiply(ccxt.Multiply(1000, 60), 60), 24) // 24 hours
 	refreshInterval = ccxt.DerefScalar(this.SafeInteger(this.Options, "utaTokenRefreshInterval", refreshInterval))
@@ -386,7 +386,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 	var messageHash string = "utaToken"
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
 	var client ccxt.ClientInterface = this.Client(url)
-	if (ccxt.IsEqual(utaToken, nil)) || expired {
+	if (utaToken == nil) || expired {
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 			// wait the existing future if it's already being fetched by another call
 
@@ -1438,7 +1438,7 @@ func (this *Kucoin) HandleOHLCV(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", symbol), ":"), timeframe)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1483,7 +1483,7 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message any) {
 	var interval *string = this.SafeString(data, "i")
 	var timeframe any = this.FindTimeframe(interval)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("uta:candles:", symbol), ":"), timeframe)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1539,7 +1539,7 @@ func (this *Kucoin) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		trades := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params))
 		ccxt.PanicOnError(trades)
 		if this.NewUpdates {
-			var first any = this.SafeValue(trades, 0)
+			var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 			var tradeSymbol *string = this.SafeString(first, "symbol")
 			limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 		}
@@ -1613,7 +1613,7 @@ func (this *Kucoin) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	trades := (<-this.SubscribeMultipleAsync(url, messageHashes, topic, subscriptionHashes, params))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -2320,7 +2320,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message any) {
 		var deltaEnd *int64 = this.SafeInteger(data, "C")
 		if nonce == nil {
 			var cacheLength int = ccxt.GetArrayLength(orderbook.(ccxt.OrderBookInterface).GetCache())
-			var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
+			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 5)
 			var utaParams map[string]any = map[string]any{
@@ -2339,7 +2339,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, symbol), messageHash)
 }
 func (this *Kucoin) GetCacheIndex(orderbook any, cache any) any {
-	var firstDelta any = this.SafeValue(cache, 0)
+	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDeltaStart *int64 = this.SafeIntegerN(firstDelta, []any{"sequenceStart", "sequence", "O"})
 	if (nonce == nil) || (firstDeltaStart == nil) {
@@ -2441,7 +2441,7 @@ func (this *Kucoin) HandleSubscriptionStatus(client any, message any) {
 		return
 	}
 	var subscriptionHash *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), id)
-	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 	ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), id)
 	var method any = this.SafeValue(subscription, "method")
 	if !ccxt.IsEqual(method, nil) {
@@ -2860,8 +2860,8 @@ func (this *Kucoin) HandleOrder(client any, message any) {
 		}
 		return this.Orders
 	}()
-	var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
-	var order any = this.SafeValue(orders, orderId)
+	var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+	var order any = this.SafeDict(orders, orderId)
 	if !ccxt.IsEqual(order, nil) {
 		if ccxt.IsEqual(ccxt.GetValue(order, "status"), "closed") {
 			ccxt.AddElementToObject(parsed, "status", "closed")
@@ -3378,7 +3378,7 @@ func (this *Kucoin) loadBalanceSnapshotBody(ch chan any, client any, messageHash
 
 	response := (<-this.FetchBalanceAsync(params))
 	ccxt.PanicOnError(response)
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeValue(this.Balance, typeVar, map[string]any{})))
+	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
 	// don't remove the future from the .futures cache
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
@@ -3685,7 +3685,7 @@ func (this *Kucoin) GetCurrentPosition(symbol any) any {
 	var cache any = this.Positions.(*ccxt.ArrayCache).Hashmap
 	var symbolCache any = this.SafeDict(cache, symbol, map[string]any{})
 	var values []any = ccxt.ObjectValues(symbolCache)
-	return this.SafeValue(values, 0)
+	return this.SafeDict(values, 0)
 }
 func (this *Kucoin) SetPositionsCache(client any, uta any) {
 	if !(this.IsEmpty(this.Positions)) {

@@ -84,7 +84,7 @@ func (this *Woo) Describe() any {
 	})
 }
 func (this *Woo) RequestId(url any) any {
-	var options any = this.SafeValue(this.Options, "requestId", map[string]any{})
+	var options any = this.SafeDict(this.Options, "requestId", map[string]any{})
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue any = this.Sum(previousValue, 1)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
@@ -400,7 +400,7 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan any, client any, message any
 
 			snapshot := (<-this.FetchRestOrderBookSafeAsync(symbol, limit, params))
 			ccxt.PanicOnError(snapshot)
-			if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {
+			if ccxt.IsEqual(this.SafeDict(this.Orderbooks, symbol), nil) {
 
 				return nil
 			}
@@ -431,8 +431,8 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan any, client any, message any
 }
 func (this *Woo) HandleOrderBookMessage(client any, message any, orderbook any) any {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeValue(data, "asks", []any{}))
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeValue(data, "bids", []any{}))
+	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(data, "asks", []any{}))
+	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(data, "bids", []any{}))
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
@@ -972,7 +972,7 @@ func (this *Woo) HandleOHLCV(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var topic any = this.SafeValue(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId)
@@ -980,8 +980,8 @@ func (this *Woo) HandleOHLCV(client any, message any) {
 	var interval *string = this.SafeString(data, "type")
 	var timeframe any = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeFloat(data, "open"), this.SafeFloat(data, "high"), this.SafeFloat(data, "low"), this.SafeFloat(data, "close"), this.SafeFloat(data, "volume")}
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
-	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -1091,7 +1091,7 @@ func (this *Woo) HandleTrade(client any, message any) {
 	//
 	var topic *string = this.SafeString(message, "topic")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var data any = this.SafeValue(message, "data")
+	var data any = this.SafeDict(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1601,8 +1601,8 @@ func (this *Woo) HandleOrder(client any, message any, topic any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var cachedOrders any = this.Orders
-		var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
-		var order any = this.SafeValue(orders, orderId)
+		var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+		var order any = this.SafeDict(orders, orderId)
 		if !ccxt.IsEqual(order, nil) {
 			var fee any = this.SafeValue(order, "fee")
 			if !ccxt.IsEqual(fee, nil) {
@@ -1811,7 +1811,7 @@ func (this *Woo) HandlePositions(client any, message any) {
 	//        }
 	//    }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var rawPositions map[string]any = ccxt.SafeMapTyped(data, "positions")
 	var postitionsIds []string = ccxt.ObjectKeys(rawPositions)
 	if ccxt.IsEqual(this.Positions, nil) {
@@ -2156,7 +2156,7 @@ func (this *Woo) HandleSubscribe(client any, message any) any {
 	//
 	var id *string = this.SafeString(message, "id")
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
-	var subscription any = this.SafeValue(subscriptionsById, id, map[string]any{})
+	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var method any = this.SafeValue(subscription, "method")
 	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message, subscription)
@@ -2172,8 +2172,8 @@ func (this *Woo) HandleAuth(client any, message any) {
 	//     }
 	//
 	var messageHash string = "authenticated"
-	var success any = this.SafeValue(message, "success")
-	if success == true {
+	var success *bool = this.SafeBool(message, "success")
+	if success != nil && *success == true {
 		// client.resolve (message, messageHash)
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
 		future.(*ccxt.Future).Resolve(true)

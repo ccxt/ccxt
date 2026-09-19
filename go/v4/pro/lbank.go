@@ -114,8 +114,8 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...any
 	var market any = this.Market(symbol)
 	this.CheckContractMarket(market, "fetchOHLCVWs")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var watchOHLCVOptions any = this.SafeValue(this.Options, "watchOHLCV", map[string]any{})
-	var timeframes any = this.SafeValue(watchOHLCVOptions, "timeframes", map[string]any{})
+	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
+	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("fetchOHLCV:", ccxt.GetValue(market, "symbol")), ":"), timeframeId)
 	var message map[string]any = map[string]any{
@@ -174,8 +174,8 @@ func (this *Lbank) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var market any = this.Market(symbol)
 	this.CheckContractMarket(market, "watchOHLCV")
-	var watchOHLCVOptions any = this.SafeValue(this.Options, "watchOHLCV", map[string]any{})
-	var timeframes any = this.SafeValue(watchOHLCVOptions, "timeframes", map[string]any{})
+	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
+	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", ccxt.GetValue(market, "symbol")), ":"), timeframeId)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -250,15 +250,15 @@ func (this *Lbank) HandleOHLCV(client any, message any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var symbol *string = this.SafeSymbol(marketId, nil, "_")
-	var watchOHLCVOptions any = this.SafeValue(this.Options, "watchOHLCV", map[string]any{})
-	var timeframes any = this.SafeValue(watchOHLCVOptions, "timeframes", map[string]any{})
-	var records any = this.SafeValue(message, "records")
+	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
+	var timeframes any = this.SafeDict(watchOHLCVOptions, "timeframes", map[string]any{})
+	var records any = this.SafeList(message, "records")
 	if !ccxt.IsEqual(records, nil) {
-		var rawOHLCV any = this.SafeValue(records, 0, []any{})
+		var rawOHLCV any = this.SafeList(records, 0, []any{})
 		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
 		var timeframeId *string = this.SafeString(message, "kbar")
 		var timeframe any = this.FindTimeframe(timeframeId, timeframes)
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -269,12 +269,12 @@ func (this *Lbank) HandleOHLCV(client any, message any) {
 		var messageHash any = ccxt.Add("fetchOHLCV:"+*symbol+":", timeframeId)
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	} else {
-		var rawOHLCV any = this.SafeValue(message, "kbar", map[string]any{})
+		var rawOHLCV any = this.SafeDict(message, "kbar", map[string]any{})
 		var timeframeId *string = this.SafeString(rawOHLCV, "slot")
 		var datetime *string = this.SafeString(rawOHLCV, "t")
 		var parsed []any = []any{this.Parse8601(datetime), this.SafeNumber(rawOHLCV, "o"), this.SafeNumber(rawOHLCV, "h"), this.SafeNumber(rawOHLCV, "l"), this.SafeNumber(rawOHLCV, "c"), this.SafeNumber(rawOHLCV, "v")}
 		var timeframe any = this.FindTimeframe(timeframeId, timeframes)
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -428,7 +428,7 @@ func (this *Lbank) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(ticker, "pair")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var datetime *string = this.SafeString(ticker, "TS")
-	var tickerData any = this.SafeValue(ticker, "tick")
+	var tickerData map[string]any = ccxt.SafeMapTyped(ticker, "tick")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     this.Parse8601(datetime),
@@ -590,7 +590,7 @@ func (this *Lbank) HandleTrades(client any, message any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var rawTrade any = this.SafeValue(message, "trade")
-	var rawTrades any = this.SafeValue(message, "trades", []any{rawTrade})
+	var rawTrades any = this.SafeList(message, "trades", []any{rawTrade})
 	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
 		var trade any = this.ParseWsTrade(ccxt.GetValue(rawTrades, i), market)
 		ccxt.AddElementToObject(trade, "symbol", symbol)
@@ -798,7 +798,7 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var orderUpdate any = this.SafeValue(order, "orderUpdate", map[string]any{})
+	var orderUpdate map[string]any = ccxt.SafeMapTyped(order, "orderUpdate")
 	var rawType *string = this.SafeString(orderUpdate, "type", "")
 	var typeParts []string = ccxt.Split(rawType, "_")
 	var side *string = this.SafeString(typeParts, 0)
@@ -1231,7 +1231,7 @@ func (this *Lbank) authenticateBody(ch chan any, optionalArgs ...any) any {
 				}
 			}()
 			// try block:
-			var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
+			var authenticated any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
 			if ccxt.IsEqual(authenticated, nil) {
 
 				response := (<-this.SpotPrivatePostSubscribeGetKey(params))
@@ -1239,8 +1239,8 @@ func (this *Lbank) authenticateBody(ch chan any, optionalArgs ...any) any {
 				//
 				// {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
 				//
-				var result any = this.SafeValue(response, "result")
-				if result != true {
+				var result *bool = this.SafeBool(response, "result")
+				if result == nil || *result != true {
 					panic(ccxt.ExchangeError(this.Id + " failed to get subscribe key"))
 				}
 				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated", map[string]any{

@@ -359,7 +359,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	var result []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
-		var market any = this.SafeValue(markets, marketId)
+		var market any = this.SafeDict(markets, marketId)
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -1609,7 +1609,7 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	//         ]
 	//     }
 	//
-	var balances any = this.SafeValue(response, accountName)
+	var balances any = this.SafeList(response, accountName)
 	if IsEqual(balances, nil) {
 		panic(ExchangeError(this.Id + " fetchBalance() could not find the \"" + *accountName + "\" account"))
 	}

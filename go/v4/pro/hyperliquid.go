@@ -1508,20 +1508,20 @@ func (this *Hyperliquid) HandleBalance(client any, message any) {
 	if ccxt.IsEqual(this.Balance, nil) {
 		this.Balance = map[string]any{}
 	}
-	var topic any = this.SafeValue(message, "channel")
+	var topic *string = this.SafeString(message, "channel")
 	var messageHash any = ccxt.Add(topic, "::balance")
 	var info any = nil
 	var rawBalances any = []any{}
 	var account any = nil
 	var timestamp *int64 = nil
 	var data any = this.SafeValue(message, "data", []any{})
-	if ccxt.IsEqual(topic, "spotState") {
+	if topic != nil && *topic == "spotState" {
 		var spotState map[string]any = ccxt.SafeMapTyped(data, "spotState")
 		rawBalances = this.SafeList(spotState, "balances", []any{})
 		account = "spot"
 		info = rawBalances
 	}
-	if ccxt.IsEqual(topic, "clearinghouseState") {
+	if topic != nil && *topic == "clearinghouseState" {
 		account = "swap"
 		var clearinghouseState any = this.SafeDict(data, "clearinghouseState")
 		ccxt.AppendToArray(&rawBalances, clearinghouseState)

@@ -986,7 +986,7 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	promises := (<-promiseAll(promisesRaw))
 	PanicOnError(promises)
-	var spotMarkets any = this.SafeValue(this.SafeValue(promises, 0), "symbols", []any{})
+	var spotMarkets any = this.SafeList(this.SafeDict(promises, 0), "symbols", []any{})
 	var futureMarkets any = this.SafeValue(promises, 1)
 	var deliveryMarkets any = this.SafeValue(promises, 2)
 	var markets any = spotMarkets
@@ -2354,9 +2354,9 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			request["volume"] = this.ParseToNumeric(amount)
 		}
 		request["positionType"] = 1
-		var reduceOnly any = this.SafeValue2(params, "reduceOnly", "reduce_only")
+		var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
 		request["open"] = func() string {
-			if reduceOnly == true {
+			if reduceOnly != nil && *reduceOnly == true {
 				return "CLOSE"
 			}
 			return "OPEN"
@@ -2386,8 +2386,8 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			params = this.Omit(params, []any{"newClientOrderId", "clientOrderId"})
 			request["newClientOrderId"] = clientOrderId
 		}
-		var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
-		if !IsEqual(triggerPrice, nil) {
+		var triggerPrice *float64 = this.SafeNumber2(params, "triggerPrice", "stopPrice")
+		if triggerPrice != nil {
 			params = this.Omit(params, []any{"triggerPrice", "stopPrice"})
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}
@@ -2456,12 +2456,12 @@ func (this *Bitrue) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		PanicOnError(retRes218912)
 	}
 	var market any = this.Market(symbol)
-	var origClientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
+	var origClientOrderId *string = this.SafeString2(params, "origClientOrderId", "clientOrderId")
 	params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
 	var response any = nil
 	var data any = map[string]any{}
 	var request map[string]any = map[string]any{}
-	if IsEqual(origClientOrderId, nil) {
+	if origClientOrderId == nil {
 		request["orderId"] = id
 	} else {
 		if GetValue(market, "swap") == true {
@@ -2763,12 +2763,12 @@ func (this *Bitrue) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		PanicOnError(retRes243312)
 	}
 	var market any = this.Market(symbol)
-	var origClientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
+	var origClientOrderId *string = this.SafeString2(params, "origClientOrderId", "clientOrderId")
 	params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
 	var response any = nil
 	var data any = map[string]any{}
 	var request map[string]any = map[string]any{}
-	if IsEqual(origClientOrderId, nil) {
+	if origClientOrderId == nil {
 		request["orderId"] = id
 	} else {
 		if GetValue(market, "swap") == true {
@@ -3984,7 +3984,7 @@ func (this *Bitrue) CalculateRateLimiterCost(api any, method any, path any, para
 			}
 		}
 	}
-	return this.SafeValue(config, "cost", 1)
+	return this.SafeNumber(config, "cost", 1)
 }
 
 func NewBitrue(userConfig map[string]any) *Bitrue {

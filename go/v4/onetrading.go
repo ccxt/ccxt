@@ -738,7 +738,7 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	var method *string = this.SafeString(params, "method")
 	params = this.Omit(params, "method")
 	if method == nil {
-		var options any = this.SafeValue(this.Options, "fetchTradingFees", map[string]any{})
+		var options any = this.SafeDict(this.Options, "fetchTradingFees", map[string]any{})
 		method = this.SafeString(options, "method", "fetchPrivateTradingFees")
 	}
 	if method != nil && *method == "fetchPrivateTradingFees" {
@@ -1250,7 +1250,7 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var granularity any = this.SafeValue(ohlcv, "granularity")
+	var granularity map[string]any = SafeMapTyped(ohlcv, "granularity")
 	var unit *string = this.SafeString(granularity, "unit")
 	var period *string = this.SafeString(granularity, "period")
 	var units map[string]any = map[string]any{
@@ -1272,7 +1272,7 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " parseOHLCV() missing timestamp"))
 	}
 	var alignedTimestamp any = Multiply(duration, this.ParseToInt(Divide(timestamp, duration)))
-	var options any = this.SafeValue(this.Options, "fetchOHLCV", map[string]any{})
+	var options any = this.SafeDict(this.Options, "fetchOHLCV", map[string]any{})
 	var volumeField *string = this.SafeString(options, "volume", "total_amount")
 	return []any{alignedTimestamp, this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, volumeField)}
 }
@@ -1392,7 +1392,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var feeInfo any = this.SafeValue(trade, "fee", map[string]any{})
+	var feeInfo map[string]any = SafeMapTyped(trade, "fee")
 	trade = this.SafeValue(trade, "trade", trade)
 	var timestamp *int64 = this.SafeInteger(trade, "trade_timestamp")
 	if timestamp == nil {
@@ -1597,8 +1597,8 @@ func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(rawOrder, "side")
 	var typeVar *string = this.SafeStringLower(rawOrder, "type")
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(rawOrder, "time_in_force"))
-	var postOnly any = this.SafeValue(rawOrder, "is_post_only")
-	var rawTrades any = this.SafeValue(order, "trades", []any{})
+	var postOnly *bool = this.SafeBool(rawOrder, "is_post_only")
+	var rawTrades any = this.SafeList(order, "trades", []any{})
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -2199,7 +2199,7 @@ func (this *Onetrading) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	//         "cursor": "string"
 	//     }
 	//
-	var tradeHistory any = this.SafeValue(response, "trade_history", []any{})
+	var tradeHistory any = this.SafeList(response, "trade_history", []any{})
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
