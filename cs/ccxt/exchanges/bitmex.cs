@@ -3490,7 +3490,7 @@ public partial class bitmex : Exchange
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = ((string)marginModeVar).ToLower();
-        if ((marginModeVar != "isolated") && (marginModeVar != "cross"))
+        if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
@@ -3503,7 +3503,7 @@ public partial class bitmex : Exchange
         {
             throw new BadSymbol ((string)(this.id + " setMarginMode() supports swap and future contracts only")) ;
         }
-        bool enabled = ((bool) ((marginModeVar == "cross"))) ? false : true;
+        bool enabled = ((bool) (isEqual(marginModeVar, "cross"))) ? false : true;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "enabled", enabled },

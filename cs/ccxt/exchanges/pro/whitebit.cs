@@ -169,7 +169,7 @@ public partial class whitebit : ccxt.whitebit
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 10; // max 100
         }

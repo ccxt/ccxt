@@ -517,7 +517,7 @@ public partial class binance : PredictionExchange
         if (isEqual(limitVar, null))
         {
             limitVar = 20;
-        } else if (limitVar > 50)
+        } else if (isGreaterThan(limitVar, 50))
         {
             limitVar = 50;
         }
@@ -558,7 +558,7 @@ public partial class binance : PredictionExchange
         }
         object capped = collected;
         int collectedLength = (collected?.Count ?? 0);
-        if ((!isEqual(limitVar, null)) && (collectedLength > limitVar))
+        if ((!isEqual(limitVar, null)) && (isGreaterThan(collectedLength, limitVar)))
         {
             capped = this.arraySlice(collected, 0, limitVar);
         }

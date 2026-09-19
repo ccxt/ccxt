@@ -852,7 +852,7 @@ public partial class independentreserve : Exchange
             ((IDictionary<string,object>)request)["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             ((IDictionary<string,object>)request)["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 50;
         }
@@ -889,7 +889,7 @@ public partial class independentreserve : Exchange
             ((IDictionary<string,object>)request)["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             ((IDictionary<string,object>)request)["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 50;
         }
@@ -920,7 +920,7 @@ public partial class independentreserve : Exchange
             await this.loadMarkets();
         }
         Int64? pageIndex = this.safeInteger(parameters, "pageIndex", 1);
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 50;
         }

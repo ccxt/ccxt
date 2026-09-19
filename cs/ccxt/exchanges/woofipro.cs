@@ -1956,7 +1956,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             limitVar = mathMin(limitVar, 1000);
             ((IDictionary<string,object>)request)["max_level"] = limitVar;
@@ -3487,7 +3487,7 @@ public partial class woofipro : Exchange
         if ((codeVar != null))
         {
             codeVar = ((string)codeVar).ToUpper();
-            if ((codeVar != "USDC"))
+            if (!isEqual(codeVar, "USDC"))
             {
                 throw new NotSupported ((string)(this.id + " withdraw() only support USDC")) ;
             }
@@ -3667,7 +3667,7 @@ public partial class woofipro : Exchange
             await this.loadMarkets();
         }
         marginModeVar = ((string)marginModeVar).ToLower();
-        if ((marginModeVar != "cross") && (marginModeVar != "isolated"))
+        if (!isEqual(marginModeVar, "cross") && !isEqual(marginModeVar, "isolated"))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
         }

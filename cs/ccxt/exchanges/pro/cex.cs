@@ -141,7 +141,7 @@ public partial class cex : ccxt.cex
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         string? currentSymbol = this.safeString((this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol");
-        if ((currentSymbol != null) && (currentSymbol != symbolVar))
+        if ((currentSymbol != null) && !isEqual(currentSymbol, symbolVar))
         {
             throw new ArgumentsRequired ((string)(this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
         }

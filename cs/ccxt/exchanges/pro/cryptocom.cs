@@ -127,7 +127,7 @@ public partial class cryptocom : ccxt.cryptocom
         symbols = this.marketSymbols(symbols);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        if (((limitVar == null)) || ((limitVar == 0)))
+        if ((isEqual(limitVar, null)) || (isEqual(limitVar, 0)))
         {
             limitVar = 50;
         }

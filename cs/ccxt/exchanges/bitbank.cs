@@ -678,9 +678,9 @@ public partial class bitbank : Exchange
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if ((sinceVar == null))
+        if (isEqual(sinceVar, null))
         {
-            if ((limitVar == null))
+            if (isEqual(limitVar, null))
             {
                 limitVar = 1000; // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
             }

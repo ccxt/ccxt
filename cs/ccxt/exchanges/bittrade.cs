@@ -1267,7 +1267,7 @@ public partial class bittrade : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["size"] = mathMin(limitVar, 2000);
         }
@@ -1355,7 +1355,7 @@ public partial class bittrade : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["size"] = mathMin(limitVar, 2000);
         }
@@ -2208,7 +2208,7 @@ public partial class bittrade : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
@@ -2229,7 +2229,7 @@ public partial class bittrade : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }
@@ -2253,7 +2253,7 @@ public partial class bittrade : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
@@ -2274,7 +2274,7 @@ public partial class bittrade : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }

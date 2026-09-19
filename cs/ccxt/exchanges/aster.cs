@@ -2503,11 +2503,11 @@ public partial class aster : Exchange
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = ((string)marginModeVar).ToUpper();
-        if ((marginModeVar == "CROSS"))
+        if (isEqual(marginModeVar, "CROSS"))
         {
             marginModeVar = "CROSSED";
         }
-        if (((marginModeVar != "ISOLATED")) && ((marginModeVar != "CROSSED")))
+        if ((!isEqual(marginModeVar, "ISOLATED")) && (!isEqual(marginModeVar, "CROSSED")))
         {
             throw new BadRequest ((string)(this.id + " marginMode must be either isolated or cross")) ;
         }

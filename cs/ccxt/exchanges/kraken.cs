@@ -3718,7 +3718,7 @@ public partial class kraken : Exchange
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
         parameters = this.omit(parameters, "network");
-        if (((codeVar == "USDT")) && ((network == "TRC20")))
+        if ((isEqual(codeVar, "USDT")) && ((network == "TRC20")))
         {
             codeVar = add(add(codeVar, "-"), network);
         }

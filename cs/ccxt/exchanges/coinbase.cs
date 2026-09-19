@@ -4090,7 +4090,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["product_id"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
@@ -4178,7 +4178,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["product_id"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 100;
         }
@@ -4353,7 +4353,7 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         object maxLimit = 300;
-        limitVar = ((bool) ((limitVar == null))) ? maxLimit : mathMin(limitVar, maxLimit);
+        limitVar = ((bool) (isEqual(limitVar, null))) ? maxLimit : mathMin(limitVar, maxLimit);
         object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];

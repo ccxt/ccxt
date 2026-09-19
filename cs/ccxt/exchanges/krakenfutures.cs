@@ -1056,7 +1056,7 @@ public partial class krakenfutures : Exchange
         {
             int duration = this.parseTimeframe(timeframeVar);
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
-            if ((limitVar == null))
+            if (isEqual(limitVar, null))
             {
                 limitVar = 2000;
             }
@@ -1064,7 +1064,7 @@ public partial class krakenfutures : Exchange
             object toTimestamp = this.sum(getValue(request, "from"), subtract(multiply(limitVar, duration), 1));
             Int64 currentTimestamp = this.seconds();
             ((IDictionary<string,object>)request)["to"] = mathMin(toTimestamp, currentTimestamp);
-        } else if ((limitVar != null))
+        } else if (!isEqual(limitVar, null))
         {
             limitVar = mathMin(limitVar, 2000);
             int duration = this.parseTimeframe(timeframeVar);

@@ -1243,7 +1243,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument", this.marketId(symbol) },
         };
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 100;
         }
@@ -2160,8 +2160,8 @@ public partial class grvt : Exchange
             {
                 throw new ArgumentsRequired ((string)(this.id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")) ;
             }
-            fromAccountVar = ((bool) ((fromAccountVar == "trading"))) ? tradingAccountId : fundingAccountId;
-            toAccountVar = ((bool) ((toAccountVar == "trading"))) ? tradingAccountId : fundingAccountId;
+            fromAccountVar = ((bool) (isEqual(fromAccountVar, "trading"))) ? tradingAccountId : fundingAccountId;
+            toAccountVar = ((bool) (isEqual(toAccountVar, "trading"))) ? tradingAccountId : fundingAccountId;
         }
         object request = new Dictionary<string, object>() {
             { "from_account_id", this.safeString(parameters, "from_account_id", defaultFromAccountId) },
@@ -2182,7 +2182,7 @@ public partial class grvt : Exchange
         } catch(Exception error)
         {
             object msg = this.exceptionMessage(error);
-            bool isFromFundingAccount = (fromAccountVar == "funding");
+            bool isFromFundingAccount = isEqual(fromAccountVar, "funding");
             if (isFromFundingAccount && (getIndexOf(msg, "You are not authorized") >= 0))
             {
                 throw new PermissionDenied ((string)((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + (msg))) ;

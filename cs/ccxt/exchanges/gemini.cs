@@ -1937,7 +1937,7 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        if ((typeVar != "limit"))
+        if (!isEqual(typeVar, "limit"))
         {
             throw new ExchangeError ((string)(this.id + " createOrder() allows limit orders only")) ;
         }
@@ -1962,7 +1962,7 @@ public partial class gemini : Exchange
         parameters = this.omit(parameters, "type");
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice"});
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice", "type"});
-        if ((typeVar == "stopLimit"))
+        if (isEqual(typeVar, "stopLimit"))
         {
             throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for ") + (typeVar)) + " orders")) ;
         }

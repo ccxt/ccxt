@@ -1003,7 +1003,7 @@ public partial class coinmate : Exchange
         {
             await this.loadMarkets();
         }
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 1000;
         }

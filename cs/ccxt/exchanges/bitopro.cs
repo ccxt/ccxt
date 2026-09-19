@@ -966,7 +966,7 @@ public partial class bitopro : Exchange
             { "resolution", resolution },
         };
         // we need to have a limitVar argument because "to" and "from" are required
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 500;
         } else

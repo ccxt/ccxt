@@ -153,7 +153,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 100;
         }

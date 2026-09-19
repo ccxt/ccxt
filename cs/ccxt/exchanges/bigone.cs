@@ -1465,7 +1465,7 @@ public partial class bigone : Exchange
         Int64? until = this.safeInteger(parameters, "until");
         bool untilIsDefined = (!isEqual(until, null));
         bool sinceIsDefined = ((since != null));
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = ((bool) (sinceIsDefined && untilIsDefined)) ? 500 : 100; // default 100, max 500, if since and limitVar defined then fetch all the candles between them unless it exceeds the max of 500
         }

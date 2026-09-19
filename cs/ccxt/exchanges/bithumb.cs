@@ -1475,13 +1475,13 @@ public partial class bithumb : Exchange
             {
                 ((IDictionary<string,object>)request)["count"] = limit;
             }
-            if ((timeframeVar == "1d"))
+            if (isEqual(timeframeVar, "1d"))
             {
                 response = await this.publicGetV1CandlesDays(this.extend(request, parameters));
-            } else if ((timeframeVar == "1w"))
+            } else if (isEqual(timeframeVar, "1w"))
             {
                 response = await this.publicGetV1CandlesWeeks(this.extend(request, parameters));
-            } else if ((timeframeVar == "1M"))
+            } else if (isEqual(timeframeVar, "1M"))
             {
                 response = await this.publicGetV1CandlesMonths(this.extend(request, parameters));
             } else
@@ -2594,7 +2594,7 @@ public partial class bithumb : Exchange
             {
                 ((IDictionary<string,object>)request)["after"] = since;
             }
-            if ((limitVar == null))
+            if (isEqual(limitVar, null))
             {
                 limitVar = 100;
             }

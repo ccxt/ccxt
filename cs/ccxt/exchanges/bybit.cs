@@ -3750,7 +3750,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 200; // default is 200 when requested with `since`
         }
@@ -3766,7 +3766,7 @@ public partial class bybit : Exchange
             object rounded = (this.parseToInt(divide(since, duration)) * duration);
             ((IDictionary<string,object>)request)["start"] = ((bool) (isEqual(rounded, since))) ? since : this.sum(rounded, duration);
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar; // max 1000, default 1000
         }
@@ -4042,7 +4042,7 @@ public partial class bybit : Exchange
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbolVar, since, limitVar, parameters, 200));
         }
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 200;
         }
@@ -8536,13 +8536,13 @@ public partial class bybit : Exchange
         object response = null;
         if (isUnifiedAccount)
         {
-            if ((marginModeVar == "isolated"))
+            if (isEqual(marginModeVar, "isolated"))
             {
                 marginModeVar = "ISOLATED_MARGIN";
-            } else if ((marginModeVar == "cross"))
+            } else if (isEqual(marginModeVar, "cross"))
             {
                 marginModeVar = "REGULAR_MARGIN";
-            } else if ((marginModeVar == "portfolio"))
+            } else if (isEqual(marginModeVar, "portfolio"))
             {
                 marginModeVar = "PORTFOLIO_MARGIN";
             } else
@@ -8563,10 +8563,10 @@ public partial class bybit : Exchange
             bool isUsdcSettled = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC");
             if (isUsdcSettled)
             {
-                if ((marginModeVar == "cross"))
+                if (isEqual(marginModeVar, "cross"))
                 {
                     marginModeVar = "REGULAR_MARGIN";
-                } else if ((marginModeVar == "portfolio"))
+                } else if (isEqual(marginModeVar, "portfolio"))
                 {
                     marginModeVar = "PORTFOLIO_MARGIN";
                 } else
@@ -8584,10 +8584,10 @@ public partial class bybit : Exchange
                 type = ((IList<object>)typeparametersVariable)[0];
                 parameters = ((IList<object>)typeparametersVariable)[1];
                 int? tradeMode = null;
-                if ((marginModeVar == "cross"))
+                if (isEqual(marginModeVar, "cross"))
                 {
                     tradeMode = 0;
-                } else if ((marginModeVar == "isolated"))
+                } else if (isEqual(marginModeVar, "isolated"))
                 {
                     tradeMode = 1;
                 } else
@@ -8910,7 +8910,7 @@ public partial class bybit : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
-        if ((timeframeVar == "1m"))
+        if (isEqual(timeframeVar, "1m"))
         {
             throw new BadRequest ((string)(this.id + " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
         }
@@ -9137,7 +9137,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
-        if ((sinceVar == null))
+        if (isEqual(sinceVar, null))
         {
             sinceVar = (this.milliseconds() - multiply(86400000, 30)); // last 30 days
         }

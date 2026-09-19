@@ -1570,9 +1570,9 @@ public partial class hyperliquid : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
-        bool useTail = (sinceVar == null);
+        bool useTail = isEqual(sinceVar, null);
         object originalSince = sinceVar;
-        if ((sinceVar == null))
+        if (isEqual(sinceVar, null))
         {
             if ((limit != null))
             {
@@ -4759,7 +4759,7 @@ public partial class hyperliquid : Exchange
         if ((codeVar != null))
         {
             codeVar = ((string)codeVar).ToUpper();
-            if ((codeVar != "USDC"))
+            if (!isEqual(codeVar, "USDC"))
             {
                 throw new NotSupported ((string)(this.id + " withdraw() only support USDC")) ;
             }

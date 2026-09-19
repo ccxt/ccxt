@@ -6961,10 +6961,93 @@ function coreArgParamType (csharp, node) {
     if (position < 0) {
         return undefined; // destructured / rest parameter
     }
+    // a parameter the body WRITES (assignment, compound assignment, ++/--, or a destructuring
+    // target) cannot be read as its narrowed type: the ccxt-side typeCoreArgs pass inserts an
+    // `object <name>Var = <name>;` shadow for it and renames every body use, so the emitted read
+    // is the shadow's (unproven) type -- answering the narrowed type here would print a
+    // comparison the shadow's `object` cannot take.
+    if (csharpParameterIsWritten (csharp, owner, declaration)) {
+        return undefined;
+    }
+    // a LITERAL default makes the printer emit a `<name> ??= <literal>;` prologue
+    // (printFunctionBody: array / object / numeric / string / boolean initializer), which the
+    // pass above reads as a reassignment and shadows just like a body write
+    const init = declaration.initializer;
+    if (init !== undefined && (ts.isArrayLiteralExpression (init) || ts.isObjectLiteralExpression (init)
+            || ts.isNumericLiteral (init) || ts.isStringLiteralLike (init)
+            || (init.kind === ts.SyntaxKind.TrueKeyword) || (init.kind === ts.SyntaxKind.FalseKeyword))) {
+        return undefined;
+    }
     if (strings !== undefined && strings.indexOf(position) >= 0) {
         return 'string';
     }
     return (numerics === undefined) ? undefined : numerics[position];
+}
+
+// the parameter is the target of a write anywhere in the method body: its own symbol, an
+// assignment (or compound assignment) left side -- through parens and array/object patterns, so
+// a `[ tag, params ] = this.handleWithdrawTagAndParams (…)` destructure counts -- or ++/--
+function csharpParameterIsWritten (csharp, owner, declaration) {
+    if (owner.body === undefined) {
+        return false;
+    }
+    let checker;
+    try {
+        checker = csharp.getChecker ();
+    } catch (e) {
+        return false;
+    }
+    let written = false;
+    const visit = (node) => {
+        if (written || node === undefined) {
+            return;
+        }
+        if ((node.kind === ts.SyntaxKind.Identifier) && (node !== declaration.name)) {
+            let symbol;
+            try {
+                symbol = checker.getSymbolAtLocation (node);
+            } catch (e) {
+                symbol = undefined;
+            }
+            if ((symbol !== undefined) && (symbol.valueDeclaration === declaration) && csharpWriteTarget (node)) {
+                written = true;
+                return;
+            }
+        }
+        ts.forEachChild (node, visit);
+    };
+    ts.forEachChild (owner.body, visit);
+    return written;
+}
+
+const CSHARP_WRITE_OPERATORS = [
+    ts.SyntaxKind.EqualsToken, ts.SyntaxKind.PlusEqualsToken, ts.SyntaxKind.MinusEqualsToken,
+    ts.SyntaxKind.AsteriskEqualsToken, ts.SyntaxKind.SlashEqualsToken, ts.SyntaxKind.PercentEqualsToken,
+    ts.SyntaxKind.AsteriskAsteriskEqualsToken, ts.SyntaxKind.QuestionQuestionEqualsToken,
+    ts.SyntaxKind.AmpersandEqualsToken, ts.SyntaxKind.BarEqualsToken, ts.SyntaxKind.CaretEqualsToken,
+    ts.SyntaxKind.LessThanLessThanEqualsToken, ts.SyntaxKind.GreaterThanGreaterThanEqualsToken,
+];
+
+function csharpWriteTarget (node) {
+    let current = node;
+    for (;;) {
+        const parent = current.parent;
+        if (parent === undefined) {
+            return false;
+        }
+        const kind = parent.kind;
+        if ((kind === ts.SyntaxKind.ParenthesizedExpression) || (kind === ts.SyntaxKind.ArrayLiteralExpression) || (kind === ts.SyntaxKind.ObjectLiteralExpression)) {
+            current = parent;
+            continue;
+        }
+        if ((kind === ts.SyntaxKind.BinaryExpression) && (parent.left === current)) {
+            return CSHARP_WRITE_OPERATORS.indexOf (parent.operatorToken?.kind) >= 0;
+        }
+        if ((kind === ts.SyntaxKind.PrefixUnaryExpression) || (kind === ts.SyntaxKind.PostfixUnaryExpression)) {
+            return (parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken);
+        }
+        return false;
+    }
 }
 
 // a non-nullable C# value type cannot be null-tested; a nullable spelling (`Int64?`) and a
@@ -6987,12 +7070,6 @@ export function installCsharpParameterTypes (transpiler) {
     csharp.csharpOperandIsValueTyped = (node) => {
         const type = answer (node);
         return (type !== undefined) ? coreArgParamIsValueTyped (type) : upstreamValueTyped (node);
-    };
-
-    const upstreamResolver = csharp.csharpExpressionTypeResolver;
-    csharp.csharpExpressionTypeResolver = (node) => {
-        const provided = (typeof upstreamResolver === 'function') ? upstreamResolver (node) : undefined;
-        return (provided !== undefined) ? provided : answer (node);
     };
     csharp._parameterTypesPatched = true;
 }

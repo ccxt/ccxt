@@ -2671,7 +2671,7 @@ public partial class kalshi : PredictionExchange
         for (int ei = 0; ei < eventTickersLength; ei++)
         {
             int collectedLength = (rawEvents?.Count ?? 0);
-            if ((!isEqual(limit, null)) && (collectedLength >= limit))
+            if ((!isEqual(limit, null)) && (isGreaterThanOrEqual(collectedLength, limit)))
             {
                 break;
             }
@@ -2813,7 +2813,7 @@ public partial class kalshi : PredictionExchange
         for (int si = 0; si < seriesTickersLength; si++)
         {
             int collectedLength = (rawEvents?.Count ?? 0);
-            if ((!isEqual(limit, null)) && (collectedLength >= limit))
+            if ((!isEqual(limit, null)) && (isGreaterThanOrEqual(collectedLength, limit)))
             {
                 break;
             }
@@ -2852,7 +2852,7 @@ public partial class kalshi : PredictionExchange
                 }
                 cursor = this.safeString(response, "cursor");
                 int collectedAfterPage = (rawEvents?.Count ?? 0);
-                if ((!isEqual(limit, null)) && (collectedAfterPage >= limit))
+                if ((!isEqual(limit, null)) && (isGreaterThanOrEqual(collectedAfterPage, limit)))
                 {
                     break;
                 }

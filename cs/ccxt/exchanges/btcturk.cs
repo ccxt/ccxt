@@ -785,14 +785,14 @@ public partial class btcturk : Exchange
         if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
-        } else if ((limitVar == null))
+        } else if (isEqual(limitVar, null))
         {
             limitVar = 100; // default value
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             limitVar = mathMin(limitVar, 11000); // max 11000 candles diapason can be covered
-            if ((timeframeVar == "1y"))
+            if (isEqual(timeframeVar, "1y"))
             {
                 throw new BadRequest ((string)(this.id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
             }

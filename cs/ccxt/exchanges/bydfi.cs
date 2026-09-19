@@ -2733,7 +2733,7 @@ public partial class bydfi : Exchange
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = ((string)marginModeVar).ToLower();
-        if ((marginModeVar != "isolated") && (marginModeVar != "cross"))
+        if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
@@ -3090,7 +3090,7 @@ public partial class bydfi : Exchange
         {
             until = this.milliseconds(); // exchange requires endTime
         }
-        if ((sinceVar == null))
+        if (isEqual(sinceVar, null))
         {
             sinceVar = 1; // exchange requires startTime but allows any value
         }

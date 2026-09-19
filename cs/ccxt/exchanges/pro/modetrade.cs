@@ -428,7 +428,7 @@ public partial class modetrade : ccxt.modetrade
         {
             await this.loadMarkets();
         }
-        if (((timeframeVar != "1m")) && ((timeframeVar != "5m")) && ((timeframeVar != "15m")) && ((timeframeVar != "30m")) && ((timeframeVar != "1h")) && ((timeframeVar != "1d")) && ((timeframeVar != "1w")) && ((timeframeVar != "1M")))
+        if ((!isEqual(timeframeVar, "1m")) && (!isEqual(timeframeVar, "5m")) && (!isEqual(timeframeVar, "15m")) && (!isEqual(timeframeVar, "30m")) && (!isEqual(timeframeVar, "1h")) && (!isEqual(timeframeVar, "1d")) && (!isEqual(timeframeVar, "1w")) && (!isEqual(timeframeVar, "1M")))
         {
             throw new NotSupported ((string)(this.id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
         }

@@ -1419,7 +1419,7 @@ public partial class cryptocom : Exchange
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeframe", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             if (isGreaterThan(limitVar, 300))
             {
@@ -1434,7 +1434,7 @@ public partial class cryptocom : Exchange
         if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_ts"] = subtract(since, multiply(duration, 1000));
-            if ((limitVar != null))
+            if (!isEqual(limitVar, null))
             {
                 ((IDictionary<string,object>)request)["end_ts"] = this.sum(since, multiply(multiply(duration, limitVar), 1000));
             } else

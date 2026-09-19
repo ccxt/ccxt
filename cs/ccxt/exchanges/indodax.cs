@@ -793,7 +793,7 @@ public partial class indodax : Exchange
             { "tf", selectedTimeframe },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 1000;
         }
@@ -1416,7 +1416,7 @@ public partial class indodax : Exchange
             { "withdraw_address", address },
             { "request_id", ((object)requestId).ToString() },
         };
-        if (((tagVar != null)) && ((tagVar != "")))
+        if (((tagVar != null)) && (!isEqual(tagVar, "")))
         {
             ((IDictionary<string,object>)request)["withdraw_memo"] = tagVar;
         }

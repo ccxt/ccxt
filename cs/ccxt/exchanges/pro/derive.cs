@@ -89,7 +89,7 @@ public partial class derive : ccxt.derive
         {
             await this.loadMarkets();
         }
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 10;
         }

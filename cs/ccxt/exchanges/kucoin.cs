@@ -3889,17 +3889,17 @@ public partial class kucoin : Exchange
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         object endAt = this.milliseconds(); // required param
         int denominator = 1000;
-        if ((sinceVar != null))
+        if (!isEqual(sinceVar, null))
         {
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
-            if ((limitVar == null))
+            if (isEqual(limitVar, null))
             {
                 // For each query, the system would return at most 1500 pieces of data.
                 // To obtain more data, please page the data by time.
                 limitVar = this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit);
             }
             endAt = this.sum(sinceVar, multiply(limitVar, duration));
-        } else if ((limitVar != null))
+        } else if (!isEqual(limitVar, null))
         {
             sinceVar = subtract(endAt, multiply(limitVar, duration));
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
@@ -3995,17 +3995,17 @@ public partial class kucoin : Exchange
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         object endAt = this.milliseconds(); // required param
         int denominator = 1000;
-        if ((sinceVar != null))
+        if (!isEqual(sinceVar, null))
         {
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
-            if ((limitVar == null))
+            if (isEqual(limitVar, null))
             {
                 // For each query, the system would return at most 1500 pieces of data.
                 // To obtain more data, please page the data by time.
                 limitVar = this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit);
             }
             endAt = this.sum(sinceVar, multiply(limitVar, duration));
-        } else if ((limitVar != null))
+        } else if (!isEqual(limitVar, null))
         {
             sinceVar = subtract(endAt, multiply(limitVar, duration));
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
@@ -4075,17 +4075,17 @@ public partial class kucoin : Exchange
         }
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         object endAt = this.milliseconds(); // required param
-        if ((sinceVar != null))
+        if (!isEqual(sinceVar, null))
         {
             ((IDictionary<string,object>)request)["from"] = sinceVar;
-            if ((limitVar == null))
+            if (isEqual(limitVar, null))
             {
                 // For each query, the system would return at most 200 pieces of data.
                 // To obtain more data, please page the data by time.
                 limitVar = this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit);
             }
             endAt = this.sum(sinceVar, multiply(limitVar, duration));
-        } else if ((limitVar != null))
+        } else if (!isEqual(limitVar, null))
         {
             sinceVar = subtract(endAt, multiply(limitVar, duration));
             ((IDictionary<string,object>)request)["from"] = sinceVar;
@@ -12043,7 +12043,7 @@ public partial class kucoin : Exchange
             {
                 ((IDictionary<string,object>)request)["startAt"] = since;
             }
-            if ((limitVar != null))
+            if (!isEqual(limitVar, null))
             {
                 ((IDictionary<string,object>)request)["pageSize"] = limitVar;
             }
@@ -12080,7 +12080,7 @@ public partial class kucoin : Exchange
             response = await this.utaPrivateGetPositionHistory(this.extend(request, parameters));
         } else
         {
-            if ((limitVar == null))
+            if (isEqual(limitVar, null))
             {
                 limitVar = 200;
             }

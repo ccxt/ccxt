@@ -1794,7 +1794,7 @@ public partial class coinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 20; // default
         }
@@ -4070,7 +4070,7 @@ public partial class coinex : Exchange
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = ((string)marginModeVar).ToLower();
-        if ((marginModeVar != "isolated") && (marginModeVar != "cross"))
+        if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }

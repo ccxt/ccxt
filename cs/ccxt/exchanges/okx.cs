@@ -3125,18 +3125,18 @@ public partial class okx : Exchange
         IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        if (isEqual(method, "publicGetMarketBooksFull") && (limitVar == null))
+        if (isEqual(method, "publicGetMarketBooksFull") && isEqual(limitVar, null))
         {
             limitVar = 5000;
         }
-        limitVar = ((bool) ((limitVar == null))) ? 100 : limitVar;
+        limitVar = ((bool) (isEqual(limitVar, null))) ? 100 : limitVar;
         if (isTrue(rpi) && (isGreaterThan(limitVar, 400)))
         {
             // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
             // including the 5000 that publicGetMarketBooksFull defaults to
             limitVar = 400;
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["sz"] = limitVar; // max 400
         }
@@ -3717,8 +3717,8 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "price");
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         string? timezone = this.safeString(options, "timezone", "UTC");
-        bool limitIsUndefined = ((limitVar == null));
-        if ((limitVar == null))
+        bool limitIsUndefined = (isEqual(limitVar, null));
+        if (isEqual(limitVar, null))
         {
             limitVar = 100; // default 100, max 300
         } else
@@ -3788,7 +3788,7 @@ public partial class okx : Exchange
         {
             if (isHistoryCandles)
             {
-                if (limitIsUndefined && ((limitVar == 100)))
+                if (limitIsUndefined && (isEqual(limitVar, 100)))
                 {
                     limitVar = 300;
                     ((IDictionary<string,object>)request)["limit"] = 300; // reassign to 300, but this whole logic needs to be simplified...
@@ -8647,7 +8647,7 @@ public partial class okx : Exchange
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         marginModeVar = ((string)marginModeVar).ToLower();
-        if (((marginModeVar != "cross")) && ((marginModeVar != "isolated")))
+        if ((!isEqual(marginModeVar, "cross")) && (!isEqual(marginModeVar, "isolated")))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
         }
@@ -9551,7 +9551,7 @@ public partial class okx : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOpenInterestHistory", new Dictionary<string, object>() {});
         IDictionary<string, object> timeframes = this.safeDict(options, "timeframes", new Dictionary<string, object>() {});
         timeframeVar = this.safeString(timeframes, timeframeVar, timeframeVar);
-        if ((timeframeVar != "5m") && (timeframeVar != "1H") && (timeframeVar != "1D"))
+        if (!isEqual(timeframeVar, "5m") && !isEqual(timeframeVar, "1H") && !isEqual(timeframeVar, "1D"))
         {
             throw new BadRequest ((string)(this.id + " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")) ;
         }
@@ -11010,7 +11010,7 @@ public partial class okx : Exchange
         string? marginMode = this.safeString(parameters, "marginMode");
         string? instType = this.safeStringUpper(parameters, "instType");
         parameters = this.omit(parameters, new List<object>() {"until", "marginMode", "instType"});
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 100;
         }

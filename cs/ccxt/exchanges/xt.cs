@@ -1878,7 +1878,7 @@ public partial class xt : Exchange
             Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
             ((IDictionary<string,object>)request)["startTime"] = multiply(Math.Ceiling(Convert.ToDouble(divide(since, duration))), duration);
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
@@ -6548,11 +6548,11 @@ public partial class xt : Exchange
             throw new NotSupported ((string)(this.id + " setMarginMode() supports contract markets only")) ;
         }
         marginModeVar = ((string)marginModeVar).ToLower();
-        if ((marginModeVar != "isolated") && (marginModeVar != "cross"))
+        if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
-        if ((marginModeVar == "cross"))
+        if (isEqual(marginModeVar, "cross"))
         {
             marginModeVar = "CROSSED";
         } else

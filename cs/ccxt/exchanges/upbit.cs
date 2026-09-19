@@ -1112,7 +1112,7 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 200;
         }
@@ -1291,7 +1291,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         int timeframePeriod = this.parseTimeframe(timeframeVar);
         string? timeframeValue = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 200;
         }

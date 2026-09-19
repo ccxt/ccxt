@@ -1777,7 +1777,7 @@ public partial class delta : Exchange
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         int duration = this.parseTimeframe(timeframeVar);
-        limitVar = ((bool) ((limitVar != null) && (limitVar != null) && (limitVar != 0))) ? limitVar : 2000; // max 2000
+        limitVar = ((bool) (!isEqual(limitVar, null) && !isEqual(limitVar, null) && !isEqual(limitVar, 0))) ? limitVar : 2000; // max 2000
         Int64? until = this.safeIntegerProduct(parameters, "until", 0.001);
         bool untilIsDefined = (!isEqual(until, null));
         if (untilIsDefined)

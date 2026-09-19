@@ -1823,7 +1823,7 @@ public partial class binance : ccxt.binance
         parameters = ((IList<object>)stockparametersVariable)[1];
         if (isEqual(stock, true))
         {
-            if (((timeframeVar != "5m")) && ((timeframeVar != "1h")) && ((timeframeVar != "1d")) && ((timeframeVar != "1w")) && ((timeframeVar != "1M")))
+            if ((!isEqual(timeframeVar, "5m")) && (!isEqual(timeframeVar, "1h")) && (!isEqual(timeframeVar, "1d")) && (!isEqual(timeframeVar, "1w")) && (!isEqual(timeframeVar, "1M")))
             {
                 throw new BadRequest ((string)(this.id + " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
             }

@@ -1685,13 +1685,13 @@ public partial class phemex : Exchange
         Int64? until = this.safeInteger2(parameters, "until", "to");
         parameters = this.omit(parameters, new List<object>() {"until"});
         bool isStableSettled = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) || ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"));
-        bool usesSpecialFromToEndpoint = ((((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) || isStableSettled)) && (((sinceVar != null)) || (!isEqual(until, null)));
+        bool usesSpecialFromToEndpoint = ((((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) || isStableSettled)) && ((!isEqual(sinceVar, null)) || (!isEqual(until, null)));
         int maxLimit = 1000;
         if (usesSpecialFromToEndpoint)
         {
             maxLimit = 2000;
         }
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = maxLimit;
         }
@@ -1699,10 +1699,10 @@ public partial class phemex : Exchange
         object response = null;
         if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) || isStableSettled)
         {
-            if ((!isEqual(until, null)) || ((sinceVar != null)))
+            if ((!isEqual(until, null)) || (!isEqual(sinceVar, null)))
             {
                 int candleDuration = this.parseTimeframe(timeframeVar);
-                if ((sinceVar != null))
+                if (!isEqual(sinceVar, null))
                 {
                     sinceVar = Math.Round(Convert.ToDouble(divide(sinceVar, 1000)));
                     ((IDictionary<string,object>)request)["from"] = sinceVar;
@@ -1733,7 +1733,7 @@ public partial class phemex : Exchange
             }
         } else
         {
-            if ((sinceVar != null))
+            if (!isEqual(sinceVar, null))
             {
                 // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
                 // we do not send sinceVar param to the exchange, instead we calculate appropriate limitVar param
@@ -3106,7 +3106,7 @@ public partial class phemex : Exchange
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             string? qtyType = this.safeString(parameters, "qtyType", "ByBase");
-            if (((typeVar == "Market")) || ((typeVar == "Stop")) || ((typeVar == "MarketIfTouched")))
+            if ((isEqual(typeVar, "Market")) || (isEqual(typeVar, "Stop")) || (isEqual(typeVar, "MarketIfTouched")))
             {
                 if ((price != null))
                 {
@@ -3115,10 +3115,10 @@ public partial class phemex : Exchange
             }
             if ((triggerPrice != null))
             {
-                if ((typeVar == "Limit"))
+                if (isEqual(typeVar, "Limit"))
                 {
                     ((IDictionary<string,object>)request)["ordType"] = "StopLimit";
-                } else if ((typeVar == "Market"))
+                } else if (isEqual(typeVar, "Market"))
                 {
                     ((IDictionary<string,object>)request)["ordType"] = "Stop";
                 }
@@ -3162,10 +3162,10 @@ public partial class phemex : Exchange
                     bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
                     if ((reduceOnly == true))
                     {
-                        sideVar = ((bool) ((sideVar == "buy"))) ? "sell" : "buy";
+                        sideVar = ((bool) (isEqual(sideVar, "buy"))) ? "sell" : "buy";
                         parameters = this.omit(parameters, "reduceOnly");
                     }
-                    posSide = ((bool) ((sideVar == "buy"))) ? "Long" : "Short";
+                    posSide = ((bool) (isEqual(sideVar, "buy"))) ? "Long" : "Short";
                 } else
                 {
                     posSide = "Merged";
@@ -3196,21 +3196,21 @@ public partial class phemex : Exchange
                 // the flow defined per https://phemex-docs.github.io/#more-order-typeVar-examples
                 if ((triggerDirection == "ascending") || (triggerDirection == "up"))
                 {
-                    if ((sideVar == "sell"))
+                    if (isEqual(sideVar, "sell"))
                     {
-                        ((IDictionary<string,object>)request)["ordType"] = ((bool) ((typeVar == "Market"))) ? "MarketIfTouched" : "LimitIfTouched";
-                    } else if ((sideVar == "buy"))
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) (isEqual(typeVar, "Market"))) ? "MarketIfTouched" : "LimitIfTouched";
+                    } else if (isEqual(sideVar, "buy"))
                     {
-                        ((IDictionary<string,object>)request)["ordType"] = ((bool) ((typeVar == "Market"))) ? "Stop" : "StopLimit";
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) (isEqual(typeVar, "Market"))) ? "Stop" : "StopLimit";
                     }
                 } else if ((triggerDirection == "descending") || (triggerDirection == "down"))
                 {
-                    if ((sideVar == "sell"))
+                    if (isEqual(sideVar, "sell"))
                     {
-                        ((IDictionary<string,object>)request)["ordType"] = ((bool) ((typeVar == "Market"))) ? "Stop" : "StopLimit";
-                    } else if ((sideVar == "buy"))
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) (isEqual(typeVar, "Market"))) ? "Stop" : "StopLimit";
+                    } else if (isEqual(sideVar, "buy"))
                     {
-                        ((IDictionary<string,object>)request)["ordType"] = ((bool) ((typeVar == "Market"))) ? "MarketIfTouched" : "LimitIfTouched";
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) (isEqual(typeVar, "Market"))) ? "MarketIfTouched" : "LimitIfTouched";
                     }
                 }
             }
@@ -3268,7 +3268,7 @@ public partial class phemex : Exchange
                 }
             }
         }
-        if (((typeVar == "Limit")) || ((typeVar == "StopLimit")) || ((typeVar == "LimitIfTouched")))
+        if ((isEqual(typeVar, "Limit")) || (isEqual(typeVar, "StopLimit")) || (isEqual(typeVar, "LimitIfTouched")))
         {
             if (isStableSettled)
             {
@@ -3912,7 +3912,7 @@ public partial class phemex : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             limitVar = mathMin(200, limitVar);
             ((IDictionary<string,object>)request)["limit"] = limitVar;
@@ -3922,7 +3922,7 @@ public partial class phemex : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = "USDT";
             ((IDictionary<string,object>)request)["offset"] = 0;
-            if ((limitVar == null))
+            if (isEqual(limitVar, null))
             {
                 ((IDictionary<string,object>)request)["limit"] = 200;
             }
@@ -5090,14 +5090,14 @@ public partial class phemex : Exchange
             throw new BadSymbol ((string)(this.id + " setMarginMode() supports swap contracts only")) ;
         }
         marginModeVar = ((string)marginModeVar).ToLower();
-        if ((marginModeVar != "isolated") && (marginModeVar != "cross"))
+        if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        bool isCross = (marginModeVar == "cross");
+        bool isCross = isEqual(marginModeVar, "cross");
         if (this.inArray((market.ContainsKey("settle") ? market["settle"] : null), new List<object>() {"USDT", "USDC"}))
         {
             string? currentLeverage = this.safeString(parameters, "leverage");
@@ -5109,7 +5109,7 @@ public partial class phemex : Exchange
             return ccxt.BaseExchange.ToDict(await this.privatePutGPositionsLeverage(this.extend(request, parameters)));
         }
         object leverage = this.safeInteger(parameters, "leverage");
-        if ((marginModeVar == "cross"))
+        if (isEqual(marginModeVar, "cross"))
         {
             leverage = 0;
         }

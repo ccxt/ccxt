@@ -1889,7 +1889,7 @@ public partial class bitfinex : Exchange
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,((string)timeframeVar), parameters, 10000));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 10000;
         } else

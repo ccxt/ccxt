@@ -1397,7 +1397,7 @@ public partial class alpaca : Exchange
         if ((triggerPrice != null))
         {
             object newType = null;
-            if (((string)type).IndexOf("limit", StringComparison.Ordinal) >= 0)
+            if (getIndexOf(type, "limit") >= 0)
             {
                 newType = "stop_limit";
             } else
@@ -1407,7 +1407,7 @@ public partial class alpaca : Exchange
             ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["type"] = newType;
         }
-        if (((string)type).IndexOf("limit", StringComparison.Ordinal) >= 0)
+        if (getIndexOf(type, "limit") >= 0)
         {
             ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(symbol, price);
         }
@@ -2087,7 +2087,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        if (((tagVar != null)) && ((tagVar != "")))
+        if (((tagVar != null)) && (!isEqual(tagVar, "")))
         {
             addressVar = add(add(addressVar, ":"), tagVar);
         }

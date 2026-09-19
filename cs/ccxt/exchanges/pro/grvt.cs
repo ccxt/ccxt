@@ -593,7 +593,7 @@ public partial class grvt : ccxt.grvt
         {
             throw new ArgumentsRequired ((string)(this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             IList<object> limitparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "limit", 100);
             limitVar = ((IList<object>)limitparametersVariable)[0];

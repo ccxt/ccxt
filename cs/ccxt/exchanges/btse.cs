@@ -3912,12 +3912,12 @@ public partial class btse : Exchange
         Dictionary<string, object> market = this.market(symbol);
         marginModeVar = ((string)marginModeVar).ToLower();
         string positionMode = "ONE_WAY";
-        if (((marginModeVar != "cross")) && ((marginModeVar != "isolated")))
+        if ((!isEqual(marginModeVar, "cross")) && (!isEqual(marginModeVar, "isolated")))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode argument should be either cross or isolated")) ;
         }
         bool? hedged = this.safeBool(parameters, "hedged");
-        if ((marginModeVar == "cross"))
+        if (isEqual(marginModeVar, "cross"))
         {
             if (!(((IDictionary<string, object>)parameters).ContainsKey("hedged")))
             {

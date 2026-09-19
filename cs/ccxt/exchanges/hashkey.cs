@@ -4287,11 +4287,11 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         marginModeVar = ((string)marginModeVar).ToUpper();
-        if ((marginModeVar == "CROSSED"))
+        if (isEqual(marginModeVar, "CROSSED"))
         {
             marginModeVar = "CROSS";
         }
-        if (((marginModeVar != "CROSS")) && ((marginModeVar != "ISOLATED")))
+        if ((!isEqual(marginModeVar, "CROSS")) && (!isEqual(marginModeVar, "ISOLATED")))
         {
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
         }

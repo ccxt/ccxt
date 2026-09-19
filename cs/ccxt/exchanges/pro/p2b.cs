@@ -282,7 +282,7 @@ public partial class p2b : ccxt.p2b
         string name = "depth.subscribe";
         string messageHash = ("orderbook::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? interval = this.safeString(parameters, "interval", "0.001");
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 100;
         }

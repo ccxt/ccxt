@@ -4661,7 +4661,7 @@ public partial class bitget : Exchange
             }
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", null, sinceVar, limit, parameters, "idLessThan", "idLessThan", null, 100));
         }
-        if ((sinceVar == null))
+        if (isEqual(sinceVar, null))
         {
             if (isEqual(uta, true))
             {
@@ -4877,7 +4877,7 @@ public partial class bitget : Exchange
         {
             currency = this.currency(((string)code));
         }
-        if ((sinceVar == null))
+        if (isEqual(sinceVar, null))
         {
             if (isEqual(uta, true))
             {
@@ -6523,7 +6523,7 @@ public partial class bitget : Exchange
         Int64 now = this.milliseconds();
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         Int64? until = this.safeInteger(parameters, "until");
-        bool limitDefined = (limitVar != null);
+        bool limitDefined = !isEqual(limitVar, null);
         bool sinceDefined = (since != null);
         bool untilDefined = !isEqual(until, null);
         parameters = this.omit(parameters, new List<object>() {"until"});
@@ -9261,7 +9261,7 @@ public partial class bitget : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if ((sinceVar != null))
+        if (!isEqual(sinceVar, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = sinceVar;
         }
@@ -9307,7 +9307,7 @@ public partial class bitget : Exchange
         {
             if ((marginMode != null))
             {
-                if ((sinceVar == null))
+                if (isEqual(sinceVar, null))
                 {
                     sinceVar = (this.milliseconds() - 7776000000);
                     ((IDictionary<string,object>)request)["startTime"] = sinceVar;
@@ -9776,7 +9776,7 @@ public partial class bitget : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if ((sinceVar != null))
+        if (!isEqual(sinceVar, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = sinceVar;
         }
@@ -9798,7 +9798,7 @@ public partial class bitget : Exchange
         {
             if ((marginMode != null))
             {
-                if ((sinceVar == null))
+                if (isEqual(sinceVar, null))
                 {
                     sinceVar = (now - 7776000000);
                     ((IDictionary<string,object>)request)["startTime"] = sinceVar;
@@ -9818,7 +9818,7 @@ public partial class bitget : Exchange
                 }
                 Int64? endTime = this.safeInteger2(parameters, "endTime", "until");
                 parameters = this.omit(parameters, new List<object>() {"until"});
-                if ((sinceVar == null))
+                if (isEqual(sinceVar, null))
                 {
                     sinceVar = (now - 7776000000);
                     ((IDictionary<string,object>)request)["startTime"] = sinceVar;
@@ -12081,11 +12081,11 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = ((string)marginModeVar).ToLower();
-        if ((marginModeVar == "cross"))
+        if (isEqual(marginModeVar, "cross"))
         {
             marginModeVar = "crossed";
         }
-        if (((marginModeVar != "isolated")) && ((marginModeVar != "crossed")))
+        if ((!isEqual(marginModeVar, "isolated")) && (!isEqual(marginModeVar, "crossed")))
         {
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() marginMode must be either isolated or crossed (cross)")) ;
         }

@@ -3829,7 +3829,7 @@ public partial class htx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["size"] = mathMin(limitVar, 2000); // max 2000
         }
@@ -3964,7 +3964,7 @@ public partial class htx : Exchange
         Int64? untilSeconds = ((bool) (!isEqual(until, null))) ? this.parseToInt((until / 1000)) : null;
         if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
-            if ((limitVar != null))
+            if (!isEqual(limitVar, null))
             {
                 ((IDictionary<string,object>)request)["size"] = mathMin(limitVar, 2000); // when using limitVar: from & to are ignored
             } else
@@ -4068,7 +4068,7 @@ public partial class htx : Exchange
             parameters = ((IList<object>)useHistoricalparametersVariable)[1];
             if (!isTrue(useHistorical))
             {
-                if ((limitVar != null))
+                if (!isEqual(limitVar, null))
                 {
                     ((IDictionary<string,object>)request)["size"] = mathMin(limitVar, 2000); // max 2000
                 }
@@ -4084,7 +4084,7 @@ public partial class htx : Exchange
                 {
                     ((IDictionary<string,object>)request)["to"] = untilSeconds;
                 }
-                if ((limitVar != null))
+                if (!isEqual(limitVar, null))
                 {
                     ((IDictionary<string,object>)request)["size"] = mathMin(1000, limitVar); // max 1000, otherwise default returns 150
                 }
@@ -7837,7 +7837,7 @@ public partial class htx : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
@@ -7859,7 +7859,7 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }
@@ -7909,7 +7909,7 @@ public partial class htx : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
@@ -7931,7 +7931,7 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }
@@ -9972,7 +9972,7 @@ public partial class htx : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
-        if ((timeframeVar != "1h") && (timeframeVar != "4h") && (timeframeVar != "12h") && (timeframeVar != "1d"))
+        if (!isEqual(timeframeVar, "1h") && !isEqual(timeframeVar, "4h") && !isEqual(timeframeVar, "12h") && !isEqual(timeframeVar, "1d"))
         {
             throw new BadRequest ((string)(this.id + " fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe")) ;
         }

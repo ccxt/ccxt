@@ -1046,7 +1046,7 @@ public partial class foxbit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         typeVar = ((string)typeVar).ToUpper();
-        if ((typeVar != "LIMIT") && (typeVar != "MARKET") && (typeVar != "STOP_MARKET") && (typeVar != "STOP_LIMIT") && (typeVar != "INSTANT"))
+        if (!isEqual(typeVar, "LIMIT") && !isEqual(typeVar, "MARKET") && !isEqual(typeVar, "STOP_MARKET") && !isEqual(typeVar, "STOP_LIMIT") && !isEqual(typeVar, "INSTANT"))
         {
             throw new InvalidOrder ((string)(("Invalid order type: " + (typeVar)) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
         }
@@ -1062,7 +1062,7 @@ public partial class foxbit : Exchange
             { "side", ((string)side).ToUpper() },
             { "type", typeVar },
         };
-        if ((typeVar == "STOP_MARKET") || (typeVar == "STOP_LIMIT"))
+        if (isEqual(typeVar, "STOP_MARKET") || isEqual(typeVar, "STOP_LIMIT"))
         {
             if (isEqual(triggerPrice, null))
             {
@@ -1087,14 +1087,14 @@ public partial class foxbit : Exchange
         {
             ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        if ((typeVar == "INSTANT"))
+        if (isEqual(typeVar, "INSTANT"))
         {
             ((IDictionary<string,object>)request)["amount"] = this.priceToPrecision(symbol, amount);
         } else
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if ((typeVar == "LIMIT") || (typeVar == "STOP_LIMIT"))
+        if (isEqual(typeVar, "LIMIT") || isEqual(typeVar, "STOP_LIMIT"))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -1704,7 +1704,7 @@ public partial class foxbit : Exchange
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a symbol argument")) ;
         }
         typeVar = ((string)typeVar).ToUpper();
-        if ((typeVar != "LIMIT") && (typeVar != "MARKET") && (typeVar != "STOP_MARKET") && (typeVar != "INSTANT"))
+        if (!isEqual(typeVar, "LIMIT") && !isEqual(typeVar, "MARKET") && !isEqual(typeVar, "STOP_MARKET") && !isEqual(typeVar, "INSTANT"))
         {
             throw new InvalidOrder ((string)(("Invalid order type: " + (typeVar)) + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;
         }
@@ -1729,20 +1729,20 @@ public partial class foxbit : Exchange
                 { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
-        if ((typeVar == "LIMIT") || (typeVar == "MARKET"))
+        if (isEqual(typeVar, "LIMIT") || isEqual(typeVar, "MARKET"))
         {
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["quantity"] = this.amountToPrecision(symbol, amount);
-            if ((typeVar == "LIMIT"))
+            if (isEqual(typeVar, "LIMIT"))
             {
                 ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["price"] = this.priceToPrecision(symbol, price);
             }
         }
-        if ((typeVar == "STOP_MARKET"))
+        if (isEqual(typeVar, "STOP_MARKET"))
         {
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["stop_price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if ((typeVar == "INSTANT"))
+        if (isEqual(typeVar, "INSTANT"))
         {
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["amount"] = this.priceToPrecision(symbol, amount);
         }

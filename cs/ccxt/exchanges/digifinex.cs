@@ -5097,7 +5097,7 @@ public partial class digifinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         marginModeVar = ((string)marginModeVar).ToLower();
-        if ((marginModeVar == "cross"))
+        if (isEqual(marginModeVar, "cross"))
         {
             marginModeVar = "crossed";
         }

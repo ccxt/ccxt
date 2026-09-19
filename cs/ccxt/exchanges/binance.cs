@@ -6838,11 +6838,11 @@ public partial class binance : Exchange
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"price", "until"});
-        if ((since != null) && !isEqual(until, null) && (limitVar == null))
+        if ((since != null) && !isEqual(until, null) && isEqual(limitVar, null))
         {
             limitVar = maxLimit;
         }
-        limitVar = ((bool) ((limitVar == null))) ? defaultLimit : mathMin(limitVar, maxLimit);
+        limitVar = ((bool) (isEqual(limitVar, null))) ? defaultLimit : mathMin(limitVar, maxLimit);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitVar },
@@ -9744,7 +9744,7 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             if (isEqual(stock, true))
             {
@@ -11122,7 +11122,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["endTime"] = endTime;
             parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             if (((type == "option")) || ((this.safeBool(market, "contract") == true)))
             {
@@ -14760,11 +14760,11 @@ public partial class binance : Exchange
         // { "code": 200, "msg": "success" }
         //
         marginModeVar = ((string)marginModeVar).ToUpper();
-        if ((marginModeVar == "CROSS"))
+        if (isEqual(marginModeVar, "CROSS"))
         {
             marginModeVar = "CROSSED";
         }
-        if (((marginModeVar != "ISOLATED")) && ((marginModeVar != "CROSSED")))
+        if ((!isEqual(marginModeVar, "ISOLATED")) && (!isEqual(marginModeVar, "CROSSED")))
         {
             throw new BadRequest ((string)(this.id + " marginMode must be either isolated or cross")) ;
         }
@@ -16154,7 +16154,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 93;
         } else if (isGreaterThan(limitVar, 93))
@@ -16685,7 +16685,7 @@ public partial class binance : Exchange
         object limitVar = limit;
         timeframeVar ??= "5m";
         parameters ??= new Dictionary<string, object>();
-        if ((timeframeVar == "1m"))
+        if (isEqual(timeframeVar, "1m"))
         {
             throw new BadRequest ((string)(this.id + " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
         }
@@ -16705,7 +16705,7 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
@@ -16727,7 +16727,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["endTime"] = endTime;
         } else if (((since != null)) && ((since != 0)))
         {
-            if ((limitVar == null))
+            if (isEqual(limitVar, null))
             {
                 limitVar = 30; // Exchange default
             }

@@ -1911,7 +1911,7 @@ public partial class bitstamp : Exchange
             { "step", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         int duration = this.parseTimeframe(timeframeVar);
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             if ((since == null))
             {

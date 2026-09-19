@@ -1021,7 +1021,7 @@ public partial class mercado : Exchange
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "symbol", add(add((market.ContainsKey("base") ? market["base"] : null), "-"), (market.ContainsKey("quote") ? market["quote"] : null)) },
         };
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 100; // set some default limitVar, as it's required if user doesn't provide it
         }

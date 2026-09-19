@@ -480,7 +480,7 @@ public partial class gate : ccxt.gate
         var query = ((IList<object>) intervalqueryVariable)[1];
         object messageType = this.getTypeByMarket(market);
         string messageHash = (("orderbook" + ":") + (symbolVar));
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = ((bool) ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? 50 : 100; // max 100 atm
             if (isEqual(messageType, "options"))
@@ -498,7 +498,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.obu";
             object finalInterval = interval;
-            if ((limitVar == 400))
+            if (isEqual(limitVar, 400))
             {
                 finalInterval = "400";
             }
