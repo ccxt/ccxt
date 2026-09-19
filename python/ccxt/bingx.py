@@ -726,7 +726,7 @@ class bingx(Exchange, ImplicitAPI):
                         'trailing': True,
                         'leverage': False,
                         'marketBuyRequiresPrice': False,
-                        'marketBuyByCost': True,
+                        'marketBuyByCost': False,
                         'selfTradePrevention': False,
                         'iceberg': False,
                     },
@@ -798,6 +798,7 @@ class bingx(Exchange, ImplicitAPI):
                         'private': True,
                     },
                     'createOrder': {
+                        'marketBuyByCost': True,
                         'triggerPriceType': None,
                         'attachedStopLossTakeProfit': None,
                         'trailing': False,
