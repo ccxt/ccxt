@@ -6,9 +6,12 @@ import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 async function testFetchHistoryBase () {
+    // the throttler is not under test here, the default 2000ms rateLimit
+    // would otherwise add 4 seconds of pure waiting between the three calls
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
+        'enableRateLimit': false,
     });
     assert (testSharedMethods.exchangeProp (exchange, 'fetchHistoryCacheSize') === 2, 'fetchHistoryCacheSize should be 2');
     const trueAssertion = exchange.parseNumber (undefined) === undefined;
