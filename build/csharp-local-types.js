@@ -6994,7 +6994,7 @@ function nativeArithmeticIsNullableKind (kind) {
 function parameterArithmeticType (csharp, node) {
     const core = coreArgParamType (csharp, node);
     if (core !== undefined) {
-        return core;
+        return parameterIsRefSunk (csharp, node) ? undefined : core;
     }
     if (typeof csharp.csharpDeclaredLocalResolverType !== 'function') {
         return undefined;
@@ -7006,6 +7006,51 @@ function parameterArithmeticType (csharp, node) {
         return undefined;
     }
     return (declaration?.kind === ts.SyntaxKind.Parameter) ? csharp.csharpDeclaredLocalResolverType (node) : undefined;
+}
+
+// The typeCoreArgs text pass reads the PRINTED body: a parameter it finds as a `ref` sink —
+// `-x` / `+x` print `prefixUnaryNeg/Plus(ref x)`, `x++`/`x--` their postFix twins — is renamed
+// to an `object <name>Var` local, so the emitted read is NOT the narrowed type. The pass counts
+// `ref` as an assignment; the checker-level write scan (csharpParameterIsWritten) cannot see it.
+function parameterIsRefSunk (csharp, node) {
+    let declaration;
+    let checker;
+    try {
+        checker = csharp.getChecker();
+        declaration = checker.getSymbolAtLocation (node)?.valueDeclaration;
+    } catch (e) {
+        return false;
+    }
+    const body = declaration?.parent?.body;
+    if (body === undefined || declaration.kind !== ts.SyntaxKind.Parameter) {
+        return false;
+    }
+    let sunk = false;
+    const visit = (n) => {
+        if (sunk) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.PrefixUnaryExpression)
+            && ((n.operator === ts.SyntaxKind.MinusToken) || (n.operator === ts.SyntaxKind.PlusToken))) {
+            let operand = n.operand;
+            while (operand?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+                operand = operand.expression;
+            }
+            if (operand?.kind === ts.SyntaxKind.Identifier) {
+                try {
+                    if (checker.getSymbolAtLocation (operand)?.valueDeclaration === declaration) {
+                        sunk = true;
+                        return;
+                    }
+                } catch (e) {
+                    // keep scanning
+                }
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (body, visit);
+    return sunk;
 }
 
 // C# static kind of one operand: literals by their literal type, `this.id` / `.length`

@@ -337,6 +337,16 @@ check ('written param keeps add()',
 check ('literal-default param keeps add()',
     'class Ex { async fetchOHLCV (symbol, timeframe, since = 1000, limit = 10, parameters = {}) { const y = since + 5; return y; } }',
     'add(since, 5)');
+// `-limit` prints `prefixUnaryNeg(ref limit)`, which the narrowing pass reads as an assignment:
+// EVERY body use of that parameter is renamed to the `object limitVar` shadow, so the read is
+// not the narrowed type — the sink parameter keeps the helper while its sibling stays native
+check ('unsunk sibling of a ref-sunk param stays native',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since, limit, parameters = {}) { const y = -limit; const z = since + 1; return [ y, z ]; } }',
+    '(since + 1)',
+    '(limit * 2)');
+check ('ref-sunk param keeps its own pair boxed',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since, limit, parameters = {}) { const y = -limit; const z = limit * 2; return [ y, z ]; } }',
+    'multiply(limit, 2)');
 
 // ---- D-22: the composition point for typed-parameter families -------------------------------
 // A family that retypes parameters publishes them through the build layer's declared-type

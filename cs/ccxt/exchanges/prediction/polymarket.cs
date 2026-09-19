@@ -1659,7 +1659,7 @@ public partial class polymarket : PredictionExchange
         object endS = nowS;
         if ((since != null))
         {
-            startS = this.parseToInt(divide(since, 1000));
+            startS = this.parseToInt((since / 1000));
             if ((limitVar != null))
             {
                 object endBound = this.sum(startS, multiply(multiply(limitVar, fidelityMin), 60));
@@ -1822,7 +1822,7 @@ public partial class polymarket : PredictionExchange
         string? conditionId = this.safeString(outcomeInfo, "conditionId");
         if ((conditionId == null))
         {
-            throw new BadRequest ((string)((this.id + " fetchOpenInterest() requires outcome.info.conditionId for ") + (outcome))) ;
+            throw new BadRequest ((string)((this.id + " fetchOpenInterest() requires outcome.info.conditionId for ") + outcome)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", conditionId },
