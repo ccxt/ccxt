@@ -69,7 +69,7 @@ public partial class bullish : ccxt.bullish
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -438,7 +438,7 @@ public partial class bullish : ccxt.bullish
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message)
+    public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         // snapshot
         //     {
@@ -572,7 +572,7 @@ public partial class bullish : ccxt.bullish
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -684,7 +684,7 @@ public partial class bullish : ccxt.bullish
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, messageHash, request, parameters));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -798,7 +798,7 @@ public partial class bullish : ccxt.bullish
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(positions, symbols, since, limit, true));
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly

@@ -95,7 +95,7 @@ public partial class dydx : ccxt.dydx
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -228,7 +228,7 @@ public partial class dydx : ccxt.dydx
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -358,7 +358,7 @@ public partial class dydx : ccxt.dydx
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {

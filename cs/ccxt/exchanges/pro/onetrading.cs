@@ -100,7 +100,7 @@ public partial class onetrading : ccxt.onetrading
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, subscribeHash, request));
     }
 
-    public virtual void handleBalanceSnapshot(WebSocketClient client, object message)
+    public virtual void handleBalanceSnapshot(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -200,7 +200,7 @@ public partial class onetrading : ccxt.onetrading
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbols));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -363,7 +363,7 @@ public partial class onetrading : ccxt.onetrading
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //  snapshot
@@ -512,7 +512,7 @@ public partial class onetrading : ccxt.onetrading
         return ccxt.BaseExchange.ToOrderList(orders);
     }
 
-    public virtual void handleTrading(WebSocketClient client, object message)
+    public virtual void handleTrading(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -698,7 +698,7 @@ public partial class onetrading : ccxt.onetrading
         return this.safeString(statuses, status, status);
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message)
+    public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //  snapshot
@@ -791,7 +791,7 @@ public partial class onetrading : ccxt.onetrading
         (client as WebSocketClient).resolve(this.myTrades, "myTrades");
     }
 
-    public virtual void handleAccountUpdate(WebSocketClient client, object message)
+    public virtual void handleAccountUpdate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // order created
@@ -1209,7 +1209,7 @@ public partial class onetrading : ccxt.onetrading
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //  snapshot
@@ -1290,7 +1290,7 @@ public partial class onetrading : ccxt.onetrading
         return null;
     }
 
-    public virtual object handleSubscriptions(WebSocketClient client, object message)
+    public virtual object handleSubscriptions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1306,7 +1306,7 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public virtual object handleHeartbeat(WebSocketClient client, object message)
+    public virtual object handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1319,7 +1319,7 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         throw new ExchangeError ((string)((this.id + " ") + this.json(message))) ;
     }
@@ -1366,7 +1366,7 @@ public partial class onetrading : ccxt.onetrading
         }
     }
 
-    public virtual object handlePricePointUpdates(WebSocketClient client, object message)
+    public virtual object handlePricePointUpdates(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1389,7 +1389,7 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public virtual object handleAuthenticationMessage(WebSocketClient client, object message)
+    public virtual object handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {

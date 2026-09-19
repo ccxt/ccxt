@@ -710,7 +710,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void handleContractTicker(WebSocketClient client, object message)
+    public virtual void handleContractTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // ticker (v1)
@@ -742,7 +742,7 @@ public partial class kucoin : ccxt.kucoin
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
-    public virtual void handleUtaTicker(WebSocketClient client, object message)
+    public virtual void handleUtaTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // watchTicker
@@ -889,7 +889,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, object message)
+    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // arrives one symbol dict
@@ -1100,7 +1100,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1168,7 +1168,7 @@ public partial class kucoin : ccxt.kucoin
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
-    public virtual void handleUtaOHLCV(WebSocketClient client, object message)
+    public virtual void handleUtaOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1396,7 +1396,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1434,7 +1434,7 @@ public partial class kucoin : ccxt.kucoin
         (client as WebSocketClient).resolve(cache, messageHash);
     }
 
-    public virtual void handleUtaTrade(WebSocketClient client, object message)
+    public virtual void handleUtaTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1784,7 +1784,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, parameters, subscription);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
@@ -1886,7 +1886,7 @@ public partial class kucoin : ccxt.kucoin
         (client as WebSocketClient).resolve(this.getOrderBook(this.orderbooks, symbol), messageHash);
     }
 
-    public virtual void handleUtaOrderBook(WebSocketClient client, object message)
+    public virtual void handleUtaOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -2036,7 +2036,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
     {
         Int64? limit = this.safeInteger(subscription, "limit");
         List<object> symbols = this.safeList(subscription, "symbols");
@@ -2113,7 +2113,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual object handleSystemStatus(WebSocketClient client, object message)
+    public virtual object handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -2447,7 +2447,7 @@ public partial class kucoin : ccxt.kucoin
         }, market);
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // Trigger Orders
@@ -2538,7 +2538,7 @@ public partial class kucoin : ccxt.kucoin
         (client as WebSocketClient).resolve(cachedOrders, symbolSpecificMessageHash);
     }
 
-    public virtual void handleUtaOrder(WebSocketClient client, object message)
+    public virtual void handleUtaOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -2687,7 +2687,7 @@ public partial class kucoin : ccxt.kucoin
         return suffix;
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message)
+    public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -2735,7 +2735,7 @@ public partial class kucoin : ccxt.kucoin
         (client as WebSocketClient).resolve(this.myTrades, symbolSpecificMessageHash);
     }
 
-    public virtual void handleUtaMyTrade(WebSocketClient client, object message)
+    public virtual void handleUtaMyTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -2974,7 +2974,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -3087,7 +3087,7 @@ public partial class kucoin : ccxt.kucoin
         (client as WebSocketClient).resolve(getValue(this.balance, uniformType), messageHash);
     }
 
-    public virtual void handleUtaBalance(WebSocketClient client, object message)
+    public virtual void handleUtaBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -3315,7 +3315,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void handlePosition(WebSocketClient client, object message)
+    public virtual void handlePosition(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // Position Changes Caused Operations
@@ -3432,7 +3432,7 @@ public partial class kucoin : ccxt.kucoin
         (client as WebSocketClient).resolve(position, messageHash);
     }
 
-    public virtual void handleUtaPosition(WebSocketClient client, object message)
+    public virtual void handleUtaPosition(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -3600,7 +3600,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.subscribePublicUta(unSubMessageHash, channel, symbol, parameters, subscription);
     }
 
-    public virtual void handleUtaFundingRate(WebSocketClient client, object message)
+    public virtual void handleUtaFundingRate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -3720,7 +3720,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.subscribePublicUta(unSubMessageHash, channel, symbol, parameters, subscription);
     }
 
-    public virtual void handleSubject(WebSocketClient client, object message)
+    public virtual void handleSubject(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -3823,7 +3823,7 @@ public partial class kucoin : ccxt.kucoin
         };
     }
 
-    public virtual void handlePong(WebSocketClient client, object message)
+    public virtual void handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         client.lastPong = this.milliseconds();
     }

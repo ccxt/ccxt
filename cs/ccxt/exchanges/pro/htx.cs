@@ -204,7 +204,7 @@ public partial class htx : ccxt.htx
         return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // "market.btcusdt.detail"
@@ -322,7 +322,7 @@ public partial class htx : ccxt.htx
         return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
 
-    public virtual object handleTrades(WebSocketClient client, object message)
+    public virtual object handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -439,7 +439,7 @@ public partial class htx : ccxt.htx
         return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -580,7 +580,7 @@ public partial class htx : ccxt.htx
         return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
 
-    public virtual void handleOrderBookSnapshot(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
     {
         //
         //     {
@@ -684,7 +684,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public async virtual Task<object> watchOrderBookSnapshot(WebSocketClient client, object message, object subscription)
+    public async virtual Task<object> watchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
     {
         string? messageHash = this.safeString(subscription, "messageHash");
         string? symbol = this.safeString(subscription, "symbol");
@@ -741,7 +741,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handleOrderBookMessage(WebSocketClient client, object message)
+    public virtual void handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         // spot markets
         //
@@ -849,7 +849,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // deltas
@@ -929,7 +929,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
     {
         string? symbol = this.safeString(subscription, "symbol");
         Dictionary<string, object> market = this.market(symbol);
@@ -1817,7 +1817,7 @@ public partial class htx : ccxt.htx
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.safeValue(this.safeValue(this.positions, url), marginMode), symbols, since, limit, false));
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -2105,7 +2105,7 @@ public partial class htx : ccxt.htx
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         // spot
         //
@@ -2381,7 +2381,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -2422,7 +2422,7 @@ public partial class htx : ccxt.htx
                 }
             }
         }
-        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("unsubbed")))
+        if (message.ContainsKey("unsubbed"))
         {
             this.handleUnSubscription(client as WebSocketClient, subscription);
         }
@@ -2441,7 +2441,7 @@ public partial class htx : ccxt.htx
         this.cleanCache(subscription);
     }
 
-    public virtual object handleSystemStatus(WebSocketClient client, object message)
+    public virtual object handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -2456,7 +2456,7 @@ public partial class htx : ccxt.htx
         return message;
     }
 
-    public virtual void handleSubject(WebSocketClient client, object message)
+    public virtual void handleSubject(WebSocketClient client, Dictionary<string, object> message)
     {
         // spot
         //     {
@@ -2600,7 +2600,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public async virtual Task pong(WebSocketClient client, object message)
+    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
     {
         try
         {
@@ -2641,7 +2641,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handlePing(WebSocketClient client, object message)
+    public virtual void handlePing(WebSocketClient client, Dictionary<string, object> message)
     {
         this.spawn(this.pong, new object[] { client, message});
     }

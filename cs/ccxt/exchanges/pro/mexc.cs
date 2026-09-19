@@ -253,7 +253,7 @@ public partial class mexc : ccxt.mexc
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
-    public virtual void handleTickers(WebSocketClient client, object message)
+    public virtual void handleTickers(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // swap
@@ -827,7 +827,7 @@ public partial class mexc : ccxt.mexc
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message)
     {
         // spot
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
@@ -1202,7 +1202,7 @@ public partial class mexc : ccxt.mexc
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
     {
         //
         //    {
@@ -1698,7 +1698,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1815,7 +1815,7 @@ public partial class mexc : ccxt.mexc
         return null;
     }
 
-    public virtual void handleFundingRate(WebSocketClient client, object message)
+    public virtual void handleFundingRate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -2245,13 +2245,13 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         client.lastPong = this.milliseconds();
         return message;
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -2280,7 +2280,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public virtual bool handleProtobufMessage(WebSocketClient client, object message)
+    public virtual bool handleProtobufMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         // protobuf message decoded
         //  {

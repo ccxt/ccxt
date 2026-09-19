@@ -808,7 +808,7 @@ public partial class xt : ccxt.xt
         return await this.unSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, null, parameters);
     }
 
-    public virtual object handleFundingRate(WebSocketClient client, object message)
+    public virtual object handleFundingRate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -939,7 +939,7 @@ public partial class xt : ccxt.xt
         (client as WebSocketClient).resolve(new List<object>() {position}, "position::contract");
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1021,7 +1021,7 @@ public partial class xt : ccxt.xt
         return message;
     }
 
-    public virtual object handleTickers(WebSocketClient client, object message)
+    public virtual object handleTickers(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1126,7 +1126,7 @@ public partial class xt : ccxt.xt
         return message;
     }
 
-    public virtual object handleOHLCV(WebSocketClient client, object message)
+    public virtual object handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1190,7 +1190,7 @@ public partial class xt : ccxt.xt
         return message;
     }
 
-    public virtual object handleTrade(WebSocketClient client, object message)
+    public virtual object handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1246,7 +1246,7 @@ public partial class xt : ccxt.xt
         return message;
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1511,7 +1511,7 @@ public partial class xt : ccxt.xt
         }, market);
     }
 
-    public virtual object handleOrder(WebSocketClient client, object message)
+    public virtual object handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1575,7 +1575,7 @@ public partial class xt : ccxt.xt
         return message;
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1627,7 +1627,7 @@ public partial class xt : ccxt.xt
         (client as WebSocketClient).resolve(this.balance, ("balance::" + tradeType));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1733,7 +1733,7 @@ public partial class xt : ccxt.xt
         return "ping";
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1765,7 +1765,7 @@ public partial class xt : ccxt.xt
         return message;
     }
 
-    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
+    public virtual void handleUnSubscription(WebSocketClient client, Dictionary<string, object> subscription)
     {
         List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
@@ -1778,7 +1778,7 @@ public partial class xt : ccxt.xt
         this.cleanCache(subscription);
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, object message)
+    public virtual void handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {

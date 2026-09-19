@@ -581,7 +581,7 @@ public partial class gate : ccxt.gate
         return await this.unSubscribePublicMultiple(url, "orderbook", new List<object>() {symbol}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, payload, channel, parameters);
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
     {
         string? symbol = this.safeString(subscription, "symbol");
         Int64? limit = this.safeInteger(subscription, "limit");
@@ -591,7 +591,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual void handleNewSpotOrderBook(WebSocketClient client, object message)
+    public virtual void handleNewSpotOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //   {
@@ -859,7 +859,7 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToTickers(await this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new Dictionary<string, object>() {             { "method", "tickers" },         }, parameters)));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -899,7 +899,7 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToTickers(await this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.extend(new Dictionary<string, object>() {             { "method", "book_ticker" },         }, parameters)));
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, object message)
+    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1116,7 +1116,7 @@ public partial class gate : ccxt.gate
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -1203,7 +1203,7 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -1331,7 +1331,7 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -1430,7 +1430,7 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(url, messageHash, null, channel, parameters, requiresUid));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot order fill
@@ -1650,7 +1650,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1827,7 +1827,7 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp", true));
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -2005,7 +2005,7 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToLiquidationList(this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true));
     }
 
-    public virtual void handleLiquidation(WebSocketClient client, object message)
+    public virtual void handleLiquidation(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // future / delivery
@@ -2119,7 +2119,7 @@ public partial class gate : ccxt.gate
         });
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -2221,12 +2221,12 @@ public partial class gate : ccxt.gate
         return ((bool?)((object)(false)));
     }
 
-    public virtual void handleBalanceSubscription(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleBalanceSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
     {
         this.balance = new Dictionary<string, object>() {};
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         string channel = ((string)this.safeString(message, "channel"));
         Dictionary<string, object> methods = new Dictionary<string, object>() {
@@ -2256,7 +2256,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual void handleUnSubscribe(WebSocketClient client, object message)
+    public virtual void handleUnSubscribe(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -2612,7 +2612,7 @@ public partial class gate : ccxt.gate
         return future;
     }
 
-    public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
+    public virtual void handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         string messageHash = "authenticated";
         var future = this.safeValue((client as WebSocketClient).futures, messageHash);

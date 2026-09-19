@@ -408,7 +408,7 @@ public partial class coinbase : ccxt.coinbase
         return await this.unSubscribeMultiple("ticker", "ticker_batch", false, symbols);
     }
 
-    public virtual void handleTickers(WebSocketClient client, object message)
+    public virtual void handleTickers(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1075,7 +1075,7 @@ public partial class coinbase : ccxt.coinbase
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1118,7 +1118,7 @@ public partial class coinbase : ccxt.coinbase
         return message;
     }
 
-    public virtual object handleHeartbeats(WebSocketClient client, object message)
+    public virtual object handleHeartbeats(WebSocketClient client, Dictionary<string, object> message)
     {
         // although the subscription takes a product_ids parameter (i.e. symbol),
         // there is no (clear) way of mapping the message back to the symbol.

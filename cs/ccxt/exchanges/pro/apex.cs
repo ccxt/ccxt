@@ -116,7 +116,7 @@ public partial class apex : ccxt.apex
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -322,7 +322,7 @@ public partial class apex : ccxt.apex
         return url;
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -466,7 +466,7 @@ public partial class apex : ccxt.apex
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         // "topic":"instrumentInfo.H.BTCUSDT",
         //     "type":"snapshot",
@@ -584,7 +584,7 @@ public partial class apex : ccxt.apex
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1183,7 +1183,7 @@ public partial class apex : ccxt.apex
         };
     }
 
-    public async virtual Task pong(WebSocketClient client, object message)
+    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {"op": "ping", "args": ["1761069137485"]}
@@ -1218,13 +1218,13 @@ public partial class apex : ccxt.apex
         return message;
     }
 
-    public virtual void handlePing(WebSocketClient client, object message)
+    public virtual void handlePing(WebSocketClient client, Dictionary<string, object> message)
     {
         client.lastPong = this.milliseconds();
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual void handleAccount(WebSocketClient client, object message)
+    public virtual void handleAccount(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> contents = this.safeDict(message, "contents", new Dictionary<string, object>() {});
         List<object> fills = this.safeList(contents, "fills", new List<object>() {});
@@ -1273,7 +1273,7 @@ public partial class apex : ccxt.apex
         return message;
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {

@@ -111,7 +111,7 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -180,7 +180,7 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(topic, request, subscription));
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -407,7 +407,7 @@ public partial class derive : ccxt.derive
         (client as WebSocketClient).resolve(error, ("unwatch" + (topic)));
     }
 
-    public virtual object handleUnSubscribe(WebSocketClient client, object message)
+    public virtual object handleUnSubscribe(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -478,7 +478,7 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true));
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //
@@ -606,7 +606,7 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -744,7 +744,7 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message)
+    public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //
@@ -767,7 +767,7 @@ public partial class derive : ccxt.derive
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -775,7 +775,7 @@ public partial class derive : ccxt.derive
         //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
-        if (!((message != null && ((IDictionary<string, object>)message).ContainsKey("error"))))
+        if (!(message.ContainsKey("error")))
         {
             return ((bool?)((object)(false)));
         }
@@ -868,7 +868,7 @@ public partial class derive : ccxt.derive
         }
     }
 
-    public virtual void handleAuth(WebSocketClient client, object message)
+    public virtual void handleAuth(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {

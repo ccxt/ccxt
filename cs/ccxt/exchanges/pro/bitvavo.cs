@@ -155,7 +155,7 @@ public partial class bitvavo : ccxt.bitvavo
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbols));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -283,7 +283,7 @@ public partial class bitvavo : ccxt.bitvavo
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -458,7 +458,7 @@ public partial class bitvavo : ccxt.bitvavo
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
-    public virtual void handleFetchOHLCV(WebSocketClient client, object message)
+    public virtual void handleFetchOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -475,7 +475,7 @@ public partial class bitvavo : ccxt.bitvavo
         (client as WebSocketClient).resolve(ohlcv, messageHash);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -813,7 +813,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message, object orderbook)
     {
         //
         //     {
@@ -838,7 +838,7 @@ public partial class bitvavo : ccxt.bitvavo
         return orderbook;
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -887,7 +887,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public async virtual Task<object> watchOrderBookSnapshot(WebSocketClient client, object message, object subscription)
+    public async virtual Task<object> watchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
     {
         IDictionary<string, object> parameters = this.safeDict(subscription, "params");
         // multi-symbol watches share one subscription object without a marketId,
@@ -911,7 +911,7 @@ public partial class bitvavo : ccxt.bitvavo
         return (orderbook as IOrderBook).limit();
     }
 
-    public virtual void handleOrderBookSnapshot(WebSocketClient client, object message)
+    public virtual void handleOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -969,7 +969,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
     {
         string? symbol = this.safeString(subscription, "symbol");
         Int64? limit = this.safeInteger(subscription, "limit");
@@ -980,7 +980,7 @@ public partial class bitvavo : ccxt.bitvavo
         ((IDictionary<string,object>)this.orderbooks)[(string)((string)symbol)] = this.orderBook(new Dictionary<string, object>() {}, limit);
     }
 
-    public virtual void handleOrderBookSubscriptions(WebSocketClient client, object message, object marketIds)
+    public virtual void handleOrderBookSubscriptions(WebSocketClient client, Dictionary<string, object> message, object marketIds)
     {
         string name = "book";
         for (int i = 0; i < getArrayLength(marketIds); i++)
@@ -1028,7 +1028,7 @@ public partial class bitvavo : ccxt.bitvavo
         return await this.watchMultiple(url, unsubHashes, message, unsubHashes, subscription);
     }
 
-    public virtual object handleUnsubscriptionStatus(WebSocketClient client, object message)
+    public virtual object handleUnsubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1278,7 +1278,7 @@ public partial class bitvavo : ccxt.bitvavo
         return ccxt.BaseExchange.ToOrderList(await this.watchRequest("privateCancelOrders", this.extend(request, parameters)));
     }
 
-    public virtual void handleMultipleOrders(WebSocketClient client, object message)
+    public virtual void handleMultipleOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1433,7 +1433,7 @@ public partial class bitvavo : ccxt.bitvavo
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(myTrades, symbol, since, limit));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1493,7 +1493,7 @@ public partial class bitvavo : ccxt.bitvavo
         return ccxt.BaseExchange.ToTransaction(await this.watchRequest("privateWithdrawAssets", request));
     }
 
-    public virtual void handleWithdraw(WebSocketClient client, object message)
+    public virtual void handleWithdraw(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1537,7 +1537,7 @@ public partial class bitvavo : ccxt.bitvavo
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(withdraws,((string)code), since, limit));
     }
 
-    public virtual void handleWithdraws(WebSocketClient client, object message)
+    public virtual void handleWithdraws(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1615,7 +1615,7 @@ public partial class bitvavo : ccxt.bitvavo
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(deposits,((string)code), since, limit));
     }
 
-    public virtual void handleDeposits(WebSocketClient client, object message)
+    public virtual void handleDeposits(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1691,7 +1691,7 @@ public partial class bitvavo : ccxt.bitvavo
         return ((IDictionary<string, object>)((object)(await this.watchRequest("getAssets", parameters))));
     }
 
-    public virtual void handleFetchCurrencies(WebSocketClient client, object message)
+    public virtual void handleFetchCurrencies(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1719,7 +1719,7 @@ public partial class bitvavo : ccxt.bitvavo
         (client as WebSocketClient).resolve(currencies, messageHash);
     }
 
-    public virtual void handleTradingFees(WebSocketClient client, object message)
+    public virtual void handleTradingFees(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1758,7 +1758,7 @@ public partial class bitvavo : ccxt.bitvavo
         return ccxt.BaseExchange.ToBalances(await this.watchRequest("privateGetBalance", parameters));
     }
 
-    public virtual void handleFetchBalance(WebSocketClient client, object message)
+    public virtual void handleFetchBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1778,7 +1778,7 @@ public partial class bitvavo : ccxt.bitvavo
         (client as WebSocketClient).resolve(balance, messageHash);
     }
 
-    public virtual void handleSingleOrder(WebSocketClient client, object message)
+    public virtual void handleSingleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1814,7 +1814,7 @@ public partial class bitvavo : ccxt.bitvavo
         (client as WebSocketClient).resolve(order, messageHash);
     }
 
-    public virtual void handleMarkets(WebSocketClient client, object message)
+    public virtual void handleMarkets(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1878,7 +1878,7 @@ public partial class bitvavo : ccxt.bitvavo
         return add(action, orderId);
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1916,7 +1916,7 @@ public partial class bitvavo : ccxt.bitvavo
         (client as WebSocketClient).resolve(this.orders, messageHash);
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message)
+    public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1948,7 +1948,7 @@ public partial class bitvavo : ccxt.bitvavo
         (client as WebSocketClient).resolve(tradesArray, messageHash);
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -2003,7 +2003,7 @@ public partial class bitvavo : ccxt.bitvavo
         return future;
     }
 
-    public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
+    public virtual void handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -2029,7 +2029,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {

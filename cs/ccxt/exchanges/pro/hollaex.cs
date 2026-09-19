@@ -71,7 +71,7 @@ public partial class hollaex : ccxt.hollaex
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -155,7 +155,7 @@ public partial class hollaex : ccxt.hollaex
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -230,7 +230,7 @@ public partial class hollaex : ccxt.hollaex
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
     {
         //
         // {
@@ -330,7 +330,7 @@ public partial class hollaex : ccxt.hollaex
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
     {
         //
         //     {
@@ -451,7 +451,7 @@ public partial class hollaex : ccxt.hollaex
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, parameters));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -690,7 +690,7 @@ public partial class hollaex : ccxt.hollaex
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         client.lastPong = this.milliseconds();
         return message;

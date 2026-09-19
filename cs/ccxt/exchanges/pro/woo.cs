@@ -198,7 +198,7 @@ public partial class woo : ccxt.woo
         return await this.unwatchPublic(subHash, (market.ContainsKey("symbol") ? market["symbol"] : null), topic, parameters);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -284,7 +284,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
     {
         Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
@@ -301,7 +301,7 @@ public partial class woo : ccxt.woo
         this.spawn(this.fetchOrderBookSnapshot, new object[] { client, message, subscription});
     }
 
-    public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, object message, object subscription)
+    public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
     {
         string? symbol = this.safeString(subscription, "symbol");
         string? messageHash = this.safeString(message, "topic");
@@ -350,7 +350,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message, object orderbook)
     {
         IDictionary<string, object> data = this.safeDict(message, "data");
         this.handleDeltas(getValue(orderbook, "asks"), this.safeList(data, "asks", new List<object>() {}));
@@ -467,7 +467,7 @@ public partial class woo : ccxt.woo
         }, market);
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -551,7 +551,7 @@ public partial class woo : ccxt.woo
         return await this.unwatchPublic(subHash, null, topic, parameters);
     }
 
-    public virtual void handleTickers(WebSocketClient client, object message)
+    public virtual void handleTickers(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -656,7 +656,7 @@ public partial class woo : ccxt.woo
         return await this.unwatchPublic(subHash, null, topic, parameters);
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, object message)
+    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -789,7 +789,7 @@ public partial class woo : ccxt.woo
         return await this.unwatchPublic(subHash, (market.ContainsKey("symbol") ? market["symbol"] : null), topic, parameters);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -890,7 +890,7 @@ public partial class woo : ccxt.woo
         return await this.unwatchPublic(subHash, (market.ContainsKey("symbol") ? market["symbol"] : null), topic, parameters);
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -1289,7 +1289,7 @@ public partial class woo : ccxt.woo
         });
     }
 
-    public virtual void handleOrderUpdate(WebSocketClient client, object message)
+    public virtual void handleOrderUpdate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1385,7 +1385,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message)
+    public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1532,7 +1532,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1607,7 +1607,7 @@ public partial class woo : ccxt.woo
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, message));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //   {
@@ -1696,7 +1696,7 @@ public partial class woo : ccxt.woo
         return ccxt.BaseExchange.ToFundingRate(await this.watchPublic(topic, message));
     }
 
-    public virtual void handleFundingRate(WebSocketClient client, object message)
+    public virtual void handleFundingRate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1761,7 +1761,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual void handleUnSubscription(WebSocketClient client, object message)
+    public virtual void handleUnSubscription(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1863,19 +1863,19 @@ public partial class woo : ccxt.woo
         };
     }
 
-    public async virtual Task pong(WebSocketClient client, object message)
+    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
     {
         await client.send(new Dictionary<string, object>() {
             { "event", "pong" },
         });
     }
 
-    public virtual void handlePing(WebSocketClient client, object message)
+    public virtual void handlePing(WebSocketClient client, Dictionary<string, object> message)
     {
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // { event: "pong", ts: 1657117026090 }
@@ -1884,7 +1884,7 @@ public partial class woo : ccxt.woo
         return message;
     }
 
-    public virtual object handleSubscribe(WebSocketClient client, object message)
+    public virtual object handleSubscribe(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1905,7 +1905,7 @@ public partial class woo : ccxt.woo
         return message;
     }
 
-    public virtual void handleAuth(WebSocketClient client, object message)
+    public virtual void handleAuth(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
