@@ -1703,7 +1703,7 @@ export default class woo extends wooRest {
         //     }
         //
         const messageHash = 'authenticated';
-        const success = this.safeValue (message, 'success');
+        const success = this.safeBool (message, 'success');
         if (success === true) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');

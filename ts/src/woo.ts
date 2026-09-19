@@ -4782,7 +4782,7 @@ export default class woo extends Exchange {
             }
         }
         // if it was not returned according to above options, then return the first network of currency
-        return this.safeValue (networkKeys, 0);
+        return this.safeString (networkKeys, 0);
     }
 
     override setSandboxMode (enable: boolean) {
