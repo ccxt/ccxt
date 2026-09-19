@@ -47,6 +47,25 @@ class dict;
 class list;
 class bytes;
 
+struct JsonViewRoot;   // defined in JsonView.h (needs simdjson)
+
+// view kinds — the node shape of a lazy json view. Scalars materialize on
+// access; only containers stay lazy.
+enum : std::uint32_t {
+    kJvObject = 1, kJvArray = 2, kJvString = 3, kJvNumber = 4, kJvBool = 5,
+    kJvNull = 6, kJvDeferred = 7,   // an array element not yet positioned
+};
+
+// A lazy handle into a parsed-but-not-materialized JSON document. Fits the
+// any's 32-byte SBO: the root keeps the padded buffer + parser + document +
+// the shared sequential cursor alive for every view that references it.
+struct jsonView {
+    std::shared_ptr<JsonViewRoot> root;
+    std::uint32_t kind;   // kJv* above
+    std::uint32_t id;     // byte offset of the node in the root's buffer
+    std::uint32_t idx;    // kJvDeferred: the element index within the array
+};
+
 // ---------------------------------------------------------------------------
 // any — SBO value type (drop-in for the ccxt::any API the port uses)
 // ---------------------------------------------------------------------------
@@ -70,6 +89,7 @@ public:
         kDict,
         kList,
         kBytes,
+        kView = 24,
         kHeap = 255,
     };
 
@@ -227,6 +247,9 @@ template <class T> inline void any::construct (T&& v) {
     } else if constexpr (std::is_same_v<D, bytes>) {
         this->tag_ = kBytes;
         new (this->buf_) bytes (std::forward<T> (v));
+    } else if constexpr (std::is_same_v<D, jsonView>) {
+        this->tag_ = kView;
+        new (this->buf_) jsonView (std::forward<T> (v));
     } else {
         auto* block = static_cast<heapBlock*> (
             ::operator new (sizeof (heapBlock) + sizeof (D)));
@@ -736,6 +759,10 @@ inline void any::copyConstruct (const any& other) {
     case kBytes:
         new (this->buf_) bytes (*reinterpret_cast<const bytes*> (other.buf_));
         break;
+    case kView:
+        new (this->buf_) jsonView (
+            *reinterpret_cast<const jsonView*> (other.buf_));
+        break;
     default:
         break;
     }
@@ -770,6 +797,10 @@ inline void any::moveConstruct (any& other) noexcept {
         new (this->buf_) bytes (
             std::move (*reinterpret_cast<bytes*> (other.buf_)));
         break;
+    case kView:
+        new (this->buf_) jsonView (
+            std::move (*reinterpret_cast<jsonView*> (other.buf_)));
+        break;
     default:
         // scalars: bitwise move
         std::memcpy (this->buf_, other.buf_, 32);
@@ -800,6 +831,9 @@ inline void any::destroy () noexcept {
         break;
     case kBytes:
         reinterpret_cast<bytes*> (this->buf_)->~bytes ();
+        break;
+    case kView:
+        reinterpret_cast<jsonView*> (this->buf_)->~jsonView ();
         break;
     default:
         break;   // trivially destructible scalars
@@ -832,6 +866,7 @@ inline const std::type_info& any::typeOf (Tag t) noexcept {
     case kDict: return typeid (dict);
     case kList: return typeid (list);
     case kBytes: return typeid (bytes);
+    case kView: return typeid (jsonView);
     default: return typeid (void);
     }
 }
@@ -843,9 +878,27 @@ inline const std::type_info& any::type () const noexcept {
     return typeOf (static_cast<Tag> (this->tag_));
 }
 
-inline bool isDict   (const any& v) { return v.type () == typeid (dict); }
-inline bool isList   (const any& v) { return v.type () == typeid (list); }
-inline bool isStr    (const any& v) { return v.type () == typeid (std::string); }
+inline bool isDict (const any& v) {
+    if (v.tag_ == any::kView) {
+        const jsonView& jv = *reinterpret_cast<const jsonView*> (v.buf_);
+        return jv.kind == kJvObject || jv.kind == kJvDeferred;
+    }
+    return v.type () == typeid (dict);
+}
+inline bool isList (const any& v) {
+    if (v.tag_ == any::kView) {
+        const jsonView& jv = *reinterpret_cast<const jsonView*> (v.buf_);
+        return jv.kind == kJvArray;
+    }
+    return v.type () == typeid (list);
+}
+inline bool isStr (const any& v) {
+    if (v.tag_ == any::kView) {
+        const jsonView& jv = *reinterpret_cast<const jsonView*> (v.buf_);
+        return jv.kind == kJvString;
+    }
+    return v.type () == typeid (std::string);
+}
 inline bool isBoolean(const any& v) { return v.type () == typeid (bool); }
 inline bool isUndef  (const any& v) { return !v.has_value (); }
 inline bool isBytes  (const any& v) { return v.type () == typeid (bytes); }
