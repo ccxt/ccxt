@@ -187,7 +187,7 @@ public partial class ndax : ccxt.ndax
         {
             Dictionary<string, object> trade = this.parseTrade(payload[i]);
             string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
-            object tradesArray = ((bool) ((symbol == null))) ? null : this.safeValue(this.trades, symbol);
+            object tradesArray = (((symbol == null))) ? null : this.safeValue(this.trades, symbol);
             if ((tradesArray == null))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -408,7 +408,7 @@ public partial class ndax : ccxt.ndax
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = ((Int64)this.requestId());
-        limitVar = ((bool) ((limitVar == null))) ? 100 : limitVar;
+        limitVar = (((limitVar == null))) ? 100 : limitVar;
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
             { "InstrumentId", this.safeInteger(market, "id") },
@@ -484,8 +484,8 @@ public partial class ndax : ccxt.ndax
             } else
             {
                 Int64? newTimestamp = this.safeInteger(bidask, 2);
-                object currentTimestampValue = ((bool) (isEqual(timestamp, null))) ? 0 : timestamp;
-                Int64? newTimestampValue = ((bool) (isEqual(newTimestamp, null))) ? 0 : newTimestamp;
+                object currentTimestampValue = ((isEqual(timestamp, null))) ? 0 : timestamp;
+                Int64? newTimestampValue = ((isEqual(newTimestamp, null))) ? 0 : newTimestamp;
                 timestamp = mathMax(currentTimestampValue, newTimestampValue);
             }
             if (isEqual(nonce, null))
@@ -494,8 +494,8 @@ public partial class ndax : ccxt.ndax
             } else
             {
                 Int64? newNonce = this.safeInteger(bidask, 0);
-                object currentNonceValue = ((bool) (isEqual(nonce, null))) ? 0 : nonce;
-                Int64? newNonceValue = ((bool) (isEqual(newNonce, null))) ? 0 : newNonce;
+                object currentNonceValue = ((isEqual(nonce, null))) ? 0 : nonce;
+                Int64? newNonceValue = ((isEqual(newNonce, null))) ? 0 : newNonce;
                 nonce = mathMax(currentNonceValue, newNonceValue);
             }
             // 0 new, 1 update, 2 remove
@@ -504,7 +504,7 @@ public partial class ndax : ccxt.ndax
             double? amount = this.safeFloat(bidask, 8);
             Int64? side = this.safeInteger(bidask, 9);
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-            object orderbookSide = ((bool) ((side == 0))) ? getValue(orderbook, "bids") : getValue(orderbook, "asks");
+            object orderbookSide = (((side == 0))) ? getValue(orderbook, "bids") : getValue(orderbook, "asks");
             // 0 new, 1 update, 2 remove
             if ((type == 0))
             {
@@ -577,7 +577,7 @@ public partial class ndax : ccxt.ndax
         //
         Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         Int64? id = this.safeInteger(message, "i");
-        IDictionary<string, object> subscription = ((bool) (isEqual(id, null))) ? null : this.safeDict(subscriptionsById, id);
+        IDictionary<string, object> subscription = ((isEqual(id, null))) ? null : this.safeDict(subscriptionsById, id);
         if ((subscription != null))
         {
             object method = this.safeValue(subscription, "method");
@@ -629,7 +629,7 @@ public partial class ndax : ccxt.ndax
             { "TickerDataUpdateEvent", this.handleOHLCV },
         };
         string? eventVar = this.safeString(message, "n");
-        object method = ((bool) ((eventVar == null))) ? null : this.safeValue(methods, eventVar);
+        object method = (((eventVar == null))) ? null : this.safeValue(methods, eventVar);
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

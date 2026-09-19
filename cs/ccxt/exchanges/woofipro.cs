@@ -1178,7 +1178,7 @@ public partial class woofipro : Exchange
         if (isFromFetchOrder)
         {
             bool isMaker = (this.safeString(trade, "is_maker") == "1");
-            takerOrMaker = ((bool) isMaker) ? "maker" : "taker";
+            takerOrMaker = (isMaker) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -1781,7 +1781,7 @@ public partial class woofipro : Exchange
         Int64? timestamp = this.safeInteger(income, "updated_time");
         double? rate = this.safeNumber(income, "funding_rate");
         string? paymentType = this.safeString(income, "payment_type");
-        amount = ((bool) ((paymentType == "Pay"))) ? Precise.stringNeg(amount) : amount;
+        amount = (((paymentType == "Pay"))) ? Precise.stringNeg(amount) : amount;
         return new Dictionary<string, object>() {
             { "info", income },
             { "symbol", symbol },
@@ -2106,7 +2106,7 @@ public partial class woofipro : Exchange
         bool? success = this.safeBool(order, "success");
         if (!isEqual(success, null))
         {
-            status = ((bool) (success == true)) ? "NEW" : "REJECTED";
+            status = ((success == true)) ? "NEW" : "REJECTED";
         }
         string? side = this.safeStringLower(order, "side");
         string? filled = this.safeStringN(order, new List<object>() {"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"});
@@ -2251,9 +2251,9 @@ public partial class woofipro : Exchange
         bool isMarket = (orderType == "MARKET");
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         bool postOnly = this.isPostOnly(isMarket, null, parameters);
-        string orderQtyKey = ((bool) isConditional) ? "quantity" : "order_quantity";
-        string priceKey = ((bool) isConditional) ? "price" : "order_price";
-        string typeKey = ((bool) isConditional) ? "type" : "order_type";
+        string orderQtyKey = (isConditional) ? "quantity" : "order_quantity";
+        string priceKey = (isConditional) ? "price" : "order_price";
+        string typeKey = (isConditional) ? "type" : "order_type";
         ((IDictionary<string,object>)request)[(string)typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional)
         {
@@ -2296,7 +2296,7 @@ public partial class woofipro : Exchange
         {
             ((IDictionary<string,object>)request)["algo_type"] = "TP_SL";
             List<object> childOrders = new List<object>() {};
-            string closeSide = ((bool) ((orderSide == "BUY"))) ? "SELL" : "BUY";
+            string closeSide = (((orderSide == "BUY"))) ? "SELL" : "BUY";
             if (hasStopLoss)
             {
                 object stopLossPrice = this.safeValue2(stopLoss, "triggerPrice", "price", stopLoss);
@@ -2481,8 +2481,8 @@ public partial class woofipro : Exchange
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         bool isConditional = ((triggerPrice != null)) || (!isEqual(this.safeValue(parameters, "childOrders"), null));
-        string orderQtyKey = ((bool) isConditional) ? "quantity" : "order_quantity";
-        string priceKey = ((bool) isConditional) ? "price" : "order_price";
+        string orderQtyKey = (isConditional) ? "quantity" : "order_quantity";
+        string priceKey = (isConditional) ? "price" : "order_price";
         if ((price != null))
         {
             ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
@@ -2637,7 +2637,7 @@ public partial class woofipro : Exchange
         }
         if ((trigger == true))
         {
-            Dictionary<string, object> parsedResponse = ((bool) ((response == null))) ? new Dictionary<string, object>() {} : response;
+            Dictionary<string, object> parsedResponse = (((response == null))) ? new Dictionary<string, object>() {} : response;
             return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(parsedResponse), extendParams));
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -2823,7 +2823,7 @@ public partial class woofipro : Exchange
         // }
         //
         IDictionary<string, object> orders = this.safeDict(response, "data", response);
-        IDictionary<string, object> parsedOrders = ((bool) ((orders == null))) ? new Dictionary<string, object>() {} : orders;
+        IDictionary<string, object> parsedOrders = (((orders == null))) ? new Dictionary<string, object>() {} : orders;
         return ccxt.BaseExchange.ToOrder(this.parseOrder(parsedOrders, market));
     }
 
@@ -2853,7 +2853,7 @@ public partial class woofipro : Exchange
         }
         bool paginate = false;
         bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-        int maxLimit = ((bool) ((isTrigger == true))) ? 100 : 500;
+        int maxLimit = (((isTrigger == true))) ? 100 : 500;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
         paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
@@ -3250,7 +3250,7 @@ public partial class woofipro : Exchange
         currency = this.safeCurrency(currencyId, currency);
         double? amount = this.safeNumber(item, "amount");
         string? side = this.safeString(item, "token_side");
-        string direction = ((bool) ((side == "DEPOSIT"))) ? "in" : "out";
+        string direction = (((side == "DEPOSIT"))) ? "in" : "out";
         Int64? timestamp = this.safeInteger(item, "created_time");
         IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount"));
         return this.safeLedgerEntry(new Dictionary<string, object>() {
@@ -3703,7 +3703,7 @@ public partial class woofipro : Exchange
             { "amount", null },
             { "total", null },
             { "code", this.safeString(market, "settle") },
-            { "status", ((bool) ((success == true))) ? "ok" : "failed" },
+            { "status", (((success == true))) ? "ok" : "failed" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
@@ -3742,7 +3742,7 @@ public partial class woofipro : Exchange
         // }
         //
         IDictionary<string, object> modification = ((IDictionary<string, object>)this.parseMarginModification(response, market));
-        ((IDictionary<string,object>)modification)["type"] = ((bool) (isEqual(type, "ADD"))) ? "add" : "reduce";
+        ((IDictionary<string,object>)modification)["type"] = ((isEqual(type, "ADD"))) ? "add" : "reduce";
         ((IDictionary<string,object>)modification)["amount"] = this.parseNumber(this.numberToString(amount));
         return modification;
     }

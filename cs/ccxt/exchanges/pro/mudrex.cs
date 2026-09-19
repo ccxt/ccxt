@@ -80,8 +80,8 @@ public partial class mudrex : ccxt.mudrex
         string messageHash = ("ticker:" + (symbolVar));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         this.setBrokerHeaders();
-        object baseIdString = ((bool) (!isEqual((market.ContainsKey("baseId") ? market["baseId"] : null), null))) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
-        object quoteIdString = ((bool) (!isEqual((market.ContainsKey("quoteId") ? market["quoteId"] : null), null))) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
+        object baseIdString = ((!isEqual((market.ContainsKey("baseId") ? market["baseId"] : null), null))) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
+        object quoteIdString = ((!isEqual((market.ContainsKey("quoteId") ? market["quoteId"] : null), null))) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
         object assetId = (((string)baseIdString).ToLower() + ((string)quoteIdString).ToLower());
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", this.requestId() },
@@ -109,8 +109,8 @@ public partial class mudrex : ccxt.mudrex
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
-                object baseIdString = ((bool) (!isEqual((market.ContainsKey("baseId") ? market["baseId"] : null), null))) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
-                object quoteIdString = ((bool) (!isEqual((market.ContainsKey("quoteId") ? market["quoteId"] : null), null))) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
+                object baseIdString = ((!isEqual((market.ContainsKey("baseId") ? market["baseId"] : null), null))) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
+                object quoteIdString = ((!isEqual((market.ContainsKey("quoteId") ? market["quoteId"] : null), null))) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
                 ((IList<object>)assets).Add((((string)baseIdString).ToLower() + ((string)quoteIdString).ToLower()));
             }
         }
@@ -158,8 +158,8 @@ public partial class mudrex : ccxt.mudrex
         {
             prefix = "markKline";
         }
-        object streamBaseId = ((bool) (!isEqual((market.ContainsKey("baseId") ? market["baseId"] : null), null))) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
-        object streamQuoteId = ((bool) (!isEqual((market.ContainsKey("quoteId") ? market["quoteId"] : null), null))) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
+        object streamBaseId = ((!isEqual((market.ContainsKey("baseId") ? market["baseId"] : null), null))) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
+        object streamQuoteId = ((!isEqual((market.ContainsKey("quoteId") ? market["quoteId"] : null), null))) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
         string stream = (((((prefix + "@") + interval) + "@") + ((string)streamBaseId).ToLower()) + ((string)streamQuoteId).ToLower());
         string messageHash = stream;
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));

@@ -88,7 +88,7 @@ public partial class bithumb : ccxt.bithumb
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
         bool isGenerationTwo = (isEqual(generation, 2));
-        object url = ((bool) isGenerationTwo) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        object url = (isGenerationTwo) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? tickTypes = this.safeString(parameters, "tickTypes", "24H");
@@ -137,7 +137,7 @@ public partial class bithumb : ccxt.bithumb
         parameters = ((IList<object>)generationparametersVariable)[1];
         bool isGenerationTwo = (isEqual(generation, 2));
         symbols = this.marketSymbols(symbols, null, false, true, true);
-        int symbolsLength = ((bool) ((symbols == null))) ? 0 : getArrayLength(symbols);
+        int symbolsLength = (((symbols == null))) ? 0 : getArrayLength(symbols);
         if (isGenerationTwo && (isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchTickers() requires symbols for the generation 2 API")) ;
@@ -147,7 +147,7 @@ public partial class bithumb : ccxt.bithumb
             symbols = this.symbols;
         }
         int symbolsLengthDefined = getArrayLength(symbols);
-        object url = ((bool) isGenerationTwo) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        object url = (isGenerationTwo) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         List<object> streamMarketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < symbolsLengthDefined; i++)
@@ -417,7 +417,7 @@ public partial class bithumb : ccxt.bithumb
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
         bool isGenerationTwo = (isEqual(generation, 2));
-        object url = ((bool) isGenerationTwo) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        object url = (isGenerationTwo) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = (("orderbook" + ":") + (symbolVar));
@@ -583,7 +583,7 @@ public partial class bithumb : ccxt.bithumb
         //    }
         //
         string? sideId = this.safeString(delta, "orderType");
-        string side = ((bool) ((sideId == "bid"))) ? "bids" : "asks";
+        string side = (((sideId == "bid"))) ? "bids" : "asks";
         List<object> bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
         object orderbookSide = getValue(orderbook, side);
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
@@ -624,7 +624,7 @@ public partial class bithumb : ccxt.bithumb
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
         bool isGenerationTwo = (isEqual(generation, 2));
-        object url = ((bool) isGenerationTwo) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        object url = (isGenerationTwo) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = ("trade:" + (symbolVar));
@@ -790,7 +790,7 @@ public partial class bithumb : ccxt.bithumb
             { "symbol", this.safeSymbol(marketId, market, "_") },
             { "order", null },
             { "type", null },
-            { "side", ((bool) ((sideId == "1"))) ? "buy" : "sell" },
+            { "side", (((sideId == "1"))) ? "buy" : "sell" },
             { "takerOrMaker", null },
             { "price", this.safeString(trade, "contPrice") },
             { "amount", this.safeString(trade, "contQty") },
@@ -1109,7 +1109,7 @@ public partial class bithumb : ccxt.bithumb
         string? side = this.safeStringLower(order, "side");
         if ((sideId != null))
         {
-            side = ((bool) ((sideId == "BID"))) ? ("buy") : ("sell");
+            side = (((sideId == "BID"))) ? ("buy") : ("sell");
         }
         string? typeId = this.safeString(order, "order_type");
         string? type = null;

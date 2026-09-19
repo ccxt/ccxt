@@ -410,7 +410,7 @@ public partial class bitopro : Exchange
             { "id", currencyId },
             { "code", code },
             { "info", rawCurrency },
-            { "type", ((bool) isFiat) ? "fiat" : "crypto" },
+            { "type", (isFiat) ? "fiat" : "crypto" },
             { "name", null },
             { "active", (((deposit == true)) && ((withdraw == true))) },
             { "deposit", deposit },
@@ -1130,7 +1130,7 @@ public partial class bitopro : Exchange
             { "4", "canceled" },
             { "6", "canceled" },
         };
-        return ((bool) ((status == null))) ? null : this.safeString(statuses, status);
+        return (((status == null))) ? null : this.safeString(statuses, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -1966,7 +1966,7 @@ public partial class bitopro : Exchange
             IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             string? requestedNetwork = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new List<object>() {"network"});
-            string? networkId = ((bool) ((requestedNetwork == null))) ? null : this.safeString(networks, requestedNetwork);
+            string? networkId = (((requestedNetwork == null))) ? null : this.safeString(networks, requestedNetwork);
             if ((networkId == null))
             {
                 throw new ExchangeError ((string)((this.id + " invalid network ") + requestedNetwork)) ;

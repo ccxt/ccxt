@@ -832,20 +832,20 @@ public partial class btse : Exchange
             { "symbol", symbol },
             { "base", bs },
             { "quote", quote },
-            { "settle", ((bool) isSpot) ? null : quote },
+            { "settle", (isSpot) ? null : quote },
             { "baseId", baseId },
             { "quoteId", quoteId },
-            { "settleId", ((bool) isSpot) ? null : quoteId },
+            { "settleId", (isSpot) ? null : quoteId },
             { "type", type },
             { "spot", isSpot },
-            { "margin", ((bool) isSpot) ? false : null },
+            { "margin", (isSpot) ? false : null },
             { "swap", isSwap },
             { "future", isFuture },
             { "option", false },
             { "active", active },
             { "contract", isSwap || isFuture },
-            { "linear", ((bool) isSpot) ? null : true },
-            { "inverse", ((bool) isSpot) ? null : false },
+            { "linear", (isSpot) ? null : true },
+            { "inverse", (isSpot) ? null : false },
             { "taker", getValue(fees, "taker") },
             { "maker", getValue(fees, "maker") },
             { "contractSize", this.parseNumber(contractSize) },
@@ -2843,7 +2843,7 @@ public partial class btse : Exchange
         if (isEqual(marketType, "spot"))
         {
             // the literal ALL value cancels every open order across all pairs
-            ((IDictionary<string,object>)request)["symbol"] = ((bool) ((market != null))) ? (market.ContainsKey("id") ? market["id"] : null) : "ALL";
+            ((IDictionary<string,object>)request)["symbol"] = (((market != null))) ? (market.ContainsKey("id") ? market["id"] : null) : "ALL";
             response = await this.privateDeleteSpotApiV4TradeOrdersAll(this.extend(request, parameters));
         } else
         {

@@ -123,7 +123,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        if (isTrue(this.safeBool(this.options, "unSubscriptionPending", false)))
+        if ((this.safeBool(this.options, "unSubscriptionPending", false) == true))
         {
             throw new ExchangeError ((string)(this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
         }
@@ -234,7 +234,7 @@ public partial class coinbase : ccxt.coinbase
     public async virtual Task<object> unSubscribeMultiple(object topic, object name, object isPrivate, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(this.safeBool(this.options, "unSubscriptionPending", false)))
+        if ((this.safeBool(this.options, "unSubscriptionPending", false) == true))
         {
             throw new ExchangeError ((string)(this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
         }
@@ -1156,7 +1156,7 @@ public partial class coinbase : ccxt.coinbase
         {
             string? errorMessage = this.safeString(message, "message");
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
-            string? errorMessageValue = ((bool) ((errorMessage != null))) ? errorMessage : "unknown error";
+            string? errorMessageValue = (((errorMessage != null))) ? errorMessage : "unknown error";
             throw new ExchangeError ((string)errorMessageValue) ;
         }
         object method = this.safeValue(methods, channel);

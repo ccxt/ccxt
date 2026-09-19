@@ -137,7 +137,7 @@ public partial class derive : ccxt.derive
         if (!(inOp(this.orderbooks, symbol)))
         {
             Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            object subscription = ((bool) ((topic == null))) ? null : getValue(((WebSocketClient)client).subscriptions, topic);
+            object subscription = (((topic == null))) ? null : getValue(((WebSocketClient)client).subscriptions, topic);
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
@@ -667,7 +667,7 @@ public partial class derive : ccxt.derive
                 }
                 object cachedOrders = this.orders;
                 IDictionary<string, object> orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-                IDictionary<string, object> order = ((bool) ((orderId == null))) ? null : this.safeDict(orders, orderId);
+                IDictionary<string, object> order = (((orderId == null))) ? null : this.safeDict(orders, orderId);
                 if ((order != null))
                 {
                     object fee = this.safeValue(order, "fee");
@@ -844,7 +844,7 @@ public partial class derive : ccxt.derive
                 }
             }
         }
-        object method = ((bool) ((eventVar == null))) ? null : this.safeValue(methods, eventVar);
+        object method = (((eventVar == null))) ? null : this.safeValue(methods, eventVar);
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -854,7 +854,7 @@ public partial class derive : ccxt.derive
         {
             string? id = this.safeString(message, "id");
             Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-            IDictionary<string, object> subscription = ((bool) ((id == null))) ? new Dictionary<string, object>() {} : this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
+            IDictionary<string, object> subscription = (((id == null))) ? new Dictionary<string, object>() {} : this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
             if (subscription.ContainsKey("method"))
             {
                 if (isEqual(((IDictionary<string,object>)subscription)["method"], "public/login"))

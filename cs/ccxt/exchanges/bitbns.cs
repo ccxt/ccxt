@@ -373,7 +373,7 @@ public partial class bitbns : Exchange
             IDictionary<string, object> costLimits = this.safeDict(marketLimits, "cost", new Dictionary<string, object>() {});
             bool usdt = ((quoteId == "USDT"));
             // INR markets don't need a _INR prefix
-            object uppercaseId = ((bool) usdt) ? (add(add(baseId, "_"), quoteId)) : baseId;
+            object uppercaseId = (usdt) ? (add(add(baseId, "_"), quoteId)) : baseId;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "uppercaseId", uppercaseId },
@@ -826,7 +826,7 @@ public partial class bitbns : Exchange
         //         "code":200
         //     }
         //
-        Dictionary<string, object> parsed = ((bool) ((response == null))) ? new Dictionary<string, object>() {} : response;
+        Dictionary<string, object> parsed = (((response == null))) ? new Dictionary<string, object>() {} : response;
         return ccxt.BaseExchange.ToOrder(this.parseOrder(parsed, market));
     }
 
@@ -861,12 +861,12 @@ public partial class bitbns : Exchange
             { "symbol", (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null) },
         };
         Dictionary<string, object> response = null;
-        string tail = ((bool) ((isTrigger == true))) ? "StopLossOrder" : "Order";
-        string quoteSide = ((bool) ((((market.ContainsKey("quoteId") ? market["quoteId"] : null) as string) == "USDT"))) ? "usdtcancel" : "cancel";
+        string tail = (((isTrigger == true))) ? "StopLossOrder" : "Order";
+        string quoteSide = (((((market.ContainsKey("quoteId") ? market["quoteId"] : null) as string) == "USDT"))) ? "usdtcancel" : "cancel";
         quoteSide = quoteSide + tail;
         ((IDictionary<string,object>)request)["side"] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, parameters));
-        Dictionary<string, object> parsed = ((bool) ((response == null))) ? new Dictionary<string, object>() {} : response;
+        Dictionary<string, object> parsed = (((response == null))) ? new Dictionary<string, object>() {} : response;
         return ccxt.BaseExchange.ToOrder(this.parseOrder(parsed, market));
     }
 
@@ -959,11 +959,11 @@ public partial class bitbns : Exchange
         Dictionary<string, object> market = this.market(symbol);
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        string quoteSide = ((bool) ((((market.ContainsKey("quoteId") ? market["quoteId"] : null) as string) == "USDT"))) ? "usdtListOpen" : "listOpen";
+        string quoteSide = (((((market.ContainsKey("quoteId") ? market["quoteId"] : null) as string) == "USDT"))) ? "usdtListOpen" : "listOpen";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null) },
             { "page", 0 },
-            { "side", ((bool) ((isTrigger == true))) ? ((quoteSide + "StopOrders")) : ((quoteSide + "Orders")) },
+            { "side", (((isTrigger == true))) ? ((quoteSide + "StopOrders")) : ((quoteSide + "Orders")) },
         };
         Dictionary<string, object> response = await this.v2PostGetordersnew(this.extend(request, parameters));
         //
@@ -1460,7 +1460,7 @@ public partial class bitbns : Exchange
             };
             string payload = this.stringToBase64(this.json(auth));
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
-            headers = ((bool) ((headers == null))) ? new Dictionary<string, object>() {} : headers;
+            headers = (((headers == null))) ? new Dictionary<string, object>() {} : headers;
             ((IDictionary<string,object>)headers)["X-BITBNS-PAYLOAD"] = payload;
             ((IDictionary<string,object>)headers)["X-BITBNS-SIGNATURE"] = signature;
             ((IDictionary<string,object>)headers)["Content-Type"] = "application/x-www-form-urlencoded";

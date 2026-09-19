@@ -514,7 +514,7 @@ public partial class latoken : Exchange
         //         }
         //     ]
         //
-        if (isTrue(this.safeBool(this.options, "adjustForTimeDifference", false)))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -656,7 +656,7 @@ public partial class latoken : Exchange
             { "code", code },
             { "info", currency },
             { "name", this.safeString(currency, "name") },
-            { "type", ((bool) isCrypto) ? "crypto" : "other" },
+            { "type", (isCrypto) ? "crypto" : "other" },
             { "active", (this.safeString(currency, "status") == "CURRENCY_STATUS_ACTIVE") },
             { "deposit", null },
             { "withdraw", null },
@@ -1014,7 +1014,7 @@ public partial class latoken : Exchange
         string? side = this.safeString(trade, "direction");
         if ((side == null))
         {
-            side = ((bool) ((makerBuyer == true))) ? "sell" : "buy";
+            side = (((makerBuyer == true))) ? "sell" : "buy";
         } else
         {
             if ((side == "TRADE_DIRECTION_BUY"))
@@ -1027,7 +1027,7 @@ public partial class latoken : Exchange
         }
         bool isBuy = ((side == "buy"));
         bool isMaker = ((makerBuyer == true)) && isBuy;
-        string takerOrMaker = ((bool) isMaker) ? "maker" : "taker";
+        string takerOrMaker = (isMaker) ? "maker" : "taker";
         string? baseId = this.safeString(trade, "baseCurrency");
         string? quoteId = this.safeString(trade, "quoteCurrency");
         object bs = this.safeCurrencyCode(baseId);

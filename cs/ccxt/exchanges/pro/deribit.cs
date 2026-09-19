@@ -1014,7 +1014,7 @@ public partial class deribit : ccxt.deribit
         List<object> rawSubscriptions = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         bool isOHLCV = (isEqual(channelName, "chart.trades"));
-        object symbols = ((bool) isOHLCV) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
+        object symbols = (isOHLCV) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
         this.marketSymbols(symbols, null, false);
         if ((symbolsArray == null))
         {

@@ -1224,7 +1224,7 @@ public partial class woo : Exchange
         if (isFromFetchOrder)
         {
             bool isMaker = (this.safeString2(trade, "is_maker", "isMaker") == "1");
-            takerOrMaker = ((bool) isMaker) ? "maker" : "taker";
+            takerOrMaker = (isMaker) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -1741,7 +1741,7 @@ public partial class woo : Exchange
         bool isMarket = (orderType == "MARKET");
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         bool postOnly = this.isPostOnly(isMarket, null, parameters);
-        string clientOrderIdKey = ((bool) isConditional) ? "clientAlgoOrderId" : "clientOrderId";
+        string clientOrderIdKey = (isConditional) ? "clientAlgoOrderId" : "clientOrderId";
         ((IDictionary<string,object>)request)["type"] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional)
         {
@@ -1830,7 +1830,7 @@ public partial class woo : Exchange
                 { "childOrders", new List<object>() {} },
             };
             object childOrders = ((IDictionary<string,object>)outterOrder)["childOrders"];
-            string closeSide = ((bool) ((orderSide == "BUY"))) ? "SELL" : "BUY";
+            string closeSide = (((orderSide == "BUY"))) ? "SELL" : "BUY";
             if (hasStopLoss)
             {
                 string? stopLossPrice = this.safeString(stopLoss, "triggerPrice", stopLoss);
@@ -2140,7 +2140,7 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "triggerAfter", ((bool) (isGreaterThan(timeout, 0))) ? mathMin(timeout, 900000) : 0 },
+            { "triggerAfter", ((isGreaterThan(timeout, 0))) ? mathMin(timeout, 900000) : 0 },
         };
         Dictionary<string, object> response = await this.v3PrivatePostTradeCancelAllAfter(this.extend(request, parameters));
         //
@@ -3198,7 +3198,7 @@ public partial class woo : Exchange
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         networkCode = this.networkIdToCode(networkCode, getValue(currency, "code"));
-        IDictionary<string, object> networkEntry = ((bool) ((networkCode == null))) ? null : this.safeDict(getValue(currency, "networks"), networkCode);
+        IDictionary<string, object> networkEntry = (((networkCode == null))) ? null : this.safeDict(getValue(currency, "networks"), networkCode);
         if ((networkEntry == null))
         {
             List<object> supportedNetworks = new List<object>(((IDictionary<string,object>)getValue(currency, "networks")).Keys);
@@ -3347,7 +3347,7 @@ public partial class woo : Exchange
         currency = this.safeCurrency(code, currency);
         double? amount = this.safeNumber(item, "amount");
         string? side = this.safeString(item, "tokenSide");
-        string direction = ((bool) ((side == "DEPOSIT"))) ? "in" : "out";
+        string direction = (((side == "DEPOSIT"))) ? "in" : "out";
         Int64? timestamp = this.safeTimestamp(item, "createdTime");
         IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(item, new List<object>() {"feeToken"}, new List<object>() {"feeAmount"}));
         return this.safeLedgerEntry(new Dictionary<string, object>() {
@@ -3703,7 +3703,7 @@ public partial class woo : Exchange
         string? status = null;
         if (!isEqual(success, null))
         {
-            status = ((bool) (success == true)) ? "ok" : "failed";
+            status = ((success == true)) ? "ok" : "failed";
         }
         IDictionary<string, object> fromAccount = this.safeDict(transfer, "from", new Dictionary<string, object>() {});
         IDictionary<string, object> toAccount = this.safeDict(transfer, "to", new Dictionary<string, object>() {});
@@ -3990,7 +3990,7 @@ public partial class woo : Exchange
         Int64? timestamp = this.safeInteger(income, "updatedTime");
         double? rate = this.safeNumber(income, "fundingRate");
         string? paymentType = this.safeString(income, "paymentType");
-        amount = ((bool) ((paymentType == "Pay"))) ? Precise.stringNeg(amount) : amount;
+        amount = (((paymentType == "Pay"))) ? Precise.stringNeg(amount) : amount;
         return new Dictionary<string, object>() {
             { "info", income },
             { "symbol", symbol },

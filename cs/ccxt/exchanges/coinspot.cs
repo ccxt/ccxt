@@ -1104,10 +1104,10 @@ public partial class coinspot : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         bool isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        object version = ((bool) isVersionedApi) ? getValue(api, 0) : null;
-        object accessType = ((bool) isVersionedApi) ? getValue(api, 1) : api;
+        object version = (isVersionedApi) ? getValue(api, 0) : null;
+        object accessType = (isVersionedApi) ? getValue(api, 1) : api;
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        string fullPath = ((bool) ((version != null))) ? (("/" + (version)) + endpoint) : endpoint;
+        string fullPath = (((version != null))) ? (("/" + (version)) + endpoint) : endpoint;
         object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), accessType), fullPath);
         if (isEqual(accessType, "private"))
         {

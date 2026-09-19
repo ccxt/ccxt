@@ -795,7 +795,7 @@ public partial class bittrade : Exchange
             string? leverageRatio = this.safeString(market, "leverage-ratio", "1");
             string? superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
             bool margin = Precise.stringGt(leverageRatio, "1") || Precise.stringGt(superLeverageRatio, "1");
-            double? fee = ((bool) (isEqual(bs, "OMG"))) ? this.parseNumber("0") : this.parseNumber("0.002");
+            double? fee = ((isEqual(bs, "OMG"))) ? this.parseNumber("0") : this.parseNumber("0.002");
             if ((baseId == null))
             {
                 throw new ExchangeError ((string)(this.id + " fetchMarkets() missing baseId")) ;
@@ -1830,7 +1830,7 @@ public partial class bittrade : Exchange
         Dictionary<string, object> fee = null;
         if ((feeCost != null))
         {
-            object feeCurrency = ((bool) (isEqual(side, "sell"))) ? getValue(market, "quote") : getValue(market, "base");
+            object feeCurrency = ((isEqual(side, "sell"))) ? getValue(market, "quote") : getValue(market, "base");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
                 { "currency", feeCurrency },

@@ -1215,7 +1215,7 @@ public partial class btcturk : Exchange
     {
         string? errorCode = this.safeString(response, "code", "0");
         string? message = this.safeString(response, "message");
-        object output = ((bool) ((message == null))) ? body : message;
+        object output = (((message == null))) ? body : message;
         this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, ((this.id + " ") + (output)));
         if (((errorCode != "0")) && ((errorCode != "SUCCESS")))
         {

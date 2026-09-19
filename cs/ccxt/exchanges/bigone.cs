@@ -899,7 +899,7 @@ public partial class bigone : Exchange
         //        "openInterest": 1141372.0
         //    }
         //
-        string marketType = ((bool) ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("asset_pair_name")))) ? "spot" : "swap";
+        string marketType = (((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("asset_pair_name")))) ? "spot" : "swap";
         string? marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
         string? symbol = this.safeSymbol(marketId, market, "-", marketType);
         string? close = this.safeString2(ticker, "close", "latestPrice");
@@ -1250,13 +1250,13 @@ public partial class bigone : Exchange
         string? takerOrMaker = null;
         if (((takerSide != null)) && ((side != null)) && ((side != "SELF_TRADING")))
         {
-            takerOrMaker = ((bool) ((takerSide == side))) ? "taker" : "maker";
+            takerOrMaker = (((takerSide == side))) ? "taker" : "maker";
         }
         if ((side == null))
         {
             // taker side is not related to buy/sell side
             // the following code is probably a mistake
-            side = ((bool) ((takerSide == "ASK"))) ? "sell" : "buy";
+            side = (((takerSide == "ASK"))) ? "sell" : "buy";
         } else
         {
             if ((side == "BID"))
@@ -1467,7 +1467,7 @@ public partial class bigone : Exchange
         bool sinceIsDefined = ((since != null));
         if ((limitVar == null))
         {
-            limitVar = ((bool) (sinceIsDefined && untilIsDefined)) ? 500 : 100; // default 100, max 500, if since and limitVar defined then fetch all the candles between them unless it exceeds the max of 500
+            limitVar = ((sinceIsDefined && untilIsDefined)) ? 500 : 100; // default 100, max 500, if since and limitVar defined then fetch all the candles between them unless it exceeds the max of 500
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1731,7 +1731,7 @@ public partial class bigone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool isBuy = ((side == "buy"));
-        string requestSide = ((bool) isBuy) ? "BID" : "ASK";
+        string requestSide = (isBuy) ? "BID" : "ASK";
         string uppercaseType = ((string)type).ToUpper();
         bool isLimit = (uppercaseType == "LIMIT");
         bool? exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
@@ -1781,7 +1781,7 @@ public partial class bigone : Exchange
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
                         object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                        object costRequest = ((bool) (!isEqual(cost, null))) ? cost : quoteAmount;
+                        object costRequest = ((!isEqual(cost, null))) ? cost : quoteAmount;
                         ((IDictionary<string,object>)request)["amount"] = this.costToPrecision(symbol, costRequest);
                     }
                 } else
@@ -1796,7 +1796,7 @@ public partial class bigone : Exchange
         if ((triggerPrice != null))
         {
             ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
-            ((IDictionary<string,object>)request)["operator"] = ((bool) isBuy) ? "GTE" : "LTE";
+            ((IDictionary<string,object>)request)["operator"] = (isBuy) ? "GTE" : "LTE";
             if (isLimit)
             {
                 uppercaseType = "STOP_LIMIT";
@@ -2309,7 +2309,7 @@ public partial class bigone : Exchange
         string? txid = this.safeString(transaction, "txid");
         string? address = this.safeString(transaction, "target_address");
         string? tag = this.safeString(transaction, "memo");
-        string type = ((bool) ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("customer_id")))) ? "withdrawal" : "deposit";
+        string type = (((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("customer_id")))) ? "withdrawal" : "deposit";
         bool? intern = this.safeBool(transaction, "is_internal");
         return new Dictionary<string, object>() {
             { "info", transaction },

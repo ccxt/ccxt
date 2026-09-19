@@ -121,10 +121,10 @@ public partial class testMainClass : BaseTest
         {
             bool isSwapFuture = (isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true));
             bool isBuy = (isEqual(buyOrSellString, "buy"));
-            string entrySide = ((bool) isBuy) ? "buy" : "sell";
-            string exitSide = ((bool) isBuy) ? "sell" : "buy";
-            object entryorderPrice = ((bool) isBuy) ? multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : divide(bestBid, limitPriceSafetyMultiplierFromMedian);
-            object exitorderPrice = ((bool) isBuy) ? divide(bestBid, limitPriceSafetyMultiplierFromMedian) : multiply(bestAsk, limitPriceSafetyMultiplierFromMedian); // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
+            string entrySide = (isBuy) ? "buy" : "sell";
+            string exitSide = (isBuy) ? "sell" : "buy";
+            object entryorderPrice = (isBuy) ? multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : divide(bestBid, limitPriceSafetyMultiplierFromMedian);
+            object exitorderPrice = (isBuy) ? divide(bestBid, limitPriceSafetyMultiplierFromMedian) : multiply(bestAsk, limitPriceSafetyMultiplierFromMedian); // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
             //
             //
             object symbol = getValue(market, "symbol");
@@ -145,7 +145,7 @@ public partial class testMainClass : BaseTest
             {
                 ((IDictionary<string,object>)parameters)["reduceOnly"] = true;
             }
-            object exitorderPriceArg = ((bool) (isEqual(getValue(market, "spot"), true))) ? null : exitorderPrice;
+            object exitorderPriceArg = ((isEqual(getValue(market, "spot"), true))) ? null : exitorderPrice;
             object exitorderFilled = await tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties);
             object exitorderFetched = await testSharedMethods.fetchOrder(exchange, symbol, getValue(exitorderFilled, "id"), skippedProperties);
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);

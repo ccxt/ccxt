@@ -422,8 +422,8 @@ public partial class revolutx : Exchange
         string? status = this.safeString(currency, "status");
         bool active = ((status == "active"));
         string? assetType = this.safeString(currency, "asset_type");
-        string type = ((bool) ((assetType == "crypto"))) ? "crypto" : "fiat";
-        double? precision = ((bool) (!isEqual(scale, null))) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
+        string type = (((assetType == "crypto"))) ? "crypto" : "fiat";
+        double? precision = ((!isEqual(scale, null))) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "info", currency },
             { "id", id },
@@ -918,7 +918,7 @@ public partial class revolutx : Exchange
         //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         //     ]
         //
-        object data = ((bool) ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) ? response : this.safeList(response, "data", new List<object>() {});
+        object data = (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) ? response : this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -938,7 +938,7 @@ public partial class revolutx : Exchange
             string? used = reserved;
             if ((staked != null))
             {
-                used = ((bool) ((reserved == null))) ? staked : Precise.stringAdd(reserved, staked);
+                used = (((reserved == null))) ? staked : Precise.stringAdd(reserved, staked);
             }
             ((IDictionary<string,object>)account)["used"] = used;
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "total");
@@ -1138,7 +1138,7 @@ public partial class revolutx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        IDictionary<string, object> orderData = ((bool) ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> orderData = (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? venueOrderId = this.safeString(orderData, "venue_order_id");
         string? state = this.safeString(orderData, "state");
         Dictionary<string, object> order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
@@ -1351,7 +1351,7 @@ public partial class revolutx : Exchange
         {
             Int64 now = this.milliseconds();
             object defaultEnd = add(since, thirtyDays);
-            ((IDictionary<string,object>)request)["end_date"] = ((bool) (isLessThan(defaultEnd, now))) ? defaultEnd : now;
+            ((IDictionary<string,object>)request)["end_date"] = ((isLessThan(defaultEnd, now))) ? defaultEnd : now;
         }
         if ((limit != null))
         {
@@ -1422,7 +1422,7 @@ public partial class revolutx : Exchange
         string? side = this.safeStringLower(trade, "s");
         Int64? timestamp = this.safeInteger2(trade, "tdt", "pdt");
         bool? isMaker = this.safeBool(trade, "im", false);
-        string takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
+        string takerOrMaker = ((isMaker == true)) ? "maker" : "taker";
         object cost = null;
         if (!isEqual(price, null) && !isEqual(amount, null))
         {
@@ -1491,7 +1491,7 @@ public partial class revolutx : Exchange
         {
             Int64 now = this.milliseconds();
             object defaultEnd = add(since, thirtyDays);
-            ((IDictionary<string,object>)request)["end_date"] = ((bool) (isLessThan(defaultEnd, now))) ? defaultEnd : now;
+            ((IDictionary<string,object>)request)["end_date"] = ((isLessThan(defaultEnd, now))) ? defaultEnd : now;
         }
         if ((limit != null))
         {
@@ -1586,7 +1586,7 @@ public partial class revolutx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        IDictionary<string, object> orderData = ((bool) ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> orderData = (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? newVenueOrderId = this.safeString(orderData, "venue_order_id");
         string? state = this.safeString(orderData, "state");
         Dictionary<string, object> order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {

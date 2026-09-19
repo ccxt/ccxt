@@ -904,7 +904,7 @@ public partial class extended : ccxt.extended
         string? symbol = this.safeString(subscription, "symbol");
         object timeframe = this.safeString(subscription, "timeframe");
         string? candleType = this.safeString(subscription, "candleType");
-        object cacheKey = ((bool) ((candleType == "trades"))) ? timeframe : add(add(timeframe, ":"), candleType);
+        object cacheKey = (((candleType == "trades"))) ? timeframe : add(add(timeframe, ":"), candleType);
         string? messageHash = this.safeString(subscription, "messageHash");
         ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, ((string)symbol)), cacheKey);

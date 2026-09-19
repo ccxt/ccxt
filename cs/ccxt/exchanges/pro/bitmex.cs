@@ -1730,7 +1730,7 @@ public partial class bitmex : ccxt.bitmex
                 object size = this.convertFromRawQuantity(symbol, this.safeString(data[i], "size"));
                 string? id = this.safeString(data[i], "id");
                 string? side = this.safeString(data[i], "side");
-                side = ((bool) ((side == "Buy"))) ? "bids" : "asks";
+                side = (((side == "Buy"))) ? "bids" : "asks";
                 object bookside = getValue(orderbook, side);
                 (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 string? datetime = this.safeString(data[i], "timestamp");
@@ -1758,10 +1758,10 @@ public partial class bitmex : ccxt.bitmex
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 double? price = this.safeNumber(data[i], "price");
-                object size = ((bool) ((action == "delete"))) ? 0 : this.convertFromRawQuantity(symbol, this.safeString(data[i], "size", "0"));
+                object size = (((action == "delete"))) ? 0 : this.convertFromRawQuantity(symbol, this.safeString(data[i], "size", "0"));
                 string? id = this.safeString(data[i], "id");
                 string? side = this.safeString(data[i], "side");
-                side = ((bool) ((side == "Buy"))) ? "bids" : "asks";
+                side = (((side == "Buy"))) ? "bids" : "asks";
                 object bookside = getValue(orderbook, side);
                 (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 string? datetime = this.safeString(data[i], "timestamp");

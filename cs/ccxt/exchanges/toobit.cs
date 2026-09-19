@@ -1183,7 +1183,7 @@ public partial class toobit : Exchange
             { "baseId", baseId },
             { "quoteId", quoteId },
             { "settleId", settleId },
-            { "type", ((bool) isContract) ? "swap" : "spot" },
+            { "type", (isContract) ? "swap" : "spot" },
             { "spot", !isContract },
             { "margin", false },
             { "swap", isContract },
@@ -1191,8 +1191,8 @@ public partial class toobit : Exchange
             { "option", false },
             { "active", active },
             { "contract", isContract },
-            { "linear", ((bool) isContract) ? ((inverse != true)) : null },
-            { "inverse", ((bool) isContract) ? inverse : null },
+            { "linear", (isContract) ? ((inverse != true)) : null },
+            { "inverse", (isContract) ? inverse : null },
             { "contractSize", this.safeNumber(market, "contractMultiplier") },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -1414,7 +1414,7 @@ public partial class toobit : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
+            takerOrMaker = ((isMaker == true)) ? "maker" : "taker";
         }
         market = this.safeMarket(null, market);
         object symbol = getValue(market, "symbol");
@@ -2060,10 +2060,10 @@ public partial class toobit : Exchange
         parameters = ((IList<object>)reduceOnlyparametersVariable)[1];
         if (isEqual(side, "buy"))
         {
-            side = ((bool) (isEqual(reduceOnly, true))) ? "BUY_CLOSE" : "BUY_OPEN";
+            side = ((isEqual(reduceOnly, true))) ? "BUY_CLOSE" : "BUY_OPEN";
         } else if (isEqual(side, "sell"))
         {
-            side = ((bool) (isEqual(reduceOnly, true))) ? "SELL_CLOSE" : "SELL_OPEN";
+            side = ((isEqual(reduceOnly, true))) ? "SELL_CLOSE" : "SELL_OPEN";
         }
         ((IDictionary<string,object>)request)["side"] = side;
         if ((price != null))
@@ -3073,7 +3073,7 @@ public partial class toobit : Exchange
         string? addressTo = this.safeString(transaction, "address");
         string? addressFrom = this.safeString(transaction, "fromAddress");
         bool isWithdraw = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("arriveQuantity")));
-        string type = ((bool) isWithdraw) ? "withdrawal" : "deposit";
+        string type = (isWithdraw) ? "withdrawal" : "deposit";
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString(transaction, "id") },
@@ -3334,7 +3334,7 @@ public partial class toobit : Exchange
         string? marketId = this.safeString2(leverage, "symbolId", "symbol");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
         string? marginType = this.safeStringLower(leverage, "marginType");
-        string marginMode = ((bool) ((marginType == "cross"))) ? "cross" : "isolated";
+        string marginMode = (((marginType == "cross"))) ? "cross" : "isolated";
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", this.safeSymbol(marketId, market) },

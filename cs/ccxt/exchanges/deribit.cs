@@ -854,7 +854,7 @@ public partial class deribit : Exchange
             { "contractSize", null },
             { "expiry", timestamp },
             { "expiryDatetime", datetime },
-            { "optionType", ((bool) ((optionType == "C"))) ? "call" : "put" },
+            { "optionType", (((optionType == "C"))) ? "call" : "put" },
             { "strike", this.parseNumber(strike) },
             { "precision", new Dictionary<string, object>() {
                 { "amount", null },
@@ -1023,7 +1023,7 @@ public partial class deribit : Exchange
         IDictionary<string, object> result = this.safeDict(response, "result");
         string? locked = this.safeString(result, "locked");
         Int64? updateTime = this.safeIntegerProduct(response, "usIn", 0.001, this.milliseconds());
-        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((bool) ((locked == "false"))) ? "ok" : "maintenance" },             { "updated", updateTime },             { "eta", null },             { "url", null },             { "info", response },         });
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", (((locked == "false"))) ? "ok" : "maintenance" },             { "updated", updateTime },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -1300,7 +1300,7 @@ public partial class deribit : Exchange
                         {
                             strike = this.safeNumber(market, "strike");
                             optionType = this.safeString(market, "option_type");
-                            string letter = ((bool) ((optionType == "call"))) ? "C" : "P";
+                            string letter = (((optionType == "call"))) ? "C" : "P";
                             symbol = add(add(add(add(symbol, "-"), this.numberToString(strike)), "-"), letter);
                         }
                     }
@@ -1960,7 +1960,7 @@ public partial class deribit : Exchange
         if ((liquidity != null))
         {
             // M = maker, T = taker, MT = both
-            takerOrMaker = ((bool) ((liquidity == "M"))) ? "maker" : "taker";
+            takerOrMaker = (((liquidity == "M"))) ? "maker" : "taker";
         }
         string? feeCostString = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
@@ -2535,7 +2535,7 @@ public partial class deribit : Exchange
             ((IDictionary<string,object>)request)["trigger_offset"] = this.parseToNumeric(trailingAmount);
         } else if (isStopOrder)
         {
-            object triggerPrice = ((bool) ((stopLossPrice != null))) ? stopLossPrice : takeProfitPrice;
+            object triggerPrice = (((stopLossPrice != null))) ? stopLossPrice : takeProfitPrice;
             ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["trigger"] = trigger;
             if (isStopLossOrder)
@@ -3234,7 +3234,7 @@ public partial class deribit : Exchange
         string? contract = this.safeString(position, "instrument_name");
         market = this.safeMarket(contract, market);
         string? side = this.safeString(position, "direction");
-        side = ((bool) ((side == "buy"))) ? "long" : "short";
+        side = (((side == "buy"))) ? "long" : "short";
         string? unrealizedPnl = this.safeString(position, "floating_profit_loss");
         string? initialMarginString = this.safeString(position, "initial_margin");
         string? notionalString = this.safeString(position, "size_currency");
@@ -3611,8 +3611,8 @@ public partial class deribit : Exchange
             { "status", this.parseTransferStatus(status) },
             { "amount", this.safeNumber(transfer, "amount") },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "fromAccount", ((bool) (direction != "payment")) ? account : null },
-            { "toAccount", ((bool) (direction == "payment")) ? account : null },
+            { "fromAccount", ((direction != "payment")) ? account : null },
+            { "toAccount", ((direction == "payment")) ? account : null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };

@@ -1014,7 +1014,7 @@ public partial class derive : Exchange
             linear = true;
             inverse = false;
         }
-        int? contractSize = ((bool) (spot)) ? null : 1;
+        int? contractSize = ((spot)) ? null : 1;
         bool isContract = (swap || option);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
@@ -1530,7 +1530,7 @@ public partial class derive : Exchange
     {
         object accountHash = this.hash(this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary");
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        string DOMAIN_SEPARATOR = ((bool) ((sandboxMode == true))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
+        string DOMAIN_SEPARATOR = (((sandboxMode == true))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
         byte[] binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         byte[] prefix = this.base16ToBinary("1901");
         return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex");
@@ -1621,7 +1621,7 @@ public partial class derive : Exchange
         Int64? signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", (this.seconds() + 7776000));
         byte[] ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        string TRADE_MODULE_ADDRESS = ((bool) ((sandboxMode == true))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+        string TRADE_MODULE_ADDRESS = (((sandboxMode == true))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
         string? priceString = this.numberToString(price);
         object maxFee = null;
         IList<object> maxFeeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "max_fee");
@@ -1814,7 +1814,7 @@ public partial class derive : Exchange
         // TODO: subaccount id / trade module address
         byte[] ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        string TRADE_MODULE_ADDRESS = ((bool) ((sandboxMode == true))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+        string TRADE_MODULE_ADDRESS = (((sandboxMode == true))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
         string priceString = ((string)this.numberToString(price));
         string? maxFeeString = this.safeString(parameters, "max_fee", "0");
         string? amountString = this.numberToString(amount);

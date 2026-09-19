@@ -829,7 +829,7 @@ public partial class bitmex : Exchange
                 } },
             } },
             { "networks", networks },
-            { "type", ((bool) isCrypto) ? "crypto" : "other" },
+            { "type", (isCrypto) ? "crypto" : "other" },
         });
     }
 
@@ -1132,7 +1132,7 @@ public partial class bitmex : Exchange
         string? contractSize = null;
         object isInverse = this.safeValue(market, "isInverse"); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         object isQuanto = this.safeValue(market, "isQuanto"); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        bool? linear = ((bool) contract) ? ((!isEqual(isInverse, true)) && (!isEqual(isQuanto, true))) : null;
+        bool? linear = (contract) ? ((!isEqual(isInverse, true)) && (!isEqual(isQuanto, true))) : null;
         string? status = this.safeString(market, "state");
         bool active = (status == "Open"); // Open, Settled, Unlisted
         Int64? expiry = null;
@@ -1213,12 +1213,12 @@ public partial class bitmex : Exchange
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
-                    { "min", ((bool) contract) ? this.parseNumber("1") : null },
-                    { "max", ((bool) contract) ? maxLeverage : null },
+                    { "min", (contract) ? this.parseNumber("1") : null },
+                    { "max", (contract) ? maxLeverage : null },
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", ((bool) positionIsQuote) ? null : maxOrderQty },
+                    { "max", (positionIsQuote) ? null : maxOrderQty },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", null },
@@ -1226,7 +1226,7 @@ public partial class bitmex : Exchange
                 } },
                 { "cost", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", ((bool) positionIsQuote) ? maxOrderQty : null },
+                    { "max", (positionIsQuote) ? maxOrderQty : null },
                 } },
             } },
             { "created", null },
@@ -1411,7 +1411,7 @@ public partial class bitmex : Exchange
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             object order = orders[i];
-            string side = ((bool) (isEqual(getValue(order, "side"), "Sell"))) ? "asks" : "bids";
+            string side = ((isEqual(getValue(order, "side"), "Sell"))) ? "asks" : "bids";
             object amount = this.convertFromRawQuantity(symbol, this.safeString(order, "size"));
             double? price = this.safeNumber(order, "price");
             // https://github.com/ccxt/ccxt/issues/4926
@@ -2289,7 +2289,7 @@ public partial class bitmex : Exchange
         string? takerOrMaker = null;
         if ((feeCostString != null) && (execType == "Trade"))
         {
-            takerOrMaker = ((bool) Precise.stringLt(feeCostString, "0")) ? "maker" : "taker";
+            takerOrMaker = (Precise.stringLt(feeCostString, "0")) ? "maker" : "taker";
         }
         string? type = this.safeStringLower(trade, "ordType");
         return this.safeTrade(new Dictionary<string, object>() {
@@ -2604,19 +2604,19 @@ public partial class bitmex : Exchange
             {
                 if ((side == "buy"))
                 {
-                    orderType = ((bool) triggerAbove) ? "StopLimit" : "LimitIfTouched";
+                    orderType = (triggerAbove) ? "StopLimit" : "LimitIfTouched";
                 } else
                 {
-                    orderType = ((bool) triggerAbove) ? "LimitIfTouched" : "StopLimit";
+                    orderType = (triggerAbove) ? "LimitIfTouched" : "StopLimit";
                 }
             } else if ((type == "market"))
             {
                 if ((side == "buy"))
                 {
-                    orderType = ((bool) triggerAbove) ? "Stop" : "MarketIfTouched";
+                    orderType = (triggerAbove) ? "Stop" : "MarketIfTouched";
                 } else
                 {
-                    orderType = ((bool) triggerAbove) ? "MarketIfTouched" : "Stop";
+                    orderType = (triggerAbove) ? "MarketIfTouched" : "Stop";
                 }
             }
             if (isTrailingAmountOrder)
@@ -2677,19 +2677,19 @@ public partial class bitmex : Exchange
             {
                 if ((side == "buy"))
                 {
-                    orderType = ((bool) triggerAbove) ? "StopLimit" : "LimitIfTouched";
+                    orderType = (triggerAbove) ? "StopLimit" : "LimitIfTouched";
                 } else
                 {
-                    orderType = ((bool) triggerAbove) ? "LimitIfTouched" : "StopLimit";
+                    orderType = (triggerAbove) ? "LimitIfTouched" : "StopLimit";
                 }
             } else if ((type == "market"))
             {
                 if ((side == "buy"))
                 {
-                    orderType = ((bool) triggerAbove) ? "Stop" : "MarketIfTouched";
+                    orderType = (triggerAbove) ? "Stop" : "MarketIfTouched";
                 } else
                 {
-                    orderType = ((bool) triggerAbove) ? "MarketIfTouched" : "Stop";
+                    orderType = (triggerAbove) ? "MarketIfTouched" : "Stop";
                 }
             }
             bool isStopSellOrder = ((side == "sell")) && (((orderType == "Stop")) || ((orderType == "StopLimit")));
@@ -2891,7 +2891,7 @@ public partial class bitmex : Exchange
             throw new ExchangeError ((string)(this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "timeout", ((bool) (isGreaterThan(timeout, 0))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
+            { "timeout", ((isGreaterThan(timeout, 0))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
         };
         Dictionary<string, object> response = await this.privatePostOrderCancelAllAfter(this.extend(request, parameters));
         //
@@ -3154,7 +3154,7 @@ public partial class bitmex : Exchange
         object symbol = getValue(market, "symbol");
         string? datetime = this.safeString(position, "timestamp");
         bool? crossMargin = this.safeBool(position, "crossMargin");
-        string marginMode = ((bool) ((crossMargin == true))) ? "cross" : "isolated";
+        string marginMode = (((crossMargin == true))) ? "cross" : "isolated";
         string? notionalString = Precise.stringAbs(this.safeString2(position, "foreignNotional", "homeNotional"));
         string? settleCurrencyCode = this.safeString(market, "settle");
         object maintenanceMargin = this.convertToRealAmount(((string)settleCurrencyCode), this.safeString(position, "maintMargin"));
@@ -3503,7 +3503,7 @@ public partial class bitmex : Exchange
         {
             throw new BadSymbol ((string)(this.id + " setMarginMode() supports swap and future contracts only")) ;
         }
-        bool enabled = ((bool) (isEqual(marginModeVar, "cross"))) ? false : true;
+        bool enabled = ((isEqual(marginModeVar, "cross"))) ? false : true;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "enabled", enabled },

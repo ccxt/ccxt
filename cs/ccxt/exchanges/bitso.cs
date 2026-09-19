@@ -2035,7 +2035,7 @@ public partial class bitso : Exchange
             { "LTC", "Litecoin" },
         };
         Dictionary<string, object> currency = this.currency(((string)code));
-        object method = ((bool) (methods.ContainsKey(code))) ? getValue(methods, code) : null;
+        object method = ((methods.ContainsKey(code))) ? getValue(methods, code) : null;
         if ((method == null))
         {
             throw new ExchangeError ((string)((this.id + " not valid withdraw coin: ") + (code))) ;
@@ -2119,7 +2119,7 @@ public partial class bitso : Exchange
         string? status = this.safeString(transaction, "status");
         string? withdrawId = this.safeString(transaction, "wid");
         object networkCode = this.networkIdToCode(networkId, getValue(currency, "code"));
-        string? networkCodeUpper = ((bool) ((networkCode != null))) ? ((string)networkCode).ToUpper() : null;
+        string? networkCodeUpper = (((networkCode != null))) ? ((string)networkCode).ToUpper() : null;
         return new Dictionary<string, object>() {
             { "id", this.safeString2(transaction, "wid", "fid") },
             { "txid", this.safeString(details, "tx_hash") },
@@ -2127,10 +2127,10 @@ public partial class bitso : Exchange
             { "datetime", datetime },
             { "network", networkCodeUpper },
             { "addressFrom", receivingAddress },
-            { "address", ((bool) ((withdrawalAddress != null))) ? withdrawalAddress : receivingAddress },
+            { "address", (((withdrawalAddress != null))) ? withdrawalAddress : receivingAddress },
             { "addressTo", withdrawalAddress },
             { "amount", this.safeNumber(transaction, "amount") },
-            { "type", ((bool) ((withdrawId == null))) ? "deposit" : "withdrawal" },
+            { "type", (((withdrawId == null))) ? "deposit" : "withdrawal" },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "status", this.parseTransactionStatus(status) },
             { "updated", null },

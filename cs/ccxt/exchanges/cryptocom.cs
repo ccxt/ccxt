@@ -1038,16 +1038,16 @@ public partial class cryptocom : Exchange
             bool option = (inst_type == "WARRANT");
             string? baseId = this.safeString(market, "base_ccy");
             string? quoteId = this.safeString(market, "quote_ccy");
-            string? settleId = ((bool) spot) ? null : quoteId;
+            string? settleId = (spot) ? null : quoteId;
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            string? settle = ((bool) spot) ? null : this.safeCurrencyCode(settleId);
+            string? settle = (spot) ? null : this.safeCurrencyCode(settleId);
             string? optionType = this.safeStringLower(market, "put_call");
             string? strike = this.safeString(market, "strike");
             bool? marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
             bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
             string? expiryString = ((string)this.omitZero(this.safeString(market, "expiry_timestamp_ms")));
-            object expiry = ((bool) ((expiryString != null))) ? parseInt(expiryString) : null;
+            object expiry = (((expiryString != null))) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
             string? type = null;
             bool? contract = null;
@@ -1068,12 +1068,12 @@ public partial class cryptocom : Exchange
             } else if ((inst_type == "WARRANT"))
             {
                 type = "option";
-                string symbolOptionType = ((bool) ((optionType == "call"))) ? "C" : "P";
+                string symbolOptionType = (((optionType == "call"))) ? "C" : "P";
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                 contract = true;
             }
-            bool? isLinear = ((bool) (isEqual(contract, true))) ? true : null;
-            bool? isInverse = ((bool) (isEqual(contract, true))) ? false : null;
+            bool? isLinear = ((isEqual(contract, true))) ? true : null;
+            bool? isInverse = ((isEqual(contract, true))) ? false : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "symbol") },
                 { "symbol", symbol },
@@ -2842,7 +2842,7 @@ public partial class cryptocom : Exchange
             { "percentage", this.safeString(ticker, "c") },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "v") },
-            { "quoteVolume", ((bool) (isEqual(getValue(market, "quote"), "USD"))) ? this.safeString(ticker, "vv") : null },
+            { "quoteVolume", ((isEqual(getValue(market, "quote"), "USD"))) ? this.safeString(ticker, "vv") : null },
             { "info", ticker },
         }, market);
     }
@@ -3965,7 +3965,7 @@ public partial class cryptocom : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "hedged", null },
-            { "side", ((bool) Precise.stringGt(amount, "0")) ? "long" : "short" },
+            { "side", (Precise.stringGt(amount, "0")) ? "long" : "short" },
             { "contracts", this.parseNumber(Precise.stringAbs(amount)) },
             { "contractSize", getValue(market, "contractSize") },
             { "entryPrice", null },
@@ -4181,8 +4181,8 @@ public partial class cryptocom : Exchange
             object symbol = getValue(this.symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             object isSwap = (market.ContainsKey("swap") ? market["swap"] : null);
-            string takerFeeKey = ((bool) (isEqual(isSwap, true))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
-            string makerFeeKey = ((bool) (isEqual(isSwap, true))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
+            string takerFeeKey = ((isEqual(isSwap, true))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
+            string makerFeeKey = ((isEqual(isSwap, true))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
             Dictionary<string, object> tradingFee = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },

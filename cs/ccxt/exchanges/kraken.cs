@@ -795,7 +795,7 @@ public partial class kraken : Exchange
             }
             string? status = this.safeString(market, "status");
             bool isActive = (status == "online");
-            object symbol = ((bool) (!isSynthetic)) ? (add(add(bs, "/"), quote)) : id;
+            object symbol = ((!isSynthetic)) ? (add(add(bs, "/"), quote)) : id;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "wsId", this.safeString(market, "wsname") },
@@ -874,7 +874,7 @@ public partial class kraken : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
         string? statusRaw = this.safeString(result, "status");
-        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((bool) ((statusRaw == "online"))) ? "ok" : "maintenance" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", (((statusRaw == "online"))) ? "ok" : "maintenance" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -1004,7 +1004,7 @@ public partial class kraken : Exchange
             { "info", rawCurrency },
             { "name", this.safeString(rawCurrency, "altname") },
             { "active", (this.safeString(rawCurrency, "status") == "enabled") },
-            { "type", ((bool) isFiat) ? "fiat" : "crypto" },
+            { "type", (isFiat) ? "fiat" : "crypto" },
             { "deposit", null },
             { "withdraw", null },
             { "fee", null },
@@ -1644,8 +1644,8 @@ public partial class kraken : Exchange
         if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             timestamp = this.safeTimestamp(trade, 2);
-            side = ((bool) (isEqual(getValue(trade, 3), "s"))) ? "sell" : "buy";
-            type = ((bool) (isEqual(getValue(trade, 4), "l"))) ? "limit" : "market";
+            side = ((isEqual(getValue(trade, 3), "s"))) ? "sell" : "buy";
+            type = ((isEqual(getValue(trade, 4), "l"))) ? "limit" : "market";
             price = this.safeString(trade, 0);
             amount = this.safeString(trade, 1);
             int tradeLength = getArrayLength(trade);
@@ -1706,7 +1706,7 @@ public partial class kraken : Exchange
         string? takerOrMaker = null;
         if (!isEqual(maker, null))
         {
-            takerOrMaker = ((bool) (maker == true)) ? "maker" : "taker";
+            takerOrMaker = ((maker == true)) ? "maker" : "taker";
         }
         if ((datetime == null))
         {
@@ -2377,7 +2377,7 @@ public partial class kraken : Exchange
         // eg: `stop loss > limit 123`, so we need to parse them manually
         if (this.inArray(typeParsed, new List<object>() {"stop loss", "take profit"}))
         {
-            typeParsed = ((bool) ((price == null))) ? "market" : "limit";
+            typeParsed = (((price == null))) ? "market" : "limit";
         }
         string? amendId = this.safeString(order, "amend_id");
         if ((amendId != null))
@@ -2448,7 +2448,7 @@ public partial class kraken : Exchange
             {
                 ((IDictionary<string,object>)request)["volume"] = this.costToPrecision(symbol, cost);
             }
-            object extendedOflags = ((bool) ((flags != null))) ? add(flags, ",viqc") : "viqc";
+            object extendedOflags = (((flags != null))) ? add(flags, ",viqc") : "viqc";
             ((IDictionary<string,object>)request)["oflags"] = extendedOflags;
         } else if (isLimitOrder && !isTrailingAmountOrder && !isTrailingPercentOrder)
         {
@@ -2487,11 +2487,11 @@ public partial class kraken : Exchange
             string? trailingPercentString = null;
             if ((trailingPercent != null))
             {
-                trailingPercentString = ((bool) (((string)trailingPercent).EndsWith(((string)"%")))) ? (("+" + trailingPercent)) : ((("+" + trailingPercent) + "%"));
+                trailingPercentString = ((((string)trailingPercent).EndsWith(((string)"%")))) ? (("+" + trailingPercent)) : ((("+" + trailingPercent) + "%"));
             }
-            string? trailingAmountString = ((bool) ((trailingAmount != null))) ? ("+" + trailingAmount) : null; // must use + for this
+            string? trailingAmountString = (((trailingAmount != null))) ? ("+" + trailingAmount) : null; // must use + for this
             object offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
-            object trailingLimitAmountString = ((bool) ((trailingLimitAmount != null))) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
+            object trailingLimitAmountString = (((trailingLimitAmount != null))) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
             string? trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
             ((IDictionary<string,object>)request)["trigger"] = trailingActivationPriceType;
             if (isLimitOrder || ((trailingLimitAmount != null)) || ((trailingLimitPercent != null)))
@@ -2499,7 +2499,7 @@ public partial class kraken : Exchange
                 ((IDictionary<string,object>)request)["ordertype"] = "trailing-stop-limit";
                 if ((trailingLimitPercent != null))
                 {
-                    object trailingLimitPercentString = ((bool) (((string)trailingLimitPercent).EndsWith(((string)"%")))) ? (add(offset, trailingLimitPercent)) : (add(add(offset, trailingLimitPercent), "%"));
+                    object trailingLimitPercentString = ((((string)trailingLimitPercent).EndsWith(((string)"%")))) ? (add(offset, trailingLimitPercent)) : (add(add(offset, trailingLimitPercent), "%"));
                     ((IDictionary<string,object>)request)["price"] = trailingPercentString;
                     ((IDictionary<string,object>)request)["price2"] = trailingLimitPercentString;
                 } else if ((trailingLimitAmount != null))
@@ -2533,7 +2533,7 @@ public partial class kraken : Exchange
         if ((close != null))
         {
             close = this.extend(new Dictionary<string, object>() {}, close);
-            close = ((bool) ((close == null))) ? new Dictionary<string, object>() {} : close;
+            close = (((close == null))) ? new Dictionary<string, object>() {} : close;
             object closePrice = this.safeValue(close, "price");
             if ((closePrice != null))
             {
@@ -2558,7 +2558,7 @@ public partial class kraken : Exchange
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isEqual(postOnly, true))
         {
-            object extendedPostFlags = ((bool) ((flags != null))) ? add(flags, ",post") : "post";
+            object extendedPostFlags = (((flags != null))) ? add(flags, ",post") : "post";
             ((IDictionary<string,object>)request)["oflags"] = extendedPostFlags;
         }
         if (((flags != null)) && !((request != null && ((IDictionary<string, object>)request).ContainsKey("oflags"))))
@@ -3077,7 +3077,7 @@ public partial class kraken : Exchange
             throw new ExchangeError ((string)(this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "timeout", ((bool) (isGreaterThan(timeout, 0))) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
+            { "timeout", ((isGreaterThan(timeout, 0))) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
         };
         Dictionary<string, object> response = await this.privatePostCancelAllOrdersAfter(this.extend(request, parameters));
         //
@@ -3934,7 +3934,7 @@ public partial class kraken : Exchange
         //
         string? marketId = this.safeString(position, "pair");
         string? rawSide = this.safeString(position, "type");
-        string side = ((bool) ((rawSide == "buy"))) ? "long" : "short";
+        string side = (((rawSide == "buy"))) ? "long" : "short";
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -4086,7 +4086,7 @@ public partial class kraken : Exchange
             bool isTriggerPercent = false;
             if ((price != null))
             {
-                isTriggerPercent = ((bool) (((string)price).EndsWith(((string)"%")))) ? true : false;
+                isTriggerPercent = ((((string)price).EndsWith(((string)"%")))) ? true : false;
             }
             bool isCancelOrderBatch = (isEqual(path, "CancelOrderBatch"));
             bool isBatchOrder = (isEqual(path, "AddOrderBatch"));

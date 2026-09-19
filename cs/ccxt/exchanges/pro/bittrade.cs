@@ -342,7 +342,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         // only supports a limitVar of 150 at this time
-        limitVar = ((bool) ((limitVar == null))) ? 150 : limitVar;
+        limitVar = (((limitVar == null))) ? 150 : limitVar;
         string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".mbp.") + ((object)limitVar).ToString());
         string? api = this.safeString(this.options, "api", "api");
         Dictionary<string, object> hostname = new Dictionary<string, object>() {

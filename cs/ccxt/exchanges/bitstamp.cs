@@ -1215,7 +1215,7 @@ public partial class bitstamp : Exchange
                 }
             }
             bool isSpot = ((type == "spot"));
-            string? settle = ((bool) ((settleId != null) && !isEqual(settleId, ""))) ? this.safeCurrencyCode(settleId) : null;
+            string? settle = (((settleId != null) && !isEqual(settleId, ""))) ? this.safeCurrencyCode(settleId) : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "market_symbol") },
                 { "symbol", symbol },
@@ -1234,8 +1234,8 @@ public partial class bitstamp : Exchange
                 { "option", false },
                 { "active", ((this.safeString(market, "trading") == "Enabled")) },
                 { "contract", !isSpot },
-                { "linear", ((bool) isSpot) ? null : true },
-                { "inverse", ((bool) isSpot) ? null : false },
+                { "linear", (isSpot) ? null : true },
+                { "inverse", (isSpot) ? null : false },
                 { "contractSize", null },
                 { "expiry", null },
                 { "expiryDatetime", null },
@@ -1729,7 +1729,7 @@ public partial class bitstamp : Exchange
         }
         string? feeCostString = this.safeString(trade, "fee");
         string? feeCurrency = this.safeString(market, "quote");
-        string? priceId = ((bool) ((rawMarketId != null))) ? rawMarketId : this.safeString(market, "id");
+        string? priceId = (((rawMarketId != null))) ? rawMarketId : this.safeString(market, "id");
         priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, this.safeString(market, "baseId"), amountString);
         costString = this.safeString(trade, this.safeString(market, "quoteId"), costString);
@@ -2305,7 +2305,7 @@ public partial class bitstamp : Exchange
                 response = await this.privatePostSellPair(this.extend(request, parameters));
             }
         }
-        Dictionary<string, object> orderResponse = ((bool) ((response == null))) ? new Dictionary<string, object>() {} : response;
+        Dictionary<string, object> orderResponse = (((response == null))) ? new Dictionary<string, object>() {} : response;
         Dictionary<string, object> order = this.parseOrder(orderResponse, market);
         ((IDictionary<string,object>)order)["type"] = type;
         return ccxt.BaseExchange.ToOrder(order);
@@ -2981,7 +2981,7 @@ public partial class bitstamp : Exchange
         string? side = this.safeString2(order, "type", "order_type");
         if ((side != null))
         {
-            side = ((bool) ((side == "1"))) ? "sell" : "buy";
+            side = (((side == "1"))) ? "sell" : "buy";
         }
         // there is no timestamp from fetchOrder
         Int64? timestamp = this.parse8601(this.safeString(order, "datetime"));
@@ -3075,7 +3075,7 @@ public partial class bitstamp : Exchange
             {
                 market = this.getMarketFromTrade(item);
             }
-            string direction = ((bool) ((((parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("side") ? ((IDictionary<string, object>)parsedTrade)["side"] : null) as string) == "buy"))) ? "in" : "out";
+            string direction = (((((parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("side") ? ((IDictionary<string, object>)parsedTrade)["side"] : null) as string) == "buy"))) ? "in" : "out";
             return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
                 { "id", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("id") ? ((IDictionary<string, object>)parsedTrade)["id"] : null) },
@@ -3100,13 +3100,13 @@ public partial class bitstamp : Exchange
             if ((item != null && ((IDictionary<string, object>)item).ContainsKey("amount")))
             {
                 string? amount = this.safeString(item, "amount");
-                direction = ((bool) Precise.stringGt(amount, "0")) ? "in" : "out";
+                direction = (Precise.stringGt(amount, "0")) ? "in" : "out";
             } else if ((parsedTransaction.ContainsKey("currency")) && !isEqual((parsedTransaction != null && ((IDictionary<string, object>)parsedTransaction).ContainsKey("currency") ? ((IDictionary<string, object>)parsedTransaction)["currency"] : null), null))
             {
                 string? currencyCode = this.safeString(parsedTransaction, "currency");
                 currency = this.currency(((string)currencyCode));
                 string? amount = this.safeString(item, getValue(currency, "id"));
-                direction = ((bool) Precise.stringGt(amount, "0")) ? "in" : "out";
+                direction = (Precise.stringGt(amount, "0")) ? "in" : "out";
             }
             return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
@@ -3509,7 +3509,7 @@ public partial class bitstamp : Exchange
                     ((IDictionary<string,object>)headers)["Content-Type"] = contentType;
                 }
             }
-            object authBody = ((bool) ((body != null) && !isEqual(body, ""))) ? body : "";
+            object authBody = (((body != null) && !isEqual(body, ""))) ? body : "";
             object auth = add(add(add(add(add(add(add(xAuth, method), ((string)url).Replace((string)"https://", (string)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["X-Auth-Signature"] = signature;

@@ -313,7 +313,7 @@ public partial class opinion : PredictionExchange
             if (hasResult)
             {
                 winner = ((tokenId == resultTokenId));
-                settleFraction = ((bool) (winner == true)) ? 1 : 0;
+                settleFraction = ((winner == true)) ? 1 : 0;
                 if ((winner == true))
                 {
                     resolvedOutcome = outcomeHandle;
@@ -644,7 +644,7 @@ public partial class opinion : PredictionExchange
         string? eventId = this.safeString(rawEvent, "marketId");
         string? slug = this.safeString(rawEvent, "slug");
         string? title = this.safeString(rawEvent, "marketTitle");
-        string eventHandle = ((bool) ((title != null))) ? this.shortenSlug(title) : this.shortenSlug(slug);
+        string eventHandle = (((title != null))) ? this.shortenSlug(title) : this.shortenSlug(slug);
         List<object> rawChildren = this.safeList(rawEvent, "childMarkets", new List<object>() {});
         int rawChildrenLength = rawChildren.Count;
         List<object> marketsList = new List<object>() {};
@@ -1158,7 +1158,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
         string? makerAmount = this.safeString(amounts, "makerAmount");
         string? takerAmount = this.safeString(amounts, "takerAmount");
-        int sideInt = ((bool) ((sideStr == "BUY"))) ? 0 : 1;
+        int sideInt = (((sideStr == "BUY"))) ? 0 : 1;
         string? salt = this.numberToString(this.milliseconds());
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
         object rest = this.omit(parameters, new List<object>() {"postOnly"});
@@ -1168,7 +1168,7 @@ public partial class opinion : PredictionExchange
         // signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
         string makerLower = ((string)maker).ToLower();
         string walletAddressLower = ((string)this.walletAddress).ToLower();
-        int signatureType = ((bool) ((makerLower == walletAddressLower))) ? 0 : 2;
+        int signatureType = (((makerLower == walletAddressLower))) ? 0 : 2;
         Dictionary<string, object> order = new Dictionary<string, object>() {
             { "salt", salt },
             { "maker", maker },
@@ -1203,8 +1203,8 @@ public partial class opinion : PredictionExchange
             { "contractAddress", "" },
             { "currencyAddress", quoteTokenAddress },
             { "topicId", topicId },
-            { "price", ((bool) isMarket) ? marketOrderPrice : this.numberToString(price) },
-            { "tradingMethod", ((bool) isMarket) ? 1 : 2 },
+            { "price", (isMarket) ? marketOrderPrice : this.numberToString(price) },
+            { "tradingMethod", (isMarket) ? 1 : 2 },
             { "timestamp", this.seconds() },
             { "safeRate", "0" },
             { "orderExpTime", "0" },
@@ -1239,7 +1239,7 @@ public partial class opinion : PredictionExchange
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        string? status = ((bool) ((canceled == true))) ? "canceled" : null;
+        string? status = (((canceled == true))) ? "canceled" : null;
         return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },         }));
     }
 
@@ -1465,7 +1465,7 @@ public partial class opinion : PredictionExchange
                 object tradeMarket = await this.loadTradeMarket(marketId);
                 IDictionary<string, object> info = this.safeDict(tradeMarket, "info", new Dictionary<string, object>() {});
                 bool isYes = ((this.safeStringLower(trade, "outcomeSideEnum") == "yes"));
-                ((IDictionary<string,object>)trade)["tokenId"] = ((bool) isYes) ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId");
+                ((IDictionary<string,object>)trade)["tokenId"] = (isYes) ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId");
             }
         }
         return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));
@@ -1642,7 +1642,7 @@ public partial class opinion : PredictionExchange
         }
         Dictionary<string, object> wantedTokenIds = new Dictionary<string, object>() {};
         // copy to a plain list so the strict null checks see one shape
-        object outcomesList = ((bool) ((outcomes == null))) ? new List<object>() {} : outcomes;
+        object outcomesList = (((outcomes == null))) ? new List<object>() {} : outcomes;
         for (int i = 0; i < getArrayLength(outcomesList); i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomesList, i));
@@ -1867,7 +1867,7 @@ public partial class opinion : PredictionExchange
     public virtual object opinionWsUrl()
     {
         bool hasDirectApiKey = !this.isEmptyString(this.apiKey);
-        object apiKey = ((bool) (hasDirectApiKey)) ? this.apiKey : this.safeString(this.options, "apiKey");
+        object apiKey = ((hasDirectApiKey)) ? this.apiKey : this.safeString(this.options, "apiKey");
         if ((apiKey == null))
         {
             throw new AuthenticationError ((string)(this.id + " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
@@ -1958,7 +1958,7 @@ public partial class opinion : PredictionExchange
             if (isEqual(this.safeInteger(info, "marketId"), marketId))
             {
                 List<object> outcomes = this.safeList(market, "outcomes", new List<object>() {});
-                int index = ((bool) (isEqual(outcomeSide, 2))) ? 1 : 0;
+                int index = ((isEqual(outcomeSide, 2))) ? 1 : 0;
                 return this.safeDict(outcomes, index);
             }
         }
@@ -2044,7 +2044,7 @@ public partial class opinion : PredictionExchange
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, sym);
         string? sideStr = this.safeString(message, "side");
-        object bookSide = ((bool) ((sideStr == "bids"))) ? getValue(orderbook, "bids") : getValue(orderbook, "asks");
+        object bookSide = (((sideStr == "bids"))) ? getValue(orderbook, "bids") : getValue(orderbook, "asks");
         double? price = this.safeNumber(message, "price");
         double? size = this.safeNumber(message, "size");
         (bookSide as IOrderBookSide).storeArray(new List<object>() {price, size});
@@ -2278,9 +2278,9 @@ public partial class opinion : PredictionExchange
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
         Int64? sideInt = this.safeInteger(message, "side");
-        string side = ((bool) ((sideInt == 1))) ? "buy" : "sell";
+        string side = (((sideInt == 1))) ? "buy" : "sell";
         Int64? tradingMethod = this.safeInteger(message, "tradingMethod");
-        string type = ((bool) ((tradingMethod == 1))) ? "market" : "limit";
+        string type = (((tradingMethod == 1))) ? "market" : "limit";
         Dictionary<string, object> order = this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", this.safeString(message, "orderId") },
             { "clientOrderId", null },
@@ -2434,13 +2434,13 @@ public partial class opinion : PredictionExchange
         api ??= "opinion";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiGroup = ((bool) (api is string)) ? api : getValue(api, 0);
-        object access = ((bool) (api is string)) ? "public" : getValue(api, 1);
+        object apiGroup = ((api is string)) ? api : getValue(api, 0);
+        object access = ((api is string)) ? "public" : getValue(api, 1);
         object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "opinion")));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object existingHeaders = ((bool) ((headers != null))) ? headers : new Dictionary<string, object>() {};
+        object existingHeaders = (((headers != null))) ? headers : new Dictionary<string, object>() {};
         headers = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
@@ -2469,7 +2469,7 @@ public partial class opinion : PredictionExchange
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential as string, undefined can not be assigned)
                 bool hasDirectApiKey = !this.isEmptyString(this.apiKey);
-                object apiKey = ((bool) (hasDirectApiKey)) ? this.apiKey : this.safeString(this.options, "apiKey");
+                object apiKey = ((hasDirectApiKey)) ? this.apiKey : this.safeString(this.options, "apiKey");
                 if ((apiKey == null))
                 {
                     throw new AuthenticationError ((string)(((this.id + " ") + (path)) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;

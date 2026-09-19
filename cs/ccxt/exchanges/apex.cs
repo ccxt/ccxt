@@ -624,7 +624,7 @@ public partial class apex : Exchange
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         int networksLength = networkKeys.Count;
         bool emptyChains = (networksLength == 0); // non-functional coins
-        bool? valueForEmpty = ((bool) emptyChains) ? false : null;
+        bool? valueForEmpty = (emptyChains) ? false : null;
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", currency },
             { "code", code },
@@ -763,8 +763,8 @@ public partial class apex : Exchange
             { "taker", takerFee },
             { "maker", makerFee },
             { "contractSize", this.safeNumber(market, "minOrderSize") },
-            { "expiry", ((bool) (isEqual(expiry, 0))) ? null : expiry },
-            { "expiryDatetime", ((bool) (isEqual(expiry, 0))) ? null : this.iso8601(expiry) },
+            { "expiry", ((isEqual(expiry, 0))) ? null : expiry },
+            { "expiryDatetime", ((isEqual(expiry, 0))) ? null : this.iso8601(expiry) },
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
@@ -1435,7 +1435,7 @@ public partial class apex : Exchange
     public virtual object generateRandomClientIdOmni(object _accountId)
     {
         bool hasAccountId = ((_accountId != null)) && (!isEqual(_accountId, ""));
-        object accountId = ((bool) hasAccountId) ? _accountId : ((object)this.randNumber(12)).ToString();
+        object accountId = (hasAccountId) ? _accountId : ((object)this.randNumber(12)).ToString();
         return ((((("apexomni-" + (accountId)) + "-") + ((object)this.milliseconds()).ToString()) + "-") + ((object)this.randNumber(6)).ToString());
     }
 
@@ -1522,11 +1522,11 @@ public partial class apex : Exchange
         string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         if ((stopLossPrice != null))
         {
-            orderType = ((bool) ((orderType == "MARKET"))) ? "STOP_MARKET" : "STOP_LIMIT";
+            orderType = (((orderType == "MARKET"))) ? "STOP_MARKET" : "STOP_LIMIT";
             triggerPrice = stopLossPrice;
         } else if ((takeProfitPrice != null))
         {
-            orderType = ((bool) ((orderType == "MARKET"))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT";
+            orderType = (((orderType == "MARKET"))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT";
             triggerPrice = takeProfitPrice;
         }
         bool isMarket = (orderType == "MARKET");
@@ -1661,7 +1661,7 @@ public partial class apex : Exchange
         }
         string? tokenId = this.safeString(currency, "tokenId", "");
         double? decimalsNum = this.safeNumber(currency, "decimals", 0);
-        double? decimalsNumber = ((bool) (isEqual(decimalsNum, null))) ? 0 : decimalsNum;
+        double? decimalsNumber = ((isEqual(decimalsNum, null))) ? 0 : decimalsNum;
         double mathPowResult = (Math.Pow(Convert.ToDouble(10), Convert.ToDouble(decimalsNumber)));
         Int64? amountNumber = this.parseToInt(multiply(amount, mathPowResult));
         Int64? timestampSeconds = this.parseToInt((this.milliseconds() / 1000));

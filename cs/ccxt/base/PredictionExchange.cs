@@ -585,7 +585,7 @@ public partial class PredictionExchange : BaseExchange
             { "percent", "pct" },
         };
         List<object> stopWords = new List<object>() {"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"};
-        string lower = ((bool) ((slug == null))) ? "" : ((string)slug).ToLower();
+        string lower = (((slug == null))) ? "" : ((string)slug).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         object chars = this.stringToCharsArray(lower);
         object s = "";
@@ -1013,7 +1013,7 @@ public partial class PredictionExchange : BaseExchange
         // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
         // token id) override this with a cheaper single fetch and fall back to super on a miss.
         string? searchQuery = this.outcomeSearchQuery(outcomeSymbol);
-        if (((searchQuery != null)) && isTrue(this.safeBool(this.has, "fetchEvents", false)))
+        if (((searchQuery != null)) && (this.safeBool(this.has, "fetchEvents", false) == true))
         {
             Int64? searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
             try
@@ -1372,7 +1372,7 @@ public partial class PredictionExchange : BaseExchange
         // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
         // when the option is undeclared (it is for every prediction exchange)
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false)) || isTrue(this.safeBool(this.has, "createMarketBuyOrderWithCost", false)))
+        if ((this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false) == true) || (this.safeBool(this.has, "createMarketBuyOrderWithCost", false) == true))
         {
             return await this.CreateOrder(((string)outcome), "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
         }
@@ -1391,7 +1391,7 @@ public partial class PredictionExchange : BaseExchange
     public async virtual Task<ccxt.PredictionOrder> CreateMarketSellOrderWithCost(string outcome, double cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false)) || isTrue(this.safeBool(this.has, "createMarketSellOrderWithCost", false)))
+        if ((this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false) == true) || (this.safeBool(this.has, "createMarketSellOrderWithCost", false) == true))
         {
             return await this.CreateOrder(((string)outcome), "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
         }
@@ -1561,7 +1561,7 @@ public partial class PredictionExchange : BaseExchange
         }
         if (((cost == null)) && ((filled != null)))
         {
-            string? multiplyPrice = ((bool) ((average != null))) ? average : price;
+            string? multiplyPrice = (((average != null))) ? average : price;
             if ((multiplyPrice != null))
             {
                 cost = Precise.stringMul(filled, multiplyPrice);
@@ -1775,9 +1775,9 @@ public partial class PredictionExchange : BaseExchange
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         string? fallback = this.safeString2(orderbook, "outcome", "symbol");
-        ((IDictionary<string,object>)orderbook)["outcome"] = ((bool) ((outcomeObj == null))) ? fallback : this.safeString(outcomeObj, "outcome", fallback);
-        ((IDictionary<string,object>)orderbook)["outcomeId"] = ((bool) ((outcomeObj == null))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId");
-        ((IDictionary<string,object>)orderbook)["market"] = ((bool) ((outcomeObj == null))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market");
+        ((IDictionary<string,object>)orderbook)["outcome"] = (((outcomeObj == null))) ? fallback : this.safeString(outcomeObj, "outcome", fallback);
+        ((IDictionary<string,object>)orderbook)["outcomeId"] = (((outcomeObj == null))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId");
+        ((IDictionary<string,object>)orderbook)["market"] = (((outcomeObj == null))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market");
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
         return this.omit(orderbook, "symbol");
     }

@@ -699,7 +699,7 @@ public partial class gemini : Exchange
         string? code = this.safeCurrencyCode(id);
         string? fiatFlag = this.safeString(rawCurrency, 7);
         bool isFiat = ((fiatFlag != null)) && ((fiatFlag != ""));
-        string type = ((bool) isFiat) ? "fiat" : "crypto";
+        string type = (isFiat) ? "fiat" : "crypto";
         double? precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         string? networkId = this.safeString(rawCurrency, 9);
@@ -950,7 +950,7 @@ public partial class gemini : Exchange
                 ((IList<object>)marketIds).Add(allMarketIds[i]);
             }
         }
-        if (isTrue(this.safeBool(options, "fetchDetailsForAllSymbols", false)))
+        if ((this.safeBool(options, "fetchDetailsForAllSymbols", false) == true))
         {
             List<object> promises = new List<object>() {};
             for (int i = 0; i < (marketIds?.Count ?? 0); i++)
@@ -1113,7 +1113,7 @@ public partial class gemini : Exchange
             linear = true; // always linear
             inverse = false;
         }
-        string type = ((bool) swap) ? "swap" : "spot";
+        string type = (swap) ? "swap" : "spot";
         bool isSpot = !swap;
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },

@@ -533,7 +533,7 @@ public partial class cryptocom : ccxt.cryptocom
             symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         object messageHash = "user.trade";
-        messageHash = ((bool) ((market != null))) ? (add(add(messageHash, "."), (market.ContainsKey("id") ? market["id"] : null))) : messageHash;
+        messageHash = (((market != null))) ? (add(add(messageHash, "."), (market.ContainsKey("id") ? market["id"] : null))) : messageHash;
         object trades = await this.watchPrivateSubscribe(messageHash, parameters);
         if (this.newUpdates)
         {
@@ -745,7 +745,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "percentage", this.safeString(ticker, "c") },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "v") },
-            { "quoteVolume", ((bool) ((quote == "USD"))) ? this.safeString(ticker, "vv") : null },
+            { "quoteVolume", (((quote == "USD"))) ? this.safeString(ticker, "vv") : null },
             { "info", ticker },
         }, market);
     }
@@ -958,7 +958,7 @@ public partial class cryptocom : ccxt.cryptocom
             symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         object messageHash = "user.order";
-        messageHash = ((bool) ((market != null))) ? (add(add(messageHash, "."), (market.ContainsKey("id") ? market["id"] : null))) : messageHash;
+        messageHash = (((market != null))) ? (add(add(messageHash, "."), (market.ContainsKey("id") ? market["id"] : null))) : messageHash;
         object orders = await this.watchPrivateSubscribe(messageHash, parameters);
         if (this.newUpdates)
         {

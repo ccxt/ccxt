@@ -853,7 +853,7 @@ public partial class luno : Exchange
         //
         Int64? timestamp = this.safeInteger(order, "creation_timestamp");
         object status = this.parseOrderStatus(this.safeString(order, "state"));
-        status = ((bool) (isEqual(status, "open"))) ? status : status;
+        status = ((isEqual(status, "open"))) ? status : status;
         string? side = null;
         string? orderType = this.safeString(order, "type");
         if (((orderType == "ASK")) || ((orderType == "SELL")))
@@ -1174,7 +1174,7 @@ public partial class luno : Exchange
             }
         } else
         {
-            side = ((bool) (isEqual(getValue(trade, "is_buy"), true))) ? "buy" : "sell";
+            side = ((isEqual(getValue(trade, "is_buy"), true))) ? "buy" : "sell";
         }
         string? feeBaseString = this.safeString(trade, "fee_base");
         string? feeCounterString = this.safeString(trade, "fee_counter");
@@ -1465,7 +1465,7 @@ public partial class luno : Exchange
         {
             ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
-            ((IDictionary<string,object>)request)["type"] = ((bool) ((side == "buy"))) ? "BID" : "ASK";
+            ((IDictionary<string,object>)request)["type"] = (((side == "buy"))) ? "BID" : "ASK";
             response = await this.privatePostPostorder(this.extend(request, parameters));
         }
         if ((response == null))

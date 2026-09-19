@@ -541,7 +541,7 @@ public partial class lbank : ccxt.lbank
         //    }
         //
         Int64? timestamp = this.safeInteger(trade, 0);
-        string? datetime = ((bool) (!isEqual(timestamp, null))) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
+        string? datetime = ((!isEqual(timestamp, null))) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
         if (isEqual(timestamp, null))
         {
             timestamp = this.parse8601(datetime);
@@ -554,7 +554,7 @@ public partial class lbank : ccxt.lbank
         // reverse if it was 'maker'
         if ((secondPart != null) && (secondPart == "maker"))
         {
-            side = ((bool) ((side == "buy"))) ? "sell" : "buy";
+            side = (((side == "buy"))) ? "sell" : "buy";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "timestamp", timestamp },
@@ -708,7 +708,7 @@ public partial class lbank : ccxt.lbank
         string? type = null;
         if ((rawType != "buy") && (rawType != "sell"))
         {
-            type = ((bool) ((exchangeType == "market"))) ? "market" : "limit";
+            type = (((exchangeType == "market"))) ? "market" : "limit";
         }
         string? marketId = this.safeString(order, "pair");
         string? symbol = this.safeSymbol(marketId, market, "_");
