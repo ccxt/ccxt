@@ -1428,7 +1428,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future((String)messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type, subType); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type, (String) (subType)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
         {
@@ -1558,7 +1558,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future((String)messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
         {
