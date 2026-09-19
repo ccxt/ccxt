@@ -1101,7 +1101,7 @@ func (this *Woo) ParseMarket(market any) any {
 		linear = true
 		inverse = false
 	}
-	var active bool = IsEqual(this.SafeString(market, "status"), "TRADING")
+	var active bool = (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "TRADING")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1183,9 +1183,9 @@ func (this *Woo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes86012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes86012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -1280,7 +1280,7 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString(trade, "id")
 	var takerOrMaker any = nil
 	if isFromFetchOrder {
-		var isMaker bool = IsEqual(this.SafeString2(trade, "is_maker", "isMaker"), "1")
+		var isMaker bool = (this.SafeString2(trade, "is_maker", "isMaker") != nil && *this.SafeString2(trade, "is_maker", "isMaker") == "1")
 		takerOrMaker = func() string {
 			if isMaker {
 				return "maker"
@@ -1358,9 +1358,9 @@ func (this *Woo) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...an
 		retRes100912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes100912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.V3PrivateGetTradeTradingFee(this.Extend(request, params)))
@@ -1603,8 +1603,8 @@ func (this *Woo) ParseCurrency(rawCurrency any) any {
 				"currencyNetworkId": specialNetworkId,
 				"network":           networkCode,
 				"active":            nil,
-				"deposit":           IsEqual(this.SafeString(networkEntry, "allow_deposit"), "1"),
-				"withdraw":          IsEqual(this.SafeString(networkEntry, "allow_withdraw"), "1"),
+				"deposit":           (this.SafeString(networkEntry, "allow_deposit") != nil && *this.SafeString(networkEntry, "allow_deposit") == "1"),
+				"withdraw":          (this.SafeString(networkEntry, "allow_withdraw") != nil && *this.SafeString(networkEntry, "allow_withdraw") == "1"),
 				"fee":               this.SafeNumber(networkEntry, "withdrawal_fee"),
 				"precision":         this.ParseNumber(this.ParsePrecision(this.SafeString(tokenEntry, "decimals"))),
 				"limits": map[string]any{
@@ -2060,7 +2060,7 @@ func (this *Woo) editOrderBody(ch chan any, id any, symbol any, typeVar any, sid
 		retRes159312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes159312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -2253,8 +2253,8 @@ func (this *Woo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["symbol"] = market["id"]
 	}
 	var response any = nil
 	if trigger != nil && *trigger == true {
@@ -2575,7 +2575,7 @@ func (this *Woo) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes210315
 	return nil
 }
-func (this *Woo) ParseTimeInForce(timeInForce any) *string {
+func (this *Woo) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
@@ -2750,7 +2750,7 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) any {
 		"info": order,
 	}, market)
 }
-func (this *Woo) ParseOrderStatus(status any) *string {
+func (this *Woo) ParseOrderStatus(status *string) *string {
 	if status != nil {
 		var statuses map[string]any = map[string]any{
 			"NEW":             "open",
@@ -2796,9 +2796,9 @@ func (this *Woo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		retRes230212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes230212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["maxLevel"] = limit
@@ -3073,9 +3073,9 @@ func (this *Woo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		retRes251412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes251412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if limit != nil {
@@ -3951,7 +3951,7 @@ func (this *Woo) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network"), code),
 	}
 }
-func (this *Woo) ParseTransactionStatus(status any) *string {
+func (this *Woo) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":        "pending",
 		"CONFIRMING": "pending",
@@ -4673,9 +4673,9 @@ func (this *Woo) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 		retRes376212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes376212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.V3PublicGetFundingRate(this.Extend(request, params)))
@@ -4813,10 +4813,10 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	var market any = this.Market(symbol)
-	symbol = GetValue(market, "symbol")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if since != nil {
 		AddElementToObject(request, "startTime", since)
@@ -5138,9 +5138,9 @@ func (this *Woo) modifyMarginHelperBody(ch chan any, symbol any, amount any, typ
 		retRes414712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes414712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":        GetValue(market, "id"),
+		"symbol":        market["id"],
 		"adjust_token":  "USDT",
 		"adjust_amount": amount,
 		"action":        typeVar,
@@ -5176,9 +5176,9 @@ func (this *Woo) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes417012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes417012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.V3PrivateGetFuturesPositions(this.Extend(request, params)))
@@ -5253,8 +5253,8 @@ func (this *Woo) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
-			var market any = this.Market(GetValue(symbols, 0))
-			request["symbol"] = GetValue(market, "id")
+			var market map[string]any = MapTyped(this.Market(GetValue(symbols, 0)))
+			request["symbol"] = market["id"]
 		}
 	}
 
@@ -5834,8 +5834,8 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
-			var market any = this.Market(GetValue(symbols, 0))
-			request["symbol"] = GetValue(market, "id")
+			var market map[string]any = MapTyped(this.Market(GetValue(symbols, 0)))
+			request["symbol"] = market["id"]
 		}
 	}
 

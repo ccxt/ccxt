@@ -1564,11 +1564,11 @@ func (this *Bingx) ParseMarket(market any) any {
 		}()
 	}
 	var isActive bool = false
-	if (IsEqual(this.SafeString(market, "apiStateOpen"), "true")) && (IsEqual(this.SafeString(market, "apiStateClose"), "true")) {
+	if (this.SafeString(market, "apiStateOpen") != nil && *this.SafeString(market, "apiStateOpen") == "true") && (this.SafeString(market, "apiStateClose") != nil && *this.SafeString(market, "apiStateClose") == "true") {
 		isActive = true // swap active
-	} else if (IsEqual(this.SafeBool(market, "apiStateSell"), true)) && (IsEqual(this.SafeBool(market, "apiStateBuy"), true)) && (IsEqual(this.SafeString(market, "status"), "1")) {
+	} else if (IsEqual(this.SafeBool(market, "apiStateSell"), true)) && (IsEqual(this.SafeBool(market, "apiStateBuy"), true)) && (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "1") {
 		isActive = true // spot active
-	} else if checkIsInverse && (IsEqual(this.SafeString(market, "status"), "1")) {
+	} else if checkIsInverse && (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "1") {
 		isActive = true // inverse swap active
 	}
 	var isInverse any = func() any {
@@ -2152,7 +2152,7 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 		amount = this.SafeString(trade, "volume")
 	}
 	var price *string = this.SafeStringN(trade, []any{"price", "p", "tradePrice"})
-	if (market != nil) && (GetValue(market, "linear") == true) && (IsEqual(this.SafeString(trade, "x"), "TRADE")) {
+	if (market != nil) && (GetValue(market, "linear") == true) && (this.SafeString(trade, "x") != nil && *this.SafeString(trade, "x") == "TRADE") {
 		var lastAmount *string = this.SafeString(trade, "l")
 		var lastPrice *string = this.SafeString(trade, "L")
 		if (lastAmount != nil) && (lastPrice != nil) {
@@ -3057,13 +3057,13 @@ func (this *Bingx) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...a
 		retRes226712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes226712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarkPrice", market, params, "linear")
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	if IsEqual(subType, "inverse") {
@@ -4487,7 +4487,7 @@ func (this *Bingx) ParseOrderSide(side any) *string {
 	}
 	return this.SafeString(sides, side, side)
 }
-func (this *Bingx) ParseOrderType(typeVar any) *string {
+func (this *Bingx) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"trigger_market":     "market",
 		"trigger_limit":      "limit",
@@ -4899,7 +4899,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 		"reduceOnly": this.SafeBool2(order, "reduceOnly", "ro"),
 	}, market)
 }
-func (this *Bingx) ParseOrderStatus(status any) *string {
+func (this *Bingx) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":              "open",
 		"PENDING":          "open",
@@ -6161,7 +6161,7 @@ func (this *Bingx) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Bingx) ParseTransferStatus(status any) *string {
+func (this *Bingx) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"CONFIRMED": "ok",
 	}
@@ -6567,7 +6567,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal": nil,
 	}
 }
-func (this *Bingx) ParseTransactionStatus(status any) *string {
+func (this *Bingx) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0":  "pending",
 		"1":  "ok",
@@ -6722,10 +6722,10 @@ func (this *Bingx) setMarginBody(ch chan any, symbol any, amount any, optionalAr
 		retRes585912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes585912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
-		"amount": this.AmountToPrecision(GetValue(market, "symbol"), amount),
+		"symbol": market["id"],
+		"amount": this.AmountToPrecision(market["symbol"], amount),
 		"type":   typeVar,
 	}
 
@@ -7724,9 +7724,9 @@ func (this *Bingx) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 		retRes687912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes687912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var subType any = nil
 	var response any = nil

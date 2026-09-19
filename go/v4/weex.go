@@ -1930,9 +1930,9 @@ func (this *Weex) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		retRes156912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes156912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 
@@ -2005,9 +2005,9 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 	params = GetValue(historicalparamsVariable, 1)
 	var timeframeOption map[string]any = SafeMapTyped(this.Options, "timeframes")
 	var contractTimeframes map[string]any = SafeMapTyped(timeframeOption, "contract")
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"interval": this.SafeString(contractTimeframes, timeframe, timeframe),
 	}
 	var priceType *string = this.SafeStringUpper(params, "price")
@@ -2296,9 +2296,9 @@ func (this *Weex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 		retRes184212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes184212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.ContractGetCapiV3MarketOpenInterest(this.Extend(request, params)))
@@ -2460,9 +2460,9 @@ func (this *Weex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		retRes196612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes196612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if since != nil {
 		AddElementToObject(request, "startTime", since)
@@ -2716,7 +2716,7 @@ func (this *Weex) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Weex) ParseTransferStatus(status any) *string {
+func (this *Weex) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Successful": "ok",
 	}
@@ -2810,7 +2810,7 @@ func (this *Weex) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 		retRes222812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes222812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	response := (<-this.PrivatePostApiV3Order(request))
@@ -2841,12 +2841,12 @@ func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar any, side any, amou
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createSpotOrderRequest() requires a side argument"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"side":     ToUpper(side),
 		"type":     ToUpper(typeVar),
 		"quantity": this.AmountToPrecision(symbol, amount),
@@ -2913,7 +2913,7 @@ func (this *Weex) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 		retRes231112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes231112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
 	var triggerPrice *string = this.SafeString(request, "triggerPrice")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
@@ -2952,7 +2952,7 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createContractOrderRequest() requires a side argument"))
 	}
@@ -4105,7 +4105,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
 		"info":                order,
 	}, market)
 }
-func (this *Weex) ParseOrderStatus(status any) *string {
+func (this *Weex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"new":          "open",
 		"partial_fill": "closed",
@@ -4118,7 +4118,7 @@ func (this *Weex) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Weex) ParseOrderType(typeVar any) *string {
+func (this *Weex) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":              "limit",
 		"MARKET":             "market",
@@ -4766,24 +4766,24 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalA
 		retRes374112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes374112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	if sandboxMode != nil && *sandboxMode == true {
 
-		retRes374719 := (<-this.FetchPositionsAsync([]any{GetValue(market, "symbol")}, params))
+		retRes374719 := (<-this.FetchPositionsAsync([]any{market["symbol"]}, params))
 		PanicOnError(retRes374719)
 		// the demo trading API does not provide a single-position endpoint
 		ch <- retRes374719
 		return nil
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.ContractPrivateGetCapiV3AccountPositionSinglePosition(this.Extend(request, params)))
 	PanicOnError(response)
 
-	ch <- this.ParsePositions(response, []any{GetValue(market, "symbol")})
+	ch <- this.ParsePositions(response, []any{market["symbol"]})
 	return nil
 }
 func (this *Weex) ParsePosition(position any, optionalArgs ...any) any {
@@ -4975,9 +4975,9 @@ func (this *Weex) closePositionBody(ch chan any, symbol any, optionalArgs ...any
 		retRes391312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes391312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.ContractPrivatePostCapiV3ClosePositions(this.Extend(request, params)))
@@ -5079,9 +5079,9 @@ func (this *Weex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...a
 		retRes398712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes398712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params)))
@@ -5149,7 +5149,7 @@ func (this *Weex) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 		"marginMode": this.ParseMarginType(marginType),
 	}
 }
-func (this *Weex) ParseMarginType(marginType any) *string {
+func (this *Weex) ParseMarginType(marginType *string) *string {
 	var marginTypes map[string]any = map[string]any{
 		"CROSSED":  "cross",
 		"ISOLATED": "isolated",
@@ -5187,9 +5187,9 @@ func (this *Weex) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 		retRes406112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes406112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 		"marginType": this.EncodeMarginMode(marginMode),
 	}
 
@@ -5234,9 +5234,9 @@ func (this *Weex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 		retRes409412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes409412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params)))
@@ -5342,9 +5342,9 @@ func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 		retRes416712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes416712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
@@ -5397,9 +5397,9 @@ func (this *Weex) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 		retRes420312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes420312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params)))
@@ -5445,7 +5445,7 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 		retRes423412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes423412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("setPositionMode", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -5460,7 +5460,7 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 		return "COMBINED"
 	}()
 	var request map[string]any = map[string]any{
-		"symbol":        GetValue(market, "id"),
+		"symbol":        market["id"],
 		"marginType":    this.EncodeMarginMode(marginMode),
 		"separatedType": separatedType,
 	}
@@ -5490,7 +5490,7 @@ func (this *Weex) modifyMarginHelperBody(ch chan any, symbol any, amount any, ty
 		panic(ArgumentsRequired(this.Id + " modifyMarginHelper() requires a positionId parameter"))
 	}
 	params = this.Omit(params, []any{"positionId", "id"})
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"isolatedPositionId": isolatedPositionId,
 		"amount":             this.CostToPrecision(symbol, amount),

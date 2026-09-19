@@ -768,7 +768,7 @@ func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params, "swap")
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = SafeMapTyped(typeVarparamsVariable, 1)
+	params = GetValue(typeVarparamsVariable, 1)
 	var requested *string = this.SafeStringN(params, []any{"trade_currency", "tradeCurrency", "currency"})
 	params = this.Omit(params, []any{"trade_currency", "tradeCurrency", "currency"})
 	var request map[string]any = map[string]any{}
@@ -1800,7 +1800,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var maxCalls any = nil
 	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginationCalls", 10)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
-	params = SafeMapTyped(maxCallsparamsVariable, 1)
+	params = GetValue(maxCallsparamsVariable, 1)
 	var pageSize any = 0
 	if limit != nil {
 		// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied

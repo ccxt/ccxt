@@ -917,9 +917,9 @@ func (this *Extended) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 	retRes7318 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes7318)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.V1PublicGetInfoMarketsMarketStats(this.Extend(request, params)))
@@ -1138,9 +1138,9 @@ func (this *Extended) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 	retRes9078 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes9078)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.V1PublicGetInfoMarketsMarketOrderbook(this.Extend(request, params)))
@@ -1167,7 +1167,7 @@ func (this *Extended) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var timestamp int64 = this.Milliseconds()
-	var orderbook any = this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "bid", "ask", "price", "qty")
+	var orderbook any = this.ParseOrderBook(data, market["symbol"], timestamp, "bid", "ask", "price", "qty")
 	if limit != nil {
 		AddElementToObject(orderbook, "bids", this.ArraySlice(GetValue(orderbook, "bids"), 0, limit))
 		AddElementToObject(orderbook, "asks", this.ArraySlice(GetValue(orderbook, "asks"), 0, limit))
@@ -1205,9 +1205,9 @@ func (this *Extended) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	retRes9558 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes9558)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.V1PublicGetInfoMarketsMarketTrades(this.Extend(request, params)))
@@ -1615,7 +1615,7 @@ func (this *Extended) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 	retRes12448 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes12448)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var price *string = this.SafeString(params, "price")
 	var candleType any = DerefScalar(this.SafeString(params, "candleType"))
 	if IsEqual(candleType, nil) {
@@ -1630,7 +1630,7 @@ func (this *Extended) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var until *int64 = this.SafeInteger(params, "until")
 	params = this.Omit(params, []any{"candleType", "price", "until"})
 	var request map[string]any = map[string]any{
-		"market":     GetValue(market, "id"),
+		"market":     market["id"],
 		"candleType": candleType,
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit": func() any {
@@ -1730,8 +1730,8 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		ch <- retRes133219
 		return nil
 	}
-	var market any = this.Market(symbol)
-	symbol = GetValue(market, "symbol")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	if limit == nil {
 		limit = 100
 	}
@@ -1742,7 +1742,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		since = Subtract(endTime, (Multiply(Multiply(Multiply(limit, 60), 60), 1000)))
 	}
 	var request map[string]any = map[string]any{
-		"market":    GetValue(market, "id"),
+		"market":    market["id"],
 		"startTime": since,
 		"endTime":   endTime,
 		"limit":     limit,
@@ -1844,7 +1844,7 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 
 	retRes14188 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes14188)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var interval *string = this.SafeString(this.Timeframes, timeframe)
 	if !this.InArray(interval, []any{"PT1H", "P1D"}) {
 		panic(BadRequest(this.Id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only"))
@@ -1859,7 +1859,7 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 		since = Subtract(endTime, (Multiply(Multiply(limit, this.ParseTimeframe(timeframe)), 1000)))
 	}
 	var request map[string]any = map[string]any{
-		"market":    GetValue(market, "id"),
+		"market":    market["id"],
 		"interval":  interval,
 		"startTime": since,
 		"endTime":   endTime,
@@ -2733,7 +2733,7 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId any, optionalArgs ...a
 	}
 	return code
 }
-func (this *Extended) ParseTransactionStatus(status any) *string {
+func (this *Extended) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"CREATED":     "pending",
 		"IN_PROGRESS": "pending",
@@ -2742,7 +2742,7 @@ func (this *Extended) ParseTransactionStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Extended) ParseTransactionType(typeVar any) *string {
+func (this *Extended) ParseTransactionType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"DEPOSIT":    "deposit",
 		"WITHDRAWAL": "withdrawal",
@@ -2834,9 +2834,9 @@ func (this *Extended) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 
 	retRes21348 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes21348)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.V1PrivateGetUserFees(this.Extend(request, params)))
@@ -2959,9 +2959,9 @@ func (this *Extended) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 
 	retRes22288 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes22288)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.V1PrivateGetUserLeverage(this.Extend(request, params)))
@@ -3011,9 +3011,9 @@ func (this *Extended) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 
 	retRes22638 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes22638)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market":   GetValue(market, "id"),
+		"market":   market["id"],
 		"leverage": this.NumberToString(leverage),
 	}
 
@@ -4432,7 +4432,7 @@ func (this *Extended) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
 	ch <- this.FilterBySymbolSinceLimit(canceledOrders, symbol, since, limit)
 	return nil
 }
-func (this *Extended) ParseOrderStatus(status any) *string {
+func (this *Extended) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":              "open",
 		"PARTIALLY_FILLED": "open",

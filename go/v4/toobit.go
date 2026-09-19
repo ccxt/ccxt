@@ -1323,9 +1323,9 @@ func (this *Toobit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes105012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes105012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -1362,7 +1362,7 @@ func (this *Toobit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//
 	var timestamp *int64 = this.SafeInteger(response, "t")
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "b", "a")
+	ch <- this.ParseOrderBook(response, market["symbol"], timestamp, "b", "a")
 	return nil
 }
 
@@ -1397,9 +1397,9 @@ func (this *Toobit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes110512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes110512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -1564,9 +1564,9 @@ func (this *Toobit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes124512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes124512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if since != nil {
@@ -1754,8 +1754,8 @@ func (this *Toobit) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length == 1 {
-			var market any = this.Market(GetValue(symbols, 0))
-			request["symbol"] = GetValue(market, "id")
+			var market map[string]any = MapTyped(this.Market(GetValue(symbols, 0)))
+			request["symbol"] = market["id"]
 		}
 	}
 
@@ -1820,8 +1820,8 @@ func (this *Toobit) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length == 1 {
-			var market any = this.Market(GetValue(symbols, 0))
-			request["symbol"] = GetValue(market, "id")
+			var market map[string]any = MapTyped(this.Market(GetValue(symbols, 0)))
+			request["symbol"] = market["id"]
 		}
 	}
 
@@ -1860,12 +1860,12 @@ func (this *Toobit) ParseBidAskCustom(ticker any) any {
 	// 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
 	// reads through safeMarket and safeInteger. The caller filters on a unified symbol.
 	var marketId *string = this.SafeString(ticker, "s")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = MapTyped(this.SafeMarket(marketId))
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
 	return map[string]any{
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
-		"symbol":    GetValue(market, "symbol"),
+		"symbol":    market["symbol"],
 		"bid":       this.SafeNumber(ticker, "b"),
 		"bidVolume": this.SafeNumber(ticker, "bq"),
 		"ask":       this.SafeNumber(ticker, "a"),
@@ -1905,8 +1905,8 @@ func (this *Toobit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length == 1 {
-			var market any = this.Market(GetValue(symbols, 0))
-			request["symbol"] = GetValue(market, "id")
+			var market map[string]any = MapTyped(this.Market(GetValue(symbols, 0)))
+			request["symbol"] = market["id"]
 		}
 	}
 
@@ -2001,9 +2001,9 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2186,11 +2186,11 @@ func (this *Toobit) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
-	var id any = GetValue(market, "id")
+	var id any = market["id"]
 	var request map[string]any = map[string]any{
 		"symbol": id,
 		"side":   ToUpper(side),
@@ -2232,9 +2232,9 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar any, side any
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
 	var reduceOnly any = nil
@@ -2430,7 +2430,7 @@ func (this *Toobit) ParseOrder(order any, optionalArgs ...any) any {
 		"hedged":              nil,
 	}, market)
 }
-func (this *Toobit) ParseOrderStatus(status any) *string {
+func (this *Toobit) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING_NEW":      "open",
 		"NEW":              "open",
@@ -2951,8 +2951,8 @@ func (this *Toobit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	var market any = this.Market(symbol)
-	AddElementToObject(request, "symbol", GetValue(market, "id"))
+	var market map[string]any = MapTyped(this.Market(symbol))
+	AddElementToObject(request, "symbol", market["id"])
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
@@ -3450,7 +3450,7 @@ func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal":    nil,
 	}
 }
-func (this *Toobit) ParseTransactionStatus(status any) *string {
+func (this *Toobit) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"2":  "pending",
 		"12": "pending",
@@ -3676,9 +3676,9 @@ func (this *Toobit) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		retRes309812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes309812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"leverage": leverage,
 	}
 
@@ -3716,9 +3716,9 @@ func (this *Toobit) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		retRes312312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes312312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params)))

@@ -823,7 +823,7 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 	var maxWithdrawal any = this.ParseNumber(Precise.StringMul(maxWithdrawalString, precisionString))
 	var minDepositString *string = this.SafeString(currency, "minDepositAmount")
 	var minDeposit any = this.ParseNumber(Precise.StringMul(minDepositString, precisionString))
-	var isCrypto bool = IsEqual(this.SafeString(currency, "currencyType"), "Crypto")
+	var isCrypto bool = (this.SafeString(currency, "currencyType") != nil && *this.SafeString(currency, "currencyType") == "Crypto")
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"code":      code,
@@ -1439,9 +1439,9 @@ func (this *Bitmex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes111212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes111212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["depth"] = limit
@@ -2046,7 +2046,7 @@ func (this *Bitmex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 	ch <- this.ParseTransactions(transactions, currency, since, limit)
 	return nil
 }
-func (this *Bitmex) ParseTransactionStatus(status any) *string {
+func (this *Bitmex) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Confirmed": "pending",
 		"Canceled":  "canceled",
@@ -2158,9 +2158,9 @@ func (this *Bitmex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes166412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes166412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetInstrument(this.Extend(request, params)))
@@ -2328,9 +2328,9 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	// send a bare series (e.g. XBU) to nearest expiring contract in that series
 	// you can also send a timeframe, e.g. XBU:monthly
 	// timeframes: daily, weekly, monthly, quarterly, and biquarterly
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":  GetValue(market, "id"),
+		"symbol":  market["id"],
 		"binSize": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"partial": true,
 	}
@@ -2500,7 +2500,7 @@ func (this *Bitmex) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Bitmex) ParseOrderStatus(status any) *string {
+func (this *Bitmex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"New":             "open",
 		"PartiallyFilled": "open",
@@ -2517,7 +2517,7 @@ func (this *Bitmex) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitmex) ParseTimeInForce(timeInForce any) *string {
+func (this *Bitmex) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"Day":               "Day",
 		"GoodTillCancel":    "GTC",
@@ -2685,9 +2685,9 @@ func (this *Bitmex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		ch <- retRes211019
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if since != nil {
 		request["startTime"] = this.Iso8601(since)
@@ -3645,7 +3645,7 @@ func (this *Bitmex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	for i := 0; i < len(rawItems); i++ {
 		var item any = GetValue(rawItems, i)
 		var marketId *string = this.SafeString(item, "symbol")
-		var market any = this.SafeMarket(marketId)
+		var market map[string]any = MapTyped(this.SafeMarket(marketId))
 		var swap *bool = this.SafeBool(market, "swap", false)
 		if swap != nil && *swap == true {
 			filteredResponse = append(filteredResponse, item)
@@ -4242,9 +4242,9 @@ func (this *Bitmex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 		ch <- retRes328819
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if since != nil {
 		AddElementToObject(request, "startTime", since)
@@ -4720,9 +4720,9 @@ func (this *Bitmex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		retRes371012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes371012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"side":     this.Capitalize(side),
 		"execInst": "Close",
 	}
@@ -4791,7 +4791,7 @@ func (this *Bitmex) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var query any = Add(Add(Add("/api/", this.Version), "/"), path)
+	var query any = Add("/api/"+this.Version+"/", path)
 	if IsEqual(method, "GET") {
 		if len(ObjectKeys(params)) > 0 {
 			query = Add(query, "?"+this.Urlencode(params))

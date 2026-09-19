@@ -658,7 +658,7 @@ func (this *Krakenfutures) watchOrdersBody(ch chan any, optionalArgs ...any) any
 	var verbose any = false
 	var verboseparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "verbose", false)
 	verbose = ccxt.GetValue(verboseparamsVariable, 0)
-	params = ccxt.SafeMapTyped(verboseparamsVariable, 1)
+	params = ccxt.GetValue(verboseparamsVariable, 1)
 	var name any = "open_orders"
 	var messageHash any = "orders"
 	if ccxt.EvalTruthy(verbose) {
@@ -766,7 +766,7 @@ func (this *Krakenfutures) watchBalanceBody(ch chan any, optionalArgs ...any) an
 	var account any = nil
 	var accountparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "account")
 	account = ccxt.GetValue(accountparamsVariable, 0)
-	params = ccxt.SafeMapTyped(accountparamsVariable, 1)
+	params = ccxt.GetValue(accountparamsVariable, 1)
 	if account != nil {
 		if (!ccxt.IsEqual(account, "futures")) && (!ccxt.IsEqual(account, "flex_futures")) {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchBalance account must be either 'futures' or 'flex_futures'"))

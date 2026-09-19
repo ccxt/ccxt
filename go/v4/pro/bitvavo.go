@@ -1567,7 +1567,7 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	var operatorId any = nil
 	var operatorIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersWs", "operatorId")
 	operatorId = ccxt.GetValue(operatorIdparamsVariable, 0)
-	params = ccxt.SafeMapTyped(operatorIdparamsVariable, 1)
+	params = ccxt.GetValue(operatorIdparamsVariable, 1)
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -1872,7 +1872,7 @@ func (this *Bitvavo) withdrawWsBody(ch chan any, code any, amount any, address a
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = ccxt.GetValue(tagparamsVariable, 0)
-	params = ccxt.SafeMapTyped(tagparamsVariable, 1)
+	params = ccxt.GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 

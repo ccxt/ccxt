@@ -222,7 +222,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 	} else {
 		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(method, nil, params)
 		typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-		params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
+		params = ccxt.GetValue(typeVarparamsVariable, 1)
 		var defaultSettle *string = this.SafeString(this.Options, "defaultSettle")
 		defaultSettle = this.SafeString2(params, "settle", "defaultSettle", defaultSettle)
 		isUsdcSettled = (defaultSettle != nil && *defaultSettle == "USDC")
@@ -246,7 +246,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 			var subType any = nil
 			subTypeparamsVariable := this.HandleSubTypeAndParams(method, market, params, "linear")
 			subType = ccxt.GetValue(subTypeparamsVariable, 0)
-			params = ccxt.SafeMapTyped(subTypeparamsVariable, 1)
+			params = ccxt.GetValue(subTypeparamsVariable, 1)
 			url = ccxt.GetValue(ccxt.GetValue(url, accessibility), subType)
 		} else {
 			// option
@@ -1768,7 +1768,7 @@ func (this *Bybit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var executionFast any = false
 	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValue(executionFastparamsVariable, 0)
-	params = ccxt.SafeMapTyped(executionFastparamsVariable, 1)
+	params = ccxt.GetValue(executionFastparamsVariable, 1)
 	if ccxt.EvalTruthy(executionFast) {
 		topic = "execution.fast"
 	}
@@ -1833,7 +1833,7 @@ func (this *Bybit) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var executionFast any = false
 	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValue(executionFastparamsVariable, 0)
-	params = ccxt.SafeMapTyped(executionFastparamsVariable, 1)
+	params = ccxt.GetValue(executionFastparamsVariable, 1)
 	if ccxt.EvalTruthy(executionFast) {
 		topic = "execution.fast"
 	}
@@ -2286,7 +2286,7 @@ func (this *Bybit) watchLiquidationsBody(ch chan any, symbol any, optionalArgs .
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchLiquidations", "method", "allLiquidation")
 	method = ccxt.GetValue(methodparamsVariable, 0)
-	params = ccxt.SafeMapTyped(methodparamsVariable, 1)
+	params = ccxt.GetValue(methodparamsVariable, 1)
 	var messageHash any = ccxt.Add("liquidations::", symbol)
 	var topic any = ccxt.Add(ccxt.Add(method, "."), market["id"])
 
@@ -2692,11 +2692,11 @@ func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
+	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("watchBalance", nil, params)
 	subType = ccxt.GetValue(subTypeparamsVariable, 0)
-	params = ccxt.SafeMapTyped(subTypeparamsVariable, 1)
+	params = ccxt.GetValue(subTypeparamsVariable, 1)
 
 	unified := (<-this.IsUnifiedEnabledAsync())
 	ccxt.PanicOnError(unified)

@@ -834,7 +834,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	if isContract == true {
 		var priceTypeparamsVariable []any = this.HandleOptionAndParams2(params, callerMethodName, "price", "priceType", priceType)
 		priceType = ccxt.GetValue(priceTypeparamsVariable, 0)
-		params = ccxt.SafeMapTyped(priceTypeparamsVariable, 1)
+		params = ccxt.GetValue(priceTypeparamsVariable, 1)
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = this.SafeList(symbolsAndTimeframes, i)
@@ -933,7 +933,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	if isContract == true {
 		var priceTypeparamsVariable []any = this.HandleOptionAndParams2(params, callerMethodName, "price", "priceType", priceType)
 		priceType = ccxt.GetValue(priceTypeparamsVariable, 0)
-		params = ccxt.SafeMapTyped(priceTypeparamsVariable, 1)
+		params = ccxt.GetValue(priceTypeparamsVariable, 1)
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = this.SafeList(symbolsAndTimeframes, i)
@@ -1112,7 +1112,7 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var depth any = "200"
 	var depthparamsVariable []any = this.HandleOptionAndParams(params, callerMethodName, "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
-	params = ccxt.SafeMapTyped(depthparamsVariable, 1)
+	params = ccxt.GetValue(depthparamsVariable, 1)
 	var messageHashes []any = []any{}
 	var channels []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -1197,7 +1197,7 @@ func (this *Weex) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var depth any = "200"
 	var depthparamsVariable []any = this.HandleOptionAndParams(params, callerMethodName, "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
-	params = ccxt.SafeMapTyped(depthparamsVariable, 1)
+	params = ccxt.GetValue(depthparamsVariable, 1)
 	var subHashes []any = []any{}
 	var channels []any = []any{}
 	var unSubHashes []any = []any{}
@@ -1479,7 +1479,7 @@ func (this *Weex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.SafeMapTyped(marketTypeparamsVariable, 1)
+	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
 	var messageHash any = func() string {
 		if isContract {
@@ -1532,7 +1532,7 @@ func (this *Weex) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("unWatchMyTrades", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.SafeMapTyped(marketTypeparamsVariable, 1)
+	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
 	var subHash string = func() string {
 		if isContract {
@@ -1737,7 +1737,7 @@ func (this *Weex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.SafeMapTyped(marketTypeparamsVariable, 1)
+	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
 	var messageHash any = func() string {
 		if isContract {
@@ -1789,7 +1789,7 @@ func (this *Weex) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("unWatchOrders", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.SafeMapTyped(marketTypeparamsVariable, 1)
+	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
 	var subHash string = func() string {
 		if isContract {
@@ -2071,7 +2071,7 @@ func (this *Weex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
+	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var urlType string = func() string {
 		if isContract {

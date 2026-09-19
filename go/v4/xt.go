@@ -1402,8 +1402,8 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 				"active":    nil,
 				"fee":       nil,
 				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(entry, "maxPrecision"))),
-				"deposit":   IsEqual(this.SafeString(entry, "depositStatus"), "1"),
-				"withdraw":  IsEqual(this.SafeString(entry, "withdrawStatus"), "1"),
+				"deposit":   (this.SafeString(entry, "depositStatus") != nil && *this.SafeString(entry, "depositStatus") == "1"),
+				"withdraw":  (this.SafeString(entry, "withdrawStatus") != nil && *this.SafeString(entry, "withdrawStatus") == "1"),
 				"networks":  networks,
 				"type":      typeVar,
 				"limits": map[string]any{
@@ -3333,9 +3333,9 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes261212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes261212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"side":   ToUpper(side),
 		"type":   ToUpper(typeVar),
 	}
@@ -5093,7 +5093,7 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) any {
 		"trades": nil,
 	}, market)
 }
-func (this *Xt) ParseOrderStatus(status any) *string {
+func (this *Xt) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                 "open",
 		"PARTIALLY_FILLED":    "open",
@@ -5655,7 +5655,7 @@ func (this *Xt) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal": nil,
 	}
 }
-func (this *Xt) ParseTransactionStatus(status any) *string {
+func (this *Xt) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"SUBMIT":  "pending",
 		"REVIEW":  "pending",
@@ -5818,9 +5818,9 @@ func (this *Xt) modifyMarginHelperBody(ch chan any, symbol any, amount any, addO
 		retRes452712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes452712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":       GetValue(market, "id"),
+		"symbol":       market["id"],
 		"margin":       amount,
 		"type":         addOrReduce,
 		"positionSide": positionSide,
@@ -6001,9 +6001,9 @@ func (this *Xt) fetchMarketLeverageTiersBody(ch chan any, symbol any, optionalAr
 		retRes466612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes466612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarketLeverageTiers", market, params)
@@ -6767,9 +6767,9 @@ func (this *Xt) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes523312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes523312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPosition", market, params)
@@ -7505,9 +7505,9 @@ func (this *Xt) Sign(path any, optionalArgs ...any) any {
 	var payload any = nil
 	if (IsEqual(endpoint, "spot")) || (IsEqual(endpoint, "user")) {
 		if signed {
-			payload = Add(Add("/", this.Version), request)
+			payload = Add("/"+this.Version, request)
 		} else {
-			payload = Add(Add(Add("/", this.Version), "/public"), request)
+			payload = Add("/"+this.Version+"/public", request)
 		}
 	} else {
 		payload = request

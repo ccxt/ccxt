@@ -931,7 +931,7 @@ func (this *Hashkey) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = "spot"
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
+	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var messageHash any = ccxt.Add("balance:", typeVar)
 	var url any = this.GetPrivateUrl(listenKey)
 	var client ccxt.ClientInterface = this.Client(url)

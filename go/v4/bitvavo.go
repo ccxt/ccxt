@@ -727,8 +727,8 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) any {
 	var isFiat bool = this.InArray(code, fiatCurrencies)
 	var networks map[string]any = map[string]any{}
 	var networksArray []any = SafeListTyped(rawCurrency, "networks")
-	var deposit bool = IsEqual(this.SafeString(rawCurrency, "depositStatus"), "OK")
-	var withdrawal bool = IsEqual(this.SafeString(rawCurrency, "withdrawalStatus"), "OK")
+	var deposit bool = (this.SafeString(rawCurrency, "depositStatus") != nil && *this.SafeString(rawCurrency, "depositStatus") == "OK")
+	var withdrawal bool = (this.SafeString(rawCurrency, "withdrawalStatus") != nil && *this.SafeString(rawCurrency, "withdrawalStatus") == "OK")
 	var active bool = deposit && withdrawal
 	var withdrawFee *float64 = this.SafeNumber(rawCurrency, "withdrawalFee")
 	var precision *string = this.SafeString(rawCurrency, "decimals", "8")
@@ -819,9 +819,9 @@ func (this *Bitvavo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes69612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes69612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.PublicGetTicker24h(this.Extend(request, params)))
@@ -982,7 +982,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes82212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes82212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -995,7 +995,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		return nil
 	}
 	var request any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -1221,9 +1221,9 @@ func (this *Bitvavo) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 		retRes102112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes102112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.PrivateGetAccountFees(this.Extend(request, params)))
@@ -1280,9 +1280,9 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes106212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes106212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if limit != nil {
 		request["depth"] = limit
@@ -1306,7 +1306,7 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	var orderbook any = this.ParseOrderBook(response, GetValue(market, "symbol"))
+	var orderbook any = this.ParseOrderBook(response, market["symbol"])
 	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "nonce"))
 
 	ch <- orderbook
@@ -1336,9 +1336,9 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"market":   GetValue(market, "id"),
+		"market":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if since != nil {
@@ -1396,7 +1396,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes115712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes115712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -1749,7 +1749,7 @@ func (this *Bitvavo) fetchTransferBody(ch chan any, id any, optionalArgs ...any)
 	ch <- this.ParseTransfer(response, currency)
 	return nil
 }
-func (this *Bitvavo) ParseTransferStatus(status any) *string {
+func (this *Bitvavo) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"completed": "ok",
 		"pending":   "pending",
@@ -1851,9 +1851,9 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market":    GetValue(market, "id"),
+		"market":    market["id"],
 		"side":      side,
 		"orderType": typeVar,
 	}
@@ -1876,7 +1876,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			cost = DerefScalar(this.SafeNumber(params, "cost"))
 		}
 		if !IsEqual(cost, nil) {
-			var precision any = GetValue(this.Currency(GetValue(market, "quote")), "precision")
+			var precision any = GetValue(this.Currency(market["quote"]), "precision")
 			request["amountQuote"] = this.DecimalToPrecision(cost, TRUNCATE, precision, this.PrecisionMode)
 		} else {
 			request["amount"] = this.AmountToPrecision(symbol, amount)
@@ -1984,7 +1984,7 @@ func (this *Bitvavo) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes160712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes160712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	response := (<-this.PrivatePostOrder(request))
@@ -2041,7 +2041,7 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var amountRemaining *float64 = this.SafeNumber(params, "amountRemaining")
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
 	params = this.Omit(params, []any{"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"})
@@ -2074,7 +2074,7 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
 	} else {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
-	request["market"] = GetValue(market, "id")
+	request["market"] = market["id"]
 	return request
 }
 
@@ -2111,7 +2111,7 @@ func (this *Bitvavo) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 		retRes170812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes170812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 
 	response := (<-this.PrivatePutOrder(request))
@@ -2128,9 +2128,9 @@ func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId == nil {
@@ -2175,7 +2175,7 @@ func (this *Bitvavo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		retRes175012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes175012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CancelOrderRequest(id, symbol, params)
 
 	response := (<-this.PrivateDeleteOrder(request))
@@ -2334,9 +2334,9 @@ func (this *Bitvavo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		retRes185112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes185112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId == nil {
@@ -2392,9 +2392,9 @@ func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if since != nil {
 		AddElementToObject(request, "start", since)
@@ -2456,7 +2456,7 @@ func (this *Bitvavo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes194219
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.FetchOrdersRequest(symbol, since, limit, params)
 
 	response := (<-this.PrivateGetOrders(request))
@@ -2583,7 +2583,7 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
 }
-func (this *Bitvavo) ParseOrderStatus(status any) *string {
+func (this *Bitvavo) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"new":                         "open",
 		"canceled":                    "canceled",
@@ -2714,9 +2714,9 @@ func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if since != nil {
 		AddElementToObject(request, "start", since)
@@ -2778,7 +2778,7 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes221419
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.FetchMyTradesRequest(symbol, since, limit, params)
 
 	response := (<-this.PrivateGetTrades(request))
@@ -2884,7 +2884,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(items, currency, since, limit)
 	return nil
 }
-func (this *Bitvavo) ParseLedgerEntryType(typeVar any) *string {
+func (this *Bitvavo) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"buy":                        "trade",
 		"sell":                       "trade",
@@ -3172,7 +3172,7 @@ func (this *Bitvavo) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	})
 	return nil
 }
-func (this *Bitvavo) ParseTransactionStatus(status any) *string {
+func (this *Bitvavo) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"awaiting_processing":         "pending",
 		"awaiting_email_confirmation": "pending",
@@ -3380,7 +3380,7 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var url any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
+	var url any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
 	var getOrDelete bool = (IsEqual(method, "GET")) || (IsEqual(method, "DELETE"))
 	if getOrDelete {
 		if len(ObjectKeys(query)) > 0 {

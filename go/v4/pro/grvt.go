@@ -216,11 +216,11 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "channel", "v1.ticker.s")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.SafeMapTyped(channelparamsVariable, 1)
+	params = ccxt.GetValue(channelparamsVariable, 1)
 	var interval any = 500
 	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
-	params = ccxt.SafeMapTyped(intervalparamsVariable, 1)
+	params = ccxt.GetValue(intervalparamsVariable, 1)
 	if this.Markets == nil {
 
 		retRes16812 := (<-this.LoadMarketsAsync())
@@ -700,7 +700,7 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "channel", "v1.book.d")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.SafeMapTyped(channelparamsVariable, 1)
+	params = ccxt.GetValue(channelparamsVariable, 1)
 	var isSnapshot bool = (ccxt.IsEqual(channel, "v1.book.s"))
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if symbolsLength == 0 {
@@ -709,12 +709,12 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	if limit == nil {
 		var limitparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "limit", 100)
 		limit = ccxt.GetValue(limitparamsVariable, 0)
-		params = ccxt.SafeMapTyped(limitparamsVariable, 1)
+		params = ccxt.GetValue(limitparamsVariable, 1)
 	}
 	var interval any = 500
 	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
-	params = ccxt.SafeMapTyped(intervalparamsVariable, 1)
+	params = ccxt.GetValue(intervalparamsVariable, 1)
 	symbols = this.MarketSymbols(symbols)
 	var extraPart any = func() any {
 		if isSnapshot {

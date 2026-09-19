@@ -4611,7 +4611,7 @@ func (this *BaseExchange) HandleRequestNetwork(params any, request any, exchange
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = SafeMapTyped(networkCodeparamsVariable, 1)
+	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
 		AddElementToObject(request, exchangeSpecificKey, this.NetworkCodeToId(networkCode, currencyCode))
 	} else if EvalTruthy(isRequired) {
@@ -4745,11 +4745,11 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 	var retries any = 0
 	var retriesparamsVariable []any = this.HandleOptionAndParams(params, path, "maxRetriesOnFailure", retries)
 	retries = GetValue(retriesparamsVariable, 0)
-	params = SafeMapTyped(retriesparamsVariable, 1)
+	params = GetValue(retriesparamsVariable, 1)
 	var retryDelay any = 0
 	var retryDelayparamsVariable []any = this.HandleOptionAndParams(params, path, "maxRetriesOnFailureDelay", retryDelay)
 	retryDelay = GetValue(retryDelayparamsVariable, 0)
-	params = SafeMapTyped(retryDelayparamsVariable, 1)
+	params = GetValue(retryDelayparamsVariable, 1)
 	var fetchDataCacheEnabled bool = IsGreaterThan(this.FetchHistoryCacheSize, 0)
 	for i := 0; IsLessThan(i, Add(retries, 1)); i++ {
 		var fetchData any = nil
@@ -5455,7 +5455,7 @@ func (this *BaseExchange) HandleOptionAndParams(params any, methodName any, opti
 		// handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
 		var methodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", methodName)
 		methodName = GetValue(methodNameparamsVariable, 0)
-		params = SafeMapTyped(methodNameparamsVariable, 1)
+		params = GetValue(methodNameparamsVariable, 1)
 		// check if exchange has properties for this method
 		var exchangeWideMethodOptions any = this.SafeValue(this.Options, methodName)
 		if !IsEqual(exchangeWideMethodOptions, nil) {
@@ -5485,7 +5485,7 @@ func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, op
 	var value any = nil
 	var valueparamsVariable []any = this.HandleOptionAndParams(params, methodName1, optionName1)
 	value = GetValue(valueparamsVariable, 0)
-	params = SafeMapTyped(valueparamsVariable, 1)
+	params = GetValue(valueparamsVariable, 1)
 	if !IsEqual(value, nil) {
 		// omit optionName2 too from params
 		params = this.Omit(params, optionName2)
@@ -5495,7 +5495,7 @@ func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, op
 	var value2 any = nil
 	var value2paramsVariable []any = this.HandleOptionAndParams(params, methodName1, optionName2, defaultValue)
 	value2 = GetValue(value2paramsVariable, 0)
-	params = SafeMapTyped(value2paramsVariable, 1)
+	params = GetValue(value2paramsVariable, 1)
 	return []any{value2, params}
 }
 func (this *BaseExchange) HandleOption(methodName any, optionName any, optionalArgs ...any) any {
@@ -7630,7 +7630,7 @@ func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, option
 	var newMaxEntriesPerRequest any = nil
 	var newMaxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, method, "maxEntriesPerRequest")
 	newMaxEntriesPerRequest = GetValue(newMaxEntriesPerRequestparamsVariable, 0)
-	params = SafeMapTyped(newMaxEntriesPerRequestparamsVariable, 1)
+	params = GetValue(newMaxEntriesPerRequestparamsVariable, 1)
 	if (!IsEqual(newMaxEntriesPerRequest, nil)) && (!IsEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)) {
 		maxEntriesPerRequest = newMaxEntriesPerRequest
 	}
@@ -7662,27 +7662,27 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 	var maxCalls any = 10
 	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
-	params = SafeMapTyped(maxCallsparamsVariable, 1)
+	params = GetValue(maxCallsparamsVariable, 1)
 	var maxRetries any = 3
 	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
-	params = SafeMapTyped(maxRetriesparamsVariable, 1)
+	params = GetValue(maxRetriesparamsVariable, 1)
 	var paginationDirection any = nil
 	var paginationDirectionparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationDirection", "backward")
 	paginationDirection = GetValue(paginationDirectionparamsVariable, 0)
-	params = SafeMapTyped(paginationDirectionparamsVariable, 1)
+	params = GetValue(paginationDirectionparamsVariable, 1)
 	var paginationTimestamp any = nil
 	var removeRepeatedOption any = removeRepeated
 	var removeRepeatedOptionparamsVariable []any = this.HandleOptionAndParams(params, method, "removeRepeated", removeRepeated)
 	removeRepeatedOption = GetValue(removeRepeatedOptionparamsVariable, 0)
-	params = SafeMapTyped(removeRepeatedOptionparamsVariable, 1)
+	params = GetValue(removeRepeatedOptionparamsVariable, 1)
 	var calls any = 0
 	var result []any = []any{}
 	var errors any = 0
 	var until *int64 = this.SafeIntegerN(params, []any{"until", "untill", "till"}) // do not omit it from params here
 	maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
-	params = SafeMapTyped(maxEntriesPerRequestparamsVariable, 1)
+	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 	if paginationDirection == "forward" {
 		if since == nil {
 			panic(ArgumentsRequired(this.Id + " pagination requires a since argument when paginationDirection set to forward"))
@@ -7812,7 +7812,7 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan any, method any, opt
 	var maxRetries any = 3
 	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
-	params = SafeMapTyped(maxRetriesparamsVariable, 1)
+	params = GetValue(maxRetriesparamsVariable, 1)
 	var errors any = 0
 	for IsLessThanOrEqual(errors, maxRetries) {
 
@@ -7887,10 +7887,10 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 	var maxCalls any = 10
 	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
-	params = SafeMapTyped(maxCallsparamsVariable, 1)
+	params = GetValue(maxCallsparamsVariable, 1)
 	maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
-	params = SafeMapTyped(maxEntriesPerRequestparamsVariable, 1)
+	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 	// paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
 	// pagination always walks forward internally, so strip it here to avoid leaking an
 	// unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
@@ -7982,14 +7982,14 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 	var maxCalls any = 10
 	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
-	params = SafeMapTyped(maxCallsparamsVariable, 1)
+	params = GetValue(maxCallsparamsVariable, 1)
 	var maxRetries any = 3
 	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
-	params = SafeMapTyped(maxRetriesparamsVariable, 1)
+	params = GetValue(maxRetriesparamsVariable, 1)
 	maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
-	params = SafeMapTyped(maxEntriesPerRequestparamsVariable, 1)
+	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var cursorValue any = nil
 	var i any = 0
 	var errors any = 0
@@ -8136,14 +8136,14 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan any, method 
 	var maxCalls any = 10
 	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
-	params = SafeMapTyped(maxCallsparamsVariable, 1)
+	params = GetValue(maxCallsparamsVariable, 1)
 	var maxRetries any = 3
 	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
-	params = SafeMapTyped(maxRetriesparamsVariable, 1)
+	params = GetValue(maxRetriesparamsVariable, 1)
 	maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
-	params = SafeMapTyped(maxEntriesPerRequestparamsVariable, 1)
+	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var i any = 0
 	var errors any = 0
 	var result []any = []any{}

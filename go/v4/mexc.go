@@ -2572,13 +2572,13 @@ func (this *Mexc) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes206612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes206612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTicker", market, params)
 	marketType := GetValue(marketTypequeryVariable, 0)
 	query := GetValue(marketTypequeryVariable, 1)
 	var ticker any = nil
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if marketType == "spot" {
 
@@ -4510,7 +4510,7 @@ func (this *Mexc) ParseOrderType(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mexc) ParseOrderStatus(status any) *string {
+func (this *Mexc) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                "open",
 		"FILLED":             "closed",
@@ -4875,8 +4875,8 @@ func (this *Mexc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 				}
 			}
 		} else {
-			var market any = this.Market(symbol)
-			parsedSymbols = GetValue(market, "id")
+			var market map[string]any = MapTyped(this.Market(symbol))
+			parsedSymbols = market["id"]
 		}
 		this.CheckRequiredArgument("fetchBalance", parsedSymbols, "symbol or symbols")
 		marketType = "margin"
@@ -5022,13 +5022,13 @@ func (this *Mexc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes416812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes416812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var trades any = []any{}
 	if IsEqual(marketType, "spot") {
@@ -5529,9 +5529,9 @@ func (this *Mexc) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 		retRes457612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes457612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.ContractPublicGetFundingRateSymbol(this.Extend(request, params)))
@@ -5592,9 +5592,9 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		retRes461812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes461812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["page_size"] = limit
@@ -5649,7 +5649,7 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
 	return nil
 }
 
@@ -6397,9 +6397,9 @@ func (this *Mexc) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
 		retRes527812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes527812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.FetchPositionsAsync(nil, this.Extend(request, params)))
@@ -6822,8 +6822,8 @@ func (this *Mexc) transferBody(ch chan any, code any, amount any, fromAccount an
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " transfer() requires a symbol argument for isolated margin"))
 		}
-		var market any = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["symbol"] = market["id"]
 	}
 
 	response := (<-this.SpotPrivatePostCapitalTransfer(this.Extend(request, params)))
@@ -6942,7 +6942,7 @@ func (this *Mexc) ParseAccountId(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mexc) ParseTransferStatus(status any) *string {
+func (this *Mexc) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"SUCCESS": "ok",
 		"FAILED":  "failed",
@@ -7394,9 +7394,9 @@ func (this *Mexc) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 		retRes607412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes607412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.ContractPrivateGetPositionLeverage(this.Extend(request, params)))
@@ -7531,8 +7531,8 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
-			var market any = this.Market(GetValue(symbols, 0))
-			request["symbol"] = GetValue(market, "id")
+			var market map[string]any = MapTyped(this.Market(GetValue(symbols, 0)))
+			request["symbol"] = market["id"]
 		}
 	}
 	if limit != nil {

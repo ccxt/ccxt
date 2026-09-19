@@ -2178,7 +2178,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 			var createMarketBuyOrderRequiresPrice any = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-			params = SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 			var cost *float64 = this.SafeNumber2(params, "cost", "quoteOrderQty")
 			params = this.Omit(params, []any{"cost", "quoteOrderQty"})
 			if cost != nil {
@@ -3045,7 +3045,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = SafeMapTyped(tagparamsVariable, 1)
+	params = GetValue(tagparamsVariable, 1)
 	if this.Markets == nil {
 
 		retRes258512 := (<-this.LoadMarketsAsync())
@@ -3063,7 +3063,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 	}
 	networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodequeryVariable, 0)
-	query := SafeMapTyped(networkCodequeryVariable, 1)
+	query := GetValue(networkCodequeryVariable, 1)
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
 		request["network"] = ToUpper(networkId)

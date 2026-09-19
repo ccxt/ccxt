@@ -1396,7 +1396,7 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = SafeMapTyped(tagparamsVariable, 1)
+	params = GetValue(tagparamsVariable, 1)
 	if this.Markets == nil {
 
 		retRes106012 := (<-this.LoadMarketsAsync())
@@ -1414,7 +1414,7 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = SafeMapTyped(networkCodeparamsVariable, 1)
+	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
 		panic(BadRequest(this.Id + " withdraw () does not accept params[\"networkCode\"]"))
 	}

@@ -1058,7 +1058,7 @@ func (this *Kraken) ParseCurrency(rawCurrency any) any {
 		"code":   code,
 		"info":   rawCurrency,
 		"name":   this.SafeString(rawCurrency, "altname"),
-		"active": IsEqual(this.SafeString(rawCurrency, "status"), "enabled"),
+		"active": (this.SafeString(rawCurrency, "status") != nil && *this.SafeString(rawCurrency, "status") == "enabled"),
 		"type": func() string {
 			if isFiat {
 				return "fiat"
@@ -1122,9 +1122,9 @@ func (this *Kraken) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		retRes94912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes94912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair":     GetValue(market, "id"),
+		"pair":     market["id"],
 		"fee-info": true,
 	}
 
@@ -1218,9 +1218,9 @@ func (this *Kraken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes102412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes102412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	if limit != nil {
 		request["count"] = limit // 100
@@ -1248,7 +1248,7 @@ func (this *Kraken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var orderbook any = this.SafeValue(result, GetValue(market, "id"))
+	var orderbook any = this.SafeValue(result, market["id"])
 	// sometimes kraken returns wsname instead of market id
 	// https://github.com/ccxt/ccxt/issues/8662
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
@@ -1393,15 +1393,15 @@ func (this *Kraken) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes116612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
 	PanicOnError(response)
 	var tickerResult map[string]any = SafeMapTyped(response, "result")
-	var ticker any = this.SafeValue(tickerResult, GetValue(market, "id"))
+	var ticker any = this.SafeValue(tickerResult, market["id"])
 
 	ch <- this.ParseTicker(ticker, market)
 	return nil
@@ -1469,10 +1469,10 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		ch <- retRes122119
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var parsedTimeframe *int64 = this.SafeInteger(this.Timeframes, timeframe)
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	if parsedTimeframe != nil {
 		request["interval"] = parsedTimeframe
@@ -1504,7 +1504,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	//         }
 	//     }
 	var result map[string]any = SafeMapTyped(response, "result")
-	var ohlcvs any = this.SafeList(result, GetValue(market, "id"), []any{})
+	var ohlcvs any = this.SafeList(result, market["id"], []any{})
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -1916,8 +1916,8 @@ func (this *Kraken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes158212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes158212)
 	}
-	var market any = this.Market(symbol)
-	var id any = GetValue(market, "id")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var id any = market["id"]
 	var request map[string]any = map[string]any{
 		"pair": id,
 	}
@@ -2137,9 +2137,9 @@ func (this *Kraken) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes174012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes174012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair":      GetValue(market, "id"),
+		"pair":      market["id"],
 		"type":      side,
 		"ordertype": typeVar,
 		"volume":    this.AmountToPrecision(symbol, amount),
@@ -2308,7 +2308,7 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 	AddElementToObject(GetValue(this.Options, "delistedMarketsById"), id, market)
 	return market
 }
-func (this *Kraken) ParseOrderStatus(status any) *string {
+func (this *Kraken) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"pending":          "open",
 		"open":             "open",
@@ -3663,7 +3663,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
 }
-func (this *Kraken) ParseTransactionStatus(status any) *string {
+func (this *Kraken) ParseTransactionStatus(status *string) *string {
 	// IFEX transaction states
 	var statuses map[string]any = map[string]any{
 		"Initial": "pending",
@@ -4571,11 +4571,11 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(Add(Add(Add("/", this.Version), "/"), api), "/"), path)
+	var url any = Add(Add(Add("/"+this.Version+"/", api), "/"), path)
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
 			// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-			url = Add(url, Add("?", this.UrlencodeNested(params)))
+			url = Add(url, "?"+this.UrlencodeNested(params))
 		}
 	} else if IsEqual(api, "private") {
 		var price *string = this.SafeString(params, "price")

@@ -1331,9 +1331,9 @@ func (this *Hitbtc) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes117812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes117812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetPublicTickerSymbol(this.Extend(request, params)))
@@ -1521,7 +1521,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
-		var marketInner any = this.Market(marketId)
+		var marketInner map[string]any = MapTyped(this.Market(marketId))
 		var rawTrades any = this.SafeList(response, marketId, []any{})
 		var parsed any = this.ParseTrades(rawTrades, marketInner)
 		trades = this.ArrayConcat(trades, parsed)
@@ -1782,7 +1782,7 @@ func (this *Hitbtc) fetchTransactionsHelperBody(ch chan any, types any, code any
 	ch <- this.ParseTransactions(response, currency, since, limit, params)
 	return nil
 }
-func (this *Hitbtc) ParseTransactionStatus(status any) *string {
+func (this *Hitbtc) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"CREATED":     "pending",
 		"PENDING":     "pending",
@@ -2073,9 +2073,9 @@ func (this *Hitbtc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes173812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes173812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["depth"] = limit
@@ -2274,9 +2274,9 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		ch <- retRes187519
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if since != nil {
@@ -3088,7 +3088,7 @@ func (this *Hitbtc) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes244112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes244112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = nil
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
@@ -3183,7 +3183,7 @@ func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, 
 	}
 	return []any{request, params}
 }
-func (this *Hitbtc) ParseOrderStatus(status any) *string {
+func (this *Hitbtc) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"new":             "open",
 		"suspended":       "open",
@@ -3642,8 +3642,8 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 			continue
 		}
 		var rawFundingRate any = this.SafeValue(response, marketId)
-		var marketInner any = this.Market(marketId)
-		var symbol any = GetValue(marketInner, "symbol")
+		var marketInner map[string]any = MapTyped(this.Market(marketId))
+		var symbol any = marketInner["symbol"]
 		var fundingRate any = this.ParseFundingRate(rawFundingRate, marketInner)
 		AddElementToObject(fundingRates, symbol, fundingRate)
 	}
@@ -3735,7 +3735,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var rates []any = []any{}
 	for i := 0; i < len(contracts); i++ {
 		var marketId string = GetValue(contracts, i).(string)
-		var marketInner any = this.SafeMarket(marketId)
+		var marketInner map[string]any = MapTyped(this.SafeMarket(marketId))
 		var fundingRateData []any = SafeListTyped(response, marketId)
 		for j := 0; j < len(fundingRateData); j++ {
 			var entry any = func() any {
@@ -3744,7 +3744,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 				}
 				return nil
 			}()
-			var symbolInner *string = this.SafeSymbol(GetValue(marketInner, "symbol"))
+			var symbolInner *string = this.SafeSymbol(marketInner["symbol"])
 			var fundingRate *float64 = this.SafeNumber(entry, "funding_rate")
 			var datetime *string = this.SafeString(entry, "timestamp")
 			rates = append(rates, map[string]any{
@@ -3890,9 +3890,9 @@ func (this *Hitbtc) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		retRes311912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes311912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var marketType any = nil
 	var marginMode any = nil
@@ -4443,7 +4443,7 @@ func (this *Hitbtc) reduceMarginBody(ch chan any, symbol any, amount any, option
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if !IsEqual(this.NumberToString(amount), "0") {
+	if this.NumberToString(amount) == nil || *this.NumberToString(amount) != "0" {
 		panic(BadRequest(this.Id + " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount"))
 	}
 
@@ -4805,9 +4805,9 @@ func (this *Hitbtc) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	marginModeparamsVariable := this.HandleMarginModeAndParams("closePosition", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":      GetValue(market, "id"),
+		"symbol":      market["id"],
 		"margin_mode": marginMode,
 	}
 

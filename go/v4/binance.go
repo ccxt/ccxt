@@ -6408,7 +6408,7 @@ func (this *Binance) CheckNoStockSymbols(symbols any, methodName any) {
 		return
 	}
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbolMarket any = this.Market(GetValue(symbols, i))
+		var symbolMarket map[string]any = MapTyped(this.Market(GetValue(symbols, i)))
 		var stock *bool = this.SafeBool(symbolMarket, "stock", false)
 		if stock != nil && *stock == true {
 			panic(NotSupported(Add(Add(Add(Add(this.Id+" ", methodName), "() does not support tokenized stock symbols ("), GetValue(symbols, i)), "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")))
@@ -6692,9 +6692,9 @@ func (this *Binance) ParseTickersForRolling(response any, symbols any) any {
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var marketId *string = this.SafeString(GetValue(response, i), "symbol")
-		var tickerMarket any = this.SafeMarket(marketId, nil, nil, "spot")
+		var tickerMarket map[string]any = MapTyped(this.SafeMarket(marketId, nil, nil, "spot"))
 		var parsedTicker any = this.ParseTicker(GetValue(response, i))
-		AddElementToObject(parsedTicker, "symbol", GetValue(tickerMarket, "symbol"))
+		AddElementToObject(parsedTicker, "symbol", tickerMarket["symbol"])
 		results = append(results, parsedTicker)
 	}
 	return this.FilterByArray(results, "symbol", symbols)
@@ -7732,13 +7732,13 @@ func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side 
 	 * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
 	 * @returns {object} request to be sent to the exchange
 	 */
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderId *string = this.SafeStringN(params, []any{"newClientOrderId", "clientOrderId", "origClientOrderId"})
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " editSpotOrderRequest() requires a side argument"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"side":   ToUpper(side),
 	}
 	var initialUppercaseType string = ToUpper(typeVar)
@@ -7756,7 +7756,7 @@ func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side 
 		}
 	}
 	request["type"] = uppercaseType
-	var validOrderTypes any = this.SafeList(GetValue(market, "info"), "orderTypes", []any{})
+	var validOrderTypes any = this.SafeList(market["info"], "orderTypes", []any{})
 	if !this.InArray(uppercaseType, validOrderTypes) {
 		if initialUppercaseType != uppercaseType {
 			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" triggerPrice parameter is not allowed for ", symbol), " "), typeVar), " orders")))
@@ -7784,7 +7784,7 @@ func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side 
 		var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
 		if quoteOrderQty == true {
 			var quoteOrderQtyNew any = this.SafeValue2(params, "quoteOrderQty", "cost")
-			var precision any = GetValue(GetValue(market, "precision"), "price")
+			var precision any = GetValue(market["precision"], "price")
 			if !IsEqual(quoteOrderQtyNew, nil) {
 				request["quoteOrderQty"] = this.DecimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.PrecisionMode)
 			} else if price != nil {
@@ -7839,7 +7839,7 @@ func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side 
 		request["cancelOrderId"] = id // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
 	}
 	// remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-	if IsEqual(this.SafeString(params, "timeInForce"), "PO") {
+	if this.SafeString(params, "timeInForce") != nil && *this.SafeString(params, "timeInForce") == "PO" {
 		params = this.Omit(params, []any{"timeInForce"})
 	}
 	params = this.Omit(params, []any{"quoteOrderQty", "cost", "stopPrice", "newClientOrderId", "clientOrderId", "postOnly"})
@@ -8139,7 +8139,7 @@ func (this *Binance) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 	ch <- this.ParseOrders(response)
 	return nil
 }
-func (this *Binance) ParseOrderStatus(status any) *string {
+func (this *Binance) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":              "open",
 		"PARTIALLY_FILLED": "open",
@@ -8159,7 +8159,7 @@ func (this *Binance) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Binance) ParseOrderTypeByMarket(typeVar any, marketType any) any {
+func (this *Binance) ParseOrderTypeByMarket(typeVar *string, marketType any) any {
 	var types map[string]any = map[string]any{}
 	if (marketType != nil) && (IsEqual(marketType, "spot")) {
 		types = map[string]any{
@@ -9541,7 +9541,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["timeInForce"] = "GTX"
 	}
 	// remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-	if IsEqual(this.SafeString(params, "timeInForce"), "PO") {
+	if this.SafeString(params, "timeInForce") != nil && *this.SafeString(params, "timeInForce") == "PO" {
 		params = this.Omit(params, "timeInForce")
 	}
 	var hedged *bool = this.SafeBool(params, "hedged", false)
@@ -11341,8 +11341,8 @@ func (this *Binance) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
 		retRes885412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes885412)
 	}
-	var market any = this.Market(symbol)
-	var typeVar *string = this.SafeString(params, "type", GetValue(market, "type"))
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var typeVar *string = this.SafeString(params, "type", market["type"])
 	params = this.Omit(params, "type")
 	if typeVar == nil || *typeVar != "spot" {
 		panic(NotSupported(this.Id + " fetchOrderTrades() supports spot markets only"))
@@ -12269,7 +12269,7 @@ func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"fee":         fee,
 	}
 }
-func (this *Binance) ParseTransferStatus(status any) *string {
+func (this *Binance) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"CONFIRMED": "ok",
 	}
@@ -13144,8 +13144,8 @@ func (this *Binance) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 		retRes1053912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1053912)
 	}
-	var market any = this.Market(symbol)
-	var typeVar any = GetValue(market, "type")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var typeVar any = market["type"]
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchTradingFee", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
@@ -13157,7 +13157,7 @@ func (this *Binance) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 	var isLinear bool = this.IsLinear(typeVar, subType)
 	var isInverse bool = this.IsInverse(typeVar, subType)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	if isLinear {
@@ -16856,8 +16856,8 @@ func (this *Binance) fetchIsolatedBorrowRatesBody(ch chan any, optionalArgs ...a
 	var symbol *string = this.SafeString(params, "symbol")
 	params = this.Omit(params, "symbol")
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["symbol"] = market["id"]
 	}
 
 	response := (<-this.SapiGetMarginIsolatedMarginData(this.Extend(request, params)))
@@ -17377,11 +17377,11 @@ func (this *Binance) repayIsolatedMarginBody(ch chan any, symbol any, code any, 
 		PanicOnError(retRes1395012)
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"asset":      currency["id"],
 		"amount":     this.CurrencyToPrecision(code, amount),
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 		"isIsolated": "TRUE",
 		"type":       "REPAY",
 	}
@@ -17485,11 +17485,11 @@ func (this *Binance) borrowIsolatedMarginBody(ch chan any, symbol any, code any,
 		PanicOnError(retRes1402412)
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"asset":      currency["id"],
 		"amount":     this.CurrencyToPrecision(code, amount),
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 		"isIsolated": "TRUE",
 		"type":       "BORROW",
 	}
@@ -18103,9 +18103,9 @@ func (this *Binance) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...an
 		retRes1451512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1451512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.EapiPublicGetMark(this.Extend(request, params)))
@@ -18410,7 +18410,7 @@ func (this *Binance) fetchMarginModeBody(ch chan any, symbol any, optionalArgs .
 		retRes1479412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1479412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarginMode", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
@@ -18418,7 +18418,7 @@ func (this *Binance) fetchMarginModeBody(ch chan any, symbol any, optionalArgs .
 	var response any = nil
 	if IsEqual(subType, "linear") {
 		var request map[string]any = map[string]any{
-			"symbol": GetValue(market, "id"),
+			"symbol": market["id"],
 		}
 
 		response = (<-this.FapiPrivateGetSymbolConfig(this.Extend(request, params)))
@@ -18495,9 +18495,9 @@ func (this *Binance) fetchOptionBody(ch chan any, symbol any, optionalArgs ...an
 		retRes1485812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1485812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.EapiPublicGetTicker(this.Extend(request, params)))
@@ -19225,7 +19225,7 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ..
 		retRes1549912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1549912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if timeframe == nil {
 		timeframe = "1d"
 	}
@@ -19247,12 +19247,12 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ..
 	params = GetValue(subTypeparamsVariable, 1)
 	var response any = nil
 	if IsEqual(subType, "linear") {
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		AddElementToObject(request, "symbol", market["id"])
 
 		response = (<-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if IsEqual(subType, "inverse") {
-		AddElementToObject(request, "pair", GetValue(GetValue(market, "info"), "pair"))
+		AddElementToObject(request, "pair", GetValue(market["info"], "pair"))
 
 		response = (<-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(request, params)))
 		PanicOnError(response)
@@ -19323,9 +19323,9 @@ func (this *Binance) fetchADLRankBody(ch chan any, symbol any, optionalArgs ...a
 		retRes1559712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1559712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchADLRank", market, params)

@@ -908,7 +908,7 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.SafeMapTyped(subaccountparamsVariable, 1)
+	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "order_update",
@@ -967,7 +967,7 @@ func (this *Nado) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchOrders", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.SafeMapTyped(subaccountparamsVariable, 1)
+	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "order_update",
@@ -1029,7 +1029,7 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.SafeMapTyped(subaccountparamsVariable, 1)
+	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "fill",
@@ -1088,7 +1088,7 @@ func (this *Nado) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchMyTrades", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.SafeMapTyped(subaccountparamsVariable, 1)
+	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "fill",
@@ -1152,7 +1152,7 @@ func (this *Nado) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchPositions", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.SafeMapTyped(subaccountparamsVariable, 1)
+	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "position_change",
@@ -1215,7 +1215,7 @@ func (this *Nado) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchPositions", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.SafeMapTyped(subaccountparamsVariable, 1)
+	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "position_change",
@@ -1729,11 +1729,11 @@ func (this *Nado) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "authenticate", "recvWindow", 5000)
 	recvWindow = ccxt.GetValue(recvWindowparamsVariable, 0)
-	params = ccxt.SafeMapTyped(recvWindowparamsVariable, 1)
+	params = ccxt.GetValue(recvWindowparamsVariable, 1)
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "authenticate", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.SafeMapTyped(subaccountparamsVariable, 1)
+	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var id any = this.RequestId()
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var expiration any = this.Sum(this.Milliseconds(), recvWindow)

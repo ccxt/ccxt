@@ -192,7 +192,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
 	method = ccxt.GetValue(methodparamsVariable, 0)
-	params = ccxt.SafeMapTyped(methodparamsVariable, 1)
+	params = ccxt.GetValue(methodparamsVariable, 1)
 	var market any = this.Market(symbol)
 	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), method)
 	var urlUid any = func() any {
@@ -254,7 +254,7 @@ func (this *Woo) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
 	method = ccxt.GetValue(methodparamsVariable, 0)
-	params = ccxt.SafeMapTyped(methodparamsVariable, 1)
+	params = ccxt.GetValue(methodparamsVariable, 1)
 	var market any = this.Market(symbol)
 	var subHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), method)
 	var topic string = "orderbook"
@@ -514,7 +514,7 @@ func (this *Woo) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "method", "ticker")
 	method = ccxt.GetValue(methodparamsVariable, 0)
-	params = ccxt.SafeMapTyped(methodparamsVariable, 1)
+	params = ccxt.GetValue(methodparamsVariable, 1)
 	var market any = this.Market(symbol)
 	var subHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), method)
 	var topic string = "ticker"

@@ -180,8 +180,8 @@ func (this *Cex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes14412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes14412)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash string = "trades"
 	var subscriptionHash any = ccxt.Add("old:", symbol)
@@ -201,7 +201,7 @@ func (this *Cex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var message map[string]any = map[string]any{
 		"e":     "subscribe",
-		"rooms": []any{ccxt.Add(ccxt.Add(ccxt.Add("pair-", ccxt.GetValue(market, "base")), "-"), ccxt.GetValue(market, "quote"))},
+		"rooms": []any{ccxt.Add(ccxt.Add(ccxt.Add("pair-", market["base"]), "-"), market["quote"])},
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
@@ -281,7 +281,7 @@ func (this *Cex) HandleTradesInner(client any, message any) {
 		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
 	}
 	var stored any = ccxt.GetValue(this.Trades, symbol)
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var index any = ccxt.Subtract(ccxt.Subtract(dataLength, 1), i)
@@ -319,8 +319,8 @@ func (this *Cex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes27012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes27012)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var method *string = this.SafeString(params, "method", "private") // default to private because the specified ticker is received quicker
@@ -335,7 +335,7 @@ func (this *Cex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 		ccxt.PanicOnError(retRes28512)
 		message = map[string]any{
 			"e":    "ticker",
-			"data": []any{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
+			"data": []any{market["baseId"], market["quoteId"]},
 			"oid":  this.RequestId(),
 		}
 		subscriptionHash = ccxt.Add("ticker:", symbol)
@@ -429,13 +429,13 @@ func (this *Cex) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes34612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes34612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = this.RequestId()
 	var request map[string]any = this.Extend(map[string]any{
 		"e":    "ticker",
 		"oid":  messageHash,
-		"data": []any{ccxt.GetValue(market, "base"), ccxt.GetValue(market, "quote")},
+		"data": []any{market["base"], market["quote"]},
 	}, params)
 
 	retRes35615 := (<-this.Watch(url, messageHash, request, messageHash))
@@ -615,13 +615,13 @@ func (this *Cex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	retRes4928 := (<-this.AuthenticateAsync(params))
 	ccxt.PanicOnError(retRes4928)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("orders:", symbol)
 	var message map[string]any = map[string]any{
 		"e": "open-orders",
 		"data": map[string]any{
-			"pair": []any{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
+			"pair": []any{market["baseId"], market["quoteId"]},
 		},
 		"oid": symbol,
 	}
@@ -676,22 +676,22 @@ func (this *Cex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	retRes5338 := (<-this.AuthenticateAsync(params))
 	ccxt.PanicOnError(retRes5338)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("myTrades:", ccxt.GetValue(market, "symbol"))
-	var subscriptionHash any = ccxt.Add("orders:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("myTrades:", market["symbol"])
+	var subscriptionHash any = ccxt.Add("orders:", market["symbol"])
 	var message map[string]any = map[string]any{
 		"e": "open-orders",
 		"data": map[string]any{
-			"pair": []any{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
+			"pair": []any{market["baseId"], market["quoteId"]},
 		},
-		"oid": ccxt.GetValue(market, "symbol"),
+		"oid": market["symbol"],
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
 	orders := (<-this.Watch(url, messageHash, request, subscriptionHash, request))
 	ccxt.PanicOnError(orders)
 
-	ch <- this.FilterBySymbolSinceLimit(orders, ccxt.GetValue(market, "symbol"), since, limit)
+	ch <- this.FilterBySymbolSinceLimit(orders, market["symbol"], since, limit)
 	return nil
 }
 func (this *Cex) HandleTransaction(client any, message any) {
@@ -892,7 +892,7 @@ func (this *Cex) HandleOrderUpdate(client any, message any) {
 	//     }
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var isTransaction bool = ccxt.IsEqual(this.SafeString(message, "e"), "tx")
+	var isTransaction bool = (this.SafeString(message, "e") != nil && *this.SafeString(message, "e") == "tx")
 	var orderId *string = this.SafeString2(data, "id", "order")
 	var remains any = ccxt.DerefScalar(this.SafeString(data, "remains"))
 	var baseId *string = this.SafeString(data, "symbol")
@@ -1141,12 +1141,12 @@ func (this *Cex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 
 	retRes9828 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes9828)
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var depth any = func() any {
-		if ccxt.IsEqual(limit, nil) {
+		if limit == nil {
 			return 0
 		}
 		return limit
@@ -1154,7 +1154,7 @@ func (this *Cex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var subscribe map[string]any = map[string]any{
 		"e": "order-book-subscribe",
 		"data": map[string]any{
-			"pair":      []any{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
+			"pair":      []any{market["baseId"], market["quoteId"]},
 			"subscribe": true,
 			"depth":     depth,
 		},
@@ -1295,14 +1295,14 @@ func (this *Cex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		retRes111712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes111712)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("ohlcv:", symbol)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"e":     "init-ohlcv",
 		"i":     timeframe,
-		"rooms": []any{ccxt.Add(ccxt.Add(ccxt.Add("pair-", ccxt.GetValue(market, "baseId")), "-"), ccxt.GetValue(market, "quoteId"))},
+		"rooms": []any{ccxt.Add(ccxt.Add(ccxt.Add("pair-", market["baseId"]), "-"), market["quoteId"])},
 	}
 
 	ohlcv := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
@@ -1538,11 +1538,11 @@ func (this *Cex) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
 
 	retRes13098 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes13098)
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = this.RequestId()
 	var data map[string]any = this.Extend(map[string]any{
-		"pair": []any{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
+		"pair": []any{market["baseId"], market["quoteId"]},
 	}, params)
 	var request map[string]any = map[string]any{
 		"e":    "open-orders",
@@ -1583,7 +1583,7 @@ func (this *Cex) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(price, nil) {
+	if price == nil {
 		panic(ccxt.BadRequest(this.Id + " createOrderWs requires a price argument"))
 	}
 	if this.Markets == nil {
@@ -1594,11 +1594,11 @@ func (this *Cex) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 
 	retRes13468 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes13468)
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = this.RequestId()
 	var data map[string]any = this.Extend(map[string]any{
-		"pair":   []any{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
+		"pair":   []any{market["baseId"], market["quoteId"]},
 		"amount": amount,
 		"price":  price,
 		"type":   side,
@@ -1644,10 +1644,10 @@ func (this *Cex) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " editOrder() requires a amount argument"))
 	}
-	if ccxt.IsEqual(price, nil) {
+	if price == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " editOrder() requires a price argument"))
 	}
 	if this.Markets == nil {
@@ -1658,9 +1658,9 @@ func (this *Cex) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 
 	retRes13898 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes13898)
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var data map[string]any = this.Extend(map[string]any{
-		"pair":     []any{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
+		"pair":     []any{market["baseId"], market["quoteId"]},
 		"type":     side,
 		"amount":   amount,
 		"price":    price,

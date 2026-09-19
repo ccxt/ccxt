@@ -1818,7 +1818,7 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code any, amount any, address 
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = SafeMapTyped(tagparamsVariable, 1)
+	params = GetValue(tagparamsVariable, 1)
 	if this.Markets == nil {
 
 		retRes139512 := (<-this.LoadMarketsAsync())

@@ -1156,9 +1156,9 @@ func (this *Derive) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes78312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes78312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 	}
 
 	response := (<-this.PublicPostGetTicker(this.Extend(request, params)))
@@ -1524,9 +1524,9 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		retRes110312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes110312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 	}
 	if since != nil {
 		request["start_timestamp"] = since
@@ -1565,7 +1565,7 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,
-			"symbol":      GetValue(market, "symbol"),
+			"symbol":      market["symbol"],
 			"fundingRate": this.SafeNumber(entry, "funding_rate"),
 			"timestamp":   timestamp,
 			"datetime":    this.Iso8601(timestamp),
@@ -1573,7 +1573,7 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
 	return nil
 }
 
@@ -1723,7 +1723,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes126712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes126712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
@@ -1759,14 +1759,14 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var maxFeeString *string = this.NumberToString(maxFee)
 	var amountString *string = this.NumberToString(amount)
-	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
+	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(market["info"], "base_asset_address"), this.ParseToNumeric(GetValue(market["info"], "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	var deriveWalletAddress any = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("createOrder", params)
 	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
 	params = GetValue(deriveWalletAddressparamsVariable, 1)
 	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
-		"instrument_name":      GetValue(market, "id"),
+		"instrument_name":      market["id"],
 		"direction":            orderSide,
 		"order_type":           orderType,
 		"nonce":                nonce,
@@ -1932,7 +1932,7 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		retRes146312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes146312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("editOrder", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -1957,14 +1957,14 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var priceString *string = this.NumberToString(price)
 	var maxFeeString *string = this.SafeString(params, "max_fee", "0")
 	var amountString *string = this.NumberToString(amount)
-	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
+	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(market["info"], "base_asset_address"), this.ParseToNumeric(GetValue(market["info"], "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	var deriveWalletAddress any = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("editOrder", params)
 	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
 	params = GetValue(deriveWalletAddressparamsVariable, 1)
 	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
-		"instrument_name":      GetValue(market, "id"),
+		"instrument_name":      market["id"],
 		"order_id_to_cancel":   id,
 		"direction":            orderSide,
 		"order_type":           orderType,
@@ -2110,7 +2110,7 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		retRes163412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes163412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelOrder", params)
@@ -2118,7 +2118,7 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	params = GetValue(subaccountIdparamsVariable, 1)
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"subaccount_id":   subaccountId,
 	}
 	var clientOrderIdUnified *string = this.SafeString(params, "clientOrderId")
@@ -2529,7 +2529,7 @@ func (this *Derive) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
 	ch <- retRes191815
 	return nil
 }
-func (this *Derive) ParseTimeInForce(timeInForce any) *string {
+func (this *Derive) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
@@ -2538,7 +2538,7 @@ func (this *Derive) ParseTimeInForce(timeInForce any) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *Derive) ParseOrderStatus(status any) *string {
+func (this *Derive) ParseOrderStatus(status *string) *string {
 	if status != nil {
 		var statuses map[string]any = map[string]any{
 			"open":        "open",
@@ -3500,7 +3500,7 @@ func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"network":     nil,
 	}
 }
-func (this *Derive) ParseTransactionStatus(status any) *string {
+func (this *Derive) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"settled":  "ok",
 		"reverted": "failed",

@@ -261,7 +261,7 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchTickers", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
+	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(typeVar, "spot"))
 	var url any = func() any {
 		if isSpot {
@@ -487,7 +487,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var markets any = this.RequireValue(this.MarketsForSymbols(symbols), "watchBidsAsks() markets is required")
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.SafeMapTyped(marketTypeparamsVariable, 1)
+	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
 	if !isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchBidsAsks only support spot market"))
@@ -924,7 +924,7 @@ func (this *Mexc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		var frequency any = nil
 		var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "frequency", "100ms")
 		frequency = ccxt.GetValue(frequencyparamsVariable, 0)
-		params = ccxt.SafeMapTyped(frequencyparamsVariable, 1)
+		params = ccxt.GetValue(frequencyparamsVariable, 1)
 		var channel any = ccxt.Add(ccxt.Add(ccxt.Add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), ccxt.GetValue(market, "id"))
 
 		orderbook = (<-this.WatchSpotPublicAsync(channel, messageHash, params))
@@ -1309,7 +1309,7 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
+	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var trades any = nil
 	if ccxt.IsEqual(typeVar, "spot") {
 		var channel string = "spot@private.deals.v3.api.pb"
@@ -1530,7 +1530,7 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
+	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var orders any = nil
 	if ccxt.IsEqual(typeVar, "spot") {
 		var channel string = "spot@private.orders.v3.api.pb"
@@ -1834,7 +1834,7 @@ func (this *Mexc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
+	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var messageHash any = ccxt.Add("balance:", typeVar)
 	if ccxt.IsEqual(typeVar, "spot") {
 		var channel string = "spot@private.account.v3.api.pb"
@@ -2094,7 +2094,7 @@ func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchTickers", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
+	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(typeVar, "spot"))
 	var url any = func() any {
 		if isSpot {
@@ -2150,7 +2150,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var markets any = this.RequireValue(this.MarketsForSymbols(symbols), "unWatchBidsAsks() markets is required")
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.SafeMapTyped(marketTypeparamsVariable, 1)
+	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
 	if !isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchBidsAsks only support spot market"))
@@ -2262,7 +2262,7 @@ func (this *Mexc) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		var frequency any = nil
 		var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "frequency", "100ms")
 		frequency = ccxt.GetValue(frequencyparamsVariable, 0)
-		params = ccxt.SafeMapTyped(frequencyparamsVariable, 1)
+		params = ccxt.GetValue(frequencyparamsVariable, 1)
 		var channel any = ccxt.Add(ccxt.Add(ccxt.Add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), ccxt.GetValue(market, "id"))
 		ccxt.AddElementToObject(params, "unsubscribed", true)
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)

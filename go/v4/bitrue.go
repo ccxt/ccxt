@@ -1274,11 +1274,11 @@ func (this *Bitrue) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = SafeMapTyped(typeVarparamsVariable, 1)
+	params = GetValue(typeVarparamsVariable, 1)
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchBalance", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = SafeMapTyped(subTypeparamsVariable, 1)
+	params = GetValue(subTypeparamsVariable, 1)
 	var response any = nil
 	var result any = nil
 	if IsEqual(typeVar, "swap") {
@@ -1854,7 +1854,7 @@ func (this *Bitrue) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
-		params = SafeMapTyped(typeVarparamsVariable, 1)
+		params = GetValue(typeVarparamsVariable, 1)
 		if !IsEqual(typeVar, "spot") {
 			panic(NotSupported(this.Id + " fetchTickers only support spot when symbols are not proved"))
 		}
@@ -2335,7 +2335,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		var createMarketBuyOrderRequiresPrice any = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-		params = SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		if isMarket && (IsEqual(side, "buy")) && EvalTruthy(createMarketBuyOrderRequiresPrice) {
 			var cost *string = this.SafeString(params, "cost")
 			params = this.Omit(params, "cost")
@@ -3358,7 +3358,7 @@ func (this *Bitrue) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = SafeMapTyped(tagparamsVariable, 1)
+	params = GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -3374,7 +3374,7 @@ func (this *Bitrue) withdrawBody(ch chan any, code any, amount any, address any,
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = SafeMapTyped(networkCodeparamsVariable, 1)
+	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
 		request["chainName"] = this.NetworkCodeToId(networkCode, currency["code"])
 	}

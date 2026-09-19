@@ -806,7 +806,7 @@ func (this *Cex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	var until any = nil
 	untilparamsVariable := this.HandleParamInteger2(params, "until", "till")
 	until = GetValue(untilparamsVariable, 0)
-	params = SafeMapTyped(untilparamsVariable, 1)
+	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["toDateISO"] = this.Iso8601(until)
 	}
@@ -962,7 +962,7 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	var dataType any = nil
 	var dataTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "dataType")
 	dataType = GetValue(dataTypeparamsVariable, 0)
-	params = SafeMapTyped(dataTypeparamsVariable, 1)
+	params = GetValue(dataTypeparamsVariable, 1)
 	if dataType == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\""))
 	}
@@ -983,7 +983,7 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	var until any = nil
 	untilparamsVariable := this.HandleParamInteger2(params, "until", "till")
 	until = GetValue(untilparamsVariable, 0)
-	params = SafeMapTyped(untilparamsVariable, 1)
+	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["toISO"] = this.Iso8601(until)
 	} else if since == nil {
@@ -1186,11 +1186,11 @@ func (this *Cex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var accountName any = nil
 	var accountNameparamsVariable []any = this.HandleParamString(params, "account", "")
 	accountName = GetValue(accountNameparamsVariable, 0)
-	params = SafeMapTyped(accountNameparamsVariable, 1) // default is empty string
+	params = GetValue(accountNameparamsVariable, 1) // default is empty string
 	var method any = nil
 	var methodparamsVariable []any = this.HandleParamString(params, "method", "privatePostGetMyWalletBalance")
 	method = GetValue(methodparamsVariable, 0)
-	params = SafeMapTyped(methodparamsVariable, 1)
+	params = GetValue(methodparamsVariable, 1)
 	var accountBalance any = nil
 	if IsEqual(method, "privatePostGetMyAccountStatusV3") {
 
@@ -1310,7 +1310,7 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs .
 	var until any = nil
 	untilparamsVariable := this.HandleParamInteger2(params, "until", "till")
 	until = GetValue(untilparamsVariable, 0)
-	params = SafeMapTyped(untilparamsVariable, 1)
+	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["serverCreateTimestampTo"] = until
 	}
@@ -1632,7 +1632,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	var accountId any = nil
 	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
-	params = SafeMapTyped(accountIdparamsVariable, 1)
+	params = GetValue(accountIdparamsVariable, 1)
 	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account"))
 	}
@@ -1658,7 +1658,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	var timeInForce any = nil
 	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce", "GTC")
 	timeInForce = GetValue(timeInForceparamsVariable, 0)
-	params = SafeMapTyped(timeInForceparamsVariable, 1)
+	params = GetValue(timeInForceparamsVariable, 1)
 	if IsEqual(typeVar, "limit") {
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["timeInForce"] = timeInForce
@@ -1666,7 +1666,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	var triggerPrice any = nil
 	var triggerPriceparamsVariable []any = this.HandleParamString(params, "triggerPrice")
 	triggerPrice = GetValue(triggerPriceparamsVariable, 0)
-	params = SafeMapTyped(triggerPriceparamsVariable, 1)
+	params = GetValue(triggerPriceparamsVariable, 1)
 	if triggerPrice != nil {
 		request["type"] = "Stop Limit"
 		request["stopPrice"] = triggerPrice
@@ -1878,7 +1878,7 @@ func (this *Cex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var until any = nil
 	untilparamsVariable := this.HandleParamInteger2(params, "until", "till")
 	until = GetValue(untilparamsVariable, 0)
-	params = SafeMapTyped(untilparamsVariable, 1)
+	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["dateTo"] = until
 	}
@@ -1995,7 +1995,7 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	var until any = nil
 	untilparamsVariable := this.HandleParamInteger2(params, "until", "till")
 	until = GetValue(untilparamsVariable, 0)
-	params = SafeMapTyped(untilparamsVariable, 1)
+	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["dateTo"] = until
 	}
@@ -2274,7 +2274,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	var accountId any = nil
 	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
-	params = SafeMapTyped(accountIdparamsVariable, 1)
+	params = GetValue(accountIdparamsVariable, 1)
 	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account"))
 	}
@@ -2286,7 +2286,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = SafeMapTyped(networkCodeparamsVariable, 1)
+	params = GetValue(networkCodeparamsVariable, 1)
 	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"accountId":  accountId,
