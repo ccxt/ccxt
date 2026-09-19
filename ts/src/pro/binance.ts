@@ -968,7 +968,7 @@ export default class binance extends binanceRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async fetchOrderBookSnapshot (client: Client, message: any, subscription: Dict): Promise<void> {
+    async fetchOrderBookSnapshot (client: Client, message: any, subscription: any): Promise<void> {
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = 'orderbook::' + symbol;
         try {

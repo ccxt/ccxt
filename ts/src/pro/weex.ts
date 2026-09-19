@@ -1783,7 +1783,7 @@ export default class weex extends weexRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, params: Dict): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string, params: any): Promise<void> {
         const positions = await this.fetchPositions (undefined, params);
         this.positions = new ArrayCacheBySymbolById ();
         const cache = this.positions;
