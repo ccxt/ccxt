@@ -802,7 +802,7 @@ export default class pacifica extends Exchange {
     override async fetchBalance (params = {}): Promise<Balances> {
         let userAccount: Str = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchBalance', params);
-        const request = {
+        const request: Dict = {
             'account': userAccount,
         };
         const response = await this.publicGetAccount (this.extend (request, params));
@@ -1331,7 +1331,7 @@ export default class pacifica extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
@@ -1748,7 +1748,7 @@ export default class pacifica extends Exchange {
                 throw new NotSupported (this.id + ' createOrders() supports only type = "limit"! Your value type=' + type);
             }
             const requestList = this.createOrderRequest (symbol, type, side, amountNumber, priceNumber, orderParams);
-            const action = {
+            const action: Dict = {
                 'type': 'Create',
                 'data': requestList[0],
             };
@@ -1875,7 +1875,7 @@ export default class pacifica extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const request = this.cancelOrderRequest (id, symbol, params);
-            const action = {
+            const action: Dict = {
                 'type': 'Cancel',
                 'data': request,
             };
@@ -1885,11 +1885,11 @@ export default class pacifica extends Exchange {
         params = this.omit (params, 'clientOrderIds');
         for (let i = 0; i < clientOrderIds.length; i++) {
             const cloid = clientOrderIds[i];
-            const cloidParams = {
+            const cloidParams: Dict = {
                 'clientOrderId': cloid,
             };
             const request = this.cancelOrderRequest (cloid, symbol, this.extend (cloidParams, params));
-            const action = {
+            const action: Dict = {
                 'type': 'Cancel',
                 'data': request,
             };
@@ -2509,7 +2509,7 @@ export default class pacifica extends Exchange {
         // return last state
         const sorted = this.sortBy (data, 'created_at', true);
         const lastIdx = sorted.length;
-        let lastInfo = {};
+        let lastInfo: Dict = {};
         if (lastIdx > 0) {
             lastInfo = sorted[0];
         }
@@ -3020,7 +3020,7 @@ export default class pacifica extends Exchange {
         return oi as OpenInterest;
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: Dict, market: Market = undefined) {
         //
         //     {
         //       "funding": "0.00010529",
@@ -3222,7 +3222,7 @@ export default class pacifica extends Exchange {
         return this.parseIncomes (data, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: Dict, market: Market = undefined) {
         //
         //     {
         //       "history_id": 2287920,
@@ -3273,7 +3273,7 @@ export default class pacifica extends Exchange {
         }
         const currency = this.currency (code);
         const operationType = 'transfer_funds';
-        const sigPayload = {
+        const sigPayload: Dict = {
             'to_account': toAccount,
             'amount': this.numberToString (amount),
         };
@@ -3367,21 +3367,21 @@ export default class pacifica extends Exchange {
         [ timestamp, params ] = this.handleParamInteger (params, 'timestamp', this.milliseconds ());
         let expiryWindow: Int = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
-        const subaccountSignatureHeader = {
+        const subaccountSignatureHeader: Dict = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
             'type': 'subaccount_initiate',
         };
-        const subSigPayload = {
+        const subSigPayload: Dict = {
             'account': originAddress,
         };
         const subaccountSignature = this.signMessage (subaccountSignatureHeader, subSigPayload, subAccountPrivateKey);
-        const mainSignatureHeader = {
+        const mainSignatureHeader: Dict = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
             'type': 'subaccount_confirm',
         };
-        const mainSigPayload = {
+        const mainSigPayload: Dict = {
             'signature': subaccountSignature,
         };
         const main_signature = this.signMessage (mainSignatureHeader, mainSigPayload, this.privateKey);
@@ -3406,7 +3406,7 @@ export default class pacifica extends Exchange {
 
     async bindAgentWallet (agentAddress: string, params = {}) {
         const operationType = 'bind_agent_wallet';
-        const sigPayload = {
+        const sigPayload: Dict = {
             'agent_wallet': agentAddress,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
@@ -3415,14 +3415,14 @@ export default class pacifica extends Exchange {
 
     async createApiKey (params = {}) {
         const operationType = 'create_api_key';
-        const sigPayload = {};
+        const sigPayload: Dict = {};
         const request = this.postActionRequest (operationType, sigPayload, params);
         return await this.privatePostAccountApiKeysCreate (this.extend (request, params));
     }
 
     async revokeApiKey (apiKey: string, params = {}) {
         const operationType = 'revoke_api_key';
-        const sigPayload = {
+        const sigPayload: Dict = {
             'api_key': apiKey,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
@@ -3431,14 +3431,14 @@ export default class pacifica extends Exchange {
 
     async fetchApiKeys (params = {}) {
         const operationType = 'list_api_keys';
-        const sigPayload = {};
+        const sigPayload: Dict = {};
         const request = this.postActionRequest (operationType, sigPayload, params);
         return await this.privatePostAccountApiKeys (this.extend (request, params));
     }
 
     async approveBuilderCode (builderCode: string, maxFeeRate: string, params = {}) {
         const operationType = 'approve_builder_code';
-        const sigPayload = {
+        const sigPayload: Dict = {
             'builder_code': builderCode,
             'max_fee_rate': maxFeeRate,
         };
@@ -3447,7 +3447,7 @@ export default class pacifica extends Exchange {
     }
 
     async fetchBuilderApprovals (address: string) {
-        const request = {
+        const request: Dict = {
             'account': address,
         };
         return await this.publicGetAccountBuilderCodesApprovals (this.extend (request));
@@ -3455,7 +3455,7 @@ export default class pacifica extends Exchange {
 
     async revokeBuilderCode (builderCode: string, params = {}) {
         const operationType = 'revoke_builder_code';
-        const sigPayload = {
+        const sigPayload: Dict = {
             'builder_code': builderCode,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
@@ -3605,7 +3605,7 @@ export default class pacifica extends Exchange {
         let expiryWindow: Int = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
         const timestamp = this.safeInteger (params, 'timestamp', this.milliseconds ());
-        const signatureHeader = {
+        const signatureHeader: Dict = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
             'type': operationType,
