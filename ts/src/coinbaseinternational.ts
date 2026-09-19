@@ -434,7 +434,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseAccounts (response, params);
     }
 
-    override parseAccount (account: any) {
+    override parseAccount (account: Dict) {
         //
         //    {
         //       "portfolio_id":"1ap32qsc-1-0",
@@ -595,7 +595,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseFundingRateHistories (rawRates, market, since, limit);
     }
 
-    override parseFundingRateHistory (info: any, market: Market = undefined) {
+    override parseFundingRateHistory (info: Dict, market: Market = undefined) {
         return this.parseFundingRate (info, market) as FundingRateHistory;
     }
 
@@ -670,7 +670,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseIncomes (fundings, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: Dict, market: Market = undefined) {
         //
         // {
         //     "amount":"0.0008",
@@ -865,7 +865,7 @@ export default class coinbaseinternational extends Exchange {
         } as DepositAddress;
     }
 
-    findDefaultNetwork (networks: any) {
+    findDefaultNetwork (networks: Dict): Dict {
         const networksArray = this.toArray (networks);
         for (let i = 0; i < networksArray.length; i++) {
             const info = networksArray[i]['info'];
@@ -877,7 +877,7 @@ export default class coinbaseinternational extends Exchange {
         return networksArray[0];
     }
 
-    async loadCurrencyNetworks (code: any, params: Dict = {}) {
+    async loadCurrencyNetworks (code: string, params: Dict = {}): Promise<boolean> {
         const currency = this.currency (code);
         const networks = this.safeDict (currency, 'networks');
         if (networks !== undefined) {
@@ -909,7 +909,7 @@ export default class coinbaseinternational extends Exchange {
         return true;
     }
 
-    parseNetworks (networks: any, params: Dict = {}) {
+    parseNetworks (networks: any[], params: Dict = {}): Dict {
         const result: Dict = {};
         for (let i = 0; i < networks.length; i++) {
             const network = this.extend (this.parseNetwork (networks[i]), params);
@@ -918,7 +918,7 @@ export default class coinbaseinternational extends Exchange {
         return result;
     }
 
-    parseNetwork (network: any, params: Dict = {}) {
+    parseNetwork (network: Dict, params: Dict = {}): Dict {
         //
         //    {
         //        "asset_id":"1",
@@ -1247,7 +1247,7 @@ export default class coinbaseinternational extends Exchange {
         return await this.fetchDepositsWithdrawals (code, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'PROCESSED': 'ok',
             'NEW': 'pending',
@@ -1952,7 +1952,7 @@ export default class coinbaseinternational extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             // order_status carries WORKING and DONE; the other keys are event_type
             // values, which the same payload reports in its own field
@@ -1971,7 +1971,7 @@ export default class coinbaseinternational extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         if (type === 'UNKNOWN_ORDER_TYPE') {
             return undefined;
         }

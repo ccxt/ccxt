@@ -663,7 +663,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    parseMarketActive (status: any): Bool {
+    parseMarketActive (status: Str): Bool {
         const statuses: Dict = {
             'open': true,
             'closed': false,
@@ -767,7 +767,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    override parseMarket (response: any): Market {
+    override parseMarket (response: Dict): Market {
         //
         // response might be:
         //
@@ -951,7 +951,7 @@ export default class gemini extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTickerV1 (symbol: string, params: Dict = {}) {
+    async fetchTickerV1 (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -975,7 +975,7 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV2 (symbol: string, params: Dict = {}) {
+    async fetchTickerV2 (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1000,7 +1000,7 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV1AndV2 (symbol: string, params: Dict = {}) {
+    async fetchTickerV1AndV2 (symbol: string, params: Dict = {}): Promise<Ticker> {
         const tickerPromiseA = this.fetchTickerV1 (symbol, params);
         const tickerPromiseB = this.fetchTickerV2 (symbol, params);
         const [ tickerA, tickerB ] = await Promise.all ([ tickerPromiseA, tickerPromiseB ]);
@@ -1944,7 +1944,7 @@ export default class gemini extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'Advanced': 'ok',
             'Complete': 'ok',
@@ -1952,7 +1952,7 @@ export default class gemini extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined) {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined) {
         //
         //      {
         //          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -2183,7 +2183,7 @@ export default class gemini extends Exchange {
         return this.parseOpenInterest (response, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: Dict, market: Market = undefined) {
         //
         //    {
         //        product_type: 'PerpetualSwapContract',

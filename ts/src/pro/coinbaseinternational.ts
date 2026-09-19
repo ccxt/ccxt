@@ -79,7 +79,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribe (name: string, symbols: Strings = undefined, params: Dict = {}) {
+    async subscribe (name: string, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -140,7 +140,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribeMultiple (name: string, symbols: Strings = undefined, params: Dict = {}) {
+    async subscribeMultiple (name: string, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -235,7 +235,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.subscribe ((channel as string), [ symbol ], params);
     }
 
-    getActiveSymbols () {
+    getActiveSymbols (): string[] {
         const symbols = this.symbols;
         const output: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -273,7 +273,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleInstrument (client: Client, message: any) {
+    handleInstrument (client: Client, message: Dict): void {
         //
         //    {
         //        "sequence": 1,
@@ -305,7 +305,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
 
-    parseWsInstrument (ticker: Dict, market: Market = undefined) {
+    parseWsInstrument (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "sequence": 1,
@@ -385,7 +385,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         });
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         //
         // snapshot
         //    {
@@ -483,7 +483,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         // {
         //     "sequence": 0,
@@ -561,7 +561,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client: any, message: any) {
+    handleTrade (client: Client, message: Dict): Dict {
         //
         //    {
         //       "sequence": 0,
@@ -651,7 +651,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.subscribeMultiple ('LEVEL2', symbols, params);
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // snapshot
         //    {
@@ -727,7 +727,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //    {
         //       "channels": [
@@ -755,7 +755,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
-    handleFundingRate (client: Client, message: any) {
+    handleFundingRate (client: Client, message: Dict): void {
         //
         // snapshot
         //    {
@@ -784,7 +784,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //        message: 'Failed to subscribe',
@@ -810,7 +810,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return true;
     }
 
-    override handleMessage (client: any, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
