@@ -7,7 +7,7 @@ import { jwt } from './base/functions/rsa.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, FeeString, Endpoint, OrderRequest, List, Fee, DepositAddress } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, FeeString, Endpoint, OrderRequest, List, Fee, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -451,10 +451,10 @@ export default class bithumb extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
                 const marketId = this.safeString (entry, 'market');
-                let baseId = undefined;
-                let quoteId = undefined;
-                let base = undefined;
-                let quote = undefined;
+                let baseId: Str = undefined;
+                let quoteId: Str = undefined;
+                let base: Str = undefined;
+                let quote: Str = undefined;
                 if (marketId !== undefined) {
                     const parts = marketId.split ('-');
                     // to match gen 1, the quoteId is the first currency derived from the market id
@@ -762,8 +762,8 @@ export default class bithumb extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {};
         let response: any = undefined;
-        let data = undefined;
-        let timestamp = undefined;
+        let data: NullableDict = undefined;
+        let timestamp: Int = undefined;
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId (market);
             response = await this.publicGetV1Orderbook (this.extend (request, params));
@@ -1071,7 +1071,7 @@ export default class bithumb extends Exchange {
                 if (this.isDictionary (response) && ('data' in response) && (response['data'] !== undefined)) {
                     response = response['data'];
                 }
-                let expectedMarketId = undefined;
+                let expectedMarketId: Str = undefined;
                 const marketIdsChunk = this.safeList (marketIdsChunks, i, []);
                 const firstMarketId = this.safeString (marketIdsChunk, 0);
                 if ((firstMarketId !== undefined) && (this.safeString (marketIdsChunk, 1) === undefined)) {
@@ -1290,7 +1290,7 @@ export default class bithumb extends Exchange {
         //         "unit": 1
         //     }
         //
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (Array.isArray (ohlcv)) {
             timestamp = this.safeInteger2 (ohlcv, 0, 'timestamp');
         } else {
@@ -1699,7 +1699,7 @@ export default class bithumb extends Exchange {
         const request: Dict = {
             'market': this.getGen2MarketId (market),
         };
-        let sideRequest = undefined;
+        let sideRequest: Str = undefined;
         if (side === 'buy') {
             sideRequest = 'bid';
         } else if (side === 'sell') {
@@ -1729,7 +1729,7 @@ export default class bithumb extends Exchange {
             request['volume'] = this.amountToPrecision (symbol, amount);
             request['order_type'] = 'limit';
         } else {
-            let typeRequest = undefined;
+            let typeRequest: Str = undefined;
             if (side === 'buy') {
                 typeRequest = 'price';
                 // for market buy it requires the amount of quote currency to spend
@@ -1813,7 +1813,7 @@ export default class bithumb extends Exchange {
             request['units'] = this.amountToPrecision (symbol, amount);
             if (type === 'limit') {
                 request['price'] = this.priceToPrecision (symbol, price);
-                let typeRequest = undefined;
+                let typeRequest: Str = undefined;
                 if (side === 'buy') {
                     typeRequest = 'bid';
                 } else {
@@ -1904,7 +1904,7 @@ export default class bithumb extends Exchange {
         if (amount !== undefined) {
             request['volume'] = this.amountToPrecision (symbol, amount); // required for sale
         }
-        let sideRequest = undefined;
+        let sideRequest: Str = undefined;
         if (side === 'buy') {
             sideRequest = 'bid';
         } else {
@@ -2199,7 +2199,7 @@ export default class bithumb extends Exchange {
         //     }
         //
         let datetime = this.safeString (order, 'created_at');
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (datetime !== undefined) {
             if (datetime.indexOf ('+09:00') > -1) {
                 const normalized = datetime.replace ('+09:00', 'Z');
@@ -2217,7 +2217,7 @@ export default class bithumb extends Exchange {
             datetime = this.iso8601 (timestamp);
         }
         const sideProperty = this.safeString2 (order, 'type', 'side');
-        let side = undefined;
+        let side: Str = undefined;
         if (sideProperty === 'bid') {
             side = 'buy';
         } else if (sideProperty === 'ask') {
@@ -2261,7 +2261,7 @@ export default class bithumb extends Exchange {
         const feeCost = this.safeNumber (order, 'reserved_fee');
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
-            let currency = undefined;
+            let currency: Str = undefined;
             if (market !== undefined) {
                 currency = market['quote'];
             }
@@ -2271,7 +2271,7 @@ export default class bithumb extends Exchange {
                 'rate': undefined,
             };
         }
-        let postOnly = undefined;
+        let postOnly: Bool = undefined;
         let timeInForce = this.safeStringUpper (order, 'time_in_force');
         if (timeInForce === 'POST_ONLY') {
             timeInForce = 'PO';
@@ -2590,7 +2590,7 @@ export default class bithumb extends Exchange {
             if (!side_in_params) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `side` parameter (sell or buy)');
             }
-            let side = undefined;
+            let side: Str = undefined;
             if (params['side'] === 'buy') {
                 side = 'bid';
             } else {
@@ -2708,7 +2708,7 @@ export default class bithumb extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {};
         let response: any = undefined;
-        let destinationRequest = undefined;
+        let destinationRequest: Str = undefined;
         if (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM' || code === 'TON') {
             const destination = this.safeString2 (params, 'destination', 'secondary_address');
             params = this.omit (params, [ 'destination', 'secondary_address' ]);
@@ -3361,7 +3361,7 @@ export default class bithumb extends Exchange {
                     'nonce': this.uuid (),
                     'timestamp': this.milliseconds (),
                 };
-                let auth = undefined;
+                let auth: Str = undefined;
                 if ((method !== 'GET') && (method !== 'DELETE')) {
                     headers['Content-Type'] = 'application/json';
                     if (hasQuery) {

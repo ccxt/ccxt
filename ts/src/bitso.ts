@@ -331,7 +331,7 @@ export default class bitso extends Exchange {
         //         }]
         //     }
         //
-        const payload = this.safeValue (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         const currency = this.safeCurrency (code);
         return this.parseLedger (payload, currency, since, limit);
     }
@@ -403,15 +403,15 @@ export default class bitso extends Exchange {
         //     }
         const operation = this.safeString (item, 'operation');
         const type = this.parseLedgerEntryType (operation);
-        const balanceUpdates = this.safeValue (item, 'balance_updates', []);
-        const firstBalance = this.safeValue (balanceUpdates, 0, {});
+        const balanceUpdates = this.safeList (item, 'balance_updates', []);
+        const firstBalance = this.safeDict (balanceUpdates, 0, {});
         let direction: Str = undefined;
         let fee: NullableDict = undefined;
         const amount = this.safeString (firstBalance, 'amount');
         const currencyId = this.safeString (firstBalance, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         currency = this.safeCurrency (currencyId, currency);
-        const details = this.safeValue (item, 'details', {});
+        const details = this.safeDict (item, 'details', {});
         let referenceId = this.safeString2 (details, 'fid', 'wid');
         if (referenceId === undefined) {
             referenceId = this.safeString (details, 'tid');
@@ -503,8 +503,8 @@ export default class bitso extends Exchange {
             let quote: Str = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const fees = this.safeValue (market, 'fees', {});
-            const flatRate = this.safeValue (fees, 'flat_rate', {});
+            const fees = this.safeDict (market, 'fees', {});
+            const flatRate = this.safeDict (fees, 'flat_rate', {});
             const takerString = this.safeString (flatRate, 'taker');
             const makerString = this.safeString (flatRate, 'maker');
             const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
@@ -745,7 +745,7 @@ export default class bitso extends Exchange {
             'book': market['id'],
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const orderbook = this.safeValue (response, 'payload');
+        const orderbook = this.safeDict (response, 'payload');
         const timestamp = this.parse8601 (this.safeString (orderbook, 'updated_at'));
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -1100,7 +1100,7 @@ export default class bitso extends Exchange {
         //        }
         //    }
         //
-        const payload = this.safeValue (response, 'payload', {});
+        const payload = this.safeDict (response, 'payload', {});
         const fees = this.safeList (payload, 'fees', []);
         const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
@@ -1415,7 +1415,7 @@ export default class bitso extends Exchange {
         const response = await this.privateGetOrdersOid ({
             'oid': id,
         });
-        const payload = this.safeValue (response, 'payload');
+        const payload = this.safeList (response, 'payload');
         if (Array.isArray (payload)) {
             const numOrders = payload.length;
             if (numOrders === 1) {
@@ -1491,7 +1491,7 @@ export default class bitso extends Exchange {
         //         }]
         //     }
         //
-        const transactions = this.safeValue (response, 'payload', []);
+        const transactions = this.safeList (response, 'payload', []);
         const first = this.safeDict (transactions, 0, {});
         return this.parseTransaction (first);
     }
@@ -1637,7 +1637,7 @@ export default class bitso extends Exchange {
         //    }
         //
         const result: Dict = {};
-        const payload = this.safeValue (response, 'payload', {});
+        const payload = this.safeDict (response, 'payload', {});
         const depositFees = this.safeList (payload, 'deposit_fees', []);
         for (let i = 0; i < depositFees.length; i++) {
             const depositFee = depositFees[i];
@@ -1667,10 +1667,10 @@ export default class bitso extends Exchange {
             }
             if (code !== undefined) {
                 result[code] = {
-                    'deposit': this.safeValue (this.safeValue (result, code), 'deposit'),
+                    'deposit': this.safeValue (this.safeDict (result, code), 'deposit'),
                     'withdraw': this.safeNumber (withdrawalFees, currencyId),
                     'info': {
-                        'deposit': this.safeValue (this.safeValue (this.safeValue (result, code), 'info'), 'deposit'),
+                        'deposit': this.safeValue (this.safeDict (this.safeDict (result, code), 'info'), 'deposit'),
                         'withdraw': this.safeNumber (withdrawalFees, currencyId),
                     },
                 };
@@ -1793,7 +1793,7 @@ export default class bitso extends Exchange {
                     result[code] = {
                         'deposit': {
                             'fee': this.safeNumber (entry, 'fee'),
-                            'percentage': (this.safeValue (entry, 'is_fixed') !== true),
+                            'percentage': (this.safeBool (entry, 'is_fixed') !== true),
                         },
                         'withdraw': {
                             'fee': undefined,
@@ -1811,7 +1811,7 @@ export default class bitso extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             if ((code !== undefined) && ((codes === undefined) || (code in codes))) {
                 const withdrawFee = this.parseNumber (withdrawalResponse[currencyId]);
-                const resultValue = this.safeValue (result, code);
+                const resultValue = this.safeDict (result, code);
                 if (resultValue === undefined) {
                     result[code] = this.depositWithdrawFee ({});
                 }
@@ -1877,7 +1877,7 @@ export default class bitso extends Exchange {
         //         ]
         //     }
         //
-        const payload = this.safeValue (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         const first = this.safeDict (payload, 0);
         return this.parseTransaction (first as Dict, currency);
     }
@@ -1921,7 +1921,7 @@ export default class bitso extends Exchange {
         //
         const currencyId = this.safeString2 (transaction, 'currency', 'asset');
         currency = this.safeCurrency (currencyId, currency);
-        const details = this.safeValue (transaction, 'details', {});
+        const details = this.safeDict (transaction, 'details', {});
         const datetime = this.safeString (transaction, 'created_at');
         const withdrawalAddress = this.safeString (details, 'withdrawal_address');
         const receivingAddress = this.safeString (details, 'receiving_address');
@@ -2017,7 +2017,7 @@ export default class bitso extends Exchange {
             }
             if (success !== true) {
                 const feedback = this.id + ' ' + this.json (response);
-                const error = this.safeValue (response, 'error');
+                const error = this.safeDict (response, 'error');
                 if (error === undefined) {
                     throw new ExchangeError (feedback);
                 }

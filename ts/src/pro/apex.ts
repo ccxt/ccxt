@@ -103,7 +103,7 @@ export default class apex extends apexRest {
         }
         const trades = await this.watchTopics (url, messageHashes, topics, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -901,7 +901,7 @@ export default class apex extends apexRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             // auth sign
-            const request = {
+            const request: Dict = {
                 'type': 'login',
                 'topics': [ 'ws_zk_accounts_v3' ],
                 'httpMethod': http_method,
@@ -973,10 +973,10 @@ export default class apex extends apexRest {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
                 throw new ExchangeError (feedback);
             }
-            const success = this.safeValue (message, 'success');
+            const success = this.safeBool (message, 'success');
             if ((success !== undefined) && (success !== true)) {
                 const ret_msg = this.safeString (message, 'ret_msg');
-                const request = this.safeValue (message, 'request', {});
+                const request = this.safeDict (message, 'request', {});
                 const op = this.safeString (request, 'op');
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
                 // krakenfutures "Already subscribed"): the original subscription
@@ -1122,7 +1122,7 @@ export default class apex extends apexRest {
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        const success = this.safeValue (message, 'success');
+        const success = this.safeBool (message, 'success');
         const code = this.safeInteger (message, 'retCode');
         const messageHash = 'authenticated';
         if ((success === true) || (code === 0)) {
