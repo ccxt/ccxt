@@ -1834,7 +1834,7 @@ export default class alpaca extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    async fetchTransactionsHelper (type: Str, code: Str, since: Int, limit: Int, params: Dict): Promise<Transaction[]> {
+    async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
