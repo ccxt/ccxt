@@ -5504,12 +5504,14 @@ impl WeexCore {
  * @returns {string} the market id for the request
  */
     pub fn to_sandbox_market_id(&self, mut market: Value) -> Value {
+        let __market_empty = indexmap::IndexMap::new();
+        let market = market.as_map().unwrap_or(&__market_empty);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        let mut baseId: Value = self.safe_string_k(market.clone(), "baseId", &[]);
+        let mut baseId: Value = (match market.get("baseId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (sandboxMode.as_bool() == Some(true)) && (baseId != Value::Null) {
             return Value::Str(format!("{}{}", baseId, Value::Str("SUSDT".into())).into());
         }
-        return self.safe_string_k(market, "id", &[]);
+        return (match market.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
 
     Value::Null
 }

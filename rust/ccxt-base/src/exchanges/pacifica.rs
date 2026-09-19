@@ -2987,6 +2987,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __market_empty = indexmap::IndexMap::new();
+        let market = market.as_map().unwrap_or(&__market_empty);
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
         }
@@ -3002,7 +3004,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountNormalized: Value = self.amount_to_precision(symbol, amount);
         let mut sigPayload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.safe_string_k(market, "id", &[]));
+                m.insert("symbol".to_string(), (match market.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
                 m.insert("price".to_string(), priceNormalized);
                 m.insert("amount".to_string(), amountNormalized);
             m
@@ -3449,9 +3451,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn add_pagination_cursor_to_result(&self, mut response: Value) -> Value {
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-        let mut paginationCursor: Value = self.safe_string_k(response.clone(), "next_cursor", &[]);
-        let mut hasMore: Value = self.safe_bool_k(response, "has_more", &[Value::Bool(false)]);
+        let __response_empty = indexmap::IndexMap::new();
+        let response = response.as_map().unwrap_or(&__response_empty);
+        let mut data: Value = (match response.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut paginationCursor: Value = (match response.get("next_cursor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut hasMore: Value = (match response.get("has_more") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         if (hasMore.as_bool() == Some(true)) {
             if (paginationCursor != Value::Null) && (dataLength > ((0i64) as f64)) {

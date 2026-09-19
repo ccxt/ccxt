@@ -569,6 +569,8 @@ impl BlockchaincomCore {
     pub fn parse_ws_updated_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut lastTicker = get_arg(optional_args, 0, Value::Null);
         let mut market = get_arg(optional_args, 1, Value::Null);
+        let __lastTicker_empty = indexmap::IndexMap::new();
+        let lastTicker = lastTicker.as_map().unwrap_or(&__lastTicker_empty);
         //
         //     {
         //         "seqnum": 2,
@@ -593,20 +595,19 @@ impl BlockchaincomCore {
         m.insert("ask".to_string(), Value::Null);
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), self.safe_string_k(lastTicker.clone(), "open", &[]));
+        m.insert("open".to_string(), (match lastTicker.get("open") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("close".to_string(), Value::Null);
         m.insert("last".to_string(), last);
-        m.insert("previousClose".to_string(), self.safe_string_k(lastTicker.clone(), "close", &[]));
+        m.insert("previousClose".to_string(), (match lastTicker.get("close") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(lastTicker.clone(), "baseVolume", &[]));
+        m.insert("baseVolume".to_string(), (match lastTicker.get("baseVolume") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("quoteVolume".to_string(), Value::Null);
-        let __ws_arg_0 = self.safe_dict_k(lastTicker, "info", &[Value::Map({
+        m.insert("info".to_string(), self.extend((match lastTicker.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        m.insert("info".to_string(), self.extend(__ws_arg_0, &[ticker]));
+}) }), &[ticker]));
     m
 }), &[market]);
 
@@ -1159,8 +1160,8 @@ impl BlockchaincomCore {
                     m.insert("token".to_string(), self.secret.clone());
                 m
             });
-            let __ws_arg_1 = self.extend(request, &[params]);
-            return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone()]).await;
+            let __ws_arg_0 = self.extend(request, &[params]);
+            return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

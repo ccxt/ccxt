@@ -3789,6 +3789,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  */
     pub fn parse_prediction_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        let __market_empty = indexmap::IndexMap::new();
+        let market = market.as_map().unwrap_or(&__market_empty);
         //
         //     {
         //         "cost": "995720",
@@ -3798,7 +3800,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "unrealizedPnl": "0"
         //     }
         //
-        let mut outcomeSymbol: Value = self.safe_string_k(market.clone(), "outcome", &[]);
+        let mut outcomeSymbol: Value = (match market.get("outcome") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut notional: Value = self.apply_scale(self.safe_string_k(position.clone(), "marketValue", &[]), &[]);
         let mut unrealizedPnl: Value = self.apply_scale(self.safe_string_k(position.clone(), "unrealizedPnl", &[]), &[]);
         let mut realizedPnl: Value = self.apply_scale(self.safe_string_k(position.clone(), "realisedPnl", &[]), &[]);
@@ -3808,9 +3810,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
         m.insert("outcome".to_string(), outcomeSymbol);
-        m.insert("outcomeId".to_string(), self.safe_string_k(market.clone(), "outcomeId", &[]));
-        m.insert("label".to_string(), self.safe_string_k(market.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(market, "market", &[]));
+        m.insert("outcomeId".to_string(), (match market.get("outcomeId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
+        m.insert("label".to_string(), (match market.get("label") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
+        m.insert("market".to_string(), (match market.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("contracts".to_string(), Value::Null);

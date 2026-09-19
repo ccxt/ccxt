@@ -325,6 +325,8 @@ impl CoinoneCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "response_type": "DATA",
@@ -349,10 +351,10 @@ impl CoinoneCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut baseId: Value = self.safe_string_upper(data.clone(), Value::Str("target_currency".into()), &[]);
         let mut quoteId: Value = self.safe_string_upper(data.clone(), Value::Str("quote_currency".into()), &[]);
         let mut base: Value = self.safe_currency_code(baseId, &[]);
@@ -421,6 +423,8 @@ impl CoinoneCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "response_type": "DATA",
@@ -450,10 +454,10 @@ impl CoinoneCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut ticker: Value = self.parse_ws_ticker(data, &[]);
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         add_element_to_object(&mut self.tickers, &symbol, ticker);
@@ -570,6 +574,8 @@ impl CoinoneCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "response_type": "DATA",
@@ -585,10 +591,10 @@ impl CoinoneCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut trade: Value = self.parse_ws_trade(data, &[]);
         let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);

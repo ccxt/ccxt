@@ -4008,12 +4008,14 @@ impl WooCore {
 }
 
     pub fn get_dedicated_network_id(&self, mut currency: Value, mut params: Value) -> Value {
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        networkCode = self.network_id_to_code(&[networkCode.clone(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
-        let mut networkEntry: Value = (if (networkCode == Value::Null) { Value::Null } else { self.safe_dict(currency.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkCode, &[]) });
+        networkCode = self.network_id_to_code(&[networkCode.clone(), currency.get("code").cloned().unwrap_or(Value::Null)]);
+        let mut networkEntry: Value = (if (networkCode == Value::Null) { Value::Null } else { self.safe_dict(currency.get("networks").cloned().unwrap_or(Value::Null), networkCode, &[]) });
         if (networkEntry == Value::Null) {
-            let mut supportedNetworks: Value = object_keys(&currency.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null));
+            let mut supportedNetworks: Value = object_keys(&currency.get("networks").cloned().unwrap_or(Value::Null));
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("  can not determine a network code, please provide unified \"network\" param, one from the following: ".into())).into()), json_stringify(&supportedNetworks))));
         }
         let mut currentyNetworkId: Value = self.safe_string_k(networkEntry, "currencyNetworkId", &[]);
@@ -4024,14 +4026,16 @@ impl WooCore {
 
     pub fn parse_deposit_address(&self, mut depositEntry: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         let mut address: Value = self.safe_string_k(depositEntry.clone(), "address", &[]);
         self.check_address(&[address.clone()]);
         let mut networkId: Value = self.safe_string_k(depositEntry.clone(), "network", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositEntry.clone());
-        m.insert("currency".to_string(), self.safe_string_k(currency.clone(), "code", &[]));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId, self.safe_string_k(currency, "code", &[])]));
+        m.insert("currency".to_string(), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
+        m.insert("network".to_string(), self.network_id_to_code(&[networkId, (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]));
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), self.safe_string_k(depositEntry, "extra", &[]));
     m

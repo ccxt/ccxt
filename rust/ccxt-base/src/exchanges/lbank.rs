@@ -2142,6 +2142,8 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __params_empty = indexmap::IndexMap::new();
+        let params = params.as_map().unwrap_or(&__params_empty);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -2150,7 +2152,7 @@ impl LbankCore {
     m
 })]);
         let mut defaultMethod: Value = self.safe_string_k(options, "method", &[Value::Str("spotPrivatePostSupplementUserInfo".into())]);
-        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod]).as_str().map(str::to_owned);
+        let mut method: Option<String> = (match params.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => defaultMethod }).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
         if (method.as_deref() == Some("spotPrivatePostSupplementUserInfoAccount")) {
             response = self.spot_private_post_supplement_user_info_account(&[]).await;
@@ -4005,6 +4007,8 @@ impl LbankCore {
 
     pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         //
         // * only used for fetchPrivateDepositWithdrawFees
         //
@@ -4032,7 +4036,7 @@ impl LbankCore {
         //    }
         //
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
-        let mut code: Value = self.safe_string_k(currency, "code", &[]);
+        let mut code: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut networkList: Value = self.safe_list_k(fee.clone(), "networkList", &[Value::from(vec![])]);
         {
                         let mut j: Value = Value::Int(0);

@@ -2416,6 +2416,8 @@ impl NadoCore {
 }
 
     pub fn parse_ws_all_bids_asks(&self, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "type": "all_bbo",
@@ -2425,11 +2427,11 @@ impl NadoCore {
         //         }
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(message.clone(), "time", &[]);
-        let mut bbos: Value = self.safe_dict_k(message, "bbos", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut timestamp: Value = (match message.get("time") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
+        let mut bbos: Value = (match message.get("bbos") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut marketIds: Value = object_keys(&bbos);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

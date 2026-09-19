@@ -2444,13 +2444,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn set_api_credentials(&mut self, mut response: Value) -> Value {
+        let __response_empty = indexmap::IndexMap::new();
+        let response = response.as_map().unwrap_or(&__response_empty);
         //
         //     { "apiKey": "...", "walletAddress": "..." }
         //
         let mut creds: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("apiKey".to_string(), self.safe_string_k(response.clone(), "apiKey", &[]));
-                m.insert("walletAddress".to_string(), self.safe_string_k(response, "walletAddress", &[]));
+                m.insert("apiKey".to_string(), (match response.get("apiKey") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
+                m.insert("walletAddress".to_string(), (match response.get("walletAddress") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
             m
         });
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("apiKey".to_string(), match &creds { Value::Dict(__m15) => __m15.get("apiKey").cloned().unwrap_or(Value::Null), _ => Value::Null }); }

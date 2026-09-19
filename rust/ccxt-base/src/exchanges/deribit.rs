@@ -1572,13 +1572,15 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __params_empty = indexmap::IndexMap::new();
+        let params = params.as_map().unwrap_or(&__params_empty);
         let mut defaultCode: Value = self.safe_string_k(self.options.clone(), "code", &[Value::Str("BTC".into())]);
         let mut options: Value = self.safe_dict(self.options.clone(), methodName, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut code: Value = self.safe_string_k(options, "code", &[defaultCode]);
-        return self.safe_string_k(params, "code", &[code]);
+        return (match params.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => code });
 
     Value::Null
 }
@@ -4243,6 +4245,8 @@ impl DeribitCore {
 }
 
     pub fn parse_volatility_history(&self, mut volatility: Value) -> Value {
+        let __volatility_empty = indexmap::IndexMap::new();
+        let volatility = volatility.as_map().unwrap_or(&__volatility_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4257,7 +4261,7 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut volatilityResult: Value = self.safe_list_k(volatility, "result", &[Value::from(vec![])]);
+        let mut volatilityResult: Value = (match volatility.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);

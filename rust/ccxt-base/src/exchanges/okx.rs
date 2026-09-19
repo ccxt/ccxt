@@ -10102,11 +10102,13 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __params_empty = indexmap::IndexMap::new();
+        let params = params.as_map().unwrap_or(&__params_empty);
         let mut accounts: Value = self.fetch_accounts(&[]).await;
         let mut length: f64 = ((accounts.len() as i64) as f64);
         let mut selectedAccount: Value = Value::Null;
         if length > ((1i64) as f64) {
-            let mut accountId: Value = self.safe_string_k(params.clone(), "accountId", &[]);
+            let mut accountId: Value = (match params.get("accountId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
             if (accountId == Value::Null) {
                 let mut accountIds: Value = self.get_list_from_object_values(accounts.clone(), Value::Str("id".into()));
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: ".into())).into()), join(&accountIds, &Value::Str(", ".into())))));

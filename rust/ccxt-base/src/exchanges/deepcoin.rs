@@ -1524,9 +1524,11 @@ impl DeepcoinCore {
 }
 
     pub fn get_product_group_from_market(&self, mut market: Value) -> Value {
+        let __market_empty = indexmap::IndexMap::new();
+        let market = market.as_map().unwrap_or(&__market_empty);
         let mut productGroup: Value = Value::Str("Spot".into());
-        if (self.safe_bool_k(market.clone(), "swap", &[]).as_bool() == Some(true)) {
-            if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true)) {
+        if ((match market.get("swap") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool() == Some(true)) {
+            if ((match market.get("linear") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool() == Some(true)) {
                 productGroup = Value::Str("SwapU".into());
             }  else {
                 productGroup = Value::Str("Swap".into());
@@ -2020,6 +2022,8 @@ impl DeepcoinCore {
 
     pub fn parse_deposit_address(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         //
         //     {
         //         "chain": "TRC20",
@@ -2041,7 +2045,7 @@ impl DeepcoinCore {
         let mut chain: Value = self.safe_string_k(response.clone(), "chain", &[]);
         let mut address: Value = self.safe_string_k(response.clone(), "address", &[]);
         self.check_address(&[address.clone()]);
-        let mut code: Value = self.safe_string_k(currency, "code", &[]);
+        let mut code: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());

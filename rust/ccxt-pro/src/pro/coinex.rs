@@ -370,6 +370,8 @@ impl CoinexCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //  spot
         //
@@ -426,10 +428,10 @@ impl CoinexCore {
         //     }
         //
         let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut rawTickers: Value = self.safe_list_k(data, "state_list", &[Value::from(vec![])]);
         let mut newTickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -591,6 +593,8 @@ impl CoinexCore {
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // spot
         //
@@ -636,10 +640,10 @@ impl CoinexCore {
                 m
             });
         }
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut balances: Value = self.safe_list_k(data, "balance_list", &[Value::from(vec![])]);
         let mut firstEntry: Value = balances.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut updated: Option<i64> = self.safe_integer_k(firstEntry.clone(), "updated_at", &[]).as_i64();
@@ -807,6 +811,8 @@ impl CoinexCore {
 }
 
     pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "method": "user_deals.update",
@@ -826,10 +832,10 @@ impl CoinexCore {
         //         "id": null
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut marketId: Value = self.safe_string_k(data.clone(), "market", &[]);
         let mut isSpot: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
         let mut defaultType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
@@ -851,6 +857,8 @@ impl CoinexCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // spot
         //
@@ -890,10 +898,10 @@ impl CoinexCore {
         //         "id": null
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut trades: Value = self.safe_list_k(data.clone(), "deal_list", &[Value::from(vec![])]);
         let mut marketId: Value = self.safe_string_k(data, "market", &[]);
         let mut isSpot: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
@@ -1303,6 +1311,8 @@ impl CoinexCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "method": "depth.update",
@@ -1332,10 +1342,10 @@ impl CoinexCore {
         //
         let mut isSpot: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
         let mut defaultType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut depth: Value = self.safe_dict_k(data.clone(), "depth", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1446,6 +1456,8 @@ impl CoinexCore {
 }
 
     pub fn handle_orders(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // spot
         //
@@ -1562,10 +1574,10 @@ impl CoinexCore {
         //         "id": null
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let __ws_arg_3 = self.safe_string_k(data.clone(), "event", &[]);
         let __ws_arg_4 = self.safe_dict2(data, Value::Str("order".into()), Value::Str("stop".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1808,6 +1820,8 @@ impl CoinexCore {
 }
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "method": "bbo.update",
@@ -1822,10 +1836,10 @@ impl CoinexCore {
         //         "id": null
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut parsedTicker: Value = self.parse_ws_bid_ask(data, &[]);
         let mut symbol: Value = parsedTicker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         add_element_to_object(&mut self.bidsasks, &symbol, parsedTicker.clone());
@@ -1958,7 +1972,9 @@ impl CoinexCore {
 }
 
     pub fn handle_subscription_status(&self, mut client: Value, mut message: Value) {
-        let mut id: Value = self.safe_integer_k(message.clone(), "id", &[]);
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
+        let mut id: Value = (match message.get("id") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), id.clone(), &[]);
         if (subscription != Value::Null) {
             let mut futureIndex: Value = self.safe_string_k(subscription, "future", &[]);

@@ -606,6 +606,8 @@ impl LighterCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // watchTicker
         //     {
@@ -657,11 +659,11 @@ impl LighterCore {
         //     "type": "update/market_stats"
         // }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "market_stats", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut channel: Option<String> = self.safe_string_k(message, "channel", &[]).as_str().map(str::to_owned);
+        let mut data: Value = (match message.get("market_stats") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (channel.as_deref() == Some("market_stats:all")) {
             let mut marketIds: Value = object_keys(&data);
             {
@@ -1424,6 +1426,8 @@ impl LighterCore {
 }
 
     pub fn handle_liquidation(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "channel": "trade:0",
@@ -1460,8 +1464,8 @@ impl LighterCore {
         //         "type": "subscribed/trade"
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "liquidation_trades", &[Value::from(vec![])]);
-        let mut channel: Value = self.safe_string_k(message, "channel", &[Value::Str("".into())]);
+        let mut data: Value = (match message.get("liquidation_trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut parts: Value = split(&channel, &Value::Str(":".into()));
         let mut marketId: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.safe_market(&[marketId]);
@@ -2104,6 +2108,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_un_subscription(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "type": "unsubscribed",
@@ -2114,7 +2120,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // subscribe arity was: "account_orders/{marketId}/{accountIndex}" acks and errors as
         // "account_orders:{marketId}", so parts[1] is the market id on every family below
         //
-        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".into())]);
+        let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut parts: Value = split(&channel, &Value::Str(":".into()));
         let mut name: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().map(str::to_owned);
         let mut channelId: Value = self.safe_string(parts, Value::Int(1), &[]);

@@ -766,6 +766,8 @@ impl AlpacaCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "stream": "trade_updates",
@@ -811,10 +813,10 @@ impl AlpacaCore {
         //        }
         //      }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut rawOrder: Value = self.safe_dict_k(data, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -833,6 +835,8 @@ impl AlpacaCore {
 }
 
     pub fn handle_my_trade(&self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "stream": "trade_updates",
@@ -878,10 +882,10 @@ impl AlpacaCore {
         //        }
         //      }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut event: Option<String> = self.safe_string_k(data.clone(), "event", &[]).as_str().map(str::to_owned);
         if (event.as_deref() != Some("fill")) && (event.as_deref() != Some("partial_fill")) {
             return;
@@ -1016,6 +1020,8 @@ impl AlpacaCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "T": "error",
@@ -1023,11 +1029,11 @@ impl AlpacaCore {
         //        "msg": "invalid syntax"
         //    }
         //
-        let mut code: Value = self.safe_string_k(message.clone(), "code", &[]);
-        let mut msg: Value = self.safe_value_k(message, "msg", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut code: Value = (match message.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut msg: Value = (match message.get("msg") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" code: ".into())).into()), code).into()), Value::Str(" message: ".into())).into()), &msg)));
 
     Value::Null

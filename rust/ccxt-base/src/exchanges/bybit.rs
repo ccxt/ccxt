@@ -3576,10 +3576,12 @@ impl BybitCore {
 }
 
     pub fn add_pagination_cursor_to_result(&self, mut response: Value) -> Value {
-        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+        let __response_empty = indexmap::IndexMap::new();
+        let response = response.as_map().unwrap_or(&__response_empty);
+        let mut result: Value = (match response.get("result") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+}) });
         let mut data: Value = self.safe_list_n(result.clone(), Value::from(vec![Value::Str("list".into()), Value::Str("rows".into()), Value::Str("data".into()), Value::Str("dataList".into())]), &[Value::from(vec![])]);
         let mut paginationCursor: Value = self.safe_string2(result, Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), &[]);
         let mut dataLength: f64 = ((data.len() as i64) as f64);
@@ -5164,6 +5166,8 @@ impl BybitCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        let __market_empty = indexmap::IndexMap::new();
+        let market = market.as_map().unwrap_or(&__market_empty);
         //
         //     [
         //         "1621162800",
@@ -5175,7 +5179,7 @@ impl BybitCore {
         //         "2.4343353100000003"
         //     ]
         //
-        let mut isInverse: Value = self.safe_bool_k(market.clone(), "inverse", &[]);
+        let mut isInverse: Value = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null });
         let mut volumeIndex: Value = (if (isInverse.as_bool() == Some(true)) { Value::Int(6) } else { Value::Int(5) });
         return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv, volumeIndex, &[])]);
 
@@ -8616,6 +8620,8 @@ impl BybitCore {
 
     pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         //
         //     {
         //         "chainType": "ERC20",
@@ -8626,7 +8632,7 @@ impl BybitCore {
         //
         let mut address: Value = self.safe_string_k(depositAddress.clone(), "addressDeposit", &[]);
         let mut tag: Value = self.safe_string_k(depositAddress.clone(), "tagDeposit", &[]);
-        let mut code: Value = self.safe_string_k(currency, "code", &[]);
+        let mut code: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         self.check_address(&[address.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11200,6 +11206,8 @@ impl BybitCore {
 
     pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         //
         //    {
         //        "name": "BTC",
@@ -11250,7 +11258,7 @@ impl BybitCore {
                 while { if !__for_first_501 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_501 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
                 let mut chain: Value = chains.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[]);
-                let mut currencyCode: Value = self.safe_string_k(currency.clone(), "code", &[]);
+                let mut currencyCode: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
                 let mut networkCode: Value = self.network_id_to_code(&[networkId, currencyCode]);
                 if (networkCode != Value::Null) {
                     add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({

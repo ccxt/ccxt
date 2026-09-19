@@ -2835,11 +2835,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn get_number_of_tests_from_exchange(&self, mut exchange: Value, mut exchangeData: Value, optional_args: &[Value]) -> Value {
         let mut testName = get_arg(optional_args, 0, Value::Null);
+        let __exchangeData_empty = indexmap::IndexMap::new();
+        let exchangeData = exchangeData.as_map().unwrap_or(&__exchangeData_empty);
         if (testName != Value::Null) {
             return Value::Int(1);
         }
         let mut sum: Value = Value::Int(0);
-        let mut methods: Value = exchangeData.as_map().and_then(|__m| __m.get("methods")).cloned().unwrap_or(Value::Null);
+        let mut methods: Value = exchangeData.get("methods").cloned().unwrap_or(Value::Null);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);

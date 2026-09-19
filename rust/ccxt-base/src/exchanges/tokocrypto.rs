@@ -1771,10 +1771,12 @@ impl TokocryptoCore {
  * @returns {boolean} true when the symbol type of the market is known and is not 1
  */
     pub fn is_native_market(&self, mut market: Value) -> Value {
-        let mut marketInfo: Value = self.safe_dict_k(market, "info", &[Value::Map({
+        let __market_empty = indexmap::IndexMap::new();
+        let market = market.as_map().unwrap_or(&__market_empty);
+        let mut marketInfo: Value = (match market.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+}) });
         let mut symbolType: Option<String> = self.safe_string_k(marketInfo, "type", &[]).as_str().map(str::to_owned);
         return Value::Bool((symbolType.is_some()) && (symbolType.as_deref() != Some("1")));
 
@@ -3394,15 +3396,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (matches!(&config, Value::Dict(__d) if __d.contains_key("noCoin"))) && !(matches!(&params, Value::Dict(__d) if __d.contains_key("coin"))) {
-            return config.as_map().and_then(|__m| __m.get("noCoin")).cloned().unwrap_or(Value::Null);
-        }  else if (matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol"))) && !(matches!(&params, Value::Dict(__d) if __d.contains_key("symbol"))) {
-            return config.as_map().and_then(|__m| __m.get("noSymbol")).cloned().unwrap_or(Value::Null);
-        }  else if (matches!(&config, Value::Dict(__d) if __d.contains_key("noPoolId"))) && !(matches!(&params, Value::Dict(__d) if __d.contains_key("poolId"))) {
-            return config.as_map().and_then(|__m| __m.get("noPoolId")).cloned().unwrap_or(Value::Null);
-        }  else if (matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit"))) && (matches!(&params, Value::Dict(__d) if __d.contains_key("limit"))) {
+        let __config_empty = indexmap::IndexMap::new();
+        let config = config.as_map().unwrap_or(&__config_empty);
+        if (config.contains_key("noCoin")) && !(matches!(&params, Value::Dict(__d) if __d.contains_key("coin"))) {
+            return config.get("noCoin").cloned().unwrap_or(Value::Null);
+        }  else if (config.contains_key("noSymbol")) && !(matches!(&params, Value::Dict(__d) if __d.contains_key("symbol"))) {
+            return config.get("noSymbol").cloned().unwrap_or(Value::Null);
+        }  else if (config.contains_key("noPoolId")) && !(matches!(&params, Value::Dict(__d) if __d.contains_key("poolId"))) {
+            return config.get("noPoolId").cloned().unwrap_or(Value::Null);
+        }  else if (config.contains_key("byLimit")) && (matches!(&params, Value::Dict(__d) if __d.contains_key("limit"))) {
             let mut limit: Value = params.as_map().and_then(|__m| __m.get("limit")).cloned().unwrap_or(Value::Null);
-            let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::from(vec![])]);
+            let mut byLimit: Value = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1088: bool = true;
@@ -3414,7 +3418,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        return self.safe_integer_k(config, "cost", &[Value::Int(1)]);
+        return (match config.get("cost") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(1) } }, _ => Value::Int(1) });
 
     Value::Null
 }

@@ -3675,6 +3675,8 @@ impl PoloniexCore {
 }
 
     pub fn parse_deposit_address_special(&self, mut response: Value, mut currency: Value, mut networkEntry: Value) -> Value {
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         let mut address: Value = self.safe_string_k(response.clone(), "address", &[]);
         if (address == Value::Null) {
             address = self.safe_string(response.clone(), networkEntry.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
@@ -3691,7 +3693,7 @@ impl PoloniexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
+        m.insert("currency".to_string(), currency.get("code").cloned().unwrap_or(Value::Null));
         m.insert("network".to_string(), self.safe_string_k(networkEntry, "network", &[]));
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), tag);
@@ -3743,13 +3745,15 @@ impl PoloniexCore {
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(transfer, "transferId", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("currency".to_string(), self.safe_string_k(currency, "id", &[]));
+        m.insert("currency".to_string(), (match currency.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("amount".to_string(), Value::Null);
         m.insert("fromAccount".to_string(), Value::Null);
         m.insert("toAccount".to_string(), Value::Null);
@@ -4052,11 +4056,13 @@ impl PoloniexCore {
 
     pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         let mut depositWithdrawFee: Value = self.deposit_withdraw_fee(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         }));
-        let mut currencyCode: Value = self.safe_string_k(currency.clone(), "code", &[]);
+        let mut currencyCode: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         add_element_to_object(get_value_mut(&mut depositWithdrawFee, &Value::Str("info".into())), &currencyCode, fee.clone());
         let mut networkId: Value = self.safe_string_k(fee.clone(), "blockchain", &[]);
         let mut withdrawFee: Value = self.safe_number_k(fee, "withdrawalFee", &[]);
@@ -4074,7 +4080,7 @@ impl PoloniexCore {
         });
         add_element_to_object(&mut depositWithdrawFee, &Value::Str("withdraw".into()), withdrawResult.clone());
         add_element_to_object(&mut depositWithdrawFee, &Value::Str("deposit".into()), depositResult.clone());
-        let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), self.safe_string_k(currency.clone(), "code", &[])]);
+        let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         if (networkCode != Value::Null) {
             add_element_to_object(get_value_mut(&mut depositWithdrawFee, &Value::Str("networks".into())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();

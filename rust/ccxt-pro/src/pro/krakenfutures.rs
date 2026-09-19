@@ -1314,6 +1314,8 @@ impl KrakenfuturesCore {
 }
 
     pub fn handle_order_snapshot(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // verbose
         //
@@ -1361,10 +1363,10 @@ impl KrakenfuturesCore {
         //            ...
         //        ]
         //    }
-        let mut orders: Value = self.safe_list_k(message.clone(), "orders", &[Value::from(vec![])]);
+        let mut orders: Value = (match message.get("orders") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
         self.orders = ArrayCacheBySymbolById::new(limit);
-        let mut feed: Option<String> = self.safe_string_k(message, "feed", &[]).as_str().map(str::to_owned);
+        let mut feed: Option<String> = (match message.get("feed") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut messageHash: Value = Value::Str("orders".into());
         if (feed.as_deref() == Some("open_orders_verbose_snapshot")) {
             messageHash = Value::Str("orders:verbose".into());
@@ -2013,6 +2015,8 @@ impl KrakenfuturesCore {
 }
 
     pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "feed": "fills_snapshot",
@@ -2038,7 +2042,7 @@ impl KrakenfuturesCore {
         //        ]
         //    }
         //
-        let mut trades: Value = self.safe_list_k(message, "fills", &[Value::from(vec![])]);
+        let mut trades: Value = (match message.get("fills") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut stored: Value = self.myTrades.clone();
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -2201,6 +2205,8 @@ impl KrakenfuturesCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        event: 'alert',
@@ -2211,7 +2217,7 @@ impl KrakenfuturesCore {
         //        message: 'Already subscribed to feed, re-requesting'
         //    }
         //
-        let mut errMsg: Value = self.safe_string_k(message, "message", &[]);
+        let mut errMsg: Value = (match message.get("message") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         // Benign "already subscribed" notice: the original subscription is still
         // active and delivering data on this socket. The generic client.reject
         // below rejects every pending future on the connection, so a stray

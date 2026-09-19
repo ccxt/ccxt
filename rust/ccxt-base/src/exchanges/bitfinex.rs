@@ -1761,17 +1761,19 @@ impl BitfinexCore {
 }
 
     pub fn parse_currency_custom(&self, mut id: Value, mut indexed: Value, mut indexedNetworks: Value) -> Value {
+        let __indexed_empty = indexmap::IndexMap::new();
+        let indexed = indexed.as_map().unwrap_or(&__indexed_empty);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-        let mut label: Value = self.safe_list(indexed.as_map().and_then(|__m| __m.get("label")).cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
+        let mut label: Value = self.safe_list(indexed.get("label").cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
         let mut name: Value = self.safe_string(label.clone(), Value::Int(1), &[]);
-        let mut pool: Value = self.safe_list(indexed.as_map().and_then(|__m| __m.get("pool")).cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
+        let mut pool: Value = self.safe_list(indexed.get("pool").cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
         let mut rawType: Option<String> = self.safe_string(pool.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut isCryptoCoin: bool = (rawType.is_some()) || (in_op(&indexed.as_map().and_then(|__m| __m.get("explorer")).cloned().unwrap_or(Value::Null), &id)); // "hacky" solution
+        let mut isCryptoCoin: bool = (rawType.is_some()) || (in_op(&indexed.get("explorer").cloned().unwrap_or(Value::Null), &id)); // "hacky" solution
         let mut type_var: Value = (if isCryptoCoin { Value::Str("crypto".into()) } else { Value::Null });
-        let mut feeValues: Value = self.safe_list(indexed.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
+        let mut feeValues: Value = self.safe_list(indexed.get("fees").cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
         let mut fees: Value = self.safe_list(feeValues.clone(), Value::Int(1), &[Value::from(vec![])]);
         let mut fee: Value = self.safe_number(fees, Value::Int(1), &[]);
-        let mut undl: Value = self.safe_list(indexed.as_map().and_then(|__m| __m.get("undl")).cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
+        let mut undl: Value = self.safe_list(indexed.get("undl").cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
         let mut defaultCurrencyPrecision: Value = self.safe_string_k(self.options.clone(), "defaultCurrencyPrecision", &[Value::Str("8".into())]); // kept here for backward-compatibility
         // numberToString instead of an `as string` cast: the describe() default for this option is the
         // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
@@ -1794,7 +1796,7 @@ impl BitfinexCore {
                 continue;
             }
             let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            let mut dwStatuses: Value = self.safe_list(indexed.as_map().and_then(|__m| __m.get("statuses")).cloned().unwrap_or(Value::Null), networkId.clone(), &[Value::from(vec![])]);
+            let mut dwStatuses: Value = self.safe_list(indexed.get("statuses").cloned().unwrap_or(Value::Null), networkId.clone(), &[Value::from(vec![])]);
             if (network != Value::Null) {
                 add_element_to_object(&mut networks, &network, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1850,7 +1852,7 @@ impl BitfinexCore {
     m
 }));
         m.insert("networks".to_string(), networks);
-        m.insert("margin".to_string(), self.in_array(id.clone(), indexed.as_map().and_then(|__m| __m.get("marginables")).cloned().unwrap_or(Value::Null)));
+        m.insert("margin".to_string(), self.in_array(id.clone(), indexed.get("marginables").cloned().unwrap_or(Value::Null)));
     m
 }));
 
@@ -2016,6 +2018,8 @@ impl BitfinexCore {
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        let __transfer_empty = indexmap::IndexMap::new();
+        let transfer = transfer.as_map().unwrap_or(&__transfer_empty);
         //
         // transfer
         //
@@ -2039,7 +2043,7 @@ impl BitfinexCore {
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     ]
         //
-        let mut result: Value = self.safe_list_k(transfer, "result", &[]);
+        let mut result: Value = (match transfer.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         let mut timestamp: Value = self.safe_integer(result.clone(), Value::Int(0), &[]);
         let mut info: Value = self.safe_list(result.clone(), Value::Int(4), &[]);
         let mut fromAccount: Value = self.safe_string(info.clone(), Value::Int(1), &[]);
@@ -2077,12 +2081,14 @@ impl BitfinexCore {
 }
 
     pub fn convert_derivatives_id(&self, mut currency: Value, mut type_var: Value) -> Value {
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
         //   "id": "fUSTF0",
         //   "code": "USTF0",
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
-        let mut info: Value = self.safe_list_k(currency, "info", &[]);
+        let mut info: Value = (match currency.get("info") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         let mut transferId: Value = self.safe_string(info.clone(), Value::Int(0), &[]);
         let mut underlying: Value = self.safe_list(info, Value::Int(4), &[Value::from(vec![])]);
         let mut currencyId: Value = Value::Null;
@@ -2355,6 +2361,8 @@ impl BitfinexCore {
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        let __trade_empty = indexmap::IndexMap::new();
+        let trade = trade.as_map().unwrap_or(&__trade_empty);
         //
         // fetchTrades (public)
         //
@@ -2382,7 +2390,7 @@ impl BitfinexCore {
         //         ...
         //     ]
         //
-        let mut tradeList: Value = self.safe_list_k(trade, "result", &[Value::from(vec![])]);
+        let mut tradeList: Value = (match trade.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut tradeLength: f64 = ((tradeList.len() as i64) as f64);
         let mut isPrivate: bool = tradeLength > ((5i64) as f64);
         let mut id: Value = self.safe_string(tradeList.clone(), Value::Int(0), &[]);
@@ -2636,7 +2644,9 @@ impl BitfinexCore {
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut orderList: Value = self.safe_list_k(order, "result", &[]);
+        let __order_empty = indexmap::IndexMap::new();
+        let order = order.as_map().unwrap_or(&__order_empty);
+        let mut orderList: Value = (match order.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         let mut id: Value = self.safe_string(orderList.clone(), Value::Int(0), &[]);
         let mut marketId: Value = self.safe_string(orderList.clone(), Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
@@ -4232,6 +4242,8 @@ impl BitfinexCore {
 
     pub fn parse_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        let __position_empty = indexmap::IndexMap::new();
+        let position = position.as_map().unwrap_or(&__position_empty);
         //
         //    [
         //        "tBTCUSD",                    // SYMBOL
@@ -4264,7 +4276,7 @@ impl BitfinexCore {
         //        }
         //    ]
         //
-        let mut positionList: Value = self.safe_list_k(position, "result", &[]);
+        let mut positionList: Value = (match position.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         let mut marketId: Value = self.safe_string(positionList.clone(), Value::Int(0), &[]);
         let mut amount: Value = self.safe_string(positionList.clone(), Value::Int(2), &[]);
         let mut timestamp: Value = self.safe_integer(positionList.clone(), Value::Int(12), &[]);

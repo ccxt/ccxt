@@ -2529,6 +2529,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn parse_spot_market(&self, mut market: Value, mut feeTier: Value) -> Value {
+        let __feeTier_empty = indexmap::IndexMap::new();
+        let feeTier = feeTier.as_map().unwrap_or(&__feeTier_empty);
         //
         //         {
         //             "product_id": "TONE-USD",
@@ -2570,8 +2572,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut stablePairs: Value = self.safe_list_k(self.options.clone(), "stablePairs", &[Value::from(vec![])]);
         let mut defaultTakerFee: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]);
         let mut defaultMakerFee: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]);
-        let mut takerFee: Value = (if is_true(&self.in_array(id.clone(), stablePairs.clone())) { Value::Float(0.00001) } else { self.safe_number_k(feeTier.clone(), "taker_fee_rate", &[defaultTakerFee]) });
-        let mut makerFee: Value = (if is_true(&self.in_array(id.clone(), stablePairs)) { Value::Int(0) } else { self.safe_number_k(feeTier, "maker_fee_rate", &[defaultMakerFee]) });
+        let mut takerFee: Value = (if is_true(&self.in_array(id.clone(), stablePairs.clone())) { Value::Float(0.00001) } else { (match feeTier.get("taker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => defaultTakerFee }, _ => defaultTakerFee }) });
+        let mut makerFee: Value = (if is_true(&self.in_array(id.clone(), stablePairs)) { Value::Int(0) } else { (match feeTier.get("maker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => defaultMakerFee }, _ => defaultMakerFee }) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -2642,6 +2644,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn parse_contract_market(&self, mut market: Value, mut feeTier: Value) -> Value {
+        let __feeTier_empty = indexmap::IndexMap::new();
+        let feeTier = feeTier.as_map().unwrap_or(&__feeTier_empty);
         // expiring
         //
         //        {
@@ -2784,8 +2788,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             type_var = Value::Str("future".into());
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), quote).into()), Value::Str("-".into())).into()), self.yymmdd(expireTimestamp.clone(), &[])).into());
         }
-        let mut takerFeeRate: Value = self.safe_number_k(feeTier.clone(), "taker_fee_rate", &[]);
-        let mut makerFeeRate: Value = self.safe_number_k(feeTier, "maker_fee_rate", &[]);
+        let mut takerFeeRate: Value = (match feeTier.get("taker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null });
+        let mut makerFeeRate: Value = (match feeTier.get("maker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null });
         let mut taker: Value = (if ((takerFeeRate != Value::Null) && (takerFeeRate != Value::Null) && (takerFeeRate.as_f64() != Some(0.0))) { takerFeeRate } else { self.parse_number(Value::Str("0.06".into()), &[]) });
         let mut maker: Value = (if ((makerFeeRate != Value::Null) && (makerFeeRate != Value::Null) && (makerFeeRate.as_f64() != Some(0.0))) { makerFeeRate } else { self.parse_number(Value::Str("0.04".into()), &[]) });
         return self.safe_market_structure(&[Value::Map({
@@ -3553,9 +3557,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __params_empty = indexmap::IndexMap::new();
+        let params = params.as_map().unwrap_or(&__params_empty);
         let mut balances: Value = self.safe_list2(response.clone(), Value::Str("data".into()), Value::Str("accounts".into()), &[Value::from(vec![])]);
-        let mut accounts: Value = self.safe_list_k(params.clone(), "type", &[self.options.as_map().and_then(|__m| __m.get("accounts")).cloned().unwrap_or(Value::Null)]);
-        let mut v3Accounts: Value = self.safe_list_k(params.clone(), "type", &[self.options.as_map().and_then(|__m| __m.get("v3Accounts")).cloned().unwrap_or(Value::Null)]);
+        let mut accounts: Value = (match params.get("type") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => self.options.as_map().and_then(|__m| __m.get("accounts")).cloned().unwrap_or(Value::Null) });
+        let mut v3Accounts: Value = (match params.get("type") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => self.options.as_map().and_then(|__m| __m.get("v3Accounts")).cloned().unwrap_or(Value::Null) });
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -6884,7 +6890,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn parse_portfolio_details(&self, mut portfolioData: Value) -> Value {
-        let mut breakdown: Value = portfolioData.as_map().and_then(|__m| __m.get("breakdown")).cloned().unwrap_or(Value::Null);
+        let __portfolioData_empty = indexmap::IndexMap::new();
+        let portfolioData = portfolioData.as_map().unwrap_or(&__portfolioData_empty);
+        let mut breakdown: Value = portfolioData.get("breakdown").cloned().unwrap_or(Value::Null);
         let mut portfolioInfo: Value = self.safe_dict_k(breakdown.clone(), "portfolio", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

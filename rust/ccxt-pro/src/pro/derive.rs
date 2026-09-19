@@ -387,6 +387,8 @@ impl DeriveCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // {
         //     method: 'subscription',
@@ -402,7 +404,7 @@ impl DeriveCore {
         //     }
         // }
         //
-        let mut params: Value = self.safe_dict_k(message, "params", &[]);
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -597,10 +599,12 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __params_empty = indexmap::IndexMap::new();
+        let params = params.as_map().unwrap_or(&__params_empty);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut limit: Value = self.safe_integer_k(params, "limit", &[]);
+        let mut limit: Value = (match params.get("limit") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         if (limit == Value::Null) {
             limit = Value::Int(10);
         }
@@ -799,9 +803,11 @@ impl DeriveCore {
 }
 
     pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //
-        let mut params: Value = self.safe_dict_k(message, "params", &[]);
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -949,6 +955,8 @@ impl DeriveCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // {
         //     method: 'subscription',
@@ -990,7 +998,7 @@ impl DeriveCore {
         //     }
         // }
         //
-        let mut params: Value = self.safe_dict_k(message, "params", &[]);
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
         let mut rawOrders: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
         {

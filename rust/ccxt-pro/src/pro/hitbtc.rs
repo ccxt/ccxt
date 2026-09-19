@@ -757,6 +757,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "ch": "ticker/1s",
@@ -795,10 +797,10 @@ impl HitbtcCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut marketIds: Value = object_keys(&data);
         let mut result: Value = Value::from(vec![]);
         let mut topic: Value = Value::Str("tickers".into());
@@ -938,6 +940,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
@@ -952,10 +956,10 @@ impl HitbtcCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut marketIds: Value = object_keys(&data);
         let mut result: Value = Value::from(vec![]);
         let mut topic: Value = Value::Str("bidask".into());
@@ -1437,12 +1441,14 @@ impl HitbtcCore {
 }
 
     pub fn handle_order_helper(&self, mut client: Value, mut message: Value, mut order: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         let mut orders: Value = self.orders.clone();
         if (orders == Value::Null) {
             return;
         }
         let mut marketId: Value = self.safe_string_lower2(order.clone(), Value::Str("instrument".into()), Value::Str("symbol".into()), &[]);
-        let mut method: Value = self.safe_string_k(message, "method", &[Value::Str("".into())]);
+        let mut method: Value = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut splitMethod: Value = split(&method, &Value::Str("_order".into()));
         let mut messageHash: Value = self.safe_string(splitMethod, Value::Int(0), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
@@ -1817,6 +1823,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1832,8 +1840,8 @@ impl HitbtcCore {
         //        ]
         //    }
         //
-        let mut messageHash: Value = self.safe_string_k(message.clone(), "method", &[]);
-        let mut params: Value = self.safe_value_k(message, "params", &[]);
+        let mut messageHash: Value = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut params: Value = (match message.get("params") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         let mut balance: Value = self.parse_balance(params);
         { let __t = self.deep_extend(self.balance.clone(), &[balance.clone()]); self.balance = __t; }
         client.resolve(&[self.balance.clone(), messageHash]);
@@ -1981,6 +1989,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_error(&self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        jsonrpc: '2.0',
@@ -1992,7 +2002,7 @@ impl HitbtcCore {
         //        id: 1700228604325
         //    }
         //
-        let mut error: Value = self.safe_dict_k(message.clone(), "error", &[]);
+        let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (error != Value::Null) {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut code: Value = self.safe_value_k(error.clone(), "code", &[]);
@@ -2011,7 +2021,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                     }
                 }  else {
-                    let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
+                    let mut id: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
                     client.reject(&[e, id.clone()]);
                 }
                 return Value::Bool(true);

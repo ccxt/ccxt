@@ -404,6 +404,8 @@ impl ApexCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "topic": "recentlyTrade.H.BTCUSDT",
@@ -424,8 +426,8 @@ impl ApexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
-        let mut topic: Value = self.safe_string_k(message, "topic", &[]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut trades: Value = data;
         let mut parts: Value = split(&topic, &Value::Str(".".into()));
         let mut marketId: Value = self.safe_string(parts, Value::Int(2), &[]);
@@ -922,6 +924,8 @@ impl ApexCore {
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "topic": "candle.5.BTCUSDT",
@@ -944,8 +948,8 @@ impl ApexCore {
         //         "type": "snapshot"
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
-        let mut topic: Value = self.safe_string_k(message, "topic", &[]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut topicParts: Value = split(&topic, &Value::Str(".".into()));
         let mut topicLength: Value = Value::Int(topicParts.len() as i64);
         let mut timeframeId: Value = self.safe_string(topicParts.clone(), Value::Int(1), &[]);
@@ -1585,10 +1589,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_account(&mut self, mut client: Value, mut message: Value) {
-        let mut contents: Value = self.safe_dict_k(message.clone(), "contents", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
+        let mut contents: Value = (match message.get("contents") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut fills: Value = self.safe_list_k(contents.clone(), "fills", &[Value::from(vec![])]);
         if (fills != Value::Null) {
             self.handle_my_trades(client.clone(), fills);

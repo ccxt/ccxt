@@ -1305,6 +1305,8 @@ impl CoinbaseexchangeCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // first message (snapshot)
         //
@@ -1330,8 +1332,8 @@ impl CoinbaseexchangeCore {
         //         ]
         //     }
         //
-        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
+        let mut type_var: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut marketId: Value = (match message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("-".into())]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut name: Value = Value::Str("level2".into());
@@ -1347,16 +1349,16 @@ impl CoinbaseexchangeCore {
     m
 }), limit]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-            self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), self.safe_list_k(message.clone(), "asks", &[Value::from(vec![])]));
-            self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), self.safe_list_k(message.clone(), "bids", &[Value::from(vec![])]));
+            self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), (match message.get("asks") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
+            self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), (match message.get("bids") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), Value::Null);
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), Value::Null);
             add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
         }  else if (type_var.as_deref() == Some("l2update")) {
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-            let mut timestamp: Value = self.parse8601(self.safe_string_k(message.clone(), "time", &[]));
-            let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::from(vec![])]);
+            let mut timestamp: Value = self.parse8601((match message.get("time") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
+            let mut changes: Value = (match message.get("changes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
             let mut sides: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("sell".to_string(), Value::Str("asks".into()));
@@ -1389,6 +1391,8 @@ impl CoinbaseexchangeCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "type": "error",
@@ -1404,8 +1408,8 @@ impl CoinbaseexchangeCore {
         //         "reason": "{"message":"Invalid API Key"}"
         //     }
         //
-        let mut errMsg: Option<String> = self.safe_string_k(message.clone(), "message", &[]).as_str().map(str::to_owned);
-        let mut reason: Value = self.safe_string_k(message.clone(), "reason", &[]);
+        let mut errMsg: Option<String> = (match message.get("message") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut reason: Value = (match message.get("reason") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (errMsg.as_deref() == Some("Authentication Failed")) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str("Authentication failed: ".into()), reason)));

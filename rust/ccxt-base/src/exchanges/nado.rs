@@ -3509,8 +3509,10 @@ impl NadoCore {
 }
 
     pub fn is_archive_order_closed(&self, mut order: Value) -> Value {
-        let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
-        let mut filled: Value = self.safe_string_k(order, "base_filled", &[]);
+        let __order_empty = indexmap::IndexMap::new();
+        let order = order.as_map().unwrap_or(&__order_empty);
+        let mut amount: Value = (match order.get("amount") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut filled: Value = (match order.get("base_filled") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (amount == Value::Null) || (filled == Value::Null) {
             return Value::Bool(false);
         }
