@@ -1355,7 +1355,7 @@ impl CexCore {
             if is_true(&useKeyAsId) {
                 market = self.safe_market(&[key.clone()]);
             }
-            let mut parsed: Value = self.parse_trading_fee(get_value(&response, &key), &[market.clone()]);
+            let mut parsed: Value = self.parse_trading_fee(response.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market.clone()]);
             if (parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) != Value::Null) {
                 add_element_to_object(&mut result, &parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), parsed.clone());
             }

@@ -934,7 +934,7 @@ impl BitflyerCore {
         if (side != Value::Null) {
             let mut idInner: Value = Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".to_string())));
             if (in_op(&trade, &idInner)) {
-                order = get_value(&trade, &idInner);
+                order = trade.as_map().and_then(|__m| idInner.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             }
         }
         if (order == Value::Null) {
