@@ -226,9 +226,7 @@ export default class p2b extends p2bRest {
         const query = this.extend (subscribe, params);
         const trades = await this.watchMultiple (url, messageHashes, query, messageHashes);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limit = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }

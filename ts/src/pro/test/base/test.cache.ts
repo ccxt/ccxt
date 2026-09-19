@@ -674,6 +674,18 @@ function testWsCache () {
     cacheEvictSeen.append ({ 'symbol': 'BTC/USDT', 'id': 'd', 'i': 4 }); // evicts id b
     const evictGlobalCount = cacheEvictSeen.getLimit (undefined, 100);
     assert (evictGlobalCount === 2); // ids c and d - the counts track distinct ids within the retained window in both scopes
+
+    // ----------------------------------------------------------------------------
+    // multi-symbol trade streams sharing one ArrayCache: getLimit (undefined, limit)
+    // returns all new trades across all symbols without accumulating unread counts
+
+    const multiSymbolCache = new ArrayCache ();
+    multiSymbolCache.append ({ 'symbol': 'BTC/USDT', 'id': '1' });
+    multiSymbolCache.append ({ 'symbol': 'ETH/USDT', 'id': '2' });
+    assert (multiSymbolCache.getLimit (undefined, 10) === 2);
+
+    multiSymbolCache.append ({ 'symbol': 'LTC/USDT', 'id': '3' });
+    assert (multiSymbolCache.getLimit (undefined, 10) === 1);
 }
 
 export default testWsCache;

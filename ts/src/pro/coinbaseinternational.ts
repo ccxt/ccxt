@@ -554,9 +554,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const trades = await this.subscribeMultiple ('MATCH', symbols, params);
         if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limit = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
