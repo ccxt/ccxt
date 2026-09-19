@@ -242,6 +242,7 @@ function main() {
     const languageSpecificFile = './go/tests/base/test.languageSpecific.go';
     if (fs.existsSync(languageSpecificFile)) {
         let fileContent = fs.readFileSync(languageSpecificFile, 'utf-8');
+        // Match only a standalone call line; leave calls inside compound statements untouched.
         const regex = /^[\t ]*TestStructs\(\);?[\t ]*(?:\r?\n|$)/m;
         fileContent = fileContent.replace(regex, '');
         fs.writeFileSync(languageSpecificFile, fileContent);
