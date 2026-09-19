@@ -1335,10 +1335,10 @@ func (this *Bittrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit // 1-100 orders, default is 100
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start-time"] = since // a date within 120 days from today
 	}
 
@@ -1383,7 +1383,7 @@ func (this *Bittrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = mathMin(limit, 2000)
 	}
 
@@ -1482,7 +1482,7 @@ func (this *Bittrade) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": GetValue(market, "id"),
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = mathMin(limit, 2000)
 	}
 
@@ -2004,7 +2004,7 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan any, optionalArgs ...any) an
 		}
 	}
 	request["account-id"] = accountId
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit
 	}
 	var omitted any = this.Omit(params, "account-id")
@@ -2232,7 +2232,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side
 		if cost != nil {
 			quoteAmount = this.AmountToPrecision(symbol, cost)
 		} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-			if IsEqual(price, nil) {
+			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
 				// despite that cost = amount * price is in quote currency and should have quote precision
@@ -2568,7 +2568,7 @@ func (this *Bittrade) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(limit, nil) || IsGreaterThan(limit, 100) {
+	if (limit == nil) || IsGreaterThan(limit, 100) {
 		limit = 100
 	}
 	if this.Markets == nil {
@@ -2587,7 +2587,7 @@ func (this *Bittrade) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(currency, nil) {
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit // max 100
 	}
 
@@ -2626,7 +2626,7 @@ func (this *Bittrade) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(limit, nil) || IsGreaterThan(limit, 100) {
+	if (limit == nil) || IsGreaterThan(limit, 100) {
 		limit = 100
 	}
 	if this.Markets == nil {
@@ -2645,7 +2645,7 @@ func (this *Bittrade) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	if !IsEqual(currency, nil) {
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit // max 100
 	}
 

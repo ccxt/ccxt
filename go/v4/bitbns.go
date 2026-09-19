@@ -502,7 +502,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
 	}
 
@@ -1262,7 +1262,7 @@ func (this *Bitbns) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"symbol": GetValue(market, "id"),
 		"page":   0,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = this.Iso8601(since)
 	}
 

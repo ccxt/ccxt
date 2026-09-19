@@ -915,7 +915,7 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ..
 		request["primaryCurrencyCode"] = GetValue(market, "baseId")
 		request["secondaryCurrencyCode"] = GetValue(market, "quoteId")
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 50
 	}
 	request["pageIndex"] = 1
@@ -967,7 +967,7 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs 
 		request["primaryCurrencyCode"] = GetValue(market, "baseId")
 		request["secondaryCurrencyCode"] = GetValue(market, "quoteId")
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 50
 	}
 	request["pageIndex"] = 1
@@ -1013,7 +1013,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 		PanicOnError(retRes78112)
 	}
 	var pageIndex *int64 = this.SafeInteger(params, "pageIndex", 1)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 50
 	}
 	var request map[string]any = map[string]any{

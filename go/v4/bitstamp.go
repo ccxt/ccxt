@@ -2008,8 +2008,8 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"step": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration any = this.ParseTimeframe(timeframe)
-	if IsEqual(limit, nil) {
-		if IsEqual(since, nil) {
+	if limit == nil {
+		if since == nil {
 			request["limit"] = 1000 // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
 		} else {
 			limit = 1000
@@ -2019,7 +2019,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 			request["limit"] = limit
 		}
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			var start int64 = this.ParseToInt(Divide(since, 1000))
 			request["start"] = start
 			request["end"] = this.Sum(start, Multiply(duration, (Subtract(limit, 1))))
@@ -2788,7 +2788,7 @@ func (this *Bitstamp) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["pair"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil
@@ -2859,13 +2859,13 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		market = this.Market(symbol)
 		AddElementToObject(request, "pair", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "since_timestamp", MathRound(Divide(since, 1000)))
 	}
 	requestparamsVariable := this.HandleUntilOption("until_timestamp", request, params, 0.001)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -2939,7 +2939,7 @@ func (this *Bitstamp) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 		PanicOnError(retRes200012)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -3014,7 +3014,7 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes205412)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["timedelta"] = Subtract(this.Milliseconds(), since)
 	} else {
 		request["timedelta"] = 50000000 // use max bitstamp approved value
@@ -3449,7 +3449,7 @@ func (this *Bitstamp) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes244712)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

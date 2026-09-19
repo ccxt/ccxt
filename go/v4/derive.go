@@ -1354,13 +1354,13 @@ func (this *Derive) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsGreaterThan(limit, 1000) {
 			limit = 1000
 		}
 		request["page_size"] = limit // default 100, max 1000
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1528,7 +1528,7 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1719,7 +1719,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		PanicOnError(retRes126712)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(price, nil) {
+	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
 	var subaccountId any = nil
@@ -2323,7 +2323,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	} else {
 		request["page_size"] = 500
@@ -2720,10 +2720,10 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from_timestamp"] = since
 	}
 
@@ -2829,10 +2829,10 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from_timestamp"] = since
 	}
 
@@ -3108,10 +3108,10 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_timestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
 
@@ -3344,7 +3344,7 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_timestamp"] = since
 	}
 
@@ -3416,7 +3416,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_timestamp"] = since
 	}
 

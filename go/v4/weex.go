@@ -1805,7 +1805,7 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if (!IsEqual(limit, nil)) && (IsGreaterThan(limit, 15)) {
+	if (limit != nil) && (IsGreaterThan(limit, 15)) {
 		request["limit"] = 200 // default is 15, max is 200
 	}
 	var response any = nil
@@ -2013,7 +2013,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 	var priceType *string = this.SafeStringUpper(params, "price")
 	params = this.Omit(params, []any{"historical", "until", "price"})
 	var response any = nil
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		limit = mathMin(limit, 1000) // hardcap threshold
 	}
 	if EvalTruthy(historical) {
@@ -2022,20 +2022,20 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 		}
 		var startTime any = since
 		var endTime any = until
-		if (IsEqual(since, nil)) || (until == nil) {
+		if (since == nil) || (until == nil) {
 			var now int64 = this.Milliseconds()
 			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 			var numberOfCandles any = func() any {
-				if !IsEqual(limit, nil) && !IsEqual(limit, nil) && (!IsEqual(limit, 0)) {
+				if (limit != nil) && (!IsEqual(limit, 0)) {
 					return limit
 				}
 				return maxHistoricalLimit
 			}()
 			var timeDelta any = Multiply(numberOfCandles, duration)
-			if (IsEqual(since, nil)) && (until == nil) {
+			if (since == nil) && (until == nil) {
 				endTime = now
 				startTime = Subtract(now, timeDelta)
-			} else if IsEqual(since, nil) {
+			} else if since == nil {
 				if until == nil {
 					panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a since or until argument"))
 				}
@@ -2050,7 +2050,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 		response = (<-this.ContractGetCapiV3MarketHistoryKlines(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 		if priceType != nil && *priceType == "MARK" {
@@ -2112,7 +2112,7 @@ func (this *Weex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
 	var response any = nil
@@ -2464,10 +2464,10 @@ func (this *Weex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -2667,10 +2667,10 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes212519
 		return nil
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "after", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("before", request, params)
@@ -3523,10 +3523,10 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetApiV3OpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "startTime", since)
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			AddElementToObject(request, "limit", limit)
 		}
 		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -3787,10 +3787,10 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, maxLimit))
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -3887,10 +3887,10 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	if symbol != nil {
 		AddElementToObject(request, "symbol", this.ToSandboxMarketId(market))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -4256,10 +4256,10 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -4384,10 +4384,10 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		if !IsEqual(currency, nil) {
 			AddElementToObject(request, "currency", GetValue(currency, "id"))
 		}
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "startTime", since)
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			AddElementToObject(request, "limit", limit)
 		}
 		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -4398,10 +4398,10 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(contractResponse)
 		items = this.SafeList(contractResponse, "items", []any{})
 	} else if IsEqual(accountType, "funding") {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "startTime", since)
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			AddElementToObject(request, "pageSize", limit)
 		}
 		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -4412,10 +4412,10 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(fundingResponse)
 		items = this.SafeList(fundingResponse, "items", []any{})
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "after", since)
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			AddElementToObject(request, "limit", limit)
 		}
 		requestparamsVariable := this.HandleUntilOption("before", request, params)
@@ -4596,10 +4596,10 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		}
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)

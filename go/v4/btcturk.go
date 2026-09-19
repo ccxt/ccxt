@@ -780,7 +780,7 @@ func (this *Btcturk) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"pairSymbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["last"] = limit
 	}
 
@@ -869,19 +869,19 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	request["to"] = this.ParseToInt((Divide(until, 1000)))
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = this.ParseToInt(Divide(since, 1000))
-	} else if IsEqual(limit, nil) {
+	} else if limit == nil {
 		limit = 100 // default value
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		limit = mathMin(limit, 11000) // max 11000 candles diapason can be covered
 		if IsEqual(timeframe, "1y") {
 			panic(BadRequest(this.Id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\""))
 		}
 		var seconds any = this.ParseTimeframe(timeframe)
 		var limitSeconds any = Multiply(seconds, (Subtract(limit, 1)))
-		if !IsEqual(since, nil) {
+		if since != nil {
 			var to any = Add(this.ParseToInt(Divide(since, 1000)), limitSeconds)
 			request["to"] = mathMin(request["to"], to)
 		} else {
@@ -1144,11 +1144,11 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"pairSymbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		// default 100 max 1000
 		request["last"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = MathFloor(Divide(since, 1000))
 	}
 

@@ -1222,7 +1222,7 @@ func (this *Kraken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit // 100
 	}
 
@@ -1479,7 +1479,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	} else {
 		request["interval"] = timeframe
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var scaledSince int64 = this.ParseToInt(Divide(since, 1000))
 		if parsedTimeframe == nil {
 			panic(ExchangeError(this.Id + " fetchOHLCV() missing parsedTimeframe"))
@@ -1617,7 +1617,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["asset"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var until *string = this.SafeString2(params, "until", "till")
@@ -1923,10 +1923,10 @@ func (this *Kraken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	// https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
 	// https://github.com/ccxt/ccxt/issues/5677
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = this.NumberToString(this.ParseToInt(Divide(since, 1000))) // expected to be in seconds
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 
@@ -2849,10 +2849,10 @@ func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	if postOnly == true {
 		AddElementToObject(request, "post_only", "true") // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		AddElementToObject(request, "order_qty", this.AmountToPrecision(symbol, amount))
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
 	}
 	var allTriggerPrices any = DerefScalar(this.SafeStringN(params, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"}))
@@ -3160,7 +3160,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes257612)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var until *string = this.SafeString2(params, "until", "till")
@@ -3472,7 +3472,7 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes280012)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
@@ -3581,7 +3581,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes288612)
 	}
 	var request any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
@@ -3842,7 +3842,7 @@ func (this *Kraken) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		var currency map[string]any = this.Currency(code).(map[string]any)
 		request["asset"] = currency["id"]
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var sinceString *string = this.NumberToString(since)
 		request["start"] = Precise.StringDiv(sinceString, "1000")
 	}
@@ -3963,7 +3963,7 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		var currency map[string]any = this.Currency(code).(map[string]any)
 		request["asset"] = currency["id"]
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var sinceString *string = this.NumberToString(since)
 		request["start"] = Precise.StringDiv(sinceString, "1000")
 	}

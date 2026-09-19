@@ -3406,7 +3406,7 @@ func (this *Htx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 			PanicOnError(response)
 		}
 	} else {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			// Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
 			if (!IsEqual(limit, 5)) && (!IsEqual(limit, 10)) && (!IsEqual(limit, 20)) && (!IsEqual(limit, 150)) {
 				panic(BadRequest(this.Id + " fetchOrderBook() limit argument must be undefined, 5, 10, 20, or 150, default is 150"))
@@ -3798,10 +3798,10 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			AddElementToObject(request, "size", limit) // default 100, max 500
 		}
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "start-time", since) // a date within 120 days from today
 		}
 		requestparamsVariable := this.HandleUntilOption("end-time", request, params)
@@ -3814,7 +3814,7 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 		}
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "start_time", since)
 		}
 		requestparamsVariable := this.HandleUntilOption("end_time", request, params)
@@ -3822,14 +3822,14 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		params = GetValue(requestparamsVariable, 1)
 		if IsEqual(this.SafeBool(market, "linear"), true) {
 			AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
-			if !IsEqual(limit, nil) {
+			if limit != nil {
 				AddElementToObject(request, "limit", limit) // default 100, max 500
 			}
 
 			response = (<-this.ContractPrivateGetV5TradeOrderDetails(this.Extend(request, params)))
 			PanicOnError(response)
 		} else if IsEqual(this.SafeBool(market, "inverse"), true) {
-			if !IsEqual(limit, nil) {
+			if limit != nil {
 				AddElementToObject(request, "page_size", limit) // default 100, max 500
 			}
 			AddElementToObject(request, "contract", this.SafeString(market, "id"))
@@ -3991,7 +3991,7 @@ func (this *Htx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = mathMin(limit, 2000) // max 2000
 	}
 	var response any = nil
@@ -4146,7 +4146,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		return nil
 	}()
 	if GetValue(market, "contract") == true {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["size"] = mathMin(limit, 2000) // when using limit: from & to are ignored
 		} else {
 			limit = 2000 // only used for from/to calculation
@@ -4154,7 +4154,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		if priceType == nil {
 			var duration any = this.ParseTimeframe(timeframe)
 			var calcualtedEnd any = nil
-			if IsEqual(since, nil) {
+			if since == nil {
 				var now int64 = this.Seconds()
 				request["from"] = Subtract(now, Multiply(duration, (Subtract(limit, 1))))
 				calcualtedEnd = now
@@ -4250,7 +4250,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		useHistorical = GetValue(useHistoricalparamsVariable, 0)
 		params = GetValue(useHistoricalparamsVariable, 1)
 		if !EvalTruthy(useHistorical) {
-			if !IsEqual(limit, nil) {
+			if limit != nil {
 				request["size"] = mathMin(limit, 2000) // max 2000
 			}
 
@@ -4258,13 +4258,13 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 			PanicOnError(response)
 		} else {
 			// "from & to" only available for the this endpoint
-			if !IsEqual(since, nil) {
+			if since != nil {
 				request["from"] = this.ParseToInt(Divide(since, 1000))
 			}
 			if !IsEqual(untilSeconds, nil) {
 				request["to"] = untilSeconds
 			}
-			if !IsEqual(limit, nil) {
+			if limit != nil {
 				request["size"] = mathMin(1000, limit) // max 1000, otherwise default returns 150
 			}
 
@@ -5217,14 +5217,14 @@ func (this *Htx) fetchSpotOrdersByStatesBody(ch chan any, states any, optionalAr
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start-time", since) // a window of 48 hours within 180 days
 		AddElementToObject(request, "end-time", this.Sum(since, (48*60)*60*1000))
 	}
 	requestparamsVariable := this.HandleUntilOption("end-time", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "size", limit)
 	}
 	var response any = nil
@@ -5346,14 +5346,14 @@ func (this *Htx) fetchContractOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing == true))
 	params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	if GetValue(market, "linear") == true {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			AddElementToObject(request, "limit", limit)
 		}
 		var marginMode any = nil
@@ -5799,7 +5799,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		request["account-id"] = accountId
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["size"] = limit
 		}
 		params = this.Omit(params, "account-id")
@@ -5811,7 +5811,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			// throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
 			request["contract_code"] = this.SafeString(market, "id")
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			if isLinear {
 				request["limit"] = limit
 			} else {
@@ -6565,10 +6565,10 @@ func (this *Htx) createTrailingPercentOrderBody(ch chan any, symbol any, typeVar
 	_ = trailingTriggerPrice
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(trailingPercent, nil) {
+	if trailingPercent == nil {
 		panic(ArgumentsRequired(this.Id + " createTrailingPercentOrder() requires a trailingPercent argument"))
 	}
-	if IsEqual(trailingTriggerPrice, nil) {
+	if trailingTriggerPrice == nil {
 		panic(ArgumentsRequired(this.Id + " createTrailingPercentOrder() requires a trailingTriggerPrice argument"))
 	}
 	AddElementToObject(params, "trailingPercent", trailingPercent)
@@ -6698,7 +6698,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 		if cost != nil {
 			quoteAmount = this.AmountToPrecision(symbol, cost)
 		} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-			if IsEqual(price, nil) {
+			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
 				// despite that cost = amount * price is in quote currency and should have quote precision
@@ -6860,13 +6860,13 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 		request["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		if isLinear {
 			request["type"] = "trigger"
-			if !IsEqual(price, nil) {
+			if price != nil {
 				request["price"] = this.PriceToPrecision(symbol, price)
 			}
 		} else {
 			var triggerType *string = this.SafeString2(params, "triggerType", "trigger_type", "le")
 			request["trigger_type"] = triggerType
-			if !IsEqual(price, nil) {
+			if price != nil {
 				request["order_price"] = this.PriceToPrecision(symbol, price)
 			}
 		}
@@ -6878,7 +6878,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 				request["type"] = "sl"
 			}
 			request["sl_trigger_price"] = this.PriceToPrecision(symbol, stopLossTriggerPrice)
-			if !IsEqual(price, nil) {
+			if price != nil {
 				request["sl_order_price"] = this.PriceToPrecision(symbol, price)
 			}
 		} else {
@@ -6888,7 +6888,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 				request["type"] = "tp"
 			}
 			request["tp_trigger_price"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
-			if !IsEqual(price, nil) {
+			if price != nil {
 				request["tp_order_price"] = this.PriceToPrecision(symbol, price)
 			}
 		}
@@ -6906,7 +6906,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 			params = this.Omit(params, []any{"clientOrderId"})
 		}
 		if (IsEqual(typeVar, "limit")) || (IsEqual(typeVar, "ioc")) || (IsEqual(typeVar, "fok")) || (IsEqual(typeVar, "post_only")) {
-			if !IsEqual(price, nil) {
+			if price != nil {
 				request["price"] = this.PriceToPrecision(symbol, price)
 			}
 		}
@@ -8271,7 +8271,7 @@ func (this *Htx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(limit, nil) || IsGreaterThan(limit, 100) {
+	if (limit == nil) || IsGreaterThan(limit, 100) {
 		limit = 100
 	}
 	if this.Markets == nil {
@@ -8291,7 +8291,7 @@ func (this *Htx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(currency, nil) {
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit // max 100
 	}
 
@@ -8356,7 +8356,7 @@ func (this *Htx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(limit, nil) || IsGreaterThan(limit, 100) {
+	if (limit == nil) || IsGreaterThan(limit, 100) {
 		limit = 100
 	}
 	if this.Markets == nil {
@@ -8376,7 +8376,7 @@ func (this *Htx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(currency, nil) {
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit // max 100
 	}
 
@@ -8871,7 +8871,7 @@ func (this *Htx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -8879,7 +8879,7 @@ func (this *Htx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		params = this.Omit(params, "until")
 		request["end_time"] = until
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -9071,14 +9071,14 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		"contract_code": GetValue(market, "id"),
 	}
 	if GetValue(market, "linear") == true {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = mathMin(limit, 100) // max 100
 		}
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start_time"] = since
 		}
 	} else {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["page_size"] = limit
 		} else {
 			request["page_size"] = 50 // max
@@ -9380,10 +9380,10 @@ func (this *Htx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 		return marginMode
 	}()
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start-date"] = this.Yyyymmdd(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit
 	}
 	var market any = nil
@@ -9757,7 +9757,7 @@ func (this *Htx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		if GetValue(market, "linear") == true {
 			AddElementToObject(request, "start_time", since)
 		} else {
@@ -9779,7 +9779,7 @@ func (this *Htx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 			}()
 			AddElementToObject(request, "margin_mode", marginMode)
 			AddElementToObject(request, "contract_code", GetValue(market, "id"))
-			if !IsEqual(limit, nil) {
+			if limit != nil {
 				AddElementToObject(request, "limit", limit)
 			}
 
@@ -10398,10 +10398,10 @@ func (this *Htx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // max 500
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -10591,7 +10591,7 @@ func (this *Htx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 		"period":      GetValue(timeframes, timeframe),
 		"amount_type": amountType,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit
 	}
 	var response any = nil
@@ -11239,14 +11239,14 @@ func (this *Htx) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) an
 	} else {
 		AddElementToObject(request, "contract_code", GetValue(market, "id"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if (GetValue(market, "linear") == true) && (GetValue(market, "swap") == true) {
 			AddElementToObject(request, "limit", limit)
 		} else {
 			AddElementToObject(request, "page_size", limit)
 		}
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
@@ -11651,7 +11651,7 @@ func (this *Htx) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs ...
 		AddElementToObject(request, "trade_type", tradeType)
 	}
 	params = this.Omit(params, []any{"trade_type", "tradeType"})
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
@@ -11661,7 +11661,7 @@ func (this *Htx) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs ...
 	if GetValue(market, "swap") == true {
 		if GetValue(market, "linear") == true {
 			AddElementToObject(request, "contract_code", GetValue(market, "id"))
-			if !IsEqual(limit, nil) {
+			if limit != nil {
 				AddElementToObject(request, "limit", limit)
 			}
 

@@ -3877,10 +3877,10 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 200 // default is 200 when requested with `since`
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		// bybit returns the candle that contains `start`, whose timestamp is
 		// before a mid-interval `since` and gets dropped by the client-side
 		// since-filter, emptying a limit=1 request entirely, see issue
@@ -3896,7 +3896,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 			return this.Sum(rounded, duration)
 		}())
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // max 1000, default 1000
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -4196,7 +4196,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 		ch <- retRes308719
 		return nil
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 200
 	}
 	var request map[string]any = map[string]any{
@@ -4214,7 +4214,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() only support linear and inverse market"))
 	}
 	request["category"] = typeVar
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")            // unified in milliseconds
@@ -4223,7 +4223,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	if endTime != nil {
 		request["endTime"] = endTime
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			// end time is required when since is not empty
 			var fundingInterval any = Multiply(Multiply(Multiply(60, 60), 8), 1000)
 			if fundingTimeFrameMins != nil {
@@ -4580,7 +4580,7 @@ func (this *Bybit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		// spot: [1,60], default: 60.
 		// others: [1,1000], default: 500
 		request["limit"] = limit
@@ -4674,7 +4674,7 @@ func (this *Bybit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		}
 	}
 	request["limit"] = func() any {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			return limit
 		}
 		return defaultLimit
@@ -5589,7 +5589,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	method = GetValue(methodparamsVariable, 0)
 	params = GetValue(methodparamsVariable, 1)
 	var endpointIsTradingStop bool = (IsEqual(method, "privatePostV5PositionTradingStop"))
-	if (IsEqual(price, nil)) && (lowerCaseType == "limit") && !endpointIsTradingStop {
+	if (price == nil) && (lowerCaseType == "limit") && !endpointIsTradingStop {
 		panic(ArgumentsRequired(this.Id + " createOrder requires a price argument for limit orders"))
 	}
 	// workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
@@ -5603,7 +5603,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		return nil
 	}()
 	var priceString any = func() any {
-		if !IsEqual(price, nil) {
+		if price != nil {
 			return this.GetPrice(symbol, this.NumberToString(price))
 		}
 		return nil
@@ -5705,11 +5705,11 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var cost *string = this.SafeString(params, "cost")
 	params = this.Omit(params, "cost")
 	// if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
-	var isMarketBuyAndCostInferable bool = (lowerCaseType == "market") && (IsEqual(side, "buy")) && ((!IsEqual(price, nil)) || (cost != nil))
+	var isMarketBuyAndCostInferable bool = (lowerCaseType == "market") && (IsEqual(side, "buy")) && ((price != nil) || (cost != nil))
 	var isMarketOrder bool = (lowerCaseType == "market")
 	if (GetValue(market, "spot") == true) && isMarketOrder && EvalTruthy(isUTA) && !isMarketBuyAndCostInferable {
 		// UTA account can specify the cost of the order on both sides
-		if (cost != nil) || (!IsEqual(price, nil)) {
+		if (cost != nil) || (price != nil) {
 			request["marketUnit"] = "quoteCoin"
 			var orderCost any = nil
 			if cost != nil {
@@ -5731,7 +5731,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-			if (IsEqual(price, nil)) && (cost == nil) {
+			if (price == nil) && (cost == nil) {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
 				var quoteAmount *string = Precise.StringMul(this.NumberToString(amount), priceString)
@@ -5746,7 +5746,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		} else {
 			if cost != nil {
 				request["qty"] = this.GetCost(symbol, this.NumberToString(cost))
-			} else if !IsEqual(price, nil) {
+			} else if price != nil {
 				request["qty"] = this.GetCost(symbol, Precise.StringMul(amountString, priceString))
 			} else {
 				request["qty"] = amountString
@@ -6009,10 +6009,10 @@ func (this *Bybit) EditOrderRequest(id any, symbol any, typeVar any, side any, o
 	category = GetValue(categoryparamsVariable, 0)
 	params = GetValue(categoryparamsVariable, 1)
 	request["category"] = category
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["qty"] = this.GetAmount(symbol, amount)
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.GetPrice(symbol, this.NumberToString(price))
 	}
 	var triggerPrice any = DerefScalar(this.SafeString2(params, "triggerPrice", "stopPrice"))
@@ -6994,10 +6994,10 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan any, optionalArgs ...any) any 
 	if isTrigger != nil && *isTrigger == true {
 		request["orderFilter"] = "StopOrder"
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")            // unified in milliseconds
@@ -7247,10 +7247,10 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	if isTrigger != nil && *isTrigger == true {
 		request["orderFilter"] = "StopOrder"
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")            // unified in milliseconds
@@ -7505,7 +7505,7 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	if isTrigger != nil && *isTrigger == true {
 		request["orderFilter"] = "StopOrder"
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -7683,10 +7683,10 @@ func (this *Bybit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	AddElementToObject(request, "category", typeVar)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -7923,10 +7923,10 @@ func (this *Bybit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -8019,10 +8019,10 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -8235,11 +8235,11 @@ func (this *Bybit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var currencyKey string = "coin"
 	if IsEqual(GetValue(enableUnified, 1), true) {
 		currencyKey = "currency"
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["startTime"] = since
 		}
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start_date"] = this.Yyyymmdd(since)
 		}
 	}
@@ -8247,7 +8247,7 @@ func (this *Bybit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request[currencyKey] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var subType any = nil
@@ -9424,25 +9424,25 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol a
 		"intervalTime": interval,
 		"category":     category,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until") // unified in milliseconds
 	params = this.Omit(params, []any{"until"})
 	if until != nil {
 		request["endTime"] = until
-	} else if !IsEqual(since, nil) {
+	} else if since != nil {
 		// the endpoint walks backwards from endTime and ignores a lone startTime
 		var duration any = this.ParseTimeframe(timeframe)
 		var requestedLimit any = func() any {
-			if IsEqual(limit, nil) {
+			if limit == nil {
 				return 50
 			}
 			return limit
 		}() // exchange default
 		request["endTime"] = this.Sum(since, Multiply(Multiply(duration, requestedLimit), 1000))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -9618,7 +9618,7 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan any, symbol any, optiona
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -9883,7 +9883,7 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArg
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	if IsEqual(since, nil) {
+	if since == nil {
 		since = Subtract(this.Milliseconds(), 86400000*30) // last 30 days
 	}
 	request["startTime"] = since
@@ -10068,10 +10068,10 @@ func (this *Bybit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		currency = this.SafeCurrency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -10715,7 +10715,7 @@ func (this *Bybit) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 		panic(NotSupported(this.Id + " fetchSettlementHistory() is not supported for spot market"))
 	}
 	request["category"] = typeVar
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -10797,7 +10797,7 @@ func (this *Bybit) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any
 		panic(NotSupported(this.Id + " fetchMySettlementHistory() is not supported for spot market"))
 	}
 	request["category"] = typeVar
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -11266,10 +11266,10 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	AddElementToObject(request, "category", typeVar)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -11619,10 +11619,10 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	if symbol != nil {
 		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "size", limit)
 	} else {
 		AddElementToObject(request, "size", 100)
@@ -11963,10 +11963,10 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	if (symbols != nil) && (symbolsLength == 1) {
 		request["symbol"] = this.SafeString(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	if until != nil {
@@ -12404,7 +12404,7 @@ func (this *Bybit) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any
 		PanicOnError(retRes965012)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -12559,7 +12559,7 @@ func (this *Bybit) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...a
 		"period":   timeframe,
 		"category": typeVar,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

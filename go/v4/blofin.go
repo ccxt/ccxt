@@ -944,12 +944,12 @@ func (this *Blofin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"instId": GetValue(market, "id"),
 	}
 	limit = func() any {
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			return 50
 		}
 		return limit
 	}()
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit // max 100
 	}
 
@@ -1318,7 +1318,7 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"instId": GetValue(market, "id"),
 	}
 	var response any = nil
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100
 	}
 	var method any = nil
@@ -1401,7 +1401,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		ch <- retRes107019
 		return nil
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100 // default 100, max 100
 	}
 	var request map[string]any = map[string]any{
@@ -1475,10 +1475,10 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"instId": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["before"] = mathMax(Subtract(since, 1), 0)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -2102,7 +2102,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, op
 		"brokerId":     this.SafeString(this.Options, "brokerId", "ec6dd3a7dd982d0b"),
 		"reduceOnly":   this.SafeBool(params, "reduceOnly", true),
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["size"] = this.AmountToPrecision(symbol, amount)
 	}
 	var marginMode *string = this.SafeString(params, "marginMode", "cross") // cross or isolated
@@ -2320,7 +2320,7 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100, max 100
 	}
 	var isTrigger *bool = this.SafeBoolN(params, []any{"stop", "trigger"}, false)
@@ -2407,7 +2407,7 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // default 100, max 100
 	}
 	var typeVar any = "swap"
@@ -2503,10 +2503,10 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // default 100, max 100
 	}
 	requestparamsVariable := this.HandleUntilOption("after", request, params)
@@ -2572,10 +2572,10 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // default 100, max 100
 	}
 	requestparamsVariable := this.HandleUntilOption("after", request, params)
@@ -2782,7 +2782,7 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	var currency any = nil
@@ -3250,10 +3250,10 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 			AddElementToObject(request, "instId", GetValue(market, "id"))
 		}
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 100))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "begin", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -3753,10 +3753,10 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100, max 100
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["begin"] = since
 	}
 	var isTrigger *bool = this.SafeBoolN(params, []any{"stop", "trigger", "tpsl", "TPSL"}, false)

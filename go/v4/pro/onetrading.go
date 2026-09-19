@@ -419,7 +419,7 @@ func (this *Onetrading) watchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var messageHash any = ccxt.Add("book:", symbol)
 	var subscriptionHash string = "ORDER_BOOK"
 	var depth any = 0
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		depth = limit
 	}
 	var request map[string]any = map[string]any{

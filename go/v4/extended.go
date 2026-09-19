@@ -1163,7 +1163,7 @@ func (this *Extended) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var timestamp int64 = this.Milliseconds()
 	var orderbook any = this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "bid", "ask", "price", "qty")
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(orderbook, "bids", this.ArraySlice(GetValue(orderbook, "bids"), 0, limit))
 		AddElementToObject(orderbook, "asks", this.ArraySlice(GetValue(orderbook, "asks"), 0, limit))
 	}
@@ -1277,7 +1277,7 @@ func (this *Extended) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1376,10 +1376,10 @@ func (this *Extended) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1619,7 +1619,7 @@ func (this *Extended) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"candleType": candleType,
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit": func() any {
-			if !IsEqual(limit, nil) {
+			if limit != nil {
 				return limit
 			}
 			return 100
@@ -1717,13 +1717,13 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var market any = this.Market(symbol)
 	symbol = GetValue(market, "symbol")
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var endTime *int64 = this.SafeInteger(params, "endTime", until)
 	params = this.Omit(params, []any{"endTime", "until"})
-	if IsEqual(since, nil) {
+	if since == nil {
 		since = Subtract(endTime, (Multiply(Multiply(Multiply(limit, 60), 60), 1000)))
 	}
 	var request map[string]any = map[string]any{
@@ -1829,13 +1829,13 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 	if !this.InArray(interval, []any{"PT1H", "P1D"}) {
 		panic(BadRequest(this.Id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only"))
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var endTime *int64 = this.SafeInteger(params, "endTime", until)
 	params = this.Omit(params, []any{"endTime", "until"})
-	if IsEqual(since, nil) {
+	if since == nil {
 		since = Subtract(endTime, (Multiply(Multiply(limit, this.ParseTimeframe(timeframe)), 1000)))
 	}
 	var request map[string]any = map[string]any{
@@ -2125,7 +2125,7 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2258,7 +2258,7 @@ func (this *Extended) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 		currency = this.Currency(code)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2516,7 +2516,7 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"type": "TRANSFER",
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -3451,7 +3451,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	if !this.InArray(uppercaseType, []any{"LIMIT", "MARKET", "CONDITIONAL", "TPSL"}) {
 		panic(BadRequest(this.Id + " createOrder() supports limit, market, conditional and tpsl orders only"))
 	}
-	if IsEqual(price, nil) {
+	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
 	var amountString any = this.AmountToPrecision(symbol, amount)
@@ -3773,17 +3773,17 @@ func (this *Extended) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var postOnly *bool = this.SafeBool(params, "postOnly")
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var cancelId *string = this.SafeString2(params, "cancelId", "previousOrderId")
-	if (IsEqual(amount, nil)) || (IsEqual(price, nil)) || (expiryEpochMillis == nil) || (postOnly == nil) || (reduceOnly == nil) || (cancelId == nil) {
+	if (amount == nil) || (price == nil) || (expiryEpochMillis == nil) || (postOnly == nil) || (reduceOnly == nil) || (cancelId == nil) {
 
 		response := (<-this.V1PrivateGetUserOrdersId(map[string]any{
 			"id": id,
 		}))
 		PanicOnError(response)
 		var order map[string]any = SafeMapTyped(response, "data")
-		if IsEqual(amount, nil) {
+		if amount == nil {
 			amount = DerefScalar(this.SafeNumber(order, "qty"))
 		}
-		if IsEqual(price, nil) {
+		if price == nil {
 			price = DerefScalar(this.SafeNumber(order, "price"))
 		}
 		if expiryEpochMillis == nil {
@@ -3799,10 +3799,10 @@ func (this *Extended) editOrderBody(ch chan any, id any, symbol any, typeVar any
 			cancelId = this.SafeString(order, "externalId")
 		}
 	}
-	if IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument or an existing order with qty"))
 	}
-	if IsEqual(price, nil) {
+	if price == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a price argument or an existing order with price"))
 	}
 	params = this.Extend(map[string]any{
@@ -4257,7 +4257,7 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

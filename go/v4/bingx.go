@@ -1744,22 +1744,22 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var requestLimit any = func() any {
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			return 500
 		}
 		return mathMin(limit, maxLimit)
 	}()
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = mathMax(Subtract(since, 1), 0)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = requestLimit
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "endTime")
 	if until != nil {
 		params = this.Omit(params, []any{"until"})
 		request["endTime"] = until
-	} else if (GetValue(market, "inverse") == true) && (!IsEqual(since, nil)) {
+	} else if (GetValue(market, "inverse") == true) && (since != nil) {
 		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 		request["endTime"] = this.Sum(since, Multiply(duration, requestLimit))
 	}
@@ -1924,7 +1924,7 @@ func (this *Bingx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		var maxLimit int = func() int {
 			if IsEqual(marketType, "spot") {
 				return 500
@@ -2219,7 +2219,7 @@ func (this *Bingx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsEqual(marketType, "spot") {
 			request["limit"] = mathMin(limit, 1000) // api maximum 1000
 		} else {
@@ -2540,10 +2540,10 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000)) // api maximum 1000
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -2659,10 +2659,10 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	if !IsEqual(market, nil) {
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "endTime")
@@ -3499,10 +3499,10 @@ func (this *Bingx) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "pageSize", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTs", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTs", request, params)
@@ -3957,7 +3957,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		if cost != nil {
 			request["quoteOrderQty"] = this.ParseToNumeric(this.CostToPrecision(symbol, cost))
 		} else {
-			if isMarketOrder && (!IsEqual(price, nil)) {
+			if isMarketOrder && (price != nil) {
 				// keep the legacy behavior, to avoid  breaking the old spot-market-buying code
 				var calculatedCost *string = Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))
 				request["quoteOrderQty"] = this.ParseToNumeric(calculatedCost)
@@ -5460,10 +5460,10 @@ func (this *Bingx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(typeVar, "swap") {
 		panic(NotSupported(this.Id + " fetchOrders() is only supported for swap markets"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -5902,7 +5902,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 		response = (<-this.ContractV1PrivateGetAllOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "spot") {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["pageSize"] = limit
 		}
 
@@ -5914,13 +5914,13 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 		if isTwapOrder != nil && *isTwapOrder == true {
 			request["pageIndex"] = 1
 			request["pageSize"] = func() any {
-				if IsEqual(limit, nil) {
+				if limit == nil {
 					return 100
 				}
 				return limit
 			}()
 			request["startTime"] = func() any {
-				if IsEqual(since, nil) {
+				if since == nil {
 					return 1
 				}
 				return since
@@ -6103,10 +6103,10 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	params = this.Omit(params, []any{"fromAccount", "toAccount"})
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "pageSize", mathMin(limit, maxLimit))
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -6351,10 +6351,10 @@ func (this *Bingx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000)) // api maximum 1000
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -6424,10 +6424,10 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000)) // api maximum 1000
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -6975,7 +6975,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		request["symbol"] = GetValue(market, "id")
 		var now int64 = this.Milliseconds()
-		if !IsEqual(since, nil) {
+		if since != nil {
 			var startTimeReq string = func() string {
 				if GetValue(market, "spot") == true {
 					return "startTime"
@@ -7000,7 +7000,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			request["endTs"] = now
 		}
 		if GetValue(market, "spot") == true {
-			if !IsEqual(limit, nil) {
+			if limit != nil {
 				request["limit"] = limit // default 500, maximum 1000
 			}
 
@@ -7256,10 +7256,10 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 100)) // api maximum 100
 	}
 	var subType any = nil

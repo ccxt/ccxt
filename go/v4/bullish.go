@@ -1217,7 +1217,7 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": GetValue(market, "id"),
 	}
 	params = this.HandleSinceAndUntil(since, params)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 
@@ -1308,7 +1308,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}
 		params = this.HandleSinceAndUntil(since, params)
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["_pageSize"] = this.GetClosestLimit(limit)
 		}
 		//
@@ -1864,7 +1864,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 	params = this.HandleSinceAndUntil(since, params, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]")
@@ -1960,7 +1960,7 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 	params = this.HandleSinceAndUntil(since, params)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 	var method any = "privateGetV2HistoryOrders"
@@ -2020,7 +2020,7 @@ func (this *Bullish) HandlePaginationParams(method any, optionalArgs ...any) any
 	var ninetyDays int64 = Multiply(Multiply(Multiply(Multiply(90, 24), 60), 60), 1000).(int64)
 	var now int64 = this.Milliseconds()
 	var allowedSince any = now - ninetyDays
-	if (!IsEqual(since, nil)) && (IsLessThan(since, allowedSince)) {
+	if (since != nil) && (IsLessThan(since, allowedSince)) {
 		panic(BadRequest(Add(Add(this.Id+" ", method), "() only allows fetching entries up to 90 days in the past")))
 	}
 	params = this.Omit(params, "paginate")
@@ -2045,9 +2045,9 @@ func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) any {
 	untilKey := GetArg(optionalArgs, 3, "createdAtDatetime[lte]")
 	_ = untilKey
 	var until any = DerefScalar(this.SafeInteger(params, "until"))
-	if (!IsEqual(since, nil)) || (!IsEqual(until, nil)) {
+	if (since != nil) || (!IsEqual(until, nil)) {
 		var timeDelta int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64) // 7 days
-		if IsEqual(since, nil) {
+		if since == nil {
 			since = Subtract(until, timeDelta)
 			params = this.Omit(params, "until")
 		} else if IsEqual(until, nil) {
@@ -2445,10 +2445,10 @@ func (this *Bullish) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 		params = this.Omit(params, "postOnly")
 		request["type"] = "POST_ONLY"
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 
@@ -2730,7 +2730,7 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	if until != nil {
 		AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(since))
 	}
 
@@ -3455,7 +3455,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["assetSymbol"] = GetValue(currency, "id")
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	if (IsEqual(since, nil)) && (until == nil) {
+	if (since == nil) && (until == nil) {
 		// since and until are mandatory for this endpoint, set until to now if both are undefined
 		var now int64 = this.Milliseconds()
 		params = this.Extend(params, map[string]any{
@@ -3463,7 +3463,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		})
 	}
 	params = this.HandleSinceAndUntil(since, params)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 

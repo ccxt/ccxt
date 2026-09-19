@@ -2175,7 +2175,7 @@ func (this *Whitebit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default = 100, maximum = 100
 	}
 
@@ -2486,16 +2486,16 @@ func (this *Whitebit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"market":   GetValue(market, "id"),
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var maxLimit int = 1440
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			limit = maxLimit
 		}
 		limit = mathMin(limit, maxLimit)
 		var start int64 = this.ParseToInt(Divide(since, 1000))
 		request["start"] = start
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 1440)
 	}
 
@@ -2876,7 +2876,7 @@ func (this *Whitebit) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var total *float64 = this.SafeNumber(params, "total")
 	if total != nil {
 		request["total"] = this.AmountToPrecision(symbol, total)
-	} else if !IsEqual(amount, nil) {
+	} else if amount != nil {
 		if isLimitOrder {
 			// Limit orders always use amount parameter
 			request["amount"] = this.AmountToPrecision(symbol, amount)
@@ -2889,11 +2889,11 @@ func (this *Whitebit) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		}
 	}
 	// Handle price parameter for limit orders
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	// Ensure at least one modifiable parameter is provided
-	var hasModifiableParam bool = (!IsEqual(amount, nil)) || (!IsEqual(price, nil)) || (triggerPrice != nil) || (total != nil)
+	var hasModifiableParam bool = (amount != nil) || (price != nil) || (triggerPrice != nil) || (total != nil)
 	if !hasModifiableParam {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires at least one of: amount, price, activationPrice, or total parameters"))
 	}
@@ -3075,7 +3075,7 @@ func (this *Whitebit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	// Sort by timestamp (most recent first)
 	var sortedOrders []any = this.SortBy(allOrders, "timestamp", true)
 	// Apply limit if specified (since and symbol filtering already handled by individual methods)
-	if !IsEqual(limit, nil) && IsGreaterThan(len(sortedOrders), limit) {
+	if (limit != nil) && IsGreaterThan(len(sortedOrders), limit) {
 
 		ch <- Slice(sortedOrders, 0, limit)
 		return nil
@@ -3283,7 +3283,7 @@ func (this *Whitebit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 100)
 	}
 
@@ -3355,7 +3355,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		symbol = GetValue(market, "symbol")
 		request["market"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 100) // default 50 max 100
 	}
 
@@ -3567,7 +3567,7 @@ func (this *Whitebit) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 100)
 	}
 
@@ -3637,13 +3637,13 @@ func (this *Whitebit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		currency = this.Currency(code)
 		request["ticker"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startDate"] = this.ParseToInt(Divide(since, 1000))
 	}
-	if IsEqual(limit, nil) || IsGreaterThan(limit, 100) {
+	if (limit == nil) || IsGreaterThan(limit, 100) {
 		limit = 100
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	// Use transactionMethod parameter to filter withdrawals server-side (method = 2)
@@ -3713,13 +3713,13 @@ func (this *Whitebit) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 		currency = this.Currency(code)
 		request["ticker"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startDate"] = this.ParseToInt(Divide(since, 1000))
 	}
-	if IsEqual(limit, nil) || IsGreaterThan(limit, 100) {
+	if (limit == nil) || IsGreaterThan(limit, 100) {
 		limit = 100
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	// Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
@@ -4396,7 +4396,7 @@ func (this *Whitebit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["ticker"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 100)
 	}
 
@@ -4772,10 +4772,10 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var request any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startDate", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endDate", request, params)
@@ -4894,7 +4894,7 @@ func (this *Whitebit) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 		currency = this.Currency(code)
 		request["ticker"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 1000
 	}
 
@@ -5091,11 +5091,11 @@ func (this *Whitebit) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...
 	if code != nil {
 		AddElementToObject(request, "fromTicker", code)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var start int64 = this.ParseToInt(Divide(since, 1000))
 		AddElementToObject(request, "from", this.NumberToString(start))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("to", request, params, 0.001)
@@ -5232,10 +5232,10 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan any, symbol any, optional
 	var request any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startDate", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endDate", request, params)
@@ -5524,13 +5524,13 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var request any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startDate", MathRound(Divide(since, 1000)))
 	}
 	requestparamsVariable := this.HandleUntilOption("until_timestamp", request, params, 0.001)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 

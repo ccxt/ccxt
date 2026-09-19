@@ -1787,9 +1787,9 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 	var nowS int64 = this.Seconds()
 	var startS any = nil
 	var endS any = nowS
-	if !ccxt.IsEqual(since, nil) {
+	if since != nil {
 		startS = this.ParseToInt(ccxt.Divide(since, 1000))
-		if !ccxt.IsEqual(limit, nil) {
+		if limit != nil {
 			var endBound any = this.Sum(startS, ccxt.Multiply(ccxt.Multiply(limit, fidelityMin), 60))
 			endS = func() any {
 				if ccxt.IsLessThan(endBound, nowS) {
@@ -1800,7 +1800,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 		}
 	} else {
 		var barCount any = func() any {
-			if !ccxt.IsEqual(limit, nil) {
+			if limit != nil {
 				return limit
 			}
 			return 100
@@ -1813,7 +1813,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 	// or the most recent window when no `since` was given
 	var maxWindow *int64 = this.SafeInteger(this.Options, "maxPricesHistoryWindow", 1296000)
 	if ccxt.IsGreaterThan((ccxt.Subtract(endS, startS)), maxWindow) {
-		if !ccxt.IsEqual(since, nil) {
+		if since != nil {
 			endS = this.Sum(startS, maxWindow)
 		} else {
 			startS = ccxt.Subtract(endS, maxWindow)
@@ -1882,7 +1882,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 	}
 	var candles []any = this.SortBy(unsortedCandles, 0)
 	var candlesLength int = len(candles)
-	if (!ccxt.IsEqual(limit, nil)) && (ccxt.IsGreaterThan(candlesLength, limit)) {
+	if (limit != nil) && (ccxt.IsGreaterThan(candlesLength, limit)) {
 
 		ch <- this.ArraySlice(candles, ccxt.OpNeg(limit))
 		return nil
@@ -2898,13 +2898,13 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 			return "GTC"
 		}()
 	}
-	if ccxt.IsEqual(price, nil) {
+	if price == nil {
 		if !isMarket {
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a price for limit orders"))
 		}
 		// market order without an explicit price: use the outcome's current price as the marketable reference
 		price = ccxt.DerefScalar(this.SafeNumber(outcomeObj, "price"))
-		if ccxt.IsEqual(price, nil) {
+		if price == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrder() could not determine a price from the outcome, pass an explicit price"))
 		}
 	}
@@ -3101,7 +3101,7 @@ func (this *Polymarket) PolymarketOrderRawAmounts(side any, size any, price any,
 	var rawPrice string = this.DecimalToPrecision(priceStr, ccxt.ROUND, priceDecimals, ccxt.DECIMAL_PLACES)
 	var makerRaw string
 	var takerRaw string
-	if (!ccxt.IsEqual(cost, nil)) && (ccxt.IsEqual(side, "BUY")) {
+	if (cost != nil) && (ccxt.IsEqual(side, "BUY")) {
 		// cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
 		// truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise
 		// a marketable FOK would round just under the ask and fail to cross

@@ -1594,10 +1594,10 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	}
 	var now int64 = this.Seconds()
 	var tf any = this.ParseTimeframe(timeframe)
-	if !ccxt.IsEqual(since, nil) {
+	if since != nil {
 		var sinceS int64 = this.ParseToInt(ccxt.Divide(since, 1000))
 		request["start_ts"] = sinceS
-		if !ccxt.IsEqual(limit, nil) {
+		if limit != nil {
 			var end any = this.Sum(sinceS, ccxt.Multiply(limit, tf))
 			request["end_ts"] = func() any {
 				if ccxt.IsLessThan(end, now) {
@@ -1612,7 +1612,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	} else {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "defaultFetchOHLCVLimit", 200)
 		var candlesCount any = func() any {
-			if !ccxt.IsEqual(limit, nil) {
+			if limit != nil {
 				return limit
 			}
 			return defaultLimit
@@ -1764,7 +1764,7 @@ func (this *Kalshi) fetchTradesBody(ch chan any, outcome any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"ticker": ticker,
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = ccxt.MathMin(limit, 1000)
 	}
 
@@ -1900,7 +1900,7 @@ func (this *Kalshi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 		request["ticker"] = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2179,7 +2179,7 @@ func (this *Kalshi) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes160912)
 	}
 	var request map[string]any = map[string]any{}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2683,7 +2683,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(price, nil) {
+	if price == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }"))
 	}
 
@@ -2710,7 +2710,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 			}
 			return "bid"
 		}()
-		if !ccxt.IsEqual(price, nil) {
+		if price != nil {
 			yesPrice = this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(price)))
 		}
 	}
@@ -2818,10 +2818,10 @@ func (this *Kalshi) editOrderBody(ch chan any, id any, outcome any, typeVar any,
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(price, nil) {
+	if price == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " editOrder() requires a price - kalshi has only limit orders"))
 	}
-	if ccxt.IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " editOrder() requires an amount"))
 	}
 

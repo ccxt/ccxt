@@ -823,7 +823,7 @@ func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var response any = nil
 	if GetValue(market, "spot") == true {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 		//
@@ -996,7 +996,7 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError(retRes72212)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100 // default is 200
 	}
 	var request map[string]any = map[string]any{
@@ -1007,10 +1007,10 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	} else {
 		request["interval"] = timeframe
 	}
-	if (GetValue(market, "contract") == true) && (!IsEqual(limit, nil)) {
+	if (GetValue(market, "contract") == true) && (limit != nil) {
 		request["limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		if GetValue(market, "spot") == true {
 			request["startTime"] = since
 		} else {
@@ -1024,7 +1024,7 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var response any = nil
 	if GetValue(market, "spot") == true {
-		if (until == nil) || IsEqual(since, nil) {
+		if (until == nil) || (since == nil) {
 			panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets"))
 		}
 
@@ -1107,7 +1107,7 @@ func (this *Zebpay) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if (GetValue(market, "spot") == true) && !IsEqual(limit, nil) {
+	if (GetValue(market, "spot") == true) && (limit != nil) {
 		request["limit"] = limit
 	}
 	var response any = nil
@@ -1462,7 +1462,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		} else {
 			AddElementToObject(request, "type", upperCaseType)
 			if IsEqual(typeVar, "limit") {
-				if IsEqual(price, nil) {
+				if price == nil {
 					panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit orders"))
 				}
 				AddElementToObject(request, "price", this.ParseToNumeric(this.PriceToPrecision(symbol, price)))
@@ -1667,7 +1667,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var orders any = []any{}
 	if GetValue(market, "spot") == true {
 		request["currentPage"] = 1
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["pageSize"] = limit
 		}
 
@@ -1676,10 +1676,10 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		var responseData any = this.SafeDict(response, "data", map[string]any{})
 		orders = this.SafeList(responseData, "items", []any{})
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["since"] = since
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 

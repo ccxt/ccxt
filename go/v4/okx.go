@@ -3222,11 +3222,11 @@ func (this *Okx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "method", "publicGetMarketBooks")
 	method = GetValue(methodparamsVariable, 0)
 	params = GetValue(methodparamsVariable, 1)
-	if (IsEqual(method, "publicGetMarketBooksFull")) && IsEqual(limit, nil) {
+	if (IsEqual(method, "publicGetMarketBooksFull")) && (limit == nil) {
 		limit = 5000
 	}
 	limit = func() any {
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			return 100
 		}
 		return limit
@@ -3236,7 +3236,7 @@ func (this *Okx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		// including the 5000 that publicGetMarketBooksFull defaults to
 		limit = 400
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["sz"] = limit // max 400
 	}
 	var response any = nil
@@ -3767,7 +3767,7 @@ func (this *Okx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		response = (<-this.PublicGetPublicOptionTrades(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit // default 100
 		}
 		var method any = nil
@@ -3910,8 +3910,8 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	params = this.Omit(params, "price")
 	var options any = this.SafeDict(this.Options, "fetchOHLCV", map[string]any{})
 	var timezone *string = this.SafeString(options, "timezone", "UTC")
-	var limitIsUndefined bool = (IsEqual(limit, nil))
-	if IsEqual(limit, nil) {
+	var limitIsUndefined bool = (limit == nil)
+	if limit == nil {
 		limit = 100 // default 100, max 300
 	} else {
 		var maxLimit int = func() int {
@@ -3933,7 +3933,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		"limit":  limit,
 	}
 	var defaultType any = "Candles"
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var now int64 = this.Milliseconds()
 		var durationInMilliseconds any = Multiply(duration, 1000)
 		// switch to history candles if since is past the cutoff for current candles
@@ -4066,10 +4066,10 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"instId": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["before"] = mathMax(Subtract(since, 1), 0)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -4631,7 +4631,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 				var notional any = DerefScalar(this.SafeNumber2(params, "cost", "sz"))
 				params = this.Omit(params, []any{"cost", "sz"})
 				if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-					if !IsEqual(price, nil) {
+					if price != nil {
 						if IsEqual(notional, nil) {
 							var amountString *string = this.NumberToString(amount)
 							var priceString *string = this.NumberToString(price)
@@ -5100,11 +5100,11 @@ func (this *Okx) EditOrderRequest(id any, symbol any, typeVar any, side any, opt
 			request["newTpTriggerPxType"] = takeProfitTriggerPriceType
 		}
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["newSz"] = this.AmountToPrecision(symbol, amount)
 	}
 	if !EvalTruthy(isAlgoOrder) {
-		if !IsEqual(price, nil) {
+		if price != nil {
 			request["newPx"] = this.PriceToPrecision(symbol, price)
 		}
 	}
@@ -6105,7 +6105,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, maxLimit) // default 100, max 100
 	}
 	var options any = this.SafeDict(this.Options, "fetchOpenOrders", map[string]any{})
@@ -6292,7 +6292,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarqueryVariable, 0)
 	query = GetValue(typeVarqueryVariable, 1)
 	request["instType"] = this.ConvertToInstrumentType(typeVar)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100, max 100
 	}
 	request["state"] = "canceled"
@@ -6326,7 +6326,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["begin"] = since
 		}
 		var until *int64 = this.SafeInteger(query, "until")
@@ -6516,7 +6516,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarqueryVariable, 0)
 	query = GetValue(typeVarqueryVariable, 1)
 	request["instType"] = this.ConvertToInstrumentType(typeVar)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, maxLimit) // default 100, max 100
 	}
 	var options any = this.SafeDict(this.Options, "fetchClosedOrders", map[string]any{})
@@ -6543,7 +6543,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["ordType"] = "trigger"
 		}
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["begin"] = since
 		}
 		var until *int64 = this.SafeInteger(query, "until")
@@ -6720,7 +6720,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instId", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "begin", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -6730,7 +6730,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	typeVar := GetValue(typeVarqueryVariable, 0)
 	query := GetValue(typeVarqueryVariable, 1)
 	AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
-	if (!IsEqual(limit, nil)) && (IsEqual(since, nil)) {
+	if (limit != nil) && (since == nil) {
 		AddElementToObject(request, "limit", limit) // default 100, max 100
 	}
 
@@ -6876,7 +6876,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(typeVar, nil) {
 		AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	var currency any = nil
@@ -7406,10 +7406,10 @@ func (this *Okx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "ccy", GetValue(currency, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // default 100, max 100
 	}
 	requestparamsVariable := this.HandleUntilOption("after", request, params)
@@ -7558,10 +7558,10 @@ func (this *Okx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "ccy", GetValue(currency, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // default 100, max 100
 	}
 	requestparamsVariable := this.HandleUntilOption("after", request, params)
@@ -8606,10 +8606,10 @@ func (this *Okx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["ccy"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["begin"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -8986,7 +8986,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"type": "8",
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = ToString(limit) // default 100, max 100
 	}
 	var market any = nil
@@ -9526,10 +9526,10 @@ func (this *Okx) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes747512)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["before"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -9589,10 +9589,10 @@ func (this *Okx) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"ccy": currency["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["before"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -9993,10 +9993,10 @@ func (this *Okx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 		var currency map[string]any = this.Currency(code).(map[string]any)
 		request["ccy"] = currency["id"]
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["before"] = Subtract(since, 1)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	if symbol != nil {
@@ -10402,7 +10402,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 		response = (<-this.PublicGetRubikStatOptionOpenInterestVolume(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["begin"] = since
 		}
 		var until *int64 = this.SafeInteger(params, "until")
@@ -10706,10 +10706,10 @@ func (this *Okx) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) an
 		"instType": this.ConvertToInstrumentType(typeVar),
 		"uly":      Add(Add(GetValue(market, "baseId"), "-"), GetValue(market, "quoteId")),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["before"] = Subtract(since, 1)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -11587,10 +11587,10 @@ func (this *Okx) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any) 
 	requestparamsVariable := this.HandleUntilOption("after", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "before", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -11880,10 +11880,10 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	if until != nil {
@@ -11893,7 +11893,7 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ...a
 	var now int64 = this.Milliseconds()
 	var oneWeekAgo any = now - 604800000
 	var threeMonthsAgo any = now - 7776000000
-	if (IsEqual(since, nil)) || (IsGreaterThan(since, oneWeekAgo)) {
+	if (since == nil) || (IsGreaterThan(since, oneWeekAgo)) {
 
 		response = (<-this.PrivateGetAccountBills(this.Extend(request, params)))
 		PanicOnError(response)
@@ -11996,7 +11996,7 @@ func (this *Okx) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any
 	var marginMode *string = this.SafeString(params, "marginMode")
 	var instType *string = this.SafeStringUpper(params, "instType")
 	params = this.Omit(params, []any{"until", "marginMode", "instType"})
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	var request map[string]any = map[string]any{
@@ -12109,10 +12109,10 @@ func (this *Okx) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...any
 	if timeframe != nil {
 		request["period"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["begin"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

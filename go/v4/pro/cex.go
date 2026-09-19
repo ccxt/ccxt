@@ -1141,7 +1141,7 @@ func (this *Cex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var depth any = func() any {
-		if ccxt.IsEqual(limit, nil) {
+		if limit == nil {
 			return 0
 		}
 		return limit
@@ -1548,7 +1548,7 @@ func (this *Cex) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(price, nil) {
+	if price == nil {
 		panic(ccxt.BadRequest(this.Id + " createOrderWs requires a price argument"))
 	}
 	if this.Markets == nil {
@@ -1609,10 +1609,10 @@ func (this *Cex) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " editOrder() requires a amount argument"))
 	}
-	if ccxt.IsEqual(price, nil) {
+	if price == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " editOrder() requires a price argument"))
 	}
 	if this.Markets == nil {

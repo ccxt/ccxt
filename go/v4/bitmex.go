@@ -1438,7 +1438,7 @@ func (this *Bitmex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["depth"] = limit
 	}
 
@@ -1568,10 +1568,10 @@ func (this *Bitmex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "endTime")
@@ -1719,10 +1719,10 @@ func (this *Bitmex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = mathMin(500, limit)
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "endTime")
@@ -1949,7 +1949,7 @@ func (this *Bitmex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//         // date-based pagination not supported
 	//     }
 	//
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 	var currency any = nil
@@ -2030,7 +2030,7 @@ func (this *Bitmex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 
@@ -2329,7 +2329,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		"binSize": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"partial": true,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit // default 100, max 500
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -2343,7 +2343,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	useOpenTimestamp = GetValue(useOpenTimestampparamsVariable, 0)
 	params = GetValue(useOpenTimestampparamsVariable, 1)
 	// if since is not set, they will return candles starting from 2017-01-01
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var timestamp any = since
 		if EvalTruthy(useOpenTimestamp) {
 			timestamp = this.Sum(timestamp, duration)
@@ -2684,13 +2684,13 @@ func (this *Bitmex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = this.Iso8601(since)
 	} else {
 		// by default reverse=false, i.e. trades are fetched since the time of market inception (year 2015 for XBTUSD)
 		request["reverse"] = true
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = mathMin(limit, 1000) // api maximum 1000
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "endTime")
@@ -2955,11 +2955,11 @@ func (this *Bitmex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	} else {
 		request["orderID"] = id
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		var qty int64 = this.ParseToInt(this.AmountToPrecision(symbol, amount))
 		request["orderQty"] = qty
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = price
 	}
 	var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT")
@@ -3739,10 +3739,10 @@ func (this *Bitmex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 			request["symbol"] = GetValue(market, "id")
 		}
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -3750,7 +3750,7 @@ func (this *Bitmex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	if until != nil {
 		request["endTime"] = this.Iso8601(until)
 	}
-	if (IsEqual(since, nil)) && (until == nil) {
+	if (since == nil) && (until == nil) {
 		request["reverse"] = true
 	}
 
@@ -4236,10 +4236,10 @@ func (this *Bitmex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "count", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -4617,10 +4617,10 @@ func (this *Bitmex) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any)
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 	var until *string = this.SafeString(params, "until")

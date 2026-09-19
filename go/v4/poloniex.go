@@ -907,10 +907,10 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		}
 		return "eTime"
 	}()
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, keyStart, since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		// limit should in between 100 and 500
 		AddElementToObject(request, "limit", limit)
 	}
@@ -1859,7 +1859,7 @@ func (this *Poloniex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // max 1000, for spot & swap
 	}
 	if GetValue(market, "contract") == true {
@@ -1972,10 +1972,10 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 		return "endTime"
 	}()
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, startKey, since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	if isContract && (symbol != nil) {
@@ -2311,7 +2311,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		var max int = func() int {
 			if IsEqual(marketType, "spot") {
 				return 2000
@@ -2451,10 +2451,10 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	if IsEqual(marketType, "spot") {
 		panic(NotSupported(this.Id + " fetchClosedOrders() is not supported for spot markets yet"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(200, limit))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "sTime", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("eTime", request, params)
@@ -2616,7 +2616,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support trigger orders for ", GetValue(market, "type")), " markets")))
 		}
 		upperCaseType = func() string {
-			if IsEqual(price, nil) {
+			if price == nil {
 				return "STOP"
 			}
 			return "STOP_LIMIT"
@@ -2638,7 +2638,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) && (GetValue(market, "spot") == true) {
-				if IsEqual(price, nil) {
+				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 				} else {
 					var amountString *string = this.NumberToString(amount)
@@ -3342,7 +3342,7 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
 		if GetValue(market, "contract") == true {
 			request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 100, 150}, limit)
@@ -3703,7 +3703,7 @@ func (this *Poloniex) fetchTransactionsHelperBody(ch chan any, optionalArgs ...a
 	var year int = 31104000 // 60 * 60 * 24 * 30 * 12 = one year of history, why not
 	var now int64 = this.Seconds()
 	var start any = func() any {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			return this.ParseToInt(Divide(since, 1000))
 		}
 		return Subtract(now, 10*year)

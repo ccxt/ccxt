@@ -184,7 +184,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	var limitString *string = this.NumberToString(limit)

@@ -1255,7 +1255,7 @@ func (this *Myriad) createOrderbookOrderBody(ch chan any, outcome any, typeVar a
 	if this.SafeString(parsed, "timeInForce") == nil {
 		ccxt.AddElementToObject(parsed, "timeInForce", timeInForce)
 	}
-	if (this.SafeNumber(parsed, "price") == nil) && (!ccxt.IsEqual(price, nil)) {
+	if (this.SafeNumber(parsed, "price") == nil) && (price != nil) {
 		ccxt.AddElementToObject(parsed, "price", price)
 	}
 	if (this.SafeNumber(parsed, "amount") == nil) && (!ccxt.IsEqual(amount, nil)) {
@@ -2020,10 +2020,10 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["network_id"] = this.SafeString(info, "networkId")
 		rowOutcomeId = this.SafeString(info, "outcomeId")
 	}
-	if !ccxt.IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = this.ParseToInt(ccxt.Divide(since, 1000))
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	params = this.Omit(params, []any{"trader", "address", "status"})
@@ -3846,7 +3846,7 @@ func (this *Myriad) fetchTradesBody(ch chan any, outcome any, optionalArgs ...an
 		"id":         marketId,
 		"network_id": networkId,
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

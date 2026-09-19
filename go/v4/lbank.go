@@ -1155,7 +1155,7 @@ func (this *Lbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(retRes93912)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 60
 	}
 	var request map[string]any = map[string]any{
@@ -1382,10 +1382,10 @@ func (this *Lbank) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["time"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = mathMin(limit, 600)
 	} else {
 		request["size"] = 600 // max
@@ -1476,12 +1476,12 @@ func (this *Lbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		PanicOnError(retRes121212)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	} else {
 		limit = mathMin(limit, 2000)
 	}
-	if IsEqual(since, nil) {
+	if since == nil {
 		var duration any = this.ParseTimeframe(timeframe)
 		since = Subtract(this.Milliseconds(), (Multiply(Multiply(duration, 1000), limit)))
 	}
@@ -2091,7 +2091,7 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-				if IsEqual(price, nil) {
+				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
 					var amountString *string = this.NumberToString(amount)
@@ -2502,10 +2502,10 @@ func (this *Lbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = this.Ymd(since, "-")              // max query 2 days ago
 		request["end_date"] = this.Ymd(Add(since, 86400000), "-") // will cover 2 days
 	}
@@ -2576,7 +2576,7 @@ func (this *Lbank) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes210612)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	var request map[string]any = map[string]any{
@@ -2657,7 +2657,7 @@ func (this *Lbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes216712)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	var request map[string]any = map[string]any{
@@ -3200,7 +3200,7 @@ func (this *Lbank) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 
@@ -3274,7 +3274,7 @@ func (this *Lbank) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 

@@ -124,10 +124,10 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...any
 		"kbar":    timeframeId,
 		"pair":    ccxt.GetValue(market, "id"),
 	}
-	if !ccxt.IsEqual(since, nil) {
+	if since != nil {
 		message["start"] = this.ParseToInt(ccxt.MathFloor(ccxt.Divide(since, 1000)))
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		message["size"] = limit
 	}
 	var request map[string]any = this.DeepExtend(message, params)
@@ -487,7 +487,7 @@ func (this *Lbank) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...an
 	this.CheckContractMarket(market, "fetchTradesWs")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("fetchTrades:", ccxt.GetValue(market, "symbol"))
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 10
 	}
 	var message map[string]any = map[string]any{
@@ -961,7 +961,7 @@ func (this *Lbank) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs ..
 	this.CheckContractMarket(market, "fetchOrderBookWs")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("fetchOrderbook:", ccxt.GetValue(market, "symbol"))
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	var subscribe map[string]any = map[string]any{
@@ -1011,7 +1011,7 @@ func (this *Lbank) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
 	params = this.Omit(params, "aggregation")
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	var subscribe map[string]any = map[string]any{

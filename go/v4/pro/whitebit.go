@@ -199,7 +199,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		ccxt.PanicOnError(retRes15512)
 	}
 	var market any = this.Market(symbol)
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 10 // max 100
 	}
 	var messageHash any = ccxt.Add("orderbook"+":", ccxt.GetValue(market, "symbol"))

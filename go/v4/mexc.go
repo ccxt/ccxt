@@ -1936,7 +1936,7 @@ func (this *Mexc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var orderbook any = nil
@@ -2045,20 +2045,20 @@ func (this *Mexc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var trades any = []any{}
 	if GetValue(market, "spot") == true {
 		var until *int64 = this.SafeInteger2(params, "endTime", "until")
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["startTime"] = since
 			if until == nil {
 				panic(ArgumentsRequired(this.Id + " fetchTrades() requires an until parameter when since is provided"))
 			}
 		}
 		if until != nil {
-			if IsEqual(since, nil) {
+			if since == nil {
 				panic(ArgumentsRequired(this.Id + " fetchTrades() requires a since parameter when until is provided"))
 			}
 			request["endTime"] = until
@@ -2343,10 +2343,10 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var candles any = []any{}
 	var until *int64 = this.SafeInteger2(params, "until", "endTime")
 	var start any = since
-	if (until != nil) && (IsEqual(since, nil)) {
+	if (until != nil) && (since == nil) {
 		params = this.Omit(params, []any{"until"})
 		var usedLimit any = func() any {
-			if !IsEqual(limit, nil) && !IsEqual(limit, nil) && (!IsEqual(limit, 0)) {
+			if (limit != nil) && (!IsEqual(limit, 0)) {
 				return limit
 			}
 			return maxLimit
@@ -2363,7 +2363,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 				request["endTime"] = mathMin(end, now)
 			}
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 		if until != nil {
@@ -2388,12 +2388,12 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		//
 		candles = this.ToArray(response)
 	} else if GetValue(market, "swap") == true {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start"] = this.ParseToInt(Divide(since, 1000))
 		}
 		if until != nil {
 			request["end"] = this.ParseToInt(Divide(until, 1000))
-			if IsEqual(since, nil) {
+			if since == nil {
 				request["start"] = this.ParseToInt(Divide(start, 1000))
 			}
 		}
@@ -2938,7 +2938,7 @@ func (this *Mexc) CreateSpotOrderRequest(market any, typeVar any, side any, amou
 			amount = cost
 			request["quoteOrderQty"] = this.CostToPrecision(symbol, amount)
 		} else {
-			if IsEqual(price, nil) {
+			if price == nil {
 				request["quantity"] = this.AmountToPrecision(symbol, amount)
 			} else {
 				var amountString *string = this.NumberToString(amount)
@@ -2951,7 +2951,7 @@ func (this *Mexc) CreateSpotOrderRequest(market any, typeVar any, side any, amou
 	} else {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -3479,13 +3479,13 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		marginModequeryInnerVariable := this.HandleMarginModeAndParams("fetchOrders", params)
 		marginMode := GetValue(marginModequeryInnerVariable, 0)
 		queryInner := GetValue(marginModequeryInnerVariable, 1)
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["startTime"] = since
 		}
 		if until != nil {
 			request["endTime"] = until
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 		var response any = nil
@@ -3553,7 +3553,7 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- this.ParseOrders(response, market, since, limit)
 		return nil
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start_time"] = since
 			var end *int64 = this.SafeInteger(params, "end_time", until)
 			if end == nil {
@@ -3569,7 +3569,7 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["start_time"] = this.Sum(until, Multiply(GetValue(this.Options, "maxTimeTillEnd"), OpNeg(1)))
 			request["end_time"] = until
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["page_size"] = limit
 		}
 		var method *string = this.SafeString(this.Options, "fetchOrders", "contractPrivateGetOrderListHistoryOrders")
@@ -3844,7 +3844,7 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- this.ParseOrders(response, market, since, limit)
 		return nil
 	} else {
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			request["page_size"] = 100 // max
 		}
 
@@ -5012,10 +5012,10 @@ func (this *Mexc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var trades any = []any{}
 	if IsEqual(marketType, "spot") {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["startTime"] = since
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 		var until *int64 = this.SafeInteger(params, "until")
@@ -5027,14 +5027,14 @@ func (this *Mexc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		trades = (<-this.SpotPrivateGetMyTrades(this.Extend(request, params)))
 		PanicOnError(trades)
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start_time"] = since
 			var end *int64 = this.SafeInteger(params, "end_time")
 			if end == nil {
 				request["end_time"] = this.Sum(since, GetValue(this.Options, "maxTimeTillEnd"))
 			}
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["page_size"] = limit
 		}
 
@@ -5342,7 +5342,7 @@ func (this *Mexc) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
 
@@ -5571,7 +5571,7 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
 
@@ -6046,10 +6046,10 @@ func (this *Mexc) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 			request["coin"] = Add(Add(request["coin"], "-"), rawNetwork)
 		}
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsGreaterThan(limit, 1000) {
 			panic(ExchangeError("This exchange supports a maximum limit of 1000"))
 		}
@@ -6120,10 +6120,10 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsGreaterThan(limit, 1000) {
 			panic(ExchangeError("This exchange supports a maximum limit of 1000"))
 		}
@@ -6690,10 +6690,10 @@ func (this *Mexc) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var resultList any = []any{}
 	if IsEqual(marketType, "spot") {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["startTime"] = since
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			if IsGreaterThan(limit, 100) {
 				panic(ExchangeError("This exchange supports a maximum limit of 50"))
 			}
@@ -6722,7 +6722,7 @@ func (this *Mexc) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		// }
 		resultList = this.SafeList(response, "rows", []any{})
 	} else if IsEqual(marketType, "swap") {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["page_size"] = limit
 		}
 
@@ -7495,7 +7495,7 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 			request["symbol"] = GetValue(market, "id")
 		}
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
 

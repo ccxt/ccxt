@@ -315,7 +315,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
 		} else if ccxt.EvalTruthy(createMarketBuyOrderRequiresPrice) {
-			if ccxt.IsEqual(price, nil) {
+			if price == nil {
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 			} else {
 				var amountString *string = this.NumberToString(amount)
@@ -329,7 +329,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 		request["amount"] = quoteAmount
 	} else {
 		request["quantity"] = this.AmountToPrecision(ccxt.GetValue(market, "symbol"), amount)
-		if !ccxt.IsEqual(price, nil) {
+		if price != nil {
 			request["price"] = this.PriceToPrecision(symbol, price)
 		}
 	}

@@ -1354,7 +1354,7 @@ func (this *Grvt) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"instrument": this.MarketId(symbol),
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	if IsLessThanOrEqual(limit, 500) {
@@ -1422,13 +1422,13 @@ func (this *Grvt) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request any = map[string]any{
 		"instrument": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
 	}
 
@@ -1620,13 +1620,13 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var selectedPriceType *string = this.SafeString(params, "priceType", "last")
 	AddElementToObject(request, "type", this.SafeString(priceTypeMap, selectedPriceType))
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
 	}
 
@@ -1728,13 +1728,13 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var request any = map[string]any{
 		"instrument": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
 	}
 
@@ -1944,13 +1944,13 @@ func (this *Grvt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
 	}
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
@@ -2028,13 +2028,13 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
 	}
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
@@ -2297,13 +2297,13 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes172319
 		return nil
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
 	}
 
@@ -2696,7 +2696,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		"instrument": GetValue(market, "id"),
 		"size":       this.AmountToPrecision(symbol, amount),
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		orderLeg["limit_price"] = this.PriceToPrecision(symbol, price)
 	} else {
 		orderLeg["limit_price"] = nil
@@ -3021,13 +3021,13 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes229612 := GetValue(request, "quote")
 		AppendToArray(&retRes229612, GetValue(market, "quoteId"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
 	}
 
@@ -3460,13 +3460,13 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		retRes262612 := GetValue(request, "quote")
 		AppendToArray(&retRes262612, GetValue(market, "quoteId"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
 	}
 
@@ -3565,13 +3565,13 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes270512 := GetValue(request, "quote")
 		AppendToArray(&retRes270512, GetValue(market, "quoteId"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
 	}
 

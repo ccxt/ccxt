@@ -1532,7 +1532,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"symbol":    GetValue(market, "id"),
 		"precision": precision,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["len"] = limit
 	}
 	var fullRequest map[string]any = this.Extend(request, params)
@@ -1962,11 +1962,11 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 		sort = "1"
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 10000)) // default 120, max 10000
 	}
 	AddElementToObject(request, "sort", sort)
@@ -2046,7 +2046,7 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		return nil
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 10000
 	} else {
 		limit = mathMin(limit, 10000)
@@ -2056,7 +2056,7 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"timeframe": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":     limit,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 		AddElementToObject(request, "sort", 1)
 	}
@@ -2271,7 +2271,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
 	var postOnly bool = ((postOnlyParam != nil && *postOnlyParam == true) || (timeInForce != nil && *timeInForce == "PO"))
-	if (ioc || fok) && (IsEqual(price, nil)) {
+	if (ioc || fok) && (price == nil) {
 		panic(InvalidOrder(this.Id + " createOrder() requires a price argument with IOC and FOK orders"))
 	}
 	if (ioc || fok) && (IsEqual(typeVar, "market")) {
@@ -2928,10 +2928,10 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		return nil
 	}
 	var request any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // default 25, max 2500
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -3094,10 +3094,10 @@ func (this *Bitfinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"end": this.Milliseconds(),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 25, max 1000
 	}
 	var response any = nil
@@ -3568,10 +3568,10 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // max 1000
 	}
 	var response []any = nil
@@ -4073,10 +4073,10 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var currency any = nil
 	var request any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -4244,7 +4244,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -4599,10 +4599,10 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -4769,10 +4769,10 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 	}
 	var market any = this.Market(symbol)
 	var request any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -5070,7 +5070,7 @@ func (this *Bitfinex) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var request map[string]any = map[string]any{
 		"id": this.ParseToNumeric(id),
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		var amountString any = this.AmountToPrecision(symbol, amount)
 		amountString = func() any {
 			if IsEqual(side, "buy") {

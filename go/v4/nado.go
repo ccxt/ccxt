@@ -463,7 +463,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 	if !IsEqual(typeVar, "limit") {
 		panic(InvalidOrder(this.Id + " createOrder() supports limit orders only"))
 	}
-	if IsEqual(price, nil) {
+	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
 	var productId int64 = this.ParseToInt(GetValue(market, "id"))
@@ -692,10 +692,10 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 	if triggerPrice != nil {
 		panic(NotSupported(this.Id + " editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead"))
 	}
-	if IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument"))
 	}
-	if IsEqual(price, nil) {
+	if price == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a price argument"))
 	}
 	var productId int64 = this.ParseToInt(GetValue(market, "id"))
@@ -1201,7 +1201,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"type":        "list_trigger_orders",
 		"product_ids": productIds,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 500)
 	}
 
@@ -1414,7 +1414,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	ordersRequestparamsVariable := this.HandleUntilOption("max_time", ordersRequest, params, 0.001)
 	ordersRequest = GetValue(ordersRequestparamsVariable, 0)
 	params = GetValue(ordersRequestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(ordersRequest, "limit", mathMin(limit, 500))
 	}
 	var request map[string]any = map[string]any{
@@ -1583,7 +1583,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	matchesRequestparamsVariable := this.HandleUntilOption("max_time", matchesRequest, params, 0.001)
 	matchesRequest = GetValue(matchesRequestparamsVariable, 0)
 	params = GetValue(matchesRequestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(matchesRequest, "limit", mathMin(limit, 500))
 	}
 	var request map[string]any = map[string]any{
@@ -1802,7 +1802,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 		"event_types": []any{eventType},
 		"limit": map[string]any{
 			"raw": func() any {
-				if IsEqual(limit, nil) {
+				if limit == nil {
 					return 100
 				}
 				return mathMin(limit, 500)
@@ -2495,7 +2495,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 			"subaccount":  this.CreateSubaccount(this.WalletAddress, subaccount),
 			"product_ids": []any{this.ParseToInt(GetValue(market, "id"))},
 			"limit": func() any {
-				if IsEqual(limit, nil) {
+				if limit == nil {
 					return 100
 				}
 				return mathMin(limit, 100)
@@ -2749,7 +2749,7 @@ func (this *Nado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"ticker_id": tickerId,
 		"depth": func() any {
-			if IsEqual(limit, nil) {
+			if limit == nil {
 				return 100
 			}
 			return limit
@@ -2813,7 +2813,7 @@ func (this *Nado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"ticker_id": tickerId,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 500)
 	}
 
@@ -2879,7 +2879,7 @@ func (this *Nado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 			"granularity": this.SafeInteger(this.Timeframes, timeframe, this.ParseTimeframe(timeframe)),
 		},
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request["candlesticks"], "limit", mathMin(limit, 500))
 	}
 	if until != nil {

@@ -1493,10 +1493,10 @@ func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = since
 	}
 	if symbol != nil {
@@ -1568,10 +1568,10 @@ func (this *Hitbtc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = since
 	}
 	var marketType any = nil
@@ -2021,7 +2021,7 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		var marketIdsInner any = this.MarketIds(symbols)
 		request["symbols"] = Join(marketIdsInner, ",")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["depth"] = limit
 	}
 
@@ -2072,7 +2072,7 @@ func (this *Hitbtc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["depth"] = limit
 	}
 
@@ -2274,13 +2274,13 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		"symbol": GetValue(market, "id"),
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "from", this.Iso8601(since))
 	}
 	requestparamsVariable := this.HandleUntilOption("until", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	var price *string = this.SafeString(params, "price")
@@ -2406,10 +2406,10 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var marketType any = nil
@@ -3002,7 +3002,7 @@ func (this *Hitbtc) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		"quantity":        this.AmountToPrecision(symbol, amount),
 	}
 	if (IsEqual(typeVar, "limit")) || (IsEqual(typeVar, "stopLimit")) {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(ExchangeError(this.Id + " editOrder() limit order requires price"))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -3147,7 +3147,7 @@ func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, 
 		request["time_in_force"] = timeInForce
 	}
 	if isLimit || (IsEqual(typeVar, "stopLimit")) || (IsEqual(typeVar, "takeProfitLimit")) {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(ExchangeError(this.Id + " createOrder() requires a price argument for limit orders"))
 		}
 		request["price"] = this.PriceToPrecision(GetValue(market, "symbol"), price)
@@ -3702,10 +3702,10 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		symbol = GetValue(market, "symbol")
 		AddElementToObject(request, "symbols", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "from", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 

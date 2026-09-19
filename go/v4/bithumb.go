@@ -947,7 +947,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	} else {
 		request["baseId"] = GetValue(market, "baseId")
 		request["quoteId"] = GetValue(market, "quoteId")
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["count"] = limit // default 30, max 30
 		}
 
@@ -1524,7 +1524,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var data any = []any{}
 	if IsEqual(generation, 2) {
 		request["market"] = this.GetGen2MarketId(market)
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["count"] = limit
 		}
 		if IsEqual(timeframe, "1d") {
@@ -1779,7 +1779,7 @@ func (this *Bithumb) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	params = GetValue(generationparamsVariable, 1)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 	var response any = nil
@@ -1987,7 +1987,7 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-				if (IsEqual(price, nil)) && (IsEqual(cost, nil)) {
+				if (price == nil) && (IsEqual(cost, nil)) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
 					var amountString *string = this.NumberToString(amount)
@@ -2689,10 +2689,10 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			panic(ArgumentsRequired(this.Id + " fetchOpenOrders() requires a symbol argument"))
 		}
 		market = this.Market(symbol)
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["after"] = since
 		}
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			limit = 100
 		}
 		request["count"] = limit
@@ -2767,7 +2767,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["market"] = this.GetGen2MarketId(market)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil
@@ -3496,7 +3496,7 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		panic(BadRequest(this.Id + " fetchWithdrawals() is only supported for the generation 2 API"))
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil
@@ -3653,7 +3653,7 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		panic(BadRequest(this.Id + " fetchDeposits() is only supported for the generation 2 API"))
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil

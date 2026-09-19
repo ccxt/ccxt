@@ -1244,7 +1244,7 @@ func (this *Digifinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	marketType := GetValue(marketTypequeryVariable, 0)
 	query := GetValue(marketTypequeryVariable, 1)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil
@@ -1877,7 +1877,7 @@ func (this *Digifinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = func() any {
 			if GetValue(market, "swap") == true {
 				return mathMin(limit, 100)
@@ -2004,7 +2004,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	if GetValue(market, "swap") == true {
 		request["instrument_id"] = GetValue(market, "id")
 		request["granularity"] = timeframe
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = mathMin(limit, 100)
 		}
 
@@ -2017,7 +2017,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		var startTime any = since
 		var duration any = this.ParseTimeframe(timeframe)
 		if IsEqual(startTime, nil) {
-			if (!IsEqual(limit, nil)) || (until != nil) {
+			if (limit != nil) || (until != nil) {
 				var endTime any = func() any {
 					if until != nil {
 						return until
@@ -2025,7 +2025,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 					return this.Milliseconds()
 				}()
 				var startLimit any = func() any {
-					if !IsEqual(limit, nil) {
+					if limit != nil {
 						return limit
 					}
 					return 200
@@ -2036,17 +2036,17 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		if !IsEqual(startTime, nil) {
 			startTime = this.ParseToInt(Divide(startTime, 1000))
 			request["start_time"] = startTime
-			if (!IsEqual(limit, nil)) || (until != nil) {
+			if (limit != nil) || (until != nil) {
 				if until != nil {
 					var endByUntil int64 = this.ParseToInt(Divide(until, 1000))
-					if !IsEqual(limit, nil) {
+					if limit != nil {
 						var endByLimit any = this.Sum(startTime, Multiply(limit, duration))
 						request["end_time"] = mathMin(endByLimit, endByUntil)
 					} else {
 						request["end_time"] = endByUntil
 					}
 				} else {
-					if IsEqual(limit, nil) {
+					if limit == nil {
 						panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a limit argument"))
 					}
 					request["end_time"] = this.Sum(startTime, Multiply(limit, duration))
@@ -2392,7 +2392,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		} else if timeInForce != nil && *timeInForce == "PO" {
 			postOnly = true
 		}
-		if !IsEqual(price, nil) {
+		if price != nil {
 			request["price"] = this.PriceToPrecision(symbol, price)
 		}
 		request["order_type"] = orderType
@@ -2425,7 +2425,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 			if cost != nil {
 				quantity = this.CostToPrecision(symbol, cost)
 			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-				if IsEqual(price, nil) {
+				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
 					var amountString *string = this.NumberToString(amount)
@@ -2873,10 +2873,10 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{}
 	var swap bool = (IsEqual(marketType, "swap"))
 	if swap {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start_timestamp"] = since
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 	} else {
@@ -3011,12 +3011,12 @@ func (this *Digifinex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	query := GetValue(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{}
 	if IsEqual(marketType, "swap") {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start_timestamp"] = since
 		}
 	} else {
 		request["market"] = marketType
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start_time"] = this.ParseToInt(Divide(since, 1000)) // default 3 days from now, max 30 days
 		}
 	}
@@ -3029,7 +3029,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}()
 		request[marketIdRequest] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil
@@ -3281,12 +3281,12 @@ func (this *Digifinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	marginMode := GetValue(marginModequeryVariable, 0)
 	query := GetValue(marginModequeryVariable, 1)
 	if IsEqual(marketType, "swap") {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start_timestamp"] = since
 		}
 	} else {
 		request["market"] = marketType
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start_time"] = this.ParseToInt(Divide(since, 1000)) // default 3 days from now, max 30 days
 		}
 	}
@@ -3299,7 +3299,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		request[marketIdRequest] = this.SafeString(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil
@@ -3473,12 +3473,12 @@ func (this *Digifinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	marginMode := GetValue(marginModequeryVariable, 0)
 	query := GetValue(marginModequeryVariable, 1)
 	if IsEqual(marketType, "swap") {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start_timestamp"] = since
 		}
 	} else {
 		request["market"] = marketType
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start_time"] = this.ParseToInt(Divide(since, 1000)) // default 3 days from now, max 30 days
 		}
 	}
@@ -3493,7 +3493,7 @@ func (this *Digifinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request[currencyIdRequest] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil
@@ -3662,7 +3662,7 @@ func (this *Digifinex) fetchTransactionsByTypeBody(ch chan any, typeVar any, opt
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = mathMin(500, limit)
 	}
 	var response any = nil
@@ -4471,10 +4471,10 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"instrument_id": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_timestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -5061,10 +5061,10 @@ func (this *Digifinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any 
 		}
 		request["currency"] = this.SafeString(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_timestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 20 max 100
 	}
 
@@ -5633,10 +5633,10 @@ func (this *Digifinex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 		market = this.Market(symbol)
 		AddElementToObject(request, "instrument_id", GetValue(market, "id"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_timestamp", since)
 	}
 

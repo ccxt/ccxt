@@ -1684,7 +1684,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan any, symbols any, optional
 	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "depth", "books")
 	depth = ccxt.GetValue(depthparamsVariable, 0)
 	params = ccxt.GetValue(depthparamsVariable, 1)
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		if ccxt.IsEqual(limit, 1) {
 			depth = "bbo-tbt"
 		} else if ccxt.IsGreaterThan(limit, 1) && ccxt.IsLessThanOrEqual(limit, 5) {

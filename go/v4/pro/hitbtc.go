@@ -757,7 +757,7 @@ func (this *Hitbtc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 			"symbols": []any{ccxt.GetValue(market, "id")},
 		},
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var name string = "trades"
@@ -917,7 +917,7 @@ func (this *Hitbtc) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 			"symbols": []any{ccxt.GetValue(market, "id")},
 		},
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		ccxt.AddElementToObject(request["params"], "limit", limit)
 	}
 

@@ -1198,7 +1198,7 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	ccxt.PanicOnError(url)
 	params = this.CleanParams(params)
 	var market any = this.Market(ccxt.GetValue(symbols, 0))
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 50
 		if ccxt.GetValue(market, "option") == true {
 			limit = 100

@@ -1546,7 +1546,7 @@ func (this *Phemex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		response = (<-this.V2GetMdV2Orderbook(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if (!IsEqual(limit, nil)) && (IsLessThanOrEqual(limit, 30)) {
+		if (limit != nil) && (IsLessThanOrEqual(limit, 30)) {
 
 			response = (<-this.V1GetMdOrderbook(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1719,20 +1719,20 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var until *int64 = this.SafeInteger2(params, "until", "to")
 	params = this.Omit(params, []any{"until"})
 	var isStableSettled bool = (IsEqual(GetValue(market, "settle"), "USDT")) || (IsEqual(GetValue(market, "settle"), "USDC"))
-	var usesSpecialFromToEndpoint bool = ((GetValue(market, "linear") == true) || isStableSettled) && ((!IsEqual(since, nil)) || (until != nil))
+	var usesSpecialFromToEndpoint bool = ((GetValue(market, "linear") == true) || isStableSettled) && ((since != nil) || (until != nil))
 	var maxLimit int = 1000
 	if usesSpecialFromToEndpoint {
 		maxLimit = 2000
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = maxLimit
 	}
 	request["limit"] = mathMin(limit, maxLimit)
 	var response any = nil
 	if (GetValue(market, "linear") == true) || isStableSettled {
-		if (until != nil) || (!IsEqual(since, nil)) {
+		if (until != nil) || (since != nil) {
 			var candleDuration any = this.ParseTimeframe(timeframe)
-			if !IsEqual(since, nil) {
+			if since != nil {
 				since = MathRound(Divide(since, 1000))
 				request["from"] = since
 			} else {
@@ -1760,7 +1760,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 			PanicOnError(response)
 		}
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			// phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
 			// we do not send since param to the exchange, instead we calculate appropriate limit param
 			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
@@ -3164,7 +3164,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if GetValue(market, "spot") == true {
 		var qtyType any = DerefScalar(this.SafeString(params, "qtyType", "ByBase"))
 		if (IsEqual(typeVar, "Market")) || (IsEqual(typeVar, "Stop")) || (IsEqual(typeVar, "MarketIfTouched")) {
-			if !IsEqual(price, nil) {
+			if price != nil {
 				qtyType = "ByQuote"
 			}
 		}
@@ -3181,7 +3181,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
 			params = this.Omit(params, "cost")
 			if IsEqual(GetValue(this.Options, "createOrderByQuoteRequiresPrice"), true) {
-				if !IsEqual(price, nil) {
+				if price != nil {
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
 					var quoteAmount *string = Precise.StringMul(amountString, priceString)
@@ -3490,7 +3490,7 @@ func (this *Phemex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	} else {
 		request["orderID"] = id
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		if isStableSettled {
 			request["priceRp"] = this.PriceToPrecision(GetValue(market, "symbol"), price)
 		} else {
@@ -3502,7 +3502,7 @@ func (this *Phemex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	params = this.Omit(params, []any{"baseQtyEv"})
 	if finalQty != nil {
 		request["baseQtyEV"] = finalQty
-	} else if !IsEqual(amount, nil) {
+	} else if amount != nil {
 		if isStableSettled {
 			request["orderQtyRq"] = this.AmountToPrecision(GetValue(market, "symbol"), amount)
 		} else {
@@ -3790,10 +3790,10 @@ func (this *Phemex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil
@@ -3966,10 +3966,10 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	if !IsEqual(market, nil) {
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil
@@ -4079,7 +4079,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		limit = mathMin(200, limit)
 		request["limit"] = limit
 	}
@@ -4087,13 +4087,13 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if isUSDTSettled {
 		request["currency"] = "USDT"
 		request["offset"] = 0
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			request["limit"] = 200
 		}
 	} else if (symbol != nil) && !IsEqual(market, nil) {
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = since
 	}
 	var response any = nil
@@ -4777,7 +4777,7 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan any, symbol any, optionalAr
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(200, limit)
 	}
 
@@ -5043,7 +5043,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsGreaterThan(limit, 200) {
 			panic(BadRequest(this.Id + " fetchFundingHistory() limit argument cannot exceed 200"))
 		}
@@ -5906,10 +5906,10 @@ func (this *Phemex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -6070,10 +6070,10 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var request any = map[string]any{
 		"symbol": customSymbol,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -6415,7 +6415,7 @@ func (this *Phemex) createConvertTradeBody(ch chan any, id any, fromCode any, to
 		"fromCurrency": fromCode,
 		"toCurrency":   toCode,
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["fromAmountEv"] = this.ToEn(amount, valueScale)
 	}
 
@@ -6485,10 +6485,10 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 	if code != nil {
 		AddElementToObject(request, "fromCurrency", code)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)

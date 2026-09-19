@@ -673,7 +673,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	query := ccxt.GetValue(intervalqueryVariable, 1)
 	var messageType any = this.GetTypeByMarket(market)
 	var messageHash any = ccxt.Add("orderbook"+":", symbol)
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = func() int {
 			if ccxt.GetValue(market, "spot") == true {
 				return 50

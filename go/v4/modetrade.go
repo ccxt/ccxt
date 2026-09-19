@@ -1210,7 +1210,7 @@ func (this *Modetrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1485,7 +1485,7 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		symbol = GetValue(market, "symbol")
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_t", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_t", request, params, 0.001)
@@ -1623,7 +1623,7 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_t"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until") // unified in milliseconds
@@ -1631,7 +1631,7 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 	if until != nil {
 		request["end_t"] = until
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = mathMin(limit, 500)
 	}
 
@@ -1774,7 +1774,7 @@ func (this *Modetrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		limit = mathMin(limit, 1000)
 		request["max_level"] = limit
 	}
@@ -1848,7 +1848,7 @@ func (this *Modetrade) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": GetValue(market, "id"),
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
 
@@ -2120,7 +2120,7 @@ func (this *Modetrade) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	if reduceOnly != nil && *reduceOnly == true {
 		request["reduce_only"] = reduceOnly
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request[priceKey] = this.PriceToPrecision(symbol, price)
 	}
 	if isMarket && !isConditional {
@@ -2379,10 +2379,10 @@ func (this *Modetrade) editOrderBody(ch chan any, id any, symbol any, typeVar an
 		}
 		return "order_price"
 	}()
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request[priceKey] = this.PriceToPrecision(symbol, price)
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request[orderQtyKey] = this.AmountToPrecision(symbol, amount)
 	}
 	params = this.Omit(params, []any{"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
@@ -2834,10 +2834,10 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_t", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "size", mathMin(limit, maxLimit))
 	} else {
 		AddElementToObject(request, "size", maxLimit)
@@ -3117,10 +3117,10 @@ func (this *Modetrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_t", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "size", limit)
 	} else {
 		AddElementToObject(request, "size", 500)
@@ -3254,10 +3254,10 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any)
 		currency = this.Currency(code)
 		request["balance_token"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_t"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["pageSize"] = limit
 	}
 	var transactionType *string = this.SafeString(params, "type")

@@ -954,7 +954,7 @@ func (this *Coinspot) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startdate"] = this.Yyyymmdd(since)
 	}
 

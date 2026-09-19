@@ -1327,7 +1327,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		var market any = this.Market(ccxt.GetValue(outcomeObj, "market"))
 		request["marketId"] = ccxt.GetValue(market, "id")
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1439,10 +1439,10 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes116012)
 		outcomeObj = this.Outcome(outcome)
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !ccxt.IsEqual(since, nil) {
+	if since != nil {
 		request["startDate"] = this.Yyyymmdd(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1783,10 +1783,10 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes142712)
 		outcomeObj = this.Outcome(outcome)
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !ccxt.IsEqual(since, nil) {
+	if since != nil {
 		request["startDate"] = this.Yyyymmdd(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -2135,7 +2135,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 	var priceStr *string = this.NumberToString(price)
 	var defaultTif string = "FOK"
 	if typeUpper == "LIMIT" {
-		if ccxt.IsEqual(price, nil) {
+		if price == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + "createOrder requires price for limit order"))
 		}
 		commonRequest["priceLimit"] = this.PriceToPrecision(marketSymbol, price)
@@ -2150,7 +2150,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 			if typeUpper == "LIMIT" {
 				feeRateBps = "0"
 			} else {
-				if ccxt.IsEqual(price, nil) {
+				if price == nil {
 					panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" createOrder requires price for ", side), " order")))
 				}
 			}

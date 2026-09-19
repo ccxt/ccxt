@@ -630,16 +630,16 @@ func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"coin": GetValue(market, "base"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var to *int64 = this.SafeInteger(params, "to")
 	var response any = nil
-	if (!IsEqual(since, nil)) && (to != nil) {
+	if (since != nil) && (to != nil) {
 
 		response = (<-this.PublicGetCoinTradesFromTo(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if !IsEqual(since, nil) {
+	} else if since != nil {
 
 		response = (<-this.PublicGetCoinTradesFrom(this.Extend(request, params)))
 		PanicOnError(response)
@@ -753,7 +753,7 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		}
 	} else {
 		if IsEqual(side, "buy") {
-			if IsEqual(price, nil) {
+			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount"))
 			}
 			var amountString *string = this.NumberToString(amount)
@@ -1146,10 +1146,10 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":     Add(Add(GetValue(market, "base"), "-"), GetValue(market, "quote")),
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100 // set some default limit, as it's required if user doesn't provide it
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = this.ParseToInt(Divide(since, 1000))
 		request["to"] = this.Sum(request["from"], Multiply(limit, this.ParseTimeframe(timeframe)))
 	} else {

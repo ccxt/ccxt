@@ -1022,7 +1022,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var request map[string]any = map[string]any{
 		"symbol": this.GetMarketIdByType(market),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
 	}
 	var response any = nil
@@ -1278,7 +1278,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	// with the underscore-less id, every other type by open/v1 with the raw id
 	request["symbol"] = this.GetMarketIdByType(market)
 	if EvalTruthy(this.IsNativeMarket(market)) {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 		// open/v1/market/trades answers an empty list for every market, the
@@ -1312,13 +1312,13 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		ch <- this.ParseTrades(list, market, since, limit)
 		return nil
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default = 500, maximum = 1000
 	}
 	var defaultMethod string = "binanceGetTrades"
 	var method *string = this.SafeString(this.Options, "fetchTradesMethod", defaultMethod)
 	var response any = nil
-	if (method != nil && *method == "binanceGetAggTrades") && (!IsEqual(since, nil)) {
+	if (method != nil && *method == "binanceGetAggTrades") && (since != nil) {
 		request["startTime"] = since
 		// https://github.com/ccxt/ccxt/issues/6400
 		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -1701,7 +1701,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var until *int64 = this.SafeInteger(params, "until")
 	params = this.Omit(params, []any{"price", "until"})
 	limit = func() any {
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			return defaultLimit
 		}
 		return mathMin(limit, maxLimit)
@@ -1716,7 +1716,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		request["symbol"] = this.GetMarketIdByType(market)
 	}
 	// const duration = this.parseTimeframe (timeframe);
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	if until != nil {
@@ -2169,7 +2169,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 			if cost != nil {
 				quoteAmount = cost
 			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-				if IsEqual(price, nil) {
+				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 				} else {
 					var amountString *string = this.NumberToString(amount)
@@ -2204,7 +2204,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
 	if priceIsRequired {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -2358,10 +2358,10 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2582,14 +2582,14 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		"symbol": GetValue(market, "id"),
 	}
 	var endTime *int64 = this.SafeInteger2(params, "until", "endTime")
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	if endTime != nil {
 		request["endTime"] = endTime
 		params = this.Omit(params, []any{"endTime", "until"})
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2740,7 +2740,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 		// max 3 months range https://github.com/ccxt/ccxt/issues/6495
 		var endTime any = this.Sum(since, 7776000000)
@@ -2749,7 +2749,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 		}
 		request["endTime"] = endTime
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2823,12 +2823,12 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 		// max 3 months range https://github.com/ccxt/ccxt/issues/6495
 		request["endTime"] = this.Sum(since, 7776000000)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

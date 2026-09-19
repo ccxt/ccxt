@@ -1249,7 +1249,7 @@ func (this *Gemini) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit_bids"] = limit
 		request["limit_asks"] = limit
 	}
@@ -1676,10 +1676,10 @@ func (this *Gemini) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit_trades"] = mathMin(limit, 500)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["timestamp"] = since
 	}
 
@@ -2340,10 +2340,10 @@ func (this *Gemini) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit_trades"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["timestamp"] = this.ParseToInt(Divide(since, 1000))
 	}
 
@@ -2468,10 +2468,10 @@ func (this *Gemini) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 		PanicOnError(retRes187512)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit_transfers"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["timestamp"] = since
 	}
 

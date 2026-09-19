@@ -1216,16 +1216,16 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		request["price_kind"] = price
 	}
 	params = this.Omit(params, []any{"until", "till", "price"})
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_at"] = since
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["end_at"] = Subtract(this.Sum(since, Multiply(Multiply(duration, (Add(limit, 1))), 1000)), 1)
 		} else {
 			request["end_at"] = until
 		}
 	} else {
 		request["end_at"] = until
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["start_at"] = Add(Subtract(until, Multiply(Multiply(duration, (Add(limit, 1))), 1000)), 1)
 		} else {
 			request["start_at"] = Add(Subtract(until, Multiply(Multiply(duration, 101), 1000)), 1)
@@ -1643,7 +1643,7 @@ func (this *Paradex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["depth"] = limit
 	}
 	var timestamp *int64 = this.SafeInteger(response, "last_updated_at")
@@ -1701,10 +1701,10 @@ func (this *Paradex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var request any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "page_size", mathMin(limit, 1000))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_at", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_at", request, params)
@@ -2310,7 +2310,7 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			request["instruction"] = "IOC"
 		}
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
@@ -2564,10 +2564,10 @@ func (this *Paradex) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument"))
 	}
-	if IsEqual(price, nil) {
+	if price == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a price argument"))
 	}
 
@@ -3046,10 +3046,10 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		AddElementToObject(request, "market", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_at", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "page_size", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_at", request, params)
@@ -3303,10 +3303,10 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		AddElementToObject(request, "market", GetValue(market, "id"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "page_size", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_at", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_at", request, params)
@@ -3544,7 +3544,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes262312)
 	}
 	var request any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "from", since)
 	} else {
 		AddElementToObject(request, "from", 1)
@@ -3647,10 +3647,10 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "page_size", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_at", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_at", request, params)
@@ -3742,10 +3742,10 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		return nil
 	}
 	var request any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "page_size", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_at", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_at", request, params)
@@ -3841,10 +3841,10 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.SafeCurrency(code)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "page_size", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_at", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_at", request, params)
@@ -4489,12 +4489,12 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	var request any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "page_size", mathMin(limit, 5000))
 	} else {
 		AddElementToObject(request, "page_size", 100)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_at", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_at", request, params)
@@ -4593,12 +4593,12 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = mathMin(limit, 5000) // api maximum 5000
 	} else {
 		request["page_size"] = 1000 // max is 5000
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_at"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")

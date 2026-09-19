@@ -728,7 +728,7 @@ func (this *Bydfi) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = this.GetClosestLimit(limit)
 	}
 
@@ -818,7 +818,7 @@ func (this *Bydfi) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
 
@@ -910,7 +910,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 	params = this.HandleSinceAndUntil("fetchMyTrades", since, params)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1075,7 +1075,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var startTime any = since
 	var numberOfCandles any = func() any {
-		if !IsEqual(limit, nil) && !IsEqual(limit, nil) && (!IsEqual(limit, 0)) {
+		if (limit != nil) && (!IsEqual(limit, 0)) {
 			return limit
 		}
 		return maxLimit
@@ -1103,7 +1103,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	request["startTime"] = startTime
 	request["endTime"] = until
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1411,10 +1411,10 @@ func (this *Bydfi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var until any = nil
@@ -1618,7 +1618,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			}
 		}
 	} else {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -1875,10 +1875,10 @@ func (this *Bydfi) CreateEditOrderRequest(id any, symbol any, typeVar any, side 
 	if side != nil {
 		request["side"] = ToUpper(side)
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	return this.Extend(request, params)
@@ -2196,7 +2196,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 		request["symbol"] = GetValue(market, "id")
 	}
 	params = this.HandleSinceAndUntil("fetchCanceledAndClosedOrders", since, params)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2835,7 +2835,7 @@ func (this *Bydfi) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
 		"contractType": contractType,
 	}
 	params = this.HandleSinceAndUntil("fetchPositionsHistory", since, params)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2893,7 +2893,7 @@ func (this *Bydfi) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 		"contractType": contractType,
 	}
 	params = this.HandleSinceAndUntil("fetchPositionsHistory", since, params)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -3474,12 +3474,12 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(until, nil) {
 		until = this.Milliseconds() // exchange requires endTime
 	}
-	if IsEqual(since, nil) {
+	if since == nil {
 		since = 1 // exchange requires startTime but allows any value
 	}
 	request["startTime"] = since
 	request["endTime"] = until
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["rows"] = limit
 	}
 

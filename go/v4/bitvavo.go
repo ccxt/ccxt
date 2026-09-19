@@ -992,10 +992,10 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var request any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -1279,7 +1279,7 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["depth"] = limit
 	}
 
@@ -1336,11 +1336,11 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) any {
 		"market":   GetValue(market, "id"),
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		// https://github.com/ccxt/ccxt/issues/9227
 		var duration any = this.ParseTimeframe(timeframe)
 		AddElementToObject(request, "start", since)
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			limit = 1440
 		} else {
 			limit = mathMin(limit, 1440)
@@ -1350,7 +1350,7 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) any {
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // default 1440, max 1440
 	}
 	return this.Extend(request, params)
@@ -1654,10 +1654,10 @@ func (this *Bitvavo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if subaccountId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a subaccountId parameter"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -1862,7 +1862,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	params = this.Omit(params, []any{"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"})
 	if isMarketOrder {
 		var cost any = nil
-		if !IsEqual(price, nil) {
+		if price != nil {
 			var priceString *string = this.NumberToString(price)
 			var amountString *string = this.NumberToString(amount)
 			var quoteAmount *string = Precise.StringMul(amountString, priceString)
@@ -2040,10 +2040,10 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
 	var amountRemaining *float64 = this.SafeNumber(params, "amountRemaining")
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
 	params = this.Omit(params, []any{"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"})
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 	}
 	if amountRemaining != nil {
@@ -2391,10 +2391,10 @@ func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) any {
 	var request any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // default 500, max 1000
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -2713,10 +2713,10 @@ func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) any {
 	var request any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // default 500, max 1000
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
@@ -2839,10 +2839,10 @@ func (this *Bitvavo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "fromDate", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "maxItems", mathMin(limit, 100))
 	}
 	requestparamsVariable := this.HandleUntilOption("toDate", request, params)
@@ -3016,10 +3016,10 @@ func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["symbol"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 500, max 1000
 	}
 	return this.Extend(request, params)
@@ -3100,10 +3100,10 @@ func (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["symbol"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 500, max 1000
 	}
 	return this.Extend(request, params)

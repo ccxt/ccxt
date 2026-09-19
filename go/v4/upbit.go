@@ -875,7 +875,7 @@ func (this *Upbit) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"markets": ids,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 
@@ -1279,7 +1279,7 @@ func (this *Upbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError(retRes100112)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 200
 	}
 	var request map[string]any = map[string]any{
@@ -1501,7 +1501,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var market any = this.Market(symbol)
 	var timeframePeriod any = this.ParseTimeframe(timeframe)
 	var timeframeValue *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 200
 	}
 	var request map[string]any = map[string]any{
@@ -1510,7 +1510,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		"count":     limit,
 	}
 	var response any = nil
-	if !IsEqual(since, nil) {
+	if since != nil {
 		// convert `since` to `to` value
 		request["to"] = this.Iso8601(this.Sum(since, Multiply(Multiply(timeframePeriod, limit), 1000)))
 	}
@@ -1571,7 +1571,7 @@ func (this *Upbit) CalcOrderPrice(symbol any, amount any, optionalArgs ...any) a
 	if cost != nil {
 		quoteAmount = this.CostToPrecision(symbol, cost)
 	} else if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice == true {
-		if IsEqual(price, nil) || IsEqual(amount, nil) {
+		if (price == nil) || IsEqual(amount, nil) {
 			panic(InvalidOrder(this.Id + " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 		}
 		var amountString *string = this.NumberToString(amount)
@@ -1651,7 +1651,7 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		"side":   orderSide,
 	}
 	if IsEqual(typeVar, "limit") {
-		if IsEqual(price, nil) || IsEqual(amount, nil) {
+		if (price == nil) || IsEqual(amount, nil) {
 			panic(ArgumentsRequired(this.Id + " the limit type order in createOrder() is required price and amount."))
 		}
 		request["ord_type"] = "limit"
@@ -1855,7 +1855,7 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 		panic(ArgumentsRequired(this.Id + " editOrder() is required id or clientOrderId."))
 	}
 	if IsEqual(typeVar, "limit") {
-		if IsEqual(price, nil) || IsEqual(amount, nil) {
+		if (price == nil) || (amount == nil) {
 			panic(ArgumentsRequired(this.Id + " editOrder() is required price and amount to create limit type order."))
 		}
 		request["new_ord_type"] = "limit"
@@ -1867,7 +1867,7 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, params)
 			request["new_price"] = orderPrice
 		} else {
-			if IsEqual(amount, nil) {
+			if amount == nil {
 				panic(ArgumentsRequired(this.Id + " editOrder() is required amount to create market sell type order."))
 			}
 			request["new_ord_type"] = "market"
@@ -1883,7 +1883,7 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, params)
 			request["new_price"] = orderPrice
 		} else {
-			if IsEqual(amount, nil) {
+			if amount == nil {
 				panic(ArgumentsRequired(this.Id + " editOrder() is required amount to create best sell order."))
 			}
 			request["new_volume"] = this.AmountToPrecision(symbol, amount)
@@ -1983,7 +1983,7 @@ func (this *Upbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default is 100
 	}
 
@@ -2109,7 +2109,7 @@ func (this *Upbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default is 100
 	}
 
@@ -2488,7 +2488,7 @@ func (this *Upbit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2563,10 +2563,10 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		AddElementToObject(request, "market", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
@@ -2645,10 +2645,10 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 		AddElementToObject(request, "market", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)

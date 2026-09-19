@@ -880,10 +880,10 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	params = this.Omit(params, []any{"loc", "method"})
 	var symbolTrades any = nil
 	if method != nil && *method == "marketPublicGetV1beta3CryptoLocTrades" {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start"] = this.Iso8601(since)
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 
@@ -1080,10 +1080,10 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params = this.Omit(params, []any{"loc", "method"})
 	var ohlcvs any = nil
 	if method != nil && *method == "marketPublicGetV1beta3CryptoLocBars" {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start"] = this.Iso8601(since)
 		}
 		var until *int64 = this.SafeInteger(params, "until")
@@ -1131,7 +1131,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 			var pageToken *string = this.SafeString(response, "next_page_token")
 			for i := 1; IsLessThan(i, paginationCalls); i++ {
 				var ohlcvsLength int = GetArrayLength(ohlcvs)
-				if (pageToken == nil) || ((!IsEqual(limit, nil)) && (IsGreaterThanOrEqual(ohlcvsLength, limit))) {
+				if (pageToken == nil) || ((limit != nil) && (IsGreaterThanOrEqual(ohlcvsLength, limit))) {
 					break
 				}
 				request["page_token"] = pageToken
@@ -1770,7 +1770,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		params = this.Omit(params, "until")
 		request["until"] = this.Iso8601(until)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["after"] = this.Iso8601(since)
 		var direction *string = this.SafeString(params, "direction")
 		if direction == nil {
@@ -1778,7 +1778,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["direction"] = "asc"
 		}
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1950,7 +1950,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["qty"] = this.AmountToPrecision(symbol, amount)
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stop_price")
@@ -1958,7 +1958,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		params = this.Omit(params, "triggerPrice")
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
 	}
 	var timeInForce any = nil
@@ -2144,10 +2144,10 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		params = this.Omit(params, "until")
 		AddElementToObject(request, "until", this.Iso8601(until))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "after", this.Iso8601(since))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "page_size", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("until", request, params)

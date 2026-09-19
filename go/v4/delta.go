@@ -1680,7 +1680,7 @@ func (this *Delta) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["depth"] = limit
 	}
 
@@ -1920,7 +1920,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var duration any = this.ParseTimeframe(timeframe)
 	limit = func() any {
-		if !IsEqual(limit, nil) && !IsEqual(limit, nil) && (!IsEqual(limit, 0)) {
+		if (limit != nil) && (!IsEqual(limit, 0)) {
 			return limit
 		}
 		return 2000
@@ -1930,7 +1930,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	if untilIsDefined {
 		until = this.ParseToInt(until)
 	}
-	if IsEqual(since, nil) {
+	if since == nil {
 		var end any = func() any {
 			if untilIsDefined {
 				return until
@@ -2493,14 +2493,14 @@ func (this *Delta) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 		"id":         ParseInt(id),
 		"product_id": GetValue(market, "numericId"),
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		var sizeString any = this.AmountToPrecision(symbol, amount)
 		if sizeString == nil {
 			sizeString = "0"
 		}
 		request["size"] = ParseInt(sizeString)
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
 	}
 
@@ -2820,10 +2820,10 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method any, optionalAr
 		market = this.Market(symbol)
 		request["product_ids"] = GetValue(market, "numericId") // accepts a comma-separated list of ids
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = ToString(since) + "000"
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
 	var response any = nil
@@ -2901,10 +2901,10 @@ func (this *Delta) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["product_ids"] = GetValue(market, "numericId") // accepts a comma-separated list of ids
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = ToString(since) + "000"
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
 
@@ -2997,7 +2997,7 @@ func (this *Delta) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["asset_id"] = GetValue(currency, "numericId")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
 
@@ -3878,7 +3878,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"states": "expired",
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
 

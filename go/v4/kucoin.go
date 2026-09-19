@@ -4122,7 +4122,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	var endAt any = this.Milliseconds() // required param
 	var denominator int = 1000
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startAt"] = this.ParseToInt(MathFloor(Divide(since, denominator)))
 		if IsEqual(limit, nil) {
 			// For each query, the system would return at most 1500 pieces of data.
@@ -4238,7 +4238,7 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	var endAt any = this.Milliseconds() // required param
 	var denominator int = 1000
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startAt"] = this.ParseToInt(MathFloor(Divide(since, denominator)))
 		if IsEqual(limit, nil) {
 			// For each query, the system would return at most 1500 pieces of data.
@@ -4330,7 +4330,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs
 	}
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	var endAt any = this.Milliseconds() // required param
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = since
 		if IsEqual(limit, nil) {
 			// For each query, the system would return at most 200 pieces of data.
@@ -4740,7 +4740,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	params = GetValue(typeVarparamsVariable, 1)
 	if EvalTruthy(uta) {
 		var limitString string = "20"
-		if (IsEqual(limit, nil)) || (IsGreaterThanOrEqual(limit, 100)) {
+		if (limit == nil) || (IsGreaterThanOrEqual(limit, 100)) {
 			limitString = "FULL"
 		} else if IsGreaterThan(limit, 20) {
 			limitString = "100"
@@ -4759,7 +4759,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		if (level == nil || *level != 2) && (level != nil) {
 			panic(BadRequest(this.Id + " fetchOrderBook() can only return level 2"))
 		}
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			// full L2 snapshot - required for correct ws diff-sync: the futures delta
 			// stream covers the whole book while depth20/depth100 truncate the snapshot,
 			// see https://github.com/ccxt/ccxt/issues/22063
@@ -4795,10 +4795,10 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		} else {
 			panic(BadRequest(this.Id + " fetchOrderBook() limit argument must be 20 or 100"))
 		}
-	} else if !isAuthenticated || !IsEqual(limit, nil) {
+	} else if !isAuthenticated || (limit != nil) {
 		if level != nil && *level == 2 {
 			request["level"] = level
-			if !IsEqual(limit, nil) {
+			if limit != nil {
 				if (IsEqual(limit, 20)) || (IsEqual(limit, 100)) {
 					request["limit"] = limit
 				} else {
@@ -4806,7 +4806,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 				}
 			}
 			request["limit"] = func() any {
-				if !IsEqual(limit, nil) {
+				if limit != nil {
 					return limit
 				}
 				return 100
@@ -5396,7 +5396,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 	var uppercaseType string = ToUpper(typeVar)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	if uppercaseType == "LIMIT" {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit orders"))
 		} else {
 			request["price"] = this.PriceToPrecision(symbol, price)
@@ -6106,10 +6106,10 @@ func (this *Kucoin) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	} else {
 		request["orderId"] = id
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["newSize"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["newPrice"] = this.PriceToPrecision(symbol, price)
 	}
 
@@ -7024,10 +7024,10 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
 		if !isMarginOrder {
 			request["status"] = lowercaseStatus
 		}
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["startAt"] = since
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["pageSize"] = limit
 		}
 		if (until != nil) && (until == nil || *until != 0) {
@@ -7145,7 +7145,7 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan any, status any, opt
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startAt"] = since
 	}
 	if until != nil {
@@ -7298,13 +7298,13 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
 	var isUnified bool = (IsEqual(accountMode, "unified"))
 	var tradeType any = this.HandleTradeType(isContract, marginMode, isUnified, params)
 	AddElementToObject(params, "tradeType", tradeType)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startAt", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endAt", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "pageSize", limit)
 	}
 	var lowercaseStatus string = ToLower(status)
@@ -8635,10 +8635,10 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
 	params = GetValue(requestparamsVariable, 1)
 	if hf == true {
 		// does not return trades earlier than 2019-02-18T00:00:00Z
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			AddElementToObject(request, "limit", limit)
 		}
-		if !IsEqual(since, nil) {
+		if since != nil {
 			// only returns trades up to one week after the since param
 			AddElementToObject(request, "startAt", since)
 		}
@@ -8653,7 +8653,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
 		}
 	} else if IsEqual(method, "private_get_fills") {
 		// does not return trades earlier than 2019-02-18T00:00:00Z
-		if !IsEqual(since, nil) {
+		if since != nil {
 			// only returns trades up to one week after the since param
 			AddElementToObject(request, "startAt", since)
 		}
@@ -8780,10 +8780,10 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan any, optionalArgs ...any) 
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startAt", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "pageSize", mathMin(1000, limit))
 	}
 	requestparamsVariable := this.HandleUntilOption("endAt", request, params)
@@ -8912,10 +8912,10 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
 	var isUnified bool = (IsEqual(accountMode, "unified"))
 	var tradeType any = this.HandleTradeType(isContract, marginMode, isUnified, params)
 	AddElementToObject(request, "tradeType", tradeType)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startAt", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "pageSize", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endAt", request, params)
@@ -9844,21 +9844,21 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "pageSize", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endAt", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
-	if !IsEqual(since, nil) && IsLessThan(since, 1550448000000) {
+	if (since != nil) && IsLessThan(since, 1550448000000) {
 		// if since is earlier than 2019-02-18T00:00:00Z
 		AddElementToObject(request, "startAt", this.ParseToInt(Divide(since, 1000)))
 
 		response = (<-this.PrivateGetHistDeposits(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "startAt", since)
 		}
 
@@ -9949,10 +9949,10 @@ func (this *Kucoin) fetchContractDepositsBody(ch chan any, optionalArgs ...any) 
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["pageSize"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startAt"] = since
 	}
 
@@ -10061,21 +10061,21 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "pageSize", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endAt", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
-	if !IsEqual(since, nil) && IsLessThan(since, 1550448000000) {
+	if (since != nil) && IsLessThan(since, 1550448000000) {
 		// if since is earlier than 2019-02-18T00:00:00Z
 		AddElementToObject(request, "startAt", this.ParseToInt(Divide(since, 1000)))
 
 		response = (<-this.PrivateGetHistWithdrawals(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "startAt", since)
 		}
 
@@ -10167,10 +10167,10 @@ func (this *Kucoin) fetchContractWithdrawalsBody(ch chan any, optionalArgs ...an
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["pageSize"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startAt"] = since
 	}
 
@@ -11395,7 +11395,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startAt", since)
 	}
 	// atm only single currency retrieval is supported
@@ -11407,7 +11407,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	requestparamsVariable := this.HandleUntilOption("endAt", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsEqual(typeVar, "contract") {
 			AddElementToObject(request, "maxCount", limit)
 		} else if hf == true {
@@ -11848,13 +11848,13 @@ func (this *Kucoin) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...an
 	var request any = map[string]any{
 		"isIsolated": isIsolated,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "pageSize", limit) // default:50, min:10, max:500
 	}
 
@@ -11927,13 +11927,13 @@ func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan any, code any, optionalAr
 		"isIsolated": isIsolated,
 		"currency":   currency["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "pageSize", limit) // default:50, min:10, max:500
 	}
 
@@ -12875,7 +12875,7 @@ func (this *Kucoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = this.Omit(params, "until")
 	var start any = since
 	var end any = until
-	if IsEqual(since, nil) {
+	if since == nil {
 		start = 0
 	}
 	if until == nil {
@@ -13004,12 +13004,12 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	} else if !EvalTruthy(uta) {
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires a symbol argument"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startAt", since)
 	}
 	var dataList any = []any{}
 	if EvalTruthy(uta) {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			AddElementToObject(request, "pageSize", limit)
 		}
 		requestparamsVariable := this.HandleUntilOption("endAt", request, params)
@@ -13041,7 +13041,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		var data any = this.SafeDict(response, "data")
 		dataList = this.SafeList(data, "items", []any{})
 	} else {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			// * Since is ignored if limit is defined
 			AddElementToObject(request, "maxCount", limit)
 		}
@@ -13331,10 +13331,10 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		}
 	}
 	if EvalTruthy(uta) {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "startAt", since)
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			AddElementToObject(request, "pageSize", limit)
 		}
 		requestparamsVariable := this.HandleUntilOption("endAt", request, params)
@@ -13371,11 +13371,11 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		response = (<-this.UtaPrivateGetPositionHistory(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			limit = 200
 		}
 		AddElementToObject(request, "limit", limit)
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "from", since)
 		}
 		var until *int64 = this.SafeInteger(params, "until")
@@ -14627,10 +14627,10 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan any, symbol any, option
 		"symbol":   GetValue(market, "id"),
 		"interval": interval,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startAt", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "pageSize", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endAt", request, params)
@@ -14880,10 +14880,10 @@ func (this *Kucoin) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startAt", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "pageSize", limit)
 	} else {
 		AddElementToObject(request, "pageSize", 500)

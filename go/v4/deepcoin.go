@@ -813,7 +813,7 @@ func (this *Deepcoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes61712)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 400
 	}
 	var request map[string]any = map[string]any{
@@ -906,7 +906,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"instId": GetValue(market, "id"),
 		"bar":    bar,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -917,12 +917,12 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var calculateUntil *bool = this.SafeBool(params, "calculateUntil", false)
 	if calculateUntil != nil && *calculateUntil == true {
 		params = this.Omit(params, "calculateUntil")
-		if !IsEqual(since, nil) {
+		if since != nil {
 			// the exchange do not have a since param for this endpoint
 			// we calculate until (after) for correct pagination
 			var duration any = this.ParseTimeframe(timeframe)
 			var numberOfCandles any = func() any {
-				if IsEqual(limit, nil) {
+				if limit == nil {
 					return maxLimit
 				}
 				return limit
@@ -1122,7 +1122,7 @@ func (this *Deepcoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"instId": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 500)
 	}
 	var productGroup any = this.GetProductGroupFromMarket(market)
@@ -1342,10 +1342,10 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1417,10 +1417,10 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1708,10 +1708,10 @@ func (this *Deepcoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["ccy"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["after"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -2085,7 +2085,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 		request["tpTriggerPx"] = this.PriceToPrecision(symbol, takeProfitPrice)
 	}
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
-	if !IsEqual(price, nil) {
+	if price != nil {
 		if isMarketOrder {
 			panic(BadRequest(this.Id + " createOrder() does not require a price argument for market orders"))
 		}
@@ -2185,7 +2185,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 	// } else {
 	request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	// }
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	} else if IsEqual(typeVar, "limit") {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit trigger orders"))
@@ -2533,7 +2533,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	request["instType"] = this.ConvertToInstrumentType(marketType)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100
 	}
 	var response any = nil
@@ -2761,7 +2761,7 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"instId": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var trigger *bool = this.SafeBool(params, "trigger", false)
@@ -3038,7 +3038,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var isTPSL bool = (stopLossPrice != nil) || (takeProfitPrice != nil)
 	var response any = nil
 	if isTPSL {
-		if (!IsEqual(price, nil)) || (!IsEqual(amount, nil)) {
+		if (price != nil) || (amount != nil) {
 			panic(BadRequest(this.Id + " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order."))
 		}
 		if stopLossPrice != nil {
@@ -3062,14 +3062,14 @@ func (this *Deepcoin) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		response = (<-this.PrivatePostDeepcoinTradeReplaceOrderSltp(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if !IsEqual(price, nil) {
+		if price != nil {
 			if symbol != nil {
 				request["price"] = this.PriceToPrecision(symbol, price)
 			} else {
 				request["price"] = this.NumberToString(price)
 			}
 		}
-		if !IsEqual(amount, nil) {
+		if amount != nil {
 			if symbol != nil {
 				request["volume"] = this.AmountToPrecision(symbol, amount)
 			} else {
@@ -3734,7 +3734,7 @@ func (this *Deepcoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"instId": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit // default 20, max 100
 	}
 
@@ -3851,10 +3851,10 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(market, nil) {
 		request["instId"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["begin"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100, max 100
 	}
 	var until *int64 = this.SafeInteger(params, "until")

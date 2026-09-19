@@ -1364,10 +1364,10 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1471,10 +1471,10 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_ts"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1563,7 +1563,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		"instrument_name": GetValue(market, "id"),
 		"timeframe":       this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsGreaterThan(limit, 300) {
 			limit = 300
 		}
@@ -1573,9 +1573,9 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	var duration any = this.ParseTimeframe(timeframe)
 	var until *int64 = this.SafeInteger(params, "until", now)
 	params = this.Omit(params, []any{"until"})
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_ts"] = Subtract(since, Multiply(duration, 1000))
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["end_ts"] = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
 		} else {
 			request["end_ts"] = until
@@ -1645,7 +1645,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 	}
-	if (!IsEqual(limit, nil)) && (!IsEqual(limit, 0)) {
+	if (limit != nil) && (!IsEqual(limit, 0)) {
 		request["depth"] = mathMin(limit, 50) // max 50
 	}
 
@@ -2223,7 +2223,7 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side 
 		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
 		} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-			if IsEqual(price, nil) {
+			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 			} else {
 				var amountString *string = this.NumberToString(amount)
@@ -2302,7 +2302,7 @@ func (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optional
 			params = this.Omit(params, []any{"orig_client_oid", "clientOrderId"})
 		}
 	}
-	if (IsEqual(amount, nil)) || (IsEqual(price, nil)) {
+	if (IsEqual(amount, nil)) || (price == nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values"))
 	}
 	request["new_quantity"] = this.AmountToPrecision(symbol, amount)
@@ -2645,10 +2645,10 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -2942,11 +2942,11 @@ func (this *Cryptocom) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.SafeCurrency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		// 90 days date range
 		request["start_ts"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -3025,11 +3025,11 @@ func (this *Cryptocom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 		currency = this.SafeCurrency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		// 90 days date range
 		request["start_ts"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -3608,10 +3608,10 @@ func (this *Cryptocom) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.SafeCurrency(code)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -4103,10 +4103,10 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		"instrument_name": GetValue(market, "id"),
 		"valuation_type":  "funding_hist",
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_ts"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")

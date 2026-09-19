@@ -1918,14 +1918,14 @@ func (this *Xt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any
 		"symbol":   GetValue(market, "id"),
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		// xt rounds startTime down to the candle boundary, which makes a mid-candle
 		// window start return one pre-since candle, shifting paginated windows and
 		// dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
 		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 		request["startTime"] = Multiply(MathCeil(Divide(since, duration)), duration)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if GetValue(market, "spot") == true {
 			limit = mathMin(limit, 1000) // spot max limit
 		} else {
@@ -2074,14 +2074,14 @@ func (this *Xt) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var response any = nil
 	if GetValue(market, "spot") == true {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = mathMin(limit, 500)
 		}
 
 		response = (<-this.PublicSpotGetDepth(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["level"] = mathMin(limit, 50)
 		} else {
 			request["level"] = 50
@@ -2626,14 +2626,14 @@ func (this *Xt) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) an
 	}
 	var response any = nil
 	if GetValue(market, "spot") == true {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = mathMin(limit, 1000)
 		}
 
 		response = (<-this.PublicSpotGetTradeRecent(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["num"] = mathMin(limit, 1000)
 		}
 		if GetValue(market, "linear") == true {
@@ -2727,7 +2727,7 @@ func (this *Xt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var typeVar any = nil
@@ -2740,7 +2740,7 @@ func (this *Xt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	if (subType != nil) || (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["size"] = limit
 		}
 		if IsEqual(subType, "inverse") {
@@ -2764,7 +2764,7 @@ func (this *Xt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			return "SPOT"
 		}()
 		request["bizType"] = marginOrSpotRequest
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 
@@ -3333,13 +3333,13 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar any, side a
 			params = this.Omit(params, "cost")
 			var createMarketBuyOrderRequiresPrice *bool = this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", true)
 			if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice == true {
-				if IsEqual(price, nil) && (cost == nil) {
+				if (price == nil) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter"))
 				} else {
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
 					var costCalculated any = nil
-					if !IsEqual(price, nil) {
+					if price != nil {
 						costCalculated = Precise.StringMul(amountString, priceString)
 					} else {
 						costCalculated = cost
@@ -3459,7 +3459,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar any, si
 	if (trailingTriggerPrice != nil) && !isTrailing {
 		panic(ArgumentsRequired(this.Id + " createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount"))
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		if !(isStopLoss) && !(isTakeProfit) && !(isTrailing) {
 			request["price"] = this.PriceToPrecision(symbol, price)
 		}
@@ -3844,10 +3844,10 @@ func (this *Xt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var typeVar any = nil
@@ -4056,10 +4056,10 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ..
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "size", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
 	var typeVar any = nil
@@ -4105,10 +4105,10 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ..
 		AddElementToObject(request, "state", status)
 	}
 	if (trigger != nil && *trigger == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (subType != nil) || (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "startTime", since)
 		}
-		if (!IsEqual(limit, nil)) && (trailing == nil || *trailing != true) {
+		if (limit != nil) && (trailing == nil || *trailing != true) {
 			AddElementToObject(request, "size", limit)
 		}
 	}
@@ -4180,10 +4180,10 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ..
 		}()
 		AddElementToObject(request, "bizType", marginOrSpotRequest)
 		if !IsEqual(status, "open") {
-			if !IsEqual(since, nil) {
+			if since != nil {
 				AddElementToObject(request, "startTime", since)
 			}
-			if !IsEqual(limit, nil) {
+			if limit != nil {
 				request = this.Omit(request, "size")
 				AddElementToObject(request, "limit", limit)
 			}
@@ -5126,10 +5126,10 @@ func (this *Xt) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var typeVar any = nil
@@ -5354,10 +5354,10 @@ func (this *Xt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 10, max 200
 	}
 
@@ -5434,10 +5434,10 @@ func (this *Xt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 10, max 200
 	}
 
@@ -6116,7 +6116,7 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	} else {
 		request["limit"] = 200 // max
@@ -6577,10 +6577,10 @@ func (this *Xt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var subType any = nil
@@ -6940,10 +6940,10 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any 
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -7295,7 +7295,7 @@ func (this *Xt) editOrderBody(ch chan any, id any, symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument"))
 	}
 	if this.Markets == nil {

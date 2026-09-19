@@ -3858,11 +3858,11 @@ func (this *Gate) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	request := GetValue(requestrequestParamsVariable, 0)
 	requestParams := GetValue(requestrequestParamsVariable, 1)
 	AddElementToObject(request, "type", "fund") // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
-	if !IsEqual(since, nil) {
+	if since != nil {
 		// from should be integer
 		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	var response any = nil
@@ -3971,7 +3971,7 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	requestqueryVariable := this.PrepareRequest(market, GetValue(market, "type"), params)
 	request := GetValue(requestqueryVariable, 0)
 	query := GetValue(requestqueryVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if GetValue(market, "spot") == true {
 			limit = mathMin(limit, 1000)
 		} else {
@@ -4767,7 +4767,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		return 1000
 	}()
 	limit = func() any {
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			return maxLimit
 		}
 		return mathMin(limit, maxLimit)
@@ -4777,7 +4777,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		until = this.ParseToInt(Divide(until, 1000))
 		params = this.Omit(params, "until")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var duration any = this.ParseTimeframe(timeframe)
 		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 		var distance any = Multiply((Subtract(limit, 1)), duration)
@@ -4913,10 +4913,10 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	requestparamsVariable := this.PrepareRequest(market, nil, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -5061,10 +5061,10 @@ func (this *Gate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		params = this.Omit(params, []any{"until"})
 		AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000)) // default 100, max 1000
 	}
-	if !IsEqual(since, nil) && (GetValue(market, "contract") == true) {
+	if (since != nil) && (GetValue(market, "contract") == true) {
 		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 	}
 	var response any = nil
@@ -5291,10 +5291,10 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		params = GetValue(marginModeparamsVariable, 1)
 		AddElementToObject(request, "account", marginMode)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit) // default 100, max 1000
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 	}
 	if until != nil {
@@ -5618,10 +5618,10 @@ func (this *Gate) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var start int64 = this.ParseToInt(Divide(since, 1000))
 		AddElementToObject(request, "from", start)
 		AddElementToObject(request, "to", this.Sum(start, (30*24)*60*60))
@@ -5688,10 +5688,10 @@ func (this *Gate) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var start int64 = this.ParseToInt(Divide(since, 1000))
 		AddElementToObject(request, "from", start)
 		AddElementToObject(request, "to", this.Sum(start, (30*24)*60*60))
@@ -6209,7 +6209,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	params = this.Omit(params, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId"})
 	var isLimitOrder bool = (IsEqual(typeVar, "limit"))
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
-	if isLimitOrder && IsEqual(price, nil) {
+	if isLimitOrder && (price == nil) {
 		panic(ArgumentsRequired(Add(Add(this.Id+" createOrder () requires a price argument for ", typeVar), " orders")))
 	}
 	if isMarketOrder {
@@ -6292,7 +6292,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 				if cost != nil {
 					quoteAmount = this.CostToPrecision(symbol, cost)
 				} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-					if IsEqual(price, nil) {
+					if price == nil {
 						panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 					} else {
 						var amountString *string = this.NumberToString(amount)
@@ -6531,7 +6531,7 @@ func (this *Gate) EditOrderRequest(id any, symbol any, typeVar any, side any, op
 		"currency_pair": GetValue(market, "id"),
 		"account":       account,
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		if GetValue(market, "spot") == true {
 			request["amount"] = this.AmountToPrecision(symbol, amount)
 		} else {
@@ -6542,7 +6542,7 @@ func (this *Gate) EditOrderRequest(id any, symbol any, typeVar any, side any, op
 			}
 		}
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if GetValue(market, "spot") != true {
@@ -7283,7 +7283,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var useHistoricalparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "historical", false)
 	useHistorical = GetValue(useHistoricalparamsVariable, 0)
 	params = GetValue(useHistoricalparamsVariable, 1)
-	if !EvalTruthy(useHistorical) && ((IsEqual(since, nil) && (until == nil)) || (typeVar == nil || *typeVar != "swap")) {
+	if !EvalTruthy(useHistorical) && (((since == nil) && (until == nil)) || (typeVar == nil || *typeVar != "swap")) {
 
 		retRes550319 := (<-this.FetchOrdersByStatusAsync("finished", symbol, since, limit, params))
 		PanicOnError(retRes550319)
@@ -7295,14 +7295,14 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	requestparamsVariable := this.PrepareRequest(market, typeVar, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 	}
 	if until != nil {
 		params = this.Omit(params, "until")
 		AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -7351,11 +7351,11 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 		status = "finished"
 	}
 	AddElementToObject(request, "status", status)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	if spot {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 		}
 		var until *int64 = this.SafeInteger(params, "until")
@@ -9277,10 +9277,10 @@ func (this *Gate) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "from", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	var response any = nil
@@ -9658,10 +9658,10 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan any, symbol any, optional
 		"settle":   GetValue(market, "settleId"),
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = this.ParseToInt(Divide(since, 1000))
 	}
 
@@ -9772,10 +9772,10 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"underlying": this.SafeString(optionParts, 0),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -9850,7 +9850,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 	requestqueryVariable := this.PrepareRequest(market, typeVar, params)
 	request := GetValue(requestqueryVariable, 0)
 	query := GetValue(requestqueryVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	var response any = nil
@@ -9874,7 +9874,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 		response = (<-this.PrivateDeliveryGetSettleSettlements(this.Extend(request, query)))
 		PanicOnError(response)
 	} else {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "from", since)
 		}
 		if IsEqual(market, nil) {
@@ -10075,10 +10075,10 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		params = this.Omit(params, "settle")
 		AddElementToObject(request, "settle", settle)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "from", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("to", request, params)
@@ -10429,10 +10429,10 @@ func (this *Gate) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs ..
 		"settle":   GetValue(market, "settleId"),
 		"contract": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "from", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("to", request, params)
@@ -10501,7 +10501,7 @@ func (this *Gate) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any 
 	}
 	var response any = nil
 	if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 		request["settle"] = GetValue(market, "settleId")
@@ -11200,10 +11200,10 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 	requestparamsVariable := this.PrepareRequest(market, marketType, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 	}
 	if until != nil {

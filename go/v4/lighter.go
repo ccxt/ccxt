@@ -1017,7 +1017,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	 * @param {int} [params.orderExpiry] orderExpiry
 	 * @returns {any[]} request to be sent to the exchange
 	 */
-	if IsEqual(price, nil) {
+	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false) // default false
@@ -1852,7 +1852,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"market_id": GetValue(market, "id"),
 		"limit":     100,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 100)
 	}
 
@@ -2181,11 +2181,11 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var now int64 = this.Milliseconds()
 	var startTs any = nil
 	var endTs any = nil
-	if !IsEqual(since, nil) {
+	if since != nil {
 		startTs = since
 		if until != nil {
 			endTs = until
-		} else if !IsEqual(limit, nil) {
+		} else if limit != nil {
 			var duration any = this.ParseTimeframe(timeframe)
 			endTs = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
 		} else {
@@ -2199,7 +2199,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 			return now
 		}()
 		var defaultLimit int = 100
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			startTs = Subtract(endTs, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), limit))
 		} else {
 			startTs = Subtract(endTs, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), defaultLimit))
@@ -2930,7 +2930,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		"account_index": accountIndex,
 		"limit":         100,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 100)
 	}
 
@@ -3820,7 +3820,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"limit":         100,
 		"account_index": accountIndex,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 100)
 	}
 	var until any = nil

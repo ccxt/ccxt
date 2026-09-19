@@ -1129,17 +1129,17 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	params = this.Omit(params, "price")
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var duration any = this.ParseTimeframe(timeframe)
 		request["from"] = this.ParseToInt(Divide(since, 1000))
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			limit = 2000
 		}
 		limit = mathMin(limit, 2000)
 		var toTimestamp any = this.Sum(request["from"], Subtract(Multiply(limit, duration), 1))
 		var currentTimestamp int64 = this.Seconds()
 		request["to"] = mathMin(toTimestamp, currentTimestamp)
-	} else if !IsEqual(limit, nil) {
+	} else if limit != nil {
 		limit = mathMin(limit, 2000)
 		var duration any = this.ParseTimeframe(timeframe)
 		request["to"] = this.Seconds()
@@ -1243,11 +1243,11 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		requestparamsVariable := this.HandleUntilOption("before", request, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
-		if !IsEqual(since, nil) {
+		if since != nil {
 			AddElementToObject(request, "since", since)
 			AddElementToObject(request, "sort", "asc")
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			AddElementToObject(request, "count", limit)
 		}
 
@@ -1585,11 +1585,11 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 	price = this.ParseNumber(price) // some callers pass null instead of undefined, normalize it
 	var isLimitOrder bool = (IsEqual(typeVar, "lmt")) || (IsEqual(typeVar, "post")) || (IsEqual(typeVar, "ioc"))
 	var limitPriceParam *string = this.SafeString(params, "limitPrice") // the venue's own field name, forwarded as-is by this.extend below
-	if isLimitOrder && (IsEqual(price, nil)) && (limitPriceParam == nil) {
+	if isLimitOrder && (price == nil) && (limitPriceParam == nil) {
 		panic(ArgumentsRequired(Add(Add(this.Id+" createOrder () requires a price argument for ", typeVar), " orders")))
 	}
 	var isMarketOrder bool = (IsEqual(typeVar, "mkt"))
-	if (!IsEqual(price, nil)) && !isMarketOrder {
+	if (price != nil) && !isMarketOrder {
 		request["limitPrice"] = this.PriceToPrecision(symbol, price)
 	}
 	params = this.Omit(params, []any{"clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
@@ -1817,10 +1817,10 @@ func (this *Krakenfutures) editOrderBody(ch chan any, id any, symbol any, typeVa
 	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["size"] = amount
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["limitPrice"] = price
 	}
 
@@ -2263,10 +2263,10 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = since
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -2347,10 +2347,10 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan any, optionalArgs ...
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = since
 	}
 	var response any = nil
@@ -3075,11 +3075,11 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 		currency = this.Currency(code)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = since
 		request["sort"] = "asc"
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		// each trade execution emits two rows and the position-size legs are
 		// filtered out below, so ask for twice the limit to compensate,
 		// parseLedger re-applies the limit on the filtered entries
@@ -3174,11 +3174,11 @@ func (this *Krakenfutures) fetchFundingHistoryBody(ch chan any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"info": "funding rate change",
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = since
 		request["sort"] = "asc"
 	}
-	if (!IsEqual(limit, nil)) && (symbol == nil) {
+	if (limit != nil) && (symbol == nil) {
 		// the account log has no contract filter, so a symbol is applied on the
 		// client side - a server side page size would truncate the rows of other
 		// contracts away before that filter runs and under-fill the result

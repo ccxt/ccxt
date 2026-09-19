@@ -735,7 +735,7 @@ func (this *Bitopro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1063,14 +1063,14 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"resolution": resolution,
 	}
 	// we need to have a limit argument because "to" and "from" are required
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 500
 	} else {
 		limit = mathMin(limit, 75000) // supports slightly more than 75k candles atm, but limit here to avoid errors
 	}
 	var timeframeInSeconds any = this.ParseTimeframe(timeframe)
 	var alignedSince any = nil
-	if IsEqual(since, nil) {
+	if since == nil {
 		request["to"] = this.Seconds()
 		request["from"] = Subtract(request["to"], (Multiply(limit, timeframeInSeconds)))
 	} else {
@@ -1690,10 +1690,10 @@ func (this *Bitopro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTimestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2020,10 +2020,10 @@ func (this *Bitopro) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTimestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2095,10 +2095,10 @@ func (this *Bitopro) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTimestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

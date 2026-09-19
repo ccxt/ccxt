@@ -1622,7 +1622,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(since, nil) {
+	if since == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a \"since\" argument"))
 	}
 	if symbol == nil {
@@ -1658,7 +1658,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var nowMillis int64 = this.Milliseconds()
 	var until any = DerefScalar(this.SafeInteger(request, "end_time"))
 	if IsEqual(until, nil) {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			until = Subtract(Add(since, (Multiply(limit, (Multiply(this.ParseTimeframe(tf), 1000))))), 1)
 		}
 		if IsEqual(until, nil) {
@@ -1843,10 +1843,10 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "start_time", since)
 	}
 
@@ -2115,7 +2115,7 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		var defaultSlippage any = this.HandleOption("createOrder", "defaultSlippage", "0.5")
 		var slippage *string = this.SafeString2(params, "slippage", "slippage_percent", defaultSlippage)
 		sigPayload["slippage_percent"] = slippage
-	} else if (isTakeProfitOrder || isStopLossOrder) && (IsEqual(price, nil)) {
+	} else if (isTakeProfitOrder || isStopLossOrder) && (price == nil) {
 		operationType = "set_position_tpsl"
 	} else if isStopOrder {
 		operationType = "create_stop_order"
@@ -2129,7 +2129,7 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		if stopClientOrderId != nil {
 			stopPayload["client_order_id"] = stopClientOrderId
 		}
-		if !IsEqual(price, nil) {
+		if price != nil {
 			stopPayload["limit_price"] = this.PriceToPrecision(symbol, price)
 		}
 		sigPayload["stop_order"] = stopPayload
@@ -2146,7 +2146,7 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		var tpPayload map[string]any = map[string]any{
 			"stop_price": this.PriceToPrecision(symbol, takeProfitPrice),
 		}
-		if !IsEqual(price, nil) {
+		if price != nil {
 			tpPayload["limit_price"] = this.PriceToPrecision(symbol, price)
 		}
 		sigPayload["take_profit"] = tpPayload
@@ -2155,12 +2155,12 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		var slPayload map[string]any = map[string]any{
 			"stop_price": this.PriceToPrecision(symbol, stopLossPrice),
 		}
-		if !IsEqual(price, nil) {
+		if price != nil {
 			slPayload["limit_price"] = this.PriceToPrecision(symbol, price)
 		}
 		sigPayload["stop_loss"] = slPayload
 	}
-	if !IsEqual(price, nil) && (operationType == "create_order") {
+	if (price != nil) && (operationType == "create_order") {
 		sigPayload["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if !IsEqual(amount, nil) && ((operationType != "create_stop_order") && (operationType != "set_position_tpsl")) {
@@ -2752,7 +2752,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -3157,7 +3157,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -4053,7 +4053,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -4184,7 +4184,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var defaultLimit int = 100

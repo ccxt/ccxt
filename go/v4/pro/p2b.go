@@ -377,7 +377,7 @@ func (this *P2b) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var name string = "depth.subscribe"
 	var messageHash any = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
 	var interval *string = this.SafeString(params, "interval", "0.001")
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	var request []any = []any{ccxt.GetValue(market, "id"), limit, interval}

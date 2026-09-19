@@ -118,7 +118,7 @@ func (this *Derive) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes8412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes8412)
 	}
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 10
 	}
 	var market any = this.Market(symbol)

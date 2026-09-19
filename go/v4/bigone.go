@@ -1217,7 +1217,7 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		var request map[string]any = map[string]any{
 			"asset_pair_name": GetValue(market, "id"),
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit // default 50, max 200
 		}
 
@@ -1550,8 +1550,8 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var untilIsDefined bool = (until != nil)
-	var sinceIsDefined bool = (!IsEqual(since, nil))
-	if IsEqual(limit, nil) {
+	var sinceIsDefined bool = (since != nil)
+	if limit == nil {
 		limit = func() int {
 			if sinceIsDefined && untilIsDefined {
 				return 500
@@ -1882,7 +1882,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			var cost *float64 = this.SafeNumber(params, "cost")
 			params = this.Omit(params, "cost")
 			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-				if (IsEqual(price, nil)) && (cost == nil) {
+				if (price == nil) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
 					var amountString *string = this.NumberToString(amount)
@@ -2145,7 +2145,7 @@ func (this *Bigone) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"asset_pair_name": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 20, max 200
 	}
 
@@ -2216,7 +2216,7 @@ func (this *Bigone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"asset_pair_name": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 20, max 200
 	}
 
@@ -2609,7 +2609,7 @@ func (this *Bigone) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["asset_symbol"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 50
 	}
 
@@ -2680,7 +2680,7 @@ func (this *Bigone) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["asset_symbol"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 50
 	}
 

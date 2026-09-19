@@ -878,7 +878,7 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": GetValue(market, "id"),
 	}
 	var response any = nil
-	if !IsEqual(limit, nil) && IsLessThanOrEqual(limit, 100) {
+	if (limit != nil) && IsLessThanOrEqual(limit, 100) {
 
 		response = (<-this.PublicGetOrderbookTop(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1417,7 +1417,7 @@ func (this *Luno) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = since
 	}
 
@@ -1480,7 +1480,7 @@ func (this *Luno) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		"duration": this.SafeValue(this.Timeframes, timeframe, timeframe),
 		"pair":     GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = this.ParseToInt(since)
 	} else {
 		var duration any = Multiply(Multiply(1000, 1000), this.ParseTimeframe(timeframe))
@@ -1563,10 +1563,10 @@ func (this *Luno) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1787,7 +1787,7 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan any, optionalArgs ...any) any
 	if IsEqual(entry, nil) {
 		entry = OpNeg(1)
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 1
 	}
 	var since any = nil
@@ -1859,7 +1859,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	} else if IsEqual(min_row, nil) || IsEqual(max_row, nil) {
 		panic(ExchangeError(this.Id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined"))
 	}
-	if !IsEqual(limit, nil) && IsGreaterThan(Subtract(max_row, min_row), limit) {
+	if (limit != nil) && IsGreaterThan(Subtract(max_row, min_row), limit) {
 		if IsLessThanOrEqual(max_row, 0) {
 			min_row = Subtract(max_row, limit)
 		} else if IsGreaterThan(min_row, 0) {

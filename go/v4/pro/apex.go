@@ -306,7 +306,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		if ccxt.IsEqual(limit, nil) {
+		if limit == nil {
 			limit = 25
 		}
 		var topic any = ccxt.Add("orderBook"+ccxt.ToString(limit)+".H.", ccxt.GetValue(market, "id2"))
