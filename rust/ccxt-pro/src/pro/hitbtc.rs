@@ -572,6 +572,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "ch": "orderbook/full",                 // Channel
@@ -595,7 +597,7 @@ impl HitbtcCore {
         //        }
         //    }
         //
-        let mut snapshot: Value = self.safe_dict_k(message.clone(), "snapshot", &[]);
+        let mut snapshot: Value = (match __pro_message.get("snapshot").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut data: Value = self.safe_dict2(message, Value::Str("snapshot".into()), Value::Str("update".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -757,8 +759,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "ch": "ticker/1s",
@@ -797,7 +799,7 @@ impl HitbtcCore {
         //        }
         //    }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -940,8 +942,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
         //         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
@@ -956,7 +958,7 @@ impl HitbtcCore {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -1223,6 +1225,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) -> Value {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "ch": "candles/M1",                     // Channel
@@ -1261,7 +1265,7 @@ impl HitbtcCore {
             m
         })]);
         let mut marketIds: Value = object_keys(&data);
-        let mut channel: Value = self.safe_string_k(message.clone(), "ch", &[Value::Str("".into())]);
+        let mut channel: Value = (match __pro_message.get("ch").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut splitChannel: Value = split(&channel, &Value::Str("/".into()));
         let mut period: Value = self.safe_string(splitChannel, Value::Int(1), &[]);
         let mut timeframe: Value = self.find_timeframe(period, &[]);
@@ -1357,6 +1361,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) -> Value {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1422,7 +1428,7 @@ impl HitbtcCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
-        let mut data: Value = self.safe_value_k(message.clone(), "params", &[Value::from(vec![])]);
+        let mut data: Value = (match __pro_message.get("params").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::from(vec![]), Some(__v) => __v, None => Value::from(vec![]) });
         if (matches!(&data, Value::Arr(_))) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -1441,14 +1447,14 @@ impl HitbtcCore {
 }
 
     pub fn handle_order_helper(&self, mut client: Value, mut message: Value, mut order: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut orders: Value = self.orders.clone();
         if (orders == Value::Null) {
             return;
         }
         let mut marketId: Value = self.safe_string_lower2(order.clone(), Value::Str("instrument".into()), Value::Str("symbol".into()), &[]);
-        let mut method: Value = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
+        let mut method: Value = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut splitMethod: Value = split(&method, &Value::Str("_order".into()));
         let mut messageHash: Value = self.safe_string(splitMethod, Value::Int(0), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
@@ -1556,9 +1562,9 @@ impl HitbtcCore {
         let mut report_type: Value = self.safe_string_k(order.clone(), "report_type", &[]);
         let mut parsedStatus: Value = Value::Null;
         if (report_type.as_str() == Some("canceled")) {
-            parsedStatus = self.parent.parse_order_status(report_type).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            parsedStatus = self.parent.parse_order_status(report_type);
         }  else {
-            parsedStatus = self.parent.parse_order_status(rawStatus).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            parsedStatus = self.parent.parse_order_status(rawStatus);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1823,8 +1829,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1840,8 +1846,8 @@ impl HitbtcCore {
         //        ]
         //    }
         //
-        let mut messageHash: Value = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut params: Value = (match message.get("params") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let mut messageHash: Value = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut params: Value = (match __pro_message.get("params").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
         let mut balance: Value = self.parse_balance(params);
         { let __t = self.deep_extend(self.balance.clone(), &[balance.clone()]); self.balance = __t; }
         client.resolve(&[self.balance.clone(), messageHash]);
@@ -1854,6 +1860,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_order_request(&self, mut client: Value, mut message: Value) -> Value {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // createOrderWs, cancelOrderWs
         //
@@ -1881,11 +1889,14 @@ impl HitbtcCore {
         //        "id": 1700233093414
         //    }
         //
-        let mut messageHash: Value = self.safe_string_k(message.clone(), "id", &[]);
-        let mut result: Value = self.safe_value_k(message.clone(), "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut messageHash: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut result: Value = (match __pro_message.get("result").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), Some(__v) => __v, None => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         if (matches!(&result, Value::Arr(_))) {
             let mut parsedOrders: Value = Value::from(vec![]);
             {
@@ -1907,6 +1918,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         if is_true(&self.handle_error(client.clone(), message.clone())) {
             return;
         }
@@ -1942,7 +1955,7 @@ impl HitbtcCore {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }  else {
-            let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
+            let mut result: Value = (match __pro_message.get("result").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
             let mut clientOrderId: Option<String> = self.safe_string_k(result.clone(), "client_order_id", &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_some()) {
                 self.handle_order_request(client.clone(), message.clone());
@@ -1965,13 +1978,15 @@ impl HitbtcCore {
 }
 
     pub fn handle_authenticate(&self, mut client: Value, mut message: Value) -> Value {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "jsonrpc": "2.0",
         //        "result": true
         //    }
         //
-        let mut success: Value = self.safe_bool_k(message.clone(), "result", &[]);
+        let mut success: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null });
         let mut messageHash: Value = Value::Str("authenticated".into());
         if (success.as_bool() == Some(true)) {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), messageHash.clone(), &[]);
@@ -1989,8 +2004,8 @@ impl HitbtcCore {
 }
 
     pub fn handle_error(&self, mut client: Value, mut message: Value) -> Value {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        jsonrpc: '2.0',
@@ -2002,7 +2017,7 @@ impl HitbtcCore {
         //        id: 1700228604325
         //    }
         //
-        let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
+        let mut error: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (error != Value::Null) {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut code: Value = self.safe_value_k(error.clone(), "code", &[]);
@@ -2021,7 +2036,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                     }
                 }  else {
-                    let mut id: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+                    let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
                     client.reject(&[e, id.clone()]);
                 }
                 return Value::Bool(true);
