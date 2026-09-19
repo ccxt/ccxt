@@ -6786,7 +6786,10 @@ export class BaseExchange {
             return mapping[key];
         } else {
             const keys = Object.keys (mapping);
-            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping. Key must be one of the values: ' + keys.join (', '));
+            // "mapping" must stay literal-final and the list must not be introduced with ": ":
+            // the php transpiler rewrites a param name inside string literals ("$mapping",
+            // "mapping->") and turns ": " after a non-space into " => ".
+            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping' + ', must be one of ' + keys.join (', '));
         }
     }
 

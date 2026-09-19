@@ -7050,7 +7050,11 @@ class BaseExchange {
         if (is_array($mapping) && array_key_exists($key ?? '', $mapping)) {
             return $mapping[$key];
         } else {
-            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
+            $keys = is_array($mapping) ? array_keys($mapping) : array();
+            // "mapping" must stay literal-final and the list must not be introduced with ": ":
+            // the php transpiler rewrites a param name inside string literals ("$mapping",
+            // "mapping->") and turns ": " after a non-space into " => ".
+            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping' . ', must be one of ' . implode(', ', $keys));
         }
     }
 
