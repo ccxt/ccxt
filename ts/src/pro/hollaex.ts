@@ -105,7 +105,7 @@ export default class hollaex extends hollaexRest {
         if (symbol === undefined) {
             return;
         }
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         const timestamp = this.safeString (data, 'timestamp');
         const timestampMs = this.parse8601 (timestamp);
         const snapshot = this.parseOrderBook (data, symbol, timestampMs);
@@ -175,7 +175,7 @@ export default class hollaex extends hollaexRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
@@ -617,7 +617,7 @@ export default class hollaex extends hollaexRest {
             'wallet': this.handleBalance,
             'usertrade': this.handleMyTrades,
         };
-        const topic = this.safeValue (message, 'topic');
+        const topic = this.safeString (message, 'topic');
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
