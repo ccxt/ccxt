@@ -865,8 +865,8 @@ impl BitfinexCore {
         //       1655110144596
         //    ]
         //
-        let mut numFields: f64 = ((trade.len() as i64) as f64);
-        let mut isPublic: bool = numFields <= ((8i64) as f64);
+        let mut numFields: Value = get_array_length(&trade);
+        let mut isPublic: bool = numFields.as_f64().unwrap_or(f64::NAN) <= ((8i64) as f64);
         let mut marketId: Value = (if (!isPublic) { self.safe_string(trade.clone(), Value::Int(1), &[]) } else { Value::Null });
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut createdKey: Value = (if isPublic { Value::Int(1) } else { Value::Int(2) });

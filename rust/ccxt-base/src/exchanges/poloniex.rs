@@ -1344,8 +1344,8 @@ impl PoloniexCore {
         //             "1740770099999",
         //           ],
         //
-        let mut ohlcvLength: f64 = ((ohlcv.len() as i64) as f64);
-        let mut isContract: bool = ohlcvLength == 9.0;
+        let mut ohlcvLength: Value = get_array_length(&ohlcv);
+        let mut isContract: bool = is_equal(&ohlcvLength, &Value::Int(9));
         if isContract {
             return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(7), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
         }
@@ -3996,7 +3996,8 @@ impl PoloniexCore {
             while { if !__for_first_1073 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1073 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseKeys.len() as i64) as f64) } {
             let mut currencyId: Value = responseKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut feeInfo: Value = response.as_map().and_then(|__m| currencyId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut feeInfo: Value = get_value(&response, &currencyId);
+            let mut feeInfo: Value = get_value(&response, &currencyId);
             if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 let mut currency: Value = self.currency(code.clone());
                 if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.parse_deposit_withdraw_fee(feeInfo.clone(), &[currency.clone()])); }

@@ -4569,8 +4569,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 body = json_stringify(&params);
             }
         }
-        let mut isPrivate: Value = Value::Bool(starts_with(&api, &Value::Str("private".into())));
-        if is_equal(&isPrivate, &Value::Bool(true)) {
+        let mut isPrivate: bool = starts_with(&api, &Value::Str("private".into()));
+        if (isPrivate) {
             self.check_required_credentials(&[]);
             if (queryString.as_str() != Some("")) {
                 path = Value::Str(format!("{}{}", add(&path, &Value::Str("?".into())), queryString).into());

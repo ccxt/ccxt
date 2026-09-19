@@ -4047,10 +4047,8 @@ impl BitmexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __config_empty = indexmap::IndexMap::new();
-        let config = config.as_map().unwrap_or(&__config_empty);
         let mut isAuthenticated: Value = self.check_required_credentials(&[Value::Bool(false)]);
-        let mut cost: Value = (match config.get("cost") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Int(1) });
+        let mut cost: Value = self.safe_value_k(config, "cost", &[Value::Int(1)]);
         if !is_equal(&cost, &Value::Int(1)) {
             if is_true(&isAuthenticated) {
                 return cost;
@@ -4497,7 +4495,7 @@ impl BitmexCore {
         let mut isAuthenticated: Value = self.check_required_credentials(&[Value::Bool(false)]);
         if (api.as_str() == Some("private")) || ((api.as_str() == Some("public")) && is_true(&isAuthenticated)) {
             self.check_required_credentials(&[]);
-            let mut auth: Value = Value::Str(format!("{}{}", method, query).into());
+            let mut auth: Value = add(&method, &query);
             let mut apiExpires: Value = self.safe_integer_k(self.options.clone(), "api-expires", &[]); // backwards compatibility
             let mut expires: Value = self.safe_integer_product_k(self.options.clone(), "recvWindow", Value::Float(0.001), &[apiExpires]);
             headers = Value::Map({

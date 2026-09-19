@@ -11364,12 +11364,10 @@ impl HtxCore {
 
     pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let __info_empty = indexmap::IndexMap::new();
-        let info = info.as_map().unwrap_or(&__info_empty);
-        let mut currencyId: Value = (match info.get("trade_partition") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut marketId: Value = (match info.get("contract_code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut currencyId: Value = self.safe_string_k(info.clone(), "trade_partition", &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "contract_code", &[]);
         let mut tiers: Value = Value::from(vec![]);
-        let mut brackets: Value = (match info.get("list") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut brackets: Value = self.safe_list_k(info, "list", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_788: bool = true;

@@ -1493,8 +1493,8 @@ impl CoinspotCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut isVersionedApi: bool = matches!(&api, Value::Arr(_));
-        let mut version: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut accessType: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) } else { api });
+        let mut version: Value = (if isVersionedApi { get_value(&api, &Value::Int(0)) } else { Value::Null });
+        let mut accessType: Value = (if isVersionedApi { get_value(&api, &Value::Int(1)) } else { api.clone() });
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone())).into());
         let mut fullPath: Value = (if (version != Value::Null) { Value::Str(format!("{}{}", add(&Value::Str("/".into()), &version), endpoint).into()) } else { endpoint });
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &accessType), &fullPath);

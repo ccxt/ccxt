@@ -4321,7 +4321,7 @@ impl BitfinexCore {
         let mut request: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (api.as_str() == Some("v1")) {
-            request = add(&api, &request);
+            request = Value::Str(format!("{}{}", api, request).into());
         }  else {
             request = Value::Str(format!("{}{}", self.version.clone(), request).into());
         }

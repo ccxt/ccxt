@@ -7349,7 +7349,7 @@ impl CoinexCore {
                 self.check_required_credentials(&[]);
                 query = self.keysort(query.clone(), &[]);
                 let mut urlencoded: Value = self.rawencode(query.clone(), &[]);
-                let mut preparedString: Value = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", method, Value::Str("/".into())).into()), &version), Value::Str("/".into())).into()), &path);
+                let mut preparedString: Value = add(&Value::Str(format!("{}{}", add(&add(&method, &Value::Str("/".into())), &version), Value::Str("/".into())).into()), &path);
                 if (method.as_str() == Some("POST")) {
                     body = json_stringify(&query);
                     preparedString = Value::Str(format!("{}{}", preparedString, body).into());

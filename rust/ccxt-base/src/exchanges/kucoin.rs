@@ -12047,11 +12047,11 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
 })]);
         let mut defaultVersion: Value = self.safe_string(methodVersions, path, &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
         let mut version: Option<String> = self.safe_string_k(params, "version", &[defaultVersion]).as_str().map(str::to_owned);
-        if (version.as_deref() == Some("v3")) && (matches!(&config, Value::Dict(__d) if __d.contains_key("v3"))) {
+        if (version.as_deref() == Some("v3")) && (in_op(&config, &Value::Str("v3".into()))) {
             return config.as_map().and_then(|__m| __m.get("v3")).cloned().unwrap_or(Value::Null);
-        }  else if (version.as_deref() == Some("v2")) && (matches!(&config, Value::Dict(__d) if __d.contains_key("v2"))) {
+        }  else if (version.as_deref() == Some("v2")) && (in_op(&config, &Value::Str("v2".into()))) {
             return config.as_map().and_then(|__m| __m.get("v2")).cloned().unwrap_or(Value::Null);
-        }  else if (version.as_deref() == Some("v1")) && (matches!(&config, Value::Dict(__d) if __d.contains_key("v1"))) {
+        }  else if (version.as_deref() == Some("v1")) && (in_op(&config, &Value::Str("v1".into()))) {
             return config.as_map().and_then(|__m| __m.get("v1")).cloned().unwrap_or(Value::Null);
         }
         return self.safe_value_k(config, "cost", &[Value::Int(1)]);
