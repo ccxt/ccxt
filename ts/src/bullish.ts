@@ -903,7 +903,7 @@ export default class bullish extends Exchange {
     }
 
     parseMarketType (type: Str = undefined, defaultType: Str = undefined): Str {
-        const types = {
+        const types: Dict = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
             'DATED_FUTURE': 'future',
@@ -2502,7 +2502,7 @@ export default class bullish extends Exchange {
 
     parseBalanceForSingleCurrency (response: any, code: Str): Balances {
         const result: Dict = { 'info': response };
-        const account = this.account ();
+        const account: Dict = this.account ();
         account['free'] = this.safeString (response, 'availableQuantity');
         account['used'] = this.safeString (response, 'lockedQuantity');
         result[code as string] = account;

@@ -87,7 +87,7 @@ export default class bullish extends bullishRest {
 
     async watchPublic (url: string, messageHash: string, request = {}, params = {}): Promise<any> {
         const id = this.requestId ().toString ();
-        const message = {
+        const message: Dict = {
             'jsonrpc': '2.0',
             'type': 'command',
             'method': 'subscribe',
@@ -101,12 +101,12 @@ export default class bullish extends bullishRest {
     async watchPrivate (messageHash: string, subscribeHash: string, request = {}, params = {}): Promise<any> {
         const url = this.urls['api']['ws']['private'];
         const token = await this.handleToken ();
-        const cookies = {
+        const cookies: Dict = {
             'JWT_COOKIE': token,
         };
         this.options['ws']['cookies'] = cookies;
         const id = this.requestId ().toString ();
-        const message = {
+        const message: Dict = {
             'jsonrpc': '2.0',
             'type': 'command',
             'method': 'subscribe',
@@ -332,7 +332,7 @@ export default class bullish extends bullishRest {
         const orderbook = this.orderbooks[symbol];
         const bids = this.separateBidsOrAsks (this.safeList (data, 'bids', []));
         const asks = this.separateBidsOrAsks (this.safeList (data, 'asks', []));
-        const snapshot = {
+        const snapshot: Dict = {
             'bids': bids,
             'asks': asks,
         };
