@@ -612,6 +612,7 @@ func (this *Bitopro) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitopro#watchOrderBook

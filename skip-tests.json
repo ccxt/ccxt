@@ -2663,7 +2663,11 @@
         }
     },
     "lighter": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
+            "watchTicker.go": "Go test harness repanics the NotSupported thrown for spot symbols (the market_stats channel is swap-only) instead of skipping it like the other languages, recheck 2026-12-17",
+            "watchTickers.go": "Go test harness repanics the NotSupported thrown for spot symbols (the market_stats channel is swap-only) instead of skipping it like the other languages, recheck 2026-12-17",
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
                 "contractSize": "not provided",

@@ -3079,7 +3079,6 @@ func (this *Bitget) HandleErrorMessage(client any, message any) any {
 			return false
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -3421,6 +3420,7 @@ func (this *Bitget) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitget#watchTicker

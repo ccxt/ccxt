@@ -2849,7 +2849,7 @@ func (this *Bittrade) Sign(path any, optionalArgs ...any) any {
 			"Signature": signature,
 		})))
 		url = Add(url, Add("?", auth))
-		if method == "POST" {
+		if IsEqual(method, "POST") {
 			body = this.Json(query)
 			headers = map[string]any{
 				"Content-Type": "application/json",
@@ -2910,6 +2910,7 @@ func (this *Bittrade) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bittrade#fetchTime

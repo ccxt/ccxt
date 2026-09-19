@@ -227,6 +227,7 @@ type ICoreExchange interface {
 	FetchConvertTradeAsync(id any, optionalArgs ...any) <-chan any
 	FetchConvertTradeHistoryAsync(optionalArgs ...any) <-chan any
 	SetFetchResponse(fetchResponse any)
+	SetFetchResponseByUrl(responsesByUrl any)
 	Init(params map[string]any)
 	FetchDepositsAsync(optionalArgs ...any) <-chan any
 	Milliseconds() int64

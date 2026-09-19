@@ -1751,6 +1751,7 @@ func (this *Blockchaincom) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name blockchaincom#fetchMarkets

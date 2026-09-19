@@ -715,8 +715,8 @@ func (this *Phemex) Describe() any {
 				"11028": BadSymbol,
 				"11029": ExchangeError,
 				"11030": ExchangeError,
-				"11031": DDoSProtection,
-				"11032": DDoSProtection,
+				"11031": InvalidOrder,
+				"11032": InvalidOrder,
 				"11033": DuplicateOrderId,
 				"11034": InvalidOrder,
 				"11035": InvalidOrder,
@@ -6764,6 +6764,7 @@ func (this *Phemex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name phemex#fetchMarkets

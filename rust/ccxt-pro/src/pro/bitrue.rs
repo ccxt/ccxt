@@ -454,8 +454,8 @@ impl BitrueCore {
         add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), balances.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_154: bool = true;
-            while { if !__for_first_154 { i = add(&i, &Value::Int(1)); } __for_first_154 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_155: bool = true;
+            while { if !__for_first_155 { i = add(&i, &Value::Int(1)); } __for_first_155 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
@@ -758,8 +758,8 @@ impl BitrueCore {
         let mut symbols: Value = object_keys(&markets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_155: bool = true;
-            while { if !__for_first_155 { i = add(&i, &Value::Int(1)); } __for_first_155 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_156: bool = true;
+            while { if !__for_first_156 { i = add(&i, &Value::Int(1)); } __for_first_156 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut candidate: Value = get_value(&markets, &get_value(&symbols, &i));
             if !is_equal(&get_value(&candidate, &Value::Str("swap".to_string())), &Value::Bool(true)) {
                 continue;
@@ -780,8 +780,8 @@ impl BitrueCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_156: bool = true;
-            while { if !__for_first_156 { i = add(&i, &Value::Int(1)); } __for_first_156 = false; is_less_than(&i, &get_array_length(&bidsAsks)) } {
+            let mut __for_first_157: bool = true;
+            while { if !__for_first_157 { i = add(&i, &Value::Int(1)); } __for_first_157 = false; is_less_than(&i, &get_array_length(&bidsAsks)) } {
             let mut level: Value = get_value(&bidsAsks, &i);
             let mut level: Value = get_value(&bidsAsks, &i);
             let mut price: Value = self.safe_number(level.clone(), Value::Int(0), &[]);
@@ -900,8 +900,8 @@ impl BitrueCore {
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_157: bool = true;
-            while { if !__for_first_157 { i = add(&i, &Value::Int(1)); } __for_first_157 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_158: bool = true;
+            while { if !__for_first_158 { i = add(&i, &Value::Int(1)); } __for_first_158 = false; is_less_than(&i, &get_array_length(&data)) } {
             if is_equal(&stored, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 stored = ArrayCache::new(limit.clone());

@@ -3999,6 +3999,7 @@ func (this *Bullish) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bullish#fetchTime

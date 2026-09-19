@@ -8,6 +8,26 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchOpenInterests": [
+            {
+                "description": "open interest for all markets",
+                "method": "fetchOpenInterests",
+                "url": "https://api.pacifica.fi/api/v1/info/prices",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "open interest for a single market",
+                "method": "fetchOpenInterest",
+                "url": "https://api.pacifica.fi/api/v1/info/prices",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
         "createSubAccount": [
             {
                 "description": "create a subaccount with an agent wallet header",
@@ -148,6 +168,54 @@
         ],
         "createOrder": [
             {
+                "description": "reduce-only market sell",
+                "method": "createOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/create_market",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.00028,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"3eics2rAWLvNrCQgMr9EdW673UHJqZ2dXtmnPMe43TyT1n2nujjH2puBjie1hsPjqeCzteWcEthtzyRsM1J7yViE\",\"timestamp\":1789736694000,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"ask\",\"reduce_only\":true,\"slippage_percent\":\"0.5\",\"amount\":\"0.00028\"}"
+            },
+            {
+                "description": "market buy with slippage_percent passed as a number",
+                "method": "createOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/create_market",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.00014,
+                    null,
+                    {
+                        "slippage_percent": 1
+                    }
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"3PjETfbhxYoexXuAQxrbB18NeXAFjCXyjxiUP1QhbN2a8jFCrgVYAW2WTuRs8RrV1MV8MxbwwdW7E6xH1THWjrKm\",\"timestamp\":1789736682724,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"reduce_only\":false,\"slippage_percent\":\"1\",\"amount\":\"0.00014\"}"
+            },
+            {
+                "description": "market buy with slippage",
+                "method": "createOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/create_market",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.00014,
+                    null,
+                    {
+                        "slippage": 1
+                    }
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"3JRBPrLJ1Bc8ZootSTmq539xtfTHRskB2HzEJ86Fcsc4YH21uGLpxvd5mCzrBw9HcSHFckxu68KA4BxsKGJD7K7R\",\"timestamp\":1789736671761,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"reduce_only\":false,\"slippage_percent\":\"1\",\"amount\":\"0.00014\"}"
+            },
+            {
                 "description": "Stop (trigger) buy order",
                 "method": "createOrder",
                 "url": "https://test-api.pacifica.fi/api/v1/orders/stop/create",
@@ -181,20 +249,22 @@
                 "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"SHBGzpVrS1Giz9GuhhdQ22V1YVR5AgxCgmmB3Ba4ycSo8k9PomXtPUfVSdBWgDQKgK2iRCYiRAZ2yKz9GuoYzPL\",\"timestamp\":1769555623980,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"take_profit\":{\"stop_price\":\"83000\"},\"stop_loss\":{\"stop_price\":\"90000\"}}"
             },
             {
-                "description": "Market sell order",
+                "description": "Set position TP/SL with snake_case reduce_only (must not leak into the tpsl body)",
                 "method": "createOrder",
-                "url": "https://test-api.pacifica.fi/api/v1/orders/create_market",
+                "url": "https://test-api.pacifica.fi/api/v1/positions/tpsl",
                 "input": [
                     "BTC/USDC:USDC",
-                    "market",
-                    "sell",
-                    0.003,
+                    "limit",
+                    "buy",
+                    0.001,
                     null,
                     {
-                        "slippage": 0.05
+                        "takeProfitPrice": 83000,
+                        "stopLossPrice": 90000,
+                        "reduce_only": true
                     }
                 ],
-                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"5pC6m37qvxQmUk5AXPyjd87wMS7rg4V28coeKmjnuBT8WNHobyyGRmSCXXXdgigQvR728g7c384qouzCGM8s55NM\",\"timestamp\":1769554287748,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"ask\",\"reduce_only\":false,\"slippage_percent\":\"0.05\",\"amount\":\"0.003\",\"slippage\":0.05}"
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"5MnF1UzXa913WUFkGY8cHbEQ98cNL7jk1CZgBkY1sB379S5Ahe6aEehTfbTZ49AJtDnr9p5Ke8zk2Qt5CoKPQG8c\",\"timestamp\":1789809700912,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"take_profit\":{\"stop_price\":\"83000\"},\"stop_loss\":{\"stop_price\":\"90000\"}}"
             }
         ],
         "createOrders": [

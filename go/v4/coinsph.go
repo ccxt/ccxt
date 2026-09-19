@@ -2900,6 +2900,7 @@ func (this *Coinsph) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coinsph#fetchCurrencies

@@ -1416,6 +1416,7 @@ func (this *Bydfi) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bydfi#watchTicker

@@ -1507,6 +1507,22 @@ class bingx(ccxt.async_support.bingx):
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
         parsedOrder = self.parse_order(data)
+        if not isSpot:
+            # The envelope T is the order update time; o.T is the trade time.
+            updateTimestamp = self.safe_integer(message, 'T')
+            if (updateTimestamp is not None) and (updateTimestamp > 0):
+                orderId = self.safe_string(parsedOrder, 'id')
+                if orderId is not None:
+                    # Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
+                    # Match both id and symbol: several cached orders can share a symbol.
+                    for i in range(0, len(stored)):
+                        previousOrder = stored[i]
+                        if (previousOrder['id'] == orderId) and (previousOrder['symbol'] == parsedOrder['symbol']):
+                            previousTimestamp = self.safe_integer(previousOrder, 'lastUpdateTimestamp')
+                            if (previousTimestamp is not None) and (updateTimestamp < previousTimestamp):
+                                return
+                            break
+                parsedOrder['lastUpdateTimestamp'] = updateTimestamp
         stored.append(parsedOrder)
         symbol = parsedOrder['symbol']
         spotHash = 'spot:order'

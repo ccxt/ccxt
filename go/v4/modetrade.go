@@ -4079,6 +4079,7 @@ func (this *Modetrade) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name modetrade#fetchStatus

@@ -872,7 +872,6 @@ func (this *Bithumb) HandleErrorMessage(client any, message any) any {
 			return true
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -1288,6 +1287,7 @@ func (this *Bithumb) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bithumb#watchTicker

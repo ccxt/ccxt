@@ -2324,6 +2324,7 @@ func (this *Onetrading) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name onetrading#fetchTime

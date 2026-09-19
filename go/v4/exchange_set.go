@@ -219,6 +219,13 @@ func (this *BaseExchange) SetWsProxy(wsProxy any) {
 func (this *BaseExchange) SetFetchResponse(fetchResponse any) {
 	fetchResponse = derefScalar(fetchResponse) // generated callers may pass typed pointers; a typed nil is an absent value
 	this.FetchResponse = fetchResponse
+	this.FetchResponseByUrl = nil // a plain body (or the nil reset) drops any url-keyed mock
+}
+
+// SetFetchResponseByUrl serves a body per url fragment for methods that call several
+// endpoints; one shared body cannot cover two endpoints of different declared shapes.
+func (this *BaseExchange) SetFetchResponseByUrl(responsesByUrl any) {
+	this.FetchResponseByUrl = responsesByUrl
 }
 
 func (this *BaseExchange) SetVerbose(verbose any) {

@@ -3895,7 +3895,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 		"clientOrderId":       this.SafeString(metadata, "client_order_id"),
 		"timestamp":           timestamp,
 		"datetime":            this.Iso8601(timestamp),
-		"lastTradeTimeStamp":  nil,
+		"lastTradeTimestamp":  nil,
 		"lastUpdateTimestamp": this.SafeIntegerProduct(stateObj, "update_time", 0.000001),
 		"status":              this.ParseOrderStatus(this.SafeString(stateObj, "status")),
 		"symbol":              this.SafeString(market, "symbol"),
@@ -4281,6 +4281,7 @@ func (this *Grvt) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name grvt#fetchMarkets

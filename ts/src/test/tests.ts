@@ -37,6 +37,7 @@ import {
     getTestFilesSync,
     getTestFiles,
     setFetchResponse,
+    setFetchResponseByUrl,
     setupWsMockTransport,
     injectWsMessage,
     rejectPendingWsFutures,
@@ -1975,7 +1976,16 @@ class testMainClass {
 
     async testResponseStatically (exchange: any, method: string, skipKeys: string[], data: Dict) {
         const expectedResult = exchange.safeValue (data, 'parsedResponse');
-        const mockedExchange = setFetchResponse (exchange, data['httpResponse']);
+        // 'httpResponseByUrl' serves a body per url fragment for methods that call several
+        // endpoints; the typed ports narrow each body to the shape its api leaf declares,
+        // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
+        const responsesByUrl = exchange.safeDict (data, 'httpResponseByUrl');
+        let mockedExchange = exchange;
+        if (responsesByUrl !== undefined) {
+            mockedExchange = setFetchResponseByUrl (exchange, responsesByUrl);
+        } else {
+            mockedExchange = setFetchResponse (exchange, data['httpResponse']);
+        }
         if (this.info) {
             dump ('[INFO] STATIC RESPONSE TEST:', method, ':', data['description']);
         }

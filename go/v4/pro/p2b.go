@@ -665,6 +665,7 @@ func (this *P2b) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name p2b#watchOHLCV

@@ -14857,6 +14857,7 @@ func (this *Bitget) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitget#fetchTime

@@ -67,7 +67,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.78'; }
+    static { this.ccxtVersion = '4.5.81'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -6094,7 +6094,11 @@ class BaseExchange {
             return mapping[key];
         }
         else {
-            throw new errors.NotSupported(this.id + ' ' + key + ' does not have a value in mapping');
+            const keys = Object.keys(mapping);
+            // "mapping" must stay literal-final and the list must not be introduced with ": ":
+            // the php transpiler rewrites a param name inside string literals ("$mapping",
+            // "mapping->") and turns ": " after a non-space into " => ".
+            throw new errors.NotSupported(this.id + ' ' + key + ' does not have a value in mapping' + ', must be one of ' + keys.join(', '));
         }
     }
     async fetchCrossBorrowRate(code, params = {}) {

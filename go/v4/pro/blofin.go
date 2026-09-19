@@ -1152,6 +1152,7 @@ func (this *Blofin) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name blofin#watchTrades

@@ -2595,6 +2595,7 @@ func (this *Apex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name apex#fetchTime

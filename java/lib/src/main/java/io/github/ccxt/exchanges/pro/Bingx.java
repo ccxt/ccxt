@@ -1985,6 +1985,34 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
         Object stored = this.orders;
         Object parsedOrder = this.parseOrder(data);
+        if (!Helpers.isTrue(isSpot))
+        {
+            // The envelope T is the order update time; o.T is the trade time.
+            Long updateTimestamp = this.safeInteger(message, "T");
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(updateTimestamp, null))) && Helpers.isTrue((Helpers.isGreaterThan(updateTimestamp, 0)))))
+            {
+                String orderId = this.safeString(parsedOrder, "id");
+                if (Helpers.isTrue(!Helpers.isEqual(orderId, null)))
+                {
+                    // Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
+                    // Match both id and symbol: several cached orders can share a symbol.
+                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(stored)); i++)
+                    {
+                        Object previousOrder = Helpers.GetValue(stored, i);
+                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(previousOrder, "id"), orderId))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(previousOrder, "symbol"), Helpers.GetValue(parsedOrder, "symbol"))))))
+                        {
+                            Long previousTimestamp = this.safeInteger(previousOrder, "lastUpdateTimestamp");
+                            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(previousTimestamp, null))) && Helpers.isTrue((Helpers.isLessThan(updateTimestamp, previousTimestamp)))))
+                            {
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                }
+                Helpers.addElementToObject(parsedOrder, "lastUpdateTimestamp", updateTimestamp);
+            }
+        }
         Helpers.callDynamically(stored, "append", new Object[]{parsedOrder});
         Object symbol = Helpers.GetValue(parsedOrder, "symbol");
         String spotHash = "spot:order";

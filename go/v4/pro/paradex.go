@@ -828,6 +828,7 @@ func (this *Paradex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name paradex#watchTrades

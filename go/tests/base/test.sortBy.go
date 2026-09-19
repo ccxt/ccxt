@@ -7,6 +7,7 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 func TestSortBy1() {
 	// todo: other argument checks
+
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
 	exchange.InitParent(map[string]any{

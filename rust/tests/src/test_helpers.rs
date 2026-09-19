@@ -222,6 +222,14 @@ pub fn setExchangeProp(_exchange: Value, _prop: Value, _value: Value) {
 /// `Null` clears it.
 pub fn setFetchResponse(exchange: &mut Value, response: Value) -> Value {
     ccxt::set_value(exchange, &Value::Str("__fetchResponse".to_string()), response);
+    ccxt::set_value(exchange, &Value::Str("__fetchResponseByUrl".to_string()), Value::Null);
+    exchange.clone()
+}
+
+/// Serves a body per url fragment for methods that call several endpoints;
+/// one shared body cannot cover two endpoints of different declared shapes.
+pub fn setFetchResponseByUrl(exchange: &mut Value, responsesByUrl: Value) -> Value {
+    ccxt::set_value(exchange, &Value::Str("__fetchResponseByUrl".to_string()), responsesByUrl);
     exchange.clone()
 }
 

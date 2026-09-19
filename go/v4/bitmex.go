@@ -4696,7 +4696,7 @@ func (this *Bitmex) Sign(path any, optionalArgs ...any) any {
 		var stringExpires string = ToString(expires)
 		auth = Add(auth, stringExpires)
 		AddElementToObject(headers, "api-expires", stringExpires)
-		if (method == "POST") || (method == "PUT") || (method == "DELETE") {
+		if (IsEqual(method, "POST")) || (IsEqual(method, "PUT")) || (IsEqual(method, "DELETE")) {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
 				body = this.Json(params)
 				auth = Add(auth, body)
@@ -4726,6 +4726,7 @@ func (this *Bitmex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitmex#fetchCurrencies

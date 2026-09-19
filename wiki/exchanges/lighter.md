@@ -852,7 +852,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -873,7 +873,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -894,9 +894,8 @@ watches a price ticker, a statistical calculation with the information calculate
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
 
 
 ```javascript
@@ -916,7 +915,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1082,14 +1081,15 @@ lighter.watchMyTrades (symbol?, since?, limit?, params?)
 unsubscribe from the account trades channel
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+**Returns**: <code>any</code> - status of the unwatch request
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
+| symbol | <code>string</code> | No | not supported by lighter.unWatchMyTrades, the account trades channel covers every market |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountIndex | <code>string</code> | No | account index |
 
 
 ```javascript

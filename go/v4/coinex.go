@@ -6870,6 +6870,7 @@ func (this *Coinex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coinex#fetchCurrencies

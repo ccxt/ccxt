@@ -614,9 +614,15 @@ alpaca.fetchWithdrawals (code?, since?, limit?, params?)
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure). note that `info` is
+the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
 
-**See**: https://docs.alpaca.markets/reference/getaccount-1  
+**See**
+
+- https://docs.alpaca.markets/reference/getaccount-1
+- https://docs.alpaca.markets/reference/getallopenpositions
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

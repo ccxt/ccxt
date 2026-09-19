@@ -2703,8 +2703,11 @@ func (this *Alpaca) ParseTransactionType(typeVar any) *string {
  * @name alpaca#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.alpaca.markets/reference/getaccount-1
+ * @see https://docs.alpaca.markets/reference/getallopenpositions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}. note that `info` is
+ * the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+ * before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
  */
 func (this *Alpaca) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
@@ -2718,13 +2721,17 @@ func (this *Alpaca) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes210412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes210412)
+		retRes210712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes210712)
 	}
+	// the two calls stay sequential deliberately — the static request harness records one request per case,
+	// and concurrent calls make the recorded url nondeterministic per language
 
-	response := (<-this.TraderPrivateGetV2Account(params))
-	PanicOnError(response)
+	account := (<-this.TraderPrivateGetV2Account(params))
+	PanicOnError(account)
 
+	positions := (<-this.TraderPrivateGetV2Positions())
+	PanicOnError(positions)
 	//
 	//     {
 	//         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -2773,20 +2780,79 @@ func (this *Alpaca) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         "pending_reg_taf_fees": "0"
 	//     }
 	//
+	var response map[string]any = map[string]any{
+		"account":   account,
+		"positions": positions,
+	}
+
 	ch <- this.ParseBalance(response)
 	return nil
 }
 func (this *Alpaca) ParseBalance(response any) any {
+	//
+	// crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
+	//
+	//     "positions": [
+	//         {
+	//             "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+	//             "symbol": "BTCUSD",
+	//             "exchange": "CRYPTO",
+	//             "asset_class": "crypto",
+	//             "asset_marginable": false,
+	//             "qty": "0.000207296",
+	//             "avg_entry_price": "80037",
+	//             "side": "long",
+	//             "market_value": "16.592345",
+	//             "cost_basis": "16.59135",
+	//             "unrealized_pl": "0.000995",
+	//             "unrealized_plpc": "0.00006",
+	//             "current_price": "80041.8",
+	//             "qty_available": "0.000207296"
+	//         }
+	//     ]
+	//
+	var account any = this.SafeDict(response, "account", map[string]any{})
+	var positions any = this.SafeList(response, "positions", []any{})
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var account any = this.Account()
-	var currencyId *string = this.SafeString(response, "currency")
+	var currencyId *string = this.SafeString(account, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	AddElementToObject(account, "free", this.SafeString(response, "cash"))
-	AddElementToObject(account, "total", this.SafeString(response, "equity"))
 	if code != nil {
-		AddElementToObject(result, code, account)
+		var cashAccount any = this.Account()
+		AddElementToObject(cashAccount, "free", this.SafeString(account, "cash")) // cash already excludes the amounts held for open orders, verified live 2026-09-16
+		var equity *string = this.SafeString(account, "equity")
+		var positionsValue *string = this.SafeString(account, "position_market_value")
+		AddElementToObject(cashAccount, "total", Precise.StringSub(equity, positionsValue)) // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+		AddElementToObject(result, code, cashAccount)
+	}
+	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
+		var position any = GetValue(positions, i)
+		var positionSymbol *string = this.SafeString(position, "symbol")
+		if positionSymbol == nil {
+			continue
+		}
+		var baseId any = nil
+		if IsGreaterThanOrEqual(GetIndexOf(positionSymbol, "/"), 0) {
+			var parts []string = Split(positionSymbol, "/")
+			baseId = DerefScalar(this.SafeString(parts, 0))
+		} else {
+			// crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
+			var baseLength int64 = Subtract(GetLength(positionSymbol), 3).(int64)
+			if (IsGreaterThan(baseLength, 0)) && (Slice(positionSymbol, baseLength, nil) == "USD") {
+				baseId = Slice(positionSymbol, 0, baseLength)
+			}
+		}
+		if IsEqual(baseId, nil) {
+			continue
+		}
+		var positionCode *string = this.SafeCurrencyCode(baseId)
+		if (positionCode != nil) && !(InOp(result, positionCode)) {
+			var positionAccount any = this.Account()
+			AddElementToObject(positionAccount, "free", this.SafeString(position, "qty_available"))
+			AddElementToObject(positionAccount, "total", this.SafeString(position, "qty"))
+			AddElementToObject(result, positionCode, positionAccount)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -2865,6 +2931,7 @@ func (this *Alpaca) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name alpaca#fetchTime
@@ -3478,8 +3545,11 @@ func (this *Alpaca) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
  * @name alpaca#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.alpaca.markets/reference/getaccount-1
+ * @see https://docs.alpaca.markets/reference/getallopenpositions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}. note that `info` is
+ * the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+ * before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
  */
 func (this *Alpaca) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.FetchBalanceAsync(params...)
