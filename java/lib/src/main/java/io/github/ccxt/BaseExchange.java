@@ -9405,7 +9405,8 @@ public Object describe()
             return Helpers.GetValue(mapping, key);
         } else
         {
-            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " "), key), " does not have a value in mapping")) ;
+            Object keys = Helpers.objectKeys(mapping);
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), key), " does not have a value in mapping"), ", must be one of "), String.join(", ", (List<String>)keys))) ;
         }
     }
 
