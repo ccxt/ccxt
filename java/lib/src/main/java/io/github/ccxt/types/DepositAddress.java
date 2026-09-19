@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class DepositAddress {
+public final class DepositAddress extends TypedMap {
     public String currency;
     public String network;
     public String address;
@@ -14,6 +14,7 @@ public final class DepositAddress {
 
     @SuppressWarnings("unchecked")
     public DepositAddress(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.currency = TypeHelper.safeString(data, "currency");
         this.network = TypeHelper.safeString(data, "network");

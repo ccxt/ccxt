@@ -237,7 +237,7 @@ class luno(Exchange, ImplicitAPI):
             },
             'fees': {
                 'trading': {
-                    # Luno prices by PAIR CATEGORY 30-day volume tier:
+                    # Luno prices by PAIR CATEGORY as well as by 30-day volume tier:
                     # crypto/fiat, stablecoin/fiat and crypto/crypto each have their own
                     # ladder, and the maker side is a charge in one category and a rebate
                     # in another at the same tier. A single scalar cannot represent that,
@@ -246,7 +246,7 @@ class luno(Exchange, ImplicitAPI):
                     # exchange-wide fallback: crypto/fiat at the entry tier, which is the
                     # dearest cell in the table and therefore the safe direction to quote
                     # for a caller who cannot reach the authenticated fetchTradingFee.
-                    'tierBased': True,  # based on volume from your primary currency(not the same for everyone)
+                    'tierBased': True,  # based on volume from your primary currency (not the same for everyone)
                     'percentage': True,
                     'taker': self.parse_number('0.006'),
                     'maker': self.parse_number('0.004'),
@@ -287,7 +287,7 @@ class luno(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     'ErrAccountIsMigrating': OperationRejected,  # Account migration in progress
-                    'ErrAccountLimit': OperationRejected,  # You can't add another wallet with self currency
+                    'ErrAccountLimit': OperationRejected,  # You can't add another wallet with this currency
                     'ErrAccountNotFound': ExchangeError,  # Cannot find that account
                     'ErrAccountsNotDifferent': BadRequest,  # Debit and credit accounts must be different
                     'ErrActiveCryptoRequestExists': OperationRejected,  # Send request pending. Please try again after it has completed.
@@ -297,11 +297,11 @@ class luno(Exchange, ImplicitAPI):
                     'ErrAmountTooSmall': BadRequest,  # The specified amount is lower than the minimum allowed.
                     'ErrApiKeyRevoked': AuthenticationError,  # Your API key has been revoked.
                     'ErrBeneficiaryNotFound': ExchangeError,  # Beneficiary not Found
-                    'ErrBlockedSendsCurrency': OperationRejected,  # Sends are currently disabled for self currency
+                    'ErrBlockedSendsCurrency': OperationRejected,  # Sends are currently disabled for this currency
                     'ErrCannotStopUnknownOrNonPendingOrder': InvalidOrder,  # Cannot stop unknown or non-pending order.
                     'ErrCannotTradeWhileQuoteActive': OperationRejected,  # Cannot trade while you have any active quotes.
                     'ErrConvertPairNotSupported': BadRequest,  # The requested pair is not supported for conversion.
-                    'ErrConvertRateLimited': RateLimitExceeded,  # You have exceeded the conversion rate limit for self pair. Please try again later.
+                    'ErrConvertRateLimited': RateLimitExceeded,  # You have exceeded the conversion rate limit for this pair. Please try again later.
                     'ErrCounterDenominationNotAllowed': InvalidOrder,  # Amount contains too many decimal places
                     'ErrCreditAccountNotTransactional': BadRequest,  # The specified credit-account must be transactional
                     'ErrCustomRefNotAllowed': BadRequest,  # Custom reference not allowed
@@ -316,19 +316,19 @@ class luno(Exchange, ImplicitAPI):
                     'ErrERC20AddressAlreadyAssigned': OperationRejected,  # You can only create 1 ERC-20 receive address per token
                     'ErrERC20AssignNonDefault': BadRequest,  # You can only assign ERC-20 receive addresses to your default account
                     'ErrFundsMoveNotFound': ExchangeError,  # Funds move not found
-                    'ErrIdempotencyKeyConflict': OperationRejected,  # A request with self idempotency_key has already been processed.
-                    'ErrIdempotencyKeyRequestMismatch': BadRequest,  # A request with self idempotency_key has a mismatched request
+                    'ErrIdempotencyKeyConflict': OperationRejected,  # A request with this idempotency_key has already been processed.
+                    'ErrIdempotencyKeyRequestMismatch': BadRequest,  # A request with this idempotency_key has a mismatched request
                     'ErrIncompatibleBeneficiary': BadRequest,  # Beneficiary is incompatible with the requested withdrawal.
                     'ErrIncorrectPin': AuthenticationError,  # Invalid pin specified
                     'ErrInsufficientBalance': InsufficientFunds,  # Insufficient balance.
                     'ErrInsufficientFunds': InsufficientFunds,  # Account has insufficient funds
-                    'ErrInsufficientPerms': PermissionDenied,  # You do not have the required permissions to perform self action
+                    'ErrInsufficientPerms': PermissionDenied,  # You do not have the required permissions to perform this action
                     'ErrInternal': ExchangeNotAvailable,  # Something went wrong. We're looking into it.
                     'ErrInvalidAccount': BadRequest,  # Account is invalid
                     'ErrInvalidAccountID': BadRequest,  # Invalid account ID specified
                     'ErrInvalidAccountNumber': BadRequest,  # Account number is invalid
                     'ErrInvalidAmount': BadRequest,  # Invalid amount specified
-                    'ErrInvalidArguments': BadRequest,  # If any request parameters have invalid values self error will be returned. This error should also include a list of the offending fields to help identify and fix any issues.
+                    'ErrInvalidArguments': BadRequest,  # If any request parameters have invalid values this error will be returned. This error should also include a list of the offending fields to help identify and fix any issues.
                     'ErrInvalidBaseVolume': InvalidOrder,  # Invalid base volume for sell order.
                     'ErrInvalidBranchCode': BadRequest,  # Bank branch code is invalid.
                     'ErrInvalidClientOrderId': InvalidOrder,  # Invalid client order id
@@ -357,7 +357,7 @@ class luno(Exchange, ImplicitAPI):
                     'ErrOrderCanceled': InvalidOrder,  # Your post-only order was cancelled before trading
                     'ErrOrderNotFound': OrderNotFound,  # Cannot find that order
                     'ErrPostOnlyMode': InvalidOrder,  # Market is in post-only mode
-                    'ErrPostOnlyNotAllowed': InvalidOrder,  # IOC and FOK time-in-force types are not supported-only orders
+                    'ErrPostOnlyNotAllowed': InvalidOrder,  # IOC and FOK time-in-force types are not supported as post-only orders
                     'ErrPriceDenominationNotAllowed': InvalidOrder,  # Price contains too many decimal places
                     'ErrPriceTooHigh': InvalidOrder,  # Price is above the maximum
                     'ErrPriceTooLow': InvalidOrder,  # Price is below the minimum
@@ -367,12 +367,12 @@ class luno(Exchange, ImplicitAPI):
                     'ErrStopPriceTooLow': InvalidOrder,  # Stop price is too low.
                     'ErrTooManyRequests': RateLimitExceeded,  # You are exceeding the allowed request rate limit
                     'ErrTooManyRowsRequested': BadRequest,  # Too many rows requested
-                    'ErrTravelRule': ManualInteractionNeeded,  # Please ensure that you've initiated a once-off crypto send for self specific wallet address via the website or mobile app and included relevant Travel Rule information before trying again via the send API. [Click here](https://www.luno.com/help/articles/421340781836897) for more information on the Travel Rule.
-                    'ErrUnauthorised': AuthenticationError,  # You are not authorised to access self route
+                    'ErrTravelRule': ManualInteractionNeeded,  # Please ensure that you've initiated a once-off crypto send for this specific wallet address via the website or mobile app and included relevant Travel Rule information before trying again via the send API. [Click here](https://www.luno.com/help/articles/421340781836897) for more information on the Travel Rule.
+                    'ErrUnauthorised': AuthenticationError,  # You are not authorised to access this route
                     'ErrUnderMaintenance': OnMaintenance,  # The market is currently undergoing maintenance
                     'ErrUpdateRequired': ExchangeError,  # Luno app update required
                     'ErrUserBlockedForCancelWithdrawal': PermissionDenied,  # User blocked from cancelling withdrawals
-                    'ErrUserNotVerifiedForCurrency': AccountNotEnabled,  # You are not verified for self currency
+                    'ErrUserNotVerifiedForCurrency': AccountNotEnabled,  # You are not verified for this currency
                     'ErrValueTooHigh': InvalidOrder,  # Order value too high
                     'ErrVerificationLevelTooLow': AccountNotEnabled,  # You must verify your identity using the Luno app before you can send crypto.
                     'ErrVolumeDenominationNotAllowed': InvalidOrder,  # Volume contains too many decimal places
@@ -579,7 +579,7 @@ class luno(Exchange, ImplicitAPI):
         #     }
         #
         result = []
-        markets = self.safe_value(response, 'markets', [])
+        markets = self.safe_list(response, 'markets', [])
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'market_id')
@@ -594,8 +594,8 @@ class luno(Exchange, ImplicitAPI):
             # exchange-wide default until their schedules are verified the same way.
             fiats = ['ZAR']
             # live-but-unverified counters, kept on the exchange-wide default; the market
-            # list is geo-filtered so self is a superset of any one region's view, and
-            # ZARU is Luno's tokenized rand("ZAR Universal"), not fiat, but equally unverified
+            # list is geo-filtered so this is a superset of any one region's view, and
+            # ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
             unverifiedQuotes = ['MYR', 'NGN', 'IDR', 'KES', 'UGX', 'AUD', 'GBP', 'EUR', 'USD', 'ZARU']
             stablecoins = ['USDT', 'USDC']
             taker = None
@@ -608,7 +608,7 @@ class luno(Exchange, ImplicitAPI):
                     taker = self.parse_number('0.006')
                     maker = self.parse_number('0.004')
             elif not self.in_array(quote, unverifiedQuotes):
-                # stablecoin-quoted(BTC/USDT) and crypto-quoted(ETH/BTC, SOL/ADA) books
+                # stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
                 # are both in Luno's crypto/crypto column
                 taker = self.parse_number('0.001')
                 maker = self.parse_number('0.0008')
@@ -675,7 +675,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         response = self.privateGetBalance(params)
-        wallets = self.safe_value(response, 'balance', [])
+        wallets = self.safe_list(response, 'balance', [])
         result = []
         for i in range(0, len(wallets)):
             account = wallets[i]
@@ -691,7 +691,7 @@ class luno(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response: object) -> Balances:
-        wallets = self.safe_value(response, 'balance', [])
+        wallets = self.safe_list(response, 'balance', [])
         result = {
             'info': response,
             'timestamp': None,
@@ -1012,7 +1012,7 @@ class luno(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #      {
         #          "sequence":276989,
@@ -1022,7 +1022,7 @@ class luno(Exchange, ImplicitAPI):
         #          "is_buy":false
         #      }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #      {
         #          "pair":"LTCXBT",
@@ -1040,8 +1040,8 @@ class luno(Exchange, ImplicitAPI):
         #          "client_order_id":""
         #      }
         #
-        # For public trade data(is_buy is True) indicates 'buy' side but for private trade data
-        # is_buy indicates maker or taker. The value of "type"(ASK/BID) indicate sell/buy side.
+        # For public trade data (is_buy === True) indicates 'buy' side but for private trade data
+        # is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy side.
         # Private trade data includes ID field which public trade data does not.
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'sequence')
@@ -1142,7 +1142,7 @@ class luno(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1302,7 +1302,7 @@ class luno(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         if type == 'market':
             request['type'] = side.upper()
-            # todo add createMarketBuyOrderRequires price logic is implemented in the other exchanges
+            # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if side == 'buy':
                 request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
             else:
@@ -1339,7 +1339,7 @@ class luno(Exchange, ImplicitAPI):
         response = self.privatePostStoporder(self.extend(request, params))
         #
         #    {
-        #        "success": True
+        #        "success": true
         #    }
         #
         return self.safe_order({
@@ -1438,7 +1438,7 @@ class luno(Exchange, ImplicitAPI):
         }
 
     def parse_ledger_entry(self, entry: object, currency: Currency = None) -> LedgerEntry:
-        # details = self.safe_value(entry, 'details', {})
+        # const details = this.safeValue (entry, 'details', {});
         id = self.safe_string(entry, 'row_index')
         account_id = self.safe_string(entry, 'account_id')
         timestamp = self.safe_integer(entry, 'timestamp')

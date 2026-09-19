@@ -22,8 +22,14 @@ interface Exchange {
     publicGetTravelRuleVasps (params?: {}): Promise<Dict>;
     publicGetFundingRateMarketSymbol (params?: {}): Promise<Dict>;
     publicGetFundingRateHistoryPair (params?: {}): Promise<Dict>;
+    publicGetDerivativesMarketHours (params?: {}): Promise<List>;
+    publicGetDerivativesMarketHoursMarketSymbol (params?: {}): Promise<Dict>;
     privateGetTravelRuleContacts (params?: {}): Promise<List>;
     privateGetContactsContactUuid (params?: {}): Promise<Dict>;
+    privateGetTravelRuleUtxoXpubRegistrations (params?: {}): Promise<List>;
+    privateGetTravelRuleUtxoXpubRegistrationsRegistrationId (params?: {}): Promise<Dict>;
+    privateGetTravelRuleAddressVerification (params?: {}): Promise<Dict>;
+    privateGetCryptoTransactionsDeposits (params?: {}): Promise<List>;
     privateGetEarnSubscriptions (params?: {}): Promise<List>;
     privateGetEarnTransactions (params?: {}): Promise<List>;
     privateGetTradeHistory (params?: {}): Promise<List>;
@@ -37,6 +43,7 @@ interface Exchange {
     privatePostUserTransactions (params?: {}): Promise<List>;
     privatePostUserTransactionsPair (params?: {}): Promise<List>;
     privatePostCryptoTransactions (params?: {}): Promise<Dict>;
+    privatePostCryptoTransactionsDepositsDepositIdReject (params?: {}): Promise<Dict>;
     privatePostOpenOrder (params?: {}): Promise<Dict>;
     privatePostOpenOrdersAll (params?: {}): Promise<List>;
     privatePostOpenOrdersPair (params?: {}): Promise<List>;
@@ -68,6 +75,8 @@ interface Exchange {
     privatePostWebsocketsToken (params?: {}): Promise<Dict>;
     privatePostRevokeAllApiKeys (params?: {}): Promise<Dict>;
     privatePostGetMaxOrderAmount (params?: {}): Promise<Dict>;
+    privatePostOrderData (params?: {}): Promise<List>;
+    privatePostAccountOrderData (params?: {}): Promise<List>;
     privatePostBtcWithdrawal (params?: {}): Promise<Dict>;
     privatePostBtcAddress (params?: {}): Promise<Dict>;
     privatePostRippleWithdrawal (params?: {}): Promise<Dict>;
@@ -231,6 +240,8 @@ interface Exchange {
     privatePostLdoWithdrawal (params?: {}): Promise<Dict>;
     privatePostLdoAddress (params?: {}): Promise<Dict>;
     privatePostTravelRuleContacts (params?: {}): Promise<Dict>;
+    privatePostTravelRuleUtxoXpubRegistrations (params?: {}): Promise<Dict>;
+    privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke (params?: {}): Promise<Dict>;
     privatePostEarnSubscribe (params?: {}): Promise<Dict>;
     privatePostEarnSubscriptionsSetting (params?: {}): Promise<Dict>;
     privatePostEarnUnsubscribe (params?: {}): Promise<Dict>;

@@ -191,7 +191,8 @@ type BaseExchange struct {
 	MaxEntriesPerRequest    int
 
 	// tests only
-	FetchResponse any
+	FetchResponse      any
+	FetchResponseByUrl any
 
 	IsSandboxModeEnabled  bool
 	FetchHistoryCacheSize int
@@ -407,7 +408,7 @@ func (this *BaseExchange) InitThrottler() {
   - @param {object} params - Additional exchange-specific parameters for the request.
   - @throws An error if the markets cannot be loaded or prepared.
 */
-func (this *BaseExchange) LoadMarkets(params ...any) <-chan any {
+func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan any {
 	reload := GetArg(params, 0, false).(bool)
 	this.loadMu.Lock()
 
@@ -424,7 +425,7 @@ func (this *BaseExchange) LoadMarkets(params ...any) <-chan any {
 
 	if !this.marketsLoading || reload {
 		this.marketsLoading = true
-		markets := <-this.LoadMarketsHelper(params...)
+		markets := <-this.LoadMarketsHelperAsync(params...)
 		this.marketsLoaded = true
 		this.marketsLoading = false
 		for _, ch := range this.loadMarketsSubscribers {
@@ -438,7 +439,7 @@ func (this *BaseExchange) LoadMarkets(params ...any) <-chan any {
 	return ch
 }
 
-func (this *BaseExchange) LoadMarketsHelper(params ...any) <-chan any {
+func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -470,14 +471,14 @@ func (this *BaseExchange) LoadMarketsHelper(params ...any) <-chan any {
 		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = <-this.DerivedExchange.FetchCurrencies(params)
+			currencies = <-this.DerivedExchange.FetchCurrenciesAsync(params)
 			// this.cachedCurrenciesMutex.Lock()
 			// this.Options["cachedCurrencies"] = currencies
 			this.Options.Store("cachedCurrencies", currencies)
 			// this.cachedCurrenciesMutex.Unlock()
 		}
 
-		markets := <-this.DerivedExchange.FetchMarkets(params)
+		markets := <-this.DerivedExchange.FetchMarketsAsync(params)
 		PanicOnError(markets)
 
 		// this.cachedCurrenciesMutex.Lock()
@@ -515,7 +516,7 @@ func (this *BaseExchange) Throttle(cost any) <-chan any {
 	return ch
 }
 
-func (this *BaseExchange) FetchMarkets(optionalArgs ...any) <-chan any {
+func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		// defer close(ch)
@@ -526,7 +527,7 @@ func (this *BaseExchange) FetchMarkets(optionalArgs ...any) <-chan any {
 	return ch
 }
 
-func (this *BaseExchange) FetchCurrencies(optionalArgs ...any) <-chan any {
+func (this *BaseExchange) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)
@@ -594,7 +595,7 @@ func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan any
 					cost = parsed
 				}
 			}
-			res := <-this.Fetch2(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
+			res := <-this.Fetch2Async(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
 			PanicOnError(res)
 			ch <- res
 		} else {
@@ -712,6 +713,7 @@ func (this *BaseExchange) Json(object any) any {
 }
 
 func (this *BaseExchange) ParseNumber(v any, a ...any) any {
+	v = derefScalar(v)
 	if (v == nil) || (v == "") {
 		// return default value if exists
 		if len(a) > 0 {
@@ -727,6 +729,7 @@ func (this *BaseExchange) ParseNumber(v any, a ...any) any {
 }
 
 func (this *BaseExchange) ValueIsDefined(v any) bool {
+	v = derefScalar(v) // a typed pointer is judged by the value it carries; typed nil is undefined
 	if v == nil {
 		return false
 	}
@@ -810,6 +813,12 @@ type IArrayCache interface {
 }
 
 func (this *BaseExchange) ArraySlice(array any, first any, second ...any) any {
+	// limits/indices arrive as typed pointers from the Safe* accessors
+	array = derefScalar(array)
+	first = derefScalar(first)
+	if len(second) > 0 {
+		second[0] = derefScalar(second[0])
+	}
 	// If the incoming object implements IArrayCache convert it first.
 	if cache, ok := array.(IArrayCache); ok {
 		return this.ArraySlice(cache.ToArray(), first, second...)
@@ -1159,6 +1168,7 @@ func (this *BaseExchange) RandomBytes(length any) string {
 }
 
 func (this *BaseExchange) IsJsonEncodedObject(str any) bool {
+	str = derefScalar(str)
 	// Attempt to assert the input to a string type
 	str2, ok := str.(string)
 	if !ok {
@@ -1173,6 +1183,7 @@ func (this *BaseExchange) IsJsonEncodedObject(str any) bool {
 }
 
 func (this *BaseExchange) StringToCharsArray(value any) []string {
+	value = derefScalar(value)
 	// Attempt to assert the input to a string type
 	str, ok := value.(string)
 	if !ok {
@@ -1264,7 +1275,7 @@ func (this *BaseExchange) SetProperty(obj any, property any, defaultValue any) {
 	}
 }
 
-func (this *BaseExchange) ExceptionMessage(exc any, includeStack ...any) any {
+func (this *BaseExchange) ExceptionMessage(exc any, includeStack ...any) string {
 	include := true
 	if len(includeStack) > 0 {
 		include = includeStack[0].(bool)
@@ -1366,12 +1377,12 @@ func (this *BaseExchange) ExtendedStarknetSign(a any, b any) any {
 	return this.Json([]any{r.String(), s.String()})
 }
 
-func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) any {
+func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) string {
 	return starknetGetSelectorFromName(ToString(a)).String()
 }
 
-func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) any {
-	values, ok := a.([]any)
+func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) string {
+	values, ok := derefScalar(a).([]any)
 	if !ok {
 		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))
 	}
@@ -1388,7 +1399,7 @@ func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) a
 }
 
 func parseStarknetBigInt(value any) *big.Int {
-	switch v := value.(type) {
+	switch v := derefScalar(value).(type) {
 	case nil:
 		return nil
 	case *big.Int:
@@ -1437,7 +1448,7 @@ func parseStarknetBigInt(value any) *big.Int {
 	return nil
 }
 
-func (this *BaseExchange) GetZKContractSignatureObj(seed any, params any) <-chan any {
+func (this *BaseExchange) GetZKContractSignatureObjAsync(seed any, params any) <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -1455,7 +1466,7 @@ func (this *BaseExchange) GetZKContractSignatureObj(seed any, params any) <-chan
 	return ch
 }
 
-func (this *BaseExchange) GetZKTransferSignatureObj(seed any, params any) <-chan any {
+func (this *BaseExchange) GetZKTransferSignatureObjAsync(seed any, params any) <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -1473,7 +1484,7 @@ func (this *BaseExchange) GetZKTransferSignatureObj(seed any, params any) <-chan
 	return ch
 }
 
-func (this *BaseExchange) LoadDydxProtos() <-chan any {
+func (this *BaseExchange) LoadDydxProtosAsync() <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -1566,9 +1577,9 @@ func (this *BaseExchange) UpdateProxySettings() {
 	if hasHttProxyDefined {
 		proxyUrlStr := ""
 		if httProxy != nil {
-			proxyUrlStr = httProxy.(string)
-		} else {
-			proxyUrlStr = httpsProxy.(string)
+			proxyUrlStr = *httProxy
+		} else if httpsProxy != nil {
+			proxyUrlStr = *httpsProxy
 		}
 		// rebuild the transport only when the proxy URL changes, otherwise a
 		// fresh transport (and connection pool) is created on every request
@@ -1619,8 +1630,10 @@ func (this *BaseExchange) CallEndpointAsync(endpointName string, args ...any) <-
 //   - [subscription]  arbitrary value stored in subscriptions (optional)
 func (this *BaseExchange) Watch(args ...any) <-chan any {
 
-	url, _ := args[0].(string)
-	messageHash, _ := args[1].(string)
+	// generated WS code passes pointer-carried strings; a bare assertion would
+	// silently yield "" (an empty url is reported as a malformed ws/wss URL)
+	url, _ := derefScalar(args[0]).(string)
+	messageHash, _ := derefScalar(args[1]).(string)
 	var message any
 	var subscribeHash any
 	var subscription any
@@ -1629,7 +1642,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan any {
 		message = args[2]
 	}
 	if len(args) >= 4 {
-		subscribeHash = args[3]
+		subscribeHash = derefScalar(args[3])
 	} else {
 		subscribeHash = messageHash
 	}
@@ -1714,7 +1727,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan any {
 						}
 					}
 				}
-				sendFutureChannel := <-client.Send(message)
+				sendFutureChannel := <-client.SendAsync(message)
 				if err, ok := sendFutureChannel.(error); ok {
 					client.OnError(err)
 					client.Subscriptions.Delete(subscribeHash.(string))
@@ -1849,6 +1862,9 @@ func (this *BaseExchange) OnClose(client any, err any) {
 // Client returns (and caches) a *WSClient for the given WS URL.
 func (this *BaseExchange) Client(url any) *WSClient {
 	// TODO: what to do with errors
+	// callers reach this through generated WS code where the url is a
+	// pointer-carried string; normalize once so the assertions below hold
+	url = derefScalar(url)
 	this.WsClientsMu.Lock()
 	defer this.WsClientsMu.Unlock()
 	if client, ok := this.Clients[url.(string)]; ok {
@@ -1920,17 +1936,18 @@ func (this *BaseExchange) getWsProxy() string {
 }
 
 func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
-	url, _ := args[0].(string)
+	url, _ := derefScalar(args[0]).(string)
 	var messageHashes []string
 
 	// Handle both []string and []any for messageHashes
-	if hashes, ok := args[1].([]string); ok {
+	hashesArg := derefScalar(args[1])
+	if hashes, ok := hashesArg.([]string); ok {
 		messageHashes = hashes
-	} else if hashesInterface, ok := args[1].([]any); ok {
+	} else if hashesInterface, ok := hashesArg.([]any); ok {
 		// Convert []any to []string
 		messageHashes = make([]string, len(hashesInterface))
 		for i, hash := range hashesInterface {
-			if str, ok := hash.(string); ok {
+			if str, ok := derefScalar(hash).(string); ok {
 				messageHashes[i] = str
 			}
 		}
@@ -1943,7 +1960,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 		message = args[2]
 	}
 	if len(args) >= 4 {
-		subscribeHashes = args[3]
+		subscribeHashes = derefScalar(args[3])
 	} else {
 		subscribeHashes = messageHashes
 	}
@@ -1986,7 +2003,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 		}
 
 		for _, subscribeHash := range subscribeHashesList {
-			if hashStr, ok := subscribeHash.(string); ok {
+			if hashStr, ok := derefScalar(subscribeHash).(string); ok {
 				var subValue any = subscription
 				if subscription == nil {
 					subValue = make(chan any)
@@ -2042,7 +2059,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 						}
 					}
 				}
-				sendFutureChannel := <-client.Send(message)
+				sendFutureChannel := <-client.SendAsync(message)
 				if err, ok := sendFutureChannel.(error); ok {
 					for _, subscribeHash := range missingSubscriptions {
 						client.Subscriptions.Delete(subscribeHash)
@@ -2133,15 +2150,20 @@ func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 // LoadOrderBook lives on *Exchange (not *BaseExchange): it calls FetchRestOrderBookSafe, one of the
 // 62 symbol-based methods that hang off *Exchange. Only regular WS venues (whose core embeds Exchange)
 // use it; prediction venues embed BaseExchange and never call it.
-func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, optionalArgs ...any) <-chan any {
-	limit := GetArg(optionalArgs, 0, nil)
+func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan any {
+	// generated callers pass typed pointer locals (*string symbol, *int64 limit); the
+	// `.(string)` assertions below need the plain values, and a panic here would be
+	// swallowed by Spawn and leave the watch future unresolved
+	symbol = derefScalar(symbol)
+	messageHash = derefScalar(messageHash)
+	limit := derefScalar(GetArg(optionalArgs, 0, nil))
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
 	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
 		orderBookInterface := stored.(OrderBookInterface)
 		for tries < maxRetries.(int) {
-			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
+			orderBook := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
 			cache := (*orderBookInterface.GetCache()).([]any)
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
@@ -2268,7 +2290,7 @@ func (this *BaseExchange) UnlockId() bool {
 
 // FetchOutcome is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges override it (kalshi resolves a single outcome on demand).
-func (this *BaseExchange) FetchOutcome(outcomeSymbol any) <-chan any {
+func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)
@@ -2282,7 +2304,7 @@ func (this *BaseExchange) FetchOutcome(outcomeSymbol any) <-chan any {
 // FetchOutcomes is a default stub so every exchange satisfies IDerivedExchange.
 // The prediction base provides the real fallback (a per-outcome fetchOutcome loop) and
 // kalshi/polymarket override it with batched by-id requests.
-func (this *BaseExchange) FetchOutcomes(outcomeSymbols any) <-chan any {
+func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)
@@ -2303,7 +2325,7 @@ func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
 
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges (PredictionExchange and its derivatives) override it.
-func (this *BaseExchange) FetchEvents(optionalArgs ...any) <-chan any {
+func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)

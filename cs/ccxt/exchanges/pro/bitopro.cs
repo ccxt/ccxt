@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bitopro { public bitopro(object args = null) : base(args) { } }
 public partial class bitopro : ccxt.bitopro
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -76,9 +76,9 @@ public partial class bitopro : ccxt.bitopro
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object messageHash = add(add("ORDER_BOOK", ":"), symbolVar);
+        string messageHash = add(add("ORDER_BOOK", ":"), symbolVar);
         object endPart = null;
         if (isTrue(isEqual(limit, null)))
         {
@@ -115,17 +115,17 @@ public partial class bitopro : ccxt.bitopro
         //     }
         //
         string? marketId = this.safeString(message, "pair");
-        object market = this.safeMarket(marketId, null, "_");
-        object symbol = getValue(market, "symbol");
+        Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
+        string? symbol = ((string)getValue(market, "symbol"));
         object eventVar = this.safeString(message, "event");
         object messageHash = add(add(eventVar, ":"), symbol);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
+        object orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(orderbook, null)))
         {
             orderbook = this.orderBook(new Dictionary<string, object>() {});
         }
         Int64? timestamp = this.safeInteger(message, "timestamp");
-        object snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount");
+        Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount"));
         (orderbook as IOrderBook).reset(snapshot);
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
@@ -150,9 +150,9 @@ public partial class bitopro : ccxt.bitopro
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object messageHash = add(add("TRADE", ":"), symbolVar);
+        string messageHash = add(add("TRADE", ":"), symbolVar);
         object trades = await this.watchPublic("trades", messageHash, getValue(market, "id"));
         if (isTrue(this.newUpdates))
         {
@@ -183,19 +183,19 @@ public partial class bitopro : ccxt.bitopro
         //     }
         //
         string? marketId = this.safeString(message, "pair");
-        object market = this.safeMarket(marketId, null, "_");
-        object symbol = getValue(market, "symbol");
+        Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
+        string? symbol = ((string)getValue(market, "symbol"));
         object eventVar = this.safeString(message, "event");
         object messageHash = add(add(eventVar, ":"), symbol);
         object rawData = this.safeValue(message, "data", new List<object>() {});
-        object trades = this.parseTrades(rawData, market);
+        IList<object> trades = this.parseTrades(rawData, market);
         object tradesCache = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesCache, null)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(limit);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             callDynamically(tradesCache, "append", new object[] {getValue(trades, i)});
         }
@@ -226,7 +226,7 @@ public partial class bitopro : ccxt.bitopro
         object messageHash = "USER_TRADE";
         if (isTrue(!isEqual(symbol, null)))
         {
-            object market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             messageHash = add(add(messageHash, ":"), getValue(market, "symbol"));
         }
         object url = add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "user-trades");
@@ -268,8 +268,8 @@ public partial class bitopro : ccxt.bitopro
         string? baseId = this.safeString(data, "base");
         string? quoteId = this.safeString(data, "quote");
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
-        object symbol = this.symbol(add(add(bs, "/"), quote));
+        string? quote = this.safeCurrencyCode(quoteId);
+        string? symbol = this.symbol(add(add(bs, "/"), quote));
         object messageHash = this.safeString(message, "event");
         if (isTrue(isEqual(this.myTrades, null)))
         {
@@ -277,7 +277,7 @@ public partial class bitopro : ccxt.bitopro
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         object trades = this.myTrades;
-        object parsed = this.parseWsTrade(data);
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(data));
         callDynamically(trades, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {trades, messageHash});
         callDynamically(client as WebSocketClient, "resolve", new object[] {trades, add(add(messageHash, ":"), symbol)});
@@ -305,12 +305,12 @@ public partial class bitopro : ccxt.bitopro
         //
         string? id = this.safeString(trade, "matchID");
         string? orderId = this.safeString(trade, "orderID");
-        object timestamp = this.safeTimestamp(trade, "transactionTimestamp");
+        Int64? timestamp = this.safeTimestamp(trade, "transactionTimestamp");
         string? baseId = this.safeString(trade, "base");
         string? quoteId = this.safeString(trade, "quote");
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
-        object symbol = this.symbol(add(add(bs, "/"), quote));
+        string? quote = this.safeCurrencyCode(quoteId);
+        string? symbol = this.symbol(add(add(bs, "/"), quote));
         market = this.safeMarket(symbol, market);
         string? price = this.safeString(trade, "price");
         string? type = this.safeStringLower(trade, "orderType");
@@ -326,9 +326,9 @@ public partial class bitopro : ccxt.bitopro
             }
         }
         string? amount = this.safeString(trade, "volume");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeAmount = this.safeString(trade, "fee");
-        object feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
+        string? feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
         if (isTrue(!isEqual(feeAmount, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -383,9 +383,9 @@ public partial class bitopro : ccxt.bitopro
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object messageHash = add(add("TICKER", ":"), symbolVar);
+        string messageHash = add(add("TICKER", ":"), symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.watchPublic("tickers", messageHash, getValue(market, "id")));
     }
 
@@ -415,11 +415,11 @@ public partial class bitopro : ccxt.bitopro
             return;  // some TICKER frames arrive without a pair - nothing to resolve them against
         }
         // market-ids are lowercase in REST API and uppercase in WS API
-        object market = this.safeMarket(marketId, null, "_");
-        object symbol = getValue(market, "symbol");
+        Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
+        string? symbol = ((string)getValue(market, "symbol"));
         object eventVar = this.safeString(message, "event");
         object messageHash = add(add(eventVar, ":"), symbol);
-        object result = this.parseTicker(message, market);
+        Dictionary<string, object> result = this.parseTicker(message, market);
         ((IDictionary<string,object>)result)["symbol"] = this.safeString(market, "symbol"); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         Int64? timestamp = this.safeInteger(message, "timestamp");
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;
@@ -514,13 +514,13 @@ public partial class bitopro : ccxt.bitopro
             { "timestamp", timestamp },
             { "datetime", datetime },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             string? currency = this.safeString(currencies, i);
             object balance = this.safeValue(data, currency);
             string? currencyId = this.safeString(balance, "currency");
-            object code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            string? code = this.safeCurrencyCode(currencyId);
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
             if (isTrue(!isEqual(code, null)))

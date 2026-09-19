@@ -159,6 +159,11 @@ class upbit(Exchange, ImplicitAPI):
                         'travel_rule/vasps': {'cost': 0.67},
                         'status/wallet': {'cost': 0.67},
                         'api_keys': {'cost': 0.67},  # Upbit KR only
+                        'pockets': {'cost': 0.67},
+                        'pockets/api_keys': {'cost': 0.67},
+                        'pockets/assets': {'cost': 0.67},
+                        'pockets/universal_transfers': {'cost': 0.67},
+                        'pockets/transfers': {'cost': 0.67},
                     },
                     'post': {
                         'orders': {'cost': 2.5},  # RPS: 8
@@ -170,6 +175,8 @@ class upbit(Exchange, ImplicitAPI):
                         'deposits/generate_coin_address': {'cost': 0.67},
                         'travel_rule/deposit/uuid': {'cost': 0.67},  # RPS: 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid': {'cost': 0.67},  # RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'pockets/universal_transfers': {'cost': 0.67},
+                        'pockets/transfers': {'cost': 0.67},
                     },
                     'delete': {
                         'order': {'cost': 0.67},
@@ -289,7 +296,7 @@ class upbit(Exchange, ImplicitAPI):
         })
 
     async def fetch_currency(self, code: str, params={}):
-        # self method is for retrieving funding fees and limits per currency
+        # this method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
         if self.markets is None:
             await self.load_markets()
@@ -297,7 +304,7 @@ class upbit(Exchange, ImplicitAPI):
         return await self.fetch_currency_by_id(currency['id'], params)
 
     async def fetch_currency_by_id(self, id: str, params={}):
-        # self method is for retrieving funding fees and limits per currency
+        # this method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
         request = {
             'currency': id,
@@ -308,26 +315,26 @@ class upbit(Exchange, ImplicitAPI):
         #         "member_level": {
         #             "security_level": 3,
         #             "fee_level": 0,
-        #             "email_verified": True,
-        #             "identity_auth_verified": True,
-        #             "bank_account_verified": True,
-        #             "kakao_pay_auth_verified": False,
-        #             "locked": False,
-        #             "wallet_locked": False
+        #             "email_verified": true,
+        #             "identity_auth_verified": true,
+        #             "bank_account_verified": true,
+        #             "kakao_pay_auth_verified": false,
+        #             "locked": false,
+        #             "wallet_locked": false
         #         },
         #         "currency": {
         #             "code": "BTC",
         #             "withdraw_fee": "0.0005",
-        #             "is_coin": True,
+        #             "is_coin": true,
         #             "wallet_state": "working",
-        #             "wallet_support": ["deposit", "withdraw"]
+        #             "wallet_support": [ "deposit", "withdraw" ]
         #         },
         #         "account": {
         #             "currency": "BTC",
         #             "balance": "10.0",
         #             "locked": "0.0",
         #             "avg_krw_buy_price": "8042000",
-        #             "modified": False
+        #             "modified": false
         #         },
         #         "withdraw_limit": {
         #             "currency": "BTC",
@@ -337,7 +344,7 @@ class upbit(Exchange, ImplicitAPI):
         #             "remaining_daily": "10.0",
         #             "remaining_daily_krw": "0.0",
         #             "fixed": null,
-        #             "can_withdraw": True
+        #             "can_withdraw": true
         #         }
         #     }
         #
@@ -384,7 +391,7 @@ class upbit(Exchange, ImplicitAPI):
         }
 
     async def fetch_market(self, symbol: str, params={}):
-        # self method is for retrieving trading fees and limits per market
+        # this method is for retrieving trading fees and limits per market
         # it requires private access and API keys properly set up
         if self.markets is None:
             await self.load_markets()
@@ -392,7 +399,7 @@ class upbit(Exchange, ImplicitAPI):
         return await self.fetch_market_by_id(market['id'], params)
 
     async def fetch_market_by_id(self, id: Str, params={}):
-        # self method is for retrieving trading fees and limits per market
+        # this method is for retrieving trading fees and limits per market
         # it requires private access and API keys properly set up
         request = {
             'market': id,
@@ -405,10 +412,10 @@ class upbit(Exchange, ImplicitAPI):
         #         "market": {
         #             "id": "KRW-BTC",
         #             "name": "BTC/KRW",
-        #             "order_types": ["limit"],
-        #             "order_sides": ["ask", "bid"],
-        #             "bid": {"currency": "KRW", "price_unit": null, "min_total": 1000},
-        #             "ask": {"currency": "BTC", "price_unit": null, "min_total": 1000},
+        #             "order_types": [ "limit" ],
+        #             "order_sides": [ "ask", "bid" ],
+        #             "bid": { "currency": "KRW", "price_unit": null, "min_total": 1000 },
+        #             "ask": { "currency": "BTC", "price_unit": null, "min_total": 1000 },
         #             "max_total": "100000000.0",
         #             "state": "active",
         #         },
@@ -417,7 +424,7 @@ class upbit(Exchange, ImplicitAPI):
         #             "balance": "0.0",
         #             "locked": "0.0",
         #             "avg_buy_price": "0",
-        #             "avg_buy_price_modified": False,
+        #             "avg_buy_price_modified": false,
         #             "unit_currency": "KRW",
         #         },
         #         "ask_account": {
@@ -425,7 +432,7 @@ class upbit(Exchange, ImplicitAPI):
         #             "balance": "10.0",
         #             "locked": "0.0",
         #             "avg_buy_price": "8042000",
-        #             "avg_buy_price_modified": False,
+        #             "avg_buy_price_modified": false,
         #             "unit_currency": "KRW",
         #         }
         #     }
@@ -606,16 +613,16 @@ class upbit(Exchange, ImplicitAPI):
             await self.load_markets()
         response = await self.privateGetAccounts(params)
         #
-        #     [{         currency: "BTC",
+        #     [ {          currency: "BTC",
         #                   "balance": "0.005",
         #                    "locked": "0.0",
         #         "avg_krw_buy_price": "7446000",
-        #                  "modified":  False     },
-        #       {         currency: "ETH",
+        #                  "modified":  false     },
+        #       {          currency: "ETH",
         #                   "balance": "0.1",
         #                    "locked": "0.0",
         #         "avg_krw_buy_price": "250000",
-        #                  "modified":  False    }   ]
+        #                  "modified":  false    }   ]
         #
         return self.parse_balance(response)
 
@@ -649,32 +656,32 @@ class upbit(Exchange, ImplicitAPI):
             request['count'] = limit
         response = await self.publicGetOrderbook(self.extend(request, params))
         #
-        #     [{         market:   "BTC-ETH",
+        #     [ {          market:   "BTC-ETH",
         #               "timestamp":    1542899030043,
         #          "total_ask_size":    109.57065201,
         #          "total_bid_size":    125.74430631,
-        #         "orderbook_units": [{ask_price: 0.02926679,
+        #         "orderbook_units": [ { ask_price: 0.02926679,
         #                              "bid_price": 0.02919904,
         #                               "ask_size": 4.20293961,
-        #                               "bid_size": 11.65043576},
+        #                               "bid_size": 11.65043576 },
         #                            ...,
-        #                            {ask_price: 0.02938209,
+        #                            { ask_price: 0.02938209,
         #                              "bid_price": 0.0291231,
         #                               "ask_size": 0.05135782,
-        #                               "bid_size": 13.5595     }   ]},
-        #       {         market:   "KRW-BTC",
+        #                               "bid_size": 13.5595     }   ] },
+        #       {          market:   "KRW-BTC",
         #               "timestamp":    1542899034662,
         #          "total_ask_size":    12.89790974,
         #          "total_bid_size":    4.88395783,
-        #         "orderbook_units": [{ask_price: 5164000,
+        #         "orderbook_units": [ { ask_price: 5164000,
         #                              "bid_price": 5162000,
         #                               "ask_size": 2.57606495,
         #                               "bid_size": 0.214       },
         #                            ...,
-        #                            {ask_price: 5176000,
+        #                            { ask_price: 5176000,
         #                              "bid_price": 5152000,
         #                               "ask_size": 2.752,
-        #                               "bid_size": 0.4650305}    ]}   ]
+        #                               "bid_size": 0.4650305 }    ] }   ]
         #
         result = {}
         orderbooks = self.to_array(response)
@@ -710,7 +717,7 @@ class upbit(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
-        #       {               market: "BTC-ETH",
+        #       {                market: "BTC-ETH",
         #                    "trade_date": "20181122",
         #                    "trade_time": "104543",
         #                "trade_date_kst": "20181122",
@@ -812,7 +819,7 @@ class upbit(Exchange, ImplicitAPI):
             responses = await asyncio.gather(*promises)
             tickers = self.arrays_concat(responses)
         #
-        #     [{               market: "BTC-ETH",
+        #     [ {                market: "BTC-ETH",
         #                    "trade_date": "20181122",
         #                    "trade_time": "104543",
         #                "trade_date_kst": "20181122",
@@ -837,7 +844,7 @@ class upbit(Exchange, ImplicitAPI):
         #          "highest_52_week_date": "2018-02-01",
         #          "lowest_52_week_price":  0.023936,
         #           "lowest_52_week_date": "2017-12-08",
-        #                     "timestamp":  1542883543813  }]
+        #                     "timestamp":  1542883543813  } ]
         #
         return self.parse_tickers(tickers, symbols)
 
@@ -876,7 +883,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         # fetchTrades
         #
-        #       {            market: "BTC-ETH",
+        #       {             market: "BTC-ETH",
         #             "trade_date_utc": "2018-11-22",
         #             "trade_time_utc": "13:55:24",
         #                  "timestamp":  1542894924397,
@@ -885,7 +892,7 @@ class upbit(Exchange, ImplicitAPI):
         #         "prev_closing_price":  0.02966,
         #               "change_price":  -0.00051711,
         #                    "ask_bid": "ASK",
-        #              "sequential_id":  15428949259430000}
+        #              "sequential_id":  15428949259430000 }
         #
         # fetchOrder trades
         #
@@ -964,7 +971,7 @@ class upbit(Exchange, ImplicitAPI):
         }
         response = await self.publicGetTradesTicks(self.extend(request, params))
         #
-        #     [{            market: "BTC-ETH",
+        #     [ {             market: "BTC-ETH",
         #             "trade_date_utc": "2018-11-22",
         #             "trade_time_utc": "13:55:24",
         #                  "timestamp":  1542894924397,
@@ -973,8 +980,8 @@ class upbit(Exchange, ImplicitAPI):
         #         "prev_closing_price":  0.02966,
         #               "change_price":  -0.00051711,
         #                    "ask_bid": "ASK",
-        #              "sequential_id":  15428949259430000},
-        #       {            market: "BTC-ETH",
+        #              "sequential_id":  15428949259430000 },
+        #       {             market: "BTC-ETH",
         #             "trade_date_utc": "2018-11-22",
         #             "trade_time_utc": "13:03:10",
         #                  "timestamp":  1542891790123,
@@ -983,7 +990,7 @@ class upbit(Exchange, ImplicitAPI):
         #         "prev_closing_price":  0.02966,
         #               "change_price":  -0.00049,
         #                    "ask_bid": "ASK",
-        #              "sequential_id":  15428917910540000}  ]
+        #              "sequential_id":  15428917910540000 }  ]
         #
         return self.parse_trades(response, market, since, limit)
 
@@ -1014,10 +1021,10 @@ class upbit(Exchange, ImplicitAPI):
         #         "market": {
         #             "id": "KRW-BTC",
         #             "name": "BTC/KRW",
-        #             "order_types": ["limit"],
-        #             "order_sides": ["ask", "bid"],
-        #             "bid": {"currency": "KRW", "price_unit": null, "min_total": 5000},
-        #             "ask": {"currency": "BTC", "price_unit": null, "min_total": 5000},
+        #             "order_types": [ "limit" ],
+        #             "order_sides": [ "ask", "bid" ],
+        #             "bid": { "currency": "KRW", "price_unit": null, "min_total": 5000 },
+        #             "ask": { "currency": "BTC", "price_unit": null, "min_total": 5000 },
         #             "max_total": "1000000000.0",
         #             "state": "active"
         #         },
@@ -1026,7 +1033,7 @@ class upbit(Exchange, ImplicitAPI):
         #             "balance": "0.34202415",
         #             "locked": "4999.99999922",
         #             "avg_buy_price": "0",
-        #             "avg_buy_price_modified": True,
+        #             "avg_buy_price_modified": true,
         #             "unit_currency": "KRW"
         #         },
         #         "ask_account": {
@@ -1034,7 +1041,7 @@ class upbit(Exchange, ImplicitAPI):
         #             "balance": "0.00048",
         #             "locked": "0.0",
         #             "avg_buy_price": "20870000",
-        #             "avg_buy_price_modified": False,
+        #             "avg_buy_price_modified": false,
         #             "unit_currency": "KRW"
         #         }
         #     }
@@ -1114,7 +1121,7 @@ class upbit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1179,7 +1186,7 @@ class upbit(Exchange, ImplicitAPI):
             quoteAmount = self.cost_to_precision(symbol, cost)
         elif createMarketBuyOrderRequiresPrice is True:
             if price is None or amount is None:
-                raise InvalidOrder(self.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                raise InvalidOrder(self.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend (quote quantity) in the amount argument')
             amountString = self.number_to_string(amount)
             priceString = self.number_to_string(price)
             costRequest = Precise.string_mul(amountString, priceString)
@@ -1207,7 +1214,7 @@ class upbit(Exchange, ImplicitAPI):
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
         :param str [params.ordType]: self field can be used to place a ‘best’ type order
         :param str [params.timeInForce]: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. self field is required when the order type is 'best'.
         :param str [params.selfTradePrevention]: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
@@ -1349,16 +1356,16 @@ class upbit(Exchange, ImplicitAPI):
         https://docs.upbit.com/kr/reference/cancel-and-new-order
         https://global-docs.upbit.com/reference/cancel-and-new-order
 
-        canceled existing order and create new order. It's only generated same side and symbol canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+        canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
         :param str id: the uuid of the previous order you want to edit.
-        :param str symbol: the symbol of the new order. it must be the same symbol of the previous order.
+        :param str symbol: the symbol of the new order. it must be the same as the symbol of the previous order.
         :param str type: the type of the new order. only limit or market is accepted. if params.newOrdType is set to best, a best-type order will be created regardless of the value of type.
-        :param str side: the side of the new order. it must be the same side of the previous order.
+        :param str side: the side of the new order. it must be the same as the side of the previous order.
         :param number amount: the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
         :param number price: the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
         :param dict [params]: extra parameters specific to the exchange API endpoint.
         :param str [params.clientOrderId]: to identify the previous order, either the id or self field is hasattr(self, required) method.
-        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used alternative for the amount.
+        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
         :param str [params.newTimeInForce]: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. self field is required when the order type is 'best'.
         :param str [params.newClientOrderId]: the order ID that the user can define.
         :param str [params.newOrdType]: self field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use self field.
@@ -1425,27 +1432,27 @@ class upbit(Exchange, ImplicitAPI):
         if request['new_ord_type'] == 'best' and timeInForce is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a timeInForce parameter for best type orders')
         params = self.omit(params, ['newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type'])
-        # print('check the each request params: ', request)
+        # console.log ('check the each request params: ', request);
         response = await self.privatePostOrdersCancelAndNew(self.extend(request, params))
         #   {
-        #     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        #previous order data
-        #     side: 'bid',                                         #previous order data
-        #     ord_type: 'limit',                                   #previous order data
-        #     price: '100000000',                                  #previous order data
-        #     state: 'wait',                                       #previous order data
-        #     market: 'KRW-BTC',                                   #previous order data
-        #     created_at: '2025-04-01T15:30:47+09:00',             #previous order data
-        #     volume: '0.00008',                                   #previous order data
-        #     remaining_volume: '0.00008',                         #previous order data
-        #     reserved_fee: '4',                                   #previous order data
-        #     remaining_fee: '4',                                  #previous order data
-        #     paid_fee: '0',                                       #previous order data
-        #     locked: '8004',                                      #previous order data
-        #     executed_volume: '0',                                #previous order data
-        #     trades_count: '0',                                   #previous order data
-        #     identifier: '21',                                    #previous order data
-        #     new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  # new order data
-        #     new_order_identifier: '22'                               # new order data
+        #     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
+        #     side: 'bid',                                         //previous order data
+        #     ord_type: 'limit',                                   //previous order data
+        #     price: '100000000',                                  //previous order data
+        #     state: 'wait',                                       //previous order data
+        #     market: 'KRW-BTC',                                   //previous order data
+        #     created_at: '2025-04-01T15:30:47+09:00',             //previous order data
+        #     volume: '0.00008',                                   //previous order data
+        #     remaining_volume: '0.00008',                         //previous order data
+        #     reserved_fee: '4',                                   //previous order data
+        #     remaining_fee: '4',                                  //previous order data
+        #     paid_fee: '0',                                       //previous order data
+        #     locked: '8004',                                      //previous order data
+        #     executed_volume: '0',                                //previous order data
+        #     trades_count: '0',                                   //previous order data
+        #     identifier: '21',                                    //previous order data
+        #     new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  // new order data
+        #     new_order_identifier: '22'                               // new order data
         #   }
         result = {}
         result['uuid'] = self.safe_string(response, 'new_order_uuid')
@@ -1471,7 +1478,7 @@ class upbit(Exchange, ImplicitAPI):
             await self.load_markets()
         request = {
             # 'page': 1,
-            # 'order_by': 'asc',  # 'desc'
+            # 'order_by': 'asc', // 'desc'
         }
         currency = None
         if code is not None:
@@ -1554,7 +1561,7 @@ class upbit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         request = {
-            # 'state': 'submitting',  # 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
+            # 'state': 'submitting', // 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
         }
         currency = None
         if code is not None:
@@ -1808,7 +1815,7 @@ class upbit(Exchange, ImplicitAPI):
         feeCost = self.safe_string(order, 'paid_fee')
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
-        trades = self.safe_value(order, 'trades', [])
+        trades = self.safe_list(order, 'trades', [])
         trades = self.parse_trades(trades, market, None, None, {
             'order': id,
             'type': type,
@@ -2194,7 +2201,7 @@ class upbit(Exchange, ImplicitAPI):
         # can be any of the two responses:
         #
         #     {
-        #         "success" : True,
+        #         "success" : true,
         #         "message" : "Creating BTC deposit address."
         #     }
         #
@@ -2302,15 +2309,15 @@ class upbit(Exchange, ImplicitAPI):
         if response is None:
             return None  # fallback to default error handler
         #
-        #   {'error': {'message': "Missing request parameter error. Check the required parameters!", 'name': 400}},
-        #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"}},
-        #   {'error': {'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required"}},
-        #   {'error': {'message': "권한이 부족합니다.", 'name': "out_of_scope"}},
-        #   {'error': {'message': "주문을 찾지 못했습니다.", 'name': "order_not_found"}},
-        #   {'error': {'message': "주문가능한 금액(ETH)이 부족합니다.", 'name': "insufficient_funds_ask"}},
-        #   {'error': {'message': "주문가능한 금액(BTC)이 부족합니다.", 'name': "insufficient_funds_bid"}},
-        #   {'error': {'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key"}},
-        #   {'error': {'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification"}}
+        #   { 'error': { 'message': "Missing request parameter error. Check the required parameters!", 'name': 400 } },
+        #   { 'error': { 'message': "side is missing, side does not have a valid value", 'name': "validation_error" } },
+        #   { 'error': { 'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required" } },
+        #   { 'error': { 'message': "권한이 부족합니다.", 'name': "out_of_scope" } },
+        #   { 'error': { 'message': "주문을 찾지 못했습니다.", 'name': "order_not_found" } },
+        #   { 'error': { 'message': "주문가능한 금액(ETH)이 부족합니다.", 'name': "insufficient_funds_ask" } },
+        #   { 'error': { 'message': "주문가능한 금액(BTC)이 부족합니다.", 'name': "insufficient_funds_bid" } },
+        #   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
+        #   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         #
         error = self.safe_value(response, 'error')
         if error is not None:

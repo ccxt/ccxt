@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -585,7 +589,11 @@ impl BingxCore {
         let mut marketType: Value = ternary(is_true(&isSwap), Value::Str("swap".to_string()), Value::Str("spot".to_string()));
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut ticker: Value = self.parse_ws_ticker(data.clone(), &[market.clone()]);
+        // the Coin-M stream is a distinct endpoint, so it identifies an inverse
+        // ticker even when the market id could not be resolved
+        let mut inverseUrl: Value = self.safe_string(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), Value::Str("inverse".to_string()), &[]);
+        let mut isInverse: Value = Value::Bool(is_true(&(!is_equal(&inverseUrl, &Value::Null))) && is_true(&(is_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &inverseUrl), &Value::Int(0)))));
+        let mut ticker: Value = self.parse_ws_ticker(data.clone(), &[market.clone(), isInverse.clone()]);
         add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         client.resolve(&[ticker.clone(), self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()])]);
         if is_equal(&self.safe_string_k(message.clone(), "dataType", &[]), &Value::Str("all@ticker".to_string())) {
@@ -595,6 +603,7 @@ impl BingxCore {
 
     pub fn parse_ws_ticker(&self, mut message: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        let mut isInverse = get_arg(optional_args, 1, Value::Null);
         //
         //     {
         //         "e": "24hTicker",
@@ -621,6 +630,11 @@ impl BingxCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "s", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut close: Value = self.safe_string_k(message.clone(), "c", &[]);
+        // Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        // prefer the caller's stream-derived flag so an unresolved market id on
+        // the Coin-M endpoint does not silently fall back to the contract count
+        let mut inverse: Value = ternary(is_true(&(is_equal(&isInverse, &Value::Null))), Value::Bool((is_equal(&get_value(&market, &Value::Str("inverse".to_string())), &Value::Bool(true)))), isInverse.clone());
+        let mut baseVolumeKey: Value = ternary(is_true(&inverse), Value::Str("m".to_string()), Value::Str("v".to_string()));
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
@@ -640,7 +654,7 @@ impl BingxCore {
         m.insert("change".to_string(), self.safe_string_k(message.clone(), "p", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(message.clone(), "v", &[]));
+        m.insert("baseVolume".to_string(), self.safe_string(message.clone(), baseVolumeKey.clone(), &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(message.clone(), "q", &[]));
         m.insert("info".to_string(), message.clone());
     m
@@ -2181,6 +2195,31 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut stored: Value = self.orders.clone();
         let mut parsedOrder: Value = self.parse_order(data.clone(), &[]);
+        if !is_true(&isSpot) {
+            // The envelope T is the order update time; o.T is the trade time.
+            let mut updateTimestamp: Value = self.safe_integer_k(message.clone(), "T", &[]);
+            if is_true(&(!is_equal(&updateTimestamp, &Value::Null))) && is_true(&(is_greater_than(&updateTimestamp, &Value::Int(0)))) {
+                let mut orderId: Value = self.safe_string_k(parsedOrder.clone(), "id", &[]);
+                if !is_equal(&orderId, &Value::Null) {
+                    {
+                                                let mut i: Value = Value::Int(0);
+                        let mut __for_first_98: bool = true;
+                        while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &get_array_length(&stored)) } {
+                        let mut previousOrder: Value = get_value(&stored, &i);
+                        let mut previousOrder: Value = get_value(&stored, &i);
+                        if is_true(&(is_equal(&get_value(&previousOrder, &Value::Str("id".to_string())), &orderId))) && is_true(&(is_equal(&get_value(&previousOrder, &Value::Str("symbol".to_string())), &get_value(&parsedOrder, &Value::Str("symbol".to_string()))))) {
+                            let mut previousTimestamp: Value = self.safe_integer_k(previousOrder.clone(), "lastUpdateTimestamp", &[]);
+                            if is_true(&(!is_equal(&previousTimestamp, &Value::Null))) && is_true(&(is_less_than(&updateTimestamp, &previousTimestamp))) {
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                    }
+                }
+                add_element_to_object(&mut parsedOrder, &Value::Str("lastUpdateTimestamp".to_string()), updateTimestamp.clone());
+            }
+        }
         stored.append(parsedOrder.clone());
         let mut symbol: Value = get_value(&parsedOrder, &Value::Str("symbol".to_string()));
         let mut spotHash: Value = Value::Str("spot:order".to_string());
@@ -2328,8 +2367,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_98: bool = true;
-            while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_99: bool = true;
+            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
@@ -2441,8 +2480,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_99: bool = true;
-            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_100: bool = true;
+            while { if !__for_first_100 { i = add(&i, &Value::Int(1)); } __for_first_100 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut subHash: Value = get_value(&subMessageHashes, &i);

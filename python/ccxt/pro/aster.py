@@ -73,12 +73,12 @@ class aster(ccxt.async_support.aster):
                     'swap': 3600000,
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': False,  # or True
+                    'fetchBalanceSnapshot': False,  # or true
                     'awaitBalanceSnapshot': True,  # whether to wait for the balance snapshot before providing updates
                 },
                 'wallet': 'wb',  # wb = wallet balance, cw = cross balance
                 'watchPositions': {
-                    'fetchPositionsSnapshot': True,  # or False
+                    'fetchPositionsSnapshot': True,  # or false
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -665,7 +665,7 @@ class aster(ccxt.async_support.aster):
         #         "f": 26024678,
         #         "l": 26024682,
         #         "T": 1754551358528,
-        #         "m": False
+        #         "m": false
         #     }
         #
         marketType = self.get_account_type_from_url(client.url)
@@ -685,20 +685,20 @@ class aster(ccxt.async_support.aster):
 
     def parse_ws_trade(self, trade: object, market: Market = None) -> Trade:
         #
-        # public watchTrades(spot)
+        # public watchTrades (spot)
         #
         #     {
-        #        "e": "aggTrade",  # Event type
-        #        "E": 123456789,   # Event time
-        #        "s": "BNBBTC",    # Symbol
-        #        "a": 12345,       # Aggregate trade ID
-        #        "p": "0.001",     # Price
-        #        "q": "100",       # Quantity
-        #        "f": 100,         # First trade ID
-        #        "l": 105,         # Last trade ID
-        #        "T": 123456785,   # Trade time
-        #        "m": True,        # Is the buyer the market maker?
-        #        "M": True         # Ignore
+        #        "e": "aggTrade",  // Event type
+        #        "E": 123456789,   // Event time
+        #        "s": "BNBBTC",    // Symbol
+        #        "a": 12345,       // Aggregate trade ID
+        #        "p": "0.001",     // Price
+        #        "q": "100",       // Quantity
+        #        "f": 100,         // First trade ID
+        #        "l": 105,         // Last trade ID
+        #        "T": 123456785,   // Trade time
+        #        "m": true,        // Is the buyer the market maker?
+        #        "M": true         // Ignore
         #     }
         #
         # private watchMyTrades spot
@@ -729,9 +729,9 @@ class aster(ccxt.async_support.aster):
         #         "T": 1611063861488,
         #         "t": 109747654,
         #         "I": 2696953381,
-        #         "w": False,
-        #         "m": False,
-        #         "M": True,
+        #         "w": false,
+        #         "m": false,
+        #         "M": true,
         #         "O": 1611063861488,
         #         "Z": "15.55951200",
         #         "Y": "15.55951200",
@@ -762,14 +762,14 @@ class aster(ccxt.async_support.aster):
         #         "t": 458032604,
         #         "b": "0",
         #         "a": "0",
-        #         "m": False,
-        #         "R": False,
+        #         "m": false,
+        #         "R": false,
         #         "wt": "CONTRACT_PRICE",
         #         "ot": "MARKET",
         #         "ps": "BOTH",
-        #         "cp": False,
+        #         "cp": false,
         #         "rp": "0.00335000",
-        #         "pP": False,
+        #         "pP": false,
         #         "si": 0,
         #         "ss": 0
         #     }
@@ -797,7 +797,7 @@ class aster(ccxt.async_support.aster):
         orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
             if side is None:
-                side = 'sell' if (trade['m'] is True) else 'buy'  # self is reversed intentionally
+                side = 'sell' if (trade['m'] is True) else 'buy'  # this is reversed intentionally
             takerOrMaker = 'maker' if (trade['m'] is True) else 'taker'
         fee = None
         feeCost = self.safe_string(trade, 'n')
@@ -995,7 +995,7 @@ class aster(ccxt.async_support.aster):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'watchOHLCV'
         if self.markets is None:
@@ -1014,7 +1014,7 @@ class aster(ccxt.async_support.aster):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'unWatchOHLCV'
         return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
@@ -1030,7 +1030,7 @@ class aster(ccxt.async_support.aster):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
+        :returns dict: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1077,7 +1077,7 @@ class aster(ccxt.async_support.aster):
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1130,7 +1130,7 @@ class aster(ccxt.async_support.aster):
         #                 "l": "116546.9",
         #                 "v": "0.011",
         #                 "n": 1,
-        #                 "x": False,
+        #                 "x": false,
         #                 "q": "1282.0159",
         #                 "V": "0.000",
         #                 "Q": "0.0000",
@@ -1181,11 +1181,11 @@ class aster(ccxt.async_support.aster):
             # single-flight leader election on a never-dialed client, see
             # https://github.com/ccxt/ccxt/issues/29393: concurrent watch
             # calls on a cold instance each passed the staleness check and
-            # fetched their own listenKey(last write wins, earlier keys
+            # fetched their own listenKey (last write wins, earlier keys
             # orphan) - now one leader fetches per type and waiters wake when
             # the flight settles. client.futures is the registry:
-            # client.future() is the atomic check-and-insert and
-            # client.resolve() / client.reject() settle and remove the entry
+            # client.future () is the atomic check-and-insert and
+            # client.resolve () / client.reject () settle and remove the entry
             # under the same lock in every port
             messageHash = 'authenticate:' + type
             client = self.client('authenticationFlights')
@@ -1194,8 +1194,8 @@ class aster(ccxt.async_support.aster):
                 # settles it: the listenKey is then in the bucket
                 await client.future(messageHash)
                 return
-            # reusableFuture(), not future() - the two match in
-            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # reusableFuture (), not future () - the two match in
+            # js/py/php/cs/java, but go's Client.Future () yields a channel
             # that the trailing suspension point below would panic on
             future = client.reusableFuture(messageHash)
             try:
@@ -1213,12 +1213,12 @@ class aster(ccxt.async_support.aster):
                 self.options['lastAuthenticatedTime'][type] = time
                 params = self.extend({'type': type}, params)
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
-                # settle the flight: client.resolve() removes the future from
+                # settle the flight: client.resolve () removes the future from
                 # client.futures and wakes every waiter
                 client.resolve(listenKey, messageHash)
             except Exception as e:
-                # reject the flight - waiters raise and the next caller re-leads.
-                # no reraise here, the trailing suspension point rethrows to self
+                # reject the flight - waiters throw and the next caller re-leads.
+                # no rethrow here, the trailing suspension point rethrows to this
                 # caller AND attaches the handler an alone leader needs
                 client.reject(e, messageHash)
             await future
@@ -1231,9 +1231,9 @@ class aster(ccxt.async_support.aster):
             return
         try:
             if type == 'spot':
-                await self.sapiPrivatePutV3ListenKey()  # self.extend the expiry
+                await self.sapiPrivatePutV3ListenKey()  # extend the expiry
             else:
-                await self.fapiPrivatePutV3ListenKey()  # self.extend the expiry
+                await self.fapiPrivatePutV3ListenKey()  # extend the expiry
         except Exception as error:
             url = self.urls['api']['ws']['private'][type] + '/' + listenKey
             client = self.client(url)
@@ -1511,14 +1511,14 @@ class aster(ccxt.async_support.aster):
     def parse_ws_position(self, position: object, market: Market = None):
         #
         #     {
-        #         "s": "BTCUSDT",  # Symbol
-        #         "pa": "0",  # Position Amount
-        #         "ep": "0.00000",  # Entry Price
-        #         "cr": "200",  #(Pre-fee) Accumulated Realized
-        #         "up": "0",  # Unrealized PnL
-        #         "mt": "isolated",  # Margin Type
-        #         "iw": "0.00000000",  # Isolated Wallet(if isolated position)
-        #         "ps": "BOTH"  # Position Side
+        #         "s": "BTCUSDT", // Symbol
+        #         "pa": "0", // Position Amount
+        #         "ep": "0.00000", // Entry Price
+        #         "cr": "200", // (Pre-fee) Accumulated Realized
+        #         "up": "0", // Unrealized PnL
+        #         "mt": "isolated", // Margin Type
+        #         "iw": "0.00000000", // Isolated Wallet (if isolated position)
+        #         "ps": "BOTH" // Position Side
         #     }
         #
         marketId = self.safe_string(position, 's')
@@ -1680,12 +1680,12 @@ class aster(ccxt.async_support.aster):
                                 order['fee'] = None
                         else:
                             order['fee'] = tradeFee
-                        # save self trade in the order
+                        # save this trade in the order
                         orderTrades = self.safe_list(order, 'trades', [])
                         orderTrades.append(trade)
                         order['trades'] = orderTrades
                         # don't append twice cause it breaks newUpdates mode
-                        # self order already exists in the cache
+                        # this order already exists in the cache
             if self.myTrades is None:
                 limit = self.safe_integer(self.options, 'tradesLimit', 1000)
                 self.myTrades = ArrayCacheBySymbolById(limit)
@@ -1699,75 +1699,75 @@ class aster(ccxt.async_support.aster):
         #
         # spot
         #     {
-        #         "e": "executionReport",        # Event type
-        #         "E": 1499405658658,            # Event time
-        #         "s": "ETHBTC",                 # Symbol
-        #         "c": "mUvoqJxFIILMdfAW5iGSOW",  # Client order ID
-        #         "S": "BUY",                    # Side
-        #         "o": "LIMIT",                  # Order type
-        #         "f": "GTC",                    # Time in force
-        #         "q": "1.00000000",             # Order quantity
-        #         "p": "0.10264410",             # Order price
-        #         "P": "0.00000000",             # Stop price
-        #         "F": "0.00000000",             # Iceberg quantity
-        #         "g": -1,                       # OrderListId
-        #         "C": null,                     # Original client order ID; This is the ID of the order being canceled
-        #         "x": "NEW",                    # Current execution type
-        #         "X": "NEW",                    # Current order status
-        #         "r": "NONE",                   # Order reject reason; will be an error code.
-        #         "i": 4293153,                  # Order ID
-        #         "l": "0.00000000",             # Last executed quantity
-        #         "z": "0.00000000",             # Cumulative filled quantity
-        #         "L": "0.00000000",             # Last executed price
-        #         "n": "0",                      # Commission amount
-        #         "N": null,                     # Commission asset
-        #         "T": 1499405658657,            # Transaction time
-        #         "t": -1,                       # Trade ID
-        #         "I": 8641984,                  # Ignore
-        #         "w": True,                     # Is the order on the book?
-        #         "m": False,                    # Is self trade the maker side?
-        #         "M": False,                    # Ignore
-        #         "O": 1499405658657,            # Order creation time
-        #         "Z": "0.00000000",             # Cumulative quote asset transacted quantity
-        #         "Y": "0.00000000"              # Last quote asset transacted quantity(i.e. lastPrice * lastQty),
-        #         "Q": "0.00000000"              # Quote Order Qty
+        #         "e": "executionReport",        // Event type
+        #         "E": 1499405658658,            // Event time
+        #         "s": "ETHBTC",                 // Symbol
+        #         "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+        #         "S": "BUY",                    // Side
+        #         "o": "LIMIT",                  // Order type
+        #         "f": "GTC",                    // Time in force
+        #         "q": "1.00000000",             // Order quantity
+        #         "p": "0.10264410",             // Order price
+        #         "P": "0.00000000",             // Stop price
+        #         "F": "0.00000000",             // Iceberg quantity
+        #         "g": -1,                       // OrderListId
+        #         "C": null,                     // Original client order ID; This is the ID of the order being canceled
+        #         "x": "NEW",                    // Current execution type
+        #         "X": "NEW",                    // Current order status
+        #         "r": "NONE",                   // Order reject reason; will be an error code.
+        #         "i": 4293153,                  // Order ID
+        #         "l": "0.00000000",             // Last executed quantity
+        #         "z": "0.00000000",             // Cumulative filled quantity
+        #         "L": "0.00000000",             // Last executed price
+        #         "n": "0",                      // Commission amount
+        #         "N": null,                     // Commission asset
+        #         "T": 1499405658657,            // Transaction time
+        #         "t": -1,                       // Trade ID
+        #         "I": 8641984,                  // Ignore
+        #         "w": true,                     // Is the order on the book?
+        #         "m": false,                    // Is this trade the maker side?
+        #         "M": false,                    // Ignore
+        #         "O": 1499405658657,            // Order creation time
+        #         "Z": "0.00000000",             // Cumulative quote asset transacted quantity
+        #         "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        #         "Q": "0.00000000"              // Quote Order Qty
         #     }
         #
         # swap
         #     {
-        #         "s":"BTCUSDT",                 # Symbol
-        #         "c":"TEST",                    # Client Order Id
-        #                                        # special client order id:
-        #                                        # starts with "autoclose-": liquidation order
-        #                                        # "adl_autoclose": ADL auto close order
-        #         "S":"SELL",                    # Side
-        #         "o":"TRAILING_STOP_MARKET",    # Order Type
-        #         "f":"GTC",                     # Time in Force
-        #         "q":"0.001",                   # Original Quantity
-        #         "p":"0",                       # Original Price
-        #         "ap":"0",                      # Average Price
-        #         "sp":"7103.04",                # Stop Price. Please ignore with TRAILING_STOP_MARKET order
-        #         "x":"NEW",                     # Execution Type
-        #         "X":"NEW",                     # Order Status
-        #         "i":8886774,                   # Order Id
-        #         "l":"0",                       # Order Last Filled Quantity
-        #         "z":"0",                       # Order Filled Accumulated Quantity
-        #         "L":"0",                       # Last Filled Price
-        #         "N":"USDT",                    # Commission Asset, will not push if no commission
-        #         "n":"0",                       # Commission, will not push if no commission
-        #         "T":1568879465651,             # Order Trade Time
-        #         "t":0,                         # Trade Id
-        #         "b":"0",                       # Bids Notional
-        #         "a":"9.91",                    # Ask Notional
-        #         "m":false,                     # Is self trade the maker side?
-        #         "R":false,                     # Is self reduce only
-        #         "wt":"CONTRACT_PRICE",         # Stop Price Working Type
-        #         "ot":"TRAILING_STOP_MARKET",   # Original Order Type
-        #         "ps":"LONG",                   # Position Side
-        #         "cp":false,                    # If Close-All, pushed with conditional order
-        #         "AP":"7476.89",                # Activation Price, only puhed with TRAILING_STOP_MARKET order
-        #         "cr":"5.0",                    # Callback Rate, only puhed with TRAILING_STOP_MARKET order
-        #         "rp":"0"                       # Realized Profit of the trade
+        #         "s":"BTCUSDT",                 // Symbol
+        #         "c":"TEST",                    // Client Order Id
+        #                                        // special client order id:
+        #                                        // starts with "autoclose-": liquidation order
+        #                                        // "adl_autoclose": ADL auto close order
+        #         "S":"SELL",                    // Side
+        #         "o":"TRAILING_STOP_MARKET",    // Order Type
+        #         "f":"GTC",                     // Time in Force
+        #         "q":"0.001",                   // Original Quantity
+        #         "p":"0",                       // Original Price
+        #         "ap":"0",                      // Average Price
+        #         "sp":"7103.04",                // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        #         "x":"NEW",                     // Execution Type
+        #         "X":"NEW",                     // Order Status
+        #         "i":8886774,                   // Order Id
+        #         "l":"0",                       // Order Last Filled Quantity
+        #         "z":"0",                       // Order Filled Accumulated Quantity
+        #         "L":"0",                       // Last Filled Price
+        #         "N":"USDT",                    // Commission Asset, will not push if no commission
+        #         "n":"0",                       // Commission, will not push if no commission
+        #         "T":1568879465651,             // Order Trade Time
+        #         "t":0,                         // Trade Id
+        #         "b":"0",                       // Bids Notional
+        #         "a":"9.91",                    // Ask Notional
+        #         "m":false,                     // Is this trade the maker side?
+        #         "R":false,                     // Is this reduce only
+        #         "wt":"CONTRACT_PRICE",         // Stop Price Working Type
+        #         "ot":"TRAILING_STOP_MARKET",   // Original Order Type
+        #         "ps":"LONG",                   // Position Side
+        #         "cp":false,                    // If Close-All, pushed with conditional order
+        #         "AP":"7476.89",                // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        #         "cr":"5.0",                    // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        #         "rp":"0"                       // Realized Profit of the trade
         #     }
         #
         messageHash = 'orders'

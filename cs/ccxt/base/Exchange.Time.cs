@@ -182,14 +182,10 @@ public partial class BaseExchange
         Int64 timestamp;
         try
         {
-            if (datetime.IndexOf("+0") > -1)
-            {
-                // "2023-05-08T17:04:43+0000"
-                // dates like this aren't correctly mapped to UTC
-                var parts = datetime.Split('+');
-                datetime = parts[0];
-            }
-            timestamp = (long)DateTime.Parse(datetime, null, System.Globalization.DateTimeStyles.RoundtripKind).Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+            // DateTimeOffset honours the offset the string declares instead of resolving it
+            // against the host clock; AssumeUniversal reads a zoneless string as UTC and
+            // AdjustToUniversal normalises both cases to UTC.
+            timestamp = System.DateTimeOffset.Parse(datetime, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal).ToUnixTimeMilliseconds();
         }
         catch (Exception e)
         {

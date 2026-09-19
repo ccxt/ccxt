@@ -174,12 +174,18 @@ export default class bitstamp extends Exchange {
                         'travel_rule/vasps/': { 'cost': 1 } as Endpoint<Dict>,
                         'funding_rate/{market_symbol}/': { 'cost': 1 } as Endpoint<Dict>,
                         'funding_rate_history/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'derivatives/market_hours/': { 'cost': 1 } as Endpoint<List>,
+                        'derivatives/market_hours/{market_symbol}/': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         'travel_rule/contacts/': { 'cost': 1 } as Endpoint<List>,
                         'contacts/{contact_uuid}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'travel_rule/utxo/xpub_registrations/': { 'cost': 1 } as Endpoint<List>,
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'travel_rule/address_verification/': { 'cost': 1 } as Endpoint<Dict>,
+                        'crypto-transactions/deposits/': { 'cost': 1 } as Endpoint<List>,
                         'earn/subscriptions/': { 'cost': 1 } as Endpoint<List>,
                         'earn/transactions/': { 'cost': 1 } as Endpoint<List>,
                         'trade_history/': { 'cost': 1 } as Endpoint<List>,
@@ -195,6 +201,7 @@ export default class bitstamp extends Exchange {
                         'user_transactions/': { 'cost': 1 } as Endpoint<List>,
                         'user_transactions/{pair}/': { 'cost': 1 } as Endpoint<List>,
                         'crypto-transactions/': { 'cost': 1 } as Endpoint<Dict>,
+                        'crypto-transactions/deposits/{deposit_id}/reject/': { 'cost': 1 } as Endpoint<Dict>,
                         'open_order': { 'cost': 1 } as Endpoint<Dict>,
                         'open_orders/all/': { 'cost': 1 } as Endpoint<List>,
                         'open_orders/{pair}/': { 'cost': 1 } as Endpoint<List>,
@@ -226,6 +233,8 @@ export default class bitstamp extends Exchange {
                         'websockets_token/': { 'cost': 1 } as Endpoint<Dict>,
                         'revoke_all_api_keys/': { 'cost': 1 } as Endpoint<Dict>,
                         'get_max_order_amount/': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_data/': { 'cost': 1 } as Endpoint<List>,
+                        'account_order_data/': { 'cost': 1 } as Endpoint<List>,
                         // individual coins
                         'btc_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
                         'btc_address/': { 'cost': 1 } as Endpoint<Dict>,
@@ -390,6 +399,8 @@ export default class bitstamp extends Exchange {
                         'ldo_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
                         'ldo_address/': { 'cost': 1 } as Endpoint<Dict>,
                         'travel_rule/contacts/': { 'cost': 1 } as Endpoint<Dict>,
+                        'travel_rule/utxo/xpub_registrations/': { 'cost': 1 } as Endpoint<Dict>,
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/revoke/': { 'cost': 1 } as Endpoint<Dict>,
                         'earn/subscribe/': { 'cost': 1 } as Endpoint<Dict>,
                         'earn/subscriptions/setting/': { 'cost': 1 } as Endpoint<Dict>,
                         'earn/unsubscribe': { 'cost': 1 } as Endpoint<Dict>,
@@ -1322,6 +1333,7 @@ export default class bitstamp extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1334,24 +1346,44 @@ export default class bitstamp extends Exchange {
             'step': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
+        const until = this.safeInteger (params, 'until');
+        const untilIsDefined = (until !== undefined);
         if (limit === undefined) {
+            limit = 1000;
             if (since === undefined) {
-                request['limit'] = 1000; // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                request['limit'] = limit;
+                if (untilIsDefined) {
+                    const end = this.parseToInt (until / 1000);
+                    request['start'] = end - (duration * limit) - 1;
+                    request['end'] = end;
+                }
             } else {
-                limit = 1000;
                 const start = this.parseToInt (since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum (start, duration * (limit - 1));
+                if (untilIsDefined) {
+                    request['end'] = this.parseToInt (until / 1000);
+                } else {
+                    request['end'] = this.sum (start, duration * limit - 1);
+                }
                 request['limit'] = limit;
             }
         } else {
             if (since !== undefined) {
                 const start = this.parseToInt (since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum (start, duration * (limit - 1));
+                let end = this.sum (start, duration * limit - 1);
+                if (untilIsDefined) {
+                    end = Math.min (end, this.parseToInt (until / 1000));
+                }
+                request['end'] = end;
+            } else if (untilIsDefined) {
+                const end = this.parseToInt (until / 1000);
+                request['end'] = end;
+                request['start'] = end - (duration * limit) - 1;
             }
             request['limit'] = Math.min (limit, 1000); // min 1, max 1000
         }
+        params = this.omit (params, 'until');
         const response = await this.publicGetOhlcPair (this.extend (request, params));
         //
         //     {
@@ -2486,14 +2518,16 @@ export default class bitstamp extends Exchange {
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         const currentTime = this.safeIntegerProduct (fundingRate, 'timestamp', 1000);
         const nextFundingRateTimestamp = this.safeIntegerProduct (fundingRate, 'next_funding_time', 1000);
         const marketId = this.safeString (fundingRate, 'market');
         return {
             'info': fundingRate,
             'symbol': this.safeSymbol (marketId, market),
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': this.safeNumber (fundingRate, 'mark_price'),
+            'indexPrice': this.safeNumber (fundingRate, 'index_price'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': currentTime,
@@ -2561,7 +2595,7 @@ export default class bitstamp extends Exchange {
         return code.toLowerCase ();
     }
 
-    isFiat (code: any) {
+    isFiat (code: any): boolean {
         return code === 'USD' || code === 'EUR' || code === 'GBP';
     }
 
@@ -2796,7 +2830,7 @@ export default class bitstamp extends Exchange {
             if (typeof reasonInner === 'string') {
                 errors.push (reasonInner);
             } else {
-                const all = this.safeValue (reasonInner, '__all__', []);
+                const all = this.safeList (reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors.push (all[i]);
                 }

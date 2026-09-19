@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/phemex.js';
-import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // ----------------------------------------------------------------------------
@@ -188,6 +188,7 @@ export default class phemex extends Exchange {
                     'get': {
                         'public/products': { 'cost': 5 },
                         'public/products-plus': { 'cost': 5 },
+                        'public/index-sources': { 'cost': 5 }, // ?symbol=<symbol>&pageNum=<pageNum>&pageSize=<pageSize>
                         'md/v2/orderbook': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
                         'md/v2/trade': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
@@ -256,6 +257,16 @@ export default class phemex extends Exchange {
                         'assets/futures/sub-accounts/transfer': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote': { 'cost': 5 }, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         // deposit/withdraw
+                        // copy trade
+                        'phemex-lb/public/api/trader/performance-info': { 'cost': 5 }, // ?strategyIds=<strategyIds>&pageNum=<pageNum>&pageSize=<pageSize>
+                        // uta
+                        'uta-api/risk/risk-mode': { 'cost': 5 },
+                        'uta-api/risk/risk-units': { 'cost': 5 }, // ?currency=<currency>&riskType=<riskType>
+                        'uta-biz/assets': { 'cost': 5 }, // ?currency=<currency>
+                        'uta-funds/contract/borrow': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/payback': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/borrow/interests': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-exchanger/assets/convert': { 'cost': 5 }, // ?fromCurrency=<currency>&toCurrency=<currency>&start=<start>&end=<end>&offset=<offset>&limit=<limit>
                     },
                     'post': {
                         // spot
@@ -279,6 +290,9 @@ export default class phemex extends Exchange {
                         // withdraw
                         'phemex-withdraw/wallets/api/createWithdraw': { 'cost': 5 }, // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
                         'phemex-withdraw/wallets/api/cancelWithdraw': { 'cost': 5 }, // ?id=<id>
+                        // uta
+                        'uta-account/switch-mode': { 'cost': 5 }, // ?riskMode=<riskMode>
+                        'uta-funds/contract/payback': { 'cost': 5 }, // body: currency, amountRv
                     },
                     'put': {
                         // spot
@@ -472,8 +486,8 @@ export default class phemex extends Exchange {
                     '11028': BadSymbol, // TE_CURRENCY_INVALID Invalid currency ID or name
                     '11029': ExchangeError, // TE_ACTION_INVALID Unrecognized request type
                     '11030': ExchangeError, // TE_ACTION_BY_INVALID
-                    '11031': DDoSProtection, // TE_SO_NUM_EXCEEDS Number of total conditional orders exceeds the max limit
-                    '11032': DDoSProtection, // TE_AO_NUM_EXCEEDS Number of total active orders exceeds the max limit
+                    '11031': InvalidOrder, // TE_SO_NUM_EXCEEDS Number of total conditional orders exceeds the max limit
+                    '11032': InvalidOrder, // TE_AO_NUM_EXCEEDS Number of total active orders exceeds the max limit
                     '11033': DuplicateOrderId, // TE_ORDER_ID_DUPLICATE Duplicated order ID
                     '11034': InvalidOrder, // TE_SIDE_INVALID Invalid side
                     '11035': InvalidOrder, // TE_ORD_TYPE_INVALID Invalid OrderType
@@ -2045,7 +2059,7 @@ export default class phemex extends Exchange {
         //
         let timestamp = undefined;
         const result = { 'info': response };
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'currency');
@@ -2428,7 +2442,7 @@ export default class phemex extends Exchange {
             };
         }
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'timeInForce'));
-        const triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, 'stopPxEp'))));
+        const triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, 'stopPxEp'), market)));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder({
             'info': order,
@@ -3234,6 +3248,15 @@ export default class phemex extends Exchange {
         }
         else if (market['spot'] === true) {
             const rows = this.safeList(data, 'rows', []);
+            const numRows = rows.length;
+            if (numRows < 1) {
+                if (clientOrderId !== undefined) {
+                    throw new OrderNotFound(this.id + ' fetchOrder() ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found');
+                }
+                else {
+                    throw new OrderNotFound(this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
+                }
+            }
             order = this.safeDict(rows, 0, {});
         }
         return this.parseOrder(order, market);
@@ -4008,7 +4031,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const positions = this.safeValue(data, 'positions', []);
+        const positions = this.safeList(data, 'positions', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
@@ -4311,7 +4334,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const rows = this.safeValue(data, 'rows', []);
+        const rows = this.safeList(data, 'rows', []);
         const result = [];
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
@@ -5712,7 +5735,7 @@ export default class phemex extends Exchange {
             //
         }
         const data = this.safeValue(response, 'data', {});
-        const ranks = this.safeValue(data, 'positions', []);
+        const ranks = this.safeList(data, 'positions', []);
         const result = [];
         for (let i = 0; i < ranks.length; i++) {
             const rank = ranks[i];

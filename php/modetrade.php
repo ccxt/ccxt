@@ -104,7 +104,7 @@ class modetrade extends Exchange {
                 'setMargin' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
-                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -130,6 +130,9 @@ class modetrade extends Exchange {
                     'private' => 'https://testnet-api-evm.orderly.org',
                 ),
                 'www' => 'https://trade.mode.network',
+                'doc' => array(
+                    'https://orderly.network/docs/build-on-omnichain/building-on-omnichain',
+                ),
                 'referral' => array(
                     'url' => 'https://trade.mode.network?ref=MODETRADE',
                     'discount' => 0.2,
@@ -176,6 +179,7 @@ class modetrade extends Exchange {
                             'tv/config' => array( 'cost' => 1 ),
                             'tv/history' => array( 'cost' => 1 ),
                             'tv/symbol_info' => array( 'cost' => 1 ),
+                            'tv/kline_history' => array( 'cost' => 20 ),
                             'public/funding_rate_history' => array( 'cost' => 1 ),
                             'public/funding_rate/{symbol}' => array( 'cost' => 0.33 ),
                             'public/funding_rates' => array( 'cost' => 1 ),
@@ -188,6 +192,7 @@ class modetrade extends Exchange {
                         ),
                         'post' => array(
                             'register_account' => array( 'cost' => 1 ),
+                            'public/query' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
@@ -210,6 +215,7 @@ class modetrade extends Exchange {
                             'withdraw_nonce' => array( 'cost' => 1 ),
                             'settle_nonce' => array( 'cost' => 1 ),
                             'pnl_settlement/history' => array( 'cost' => 1 ),
+                            'internal_transfer_history' => array( 'cost' => 1 ),
                             'volume/user/daily' => array( 'cost' => 60 ),
                             'volume/user/stats' => array( 'cost' => 60 ),
                             'client/statistics' => array( 'cost' => 60 ),
@@ -223,8 +229,20 @@ class modetrade extends Exchange {
                             'volume/broker/daily' => array( 'cost' => 60 ),
                             'broker/fee_rate/default' => array( 'cost' => 10 ),
                             'broker/user_info' => array( 'cost' => 10 ),
+                            'broker/daily_fee_revenue' => array( 'cost' => 1 ),
                             'orderbook/{symbol}' => array( 'cost' => 1 ),
                             'kline' => array( 'cost' => 1 ),
+                            'client/leverages' => array( 'cost' => 1 ),
+                            'client/margin_modes' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/info' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/referee_list' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/summary' => array( 'cost' => 1 ),
+                            'referral/multi_level/max_rebate_rate' => array( 'cost' => 10 ),
+                            'referral/multi_level/rebate_info' => array( 'cost' => 10 ),
+                            'referral/multi_level/referee_list' => array( 'cost' => 1 ),
+                            'referral/multi_level/statistics' => array( 'cost' => 1 ),
+                            'referral/multi_level/volume_prerequisite' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'orderly_key' => array( 'cost' => 1 ),
@@ -237,9 +255,13 @@ class modetrade extends Exchange {
                             'claim_insurance_fund' => array( 'cost' => 1 ),
                             'withdraw_request' => array( 'cost' => 1 ),
                             'settle_pnl' => array( 'cost' => 1 ),
+                            'internal_transfer' => array( 'cost' => 1 ),
                             'notification/inbox/mark_read' => array( 'cost' => 60 ),
                             'notification/inbox/mark_read_all' => array( 'cost' => 60 ),
                             'client/leverage' => array( 'cost' => 120 ),
+                            'client/leverages' => array( 'cost' => 120 ),
+                            'client/margin_mode' => array( 'cost' => 1 ),
+                            'position_margin' => array( 'cost' => 1 ),
                             'client/maintenance_config' => array( 'cost' => 60 ),
                             'delegate_signer' => array( 'cost' => 10 ),
                             'delegate_orderly_key' => array( 'cost' => 10 ),
@@ -252,6 +274,15 @@ class modetrade extends Exchange {
                             'referral/update' => array( 'cost' => 10 ),
                             'referral/bind' => array( 'cost' => 10 ),
                             'referral/edit_split' => array( 'cost' => 10 ),
+                            'referral/edit_referee_description' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/update' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/create/affiliate' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/reset/affiliate' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/update/affiliate' => array( 'cost' => 10 ),
+                            'referral/multi_level/claim_code' => array( 'cost' => 10 ),
+                            'referral/multi_level/rebate_rate/set_default' => array( 'cost' => 10 ),
+                            'referral/multi_level/rebate_rate/update' => array( 'cost' => 10 ),
                         ),
                         'put' => array(
                             'order' => array( 'cost' => 1 ),
@@ -307,12 +338,12 @@ class modetrade extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => false,
-                        'trailing' => true,
-                        'leverage' => true, // todo implement
+                        'trailing' => false,
+                        'leverage' => false,
                         'marketBuyByCost' => false,
                         'marketBuyRequiresPrice' => false,
                         'selfTradePrevention' => false,
-                        'iceberg' => true, // todo implement
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -337,7 +368,15 @@ class modetrade extends Exchange {
                         'trailing' => false,
                         'symbolRequired' => false,
                     ),
-                    'fetchOrders' => null,
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => 100000,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
@@ -352,16 +391,14 @@ class modetrade extends Exchange {
                         'limit' => 1000,
                     ),
                 ),
-                'spot' => array(
-                    'extends' => 'default',
-                ),
+                'spot' => null,
                 'forDerivatives' => array(
                     'extends' => 'default',
                     'createOrder' => array(
-                        // todo => implementation needs unification
+                        // todo: implementation needs unification
                         'triggerPriceType' => null,
                         'attachedStopLossTakeProfit' => array(
-                            // todo => implementation needs unification
+                            // todo: implementation needs unification
                             'triggerPriceType' => null,
                             'price' => false,
                         ),
@@ -400,11 +437,11 @@ class modetrade extends Exchange {
                     '-1105' => '\\ccxt\\InvalidOrder', // PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
                     '-1201' => '\\ccxt\\BadRequest', // LIQUIDATION_REQUEST_RATIO_TOO_SMALL total notional < 10000, least req ratio should = 1
                     '-1202' => '\\ccxt\\BadRequest', // LIQUIDATION_STATUS_ERROR No need to liquidation because user margin is enough.
-                    '29' => '\\ccxt\\BadRequest', // array("success":false,"code":29,"message":"Verify contract is invalid")
-                    '9' => '\\ccxt\\AuthenticationError', // array("success":false,"code":9,"message":"Address and signature do not match")
-                    '3' => '\\ccxt\\AuthenticationError', // array("success":false,"code":3,"message":"Signature error")
-                    '2' => '\\ccxt\\BadRequest', // array("success":false,"code":2,"message":"Timestamp expired")
-                    '15' => '\\ccxt\\BadRequest', // array("success":false,"code":15,"message":"BrokerId is not exist")
+                    '29' => '\\ccxt\\BadRequest', // {"success":false,"code":29,"message":"Verify contract is invalid"}
+                    '9' => '\\ccxt\\AuthenticationError', // {"success":false,"code":9,"message":"Address and signature do not match"}
+                    '3' => '\\ccxt\\AuthenticationError', // {"success":false,"code":3,"message":"Signature error"}
+                    '2' => '\\ccxt\\BadRequest', // {"success":false,"code":2,"message":"Timestamp expired"}
+                    '15' => '\\ccxt\\BadRequest', // {"success":false,"code":15,"message":"BrokerId is not exist"}
                 ),
                 'broad' => array(
                 ),
@@ -422,7 +459,7 @@ class modetrade extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-$status
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-$status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
@@ -430,12 +467,12 @@ class modetrade extends Exchange {
         $response = $this->v1PublicGetPublicSystemInfo($params);
         //
         //     {
-        //         "success" => true,
-        //         "data" => array(
-        //             "status" => 0,
-        //             "msg" => "System is functioning properly."
-        //         ),
-        //         "timestamp" => "1709274106602"
+        //         "success": true,
+        //         "data": {
+        //             "status": 0,
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -460,7 +497,7 @@ class modetrade extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -468,12 +505,12 @@ class modetrade extends Exchange {
         $response = $this->v1PublicGetPublicSystemInfo($params);
         //
         //     {
-        //         "success" => true,
-        //         "data" => array(
-        //             "status" => 0,
-        //             "msg" => "System is functioning properly."
-        //         ),
-        //         "timestamp" => "1709274106602"
+        //         "success": true,
+        //         "data": {
+        //             "status": 0,
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
         //     }
         //
         return $this->safe_integer($response, 'timestamp');
@@ -482,29 +519,29 @@ class modetrade extends Exchange {
     public function parse_market(array $market): array {
         //
         //   {
-        //     "symbol" => "PERP_BTC_USDC",
-        //     "quote_min" => 123,
-        //     "quote_max" => 100000,
-        //     "quote_tick" => 0.1,
-        //     "base_min" => 0.00001,
-        //     "base_max" => 20,
-        //     "base_tick" => 0.00001,
-        //     "min_notional" => 1,
-        //     "price_range" => 0.02,
-        //     "price_scope" => 0.4,
-        //     "std_liquidation_fee" => 0.03,
-        //     "liquidator_fee" => 0.015,
-        //     "claim_insurance_fund_discount" => 0.0075,
-        //     "funding_period" => 8,
-        //     "cap_funding" => 0.000375,
-        //     "floor_funding" => -0.000375,
-        //     "interest_rate" => 0.0001,
-        //     "created_time" => 1684140107326,
-        //     "updated_time" => 1685345968053,
-        //     "base_mmr" => 0.05,
-        //     "base_imr" => 0.1,
-        //     "imr_factor" => 0.0002512,
-        //     "liquidation_tier" => "1"
+        //     "symbol": "PERP_BTC_USDC",
+        //     "quote_min": 123,
+        //     "quote_max": 100000,
+        //     "quote_tick": 0.1,
+        //     "base_min": 0.00001,
+        //     "base_max": 20,
+        //     "base_tick": 0.00001,
+        //     "min_notional": 1,
+        //     "price_range": 0.02,
+        //     "price_scope": 0.4,
+        //     "std_liquidation_fee": 0.03,
+        //     "liquidator_fee": 0.015,
+        //     "claim_insurance_fund_discount": 0.0075,
+        //     "funding_period": 8,
+        //     "cap_funding": 0.000375,
+        //     "floor_funding": -0.000375,
+        //     "interest_rate": 0.0001,
+        //     "created_time": 1684140107326,
+        //     "updated_time": 1685345968053,
+        //     "base_mmr": 0.05,
+        //     "base_imr": 0.1,
+        //     "imr_factor": 0.0002512,
+        //     "liquidation_tier": "1"
         //   }
         //
         $marketId = $this->safe_string($market, 'symbol', '');
@@ -572,7 +609,7 @@ class modetrade extends Exchange {
         /**
          * retrieves $data on all markets for modetrade
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
@@ -580,36 +617,36 @@ class modetrade extends Exchange {
         $response = $this->v1PublicGetPublicInfo($params);
         //
         //   {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => array(
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [
         //         {
-        //           "symbol" => "PERP_BTC_USDC",
-        //           "quote_min" => 123,
-        //           "quote_max" => 100000,
-        //           "quote_tick" => 0.1,
-        //           "base_min" => 0.00001,
-        //           "base_max" => 20,
-        //           "base_tick" => 0.00001,
-        //           "min_notional" => 1,
-        //           "price_range" => 0.02,
-        //           "price_scope" => 0.4,
-        //           "std_liquidation_fee" => 0.03,
-        //           "liquidator_fee" => 0.015,
-        //           "claim_insurance_fund_discount" => 0.0075,
-        //           "funding_period" => 8,
-        //           "cap_funding" => 0.000375,
-        //           "floor_funding" => -0.000375,
-        //           "interest_rate" => 0.0001,
-        //           "created_time" => 1684140107326,
-        //           "updated_time" => 1685345968053,
-        //           "base_mmr" => 0.05,
-        //           "base_imr" => 0.1,
-        //           "imr_factor" => 0.0002512,
-        //           "liquidation_tier" => "1"
+        //           "symbol": "PERP_BTC_USDC",
+        //           "quote_min": 123,
+        //           "quote_max": 100000,
+        //           "quote_tick": 0.1,
+        //           "base_min": 0.00001,
+        //           "base_max": 20,
+        //           "base_tick": 0.00001,
+        //           "min_notional": 1,
+        //           "price_range": 0.02,
+        //           "price_scope": 0.4,
+        //           "std_liquidation_fee": 0.03,
+        //           "liquidator_fee": 0.015,
+        //           "claim_insurance_fund_discount": 0.0075,
+        //           "funding_period": 8,
+        //           "cap_funding": 0.000375,
+        //           "floor_funding": -0.000375,
+        //           "interest_rate": 0.0001,
+        //           "created_time": 1684140107326,
+        //           "updated_time": 1685345968053,
+        //           "base_mmr": 0.05,
+        //           "base_imr": 0.1,
+        //           "imr_factor": 0.0002512,
+        //           "liquidation_tier": "1"
         //         }
-        //       )
+        //       ]
         //     }
         //   }
         //
@@ -622,7 +659,7 @@ class modetrade extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -630,21 +667,21 @@ class modetrade extends Exchange {
         $response = $this->v1PublicGetPublicToken($params);
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [{
-        //         "token" => "USDC",
-        //         "decimals" => 6,
-        //         "minimum_withdraw_amount" => 0.000001,
-        //         "token_hash" => "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
-        //         "chain_details" => [array(
-        //             "chain_id" => 43113,
-        //             "contract_address" => "0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3",
-        //             "cross_chain_withdrawal_fee" => 123,
-        //             "decimals" => 6,
-        //             "withdraw_fee" => 2
-        //             )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "token": "USDC",
+        //         "decimals": 6,
+        //         "minimum_withdraw_amount": 0.000001,
+        //         "token_hash": "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
+        //         "chain_details": [{
+        //             "chain_id": 43113,
+        //             "contract_address": "0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3",
+        //             "cross_chain_withdrawal_fee": 123,
+        //             "decimals": 6,
+        //             "withdraw_fee": 2
+        //             }]
         //         }
         //       ]
         //     }
@@ -663,7 +700,7 @@ class modetrade extends Exchange {
         $resultingNetworks = array();
         for ($j = 0; $j < count($networks); $j++) {
             $network = $networks[$j];
-            // TODO => transform chain id to human readable name
+            // TODO: transform chain id to human readable name
             $networkId = $this->safe_string($network, 'chain_id', '');
             $precision = $this->parse_precision($this->safe_string($network, 'decimals'));
             if ($precision !== null) {
@@ -733,27 +770,27 @@ class modetrade extends Exchange {
         // public/market_trades
         //
         //     {
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "side" => "SELL",
-        //         "executed_price" => 46222.35,
-        //         "executed_quantity" => 0.0012,
-        //         "executed_timestamp" => "1683878609166"
+        //         "symbol": "PERP_ETH_USDC",
+        //         "side": "SELL",
+        //         "executed_price": 46222.35,
+        //         "executed_quantity": 0.0012,
+        //         "executed_timestamp": "1683878609166"
         //     }
         //
         // fetchOrderTrades, fetchOrder
         //
         //     {
-        //         "id" => "99119876",
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "fee" => "0.0024",
-        //         "side" => "BUY",
-        //         "executed_timestamp" => "1641481113084",
-        //         "order_id" => "87001234",
-        //         "order_tag" => "default", <-- this param only in "fetchOrderTrades"
-        //         "executed_price" => "1",
-        //         "executed_quantity" => "12",
-        //         "fee_asset" => "BTC",
-        //         "is_maker" => "1"
+        //         "id": "99119876",
+        //         "symbol": "PERP_BTC_USDC",
+        //         "fee": "0.0024",
+        //         "side": "BUY",
+        //         "executed_timestamp": "1641481113084",
+        //         "order_id": "87001234",
+        //         "order_tag": "default", <-- this param only in "fetchOrderTrades"
+        //         "executed_price": "1",
+        //         "executed_quantity": "12",
+        //         "fee_asset": "BTC",
+        //         "is_maker": "1"
         //     }
         //
         $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
@@ -798,7 +835,7 @@ class modetrade extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-$market-trades
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-$market-trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -819,16 +856,16 @@ class modetrade extends Exchange {
         $response = $this->v1PublicGetPublicMarketTrades($this->extend($request, $params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "side" => "BUY",
-        //         "executed_price" => 2050,
-        //         "executed_quantity" => 1,
-        //         "executed_timestamp" => 1683878609166
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "symbol": "PERP_ETH_USDC",
+        //         "side": "BUY",
+        //         "executed_price": 2050,
+        //         "executed_quantity": 1,
+        //         "executed_timestamp": 1683878609166
+        //       }]
         //     }
         // }
         //
@@ -846,7 +883,7 @@ class modetrade extends Exchange {
         //             "last_funding_rate":-0.00002094,
         //             "last_funding_rate_timestamp":1653631200000,
         //             "next_funding_time":1653634800000,
-        //            "sum_unitary_funding" => 521.367
+        //            "sum_unitary_funding": 521.367
         //         }
         //
         $symbol = $this->safe_string($fundingRate, 'symbol');
@@ -895,7 +932,7 @@ class modetrade extends Exchange {
         /**
          * fetch the current funding rate interval
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -908,7 +945,7 @@ class modetrade extends Exchange {
         /**
          * fetch the current funding rate
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-$market
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -924,16 +961,16 @@ class modetrade extends Exchange {
         $response = $this->v1PublicGetPublicFundingRateSymbol($this->extend($request, $params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "est_funding_rate" => 123,
-        //         "est_funding_rate_timestamp" => 1683880020000,
-        //         "last_funding_rate" => 0.0001,
-        //         "last_funding_rate_timestamp" => 1683878400000,
-        //         "next_funding_time" => 1683907200000,
-        //         "sum_unitary_funding" => 521.367
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "symbol": "PERP_ETH_USDC",
+        //         "est_funding_rate": 123,
+        //         "est_funding_rate_timestamp": 1683880020000,
+        //         "last_funding_rate": 0.0001,
+        //         "last_funding_rate_timestamp": 1683878400000,
+        //         "next_funding_time": 1683907200000,
+        //         "sum_unitary_funding": 521.367
         //     }
         // }
         //
@@ -945,7 +982,7 @@ class modetrade extends Exchange {
         /**
          * fetch the current funding rate for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
          *
          * @param {string[]} $symbols unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -958,18 +995,18 @@ class modetrade extends Exchange {
         $response = $this->v1PublicGetPublicFundingRates($params);
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "est_funding_rate" => 123,
-        //         "est_funding_rate_timestamp" => 1683880020000,
-        //         "last_funding_rate" => 0.0001,
-        //         "last_funding_rate_timestamp" => 1683878400000,
-        //         "next_funding_time" => 1683907200000,
-        //         "sum_unitary_funding" => 521.367
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "symbol": "PERP_ETH_USDC",
+        //         "est_funding_rate": 123,
+        //         "est_funding_rate_timestamp": 1683880020000,
+        //         "last_funding_rate": 0.0001,
+        //         "last_funding_rate_timestamp": 1683878400000,
+        //         "next_funding_time": 1683907200000,
+        //         "sum_unitary_funding": 521.367
+        //       }]
         //     }
         // }
         //
@@ -982,7 +1019,7 @@ class modetrade extends Exchange {
         /**
          * fetches historical funding rate prices
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-$market
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
@@ -1013,19 +1050,19 @@ class modetrade extends Exchange {
         $response = $this->v1PublicGetPublicFundingRateHistory($this->extend($request, $params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "funding_rate" => 0.0001,
-        //         "funding_rate_timestamp" => 1684224000000,
-        //         "next_funding_time" => 1684252800000
-        //       )],
-        //       "meta" => {
-        //         "total" => 9,
-        //         "records_per_page" => 25,
-        //         "current_page" => 1
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "symbol": "PERP_ETH_USDC",
+        //         "funding_rate": 0.0001,
+        //         "funding_rate_timestamp": 1684224000000,
+        //         "next_funding_time": 1684252800000
+        //       }],
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
         //       }
         //     }
         // }
@@ -1052,14 +1089,14 @@ class modetrade extends Exchange {
     public function parse_income(mixed $income, ?array $market = null) {
         //
         // {
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "funding_rate" => 0.00046875,
-        //         "mark_price" => 2100,
-        //         "funding_fee" => 0.000016,
-        //         "payment_type" => "Pay",
-        //         "status" => "Accrued",
-        //         "created_time" => 1682235722003,
-        //         "updated_time" => 1682235722003
+        //         "symbol": "PERP_ETH_USDC",
+        //         "funding_rate": 0.00046875,
+        //         "mark_price": 2100,
+        //         "funding_fee": 0.000016,
+        //         "payment_type": "Pay",
+        //         "status": "Accrued",
+        //         "created_time": 1682235722003,
+        //         "updated_time": 1682235722003
         // }
         //
         $marketId = $this->safe_string($income, 'symbol');
@@ -1086,7 +1123,7 @@ class modetrade extends Exchange {
         /**
          * fetch the history of funding payments paid and received on this account
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
          *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
@@ -1123,24 +1160,24 @@ class modetrade extends Exchange {
         $response = $this->v1PrivateGetFundingFeeHistory($this->extend($request, $params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "meta" => array(
-        //             "total" => 9,
-        //             "records_per_page" => 25,
-        //             "current_page" => 1
-        //         ),
-        //         "rows" => [array(
-        //                 "symbol" => "PERP_ETH_USDC",
-        //                 "funding_rate" => 0.00046875,
-        //                 "mark_price" => 2100,
-        //                 "funding_fee" => 0.000016,
-        //                 "payment_type" => "Pay",
-        //                 "status" => "Accrued",
-        //                 "created_time" => 1682235722003,
-        //                 "updated_time" => 1682235722003
-        //         )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "meta": {
+        //             "total": 9,
+        //             "records_per_page": 25,
+        //             "current_page": 1
+        //         },
+        //         "rows": [{
+        //                 "symbol": "PERP_ETH_USDC",
+        //                 "funding_rate": 0.00046875,
+        //                 "mark_price": 2100,
+        //                 "funding_fee": 0.000016,
+        //                 "payment_type": "Pay",
+        //                 "status": "Accrued",
+        //                 "created_time": 1682235722003,
+        //                 "updated_time": 1682235722003
+        //         }]
         //     }
         // }
         //
@@ -1153,7 +1190,7 @@ class modetrade extends Exchange {
         /**
          * fetch the trading fees for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
@@ -1164,27 +1201,27 @@ class modetrade extends Exchange {
         $response = $this->v1PrivateGetClientInfo($params);
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "account_id" => "<string>",
-        //         "email" => "test@test.com",
-        //         "account_mode" => "FUTURES",
-        //         "max_leverage" => 20,
-        //         "taker_fee_rate" => 123,
-        //         "maker_fee_rate" => 123,
-        //         "futures_taker_fee_rate" => 123,
-        //         "futures_maker_fee_rate" => 123,
-        //         "maintenance_cancel_orders" => true,
-        //         "imr_factor" => array(
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
-        //         ),
-        //         "max_notional" => {
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "account_id": "<string>",
+        //         "email": "test@test.com",
+        //         "account_mode": "FUTURES",
+        //         "max_leverage": 20,
+        //         "taker_fee_rate": 123,
+        //         "maker_fee_rate": 123,
+        //         "futures_taker_fee_rate": 123,
+        //         "futures_maker_fee_rate": 123,
+        //         "maintenance_cancel_orders": true,
+        //         "imr_factor": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
+        //         },
+        //         "max_notional": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
         //         }
         //     }
         // }
@@ -1214,7 +1251,7 @@ class modetrade extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -1235,18 +1272,18 @@ class modetrade extends Exchange {
         $response = $this->v1PrivateGetOrderbookSymbol($this->extend($request, $params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "asks" => [array(
-        //         "price" => 10669.4,
-        //         "quantity" => 1.56263218
-        //       )],
-        //       "bids" => [array(
-        //         "price" => 10669.4,
-        //         "quantity" => 1.56263218
-        //       )],
-        //       "timestamp" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "asks": [{
+        //         "price": 10669.4,
+        //         "quantity": 1.56263218
+        //       }],
+        //       "bids": [{
+        //         "price": 10669.4,
+        //         "quantity": 1.56263218
+        //       }],
+        //       "timestamp": 123
         //     }
         // }
         //
@@ -1269,7 +1306,7 @@ class modetrade extends Exchange {
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
          *
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1277,7 +1314,7 @@ class modetrade extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1294,21 +1331,21 @@ class modetrade extends Exchange {
         $data = $this->safe_dict($response, 'data', array());
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "open" => 66166.23,
-        //         "close" => 66124.56,
-        //         "low" => 66038.06,
-        //         "high" => 66176.97,
-        //         "volume" => 23.45528526,
-        //         "amount" => 1550436.21725288,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "type" => "1m",
-        //         "start_timestamp" => 1636388220000,
-        //         "end_timestamp" => 1636388280000
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "open": 66166.23,
+        //         "close": 66124.56,
+        //         "low": 66038.06,
+        //         "high": 66176.97,
+        //         "volume": 23.45528526,
+        //         "amount": 1550436.21725288,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "type": "1m",
+        //         "start_timestamp": 1636388220000,
+        //         "end_timestamp": 1636388280000
+        //       }]
         //     }
         // }
         //
@@ -1324,53 +1361,53 @@ class modetrade extends Exchange {
         // * cancelOrder
         // * fetchOrder
         // * fetchOrders
-        // $isFromFetchOrder = (is_array($order) && array_key_exists('order_tag' ?? '', $order)); TO_DO
+        // const isFromFetchOrder = ('order_tag' in order); TO_DO
         //
-        // stop $order after creating it:
+        // stop order after creating it:
         //   {
-        //     "orderId" => "1578938",
-        //     "clientOrderId" => "0",
-        //     "algoType" => "STOP_LOSS",
-        //     "quantity" => "0.1"
+        //     "orderId": "1578938",
+        //     "clientOrderId": "0",
+        //     "algoType": "STOP_LOSS",
+        //     "quantity": "0.1"
         //   }
-        // stop $order after fetching it:
+        // stop order after fetching it:
         //   {
-        //       "algoOrderId" => "1578958",
-        //       "clientOrderId" => "0",
-        //       "rootAlgoOrderId" => "1578958",
-        //       "parentAlgoOrderId" => "0",
-        //       "symbol" => "SPOT_LTC_USDT",
-        //       "orderTag" => "default",
-        //       "algoType" => "STOP_LOSS",
-        //       "side" => "BUY",
-        //       "quantity" => "0.1",
-        //       "isTriggered" => false,
-        //       "triggerPrice" => "100",
-        //       "triggerStatus" => "USELESS",
-        //       "type" => "LIMIT",
-        //       "rootAlgoStatus" => "CANCELLED",
-        //       "algoStatus" => "CANCELLED",
-        //       "triggerPriceType" => "MARKET_PRICE",
-        //       "price" => "75",
-        //       "triggerTime" => "0",
-        //       "totalExecutedQuantity" => "0",
-        //       "averageExecutedPrice" => "0",
-        //       "totalFee" => "0",
-        //       "feeAsset" => '',
-        //       "reduceOnly" => false,
-        //       "createdTime" => "1686149609.744",
-        //       "updatedTime" => "1686149903.362"
+        //       "algoOrderId": "1578958",
+        //       "clientOrderId": "0",
+        //       "rootAlgoOrderId": "1578958",
+        //       "parentAlgoOrderId": "0",
+        //       "symbol": "SPOT_LTC_USDT",
+        //       "orderTag": "default",
+        //       "algoType": "STOP_LOSS",
+        //       "side": "BUY",
+        //       "quantity": "0.1",
+        //       "isTriggered": false,
+        //       "triggerPrice": "100",
+        //       "triggerStatus": "USELESS",
+        //       "type": "LIMIT",
+        //       "rootAlgoStatus": "CANCELLED",
+        //       "algoStatus": "CANCELLED",
+        //       "triggerPriceType": "MARKET_PRICE",
+        //       "price": "75",
+        //       "triggerTime": "0",
+        //       "totalExecutedQuantity": "0",
+        //       "averageExecutedPrice": "0",
+        //       "totalFee": "0",
+        //       "feeAsset": '',
+        //       "reduceOnly": false,
+        //       "createdTime": "1686149609.744",
+        //       "updatedTime": "1686149903.362"
         //   }
         //
         $timestamp = $this->safe_integer_n($order, array( 'timestamp', 'created_time', 'createdTime' ));
         $orderId = $this->safe_string_n($order, array( 'order_id', 'orderId', 'algoOrderId' ));
-        $clientOrderId = $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit $order
+        $clientOrderId = $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $price = $this->safe_string_2($order, 'order_price', 'price');
-        $amount = $this->safe_string_2($order, 'order_quantity', 'quantity'); // This is base $amount
-        $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote $amount
+        $amount = $this->safe_string_2($order, 'order_quantity', 'quantity'); // This is base amount
+        $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote amount
         $orderType = $this->safe_string_lower_2($order, 'order_type', 'type');
         $status = $this->safe_value_2($order, 'status', 'algoStatus');
         $success = $this->safe_bool($order, 'success');
@@ -1390,7 +1427,7 @@ class modetrade extends Exchange {
         $childOrders = $this->safe_value($order, 'childOrders');
         if ($childOrders !== null) {
             $first = $this->safe_value($childOrders, 0);
-            $innerChildOrders = $this->safe_value($first, 'childOrders', array());
+            $innerChildOrders = $this->safe_list($first, 'childOrders', array());
             $innerChildOrdersLength = count($innerChildOrders);
             if ($innerChildOrdersLength > 0) {
                 $takeProfitOrder = $this->safe_value($innerChildOrders, 0);
@@ -1462,7 +1499,7 @@ class modetrade extends Exchange {
             }
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function parse_order_type(?string $type) {
@@ -1589,8 +1626,8 @@ class modetrade extends Exchange {
         /**
          * create a trade $order
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-$order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-$order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-$order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-$order
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1603,8 +1640,11 @@ class modetrade extends Exchange {
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @param {float} [$params->algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {string} [$params->algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+         * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
+         * @param {bool} [$params->postOnly] true or false whether the $order is post-only
+         * @param {string} [$params->timeInForce] 'IOC', 'FOK' or 'PO'
+         * @param {array[]} [$params->childOrders] *algo $order only* a list of child orders passed through to the exchange
          * @param {string} [$params->clientOrderId] a unique id for the $order
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
@@ -1622,13 +1662,13 @@ class modetrade extends Exchange {
             $response = $this->v1PrivatePostAlgoOrder($request);
             //
             // {
-            //     "success" => true,
-            //     "timestamp" => 1702989203989,
-            //     "data" => {
-            //       "order_id" => 13,
-            //       "client_order_id" => "testclientid",
-            //       "algo_type" => "STOP",
-            //       "quantity" => 100.12
+            //     "success": true,
+            //     "timestamp": 1702989203989,
+            //     "data": {
+            //       "order_id": 13,
+            //       "client_order_id": "testclientid",
+            //       "algo_type": "STOP",
+            //       "quantity": 100.12
             //     }
             // }
             //
@@ -1636,16 +1676,16 @@ class modetrade extends Exchange {
             $response = $this->v1PrivatePostOrder($request);
             //
             // {
-            //     "success" => true,
-            //     "timestamp" => 1702989203989,
-            //     "data" => {
-            //       "order_id" => 13,
-            //       "client_order_id" => "testclientid",
-            //       "order_type" => "LIMIT",
-            //       "order_price" => 100.12,
-            //       "order_quantity" => 0.987654,
-            //       "order_amount" => 0.8,
-            //       "error_message" => "none"
+            //     "success": true,
+            //     "timestamp": 1702989203989,
+            //     "data": {
+            //       "order_id": 13,
+            //       "client_order_id": "testclientid",
+            //       "order_type": "LIMIT",
+            //       "order_price": 100.12,
+            //       "order_quantity": 0.987654,
+            //       "order_amount": 0.8,
+            //       "error_message": "none"
             //     }
             // }
             //
@@ -1661,7 +1701,7 @@ class modetrade extends Exchange {
         /**
          * *contract only* create a list of trade $orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1698,18 +1738,18 @@ class modetrade extends Exchange {
         $response = $this->v1PrivatePostBatchOrder($this->extend($request, $params));
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203988,
-        //         "data" => {
-        //             "rows" => [array(
-        //                 "order_id" => 13,
-        //                 "client_order_id" => "testclientid",
-        //                 "order_type" => "LIMIT",
-        //                 "order_price" => 100.12,
-        //                 "order_quantity" => 0.987654,
-        //                 "order_amount" => 0.8,
-        //                 "error_message" => "none"
-        //             )]
+        //         "success": true,
+        //         "timestamp": 1702989203988,
+        //         "data": {
+        //             "rows": [{
+        //                 "order_id": 13,
+        //                 "client_order_id": "testclientid",
+        //                 "order_type": "LIMIT",
+        //                 "order_price": 100.12,
+        //                 "order_quantity": 0.987654,
+        //                 "order_amount": 0.8,
+        //                 "error_message": "none"
+        //             }]
         //         }
         //     }
         //
@@ -1722,8 +1762,8 @@ class modetrade extends Exchange {
         /**
          * edit a trade order
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1784,16 +1824,16 @@ class modetrade extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
             }
-            // $request['side'] = strtoupper($side);
-            // $request['symbol'] = $market['id'];
+            // request['side'] = side.toUpperCase ();
+            // request['symbol'] = market['id'];
             $response = $this->v1PrivatePutOrder($this->extend($request, $params));
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "status" => "EDIT_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "status": "EDIT_SENT"
         //     }
         // }
         //
@@ -1805,10 +1845,10 @@ class modetrade extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
          *
          * cancels an open order
          * @param {string} $id order $id
@@ -1857,17 +1897,17 @@ class modetrade extends Exchange {
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203988,
-        //     "data" => {
-        //       "status" => "CANCEL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203988,
+        //     "data": {
+        //       "status": "CANCEL_SENT"
         //     }
         // }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203988,
-        //     "status" => "CANCEL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203988,
+        //     "status": "CANCEL_SENT"
         // }
         //
         $extendParams = array( 'symbol' => $symbol );
@@ -1887,8 +1927,8 @@ class modetrade extends Exchange {
         /**
          * cancel multiple orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
          *
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified market $symbol
@@ -1912,10 +1952,10 @@ class modetrade extends Exchange {
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "status" => "CANCEL_ALL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "status": "CANCEL_ALL_SENT"
         //     }
         // }
         //
@@ -1927,8 +1967,8 @@ class modetrade extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
          *
          * cancel all open orders in a $market
          * @param {string} [$symbol] unified $market $symbol
@@ -1952,18 +1992,18 @@ class modetrade extends Exchange {
         } else {
             $response = $this->v1PrivateDeleteOrders($this->extend($request, $params));
         }
-        // $trigger
+        // trigger
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //      "status" => "CANCEL_ALL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //      "status": "CANCEL_ALL_SENT"
         // }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "status" => "CANCEL_ALL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "status": "CANCEL_ALL_SENT"
         //     }
         // }
         //
@@ -1977,10 +2017,10 @@ class modetrade extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
          *
          * fetches information on an order made by the user
          * @param {string} $id the order $id
@@ -2021,28 +2061,28 @@ class modetrade extends Exchange {
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "order_id" => 78151,
-        //         "user_id" => 12345,
-        //         "price" => 0.67772,
-        //         "type" => "LIMIT",
-        //         "quantity" => 20,
-        //         "amount" => 10,
-        //         "executed_quantity" => 20,
-        //         "total_executed_quantity" => 20,
-        //         "visible_quantity" => 1,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "side" => "BUY",
-        //         "status" => "FILLED",
-        //         "total_fee" => 0.5,
-        //         "fee_asset" => "BTC",
-        //         "client_order_id" => 1,
-        //         "average_executed_price" => 0.67772,
-        //         "created_time" => 1653563963000,
-        //         "updated_time" => 1653564213000,
-        //         "realized_pnl" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "order_id": 78151,
+        //         "user_id": 12345,
+        //         "price": 0.67772,
+        //         "type": "LIMIT",
+        //         "quantity": 20,
+        //         "amount": 10,
+        //         "executed_quantity": 20,
+        //         "total_executed_quantity": 20,
+        //         "visible_quantity": 1,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "side": "BUY",
+        //         "status": "FILLED",
+        //         "total_fee": 0.5,
+        //         "fee_asset": "BTC",
+        //         "client_order_id": 1,
+        //         "average_executed_price": 0.67772,
+        //         "created_time": 1653563963000,
+        //         "updated_time": 1653564213000,
+        //         "realized_pnl": 123
         //     }
         // }
         //
@@ -2054,12 +2094,12 @@ class modetrade extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-$orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-$orders
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)
@@ -2089,7 +2129,7 @@ class modetrade extends Exchange {
             $request['start_t'] = $since;
         }
         if ($limit !== null) {
-            $request['size'] = $limit;
+            $request['size'] = min($limit, $maxLimit);
         } else {
             $request['size'] = $maxLimit;
         }
@@ -2105,35 +2145,35 @@ class modetrade extends Exchange {
         }
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203989,
-        //         "data" => {
-        //             "meta" => array(
-        //                 "total" => 9,
-        //                 "records_per_page" => 25,
-        //                 "current_page" => 1
-        //             ),
-        //             "rows" => [array(
-        //                 "order_id" => 78151,
-        //                 "user_id" => 12345,
-        //                 "price" => 0.67772,
-        //                 "type" => "LIMIT",
-        //                 "quantity" => 20,
-        //                 "amount" => 10,
-        //                 "executed_quantity" => 20,
-        //                 "total_executed_quantity" => 20,
-        //                 "visible_quantity" => 1,
-        //                 "symbol" => "PERP_BTC_USDC",
-        //                 "side" => "BUY",
-        //                 "status" => "FILLED",
-        //                 "total_fee" => 0.5,
-        //                 "fee_asset" => "BTC",
-        //                 "client_order_id" => 1,
-        //                 "average_executed_price" => 0.67772,
-        //                 "created_time" => 1653563963000,
-        //                 "updated_time" => 1653564213000,
-        //                 "realized_pnl" => 123
-        //             )]
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "meta": {
+        //                 "total": 9,
+        //                 "records_per_page": 25,
+        //                 "current_page": 1
+        //             },
+        //             "rows": [{
+        //                 "order_id": 78151,
+        //                 "user_id": 12345,
+        //                 "price": 0.67772,
+        //                 "type": "LIMIT",
+        //                 "quantity": 20,
+        //                 "amount": 10,
+        //                 "executed_quantity": 20,
+        //                 "total_executed_quantity": 20,
+        //                 "visible_quantity": 1,
+        //                 "symbol": "PERP_BTC_USDC",
+        //                 "side": "BUY",
+        //                 "status": "FILLED",
+        //                 "total_fee": 0.5,
+        //                 "fee_asset": "BTC",
+        //                 "client_order_id": 1,
+        //                 "average_executed_price": 0.67772,
+        //                 "created_time": 1653563963000,
+        //                 "updated_time": 1653564213000,
+        //                 "realized_pnl": 123
+        //             }]
         //         }
         //     }
         //
@@ -2146,12 +2186,12 @@ class modetrade extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)
@@ -2171,12 +2211,12 @@ class modetrade extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)
@@ -2196,7 +2236,7 @@ class modetrade extends Exchange {
         /**
          * fetch all the $trades made from a single order
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-$trades-of-specific-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-$trades-of-specific-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
@@ -2218,22 +2258,22 @@ class modetrade extends Exchange {
         $response = $this->v1PrivateGetOrderOidTrades($this->extend($request, $params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "id" => 2,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "fee" => 0.0001,
-        //         "fee_asset" => "USDC",
-        //         "side" => "BUY",
-        //         "order_id" => 1,
-        //         "executed_price" => 123,
-        //         "executed_quantity" => 0.05,
-        //         "executed_timestamp" => 1567382401000,
-        //         "is_maker" => 1,
-        //         "realized_pnl" => 123
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "id": 2,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "fee": 0.0001,
+        //         "fee_asset": "USDC",
+        //         "side": "BUY",
+        //         "order_id": 1,
+        //         "executed_price": 123,
+        //         "executed_quantity": 0.05,
+        //         "executed_timestamp": 1567382401000,
+        //         "is_maker": 1,
+        //         "realized_pnl": 123
+        //       }]
         //     }
         // }
         //
@@ -2245,7 +2285,7 @@ class modetrade extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-$trades
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-$trades
          *
          * fetch all $trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -2282,27 +2322,27 @@ class modetrade extends Exchange {
         $response = $this->v1PrivateGetTrades($this->extend($request, $params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "meta" => array(
-        //         "total" => 9,
-        //         "records_per_page" => 25,
-        //         "current_page" => 1
-        //       ),
-        //       "rows" => [array(
-        //         "id" => 2,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "fee" => 0.0001,
-        //         "fee_asset" => "USDC",
-        //         "side" => "BUY",
-        //         "order_id" => 1,
-        //         "executed_price" => 123,
-        //         "executed_quantity" => 0.05,
-        //         "executed_timestamp" => 1567382401000,
-        //         "is_maker" => 1,
-        //         "realized_pnl" => 123
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
+        //       },
+        //       "rows": [{
+        //         "id": 2,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "fee": 0.0001,
+        //         "fee_asset": "USDC",
+        //         "side": "BUY",
+        //         "order_id": 1,
+        //         "executed_price": 123,
+        //         "executed_quantity": 0.05,
+        //         "executed_timestamp": 1567382401000,
+        //         "is_maker": 1,
+        //         "realized_pnl": 123
+        //       }]
         //     }
         // }
         //
@@ -2333,7 +2373,7 @@ class modetrade extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -2344,16 +2384,16 @@ class modetrade extends Exchange {
         $response = $this->v1PrivateGetClientHolding($params);
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "holding" => [array(
-        //         "updated_time" => 1580794149000,
-        //         "token" => "BTC",
-        //         "holding" => -28.000752,
-        //         "frozen" => 123,
-        //         "pending_short" => -2000
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "holding": [{
+        //         "updated_time": 1580794149000,
+        //         "token": "BTC",
+        //         "holding": -28.000752,
+        //         "frozen": 123,
+        //         "pending_short": -2000
+        //       }]
         //     }
         // }
         //
@@ -2385,26 +2425,26 @@ class modetrade extends Exchange {
         $response = $this->v1PrivateGetAssetHistory($this->extend($request, $params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "meta" => array(
-        //         "total" => 9,
-        //         "records_per_page" => 25,
-        //         "current_page" => 1
-        //       ),
-        //       "rows" => [array(
-        //         "id" => "230707030600002",
-        //         "tx_id" => "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
-        //         "side" => "WITHDRAW",
-        //         "token" => "USDC",
-        //         "amount" => 555,
-        //         "fee" => 123,
-        //         "trans_status" => "FAILED",
-        //         "created_time" => 1688699193034,
-        //         "updated_time" => 1688699193096,
-        //         "chain_id" => "986532"
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
+        //       },
+        //       "rows": [{
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //       }]
         //     }
         // }
         //
@@ -2452,7 +2492,7 @@ class modetrade extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
@@ -2519,7 +2559,7 @@ class modetrade extends Exchange {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -2537,7 +2577,7 @@ class modetrade extends Exchange {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2555,7 +2595,7 @@ class modetrade extends Exchange {
         /**
          * fetch history of deposits and withdrawals
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
@@ -2569,12 +2609,12 @@ class modetrade extends Exchange {
         $rows = $this->safe_list($currencyRows, 1, array());
         //
         //     {
-        //         "rows":array(),
-        //         "meta":array(
+        //         "rows":[],
+        //         "meta":{
         //             "total":0,
         //             "records_per_page":25,
         //             "current_page":1
-        //         ),
+        //         },
         //         "success":true
         //     }
         //
@@ -2585,10 +2625,10 @@ class modetrade extends Exchange {
         $response = $this->v1PrivateGetWithdrawNonce($params);
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203989,
-        //         "data" => {
-        //             "withdraw_nonce" => 1
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "withdraw_nonce": 1
         //         }
         //     }
         //
@@ -2616,7 +2656,7 @@ class modetrade extends Exchange {
         /**
          * make a withdrawal
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-$request
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-$request
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -2684,10 +2724,10 @@ class modetrade extends Exchange {
         $response = $this->v1PrivatePostWithdrawRequest($this->extend($request, $params));
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203989,
-        //         "data" => {
-        //             "withdraw_id" => 123
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "withdraw_id": 123
         //         }
         //     }
         //
@@ -2710,7 +2750,7 @@ class modetrade extends Exchange {
         /**
          * fetch the set leverage for a $market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2723,27 +2763,27 @@ class modetrade extends Exchange {
         $response = $this->v1PrivateGetClientInfo($params);
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "account_id" => "<string>",
-        //         "email" => "test@test.com",
-        //         "account_mode" => "FUTURES",
-        //         "max_leverage" => 20,
-        //         "taker_fee_rate" => 123,
-        //         "maker_fee_rate" => 123,
-        //         "futures_taker_fee_rate" => 123,
-        //         "futures_maker_fee_rate" => 123,
-        //         "maintenance_cancel_orders" => true,
-        //         "imr_factor" => array(
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
-        //         ),
-        //         "max_notional" => {
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "account_id": "<string>",
+        //         "email": "test@test.com",
+        //         "account_mode": "FUTURES",
+        //         "max_leverage": 20,
+        //         "taker_fee_rate": 123,
+        //         "maker_fee_rate": 123,
+        //         "futures_taker_fee_rate": 123,
+        //         "futures_maker_fee_rate": 123,
+        //         "maintenance_cancel_orders": true,
+        //         "imr_factor": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
+        //         },
+        //         "max_notional": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
         //         }
         //     }
         // }
@@ -2756,7 +2796,7 @@ class modetrade extends Exchange {
         /**
          * set the level of $leverage for a market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-$leverage-setting
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-$leverage-setting
          *
          * @param {int} [$leverage] the rate of $leverage
          * @param {string} [$symbol] unified market $symbol
@@ -2780,24 +2820,24 @@ class modetrade extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         //
         // {
-        //     "IMR_withdraw_orders" => 0.1,
-        //     "MMR_with_orders" => 0.05,
-        //     "average_open_price" => 27908.14386047,
-        //     "cost_position" => -139329.358492,
-        //     "est_liq_price" => 117335.92899428,
-        //     "fee_24_h" => 123,
-        //     "imr" => 0.1,
-        //     "last_sum_unitary_funding" => 70.38,
-        //     "mark_price" => 27794.9,
-        //     "mmr" => 0.05,
-        //     "pending_long_qty" => 123,
-        //     "pending_short_qty" => 123,
-        //     "pnl_24_h" => 123,
-        //     "position_qty" => -5,
-        //     "settle_price" => 27865.8716984,
-        //     "symbol" => "PERP_BTC_USDC",
-        //     "timestamp" => 1685429350571,
-        //     "unsettled_pnl" => 354.858492
+        //     "IMR_withdraw_orders": 0.1,
+        //     "MMR_with_orders": 0.05,
+        //     "average_open_price": 27908.14386047,
+        //     "cost_position": -139329.358492,
+        //     "est_liq_price": 117335.92899428,
+        //     "fee_24_h": 123,
+        //     "imr": 0.1,
+        //     "last_sum_unitary_funding": 70.38,
+        //     "mark_price": 27794.9,
+        //     "mmr": 0.05,
+        //     "pending_long_qty": 123,
+        //     "pending_short_qty": 123,
+        //     "pnl_24_h": 123,
+        //     "position_qty": -5,
+        //     "settle_price": 27865.8716984,
+        //     "symbol": "PERP_BTC_USDC",
+        //     "timestamp": 1685429350571,
+        //     "unsettled_pnl": 354.858492
         // }
         //
         $contract = $this->safe_string($position, 'symbol');
@@ -2851,7 +2891,7 @@ class modetrade extends Exchange {
     public function fetch_position(string $symbol, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
          *
          * fetch $data on an open position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
@@ -2871,27 +2911,27 @@ class modetrade extends Exchange {
         $response = $this->v1PrivateGetPositionSymbol($this->extend($request, $params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "IMR_withdraw_orders" => 0.1,
-        //         "MMR_with_orders" => 0.05,
-        //         "average_open_price" => 27908.14386047,
-        //         "cost_position" => -139329.358492,
-        //         "est_liq_price" => 117335.92899428,
-        //         "fee_24_h" => 123,
-        //         "imr" => 0.1,
-        //         "last_sum_unitary_funding" => 70.38,
-        //         "mark_price" => 27794.9,
-        //         "mmr" => 0.05,
-        //         "pending_long_qty" => 123,
-        //         "pending_short_qty" => 123,
-        //         "pnl_24_h" => 123,
-        //         "position_qty" => -5,
-        //         "settle_price" => 27865.8716984,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "timestamp" => 1685429350571,
-        //         "unsettled_pnl" => 354.858492
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "IMR_withdraw_orders": 0.1,
+        //         "MMR_with_orders": 0.05,
+        //         "average_open_price": 27908.14386047,
+        //         "cost_position": -139329.358492,
+        //         "est_liq_price": 117335.92899428,
+        //         "fee_24_h": 123,
+        //         "imr": 0.1,
+        //         "last_sum_unitary_funding": 70.38,
+        //         "mark_price": 27794.9,
+        //         "mmr": 0.05,
+        //         "pending_long_qty": 123,
+        //         "pending_short_qty": 123,
+        //         "pnl_24_h": 123,
+        //         "position_qty": -5,
+        //         "settle_price": 27865.8716984,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "timestamp": 1685429350571,
+        //         "unsettled_pnl": 354.858492
         //     }
         // }
         //
@@ -2903,7 +2943,7 @@ class modetrade extends Exchange {
         /**
          * fetch all open $positions
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-$positions-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-$positions-info
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2915,39 +2955,39 @@ class modetrade extends Exchange {
         $response = $this->v1PrivateGetPositions($params);
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "current_margin_ratio_with_orders" => 1.2385,
-        //         "free_collateral" => 450315.09115,
-        //         "initial_margin_ratio" => 0.1,
-        //         "initial_margin_ratio_with_orders" => 0.1,
-        //         "maintenance_margin_ratio" => 0.05,
-        //         "maintenance_margin_ratio_with_orders" => 0.05,
-        //         "margin_ratio" => 1.2385,
-        //         "open_margin_ratio" => 1.2102,
-        //         "total_collateral_value" => 489865.71329,
-        //         "total_pnl_24_h" => 123,
-        //         "rows" => [array(
-        //             "IMR_withdraw_orders" => 0.1,
-        //             "MMR_with_orders" => 0.05,
-        //             "average_open_price" => 27908.14386047,
-        //             "cost_position" => -139329.358492,
-        //             "est_liq_price" => 117335.92899428,
-        //             "fee_24_h" => 123,
-        //             "imr" => 0.1,
-        //             "last_sum_unitary_funding" => 70.38,
-        //             "mark_price" => 27794.9,
-        //             "mmr" => 0.05,
-        //             "pending_long_qty" => 123,
-        //             "pending_short_qty" => 123,
-        //             "pnl_24_h" => 123,
-        //             "position_qty" => -5,
-        //             "settle_price" => 27865.8716984,
-        //             "symbol" => "PERP_BTC_USDC",
-        //             "timestamp" => 1685429350571,
-        //             "unsettled_pnl" => 354.858492
-        //         )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "current_margin_ratio_with_orders": 1.2385,
+        //         "free_collateral": 450315.09115,
+        //         "initial_margin_ratio": 0.1,
+        //         "initial_margin_ratio_with_orders": 0.1,
+        //         "maintenance_margin_ratio": 0.05,
+        //         "maintenance_margin_ratio_with_orders": 0.05,
+        //         "margin_ratio": 1.2385,
+        //         "open_margin_ratio": 1.2102,
+        //         "total_collateral_value": 489865.71329,
+        //         "total_pnl_24_h": 123,
+        //         "rows": [{
+        //             "IMR_withdraw_orders": 0.1,
+        //             "MMR_with_orders": 0.05,
+        //             "average_open_price": 27908.14386047,
+        //             "cost_position": -139329.358492,
+        //             "est_liq_price": 117335.92899428,
+        //             "fee_24_h": 123,
+        //             "imr": 0.1,
+        //             "last_sum_unitary_funding": 70.38,
+        //             "mark_price": 27794.9,
+        //             "mmr": 0.05,
+        //             "pending_long_qty": 123,
+        //             "pending_short_qty": 123,
+        //             "pnl_24_h": 123,
+        //             "position_qty": -5,
+        //             "settle_price": 27865.8716984,
+        //             "symbol": "PERP_BTC_USDC",
+        //             "timestamp": 1685429350571,
+        //             "unsettled_pnl": 354.858492
+        //         }]
         //     }
         // }
         //
@@ -3034,8 +3074,8 @@ class modetrade extends Exchange {
             return null; // fallback to default error handler
         }
         //
-        //     400 Bad Request array("success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled.")
-        //                     array("code":"-1011","message":"The system is under maintenance.","success":false)
+        //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         $success = $this->safe_bool($response, 'success');
         $errorCode = $this->safe_string($response, 'code');

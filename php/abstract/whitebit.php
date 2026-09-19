@@ -254,6 +254,12 @@ abstract class whitebit extends \ccxt\Exchange {
         return $this->request('collateral-account/positions/open', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function v4_private_post_collateral_account_positions_closed_pnl($params = array()) {
+        return $this->request('collateral-account/positions/closed-pnl', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function v4_private_post_collateral_account_summary($params = array()) {
@@ -332,6 +338,12 @@ abstract class whitebit extends \ccxt\Exchange {
         return $this->request('main-account/withdraw-pay', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_main_account_express_withdraw_token($params = array()) {
+        return $this->request('main-account/express-withdraw/token', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return list<mixed>
      */
     public function v4_private_post_main_account_transfer($params = array()) {
@@ -374,6 +386,54 @@ abstract class whitebit extends \ccxt\Exchange {
         return $this->request('main-account/smart/interest-payment-history', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function v4_private_post_main_account_smart_flex_plans($params = array()) {
+        return $this->request('main-account/smart-flex/plans', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_main_account_smart_flex_investments($params = array()) {
+        return $this->request('main-account/smart-flex/investments', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_main_account_smart_flex_investments_history($params = array()) {
+        return $this->request('main-account/smart-flex/investments/history', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_main_account_smart_flex_investments_payment_history($params = array()) {
+        return $this->request('main-account/smart-flex/investments/payment-history', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_main_account_smart_flex_investments_invest($params = array()) {
+        return $this->request('main-account/smart-flex/investments/invest', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_main_account_smart_flex_investments_withdraw($params = array()) {
+        return $this->request('main-account/smart-flex/investments/withdraw', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_main_account_smart_flex_investments_close($params = array()) {
+        return $this->request('main-account/smart-flex/investments/close', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_main_account_smart_flex_investments_auto_invest($params = array()) {
+        return $this->request('main-account/smart-flex/investments/auto-invest', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function v4_private_post_trade_account_balance($params = array()) {
@@ -390,6 +450,12 @@ abstract class whitebit extends \ccxt\Exchange {
      */
     public function v4_private_post_trade_account_order_history($params = array()) {
         return $this->request('trade-account/order/history', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v4_private_post_trade_account_order_history_query($params = array()) {
+        return $this->request('trade-account/order/history/query', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -468,6 +534,12 @@ abstract class whitebit extends \ccxt\Exchange {
      */
     public function v4_private_post_order_cancel_all($params = array()) {
         return $this->request('order/cancel/all', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v4_private_post_order_cancel_bulk($params = array()) {
+        return $this->request('order/cancel/bulk', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -664,14 +736,98 @@ abstract class whitebit extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v4_private_post_mining_hashrate($params = array()) {
+        return $this->request('mining/hashrate', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_mining_payout_destination($params = array()) {
+        return $this->request('mining/payout-destination', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_mining_payout_destination_edit($params = array()) {
+        return $this->request('mining/payout-destination/edit', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_mining_miners_info($params = array()) {
+        return $this->request('mining/miners/info', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_mining_workers_names($params = array()) {
+        return $this->request('mining/workers/names', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_mining_workers_hashrate($params = array()) {
+        return $this->request('mining/workers/hashrate', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_mining_watcher_links_create($params = array()) {
+        return $this->request('mining/watcher-links/create', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_mining_watcher_links_list($params = array()) {
+        return $this->request('mining/watcher-links/list', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_mining_accounts_create($params = array()) {
+        return $this->request('mining/accounts/create', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_mining_accounts($params = array()) {
+        return $this->request('mining/accounts', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v4_private_post_market_fee($params = array()) {
         return $this->request('market/fee', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
+    public function v4_private_post_market_fee_single($params = array()) {
+        return $this->request('market/fee/single', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v4_private_post_conditional_orders($params = array()) {
         return $this->request('conditional-orders', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_travel_rule_vasps($params = array()) {
+        return $this->request('travel-rule/vasps', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_travel_rule_deposit_verification($params = array()) {
+        return $this->request('travel-rule/deposit/verification', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4_private_post_jwt($params = array()) {
+        return $this->request('jwt', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -920,6 +1076,12 @@ abstract class whitebit extends \ccxt\Exchange {
         return $this->request('collateral-account/positions/open', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function v4PrivatePostCollateralAccountPositionsClosedPnl($params = array()) {
+        return $this->request('collateral-account/positions/closed-pnl', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function v4PrivatePostCollateralAccountSummary($params = array()) {
@@ -998,6 +1160,12 @@ abstract class whitebit extends \ccxt\Exchange {
         return $this->request('main-account/withdraw-pay', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMainAccountExpressWithdrawToken($params = array()) {
+        return $this->request('main-account/express-withdraw/token', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return list<mixed>
      */
     public function v4PrivatePostMainAccountTransfer($params = array()) {
@@ -1040,6 +1208,54 @@ abstract class whitebit extends \ccxt\Exchange {
         return $this->request('main-account/smart/interest-payment-history', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function v4PrivatePostMainAccountSmartFlexPlans($params = array()) {
+        return $this->request('main-account/smart-flex/plans', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMainAccountSmartFlexInvestments($params = array()) {
+        return $this->request('main-account/smart-flex/investments', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMainAccountSmartFlexInvestmentsHistory($params = array()) {
+        return $this->request('main-account/smart-flex/investments/history', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory($params = array()) {
+        return $this->request('main-account/smart-flex/investments/payment-history', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMainAccountSmartFlexInvestmentsInvest($params = array()) {
+        return $this->request('main-account/smart-flex/investments/invest', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw($params = array()) {
+        return $this->request('main-account/smart-flex/investments/withdraw', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMainAccountSmartFlexInvestmentsClose($params = array()) {
+        return $this->request('main-account/smart-flex/investments/close', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest($params = array()) {
+        return $this->request('main-account/smart-flex/investments/auto-invest', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function v4PrivatePostTradeAccountBalance($params = array()) {
@@ -1056,6 +1272,12 @@ abstract class whitebit extends \ccxt\Exchange {
      */
     public function v4PrivatePostTradeAccountOrderHistory($params = array()) {
         return $this->request('trade-account/order/history', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v4PrivatePostTradeAccountOrderHistoryQuery($params = array()) {
+        return $this->request('trade-account/order/history/query', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1134,6 +1356,12 @@ abstract class whitebit extends \ccxt\Exchange {
      */
     public function v4PrivatePostOrderCancelAll($params = array()) {
         return $this->request('order/cancel/all', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v4PrivatePostOrderCancelBulk($params = array()) {
+        return $this->request('order/cancel/bulk', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1330,13 +1558,97 @@ abstract class whitebit extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v4PrivatePostMiningHashrate($params = array()) {
+        return $this->request('mining/hashrate', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMiningPayoutDestination($params = array()) {
+        return $this->request('mining/payout-destination', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMiningPayoutDestinationEdit($params = array()) {
+        return $this->request('mining/payout-destination/edit', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMiningMinersInfo($params = array()) {
+        return $this->request('mining/miners/info', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMiningWorkersNames($params = array()) {
+        return $this->request('mining/workers/names', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMiningWorkersHashrate($params = array()) {
+        return $this->request('mining/workers/hashrate', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMiningWatcherLinksCreate($params = array()) {
+        return $this->request('mining/watcher-links/create', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMiningWatcherLinksList($params = array()) {
+        return $this->request('mining/watcher-links/list', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMiningAccountsCreate($params = array()) {
+        return $this->request('mining/accounts/create', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostMiningAccounts($params = array()) {
+        return $this->request('mining/accounts', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v4PrivatePostMarketFee($params = array()) {
         return $this->request('market/fee', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
+    public function v4PrivatePostMarketFeeSingle($params = array()) {
+        return $this->request('market/fee/single', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v4PrivatePostConditionalOrders($params = array()) {
         return $this->request('conditional-orders', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostTravelRuleVasps($params = array()) {
+        return $this->request('travel-rule/vasps', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostTravelRuleDepositVerification($params = array()) {
+        return $this->request('travel-rule/deposit/verification', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v4PrivatePostJwt($params = array()) {
+        return $this->request('jwt', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
 }

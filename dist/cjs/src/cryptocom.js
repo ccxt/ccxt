@@ -212,6 +212,7 @@ class cryptocom extends cryptocom$1["default"] {
                             'private/get-deposit-history': { 'cost': 10 / 3 },
                             'private/get-fee-rate': { 'cost': 2 },
                             'private/get-instrument-fee-rate': { 'cost': 2 },
+                            'private/get-fee-credit-balances': { 'cost': 10 / 3 },
                             'private/fiat/fiat-deposit-info': { 'cost': 10 / 3 },
                             'private/fiat/fiat-deposit-history': { 'cost': 10 / 3 },
                             'private/fiat/fiat-withdraw-history': { 'cost': 10 / 3 },
@@ -231,6 +232,13 @@ class cryptocom extends cryptocom$1["default"] {
                             'private/staking/get-convert-history': { 'cost': 2 },
                             'private/create-isolated-margin-transfer': { 'cost': 10 / 3 },
                             'private/change-isolated-margin-leverage': { 'cost': 10 / 3 },
+                            'private/bot/create-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/update-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/terminate-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/pause-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/resume-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/get-trading-bots': { 'cost': 10 / 3 },
+                            'private/bot/get-trading-bot-executions': { 'cost': 10 / 3 },
                         },
                     },
                 },
@@ -1213,7 +1221,7 @@ class cryptocom extends cryptocom$1["default"] {
     parseBalance(response) {
         const responseResult = this.safeDict(response, 'result', {});
         const data = this.safeList(responseResult, 'data', []);
-        const positionBalances = this.safeValue(data[0], 'position_balances', []);
+        const positionBalances = this.safeList(data[0], 'position_balances', []);
         const result = { 'info': response };
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = positionBalances[i];

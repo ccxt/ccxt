@@ -36,7 +36,7 @@ class extended(Exchange, ImplicitAPI):
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': True,
+                'spot': False,  # venue retired spot trading; SPOT rows are still parsed, see parseMarket
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -198,6 +198,8 @@ class extended(Exchange, ImplicitAPI):
                             'info/{market}/funding': {'cost': 1},
                             'info/{market}/open-interests': {'cost': 1},
                             'info/builder/dashboard': {'cost': 1},
+                            'interest/info/rate-curves': {'cost': 1},
+                            'interest/info/latest-rate-curves': {'cost': 1},
                         },
                     },
                     'private': {
@@ -228,12 +230,28 @@ class extended(Exchange, ImplicitAPI):
                             'user/rewards/leaderboard/stats': {'cost': 1},
                             'portfolio/charts/equities': {'cost': 1},
                             'portfolio/charts/pnl': {'cost': 1},
+                            'portfolio/charts/pnl/percentage': {'cost': 1},
+                            'portfolio/charts/pnl/cumulative': {'cost': 1},
+                            'portfolio/charts/pnl/cumulative/percentage': {'cost': 1},
+                            'portfolio/charts/vault-equities': {'cost': 1},
+                            'portfolio/charts/max-drawdown': {'cost': 1},
+                            'portfolio/charts/funding': {'cost': 1},
+                            'portfolio/accounts/summary': {'cost': 1},
+                            'portfolio/accounts/health': {'cost': 1},
+                            'portfolio/accounts/performance': {'cost': 1},
+                            'portfolio/funding/stats': {'cost': 1},
+                            'portfolio/funding/history': {'cost': 1},
                             'vault/public/performance': {'cost': 1},
                             'vault/public/summary': {'cost': 1},
                             'builder/trades': {'cost': 1},
+                            'interest/key-metrics': {'cost': 1},
+                            'interest/daily-metrics': {'cost': 1},
+                            'interest/payment-chart': {'cost': 1},
+                            'interest/payments': {'cost': 1},
                         },
                         'post': {
                             'user/order': {'cost': 1},
+                            'user/order/rfq': {'cost': 1},
                             'user/order/massCancel': {'cost': 1},
                             'user/deadmanswitch': {'cost': 1},
                             'user/bridge/quote': {'cost': 1},
@@ -306,7 +324,7 @@ class extended(Exchange, ImplicitAPI):
                     '1135': InvalidOrder,  # Order expiration date must be within 90 days for the Mainnet, 28 days for the Testnet.
                     '1136': InvalidOrder,  # Reduce-only order size exceeds open position size.
                     '1137': InvalidOrder,  # Position is missing for a reduce-only order.
-                    '1138': InvalidOrder,  # Position is the same side reduce-only order.
+                    '1138': InvalidOrder,  # Position is the same side as a reduce-only order.
                     '1139': InvalidOrder,  # Market order must have time in force IOC.
                     '1140': InsufficientFunds,  # New order cost exceeds available balance.
                     '1141': InvalidOrder,  # Invalid price value.
@@ -386,7 +404,7 @@ class extended(Exchange, ImplicitAPI):
         #           "collateralAssetName": "USD",
         #           "collateralAssetPrecision": 6,
         #           "description": "Bitcoin",
-        #           "active": True,
+        #           "active": true,
         #           "status": "ACTIVE",
         #           "marketStats": {
         #             "dailyVolume": "231016077.512960",
@@ -459,7 +477,7 @@ class extended(Exchange, ImplicitAPI):
         #               {
         #                 "upperBound": "4000000",
         #                 "riskFactor": "0.02",
-        #                 "isAvailableForUsers": True
+        #                 "isAvailableForUsers": true
         #               }
         #             ]
         #           },
@@ -470,7 +488,7 @@ class extended(Exchange, ImplicitAPI):
         #             "syntheticResolution": 1000000,
         #             "collateralResolution": 1000000
         #           },
-        #           "visibleOnUi": True,
+        #           "visibleOnUi": true,
         #           "createdAt": 1752829532673
         #         }
         #       ]
@@ -491,9 +509,9 @@ class extended(Exchange, ImplicitAPI):
         #       "collateralAssetName": "USD",
         #       "collateralAssetPrecision": 6,
         #       "description": "Bitcoin",
-        #       "active": True,
+        #       "active": true,
         #       "status": "ACTIVE",
-        #       "marketStats": {...},
+        #       "marketStats": { ... },
         #       "tradingConfig": {
         #         "minOrderSize": "0.0001",
         #         "minOrderSizeChange": "0.00001",
@@ -510,12 +528,12 @@ class extended(Exchange, ImplicitAPI):
         #           {
         #             "upperBound": "4000000",
         #             "riskFactor": "0.02",
-        #             "isAvailableForUsers": True
+        #             "isAvailableForUsers": true
         #           }
         #         ]
         #       },
-        #       "l2Config": {...},
-        #       "visibleOnUi": True,
+        #       "l2Config": { ... },
+        #       "visibleOnUi": true,
         #       "createdAt": 1752829532673
         #     }
         #
@@ -545,6 +563,9 @@ class extended(Exchange, ImplicitAPI):
         contractSize = None
         linear = None
         inverse = None
+        # SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
+        # only advertises the capability and gates the unified spot tests, it does not filter
+        # markets, so accounts still holding spot balances keep resolving their symbols
         if type == 'spot':
             isSpot = True
         else:
@@ -627,8 +648,8 @@ class extended(Exchange, ImplicitAPI):
         #           "symbol": "USD",
         #           "description": "USD Collateral",
         #           "precision": 6,
-        #           "isActive": True,
-        #           "isCollateral": True,
+        #           "isActive": true,
+        #           "isCollateral": true,
         #           "starkexId": "0x1",
         #           "starkexResolution": 1000000,
         #           "l1Id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
@@ -636,7 +657,7 @@ class extended(Exchange, ImplicitAPI):
         #           "version": 3,
         #           "createdAt": 1752829532673,
         #           "type": "SPOT",
-        #           "canBeUsedAsCollateral": True,
+        #           "canBeUsedAsCollateral": true,
         #           "riskFactors": [],
         #           "availableForTradeFactors": []
         #         }
@@ -654,8 +675,8 @@ class extended(Exchange, ImplicitAPI):
         #       "symbol": "USD",
         #       "description": "USD Collateral",
         #       "precision": 6,
-        #       "isActive": True,
-        #       "isCollateral": True,
+        #       "isActive": true,
+        #       "isCollateral": true,
         #       "starkexId": "0x1",
         #       "starkexResolution": 1000000,
         #       "l1Id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
@@ -663,7 +684,7 @@ class extended(Exchange, ImplicitAPI):
         #       "version": 3,
         #       "createdAt": 1752829532673,
         #       "type": "SPOT",
-        #       "canBeUsedAsCollateral": True,
+        #       "canBeUsedAsCollateral": true,
         #       "riskFactors": [],
         #       "availableForTradeFactors": []
         #     }
@@ -728,16 +749,16 @@ class extended(Exchange, ImplicitAPI):
         #         "openInterestBase": "1491.33012",
         #         "deleverageLevels": {
         #           "shortPositions": [
-        #             {"level": 1, "rankingLowerBound": "-784.2884"},
-        #             {"level": 2, "rankingLowerBound": "-2.1078"},
-        #             {"level": 3, "rankingLowerBound": "-0.8754"},
-        #             {"level": 4, "rankingLowerBound": "0.0000"}
+        #             { "level": 1, "rankingLowerBound": "-784.2884" },
+        #             { "level": 2, "rankingLowerBound": "-2.1078" },
+        #             { "level": 3, "rankingLowerBound": "-0.8754" },
+        #             { "level": 4, "rankingLowerBound": "0.0000" }
         #           ],
         #           "longPositions": [
-        #             {"level": 1, "rankingLowerBound": "-47747.2010"},
-        #             {"level": 2, "rankingLowerBound": "-0.0131"},
-        #             {"level": 3, "rankingLowerBound": "0.0019"},
-        #             {"level": 4, "rankingLowerBound": "0.0032"}
+        #             { "level": 1, "rankingLowerBound": "-47747.2010" },
+        #             { "level": 2, "rankingLowerBound": "-0.0131" },
+        #             { "level": 3, "rankingLowerBound": "0.0019" },
+        #             { "level": 4, "rankingLowerBound": "0.0032" }
         #           ]
         #         }
         #       }
@@ -816,16 +837,16 @@ class extended(Exchange, ImplicitAPI):
         #       "openInterestBase": "1491.33012",
         #       "deleverageLevels": {
         #         "shortPositions": [
-        #           {"level": 1, "rankingLowerBound": "-784.2884"},
-        #           {"level": 2, "rankingLowerBound": "-2.1078"},
-        #           {"level": 3, "rankingLowerBound": "-0.8754"},
-        #           {"level": 4, "rankingLowerBound": "0.0000"}
+        #           { "level": 1, "rankingLowerBound": "-784.2884" },
+        #           { "level": 2, "rankingLowerBound": "-2.1078" },
+        #           { "level": 3, "rankingLowerBound": "-0.8754" },
+        #           { "level": 4, "rankingLowerBound": "0.0000" }
         #         ],
         #         "longPositions": [
-        #           {"level": 1, "rankingLowerBound": "-47747.2010"},
-        #           {"level": 2, "rankingLowerBound": "-0.0131"},
-        #           {"level": 3, "rankingLowerBound": "0.0019"},
-        #           {"level": 4, "rankingLowerBound": "0.0032"}
+        #           { "level": 1, "rankingLowerBound": "-47747.2010" },
+        #           { "level": 2, "rankingLowerBound": "-0.0131" },
+        #           { "level": 3, "rankingLowerBound": "0.0019" },
+        #           { "level": 4, "rankingLowerBound": "0.0032" }
         #         ]
         #       }
         #     }
@@ -983,7 +1004,7 @@ class extended(Exchange, ImplicitAPI):
         #                 "value": "7800",
         #                 "fee": "1.3",
         #                 "tradeType": "TRADE",
-        #                 "isTaker": True,
+        #                 "isTaker": true,
         #                 "createdTime": 1701563440000
         #             }
         #         ],
@@ -1134,7 +1155,7 @@ class extended(Exchange, ImplicitAPI):
         #         "value": "7800",
         #         "fee": "1.3",
         #         "tradeType": "TRADE",
-        #         "isTaker": True,
+        #         "isTaker": true,
         #         "createdTime": 1701563440000
         #     }
         #
@@ -1184,7 +1205,7 @@ class extended(Exchange, ImplicitAPI):
         :param str [params.candleType]: candle type: 'trades'(default), 'mark-prices', or 'index-prices'
         :param str [params.price]: *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
         :param int [params.until]: end timestamp in ms for the requested period
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1341,7 +1362,7 @@ class extended(Exchange, ImplicitAPI):
 
         :param str symbol: unified CCXT market symbol
         :param str timeframe: '1h' or '1d'
-        :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
+        :param int [since]: the time(ms) of the earliest record to retrieve as a unix timestamp
         :param int [limit]: the maximum amount of open interest structures to retrieve
         :param dict [params]: exchange specific parameters
         :param int [params.until]: timestamp in ms of the latest open interest record to fetch
@@ -1860,7 +1881,7 @@ class extended(Exchange, ImplicitAPI):
         #     {
         #         "status": "OK",
         #         "data": {
-        #             "validSignature": True,
+        #             "validSignature": true,
         #             "id": 1820778187672010752
         #         }
         #     }
@@ -2658,7 +2679,7 @@ class extended(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, required for all order types
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.clientOrderId]: client order id, sent exchange order id
+        :param str [params.clientOrderId]: client order id, sent as the exchange order id
         :param str [params.cancelId]: previous external order id to replace
         :param str [params.timeInForce]: 'GTT' or 'IOC'
         :param boolean [params.postOnly]: True if the order should only make liquidity
@@ -2976,8 +2997,8 @@ class extended(Exchange, ImplicitAPI):
         #           "qty": "0.2",
         #           "filledQty": "0.1",
         #           "payedFee": "0.0120000000000000",
-        #           "reduceOnly": False,
-        #           "postOnly": False,
+        #           "reduceOnly": false,
+        #           "postOnly": false,
         #           "createdTime": 1701563440000,
         #           "updatedTime": 1701563440000,
         #           "timeInForce": "IOC",
@@ -3033,8 +3054,8 @@ class extended(Exchange, ImplicitAPI):
         #           "qty": "0.2",
         #           "filledQty": "0.1",
         #           "payedFee": "0.0120000000000000",
-        #           "reduceOnly": False,
-        #           "postOnly": False,
+        #           "reduceOnly": false,
+        #           "postOnly": false,
         #           "createdTime": 1701563440000,
         #           "updatedTime": 1701563440000,
         #           "timeInForce": "IOC",
@@ -3122,8 +3143,8 @@ class extended(Exchange, ImplicitAPI):
         #         "qty": "0.2",
         #         "filledQty": "0.1",
         #         "payedFee": "0.0120000000000000",
-        #         "reduceOnly": False,
-        #         "postOnly": False,
+        #         "reduceOnly": false,
+        #         "postOnly": false,
         #         "trigger": {
         #             "triggerPrice": "34000",
         #             "triggerPriceType": "LAST",
@@ -3350,7 +3371,7 @@ class extended(Exchange, ImplicitAPI):
         queryPost = (path == 'user/deadmanswitch')
         url = self.implode_hostname(self.urls['api']['rest'])
         if accessibility == 'private':
-            # self.check_required_credentials()
+            # this.checkRequiredCredentials ();
             if self.apiKey is None:
                 raise AuthenticationError(self.id + ' sign() requires an apiKey for private endpoints')
             headers = {

@@ -298,6 +298,12 @@ abstract class hitbtc extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_margin_settings($params = array()) {
+        return $this->request('margin-settings', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_futures_balance($params = array()) {
         return $this->request('futures/balance', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
@@ -374,6 +380,12 @@ abstract class hitbtc extends \ccxt\async\Exchange {
         return $this->request('futures/history/clearing', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_user_api_keys($params = array()) {
+        return $this->request('user/api-keys', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_wallet_balance($params = array()) {
@@ -384,6 +396,12 @@ abstract class hitbtc extends \ccxt\async\Exchange {
      */
     public function private_get_wallet_balance_currency($params = array()) {
         return $this->request('wallet/balance/{currency}', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_wallet_crypto_address_white_list($params = array()) {
+        return $this->request('wallet/crypto/address/white-list', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -426,6 +444,12 @@ abstract class hitbtc extends \ccxt\async\Exchange {
      */
     public function private_get_wallet_crypto_fee_estimate($params = array()) {
         return $this->request('wallet/crypto/fee/estimate', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_wallet_crypto_fee_withdraw_hash($params = array()) {
+        return $this->request('wallet/crypto/fee/withdraw/hash', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -542,6 +566,12 @@ abstract class hitbtc extends \ccxt\async\Exchange {
         return $this->request('wallet/crypto/fees/estimate', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_wallet_crypto_fee_estimate_bulk($params = array()) {
+        return $this->request('wallet/crypto/fee/estimate/bulk', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_wallet_airdrops_id_claim($params = array()) {
@@ -564,6 +594,18 @@ abstract class hitbtc extends \ccxt\async\Exchange {
      */
     public function private_post_sub_account_transfer($params = array()) {
         return $this->request('sub-account/transfer', 'private', 'POST', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_sub_account_transfer_sub_to_super($params = array()) {
+        return $this->request('sub-account/transfer/sub-to-super', 'private', 'POST', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_sub_account_transfer_sub_to_sub($params = array()) {
+        return $this->request('sub-account/transfer/sub-to-sub', 'private', 'POST', $params, null, null, array("cost" => 15));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -664,8 +706,26 @@ abstract class hitbtc extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_put_margin_settings_amm($params = array()) {
+        return $this->request('margin-settings/amm', 'private', 'PUT', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_put_margin_margin_settings_amr($params = array()) {
+        return $this->request('margin/margin-settings/amr', 'private', 'PUT', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_put_futures_account_isolated_symbol($params = array()) {
         return $this->request('futures/account/isolated/{symbol}', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_put_futures_margin_settings_amr($params = array()) {
+        return $this->request('futures/margin-settings/amr', 'private', 'PUT', $params, null, null, array("cost" => 15));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -964,6 +1024,12 @@ abstract class hitbtc extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetMarginSettings($params = array()) {
+        return $this->request('margin-settings', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetFuturesBalance($params = array()) {
         return $this->request('futures/balance', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
@@ -1040,6 +1106,12 @@ abstract class hitbtc extends \ccxt\async\Exchange {
         return $this->request('futures/history/clearing', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetUserApiKeys($params = array()) {
+        return $this->request('user/api-keys', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetWalletBalance($params = array()) {
@@ -1050,6 +1122,12 @@ abstract class hitbtc extends \ccxt\async\Exchange {
      */
     public function privateGetWalletBalanceCurrency($params = array()) {
         return $this->request('wallet/balance/{currency}', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetWalletCryptoAddressWhiteList($params = array()) {
+        return $this->request('wallet/crypto/address/white-list', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -1092,6 +1170,12 @@ abstract class hitbtc extends \ccxt\async\Exchange {
      */
     public function privateGetWalletCryptoFeeEstimate($params = array()) {
         return $this->request('wallet/crypto/fee/estimate', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetWalletCryptoFeeWithdrawHash($params = array()) {
+        return $this->request('wallet/crypto/fee/withdraw/hash', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -1208,6 +1292,12 @@ abstract class hitbtc extends \ccxt\async\Exchange {
         return $this->request('wallet/crypto/fees/estimate', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostWalletCryptoFeeEstimateBulk($params = array()) {
+        return $this->request('wallet/crypto/fee/estimate/bulk', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostWalletAirdropsIdClaim($params = array()) {
@@ -1230,6 +1320,18 @@ abstract class hitbtc extends \ccxt\async\Exchange {
      */
     public function privatePostSubAccountTransfer($params = array()) {
         return $this->request('sub-account/transfer', 'private', 'POST', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostSubAccountTransferSubToSuper($params = array()) {
+        return $this->request('sub-account/transfer/sub-to-super', 'private', 'POST', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostSubAccountTransferSubToSub($params = array()) {
+        return $this->request('sub-account/transfer/sub-to-sub', 'private', 'POST', $params, null, null, array("cost" => 15));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -1330,8 +1432,26 @@ abstract class hitbtc extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privatePutMarginSettingsAmm($params = array()) {
+        return $this->request('margin-settings/amm', 'private', 'PUT', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePutMarginMarginSettingsAmr($params = array()) {
+        return $this->request('margin/margin-settings/amr', 'private', 'PUT', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePutFuturesAccountIsolatedSymbol($params = array()) {
         return $this->request('futures/account/isolated/{symbol}', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePutFuturesMarginSettingsAmr($params = array()) {
+        return $this->request('futures/margin-settings/amr', 'private', 'PUT', $params, null, null, array("cost" => 15));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

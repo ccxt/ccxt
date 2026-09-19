@@ -123,11 +123,25 @@ public partial class indodax : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostGetOrder",parameters);
     }
 
+    /// <summary>Calls the privatePostGetOrderByClientOrderId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetOrderByClientOrderId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetOrderByClientOrderId",parameters);
+    }
+
     /// <summary>Calls the privatePostCancelOrder endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostCancelOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostCancelOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostCancelByClientOrderId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCancelByClientOrderId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCancelByClientOrderId",parameters);
     }
 
     /// <summary>Calls the privatePostWithdrawFee endpoint.</summary>

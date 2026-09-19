@@ -40,10 +40,10 @@ class hollaex(ccxt.async_support.hollaex):
             },
             'options': {
                 'watchBalance': {
-                    # 'api-expires': None,
+                    # 'api-expires': undefined,
                 },
                 'watchOrders': {
-                    # 'api-expires': None,
+                    # 'api-expires': undefined,
                 },
             },
             'streaming': {
@@ -52,8 +52,8 @@ class hollaex(ccxt.async_support.hollaex):
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'Bearer or HMAC authentication required': BadSymbol,  # {error: 'Bearer or HMAC authentication required'}
-                        'Error: wrong input': BadRequest,  # {error: 'Error: wrong input'}
+                        'Bearer or HMAC authentication required': BadSymbol,  # { error: 'Bearer or HMAC authentication required' }
+                        'Error: wrong input': BadRequest,  # { error: 'Error: wrong input' }
                     },
                 },
             },
@@ -291,7 +291,7 @@ class hollaex(ccxt.async_support.hollaex):
         #             "size": 0.05,
         #             "type": "market",
         #             "price": 0,
-        #             "fee_structure": {maker: 0.1, taker: 0.1},
+        #             "fee_structure": { maker: 0.1, taker: 0.1 },
         #             "fee_coin": "ltc",
         #             "id": "ce38fd48-b336-400b-812b-60c636454231",
         #             "created_by": 155328,
@@ -460,8 +460,8 @@ class hollaex(ccxt.async_support.hollaex):
 
     def handle_error_message(self, client: Client, message: object) -> Bool:
         #
-        #     {error: "Bearer or HMAC authentication required"}
-        #     {error: "Error: wrong input"}
+        #     { error: "Bearer or HMAC authentication required" }
+        #     { error: "Error: wrong input" }
         #
         error = self.safe_integer(message, 'error')
         try:
@@ -477,7 +477,7 @@ class hollaex(ccxt.async_support.hollaex):
         #
         # pong
         #
-        #     {message: "pong"}
+        #     { message: "pong" }
         #
         # trade
         #
@@ -530,7 +530,7 @@ class hollaex(ccxt.async_support.hollaex):
         #             "size": 0.05,
         #             "type": "market",
         #             "price": 0,
-        #             "fee_structure": {maker: 0.1, taker: 0.1},
+        #             "fee_structure": { maker: 0.1, taker: 0.1 },
         #             "fee_coin": "ltc",
         #             "id": "ce38fd48-b336-400b-812b-60c636454231",
         #             "created_by": 155328,

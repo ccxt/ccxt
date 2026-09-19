@@ -63,7 +63,7 @@ class ndax(ccxt.async_support.ndax):
         payload = {
             'OMSId': omsId,
             'InstrumentId': self.safe_integer(market, 'id'),  # conditionally optional
-            # 'Symbol': market['info']['symbol'],  # conditionally optional
+            # 'Symbol': market['info']['symbol'], // conditionally optional
         }
         request = {
             'm': 0,  # message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
@@ -149,23 +149,23 @@ class ndax(ccxt.async_support.ndax):
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: object):
-        payload = self.safe_value(message, 'o', [])
+        payload = self.safe_list(message, 'o', [])
         #
         # initial snapshot
         #
         #     [
         #         [
-        #             6913253,       #  0 TradeId
-        #             8,             #  1 ProductPairCode
-        #             0.03340802,    #  2 Quantity
-        #             19116.08,      #  3 Price
-        #             2543425077,    #  4 Order1
-        #             2543425482,    #  5 Order2
-        #             1606935922416,  #  6 Tradetime
-        #             0,             #  7 Direction
-        #             1,             #  8 TakerSide
-        #             0,             #  9 BlockTrade
-        #             0,             # 10 Either Order1ClientId or Order2ClientId
+        #             6913253,       //  0 TradeId
+        #             8,             //  1 ProductPairCode
+        #             0.03340802,    //  2 Quantity
+        #             19116.08,      //  3 Price
+        #             2543425077,    //  4 Order1
+        #             2543425482,    //  5 Order2
+        #             1606935922416, //  6 Tradetime
+        #             0,             //  7 Direction
+        #             1,             //  8 TakerSide
+        #             0,             //  9 BlockTrade
+        #             0,             // 10 Either Order1ClientId or Order2ClientId
         #         ]
         #     ]
         #
@@ -202,7 +202,7 @@ class ndax(ccxt.async_support.ndax):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         if self.markets is None:
@@ -240,20 +240,20 @@ class ndax(ccxt.async_support.ndax):
         #         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         #     }
         #
-        payload = self.safe_value(message, 'o', [])
+        payload = self.safe_list(message, 'o', [])
         #
         #     [
         #         [
-        #             1501603632000,      # 0 DateTime
-        #             2700.33,            # 1 High
-        #             2687.01,            # 2 Low
-        #             2687.01,            # 3 Open
-        #             2687.01,            # 4 Close
-        #             24.86100992,        # 5 Volume
-        #             0,                  # 6 Inside Bid Price
-        #             2870.95,            # 7 Inside Ask Price
-        #             1                   # 8 InstrumentId
-        #             1608290188062.7678,  # 9 candle timestamp
+        #             1501603632000,      // 0 DateTime
+        #             2700.33,            // 1 High
+        #             2687.01,            // 2 Low
+        #             2687.01,            // 3 Open
+        #             2687.01,            // 4 Close
+        #             24.86100992,        // 5 Volume
+        #             0,                  // 6 Inside Bid Price
+        #             2870.95,            // 7 Inside Ask Price
+        #             1                   // 8 InstrumentId
+        #             1608290188062.7678, // 9 candle timestamp
         #         ]
         #     ]
         #
@@ -354,7 +354,7 @@ class ndax(ccxt.async_support.ndax):
         payload = {
             'OMSId': omsId,
             'InstrumentId': self.safe_integer(market, 'id'),  # conditionally optional
-            # 'Symbol': market['info']['symbol'],  # conditionally optional
+            # 'Symbol': market['info']['symbol'], // conditionally optional
             'Depth': limit,  # default 100
         }
         request = {
@@ -386,19 +386,19 @@ class ndax(ccxt.async_support.ndax):
         #         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         #     }
         #
-        payload = self.safe_value(message, 'o', [])
+        payload = self.safe_list(message, 'o', [])
         #
         #     [
-        #         0,   # 0 MDUpdateId
-        #         1,   # 1 Number of Unique Accounts
-        #         123,  # 2 ActionDateTime in Posix format X 1000
-        #         0,   # 3 ActionType 0(New), 1(Update), 2(Delete)
-        #         0.0,  # 4 LastTradePrice
-        #         0,   # 5 Number of Orders
-        #         0.0,  # 6 Price
-        #         0,   # 7 ProductPairCode
-        #         0.0,  # 8 Quantity
-        #         0,   # 9 Side
+        #         0,   // 0 MDUpdateId
+        #         1,   // 1 Number of Unique Accounts
+        #         123, // 2 ActionDateTime in Posix format X 1000
+        #         0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
+        #         0.0, // 4 LastTradePrice
+        #         0,   // 5 Number of Orders
+        #         0.0, // 6 Price
+        #         0,   // 7 ProductPairCode
+        #         0.0, // 8 Quantity
+        #         0,   // 9 Side
         #     ],
         #
         firstBidAsk = self.safe_value(payload, 0, [])
@@ -463,16 +463,16 @@ class ndax(ccxt.async_support.ndax):
         #
         #     [
         #         [
-        #             0,   # 0 MDUpdateId
-        #             1,   # 1 Number of Unique Accounts
-        #             123,  # 2 ActionDateTime in Posix format X 1000
-        #             0,   # 3 ActionType 0(New), 1(Update), 2(Delete)
-        #             0.0,  # 4 LastTradePrice
-        #             0,   # 5 Number of Orders
-        #             0.0,  # 6 Price
-        #             0,   # 7 ProductPairCode
-        #             0.0,  # 8 Quantity
-        #             0,   # 9 Side
+        #             0,   // 0 MDUpdateId
+        #             1,   // 1 Number of Unique Accounts
+        #             123, // 2 ActionDateTime in Posix format X 1000
+        #             0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
+        #             0.0, // 4 LastTradePrice
+        #             0,   // 5 Number of Orders
+        #             0.0, // 6 Price
+        #             0,   // 7 ProductPairCode
+        #             0.0, // 8 Quantity
+        #             0,   // 9 Side
         #         ],
         #     ]
         #
@@ -505,10 +505,10 @@ class ndax(ccxt.async_support.ndax):
     def handle_message(self, client: Client, message: object):
         #
         #     {
-        #         "m": 0,  # message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
-        #         "i": 0,  # sequence number identifies an individual request or request-and-response pair, to your application
-        #         "n":"function name",  # function name is the name of the function being called or that the server is responding to, the server echoes your call
-        #         "o":"payload",  # JSON-formatted string containing the data being sent with the message
+        #         "m": 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+        #         "i": 0, // sequence number identifies an individual request or request-and-response pair, to your application
+        #         "n":"function name", // function name is the name of the function being called or that the server is responding to, the server echoes your call
+        #         "o":"payload", // JSON-formatted string containing the data being sent with the message
         #     }
         #
         #     {

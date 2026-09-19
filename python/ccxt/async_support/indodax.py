@@ -27,7 +27,7 @@ class indodax(Exchange, ImplicitAPI):
             'name': 'INDODAX',
             'countries': ['ID'],  # Indonesia
             # 10 requests per second for making trades => 1000ms / 10 = 100ms
-            # 180 requests per minute(public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
+            # 180 requests per minute (public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
             'rateLimit': 50,
             'has': {
                 'CORS': None,
@@ -144,7 +144,7 @@ class indodax(Exchange, ImplicitAPI):
                 'transfer': False,
                 'withdraw': True,
             },
-            'version': '2.0',  # 9 April 2018
+            'version': '2.0',  # as of 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api': {
@@ -178,7 +178,9 @@ class indodax(Exchange, ImplicitAPI):
                         'openOrders': {'cost': 4},
                         'orderHistory': {'cost': 4},
                         'getOrder': {'cost': 4},
+                        'getOrderByClientOrderId': {'cost': 4},
                         'cancelOrder': {'cost': 4},
+                        'cancelByClientOrderId': {'cost': 4},
                         'withdrawFee': {'cost': 4},
                         'withdrawCoin': {'cost': 4},
                         'listDownline': {'cost': 4},
@@ -232,7 +234,7 @@ class indodax(Exchange, ImplicitAPI):
                     # 'ARBITRUM': 'arb',
                     # 'ERC20': 'erc20',
                     # 'KIP7': 'kip7',
-                    # 'MAINNET': 'mainnet',  # TODO: does mainnet just mean the default?
+                    # 'MAINNET': 'mainnet',  // TODO: does mainnet just mean the default?
                     # 'OEP4': 'oep4',
                     # 'OP': 'op',
                     # 'TRC10': 'trc10',
@@ -362,9 +364,9 @@ class indodax(Exchange, ImplicitAPI):
         #             "pricescale": 1000,
         #             "trade_min_base_currency": 10000,
         #             "trade_min_traded_currency": 0.00007457,
-        #             "has_memo": False,
-        #             "memo_name": False,
-        #             "has_payment_id": False,
+        #             "has_memo": false,
+        #             "memo_name": false,
+        #             "has_payment_id": false,
         #             "trade_fee_percent": 0.3,
         #             "url_logo": "https://indodax.com/v2/logo/svg/color/btc.svg",
         #             "url_logo_png": "https://indodax.com/v2/logo/png/color/btc.png",
@@ -439,7 +441,7 @@ class indodax(Exchange, ImplicitAPI):
 
     def parse_balance(self, response: object) -> Balances:
         balances = self.safe_value(response, 'return', {})
-        free = self.safe_value(balances, 'balance', {})
+        free = self.safe_dict(balances, 'balance', {})
         used = self.safe_value(balances, 'balance_hold', {})
         timestamp = self.safe_timestamp(balances, 'server_time')
         result = {
@@ -706,7 +708,7 @@ class indodax(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -893,13 +895,13 @@ class indodax(Exchange, ImplicitAPI):
         response = await self.privatePostOpenOrders(self.extend(request, params))
         openOrdersResult = self.safe_dict(response, 'return', {})
         rawOrders = openOrdersResult['orders']
-        # {success: 1, return: {orders: null}} if no orders
+        # { success: 1, return: { orders: null }} if no orders
         if (rawOrders is None) or (rawOrders is None):
             return []
-        # {success: 1, return: {orders: [... objects]}} for orders fetched by symbol
+        # { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if symbol is not None:
             return self.parse_orders(rawOrders, market, since, limit)
-        # {success: 1, return: {orders: {marketid: [... objects]}}} if all orders are fetched
+        # { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         marketIds = list(rawOrders.keys())
         exchangeOrders = []
         for i in range(0, len(marketIds)):
@@ -969,7 +971,7 @@ class indodax(Exchange, ImplicitAPI):
                     quoteAmount = self.cost_to_precision(symbol, cost)
                 else:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price).')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).')
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
                     costRequest = Precise.string_mul(amountString, priceString)
@@ -1190,8 +1192,8 @@ class indodax(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'return', {})
-        withdraw = self.safe_value(data, 'withdraw', {})
-        deposit = self.safe_value(data, 'deposit', {})
+        withdraw = self.safe_dict(data, 'withdraw', {})
+        deposit = self.safe_dict(data, 'deposit', {})
         transactions = []
         currency = None
         if code is None:
@@ -1229,12 +1231,12 @@ class indodax(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         # Custom string you need to provide to identify each withdrawal.
-        # Will be passed to callback URL(assigned via website to the API key)
+        # Will be passed to callback URL (assigned via website to the API key)
         # so your system can identify the request and confirm it.
         # Alphanumeric, max length 255.
         requestId = self.milliseconds()
         # Alternatively:
-        # requestId = self.uuid()
+        # let requestId = this.uuid ();
         request = {
             'currency': currency['id'],
             'withdraw_amount': amount,
@@ -1374,7 +1376,7 @@ class indodax(Exchange, ImplicitAPI):
         #                ...
         #            },
         #            memo_is_required: {
-        #                btc: {mainnet: False},
+        #                btc: { mainnet: false },
         #                ...
         #            },
         #            network: {
@@ -1386,7 +1388,7 @@ class indodax(Exchange, ImplicitAPI):
         #            email: 'testbitcoincoid@mailforspam.com',
         #            profile_picture: null,
         #            verification_status: 'unverified',
-        #            gauth_enable: True,
+        #            gauth_enable: true,
         #            withdraw_status: '0'
         #        }
         #    }
@@ -1458,9 +1460,9 @@ class indodax(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
-        # {success: 0, error: "invalid order."}
+        # { success: 0, error: "invalid order." }
         # or
-        # [{data, ...}, {...}, ...]
+        # [{ data, ... }, { ... }, ... ]
         # {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
         if isinstance(response, list):
             return None  # public endpoints may return []-arrays
@@ -1471,7 +1473,7 @@ class indodax(Exchange, ImplicitAPI):
         if status == 'approved':
             return None
         if self.safe_integer(response, 'success', 0) == 1:
-            # {success: 1, return: {orders: []}}
+            # { success: 1, return: { orders: [] }}
             if not ('return' in response):
                 raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
             else:

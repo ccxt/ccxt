@@ -13,10 +13,9 @@ import (
 
 // Utility functions for safe extraction from maps
 func SafeFloatTyped(m any, key any) *float64 {
-	res := SafeFloat(m, key, math.NaN())
+	res := derefScalar(SafeFloat(m, key, math.NaN()))
 
-	if res != nil {
-		resFloat := res.(float64)
+	if resFloat, ok := res.(float64); ok {
 		if math.IsNaN(resFloat) {
 			return nil
 		}
@@ -26,36 +25,32 @@ func SafeFloatTyped(m any, key any) *float64 {
 }
 
 func SafeStringTyped(m any, key any) *string {
-	res := SafeString(m, key, nil)
-	if res != nil {
-		resStr := res.(string)
+	res := derefScalar(SafeString(m, key, nil))
+	if resStr, ok := res.(string); ok {
 		return &resStr
 	}
 	return nil
 }
 
 func SafeBoolTyp(m any, key any) *bool {
-	res := SafeBool(m, key, false)
-	if res != nil {
-		resBool := res.(bool)
+	res := derefScalar(SafeBool(m, key, false))
+	if resBool, ok := res.(bool); ok {
 		return &resBool
 	}
 	return nil
 }
 
 func SafeInt64Typed(m any, key any) *int64 {
-	res := SafeInteger(m, key, nil)
-	if res != nil {
-		resInt := res.(int64)
+	res := derefScalar(SafeInteger(m, key, nil))
+	if resInt, ok := res.(int64); ok {
 		return &resInt
 	}
 	return nil
 }
 
 func SafeBoolTyped(m any, key any) *bool {
-	res := SafeBool(m, key, nil)
-	if res != nil {
-		resBool := res.(bool)
+	res := derefScalar(SafeBool(m, key, nil))
+	if resBool, ok := res.(bool); ok {
 		return &resBool
 	}
 	return nil
@@ -387,7 +382,7 @@ func NewMarket(data any) Market {
 
 	created := time.Unix(0, 0)
 	if v, ok := m["created"]; ok {
-		if timestamp, ok := v.(int64); ok {
+		if timestamp, ok := derefScalar(v).(int64); ok {
 			created = time.Unix(timestamp/1000, 0)
 		}
 	}
@@ -688,7 +683,7 @@ func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 				if pair, ok := entry.([]any); ok {
 					var floatPair []float64
 					for _, v := range pair {
-						if num, ok := v.(float64); ok {
+						if num, ok := derefScalar(v).(float64); ok {
 							floatPair = append(floatPair, num)
 						}
 					}
@@ -702,7 +697,7 @@ func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 			for _, entry := range entries {
 				var floatPair []float64
 				for _, v := range entry {
-					if num, ok := v.(float64); ok {
+					if num, ok := derefScalar(v).(float64); ok {
 						floatPair = append(floatPair, num)
 					}
 				}
@@ -853,7 +848,7 @@ func NewBalances(balancesData2 any) Balances {
 		for key, value := range freeData {
 			if value == nil {
 				freeBalances[key] = nil
-			} else if floatValue, ok := value.(float64); ok {
+			} else if floatValue, ok := derefScalar(value).(float64); ok {
 				freeBalances[key] = &floatValue
 			}
 		}
@@ -864,7 +859,7 @@ func NewBalances(balancesData2 any) Balances {
 		for key, value := range usedData {
 			if value == nil {
 				usedBalances[key] = nil
-			} else if floatValue, ok := value.(float64); ok {
+			} else if floatValue, ok := derefScalar(value).(float64); ok {
 				usedBalances[key] = &floatValue
 			}
 		}
@@ -875,7 +870,7 @@ func NewBalances(balancesData2 any) Balances {
 		for key, value := range totalData {
 			if value == nil {
 				totalBalances[key] = nil
-			} else if floatValue, ok := value.(float64); ok {
+			} else if floatValue, ok := derefScalar(value).(float64); ok {
 				totalBalances[key] = &floatValue
 			}
 		}
@@ -2455,7 +2450,7 @@ func NewStringArray(data2 any) []string {
 	}
 	result := make([]string, 0, len(items))
 	for _, it := range items {
-		if s, ok := it.(string); ok {
+		if s, ok := derefScalar(it).(string); ok {
 			result = append(result, s)
 		}
 	}

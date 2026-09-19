@@ -18,6 +18,7 @@
 use crate::exchange::Exchange;
 use crate::runtime::stringify_param;
 use crate::{ExchangeError, Value};
+use chrono::{Datelike, TimeZone, Utc};
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 
@@ -499,7 +500,6 @@ fn arg_default(opt: &[Value]) -> Value {
     opt.get(0).cloned().unwrap_or(Value::Null)
 }
 
-
 fn key_str(key: &Value) -> String {
     stringify_param(key)
 }
@@ -581,11 +581,13 @@ pub async fn ws_await_flight(handle: &Value) -> Value {
 /// `handle_order_book_snapshot`), so it enqueues it here; `ws_run` drains and
 /// dispatches it asynchronously right after the current `handle_message`.
 pub fn enqueue_spawn(name: &str, args: Vec<Value>) {
-    SPAWN_QUEUE.with(|q| q.borrow_mut().push(QueuedSpawn {
-        method: name.to_string(),
-        args,
-        due_at: None,
-    }));
+    SPAWN_QUEUE.with(|q| {
+        q.borrow_mut().push(QueuedSpawn {
+            method: name.to_string(),
+            args,
+            due_at: None,
+        })
+    });
 }
 
 /// Queue a coroutine to run no earlier than `ms` from now — the scheduling half
@@ -593,13 +595,14 @@ pub fn enqueue_spawn(name: &str, args: Vec<Value>) {
 /// (`keepAliveListenKey`, token refresh, …), which must fire on their own
 /// cadence rather than on the next inbound frame.
 pub fn enqueue_spawn_after(name: &str, args: Vec<Value>, ms: i64) {
-    let due_at = std::time::Instant::now()
-        + std::time::Duration::from_millis(ms.max(0) as u64);
-    SPAWN_QUEUE.with(|q| q.borrow_mut().push(QueuedSpawn {
-        method: name.to_string(),
-        args,
-        due_at: Some(due_at),
-    }));
+    let due_at = std::time::Instant::now() + std::time::Duration::from_millis(ms.max(0) as u64);
+    SPAWN_QUEUE.with(|q| {
+        q.borrow_mut().push(QueuedSpawn {
+            method: name.to_string(),
+            args,
+            due_at: Some(due_at),
+        })
+    });
 }
 
 impl Exchange {
@@ -1007,13 +1010,22 @@ impl Exchange {
         Value::Null
     }
     pub fn order_book(&self, args: &[Value]) -> Value {
-        crate::pro::OrderBook::new(crate::runtime::get_arg(args, 0, Value::Null), crate::runtime::get_arg(args, 1, Value::Null))
+        crate::pro::OrderBook::new(
+            crate::runtime::get_arg(args, 0, Value::Null),
+            crate::runtime::get_arg(args, 1, Value::Null),
+        )
     }
     pub fn indexed_order_book(&self, args: &[Value]) -> Value {
-        crate::pro::IndexedOrderBook::new(crate::runtime::get_arg(args, 0, Value::Null), crate::runtime::get_arg(args, 1, Value::Null))
+        crate::pro::IndexedOrderBook::new(
+            crate::runtime::get_arg(args, 0, Value::Null),
+            crate::runtime::get_arg(args, 1, Value::Null),
+        )
     }
     pub fn counted_order_book(&self, args: &[Value]) -> Value {
-        crate::pro::CountedOrderBook::new(crate::runtime::get_arg(args, 0, Value::Null), crate::runtime::get_arg(args, 1, Value::Null))
+        crate::pro::CountedOrderBook::new(
+            crate::runtime::get_arg(args, 0, Value::Null),
+            crate::runtime::get_arg(args, 1, Value::Null),
+        )
     }
     pub fn safe_order_tracker(&self, _args: &[Value]) -> Value {
         Value::Null
@@ -1200,20 +1212,35 @@ impl Exchange {
     /// consumes via value_to_bytes.
     pub fn eth_abi_encode(&self, types: Value, values: Value) -> Value {
         use num_bigint::BigInt;
-        let ts: Vec<Value> = match &types  { Value::Arr(a) => (**a).clone(), _ => return Value::Null };
-        let vs: Vec<Value> = match &values { Value::Arr(a) => (**a).clone(), _ => return Value::Null };
+        let ts: Vec<Value> = match &types {
+            Value::Arr(a) => (**a).clone(),
+            _ => return Value::Null,
+        };
+        let vs: Vec<Value> = match &values {
+            Value::Arr(a) => (**a).clone(),
+            _ => return Value::Null,
+        };
         let to_bytes = |v: &Value| -> Vec<u8> {
             match v {
-                Value::Arr(a) => a.iter().filter_map(|x| if let Value::Int(n) = x { Some(*n as u8) } else { None }).collect(),
+                Value::Arr(a) => a
+                    .iter()
+                    .filter_map(|x| {
+                        if let Value::Int(n) = x {
+                            Some(*n as u8)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect(),
                 Value::Str(s) => hex::decode(s.trim_start_matches("0x")).unwrap_or_default(),
                 _ => Vec::new(),
             }
         };
         let to_bigint = |v: &Value| -> BigInt {
             match v {
-                Value::Int(n)   => BigInt::from(*n),
+                Value::Int(n) => BigInt::from(*n),
                 Value::Float(f) => BigInt::from(*f as i64),
-                Value::Str(s)   => {
+                Value::Str(s) => {
                     let t = s.trim();
                     if let Some(h) = t.strip_prefix("0x") {
                         BigInt::parse_bytes(h.as_bytes(), 16).unwrap_or_default()
@@ -1226,7 +1253,10 @@ impl Exchange {
         };
         let mut out: Vec<u8> = Vec::new();
         for (t, v) in ts.iter().zip(vs.iter()) {
-            let ty = match t { Value::Str(s) => s.as_str(), _ => return Value::Null };
+            let ty = match t {
+                Value::Str(s) => s.as_str(),
+                _ => return Value::Null,
+            };
             let mut word = [0u8; 32];
             if ty == "address" {
                 let b = to_bytes(v);
@@ -1242,7 +1272,9 @@ impl Exchange {
                 // negative-for-unsigned / overflow, then encode (review #15).
                 word = crate::exchange::eip712_int_word(ty, &to_bigint(v));
             } else if ty == "bool" {
-                if matches!(v, Value::Bool(true)) { word[31] = 1; }
+                if matches!(v, Value::Bool(true)) {
+                    word[31] = 1;
+                }
             } else {
                 return Value::Null; // unsupported (dynamic) type
             }
@@ -1269,10 +1301,16 @@ impl Exchange {
     /// Fail loudly for an unported crypto/signing primitive. Diverges (`-> !`),
     /// so it satisfies any `-> Value` stub body.
     fn crypto_not_supported(&self, what: &str) -> ! {
-        let id = match &self.id { Value::Str(s) => s.clone(), _ => String::new() };
-        panic!("{}", crate::exchange_errors::not_supported(Value::Str(
-            format!("{id} {what}() signing is not implemented in the Rust port yet"),
-        )));
+        let id = match &self.id {
+            Value::Str(s) => s.clone(),
+            _ => String::new(),
+        };
+        panic!(
+            "{}",
+            crate::exchange_errors::not_supported(Value::Str(format!(
+                "{id} {what}() signing is not implemented in the Rust port yet"
+            ),))
+        );
     }
 
     /// `axolotl(payload, hexKey, ed25519)` — curve25519 signing (waves).
@@ -2371,6 +2409,14 @@ impl Exchange {
     /// timestamp to the timeframe boundary (down by default, up for
     /// `ROUND_UP`).
     pub fn round_timeframe(&self, tf: Value, ts: Value, direction: Value) -> Value {
+        let timeframe = match &tf {
+            Value::Str(timeframe) => timeframe.as_str(),
+            _ => "",
+        };
+        let unit = timeframe.chars().last().unwrap_or(' ');
+        let amount = timeframe[..timeframe.len().saturating_sub(1)]
+            .parse::<i64>()
+            .unwrap_or(0);
         let secs = match self.parse_timeframe(tf) {
             Value::Int(s) => s,
             Value::Float(s) => s as i64,
@@ -2384,6 +2430,42 @@ impl Exchange {
         };
         if ms == 0 {
             return ts;
+        }
+        if ((unit == 'w') || (unit == 'M') || (unit == 'y')) && (amount >= 1) {
+            let date = match Utc.timestamp_millis_opt(t).single() {
+                Some(date) => date,
+                None => return ts,
+            };
+            let mut rounded = date.date_naive().and_hms_opt(0, 0, 0).unwrap().and_utc();
+            if unit == 'w' {
+                let days_since_monday = date.weekday().num_days_from_monday() as i64;
+                let monday = rounded - chrono::Duration::days(days_since_monday);
+                let epoch_monday = Utc.with_ymd_and_hms(1970, 1, 5, 0, 0, 0).unwrap();
+                let weeks_since_epoch_monday = (monday - epoch_monday).num_days() / 7;
+                rounded = epoch_monday
+                    + chrono::Duration::days(
+                        weeks_since_epoch_monday.div_euclid(amount) * amount * 7,
+                    );
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Duration::days(amount * 7);
+                }
+            } else if unit == 'M' {
+                let months_since_year_zero = date.year() as i64 * 12 + date.month0() as i64;
+                let rounded_months = months_since_year_zero.div_euclid(amount) * amount;
+                let year = rounded_months.div_euclid(12) as i32;
+                let month = (rounded_months.rem_euclid(12) + 1) as u32;
+                rounded = Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0).unwrap();
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Months::new(amount as u32);
+                }
+            } else {
+                let year = (date.year() as i64).div_euclid(amount) * amount;
+                rounded = Utc.with_ymd_and_hms(year as i32, 1, 1, 0, 0, 0).unwrap();
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Months::new((amount * 12) as u32);
+                }
+            }
+            return Value::Int(rounded.timestamp_millis());
         }
         let offset = t % ms;
         let is_up = matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP);
@@ -2898,20 +2980,29 @@ impl Exchange {
             crate::get_value(&self.tokenBucket, &Value::Str(key.to_string())).as_f64()
         };
         let rate_limit = self.rateLimit.as_f64().unwrap_or(0.0);
-        let refill_rate = tb("refillRate")
-            .unwrap_or_else(|| if rate_limit > 0.0 { 1.0 / rate_limit } else { f64::MAX });
+        let refill_rate = tb("refillRate").unwrap_or_else(|| {
+            if rate_limit > 0.0 {
+                1.0 / rate_limit
+            } else {
+                f64::MAX
+            }
+        });
         if !(refill_rate.is_finite() && refill_rate > 0.0) {
             return Value::Null; // effectively unlimited
         }
         let capacity = tb("capacity").unwrap_or(1.0);
         let delay_ms = tb("delay").unwrap_or(0.001) * 1000.0;
-        let this_cost = cost.first().and_then(|v| v.as_f64())
+        let this_cost = cost
+            .first()
+            .and_then(|v| v.as_f64())
             .unwrap_or_else(|| tb("cost").unwrap_or(1.0));
 
-        let now_ms = || std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_millis() as i64)
-            .unwrap_or(0);
+        let now_ms = || {
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_millis() as i64)
+                .unwrap_or(0)
+        };
 
         let mut guard = self.internals.throttle.lock().await;
         let (tokens, last_ms) = &mut *guard;
@@ -3059,7 +3150,10 @@ mod spawn_queue_tests {
         let batch = drain_spawn_queue();
         assert_eq!(batch.len(), 1);
         assert_eq!(batch[0].0, "handle_order_book_snapshot");
-        assert!(next_spawn_due().is_some(), "the delayed item is still queued");
+        assert!(
+            next_spawn_due().is_some(),
+            "the delayed item is still queued"
+        );
     }
 
     #[test]

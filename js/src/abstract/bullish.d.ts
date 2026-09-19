@@ -5,15 +5,22 @@ interface Exchange {
     publicGetV1Time(params?: {}): Promise<Dict>;
     publicGetV1Assets(params?: {}): Promise<List>;
     publicGetV1AssetsSymbol(params?: {}): Promise<Dict>;
+    publicGetV1VolGrids(params?: {}): Promise<List>;
+    publicGetV1AssetsSymbolVolGrid(params?: {}): Promise<Dict>;
     publicGetV1Markets(params?: {}): Promise<List>;
     publicGetV1MarketsSymbol(params?: {}): Promise<Dict>;
+    publicGetV1HistoryMarkets(params?: {}): Promise<List>;
     publicGetV1HistoryMarketsSymbol(params?: {}): Promise<Dict>;
     publicGetV1MarketsSymbolOrderbookHybrid(params?: {}): Promise<Dict>;
     publicGetV1MarketsSymbolTrades(params?: {}): Promise<List>;
     publicGetV1MarketsSymbolTick(params?: {}): Promise<Dict>;
     publicGetV1MarketsSymbolCandle(params?: {}): Promise<List>;
+    publicGetV1MarketsSymbolAuctions(params?: {}): Promise<Dict>;
+    publicGetV1MarketsSymbolAuctionsNoii(params?: {}): Promise<Dict>;
     publicGetV1HistoryMarketsSymbolTrades(params?: {}): Promise<List>;
     publicGetV1HistoryMarketsSymbolFundingRate(params?: {}): Promise<List>;
+    publicGetV1HistoryMarketsSymbolAuctions(params?: {}): Promise<List>;
+    publicGetV1HistoryOptionTrades(params?: {}): Promise<List>;
     publicGetV1IndexPrices(params?: {}): Promise<List>;
     publicGetV1IndexPricesAssetSymbol(params?: {}): Promise<Dict>;
     publicGetV1ExpiryPricesSymbol(params?: {}): Promise<Dict>;
@@ -22,6 +29,7 @@ interface Exchange {
     privateGetV2Orders(params?: {}): Promise<List>;
     privateGetV2HistoryOrders(params?: {}): Promise<List>;
     privateGetV2OrdersOrderId(params?: {}): Promise<Dict>;
+    privateGetV2OrdersClientOrderIdClientOrderId(params?: {}): Promise<Dict>;
     privateGetV2AmmInstructions(params?: {}): Promise<List>;
     privateGetV2AmmInstructionsInstructionId(params?: {}): Promise<Dict>;
     privateGetV1WalletsTransactions(params?: {}): Promise<Dict>;
@@ -49,16 +57,22 @@ interface Exchange {
     privateGetV2OtcTrades(params?: {}): Promise<List>;
     privateGetV2OtcTradesOtcTradeId(params?: {}): Promise<Dict>;
     privateGetV2OtcTradesUnconfirmedTrade(params?: {}): Promise<Dict>;
+    privateGetV2OtcTradesDelegatedAccounts(params?: {}): Promise<List>;
+    privateGetV2IdbDelegatedAccounts(params?: {}): Promise<List>;
+    privateGetV2IdbOtcTrades(params?: {}): Promise<List>;
     privatePostV2Orders(params?: {}): Promise<Dict>;
     privatePostV2Command(params?: {}): Promise<Dict>;
     privatePostV2AmmInstructions(params?: {}): Promise<Dict>;
     privatePostV1WalletsWithdrawal(params?: {}): Promise<Dict>;
     privatePostV2UsersLogin(params?: {}): Promise<Dict>;
     privatePostV1SimulatePortfolioMargin(params?: {}): Promise<Dict>;
+    privatePostV1BulkSimulatePortfolioMargin(params?: {}): Promise<List>;
     privatePostV1WalletsSelfHostedInitiate(params?: {}): Promise<Dict>;
     privatePostV2MmpConfiguration(params?: {}): Promise<Dict>;
     privatePostV2OtcTrades(params?: {}): Promise<Dict>;
     privatePostV2OtcCommand(params?: {}): Promise<Dict>;
+    privatePostV2IdbOtcTrades(params?: {}): Promise<Dict>;
+    privatePostV2IdbOtcCommand(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

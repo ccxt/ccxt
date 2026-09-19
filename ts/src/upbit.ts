@@ -153,6 +153,11 @@ export default class upbit extends Exchange {
                         'travel_rule/vasps': { 'cost': 0.67 } as Endpoint<List>,
                         'status/wallet': { 'cost': 0.67 } as Endpoint<List>,
                         'api_keys': { 'cost': 0.67 } as Endpoint<List>, // Upbit KR only
+                        'pockets': { 'cost': 0.67 } as Endpoint<List>,
+                        'pockets/api_keys': { 'cost': 0.67 } as Endpoint<List>,
+                        'pockets/assets': { 'cost': 0.67 } as Endpoint<List>,
+                        'pockets/universal_transfers': { 'cost': 0.67 } as Endpoint<List>,
+                        'pockets/transfers': { 'cost': 0.67 } as Endpoint<List>,
                     },
                     'post': {
                         'orders': { 'cost': 2.5 } as Endpoint<Dict>, // RPS: 8
@@ -164,6 +169,8 @@ export default class upbit extends Exchange {
                         'deposits/generate_coin_address': { 'cost': 0.67 } as Endpoint<Dict>,
                         'travel_rule/deposit/uuid': { 'cost': 0.67 } as Endpoint<Dict>, // RPS: 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid': { 'cost': 0.67 } as Endpoint<Dict>, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'pockets/universal_transfers': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'pockets/transfers': { 'cost': 0.67 } as Endpoint<Dict>,
                     },
                     'delete': {
                         'order': { 'cost': 0.67 } as Endpoint<Dict>,
@@ -1926,7 +1933,7 @@ export default class upbit extends Exchange {
         let feeCost = this.safeString (order, 'paid_fee');
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
-        let trades = this.safeValue (order, 'trades', []);
+        let trades = this.safeList (order, 'trades', []);
         trades = this.parseTrades (trades, market, undefined, undefined, {
             'order': id,
             'type': type,

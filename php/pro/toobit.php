@@ -33,7 +33,7 @@ class toobit extends \ccxt\async\toobit {
                 'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
-                // 'watchPosition' => false,
+                // 'watchPosition': false,
             ),
             'urls' => array(
                 'api' => array(
@@ -90,46 +90,46 @@ class toobit extends \ccxt\async\toobit {
         // public
         //
         //     {
-        //         $topic => "trade",
-        //         symbol => "DOGEUSDT",
-        //         symbolName => "DOGEUSDT",
-        //         params => array(
-        //             realtimeInterval => "24h",
-        //             binary => "false",
-        //         ),
-        //         data => array(
-        //             array(
-        //                 v => "4864732022868004630",
-        //                 t => 1757243788405,
-        //                 p => "0.21804",
-        //                 q => "80",
-        //                 m => true,
-        //             ),
-        //         ),
-        //         f => true,  // initial first snapshot or not
-        //         sendTime => 1757244002117,
-        //         shared => false,
+        //         topic: "trade",
+        //         symbol: "DOGEUSDT",
+        //         symbolName: "DOGEUSDT",
+        //         params: {
+        //             realtimeInterval: "24h",
+        //             binary: "false",
+        //         },
+        //         data: [
+        //             {
+        //                 v: "4864732022868004630",
+        //                 t: 1757243788405,
+        //                 p: "0.21804",
+        //                 q: "80",
+        //                 m: true,
+        //             },
+        //         ],
+        //         f: true,  // initial first snapshot or not
+        //         sendTime: 1757244002117,
+        //         shared: false,
         //     }
         //
         // private
         //
-        //     array(
+        //     [
         //       {
-        //         e => 'outboundContractAccountInfo',
-        //         E => '1758228398234',
-        //         T => true,
-        //         W => true,
-        //         D => true,
-        //         B => array( [Object] )
+        //         e: 'outboundContractAccountInfo',
+        //         E: '1758228398234',
+        //         T: true,
+        //         W: true,
+        //         D: true,
+        //         B: [ [Object] ]
         //       }
-        //     )
+        //     ]
         //
         $topic = $this->safe_string($message, 'topic');
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         //
-        // handle ping-pong => array( ping => 1758540450000 )
+        // handle ping-pong: { ping: 1758540450000 }
         //
         $pongTimestamp = $this->safe_integer($message, 'pong');
         if ($pongTimestamp !== null) {
@@ -233,25 +233,25 @@ class toobit extends \ccxt\async\toobit {
     public function handle_trades(Client $client, mixed $message) {
         //
         //     {
-        //         $symbol => "DOGEUSDT",
-        //         symbolName => "DOGEUSDT",
-        //         topic => "trade",
-        //         params => array(
-        //             realtimeInterval => "24h",
-        //             binary => "false",
-        //         ),
-        //         $data => array(
-        //             array(
-        //                 v => "4864732022868004630",
-        //                 t => 1757243788405,
-        //                 p => "0.21804",
-        //                 q => "80",
-        //                 m => true,
-        //             ),
-        //         ),
-        //         f => true,  // initial first snapshot or not
-        //         sendTime => 1757244002117,
-        //         shared => false,
+        //         symbol: "DOGEUSDT",
+        //         symbolName: "DOGEUSDT",
+        //         topic: "trade",
+        //         params: {
+        //             realtimeInterval: "24h",
+        //             binary: "false",
+        //         },
+        //         data: [
+        //             {
+        //                 v: "4864732022868004630",
+        //                 t: 1757243788405,
+        //                 p: "0.21804",
+        //                 q: "80",
+        //                 m: true,
+        //             },
+        //         ],
+        //         f: true,  // initial first snapshot or not
+        //         sendTime: 1757244002117,
+        //         shared: false,
         //     }
         //
         $marketId = $this->safe_string($message, 'symbol');
@@ -293,7 +293,7 @@ class toobit extends \ccxt\async\toobit {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
@@ -315,7 +315,7 @@ class toobit extends \ccxt\async\toobit {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A list of candles ordered, open, high, low, close, volume
+         * @return {array} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -356,27 +356,27 @@ class toobit extends \ccxt\async\toobit {
     public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
-        //         $symbol => 'DOGEUSDT',
-        //         symbolName => 'DOGEUSDT',
-        //         klineType => '1m',
-        //         topic => 'kline',
-        //         $params => array( realtimeInterval => '24h', klineType => '1m', binary => 'false' ),
-        //         $data => array(
+        //         symbol: 'DOGEUSDT',
+        //         symbolName: 'DOGEUSDT',
+        //         klineType: '1m',
+        //         topic: 'kline',
+        //         params: { realtimeInterval: '24h', klineType: '1m', binary: 'false' },
+        //         data: [
         //             {
-        //                 t => 1757251200000,
-        //                 s => 'DOGEUSDT',
-        //                 sn => 'DOGEUSDT',
-        //                 c => '0.21889',
-        //                 h => '0.21898',
-        //                 l => '0.21889',
-        //                 o => '0.21897',
-        //                 v => '5247',
-        //                 st => 0
+        //                 t: 1757251200000,
+        //                 s: 'DOGEUSDT',
+        //                 sn: 'DOGEUSDT',
+        //                 c: '0.21889',
+        //                 h: '0.21898',
+        //                 l: '0.21889',
+        //                 o: '0.21897',
+        //                 v: '5247',
+        //                 st: 0
         //             }
-        //         ),
-        //         f => true,
-        //         sendTime => 1757251217643,
-        //         shared => false
+        //         ],
+        //         f: true,
+        //         sendTime: 1757251217643,
+        //         shared: false
         //     }
         //
         $marketId = $this->safe_string($message, 'symbol');
@@ -409,15 +409,15 @@ class toobit extends \ccxt\async\toobit {
     public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //             {
-        //                 t => 1757251200000,
-        //                 o => '0.21897',
-        //                 h => '0.21898',
-        //                 l => '0.21889',
-        //                 c => '0.21889',
-        //                 v => '5247',
-        //                 s => 'DOGEUSDT',
-        //                 sn => 'DOGEUSDT',
-        //                 st => 0
+        //                 t: 1757251200000,
+        //                 o: '0.21897',
+        //                 h: '0.21898',
+        //                 l: '0.21889',
+        //                 c: '0.21889',
+        //                 v: '5247',
+        //                 s: 'DOGEUSDT',
+        //                 sn: 'DOGEUSDT',
+        //                 st: 0
         //             }
         //
         $parsed = $this->parse_ohlcv($ohlcv, $market);
@@ -494,37 +494,37 @@ class toobit extends \ccxt\async\toobit {
     public function handle_tickers(Client $client, mixed $message) {
         //
         //    {
-        //        "symbol" => "DOGEUSDT",
-        //        "symbolName" => "DOGEUSDT",
-        //        "topic" => "realtimes",
-        //        "params" => array(
-        //            "realtimeInterval" => "24h"
-        //        ),
-        //        "data" => array(
+        //        "symbol": "DOGEUSDT",
+        //        "symbolName": "DOGEUSDT",
+        //        "topic": "realtimes",
+        //        "params": {
+        //            "realtimeInterval": "24h"
+        //        },
+        //        "data": [
         //            {
-        //                "t" => 1757257643683,
-        //                "s" => "DOGEUSDT",
-        //                "o" => "0.21462",
-        //                "h" => "0.22518",
-        //                "l" => "0.21229",
-        //                "c" => "0.2232",
-        //                "v" => "283337017",
-        //                "qv" => "62063771.42702",
-        //                "sn" => "DOGEUSDT",
-        //                "m" => "0.04",
-        //                "e" => 301,
-        //                "c24h" => "0.2232",
-        //                "h24h" => "0.22518",
-        //                "l24h" => "0.21229",
-        //                "o24h" => "0.21462",
-        //                "v24h" => "283337017",
-        //                "qv24h" => "62063771.42702",
-        //                "m24h" => "0.04"
+        //                "t": 1757257643683,
+        //                "s": "DOGEUSDT",
+        //                "o": "0.21462",
+        //                "h": "0.22518",
+        //                "l": "0.21229",
+        //                "c": "0.2232",
+        //                "v": "283337017",
+        //                "qv": "62063771.42702",
+        //                "sn": "DOGEUSDT",
+        //                "m": "0.04",
+        //                "e": 301,
+        //                "c24h": "0.2232",
+        //                "h24h": "0.22518",
+        //                "l24h": "0.21229",
+        //                "o24h": "0.21462",
+        //                "v24h": "283337017",
+        //                "qv24h": "62063771.42702",
+        //                "m24h": "0.04"
         //            }
-        //        ),
-        //        "f" => false,
-        //        "sendTime" => 1757257643751,
-        //        "shared" => false
+        //        ],
+        //        "f": false,
+        //        "sendTime": 1757257643751,
+        //        "shared": false
         //    }
         //
         $data = $this->safe_list($message, 'data');
@@ -616,23 +616,23 @@ class toobit extends \ccxt\async\toobit {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
-        //         $symbol => 'DOGEUSDT',
-        //         symbolName => 'DOGEUSDT',
-        //         topic => 'depth',
-        //         params => array( realtimeInterval => '24h' ),
-        //         $data => array(
+        //         symbol: 'DOGEUSDT',
+        //         symbolName: 'DOGEUSDT',
+        //         topic: 'depth',
+        //         params: { realtimeInterval: '24h' },
+        //         data: [
         //             {
-        //             e => 301,
-        //             t => 1757304842860,
-        //             v => '9814355_1E-18',
-        //             b => [Array],
-        //             a => [Array],
-        //             o => 0
+        //             e: 301,
+        //             t: 1757304842860,
+        //             v: '9814355_1E-18',
+        //             b: [Array],
+        //             a: [Array],
+        //             o: 0
         //             }
-        //         ),
-        //         f => false,
-        //         sendTime => 1757304843047,
-        //         shared => false
+        //         ],
+        //         f: false,
+        //         sendTime: 1757304843047,
+        //         shared: false
         //     }
         //
         $isSnapshot = $this->safe_bool($message, 'f', false);
@@ -671,24 +671,24 @@ class toobit extends \ccxt\async\toobit {
     public function handle_order_book_partial_snapshot(Client $client, mixed $message) {
         //
         //     {
-        //         symbol => 'DOGEUSDT',
-        //         symbolName => 'DOGEUSDT',
-        //         topic => 'depth',
-        //         params => array( realtimeInterval => '24h' ),
-        //         data => array(
+        //         symbol: 'DOGEUSDT',
+        //         symbolName: 'DOGEUSDT',
+        //         topic: 'depth',
+        //         params: { realtimeInterval: '24h' },
+        //         data: [
         //             {
-        //             e => 301,
-        //             s => 'DOGEUSDT',
-        //             t => 1757304842860,
-        //             v => '9814355_1E-18',
-        //             b => [Array],
-        //             a => [Array],
-        //             o => 0
+        //             e: 301,
+        //             s: 'DOGEUSDT',
+        //             t: 1757304842860,
+        //             v: '9814355_1E-18',
+        //             b: [Array],
+        //             a: [Array],
+        //             o: 0
         //             }
-        //         ),
-        //         f => false,
-        //         sendTime => 1757304843047,
-        //         shared => false
+        //         ],
+        //         f: false,
+        //         sendTime: 1757304843047,
+        //         shared: false
         //     }
         //
         $this->set_order_book_snapshot($client, $message, 'depth');
@@ -771,35 +771,35 @@ class toobit extends \ccxt\async\toobit {
         //
         // spot
         //
-        // array(
+        // [
         //     {
-        //         e => 'outboundAccountInfo',
-        //         E => '1758226989725',
-        //         T => true,
-        //         W => true,
-        //         D => true,
-        //         B => array(
-        //             array(
-        //               a => "USDT",
-        //               f => "6.37242839",
-        //               l => "0",
-        //             ),
-        //         )
+        //         e: 'outboundAccountInfo',
+        //         E: '1758226989725',
+        //         T: true,
+        //         W: true,
+        //         D: true,
+        //         B: [
+        //             {
+        //               a: "USDT",
+        //               f: "6.37242839",
+        //               l: "0",
+        //             },
+        //         ]
         //     }
-        // )
+        // ]
         //
         // contract
         //
-        // array(
+        // [
         //     {
-        //         e => 'outboundContractAccountInfo',
-        //         E => '1758226989742',
-        //         T => true,
-        //         W => true,
-        //         D => true,
-        //         B => array( [Object] )
+        //         e: 'outboundContractAccountInfo',
+        //         E: '1758226989742',
+        //         T: true,
+        //         W: true,
+        //         D: true,
+        //         B: [ [Object] ]
         //     }
-        // )
+        // ]
         //
         $channel = $this->safe_string($message, 'e');
         $data = $this->safe_list($message, 'B', array());
@@ -835,7 +835,7 @@ class toobit extends \ccxt\async\toobit {
         $response = Async\await($this->fetch_balance(array( 'type' => $marketType )));
         $type = ($marketType === 'spot') ? 'spot' : 'contract';
         $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
-        // don't remove the $future from the .futures cache
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve();
@@ -882,33 +882,33 @@ class toobit extends \ccxt\async\toobit {
     public function handle_order(Client $client, mixed $message) {
         //
         //    {
-        //        "e" => "executionReport",
-        //        "E" => "1758311011844",
-        //        "s" => "DOGEUSDT",
-        //        "c" => "1758311011948",
-        //        "S" => "BUY",
-        //        "o" => "LIMIT",
-        //        "f" => "GTC",
-        //        "q" => "22",
-        //        "p" => "0.23",
-        //        "pt" => "INPUT",
-        //        "X" => "NEW",
-        //        "i" => "2043255292855185152",
-        //        "l" => "0", // Last executed quantity
-        //        "z" => "0", // Cumulative filled quantity
-        //        "L" => "0", // Last executed price
-        //        "n" => "0",
-        //        "N" => "",
-        //        "u" => true,
-        //        "w" => true,
-        //        "m" => false,
-        //        "O" => "1758311011833",
-        //        "U" => "1758311011841",
-        //        "Z" => "0",
-        //        "C" => false,
-        //        "v" => "0",
-        //        "rp" => "0",
-        //        "td" => "0"
+        //        "e": "executionReport",
+        //        "E": "1758311011844",
+        //        "s": "DOGEUSDT",
+        //        "c": "1758311011948",
+        //        "S": "BUY",
+        //        "o": "LIMIT",
+        //        "f": "GTC",
+        //        "q": "22",
+        //        "p": "0.23",
+        //        "pt": "INPUT",
+        //        "X": "NEW",
+        //        "i": "2043255292855185152",
+        //        "l": "0", // Last executed quantity
+        //        "z": "0", // Cumulative filled quantity
+        //        "L": "0", // Last executed price
+        //        "n": "0",
+        //        "N": "",
+        //        "u": true,
+        //        "w": true,
+        //        "m": false,
+        //        "O": "1758311011833",
+        //        "U": "1758311011841",
+        //        "Z": "0",
+        //        "C": false,
+        //        "v": "0",
+        //        "rp": "0",
+        //        "td": "0"
         //    }
         //
         if ($this->orders === null) {
@@ -1009,18 +1009,18 @@ class toobit extends \ccxt\async\toobit {
     public function handle_my_trade(Client $client, mixed $message) {
         //
         //    {
-        //        "e" => "ticketInfo",
-        //        "E" => "1758314657847",
-        //        "s" => "DOGEUSDT",
-        //        "q" => "22.0",
-        //        "t" => "1758314657842",
-        //        "p" => "0.26667",
-        //        "T" => "4864732022877055421",
-        //        "o" => "2043285877770284800",
-        //        "c" => "1758314657002",
-        //        "a" => "1783404067076253952",
-        //        "m" => false,
-        //        "S" => "BUY"
+        //        "e": "ticketInfo",
+        //        "E": "1758314657847",
+        //        "s": "DOGEUSDT",
+        //        "q": "22.0",
+        //        "t": "1758314657842",
+        //        "p": "0.26667",
+        //        "T": "4864732022877055421",
+        //        "o": "2043285877770284800",
+        //        "c": "1758314657002",
+        //        "a": "1783404067076253952",
+        //        "m": false,
+        //        "S": "BUY"
         //    }
         //
         $myTrades = $this->myTrades;
@@ -1078,7 +1078,7 @@ class toobit extends \ccxt\async\toobit {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate());
-        $type = 'swap'; // the only account $type that carries positions here
+        $type = 'swap'; // the only account type that carries positions here
         $messageHash = '';
         if (!$this->is_empty($symbols)) {
             $symbols = $this->market_symbols($symbols);
@@ -1137,7 +1137,7 @@ class toobit extends \ccxt\async\toobit {
             $position = $positions[$i];
             $cache->append($position);
         }
-        // don't remove the $future from the .futures $cache
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve($cache);
@@ -1147,28 +1147,28 @@ class toobit extends \ccxt\async\toobit {
 
     public function handle_positions(mixed $client, mixed $message) {
         //
-        // array(
+        // [
         //     {
-        //         e => 'outboundContractPositionInfo',
-        //         E => '1758316454554',
-        //         A => '1783404067076253954',
-        //         s => 'DOGE-SWAP-USDT',
-        //         S => 'LONG',
-        //         p => '0',
-        //         P => '0',
-        //         a => '0',
-        //         f => '0.1228',
-        //         m => '0',
-        //         r => '0',
-        //         up => '0',
-        //         pr => '0',
-        //         pv => '0',
-        //         v => '3.0',
-        //         mt => 'CROSS',
-        //         mm => '0',
-        //         mp => '0.265410000000000000'
+        //         e: 'outboundContractPositionInfo',
+        //         E: '1758316454554',
+        //         A: '1783404067076253954',
+        //         s: 'DOGE-SWAP-USDT',
+        //         S: 'LONG',
+        //         p: '0',
+        //         P: '0',
+        //         a: '0',
+        //         f: '0.1228',
+        //         m: '0',
+        //         r: '0',
+        //         up: '0',
+        //         pr: '0',
+        //         pv: '0',
+        //         v: '3.0',
+        //         mt: 'CROSS',
+        //         mm: '0',
+        //         mp: '0.265410000000000000'
         //     }
-        // )
+        // ]
         //
         $accountType = 'swap';
         if ($this->positions === null) {
@@ -1193,7 +1193,7 @@ class toobit extends \ccxt\async\toobit {
             $newPositions[] = $position;
             $cache->append($position);
         }
-        // no local may be named `positions` in this method => build/transpile.ts
+        // no local may be named `positions` in this method: build/transpile.ts
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to
         // ':$positions::' and find_message_hashes () matches nothing in PHP
@@ -1252,27 +1252,20 @@ class toobit extends \ccxt\async\toobit {
         $delay = $this->sum($listenKeyRefreshRate, 10000);
         if ($time - $lastAuthenticatedTime > $delay) {
             $this->check_required_credentials();
-            // single-flight leader election on a never-dialed $client, see
-            // https://github.com/ccxt/ccxt/issues/29393. the election used to
-            // run on $this->client($this->get_user_stream_url()), but that url
-            // embeds the $listenKey it is about to mint, so the $client the
-            // flight registers on is not the $client the next caller looks at:
-            // the cold call elected on .../ws/null and every later call
-            // landed on .../ws/<key> with an empty subscriptions map, found
-            // the key still fresh, skipped the fetch and hung on a $future
-            // nobody resolves. $client->futures is the registry => $client->future()
-            // is the atomic check-and-insert and $client->resolve() /
-            // $client->reject() settle and remove the entry under the same lock
-            // in every port
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,
+            // so the flight must not live on that client or later callers would look at a different one.
+            // client.futures is the registry: client.future () is the atomic check-and-insert and
+            // client.resolve () / client.reject () settle and remove the entry under the same lock in every port
             $messageHash = 'authenticate';
             $client = $this->client('authenticationFlights');
             if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 // a flight is already in progress - wake when the leader
-                // settles it => the $listenKey is then in the bucket
+                // settles it: the listenKey is then in the bucket
                 Async\await($client->future($messageHash));
                 return;
             }
-            // reusableFuture (), not $future () - the two match in
+            // reusableFuture (), not future () - the two match in
             // js/py/php/cs/java, but go's Client.Future () yields a channel
             // that the trailing suspension point below would panic on
             $future = $client->reusableFuture($messageHash);
@@ -1281,14 +1274,14 @@ class toobit extends \ccxt\async\toobit {
                 $listenKey = $this->safe_string($response, 'listenKey');
                 if ($listenKey === null) {
                     // reject instead of caching an empty credential, so waiters
-                    // retry rather than dial .../ws/null for 20 minutes
+                    // retry rather than dial .../ws/undefined for 20 minutes
                     throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
                 }
                 $this->options['ws']['listenKey'] = $listenKey;
                 $this->options['ws']['lastAuthenticatedTime'] = $time;
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
-                // settle the flight => $client->resolve() removes the $future from
-                // $client->futures and wakes every waiter
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
                 $client->resolve($listenKey, $messageHash);
             } catch (Exception $e) {
                 // reject the flight - waiters throw and the next caller re-leads.
@@ -1309,7 +1302,7 @@ class toobit extends \ccxt\async\toobit {
         $options = $this->safe_value($this->options, 'ws', array());
         $listenKey = $this->safe_string($options, 'listenKey');
         if ($listenKey === null) {
-            // A network $error happened => we can't renew a listen key that does not exist.
+            // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
         try {
@@ -1328,7 +1321,7 @@ class toobit extends \ccxt\async\toobit {
             $this->options['ws']['lastAuthenticatedTime'] = 0;
             return;
         }
-        // whether or not to schedule another $listenKey keepAlive request
+        // whether or not to schedule another listenKey keepAlive request
         $listenKeyRefreshRate = $this->safe_integer($this->options['ws'], 'listenKeyRefreshRate', 1200000);
         $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
     }
@@ -1340,8 +1333,8 @@ class toobit extends \ccxt\async\toobit {
     public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
-        //        "code" => '-100010',
-        //        "desc" => "Invalid Symbols!"
+        //        "code": '-100010',
+        //        "desc": "Invalid Symbols!"
         //    }
         //
         $code = $this->safe_string($message, 'code');

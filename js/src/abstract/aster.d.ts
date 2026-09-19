@@ -70,6 +70,12 @@ interface Exchange {
     fapiPrivateGetV4Account(params?: {}): Promise<Dict>;
     fapiPrivateGetV3Agent(params?: {}): Promise<List>;
     fapiPrivateGetV3Builder(params?: {}): Promise<List>;
+    fapiPrivateGetV3BuilderUserTrades(params?: {}): Promise<Dict>;
+    fapiPrivateGetV3BuilderApprovedUserList(params?: {}): Promise<Dict>;
+    fapiPrivateGetV3StpMode(params?: {}): Promise<Dict>;
+    fapiPrivateGetV3AssetMigrateUserHistory(params?: {}): Promise<Dict>;
+    fapiPrivateGetV3StrategyOpenOrder(params?: {}): Promise<Dict>;
+    fapiPrivateGetV3StrategyHistoryOrder(params?: {}): Promise<Dict>;
     fapiPrivatePostV1PositionSideDual(params?: {}): Promise<Dict>;
     fapiPrivatePostV3PositionSideDual(params?: {}): Promise<Dict>;
     fapiPrivatePostV1MultiAssetsMargin(params?: {}): Promise<Dict>;
@@ -99,6 +105,12 @@ interface Exchange {
     fapiPrivatePostV3UpdateAgent(params?: {}): Promise<Dict>;
     fapiPrivatePostV3ApproveBuilder(params?: {}): Promise<Dict>;
     fapiPrivatePostV3UpdateBuilder(params?: {}): Promise<Dict>;
+    fapiPrivatePostV3RegisterAndApproveAgent(params?: {}): Promise<Dict>;
+    fapiPrivatePostV3AssetMigrateUser(params?: {}): Promise<Dict>;
+    fapiPrivatePostV3Chase(params?: {}): Promise<Dict>;
+    fapiPrivatePostV3StpMode(params?: {}): Promise<Dict>;
+    fapiPrivatePostV3PlaceStrategyOrder(params?: {}): Promise<Dict>;
+    fapiPrivatePostV3UpdateStrategyOrder(params?: {}): Promise<List>;
     fapiPrivatePutV1ListenKey(params?: {}): Promise<Dict>;
     fapiPrivatePutV3ListenKey(params?: {}): Promise<Dict>;
     fapiPrivateDeleteV1Order(params?: {}): Promise<Dict>;
@@ -107,6 +119,8 @@ interface Exchange {
     fapiPrivateDeleteV3AllOpenOrders(params?: {}): Promise<Dict>;
     fapiPrivateDeleteV1BatchOrders(params?: {}): Promise<List>;
     fapiPrivateDeleteV3BatchOrders(params?: {}): Promise<List>;
+    fapiPrivateDeleteV3GuardedCancelOrder(params?: {}): Promise<Dict>;
+    fapiPrivateDeleteV3GuardedBatchOrders(params?: {}): Promise<List>;
     fapiPrivateDeleteV3Mmp(params?: {}): Promise<List>;
     fapiPrivateDeleteV1ListenKey(params?: {}): Promise<Dict>;
     fapiPrivateDeleteV3ListenKey(params?: {}): Promise<Dict>;

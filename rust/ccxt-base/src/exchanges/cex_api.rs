@@ -107,6 +107,11 @@ impl CexCore {
         self.call_method(Value::Str("private_post_get_order_book".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostGetTicker` implicit endpoint.
+    pub async fn private_post_get_ticker(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_ticker".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostGetCandles` implicit endpoint.
     pub async fn private_post_get_candles(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_candles".to_string()), optional_args).await

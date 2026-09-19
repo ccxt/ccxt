@@ -198,6 +198,7 @@ export default class lighter extends Exchange {
                         'currentHeight': { 'cost': 1 } as Endpoint<Dict>,
                         // candlestick
                         'candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'markPriceCandles': { 'cost': 1 } as Endpoint<Dict>,
                         'fundings': { 'cost': 1 } as Endpoint<Dict>,
                         // bridge
                         'fastbridge/info': { 'cost': 1 } as Endpoint<Dict>,
@@ -205,6 +206,9 @@ export default class lighter extends Exchange {
                         'funding-rates': { 'cost': 1 } as Endpoint<Dict>,
                         // info
                         'withdrawalDelay': { 'cost': 1 } as Endpoint<Dict>,
+                        'partnerStats': { 'cost': 1 } as Endpoint<Dict>,
+                        'syntheticSpotInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tokenlist': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         // transaction
@@ -222,10 +226,13 @@ export default class lighter extends Exchange {
                         'liquidations': { 'cost': 1 } as Endpoint<Dict>,
                         'positionFunding': { 'cost': 1 } as Endpoint<Dict>,
                         'publicPoolsMetadata': { 'cost': 1 } as Endpoint<Dict>,
+                        'getMakerOnlyApiKeys': { 'cost': 1 } as Endpoint<Dict>,
                         // order
                         'accountActiveOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'accountInactiveOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'accountOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'export': { 'cost': 1 } as Endpoint<Dict>,
+                        'export/historicalTrades': { 'cost': 1 } as Endpoint<Dict>,
                         'trades': { 'cost': 1 } as Endpoint<Dict>,
                         // transaction
                         'accountTxs': { 'cost': 1 } as Endpoint<Dict>,
@@ -236,12 +243,20 @@ export default class lighter extends Exchange {
                         'referral/points': { 'cost': 1 } as Endpoint<Dict>,
                         // info
                         'transferFeeInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        // rfq
+                        'rfq/get': { 'cost': 1 } as Endpoint<Dict>,
+                        'rfq/list': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         // account
                         'changeAccountTier': { 'cost': 1 } as Endpoint<Dict>,
+                        'setMakerOnlyApiKeys': { 'cost': 1 } as Endpoint<Dict>,
                         // notification
                         'notification/ack': { 'cost': 1 } as Endpoint<Dict>,
+                        // rfq
+                        'rfq/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'rfq/respond': { 'cost': 1 } as Endpoint<Dict>,
+                        'rfq/update': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },

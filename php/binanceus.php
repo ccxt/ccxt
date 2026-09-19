@@ -134,16 +134,19 @@ class binanceus extends binance {
                         'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker' => array( 'cost' => 2, 'noSymbol' => 100 ),
+                        'ticker/tradingDay' => array( 'cost' => 4 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         'account' => array( 'cost' => 10 ),
+                        'account/commission' => array( 'cost' => 20 ),
                         'rateLimit/order' => array( 'cost' => 20 ),
                         'order' => array( 'cost' => 2 ),
                         'openOrders' => array( 'cost' => 3, 'noSymbol' => 40 ),
                         'myTrades' => array( 'cost' => 10 ),
                         'myPreventedMatches' => array( 'cost' => 10 ), // with ID it has weight 1, but we don't have that complex handling yet
+                        'myFilters' => array( 'cost' => 40 ),
                         'allOrders' => array( 'cost' => 10 ),
                         'orderList' => array( 'cost' => 2 ),
                         'allOrderList' => array( 'cost' => 10 ),

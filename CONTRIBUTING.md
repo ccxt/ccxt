@@ -934,8 +934,9 @@ Upon instantiation the base exchange class takes each URL from its list of endpo
 ### Docstrings
 
 - when a method takes another parameter as a property on params (ex. `params['something']`) add that parameter to the docstring, as params.something
-   - if that parameter is required, the type is `{str}`, `{int}`, `{etc}`, if it's optional the type is `{str|undefined}`, `{int|undefined}`, `{etc|undefined}`
-- when a parameter's default value is `undefined`, but the method contains something like `if (symbol === undefined) { throw new ArgumentsRequired('...')}`, then set the type of that parameter as `{str}`, `{int}`, `{etc}`. If an error is not thrown, then the type is `{str|undefined}`, `{int|undefined}`, `{etc|undefined}`
+   - if that parameter is required, the type is `{string}`, `{int}`, `{object}`, `{etc}`, if it's optional the type stays the same and the name is wrapped in square brackets, as `@param {string} [params.something]`
+- when a parameter's default value is `undefined`, but the method contains something like `if (symbol === undefined) { throw new ArgumentsRequired('...')}`, then document that parameter as required, `@param {string} symbol`. If an error is not thrown, then it is optional, `@param {string} [symbol]`
+- always write the type names in their TypeScript form — the transpiler rewrites them per language, so `{string}` becomes `str` and `{object}` becomes `dict` in Python, `{object}` becomes `array` in PHP, and `{int}`, `{float}` and `{boolean}` are carried over unchanged
 - if a method doesn't use one of the unified parameters, set the description of that parameter to `not used by exchange_name.method_name ()` (replace `exchange_name` and `method_name` with the real exchange and method names)
 - if the method has any other special case uses, put these in the description of the docstring, these cases can be included in the class docstring as well
 
@@ -969,7 +970,7 @@ Folder: `ts/src/test/static/request/`
 You can create a static-request test by running this command and pasting the result in the correct file (eg: `static/request/binance.json`)
 
 ```shell
-node cli.js binance fetchTrades "BTC/USDT:USDT" --report
+npm run cli.ts -- binance fetchTrades "BTC/USDT:USDT" --request
 ````
 
 The `output` field holds the expected HTTP body. When that body is itself JSON, store it
@@ -992,7 +993,7 @@ Folder: `ts/src/test/static/response/binance.json`
 You can create a static-response test by running this command and pasting the result in the correct file (eg: `static/response/binance.json`)
 
 ```shell
-node cli.js binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response
+npm run cli.ts -- binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response
 ````
 #### Adding Exchange Credentials
 

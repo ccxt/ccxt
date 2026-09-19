@@ -7,18 +7,11 @@
 import assert from 'assert';
 import { AuthenticationError } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
-// native ts test, intentionally not transpiled - pins the single-flight
-// authentication logic from https://github.com/ccxt/ccxt/issues/29393 on
-// ccxt.pro.whitebit. whitebit gates its handshake on
-// subscriptions['authenticated'], which watch () only registers once the
-// awaited v4PrivatePostProfileWebsocketToken () has resolved, so every
-// concurrent cold caller used to pass that gate, mint its own websocket_token
-// and push its own authorize frame down the shared socket. the logic is
-// inlined directly into authenticate (), so there is no helper method to
-// unit-test: this file is the only guard, and no build/lint gate sees it -
-// dropping the in-progress early-return or the flight settlement still
-// compiles and only surfaces as duplicate token fetches (plus duplicate
-// authorize frames) against a live venue
+// native ts test, intentionally not transpiled - pins the single-flight authentication
+// in ccxt.pro.whitebit (https://github.com/ccxt/ccxt/issues/29393). subscriptions['authenticated']
+// is only registered after the awaited v4PrivatePostProfileWebsocketToken () resolves, so without
+// the in-progress early-return every concurrent cold caller mints its own websocket_token and
+// sends its own authorize frame. the logic is inlined in authenticate (); this file is the only guard.
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }

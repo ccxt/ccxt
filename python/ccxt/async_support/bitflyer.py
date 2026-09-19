@@ -102,6 +102,7 @@ class bitflyer(Exchange, ImplicitAPI):
                         'getboardstate': {'cost': 1},
                         'getchats': {'cost': 1},
                         'getfundingrate': {'cost': 1},
+                        'getfundingratehistory': {'cost': 1},
                     },
                 },
                 'private': {
@@ -249,7 +250,7 @@ class bitflyer(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         # Bitflyer has a different type of conflict in markets, because
-        # some of their ids(ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
+        # some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
         # Since they're the same we just need to return one
         return super(bitflyer, self).safe_market(marketId, market, delimiter, 'spot')
 
@@ -265,33 +266,33 @@ class bitflyer(Exchange, ImplicitAPI):
         jp_markets = await self.publicGetGetmarkets(params)
         #
         #     [
-        #         # spot
-        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
-        #         {"product_code": "BCH_BTC", "market_type": "Spot"},
-        #         # forex swap
-        #         {"product_code": "FX_BTC_JPY", "market_type": "FX"},
+        #         // spot
+        #         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        #         { "product_code": "BCH_BTC", "market_type": "Spot" },
+        #         // forex swap
+        #         { "product_code": "FX_BTC_JPY", "market_type": "FX" },
         #
-        #         # future
+        #         // future
         #         {
         #             "product_code": "BTCJPY11FEB2022",
         #             "alias": "BTCJPY_MAT1WK",
         #             "market_type": "Futures",
         #         },
-        #     ]
+        #     ];
         #
         us_markets = await self.publicGetGetmarketsUsa(params)
         #
         #     [
-        #         {"product_code": "BTC_USD", "market_type": "Spot"},
-        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
-        #     ]
+        #         { "product_code": "BTC_USD", "market_type": "Spot" },
+        #         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        #     ];
         #
         eu_markets = await self.publicGetGetmarketsEu(params)
         #
         #     [
-        #         {"product_code": "BTC_EUR", "market_type": "Spot"},
-        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
-        #     ]
+        #         { "product_code": "BTC_EUR", "market_type": "Spot" },
+        #         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        #     ];
         #
         markets = self.array_concat(self.to_array(jp_markets), self.to_array(us_markets))
         markets = self.array_concat(markets, self.to_array(eu_markets))
@@ -320,8 +321,8 @@ class bitflyer(Exchange, ImplicitAPI):
                 alias = self.safe_string(market, 'alias')
                 if alias is None:
                     # no alias:
-                    # {product_code: 'BTCJPY11MAR2022', market_type: 'Futures'}
-                    # TODO self will break if there are products with 4 chars
+                    # { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
+                    # TODO this will break if there are products with 4 chars
                     baseId = id[0:3]
                     quoteId = id[3:6]
                     # last 9 chars are expiry date
@@ -516,7 +517,7 @@ class bitflyer(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public) v1
+        # fetchTrades (public) v1
         #
         #      {
         #          "id":2278466664,
@@ -665,7 +666,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'size': amount,
         }
         result = await self.privatePostSendchildorder(self.extend(request, params))
-        # {"status": - 200, "error_message": "Insufficient funds", "data": null}
+        # { "status": - 200, "error_message": "Insufficient funds", "data": null }
         id = self.safe_string(result, 'child_order_acceptance_id')
         return self.safe_order({
             'id': id,

@@ -6,18 +6,10 @@
 
 /* eslint-disable */
 /*  ------------------------------------------------------------------------ */
-// Minimal Starknet helpers built on @scure/starknet (already a runtime
-// dependency, covers all curve/hash math). Replaces the formerly vendored
-// static_dependencies/starknet glue and covers exactly what Exchange.ts uses:
-//
-//   compileCalldata            (CallData.compile on flat felt-only objects)
-//   getSelectorFromName        (hash.getSelectorFromName)
-//   calculateContractAddressFromHash
-//   computePoseidonHashOnElements
-//   getMessageHash             (typedData.getMessageHash, SNIP-12 revision 0:
-//                               "StarkNetDomain", pedersen, flat felt structs)
-//
-// Differentially fuzzed against the vendored implementation: 9,006 cases, 0 mismatches.
+// Minimal Starknet helpers built on @scure/starknet (already a runtime dependency),
+// covering exactly what Exchange.ts uses: compileCalldata (flat felt-only objects),
+// getSelectorFromName, calculateContractAddressFromHash, computePoseidonHashOnElements
+// and getMessageHash (SNIP-12 revision 0: "StarkNetDomain", pedersen, flat felt structs).
 import { pedersen, keccak, poseidonHashMany } from '@scure/starknet';
 const MASK_250 = (1n << 250n) - 1n;
 const ADDR_BOUND = (1n << 251n) - 256n;

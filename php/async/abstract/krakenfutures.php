@@ -166,6 +166,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_rfq_assignment_max_leverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_sendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -252,6 +258,18 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
      */
     public function private_put_subaccount_uid_trading_enabled($params = array()) {
         return $this->request('subaccount/{uid}/trading-enabled', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_put_rfq_assignment_max_leverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_delete_rfq_assignment_max_leverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -478,6 +496,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetRfqAssignmentMaxLeverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostSendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -564,6 +588,18 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
      */
     public function privatePutSubaccountUidTradingEnabled($params = array()) {
         return $this->request('subaccount/{uid}/trading-enabled', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePutRfqAssignmentMaxLeverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateDeleteRfqAssignmentMaxLeverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

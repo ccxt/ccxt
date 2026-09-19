@@ -221,6 +221,62 @@ public partial class bingx : Exchange
         return await this.callAsync<Dictionary<string, object>> ("spotV2PublicGetTickerPrice",parameters);
     }
 
+    /// <summary>Calls the spotV2PublicGetQuoteBookTicker endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotV2PublicGetQuoteBookTicker (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotV2PublicGetQuoteBookTicker",parameters);
+    }
+
+    /// <summary>Calls the spotV2PublicGetQuoteDepth endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotV2PublicGetQuoteDepth (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotV2PublicGetQuoteDepth",parameters);
+    }
+
+    /// <summary>Calls the spotV2PublicGetQuoteHistoricalKlines endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotV2PublicGetQuoteHistoricalKlines (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotV2PublicGetQuoteHistoricalKlines",parameters);
+    }
+
+    /// <summary>Calls the spotV2PublicGetQuoteHistoricalTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotV2PublicGetQuoteHistoricalTrades (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotV2PublicGetQuoteHistoricalTrades",parameters);
+    }
+
+    /// <summary>Calls the spotV2PublicGetQuoteKlines endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotV2PublicGetQuoteKlines (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotV2PublicGetQuoteKlines",parameters);
+    }
+
+    /// <summary>Calls the spotV2PublicGetQuotePrice endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotV2PublicGetQuotePrice (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotV2PublicGetQuotePrice",parameters);
+    }
+
+    /// <summary>Calls the spotV2PublicGetQuoteTicker endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotV2PublicGetQuoteTicker (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotV2PublicGetQuoteTicker",parameters);
+    }
+
+    /// <summary>Calls the spotV2PublicGetQuoteTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotV2PublicGetQuoteTrades (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotV2PublicGetQuoteTrades",parameters);
+    }
+
     /// <summary>Calls the spotV3PrivateGetGetAssetTransfer endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> spotV3PrivateGetGetAssetTransfer (object parameters = null)
@@ -606,6 +662,13 @@ public partial class bingx : Exchange
         return await this.callAsync<Dictionary<string, object>> ("swapV2PrivateGetTradeFillHistory",parameters);
     }
 
+    /// <summary>Calls the swapV2PrivateGetTradePositionHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> swapV2PrivateGetTradePositionHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("swapV2PrivateGetTradePositionHistory",parameters);
+    }
+
     /// <summary>Calls the swapV2PrivateGetUserIncomeExport endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> swapV2PrivateGetUserIncomeExport (object parameters = null)
@@ -891,6 +954,13 @@ public partial class bingx : Exchange
     public async Task<Dictionary<string, object>> cswapV1PrivateDeleteTradeCancelOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("cswapV1PrivateDeleteTradeCancelOrder",parameters);
+    }
+
+    /// <summary>Calls the cswapV2PrivatePostTradeOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> cswapV2PrivatePostTradeOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("cswapV2PrivatePostTradeOrder",parameters);
     }
 
     /// <summary>Calls the contractV1PrivateGetAllPosition endpoint.</summary>
@@ -1325,6 +1395,41 @@ public partial class bingx : Exchange
     public async Task<Dictionary<string, object>> agentV1PrivateGetAccountSuperiorCheck (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("agentV1PrivateGetAccountSuperiorCheck",parameters);
+    }
+
+    /// <summary>Calls the wealthV1PrivateGetProductDualCurrencyPreOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> wealthV1PrivateGetProductDualCurrencyPreOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("wealthV1PrivateGetProductDualCurrencyPreOrder",parameters);
+    }
+
+    /// <summary>Calls the wealthV1PrivateGetProductDualCurrencyPosition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> wealthV1PrivateGetProductDualCurrencyPosition (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("wealthV1PrivateGetProductDualCurrencyPosition",parameters);
+    }
+
+    /// <summary>Calls the wealthV1PrivateGetProductDualCurrencyOrderRecords endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> wealthV1PrivateGetProductDualCurrencyOrderRecords (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("wealthV1PrivateGetProductDualCurrencyOrderRecords",parameters);
+    }
+
+    /// <summary>Calls the wealthV1PrivatePostProductDualCurrencyInvestAssetList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> wealthV1PrivatePostProductDualCurrencyInvestAssetList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("wealthV1PrivatePostProductDualCurrencyInvestAssetList",parameters);
+    }
+
+    /// <summary>Calls the wealthV1PrivatePostProductDualCurrencyOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> wealthV1PrivatePostProductDualCurrencyOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("wealthV1PrivatePostProductDualCurrencyOrder",parameters);
     }
 
 }

@@ -207,6 +207,8 @@ class woofipro(Exchange, ImplicitAPI):
                             'client/points': {'cost': 1},
                             'public/points/epoch': {'cost': 1},
                             'public/points/epoch_dates': {'cost': 1},
+                            'public/points/rankings': {'cost': 1},
+                            'public/points/stages': {'cost': 1},
                             'public/referral/check_ref_code': {'cost': 1},
                             'public/referral/verify_ref_code': {'cost': 1},
                             'referral/admin_info': {'cost': 1},
@@ -220,6 +222,7 @@ class woofipro(Exchange, ImplicitAPI):
                             'tv/config': {'cost': 1},
                             'tv/history': {'cost': 1},
                             'tv/symbol_info': {'cost': 1},
+                            'tv/kline_history': {'cost': 1},
                             'public/funding_rate_history': {'cost': 1},
                             'public/funding_rate/{symbol}': {'cost': 0.33},
                             'public/funding_rates': {'cost': 1},
@@ -229,6 +232,9 @@ class woofipro(Exchange, ImplicitAPI):
                             'public/token': {'cost': 1},
                             'public/futures': {'cost': 1},
                             'public/futures/{symbol}': {'cost': 1},
+                            'staking/valor2/batch_info': {'cost': 1},
+                            'staking/valor2/pool_info': {'cost': 1},
+                            'staking/valor2/revenue_buyback': {'cost': 1},
                         },
                         'post': {
                             'register_account': {'cost': 1},
@@ -253,6 +259,7 @@ class woofipro(Exchange, ImplicitAPI):
                             'client/holding': {'cost': 1},
                             'withdraw_nonce': {'cost': 1},
                             'settle_nonce': {'cost': 1},
+                            'transfer_nonce': {'cost': 1},
                             'pnl_settlement/history': {'cost': 1},
                             'volume/user/daily': {'cost': 60},
                             'volume/user/stats': {'cost': 60},
@@ -267,9 +274,22 @@ class woofipro(Exchange, ImplicitAPI):
                             'volume/broker/daily': {'cost': 60},
                             'broker/fee_rate/default': {'cost': 10},
                             'broker/user_info': {'cost': 10},
+                            'broker/daily_fee_revenue': {'cost': 10},
                             'orderbook/{symbol}': {'cost': 1},
                             'kline': {'cost': 1},
                             'client/margin_modes': {'cost': 1},
+                            'client/leverages': {'cost': 1},
+                            'client/points/user_statistics': {'cost': 1},
+                            'staking/valor2/redeem': {'cost': 1},
+                            'referral/multi_level/admin': {'cost': 1},
+                            'referral/multi_level/admin/info': {'cost': 1},
+                            'referral/multi_level/admin/referee_list': {'cost': 1},
+                            'referral/multi_level/admin/summary': {'cost': 1},
+                            'referral/multi_level/max_rebate_rate': {'cost': 1},
+                            'referral/multi_level/rebate_info': {'cost': 1},
+                            'referral/multi_level/referee_list': {'cost': 1},
+                            'referral/multi_level/statistics': {'cost': 1},
+                            'referral/multi_level/volume_prerequisite': {'cost': 1},
                         },
                         'post': {
                             'orderly_key': {'cost': 1},
@@ -285,6 +305,7 @@ class woofipro(Exchange, ImplicitAPI):
                             'notification/inbox/mark_read': {'cost': 60},
                             'notification/inbox/mark_read_all': {'cost': 60},
                             'client/leverage': {'cost': 120},
+                            'client/leverages': {'cost': 120},
                             'client/margin_mode': {'cost': 1},
                             'position_margin': {'cost': 1},
                             'client/maintenance_config': {'cost': 60},
@@ -299,6 +320,15 @@ class woofipro(Exchange, ImplicitAPI):
                             'referral/update': {'cost': 10},
                             'referral/bind': {'cost': 10},
                             'referral/edit_split': {'cost': 10},
+                            'referral/edit_referee_description': {'cost': 10},
+                            'referral/multi_level/admin': {'cost': 10},
+                            'referral/multi_level/admin/create/affiliate': {'cost': 10},
+                            'referral/multi_level/admin/reset/affiliate': {'cost': 10},
+                            'referral/multi_level/admin/update': {'cost': 10},
+                            'referral/multi_level/admin/update/affiliate': {'cost': 10},
+                            'referral/multi_level/claim_code': {'cost': 10},
+                            'referral/multi_level/rebate_rate/set_default': {'cost': 10},
+                            'referral/multi_level/rebate_rate/update': {'cost': 10},
                         },
                         'put': {
                             'order': {'cost': 1},
@@ -313,6 +343,13 @@ class woofipro(Exchange, ImplicitAPI):
                             'orders': {'cost': 1},
                             'batch-order': {'cost': 1},
                             'client/batch-order': {'cost': 1},
+                        },
+                    },
+                },
+                'v2': {
+                    'private': {
+                        'post': {
+                            'internal_transfer': {'cost': 1},
                         },
                     },
                 },
@@ -434,14 +471,14 @@ class woofipro(Exchange, ImplicitAPI):
                     '-1003': RateLimitExceeded,  # TOO_MANY_REQUEST Rate limit exceed.
                     '-1004': BadRequest,  # UNKNOWN_PARAM An unknown parameter was sent.
                     '-1005': BadRequest,  # INVALID_PARAM Some parameters are in wrong format for api.
-                    '-1006': InvalidOrder,  # RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise self error.
+                    '-1006': InvalidOrder,  # RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise this error.
                     '-1007': BadRequest,  # DUPLICATE_REQUEST The data is already exists or your request is duplicated.
                     '-1008': InvalidOrder,  # QUANTITY_TOO_HIGH The quantity of settlement is too high than you can request.
                     '-1009': InsufficientFunds,  # CAN_NOT_WITHDRAWAL Can not request withdrawal settlement, you need to deposit other arrears first.
                     '-1011': NetworkError,  # RPC_NOT_CONNECT Can not place/cancel orders, it may because internal network error. Please try again in a few seconds.
                     '-1012': BadRequest,  # RPC_REJECT The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds.
                     '-1101': InsufficientFunds,  # RISK_TOO_HIGH The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure.
-                    '-1102': InvalidOrder,  # MIN_NOTIONAL The order value(price * size) is too small.
+                    '-1102': InvalidOrder,  # MIN_NOTIONAL The order value (price * size) is too small.
                     '-1103': InvalidOrder,  # PRICE_FILTER The order price is not following the tick size rule for the symbol.
                     '-1104': InvalidOrder,  # SIZE_FILTER The order quantity is not following the step size rule for the symbol.
                     '-1105': InvalidOrder,  # PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
@@ -475,7 +512,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly."
@@ -511,7 +548,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly."
@@ -623,7 +660,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicInfo(params)
         #
         #   {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [
@@ -674,7 +711,7 @@ class woofipro(Exchange, ImplicitAPI):
         tokenPromise = self.v1PublicGetPublicToken(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -799,7 +836,7 @@ class woofipro(Exchange, ImplicitAPI):
         #         "side": "BUY",
         #         "executed_timestamp": "1641481113084",
         #         "order_id": "87001234",
-        #         "order_tag": "default", <-- self param only in "fetchOrderTrades"
+        #         "order_tag": "default", <-- this param only in "fetchOrderTrades"
         #         "executed_price": "1",
         #         "executed_quantity": "12",
         #         "fee_asset": "WOO",
@@ -864,7 +901,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicMarketTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -963,7 +1000,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRateSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "symbol": "PERP_ETH_USDC",
@@ -995,7 +1032,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRates(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1080,7 +1117,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1786022130191,
         #     "data": {
         #         "symbol": "PERP_BTC_USDC",
@@ -1120,7 +1157,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFutures(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1786022130191,
         #     "data": {
         #         "rows": [{
@@ -1202,7 +1239,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1786022130191,
         #     "data": {
         #         "symbol": "PERP_BTC_USDC",
@@ -1234,7 +1271,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFutures(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1786022130191,
         #     "data": {
         #         "rows": [{
@@ -1292,7 +1329,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRateHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1393,7 +1430,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetFundingFeeHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "meta": {
@@ -1432,7 +1469,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientInfo(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "account_id": "<string>",
@@ -1443,7 +1480,7 @@ class woofipro(Exchange, ImplicitAPI):
         #         "maker_fee_rate": 123,
         #         "futures_taker_fee_rate": 123,
         #         "futures_maker_fee_rate": 123,
-        #         "maintenance_cancel_orders": True,
+        #         "maintenance_cancel_orders": true,
         #         "imr_factor": {
         #             "PERP_BTC_USDC": 123,
         #             "PERP_ETH_USDC": 123,
@@ -1497,7 +1534,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetOrderbookSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "asks": [{
@@ -1537,7 +1574,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: max=1000, max=100 when since is defined and is less than(now - (999 * (timeframe in ms)))
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1552,7 +1589,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1581,7 +1618,7 @@ class woofipro(Exchange, ImplicitAPI):
         # * cancelOrder
         # * fetchOrder
         # * fetchOrders
-        # isFromFetchOrder = ('order_tag' in order); TO_DO
+        # const isFromFetchOrder = ('order_tag' in order); TO_DO
         #
         # stop order after creating it:
         #   {
@@ -1601,7 +1638,7 @@ class woofipro(Exchange, ImplicitAPI):
         #       "algoType": "STOP_LOSS",
         #       "side": "BUY",
         #       "quantity": "0.1",
-        #       "isTriggered": False,
+        #       "isTriggered": false,
         #       "triggerPrice": "100",
         #       "triggerStatus": "USELESS",
         #       "type": "LIMIT",
@@ -1614,14 +1651,14 @@ class woofipro(Exchange, ImplicitAPI):
         #       "averageExecutedPrice": "0",
         #       "totalFee": "0",
         #       "feeAsset": '',
-        #       "reduceOnly": False,
+        #       "reduceOnly": false,
         #       "createdTime": "1686149609.744",
         #       "updatedTime": "1686149903.362"
         #   }
         #
         timestamp = self.safe_integer_n(order, ['timestamp', 'created_time', 'createdTime'])
         orderId = self.safe_string_n(order, ['order_id', 'orderId', 'algoOrderId'])
-        clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, self always returns 0 for limit order
+        clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, this always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -1646,7 +1683,7 @@ class woofipro(Exchange, ImplicitAPI):
         childOrders = self.safe_value(order, 'childOrders')
         if childOrders is not None:
             first = self.safe_value(childOrders, 0)
-            innerChildOrders = self.safe_value(first, 'childOrders', [])
+            innerChildOrders = self.safe_list(first, 'childOrders', [])
             innerChildOrdersLength = len(innerChildOrders)
             if innerChildOrdersLength > 0:
                 takeProfitOrder = self.safe_value(innerChildOrders, 0)
@@ -1707,7 +1744,7 @@ class woofipro(Exchange, ImplicitAPI):
                 'COMPLETED': 'closed',
             }
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def parse_order_type(self, type: Str):
         types = {
@@ -1831,7 +1868,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.algoType]: 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param str [params.clientOrderId]: a unique id for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1848,7 +1885,7 @@ class woofipro(Exchange, ImplicitAPI):
             response = await self.v1PrivatePostAlgoOrder(request)
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "timestamp": 1702989203989,
             #     "data": {
             #       "order_id": 13,
@@ -1862,7 +1899,7 @@ class woofipro(Exchange, ImplicitAPI):
             response = await self.v1PrivatePostOrder(request)
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "timestamp": 1702989203989,
             #     "data": {
             #       "order_id": 13,
@@ -1916,7 +1953,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivatePostBatchOrder(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "rows": [{
@@ -1995,12 +2032,12 @@ class woofipro(Exchange, ImplicitAPI):
             params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce'])
             if clientOrderId is not None:
                 request['client_order_id'] = clientOrderId
-            # request['side'] = side.upper()
-            # request['symbol'] = market['id']
+            # request['side'] = side.toUpperCase ();
+            # request['symbol'] = market['id'];
             response = await self.v1PrivatePutOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "EDIT_SENT"
@@ -2061,7 +2098,7 @@ class woofipro(Exchange, ImplicitAPI):
                 response = await self.v1PrivateDeleteOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "CANCEL_SENT"
@@ -2069,7 +2106,7 @@ class woofipro(Exchange, ImplicitAPI):
         # }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "status": "CANCEL_SENT"
         # }
@@ -2112,7 +2149,7 @@ class woofipro(Exchange, ImplicitAPI):
             response = await self.v1PrivateDeleteBatchOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "status": "CANCEL_ALL_SENT"
@@ -2150,13 +2187,13 @@ class woofipro(Exchange, ImplicitAPI):
             response = await self.v1PrivateDeleteOrders(self.extend(request, params))
         # trigger
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #      "status": "CANCEL_ALL_SENT"
         # }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "CANCEL_ALL_SENT"
@@ -2211,7 +2248,7 @@ class woofipro(Exchange, ImplicitAPI):
                 response = await self.v1PrivateGetOrderOid(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "order_id": 78151,
@@ -2288,7 +2325,7 @@ class woofipro(Exchange, ImplicitAPI):
             response = await self.v1PrivateGetOrders(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203988,
         #         "data": {
         #             "meta": {
@@ -2394,7 +2431,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetOrderOidTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -2452,7 +2489,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "meta": {
@@ -2509,7 +2546,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientHolding(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "holding": [{
@@ -2544,7 +2581,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetAssetHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "meta": {
@@ -2734,7 +2771,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetWithdrawNonce(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "withdraw_nonce": 1
@@ -2825,7 +2862,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivatePostWithdrawRequest(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "withdraw_id": 123
@@ -2866,7 +2903,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientMarginModes(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "rows": [{
@@ -2924,7 +2961,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989
         # }
         #
@@ -2933,7 +2970,7 @@ class woofipro(Exchange, ImplicitAPI):
     def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989
         #     }
         #
@@ -2976,7 +3013,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivatePostPositionMargin(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989
         # }
         #
@@ -3037,7 +3074,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientInfo(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "account_id": "<string>",
@@ -3048,7 +3085,7 @@ class woofipro(Exchange, ImplicitAPI):
         #         "maker_fee_rate": 123,
         #         "futures_taker_fee_rate": 123,
         #         "futures_maker_fee_rate": 123,
-        #         "maintenance_cancel_orders": True,
+        #         "maintenance_cancel_orders": true,
         #         "imr_factor": {
         #             "PERP_BTC_USDC": 123,
         #             "PERP_ETH_USDC": 123,
@@ -3173,7 +3210,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetPositionSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "IMR_withdraw_orders": 0.1,
@@ -3215,7 +3252,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetPositions(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "current_margin_ratio_with_orders": 1.2385,

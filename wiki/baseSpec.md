@@ -1063,6 +1063,7 @@ create a trade order
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.timeInForce | <code>string</code> | No | 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC' |
 | params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the quote currency |
 
 ##### Supported exchanges
@@ -1598,7 +1599,7 @@ edit a trade order
 | price | <code>float</code> | No | the price for the order, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>string</code> | No | the price to trigger a stop order |
-| params.timeInForce | <code>string</code> | No | for crypto trading either 'gtc' or 'ioc' can be used |
+| params.timeInForce | <code>string</code> | No | 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC' |
 | params.clientOrderId | <code>string</code> | No | a unique identifier for the order, automatically generated if not sent |
 
 ##### Supported exchanges
@@ -1887,7 +1888,9 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure). note that `info` is
+the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
 
 
 | Param | Type | Required | Description |
@@ -2248,6 +2251,7 @@ fetches information on multiple closed orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchclosedorders)
@@ -3160,6 +3164,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [grvt](/exchanges/grvt.md#fetchfundinghistory)
 * [htx](/exchanges/htx.md#fetchfundinghistory)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchfundinghistory)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchfundinghistory)
 * [kucoin](/exchanges/kucoin.md#fetchfundinghistory)
 * [mexc](/exchanges/mexc.md#fetchfundinghistory)
 * [modetrade](/exchanges/modetrade.md#fetchfundinghistory)
@@ -3168,6 +3173,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [pacifica](/exchanges/pacifica.md#fetchfundinghistory)
 * [paradex](/exchanges/paradex.md#fetchfundinghistory)
 * [phemex](/exchanges/phemex.md#fetchfundinghistory)
+* [weex](/exchanges/weex.md#fetchfundinghistory)
 * [whitebit](/exchanges/whitebit.md#fetchfundinghistory)
 * [woo](/exchanges/woo.md#fetchfundinghistory)
 * [woofipro](/exchanges/woofipro.md#fetchfundinghistory)
@@ -3395,6 +3401,7 @@ fetch the current funding rate for multiple symbols
 * [htx](/exchanges/htx.md#fetchfundingrates)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchfundingrates)
 * [krakenfutures](/exchanges/krakenfutures.md#fetchfundingrates)
+* [kucoin](/exchanges/kucoin.md#fetchfundingrates)
 * [lbank](/exchanges/lbank.md#fetchfundingrates)
 * [lighter](/exchanges/lighter.md#fetchfundingrates)
 * [modetrade](/exchanges/modetrade.md#fetchfundingrates)
@@ -4646,6 +4653,7 @@ fetch all unfilled currently open orders
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchopenorders)
@@ -5194,6 +5202,7 @@ fetches information on multiple orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchorders)
@@ -5973,6 +5982,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [tokocrypto](/exchanges/tokocrypto.md#fetchticker)
 * [upbit](/exchanges/upbit.md#fetchticker)
 * [whitebit](/exchanges/whitebit.md#fetchticker)
+* [woo](/exchanges/woo.md#fetchticker)
 * [woofipro](/exchanges/woofipro.md#fetchticker)
 * [xt](/exchanges/xt.md#fetchticker)
 * [zaif](/exchanges/zaif.md#fetchticker)
@@ -6093,6 +6103,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [upbit](/exchanges/upbit.md#fetchtickers)
 * [weex](/exchanges/weex.md#fetchtickers)
 * [whitebit](/exchanges/whitebit.md#fetchtickers)
+* [woo](/exchanges/woo.md#fetchtickers)
 * [woofipro](/exchanges/woofipro.md#fetchtickers)
 * [xt](/exchanges/xt.md#fetchtickers)
 * [zebpay](/exchanges/zebpay.md#fetchtickers)
@@ -8482,7 +8493,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [bithumb](/exchanges/bithumb.md#watchorderbook)
 * [bitmex](/exchanges/bitmex.md#watchorderbook)
 * [bitopro](/exchanges/bitopro.md#watchorderbook)
-* [bitstamp](/exchanges/bitstamp.md#watchorderbook)
 * [bittrade](/exchanges/bittrade.md#watchorderbook)
 * [bitvavo](/exchanges/bitvavo.md#watchorderbook)
 * [blockchaincom](/exchanges/blockchaincom.md#watchorderbook)
@@ -8596,7 +8606,6 @@ watches information on multiple orders made by the user
 * [bithumb](/exchanges/bithumb.md#watchorders)
 * [bitmex](/exchanges/bitmex.md#watchorders)
 * [bitrue](/exchanges/bitrue.md#watchorders)
-* [bitstamp](/exchanges/bitstamp.md#watchorders)
 * [bitvavo](/exchanges/bitvavo.md#watchorders)
 * [biofin](/exchanges/biofin.md#watchorders)
 * [bullish](/exchanges/bullish.md#watchorders)
@@ -8868,7 +8877,6 @@ watches information on multiple trades made in a market
 * [bitmex](/exchanges/bitmex.md#watchtrades)
 * [bitopro](/exchanges/bitopro.md#watchtrades)
 * [bitrue](/exchanges/bitrue.md#watchtrades)
-* [bitstamp](/exchanges/bitstamp.md#watchtrades)
 * [bittrade](/exchanges/bittrade.md#watchtrades)
 * [bitvavo](/exchanges/bitvavo.md#watchtrades)
 * [blockchaincom](/exchanges/blockchaincom.md#watchtrades)
@@ -8991,6 +8999,7 @@ make a withdrawal
 * [bittrade](/exchanges/bittrade.md#withdraw)
 * [bitvavo](/exchanges/bitvavo.md#withdraw)
 * [blockchaincom](/exchanges/blockchaincom.md#withdraw)
+* [blofin](/exchanges/blofin.md#withdraw)
 * [btcmarkets](/exchanges/btcmarkets.md#withdraw)
 * [bullish](/exchanges/bullish.md#withdraw)
 * [bybit](/exchanges/bybit.md#withdraw)

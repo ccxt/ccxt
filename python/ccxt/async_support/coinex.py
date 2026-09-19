@@ -339,6 +339,7 @@ class coinex(Exchange, ImplicitAPI):
                             'futures/basis-history': {'cost': 1},
                             'assets/deposit-withdraw-config': {'cost': 1},
                             'assets/all-deposit-withdraw-config': {'cost': 1},
+                            'assets/info': {'cost': 1},
                         },
                     },
                     'private': {
@@ -450,6 +451,8 @@ class coinex(Exchange, ImplicitAPI):
                             'futures/adjust-position-leverage': {'cost': 20},
                             'futures/set-position-stop-loss': {'cost': 20},
                             'futures/set-position-take-profit': {'cost': 20},
+                            'futures/modify-position-stop-loss': {'cost': 20},
+                            'futures/modify-position-take-profit': {'cost': 20},
                         },
                     },
                 },
@@ -647,7 +650,7 @@ class coinex(Exchange, ImplicitAPI):
                     '3008': RequestTimeout,  # Service busy, please try again later.
                     '3109': InsufficientFunds,  # {"code":3109,"data":{},"message":"balance not enough"}
                     '3127': InvalidOrder,  # The order quantity is below the minimum requirement. Please adjust the order quantity.
-                    '3157': BadSymbol,  # {"code":3157,"data":{},"message":"Service has been hasattr(self, stopped) market"}
+                    '3157': BadSymbol,  # {"code":3157,"data":{},"message":"Service has been stopped in this market"}
                     '3600': OrderNotFound,  # {"code":3600,"data":{},"message":"Order not found"}
                     '3606': InvalidOrder,  # The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610': ExchangeError,  # Order cancellation prohibited during the Call Auction period.
@@ -661,7 +664,7 @@ class coinex(Exchange, ImplicitAPI):
                     '3619': InvalidOrder,  # The deviation between your order price and the trigger price is too high. Please adjust your order price and try again.
                     '3620': InvalidOrder,  # Market order submission is temporarily unavailable due to insufficient depth in the current market
                     '3621': InvalidOrder,  # This order can't be completely executed and has been canceled.
-                    '3622': InvalidOrder,  # This order can't be set Only and has been canceled.
+                    '3622': InvalidOrder,  # This order can't be set as Maker Only and has been canceled.
                     '3627': InvalidOrder,  # The current market depth is low, please reduce your order amount and try again.
                     '3628': InvalidOrder,  # The current market depth is low, please reduce your order amount and try again.
                     '3629': InvalidOrder,  # The current market depth is low, please reduce your order amount and try again.
@@ -682,7 +685,7 @@ class coinex(Exchange, ImplicitAPI):
                     '4011': PermissionDenied,  # User prohibited from accessing, please contact customer service for help.
                     '4017': ExchangeError,  # Signature expired, please try again later.
                     '4115': AccountSuspended,  # User prohibited from trading, please contact customer service for help.
-                    '4117': BadSymbol,  # Trading hasattr(self, prohibited) market, please try again later.
+                    '4117': BadSymbol,  # Trading prohibited in this market, please try again later.
                     '4123': RateLimitExceeded,  # Rate limit triggered. Please adjust your strategy and reduce the request rate.
                     '4130': ExchangeError,  # Futures trading prohibited, please try again later.
                     '4158': ExchangeError,  # Trading prohibited, please try again later.
@@ -715,18 +718,18 @@ class coinex(Exchange, ImplicitAPI):
         #             {
         #                 "asset": {
         #                     "ccy": "CET",
-        #                     "deposit_enabled": True,
-        #                     "withdraw_enabled": True,
-        #                     "inter_transfer_enabled": True,
-        #                     "is_st": False
+        #                     "deposit_enabled": true,
+        #                     "withdraw_enabled": true,
+        #                     "inter_transfer_enabled": true,
+        #                     "is_st": false
         #                 },
         #                 "chains": [
         #                     {
         #                         "chain": "CSC",
         #                         "min_deposit_amount": "0.8",
         #                         "min_withdraw_amount": "8",
-        #                         "deposit_enabled": True,
-        #                         "withdraw_enabled": True,
+        #                         "deposit_enabled": true,
+        #                         "withdraw_enabled": true,
         #                         "deposit_delay_minutes": 0,
         #                         "safe_confirmations": 10,
         #                         "irreversible_confirmations": 20,
@@ -734,7 +737,7 @@ class coinex(Exchange, ImplicitAPI):
         #                         "withdrawal_fee": "0.026",
         #                         "withdrawal_precision": 8,
         #                         "memo": "",
-        #                         "is_memo_required_for_deposit": False,
+        #                         "is_memo_required_for_deposit": false,
         #                         "explorer_asset_url": ""
         #                     },
         #                 ]
@@ -847,10 +850,10 @@ class coinex(Exchange, ImplicitAPI):
         #                 "quote_ccy": "USDT",
         #                 "base_ccy_precision": 8,
         #                 "quote_ccy_precision": 2,
-        #                 "is_amm_available": True,
-        #                 "is_margin_available": True,
-        #                 "is_pre_trading_available": True,
-        #                 "is_api_trading_available": True
+        #                 "is_amm_available": true,
+        #                 "is_margin_available": true,
+        #                 "is_pre_trading_available": true,
+        #                 "is_api_trading_available": true
         #             }
         #         ],
         #         "message": "OK"
@@ -1294,7 +1297,7 @@ class coinex(Exchange, ImplicitAPI):
             #                 "last": "70851.94",
             #                 "updated_at": 1712824003252
             #             },
-            #             "is_full": True,
+            #             "is_full": true,
             #             "market": "BTCUSDT"
             #         },
             #         "message": "OK"
@@ -1321,7 +1324,7 @@ class coinex(Exchange, ImplicitAPI):
             #                 "last": "70857.19",
             #                 "updated_at": 1712823790987
             #             },
-            #             "is_full": True,
+            #             "is_full": true,
             #             "market": "BTCUSDT"
             #         },
             #         "message": "OK"
@@ -1334,7 +1337,7 @@ class coinex(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # Spot and Swap fetchTrades(public)
+        # Spot and Swap fetchTrades (public)
         #
         #     {
         #         "amount": "0.00049432",
@@ -1344,7 +1347,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "side": "buy"
         #     }
         #
-        # Spot and Margin fetchMyTrades(private)
+        # Spot and Margin fetchMyTrades (private)
         #
         #     {
         #         "amount": "0.00010087",
@@ -1357,7 +1360,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "side": "sell"
         #     }
         #
-        # Swap fetchMyTrades(private)
+        # Swap fetchMyTrades (private)
         #
         #     {
         #         "deal_id": 1180222387,
@@ -1476,8 +1479,8 @@ class coinex(Exchange, ImplicitAPI):
             #             {
             #                 "base_ccy": "BTC",
             #                 "base_ccy_precision": 8,
-            #                 "is_amm_available": False,
-            #                 "is_margin_available": True,
+            #                 "is_amm_available": false,
+            #                 "is_margin_available": true,
             #                 "maker_fee_rate": "0.002",
             #                 "market": "BTCUSDT",
             #                 "min_amount": "0.0001",
@@ -1563,8 +1566,8 @@ class coinex(Exchange, ImplicitAPI):
             #             {
             #                 "base_ccy": "BTC",
             #                 "base_ccy_precision": 8,
-            #                 "is_amm_available": False,
-            #                 "is_margin_available": True,
+            #                 "is_amm_available": false,
+            #                 "is_margin_available": true,
             #                 "maker_fee_rate": "0.002",
             #                 "market": "BTCUSDT",
             #                 "min_amount": "0.0001",
@@ -1607,8 +1610,8 @@ class coinex(Exchange, ImplicitAPI):
         #         "low": "66988.53",
         #         "market": "BTCUSDT",
         #         "open": "66988.53",
-        #         "value": "0.1572393",        # base volume
-        #         "volume": "10533.2501364336"  # quote volume
+        #         "value": "0.1572393",        // base volume
+        #         "volume": "10533.2501364336" // quote volume
         #     }
         #
         return [
@@ -1632,7 +1635,7 @@ class coinex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -2209,7 +2212,7 @@ class coinex(Exchange, ImplicitAPI):
                 params = self.omit(params, 'cost')
                 if createMarketBuyOrderRequiresPrice:
                     if (price is None) and (cost is None):
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -3511,7 +3514,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         ],
                     #         "message": "OK",
                     #         "pagination": {
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3543,7 +3546,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         ],
                     #         "message": "OK",
                     #         "pagination": {
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3573,7 +3576,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK",
                     #         "pagination": {
                     #             "total": 1,
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3609,7 +3612,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK",
                     #         "pagination": {
                     #             "total": 1,
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3646,7 +3649,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         ],
                     #         "message": "OK",
                     #         "pagination": {
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3680,7 +3683,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         ],
                     #         "message": "OK",
                     #         "pagination": {
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3711,7 +3714,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK",
                     #         "pagination": {
                     #             "total": 1,
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3748,7 +3751,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK",
                     #         "pagination": {
                     #             "total": 1,
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3941,7 +3944,7 @@ class coinex(Exchange, ImplicitAPI):
             #         ],
             #         "message": "OK",
             #         "pagination": {
-            #             "has_next": True
+            #             "has_next": true
             #         }
             #     }
             #
@@ -3970,7 +3973,7 @@ class coinex(Exchange, ImplicitAPI):
             #         ],
             #         "message": "OK",
             #         "pagination": {
-            #             "has_next": True
+            #             "has_next": true
             #         }
             #     }
             #
@@ -4053,7 +4056,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": False
+        #             "has_next": false
         #         }
         #     }
         #
@@ -4120,7 +4123,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": False
+        #             "has_next": false
         #         }
         #     }
         #
@@ -4555,7 +4558,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": True
+        #             "has_next": true
         #         }
         #     }
         #
@@ -4846,7 +4849,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": True
+        #             "has_next": true
         #         }
         #     }
         #
@@ -5089,7 +5092,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "pagination": {
         #             "total": 8,
-        #             "has_next": False
+        #             "has_next": false
         #         },
         #         "code": 0,
         #         "message": "OK"
@@ -5146,7 +5149,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "pagination": {
         #             "total": 9,
-        #             "has_next": True
+        #             "has_next": true
         #         },
         #         "code": 0,
         #         "message": "OK"
@@ -5200,7 +5203,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "paginatation": {
         #             "total": 8,
-        #             "has_next": True
+        #             "has_next": true
         #         },
         #         "code": 0,
         #         "message": "OK"
@@ -5318,13 +5321,13 @@ class coinex(Exchange, ImplicitAPI):
         #                 "expired_at": 1655625016000,
         #                 "borrow_amount": "100",
         #                 "to_repaied_amount": "0",
-        #                 "is_auto_renew": False,
+        #                 "is_auto_renew": false,
         #                 "status": "finish"
         #             },
         #         ],
         #         "pagination": {
         #             "total": 4,
-        #             "has_next": True
+        #             "has_next": true
         #         },
         #         "code": 0,
         #         "message": "OK"
@@ -5345,7 +5348,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "expired_at": 1655625016000,
         #         "borrow_amount": "100",
         #         "to_repaied_amount": "0",
-        #         "is_auto_renew": False,
+        #         "is_auto_renew": false,
         #         "status": "finish"
         #     }
         #
@@ -5499,18 +5502,18 @@ class coinex(Exchange, ImplicitAPI):
         #         "data": {
         #             "asset": {
         #                 "ccy": "USDT",
-        #                 "deposit_enabled": True,
-        #                 "withdraw_enabled": True,
-        #                 "inter_transfer_enabled": True,
-        #                 "is_st": False
+        #                 "deposit_enabled": true,
+        #                 "withdraw_enabled": true,
+        #                 "inter_transfer_enabled": true,
+        #                 "is_st": false
         #             },
         #             "chains": [
         #                 {
         #                     "chain": "TRC20",
         #                     "min_deposit_amount": "2.4",
         #                     "min_withdraw_amount": "2.4",
-        #                     "deposit_enabled": True,
-        #                     "withdraw_enabled": True,
+        #                     "deposit_enabled": true,
+        #                     "withdraw_enabled": true,
         #                     "deposit_delay_minutes": 0,
         #                     "safe_confirmations": 10,
         #                     "irreversible_confirmations": 20,
@@ -5518,7 +5521,7 @@ class coinex(Exchange, ImplicitAPI):
         #                     "withdrawal_fee": "2.4",
         #                     "withdrawal_precision": 6,
         #                     "memo": "",
-        #                     "is_memo_required_for_deposit": False,
+        #                     "is_memo_required_for_deposit": false,
         #                     "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
         #                 },
         #             ]
@@ -5549,18 +5552,18 @@ class coinex(Exchange, ImplicitAPI):
         #             {
         #                 "asset": {
         #                     "ccy": "CET",
-        #                     "deposit_enabled": True,
-        #                     "withdraw_enabled": True,
-        #                     "inter_transfer_enabled": True,
-        #                     "is_st": False
+        #                     "deposit_enabled": true,
+        #                     "withdraw_enabled": true,
+        #                     "inter_transfer_enabled": true,
+        #                     "is_st": false
         #                 },
         #                 "chains": [
         #                     {
         #                         "chain": "CSC",
         #                         "min_deposit_amount": "0.8",
         #                         "min_withdraw_amount": "8",
-        #                         "deposit_enabled": True,
-        #                         "withdraw_enabled": True,
+        #                         "deposit_enabled": true,
+        #                         "withdraw_enabled": true,
         #                         "deposit_delay_minutes": 0,
         #                         "safe_confirmations": 10,
         #                         "irreversible_confirmations": 20,
@@ -5568,7 +5571,7 @@ class coinex(Exchange, ImplicitAPI):
         #                         "withdrawal_fee": "0.026",
         #                         "withdrawal_precision": 8,
         #                         "memo": "",
-        #                         "is_memo_required_for_deposit": False,
+        #                         "is_memo_required_for_deposit": false,
         #                         "explorer_asset_url": ""
         #                     },
         #                 ]
@@ -5596,18 +5599,18 @@ class coinex(Exchange, ImplicitAPI):
         #     {
         #         "asset": {
         #             "ccy": "USDT",
-        #             "deposit_enabled": True,
-        #             "withdraw_enabled": True,
-        #             "inter_transfer_enabled": True,
-        #             "is_st": False
+        #             "deposit_enabled": true,
+        #             "withdraw_enabled": true,
+        #             "inter_transfer_enabled": true,
+        #             "is_st": false
         #         },
         #         "chains": [
         #             {
         #                 "chain": "TRC20",
         #                 "min_deposit_amount": "2.4",
         #                 "min_withdraw_amount": "2.4",
-        #                 "deposit_enabled": True,
-        #                 "withdraw_enabled": True,
+        #                 "deposit_enabled": true,
+        #                 "withdraw_enabled": true,
         #                 "deposit_delay_minutes": 0,
         #                 "safe_confirmations": 10,
         #                 "irreversible_confirmations": 20,
@@ -5615,7 +5618,7 @@ class coinex(Exchange, ImplicitAPI):
         #                 "withdrawal_fee": "2.4",
         #                 "withdrawal_precision": 6,
         #                 "memo": "",
-        #                 "is_memo_required_for_deposit": False,
+        #                 "is_memo_required_for_deposit": false,
         #                 "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
         #             },
         #         ]
@@ -5786,7 +5789,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": False
+        #             "has_next": false
         #         }
         #     }
         #
@@ -6035,7 +6038,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": True
+        #             "has_next": true
         #         }
         #     }
         #

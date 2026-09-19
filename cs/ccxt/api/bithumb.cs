@@ -207,6 +207,20 @@ public partial class bithumb : Exchange
         return await this.callAsync<List<object>> ("privateGetV1Orders",parameters);
     }
 
+    /// <summary>Calls the privateGetV2OrdersPending endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV2OrdersPending (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV2OrdersPending",parameters);
+    }
+
+    /// <summary>Calls the privateGetV2OrdersHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV2OrdersHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV2OrdersHistory",parameters);
+    }
+
     /// <summary>Calls the privateGetV1Twap endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetV1Twap (object parameters = null)
@@ -422,6 +436,13 @@ public partial class bithumb : Exchange
     public async Task<Dictionary<string, object>> privatePostV2OrdersCancel (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostV2OrdersCancel",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2OrdersSearch endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostV2OrdersSearch (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostV2OrdersSearch",parameters);
     }
 
     /// <summary>Calls the privatePostV1Twap endpoint.</summary>

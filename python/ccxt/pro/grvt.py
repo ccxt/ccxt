@@ -62,11 +62,11 @@ class grvt(ccxt.async_support.grvt):
         #     jsonrpc: '2.0',
         #     result: {
         #         stream: 'v1.mini.d',
-        #         subs: ['BTC_USDT_Perp@500'],
+        #         subs: [ 'BTC_USDT_Perp@500' ],
         #         unsubs: [],
-        #         num_snapshots: [1],
-        #         first_sequence_number: ['1061214'],
-        #         latest_sequence_number: ['1061213']
+        #         num_snapshots: [ 1 ],
+        #         first_sequence_number: [ '1061214' ],
+        #         latest_sequence_number: [ '1061213' ]
         #     },
         #     id: 1,
         #     method: 'subscribe'
@@ -269,7 +269,7 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(ticker, 'ticker::' + symbol)
 
     def parse_ws_ticker(self, message: object, market: Market = None):
-        # same dict api
+        # same dict as REST api
         return self.parse_ticker(message, market)
 
     def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
@@ -331,7 +331,7 @@ class grvt(ccxt.async_support.grvt):
         #        "feed": {
         #            "event_time": "1767257046164798775",
         #            "instrument": "BTC_USDT_Perp",
-        #            "is_taker_buyer": True,
+        #            "is_taker_buyer": true,
         #            "size": "0.001",
         #            "price": "87700.1",
         #            "mark_price": "87700.817100682",
@@ -340,7 +340,7 @@ class grvt(ccxt.async_support.grvt):
         #            "forward_price": "0.0",
         #            "trade_id": "73808524-19",
         #            "venue": "ORDERBOOK",
-        #            "is_rpi": False
+        #            "is_rpi": false
         #        },
         #        "prev_sequence_number": "0"
         #    }
@@ -360,7 +360,7 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(stored, 'trade::' + symbol)
 
     def parse_ws_trade(self, trade: object, market: Market = None):
-        # same api
+        # same as REST api
         return self.parse_trade(trade, market)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
@@ -374,7 +374,7 @@ class grvt(ccxt.async_support.grvt):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -393,7 +393,7 @@ class grvt(ccxt.async_support.grvt):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
+        :returns dict: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -460,7 +460,7 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(resolveData, messageHash)
 
     def parse_ws_ohlcv(self, ohlcv: object, market: Market = None) -> list:
-        # same api
+        # same as REST api
         return self.parse_ohlcv(ohlcv, market)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -572,11 +572,11 @@ class grvt(ccxt.async_support.grvt):
             self.handle_deltas_with_keys(orderbook['bids'], bids, 'price', 'size')
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
-        # grvt defaults to the delta channel(v1.book.d); if the very first
+        # grvt defaults to the delta channel (v1.book.d); if the very first
         # message is a delta, the freshly-created orderbook has symbol=null
         # because no snapshot has reset it yet. Set it unconditionally — we
         # know the symbol from the selector regardless of channel. Java's
-        # typed WsOrderBook surfaces self as `"symbol":null` in the output
+        # typed WsOrderBook surfaces this as `"symbol":null` in the output;
         # Python/JS dict-backed orderbooks happen to mask it but the
         # unconditional assignment is correct for every language.
         orderbook['symbol'] = symbol
@@ -653,8 +653,8 @@ class grvt(ccxt.async_support.grvt):
         #            "event_time": "1767354369431470728",
         #            "sub_account_id": "2147050003876484",
         #            "instrument": "BTC_USDT_Perp",
-        #            "is_buyer": True,
-        #            "is_taker": True,
+        #            "is_buyer": true,
+        #            "is_taker": true,
         #            "size": "0.001",
         #            "price": "89473.4",
         #            "mark_price": "89475.966335827",
@@ -667,11 +667,11 @@ class grvt(ccxt.async_support.grvt):
         #            "trade_id": "74150425-1",
         #            "order_id": "0x0101010503a12f6e000000007791f1bd",
         #            "venue": "ORDERBOOK",
-        #            "is_liquidation": False,
+        #            "is_liquidation": false,
         #            "client_order_id": "99191900",
         #            "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
         #            "broker": "UNSPECIFIED",
-        #            "is_rpi": False,
+        #            "is_rpi": false,
         #            "builder": "0x00",
         #            "builder_fee_rate": "0.0",
         #            "builder_fee": "0"
@@ -769,7 +769,7 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(newPositions, 'positions')
 
     def parse_ws_position(self, position: object, market: Market = None):
-        # same api
+        # same as REST api
         return self.parse_position(position, market)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
@@ -815,16 +815,16 @@ class grvt(ccxt.async_support.grvt):
         #        "feed": {
         #            "order_id": "0x010101050390cd89000000007799a374",
         #            "sub_account_id": "2147050003876484",
-        #            "is_market": False,
+        #            "is_market": false,
         #            "time_in_force": "GOOD_TILL_TIME",
-        #            "post_only": False,
-        #            "reduce_only": False,
+        #            "post_only": false,
+        #            "reduce_only": false,
         #            "legs": [
         #                {
         #                    "instrument": "BTC_USDT_Perp",
         #                    "size": "0.001",
         #                    "limit_price": "87443.0",
-        #                    "is_buying_asset": True
+        #                    "is_buying_asset": true
         #                }
         #            ],
         #            "signature": {
@@ -844,12 +844,12 @@ class grvt(ccxt.async_support.grvt):
         #                    "tpsl": {
         #                        "trigger_by": "UNSPECIFIED",
         #                        "trigger_price": "0.0",
-        #                        "close_position": False
+        #                        "close_position": false
         #                    }
         #                },
         #                "broker": "UNSPECIFIED",
-        #                "is_position_transfer": False,
-        #                "allow_crossing": False
+        #                "is_position_transfer": false,
+        #                "allow_crossing": false
         #            },
         #            "state": {
         #                "status": "OPEN",
@@ -881,7 +881,7 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(self.orders, 'order::' + order['symbol'])
 
     def parse_ws_order(self, order: object, market: Market = None) -> Order:
-        # same api
+        # same as REST api
         return self.parse_order(order, market)
 
     def handle_error_message(self, client: Client, response: object) -> Bool:

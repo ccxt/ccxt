@@ -179,6 +179,16 @@ class toobit(Exchange, ImplicitAPI):
                         'api/v1/agent/user/export': {'cost': 1},
                         'api/v1/agent/export-list': {'cost': 1},
                         'api/v1/agent/export-url': {'cost': 1},
+                        # v2
+                        'api/v2/account/balance-flow': {'cost': 5},
+                        'api/v2/futures/order': {'cost': 1 * 1.67},
+                        'api/v2/futures/open-orders': {'cost': 1 * 1.67},
+                        'api/v2/futures/history-orders': {'cost': 5 * 1.67},
+                        'api/v2/futures/user-trades': {'cost': 5 * 1.67},
+                        'api/v2/futures/algo-order': {'cost': 1 * 1.67},
+                        'api/v2/futures/open-algo-orders': {'cost': 1 * 1.67},
+                        'api/v2/futures/history-algo-orders': {'cost': 5 * 1.67},
+                        'api/v2/futures/voucher/list': {'cost': 5},
                     },
                     'post': {
                         'api/v1/spot/orderTest': {'cost': 1 * 1.67},
@@ -238,7 +248,7 @@ class toobit(Exchange, ImplicitAPI):
                 'exact': {
                     '-1000': OperationFailed,  # An unknown error occurred while processing the request.
                     '-1001': OperationFailed,  # Internal error; unable to process your request. Please try again.
-                    '-1002': PermissionDenied,  # You are not authorized to execute self request.
+                    '-1002': PermissionDenied,  # You are not authorized to execute this request.
                     '-1003': RateLimitExceeded,  # Too many requests queued.
                     '-1004': BadRequest,  # {"code":-1004,"msg":"Missing required parameter \u0027xyz\u0027"} | {"code":-1004,"msg":"Bad request"}
                     '-1005': PermissionDenied,  # No Permission
@@ -248,19 +258,19 @@ class toobit(Exchange, ImplicitAPI):
                     '-1015': RateLimitExceeded,  # Reach the rate limit .Please slow down your request speed.
                     '-1016': OperationRejected,  # This service is no longer available.
                     '-1020': OperationRejected,  # This operation is not supported.
-                    '-1021': OperationRejected,  # Timestamp for self request is outside of the recvWindow.
-                    '-1022': OperationRejected,  # Signature for self request is not valid.
+                    '-1021': OperationRejected,  # Timestamp for this request is outside of the recvWindow.
+                    '-1022': OperationRejected,  # Signature for this request is not valid.
                     '-1023': PermissionDenied,  # Please set IP whitelist before using API
                     '-1031': OperationRejected,  # The feature has been suspended
                     '-1100': BadRequest,  # Illegal characters found in a parameter.
-                    '-1101': BadRequest,  # Too many parameters sent for self endpoint.
+                    '-1101': BadRequest,  # Too many parameters sent for this endpoint.
                     '-1102': BadRequest,  # A mandatory parameter was not sent, was empty/null, or malformed.
                     '-1103': BadRequest,  # An unknown parameter was sent.
                     '-1104': BadRequest,  # Not all sent parameters were read.
                     '-1105': BadRequest,  # A parameter was empty.
                     '-1106': BadRequest,  # A parameter was sent when not required.
                     '-1107': PermissionDenied,  # The accessKey is missing from the request header or parameters, or the accessKey is not in the correct format.
-                    '-1111': BadRequest,  # Precision is over the maximum defined for self asset.
+                    '-1111': BadRequest,  # Precision is over the maximum defined for this asset.
                     '-1112': OperationRejected,  # No orders on book for symbol.
                     '-1114': BadRequest,  # TimeInForce parameter sent when not required.
                     '-1115': BadRequest,  # Invalid timeInForce.
@@ -663,15 +673,15 @@ class toobit(Exchange, ImplicitAPI):
         #                "quoteAsset": "USDT",
         #                "quoteAssetName": "USDT",
         #                "quotePrecision": "0.01",
-        #                "icebergAllowed": False,
-        #                "isAggregate": False,
-        #                "allowMargin": True,
+        #                "icebergAllowed": false,
+        #                "isAggregate": false,
+        #                "allowMargin": true,
         #             }
         #        ],
         #        "options": [],
         #        "contracts": [
         #            {
-        #                 "filters": [...],
+        #                 "filters": [ ... ],
         #                 "exchangeId": "301",
         #                 "symbol": "BTC-SWAP-USDT",
         #                 "symbolName": "BTC-SWAP-USDTUSDT",
@@ -680,8 +690,8 @@ class toobit(Exchange, ImplicitAPI):
         #                 "baseAssetPrecision": "0.001",
         #                 "quoteAsset": "USDT",
         #                 "quoteAssetPrecision": "0.1",
-        #                 "icebergAllowed": False,
-        #                 "inverse": False,
+        #                 "icebergAllowed": false,
+        #                 "inverse": false,
         #                 "index": "BTC",
         #                 "indexToken": "BTCUSDT",
         #                 "marginToken": "USDT",
@@ -694,14 +704,14 @@ class toobit(Exchange, ImplicitAPI):
         #                         "quantity": "42000.0",
         #                         "initialMargin": "0.02",
         #                         "maintMargin": "0.01",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     },
         #                     {
         #                         "riskLimitId": "200020912",
         #                         "quantity": "84000.0",
         #                         "initialMargin": "0.04",
         #                         "maintMargin": "0.02",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     },
         #                     ...
         #                 ]
@@ -713,8 +723,8 @@ class toobit(Exchange, ImplicitAPI):
         #                "coinId": "TCOM",
         #                "coinName": "TCOM",
         #                "coinFullName": "TCOM",
-        #                "allowWithdraw": True,
-        #                "allowDeposit": True,
+        #                "allowWithdraw": true,
+        #                "allowDeposit": true,
         #                "chainTypes": [
         #                    {
         #                        "chainType": "BSC",
@@ -722,11 +732,11 @@ class toobit(Exchange, ImplicitAPI):
         #                        "minWithdrawQuantity": "77",
         #                        "maxWithdrawQuantity": "0",
         #                        "minDepositQuantity": "48",
-        #                        "allowDeposit": True,
-        #                        "allowWithdraw": False
+        #                        "allowDeposit": true,
+        #                        "allowWithdraw": false
         #                    }
         #                ],
-        #                "isVirtual": False
+        #                "isVirtual": false
         #            },
         #          ...
         #
@@ -871,15 +881,15 @@ class toobit(Exchange, ImplicitAPI):
         #                "quoteAsset": "USDT",
         #                "quoteAssetName": "USDT",
         #                "quotePrecision": "0.01",
-        #                "icebergAllowed": False,
-        #                "isAggregate": False,
-        #                "allowMargin": True,
+        #                "icebergAllowed": false,
+        #                "isAggregate": false,
+        #                "allowMargin": true,
         #             }
         #        ],
         #        "options": [],
         #        "contracts": [
         #            {
-        #                 "filters": [...],
+        #                 "filters": [ ... ],
         #                 "exchangeId": "301",
         #                 "symbol": "BTC-SWAP-USDT",
         #                 "symbolName": "BTC-SWAP-USDTUSDT",
@@ -888,8 +898,8 @@ class toobit(Exchange, ImplicitAPI):
         #                 "baseAssetPrecision": "0.001",
         #                 "quoteAsset": "USDT",
         #                 "quoteAssetPrecision": "0.1",
-        #                 "icebergAllowed": False,
-        #                 "inverse": False,
+        #                 "icebergAllowed": false,
+        #                 "inverse": false,
         #                 "index": "BTC",
         #                 "indexToken": "BTCUSDT",
         #                 "marginToken": "USDT",
@@ -902,14 +912,14 @@ class toobit(Exchange, ImplicitAPI):
         #                         "quantity": "42000.0",
         #                         "initialMargin": "0.02",
         #                         "maintMargin": "0.01",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     },
         #                     {
         #                         "riskLimitId": "200020912",
         #                         "quantity": "84000.0",
         #                         "initialMargin": "0.04",
         #                         "maintMargin": "0.02",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     },
         #                     ...
         #                 ]
@@ -921,8 +931,8 @@ class toobit(Exchange, ImplicitAPI):
         #                "coinId": "TCOM",
         #                "coinName": "TCOM",
         #                "coinFullName": "TCOM",
-        #                "allowWithdraw": True,
-        #                "allowDeposit": True,
+        #                "allowWithdraw": true,
+        #                "allowDeposit": true,
         #                "chainTypes": [
         #                    {
         #                        "chainType": "BSC",
@@ -930,11 +940,11 @@ class toobit(Exchange, ImplicitAPI):
         #                        "minWithdrawQuantity": "77",
         #                        "maxWithdrawQuantity": "0",
         #                        "minDepositQuantity": "48",
-        #                        "allowDeposit": True,
-        #                        "allowWithdraw": False
+        #                        "allowDeposit": true,
+        #                        "allowWithdraw": false
         #                    }
         #                ],
-        #                "isVirtual": False
+        #                "isVirtual": false
         #            },
         #          ...
         #
@@ -1100,7 +1110,7 @@ class toobit(Exchange, ImplicitAPI):
         #            "t": "1755594277287",
         #            "p": "115276.99",
         #            "q": "0.001508",
-        #            "ibm": True
+        #            "ibm": true
         #        },
         #    ]
         #
@@ -1114,11 +1124,11 @@ class toobit(Exchange, ImplicitAPI):
         #            "t": "1755594277287",
         #            "p": "115276.99",
         #            "q": "0.001508",
-        #            "ibm": True
+        #            "ibm": true
         #        },
-        #        # watchTrades have also an additional fields:
-        #             "v": "4864732022868004630",   # trade id
-        #             "m": True,                    # is the buyer taker
+        #        // watchTrades have also an additional fields:
+        #             "v": "4864732022868004630",   // trade id
+        #             "m": true,                    // is the buyer taker
         #
         # fetchMyTrades
         #
@@ -1130,22 +1140,22 @@ class toobit(Exchange, ImplicitAPI):
         #            "price": "4641.21",
         #            "qty": "0.001",
         #            "time": "1756127012094",
-        #            "isMaker": False,
+        #            "isMaker": false,
         #            "commission": "0.00464121",
         #            "commissionAsset": "USDT",
         #            "makerRebate": "0",
-        #            "symbolName": "ETHUSDT",                 # only in SPOT
-        #            "isBuyer": False,                        # only in SPOT
-        #            "feeAmount": "0.00464121",               # only in SPOT
-        #            "feeCoinId": "USDT",                     # only in SPOT
-        #            "fee": {                                # only in SPOT
+        #            "symbolName": "ETHUSDT",                 // only in SPOT
+        #            "isBuyer": false,                        // only in SPOT
+        #            "feeAmount": "0.00464121",               // only in SPOT
+        #            "feeCoinId": "USDT",                     // only in SPOT
+        #            "fee": {                                 // only in SPOT
         #                "feeCoinId": "USDT",
         #                "feeCoinName": "USDT",
         #                "fee": "0.00464121"
         #            },
-        #            "type": "LIMIT",                         # only in CONTRACT
-        #            "side": "BUY_OPEN",                      # only in CONTRACT
-        #            "realizedPnl": "0",                      # only in CONTRACT
+        #            "type": "LIMIT",                         // only in CONTRACT
+        #            "side": "BUY_OPEN",                      // only in CONTRACT
+        #            "realizedPnl": "0",                      // only in CONTRACT
         #        },
         #
         timestamp = self.safe_integer_2(trade, 't', 'time')
@@ -1212,7 +1222,7 @@ class toobit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1625,12 +1635,12 @@ class toobit(Exchange, ImplicitAPI):
             #
             #     [
             #         {
-            #             "asset": "USDT",  # asset
-            #             "balance": "999999999999.982",  # total
-            #             "availableBalance": "1899999999978.4995",  # available balance Include unrealized pnl
-            #             "positionMargin": "11.9825",  #position Margin
-            #             "orderMargin": "9.5",  #order Margin
-            #             "crossUnRealizedPnl": "10.01"  #The unrealized profit and loss of cross position
+            #             "asset": "USDT", // asset
+            #             "balance": "999999999999.982", // total
+            #             "availableBalance": "1899999999978.4995", // available balance Include unrealized pnl
+            #             "positionMargin": "11.9825", //position Margin
+            #             "orderMargin": "9.5", //order Margin
+            #             "crossUnRealizedPnl": "10.01" //The unrealized profit and loss of cross position
             #         }
             #     ]
             #
@@ -1684,7 +1694,7 @@ class toobit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1710,15 +1720,15 @@ class toobit(Exchange, ImplicitAPI):
         #         "timeInForce": "GTC",
         #         "type": "MARKET",
         #         "side": "SELL"
-        #         "accountId": "1783404067076253952",    # only in spot
-        #         "symbolName": "ETHUSDT",               # only in spot
-        #         "transactTime": "1756115478604",       # only in spot
-        #         "time": "1668418485058",               # only in contract
-        #         "updateTime": "1668418485058",         # only in contract
-        #         "leverage": "2",                       # only in contract
-        #         "avgPrice": "0",                       # only in contract
-        #         "marginLocked": "9.5",                 # only in contract
-        #         "priceType": "INPUT"                   # only in contract
+        #         "accountId": "1783404067076253952",    // only in spot
+        #         "symbolName": "ETHUSDT",               // only in spot
+        #         "transactTime": "1756115478604",       // only in spot
+        #         "time": "1668418485058",               // only in contract
+        #         "updateTime": "1668418485058",         // only in contract
+        #         "leverage": "2",                       // only in contract
+        #         "avgPrice": "0",                       // only in contract
+        #         "marginLocked": "9.5",                 // only in contract
+        #         "priceType": "INPUT"                   // only in contract
         #     }
         #
         return self.parse_order(response, market)
@@ -1775,7 +1785,7 @@ class toobit(Exchange, ImplicitAPI):
             request['type'] = type.upper()
             request['price'] = self.price_to_precision(symbol, price)
         elif type == 'market':
-            request['type'] = 'LIMIT'  # weird, but exchange works self way
+            request['type'] = 'LIMIT'  # weird, but exchange works this way
             request['priceType'] = 'MARKET'
         isPostOnly = None
         isPostOnly, params = self.handle_post_only(type == 'market', False, params)
@@ -1833,15 +1843,15 @@ class toobit(Exchange, ImplicitAPI):
         #         "timeInForce": "GTC",
         #         "type": "MARKET",
         #         "side": "SELL"
-        #         "accountId": "1783404067076253952",    # only in spot
-        #         "symbolName": "ETHUSDT",               # only in spot
-        #         "transactTime": "1756115478604",       # only in spot
-        #         "time": "1668418485058",               # only in contract
-        #         "updateTime": "1668418485058",         # only in contract
-        #         "leverage": "2",                       # only in contract
-        #         "avgPrice": "0",                       # only in contract
-        #         "marginLocked": "9.5",                 # only in contract
-        #         "priceType": "INPUT"                   # only in contract
+        #         "accountId": "1783404067076253952",    // only in spot
+        #         "symbolName": "ETHUSDT",               // only in spot
+        #         "transactTime": "1756115478604",       // only in spot
+        #         "time": "1668418485058",               // only in contract
+        #         "updateTime": "1668418485058",         // only in contract
+        #         "leverage": "2",                       // only in contract
+        #         "avgPrice": "0",                       // only in contract
+        #         "marginLocked": "9.5",                 // only in contract
+        #         "priceType": "INPUT"                   // only in contract
         #     }
         #
         #
@@ -1861,20 +1871,20 @@ class toobit(Exchange, ImplicitAPI):
         #        "side": "BUY",
         #        "timeInForce": "GTC",
         #        "status": "NEW",
-        #        "accountId": "1783404067076253952",  # only in SPOT
-        #        "exchangeId": "301",                 # only in SPOT
-        #        "symbolName": "ETHUSDT",             # only in SPOT
-        #        "cummulativeQuoteQty": "0",          # only in SPOT
-        #        "cumulativeQuoteQty": "0",           # only in SPOT
-        #        "stopPrice": "0.0",                  # only in SPOT
-        #        "icebergQty": "0.0",                 # only in SPOT
-        #        "isWorking": True                    # only in SPOT
-        #        "leverage": "2",                     # only in CONTRACT
-        #        "marginLocked": "9.5",               # only in CONTRACT
-        #        "priceType": "INPUT"                 # only in CONTRACT
-        #        "triggerType": "0",                  # only in CONTRACT fetchClosedOrders
-        #        "fallType": "0",                     # only in CONTRACT fetchClosedOrders
-        #        "activeStatus": "0"                  # only in CONTRACT fetchClosedOrders
+        #        "accountId": "1783404067076253952",  // only in SPOT
+        #        "exchangeId": "301",                 // only in SPOT
+        #        "symbolName": "ETHUSDT",             // only in SPOT
+        #        "cummulativeQuoteQty": "0",          // only in SPOT
+        #        "cumulativeQuoteQty": "0",           // only in SPOT
+        #        "stopPrice": "0.0",                  // only in SPOT
+        #        "icebergQty": "0.0",                 // only in SPOT
+        #        "isWorking": true                    // only in SPOT
+        #        "leverage": "2",                     // only in CONTRACT
+        #        "marginLocked": "9.5",               // only in CONTRACT
+        #        "priceType": "INPUT"                 // only in CONTRACT
+        #        "triggerType": "0",                  // only in CONTRACT fetchClosedOrders
+        #        "fallType": "0",                     // only in CONTRACT fetchClosedOrders
+        #        "activeStatus": "0"                  // only in CONTRACT fetchClosedOrders
         #    }
         #
         timestamp = self.safe_integer_2(order, 'transactTime', 'time')
@@ -1884,9 +1894,9 @@ class toobit(Exchange, ImplicitAPI):
         rawSideLower = self.safe_string_lower(order, 'side')
         reduceOnly = None
         if rawSideLower is not None:
-            # contract orders arrive, SELL_CLOSE and the like -
+            # contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             # the suffix is the only signal that carries reduceOnly, so read
-            # it before discarding it(spot sides have no suffix: None)
+            # it before discarding it (spot sides have no suffix: undefined)
             sideParts = rawSideLower.split('_')
             sideSuffix = self.safe_string(sideParts, 1)
             if sideSuffix is not None:
@@ -1976,7 +1986,7 @@ class toobit(Exchange, ImplicitAPI):
             response = self.privateDeleteApiV1SpotOrder(self.extend(request, params))
         else:
             response = self.privateDeleteApiV1FuturesOrder(self.extend(request, params))
-        # response same `createOrder`
+        # response same as in `createOrder`
         status = self.parse_order_status(self.safe_string(response, 'status'))
         if status != 'open':
             raise OrderNotFound(self.id + ' order ' + id + ' can not be canceled, ' + self.json(response))
@@ -2008,12 +2018,12 @@ class toobit(Exchange, ImplicitAPI):
         if marketType == 'spot':
             response = self.privateDeleteApiV1SpotOpenOrders(self.extend(request, params))
             #
-            # {"success":true}  # always same response
+            # {"success":true}  // always same response
             #
         else:
             response = self.privateDeleteApiV1FuturesBatchOrders(self.extend(request, params))
             #
-            # {"code": 200, "message":"success", "timestamp":1541161088303}
+            # { "code": 200, "message":"success", "timestamp":1541161088303 }
             #
         return [
             self.safe_order({
@@ -2050,7 +2060,7 @@ class toobit(Exchange, ImplicitAPI):
         if marketType == 'spot':
             response = self.privateDeleteApiV1SpotCancelOrderByIds(self.extend(request, params))
             #
-            # {"success":true}  # always same response
+            # {"success":true}  // always same response
             #
         else:
             response = self.privateDeleteApiV1FuturesCancelOrderByIds(self.extend(request, params))
@@ -2113,17 +2123,17 @@ class toobit(Exchange, ImplicitAPI):
         #        "side": "BUY",
         #        "timeInForce": "GTC",
         #        "status": "NEW",
-        #        "accountId": "1783404067076253952",  # only in SPOT
-        #        "exchangeId": "301",                 # only in SPOT
-        #        "symbolName": "ETHUSDT",             # only in SPOT
-        #        "cummulativeQuoteQty": "0",          # only in SPOT
-        #        "cumulativeQuoteQty": "0",           # only in SPOT
-        #        "stopPrice": "0.0",                  # only in SPOT
-        #        "icebergQty": "0.0",                 # only in SPOT
-        #        "isWorking": True                    # only in SPOT
-        #        "leverage": "2",                     # only in CONTRACT
-        #        "marginLocked": "9.5",               # only in CONTRACT
-        #        "priceType": "INPUT"                 # only in CONTRACT
+        #        "accountId": "1783404067076253952",  // only in SPOT
+        #        "exchangeId": "301",                 // only in SPOT
+        #        "symbolName": "ETHUSDT",             // only in SPOT
+        #        "cummulativeQuoteQty": "0",          // only in SPOT
+        #        "cumulativeQuoteQty": "0",           // only in SPOT
+        #        "stopPrice": "0.0",                  // only in SPOT
+        #        "icebergQty": "0.0",                 // only in SPOT
+        #        "isWorking": true                    // only in SPOT
+        #        "leverage": "2",                     // only in CONTRACT
+        #        "marginLocked": "9.5",               // only in CONTRACT
+        #        "priceType": "INPUT"                 // only in CONTRACT
         #    }
         #
         return self.parse_order(response, market)
@@ -2178,7 +2188,7 @@ class toobit(Exchange, ImplicitAPI):
             #            "icebergQty": "0.0",
             #            "time": "1756141516189",
             #            "updateTime": "1756141516198",
-            #            "isWorking": True
+            #            "isWorking": true
             #        }, ...
             #    ]
             #
@@ -2238,7 +2248,7 @@ class toobit(Exchange, ImplicitAPI):
             #            "icebergQty": "0.0",
             #            "time": "1756141516189",
             #            "updateTime": "1756141516198",
-            #            "isWorking": True
+            #            "isWorking": true
             #        }, ...
             #    ]
             #
@@ -2353,8 +2363,8 @@ class toobit(Exchange, ImplicitAPI):
             #            "commission": "0.00464121",
             #            "commissionAsset": "USDT",
             #            "time": "1756127012094",
-            #            "isBuyer": False,
-            #            "isMaker": False,
+            #            "isBuyer": false,
+            #            "isMaker": false,
             #            "fee": {
             #                "feeCoinId": "USDT",
             #                "feeCoinName": "USDT",
@@ -2384,7 +2394,7 @@ class toobit(Exchange, ImplicitAPI):
             #            "side": "BUY_OPEN",
             #            "realizedPnl": "0",
             #            "ticketId": "4900760819871364854",
-            #            "isMaker": False
+            #            "isMaker": false
             #        }
             #    ]
             #
@@ -2418,8 +2428,8 @@ class toobit(Exchange, ImplicitAPI):
         response = self.privatePostApiV1SubAccountTransfer(self.extend(request, params))
         #
         #    {
-        #     "code": 200,  # 200 = success
-        #     "msg": "success"  # response message
+        #     "code": 200, // 200 = success
+        #     "msg": "success" // response message
         #    }
         #
         return self.parse_transfer(response, currency)
@@ -2427,8 +2437,8 @@ class toobit(Exchange, ImplicitAPI):
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #    {
-        #     "code": 200,  # 200 = success
-        #     "msg": "success"  # response message
+        #     "code": 200, // 200 = success
+        #     "msg": "success" // response message
         #    }
         #
         return {
@@ -2560,10 +2570,10 @@ class toobit(Exchange, ImplicitAPI):
             response = self.privateGetApiV1FuturesCommissionRate(self.extend(request, params))
         #
         # {
-        #     "openMakerFee": "0.000006",  # The trade fee rate for opening pending orders
-        #     "openTakerFee": "0.0001",  # The trade fee rate for open position taker
-        #     "closeMakerFee": "0.0002",  # The trade fee rate for closing pending orders
-        #     "closeTakerFee": "0.0004"  # The trade fee rate for closing a taker order
+        #     "openMakerFee": "0.000006", // The trade fee rate for opening pending orders
+        #     "openTakerFee": "0.0001", // The trade fee rate for open position taker
+        #     "closeMakerFee": "0.0002", // The trade fee rate for closing pending orders
+        #     "closeTakerFee": "0.0004" // The trade fee rate for closing a taker order
         # }
         #
         result = {}
@@ -2636,7 +2646,7 @@ class toobit(Exchange, ImplicitAPI):
             #         "id": 100234,
             #         "coinName": "EOS",
             #         "statusCode": "DEPOSIT_CAN_WITHDRAW",
-            #         "status": "2",  # 2=SUCCESS, 11=REJECT, 12=AUDIT
+            #         "status": "2", // 2=SUCCESS, 11=REJECT, 12=AUDIT
             #         "address": "deposit2bb",
             #         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
             #         "txIdUrl": "",
@@ -2664,9 +2674,9 @@ class toobit(Exchange, ImplicitAPI):
             #         "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
             #         "txId ":"",
             #         "txIdUrl ":"",
-            #         "requiredConfirmTimes ":0,  # Number of confirmation requests
-            #         "confirmTimes ":0,  # number of confirmations
-            #         "quantity":"14",  # Withdrawal amount
+            #         "requiredConfirmTimes ":0, // Number of confirmation requests
+            #         "confirmTimes ":0, // number of confirmations
+            #         "quantity":"14", // Withdrawal amount
             #         "coinId ":"BHC",
             #         "addressExt":"address tag",
             #         "arriveQuantity":"14",
@@ -2674,8 +2684,8 @@ class toobit(Exchange, ImplicitAPI):
             #         "feeCoinId ":"BHC",
             #         "feeCoinName ":"BHC",
             #         "fee":"0.1",
-            #         "kernelId":"",  # Exclusive to BEAM and GRIN
-            #         "isInternalTransfer": False  # Whether internal transfer
+            #         "kernelId":"", // Exclusive to BEAM and GRIN
+            #         "isInternalTransfer": false // Whether internal transfer
             #     }
             # ]
             #
@@ -2690,36 +2700,36 @@ class toobit(Exchange, ImplicitAPI):
         #         "id": 100234,
         #         "coinName": "EOS",
         #         "statusCode": "DEPOSIT_CAN_WITHDRAW",
-        #         "status": "2",  # 2=SUCCESS, 11=REJECT, 12=AUDIT
+        #         "status": "2", // 2=SUCCESS, 11=REJECT, 12=AUDIT
         #         "address": "deposit2bb",
         #         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
         #         "txIdUrl": "",
         #         "requiredConfirmTimes": "5",
         #         "confirmTimes": "5",
         #         "quantity": "1.01",
-        #         "coin": "EOS",                     # present in "fetchDeposits"
-        #         "coinId ":"BHC",                   # present in "fetchWithdrawals"
-        #         "addressTag": "19012584",          # present in "fetchDeposits"
-        #         "addressExt":"address tag",        # present in "fetchWithdrawals"
-        #         "fromAddress": "clarkkent",        # present in "fetchDeposits"
-        #         "fromAddressTag": "19029901"       # present in "fetchDeposits"
-        #         "arriveQuantity":"14",             # present in "fetchWithdrawals"
+        #         "coin": "EOS",                     // present in "fetchDeposits"
+        #         "coinId ":"BHC",                   // present in "fetchWithdrawals"
+        #         "addressTag": "19012584",          // present in "fetchDeposits"
+        #         "addressExt":"address tag",        // present in "fetchWithdrawals"
+        #         "fromAddress": "clarkkent",        // present in "fetchDeposits"
+        #         "fromAddressTag": "19029901"       // present in "fetchDeposits"
+        #         "arriveQuantity":"14",             // present in "fetchWithdrawals"
         #         "walletHandleTime":"1536232111669",// present in "fetchWithdrawals"
-        #         "feeCoinId ":"BHC",                # present in "fetchWithdrawals"
-        #         "feeCoinName ":"BHC",              # present in "fetchWithdrawals"
-        #         "fee":"0.1",                       # present in "fetchWithdrawals"
-        #         "kernelId":"",                     # present in "fetchWithdrawals"
-        #         "isInternalTransfer": False        # present in "fetchWithdrawals"
+        #         "feeCoinId ":"BHC",                // present in "fetchWithdrawals"
+        #         "feeCoinName ":"BHC",              // present in "fetchWithdrawals"
+        #         "fee":"0.1",                       // present in "fetchWithdrawals"
+        #         "kernelId":"",                     // present in "fetchWithdrawals"
+        #         "isInternalTransfer": false        // present in "fetchWithdrawals"
         #     }
         #
         # withdraw
         #
         #     {
         #         "status": 0,
-        #         "success": True,
-        #         "needBrokerAudit": False,  # Do you need a brokerage review?
+        #         "success": true,
+        #         "needBrokerAudit": false, // Do you need a brokerage review?
         #         "id": "423885103582776064",
-        #         "refuseReason":""  # failure rejection reason
+        #         "refuseReason":"" // failure rejection reason
         #     }
         #
         timestamp = self.safe_integer(transaction, 'time')
@@ -2853,10 +2863,10 @@ class toobit(Exchange, ImplicitAPI):
         #
         # {
         #     "status": 0,
-        #     "success": True,
-        #     "needBrokerAudit": False,  # Do you need a brokerage review?
-        #     "id": "423885103582776064",  # Withdrawal successful order id
-        #     "refuseReason":""  # failure rejection reason
+        #     "success": true,
+        #     "needBrokerAudit": false, // Do you need a brokerage review?
+        #     "id": "423885103582776064", // Withdrawal successful order id
+        #     "refuseReason":"" // failure rejection reason
         # }
         #
         return self.parse_transaction(response, currency)
@@ -2938,7 +2948,7 @@ class toobit(Exchange, ImplicitAPI):
         #     {
         #         "symbolId":"ETH-SWAP-USDT",
         #         "leverage":"50",
-        #         "marginType":"CROSS"  # CROSS;ISOLATED
+        #         "marginType":"CROSS" // CROSS;ISOLATED
         #     }
         # ]
         #

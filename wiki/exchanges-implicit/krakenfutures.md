@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official krakenfutures API documentation:** [docs.kraken.com](https://docs.kraken.com/api/docs/futures-api/trading/market-data/)
 
-> 52 implicit endpoints across 4 access groups.
+> 55 implicit endpoints across 4 access groups.
 
 ## public
 
@@ -96,6 +96,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetSelfTradeStrategy` | GET | `self-trade-strategy` | 1 |
 | `privateGetSubaccounts` | GET | `subaccounts` | 1 |
 | `privateGetSubaccountUidTradingEnabled` | GET | `subaccount/{uid}/trading-enabled` | 1 |
+| `privateGetRfqAssignmentMaxLeverage` | GET | `rfq-assignment/max-leverage` | 1 |
 | `privatePostSendorder` | POST | `sendorder` | 1 |
 | `privatePostEditorder` | POST | `editorder` | 1 |
 | `privatePostCancelorder` | POST | `cancelorder` | 1 |
@@ -111,6 +112,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePutPnlpreferences` | PUT | `pnlpreferences` | 1 |
 | `privatePutSelfTradeStrategy` | PUT | `self-trade-strategy` | 1 |
 | `privatePutSubaccountUidTradingEnabled` | PUT | `subaccount/{uid}/trading-enabled` | 1 |
+| `privatePutRfqAssignmentMaxLeverage` | PUT | `rfq-assignment/max-leverage` | 1 |
+| `privateDeleteRfqAssignmentMaxLeverage` | DELETE | `rfq-assignment/max-leverage` | 1 |
 
 ## charts
 

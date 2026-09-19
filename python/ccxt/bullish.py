@@ -174,15 +174,22 @@ class bullish(Exchange, ImplicitAPI):
                         'v1/time': {'cost': 1},
                         'v1/assets': {'cost': 1},
                         'v1/assets/{symbol}': {'cost': 1},
+                        'v1/vol-grids': {'cost': 1},
+                        'v1/assets/{symbol}/vol-grid': {'cost': 1},
                         'v1/markets': {'cost': 1},
                         'v1/markets/{symbol}': {'cost': 1},
+                        'v1/history/markets': {'cost': 1},
                         'v1/history/markets/{symbol}': {'cost': 1},
                         'v1/markets/{symbol}/orderbook/hybrid': {'cost': 1},
                         'v1/markets/{symbol}/trades': {'cost': 1},
                         'v1/markets/{symbol}/tick': {'cost': 1},
                         'v1/markets/{symbol}/candle': {'cost': 1},
+                        'v1/markets/{symbol}/auctions': {'cost': 1},
+                        'v1/markets/{symbol}/auctions/noii': {'cost': 1},
                         'v1/history/markets/{symbol}/trades': {'cost': 1},
                         'v1/history/markets/{symbol}/funding-rate': {'cost': 1},
+                        'v1/history/markets/{symbol}/auctions': {'cost': 1},
+                        'v1/history/option-trades': {'cost': 1},
                         'v1/index-prices': {'cost': 1},
                         'v1/index-prices/{assetSymbol}': {'cost': 1},
                         'v1/expiry-prices/{symbol}': {'cost': 1},
@@ -195,6 +202,7 @@ class bullish(Exchange, ImplicitAPI):
                         'v2/orders': {'cost': 1},
                         'v2/history/orders': {'cost': 1},
                         'v2/orders/{orderId}': {'cost': 1},
+                        'v2/orders/client-order-id/{clientOrderId}': {'cost': 1},
                         'v2/amm-instructions': {'cost': 1},
                         'v2/amm-instructions/{instructionId}': {'cost': 1},
                         'v1/wallets/transactions': {'cost': 1},
@@ -222,6 +230,9 @@ class bullish(Exchange, ImplicitAPI):
                         'v2/otc-trades': {'cost': 1},
                         'v2/otc-trades/{otcTradeId}': {'cost': 1},
                         'v2/otc-trades/unconfirmed-trade': {'cost': 1},
+                        'v2/otc-trades/delegated-accounts': {'cost': 1},
+                        'v2/idb/delegated-accounts': {'cost': 1},
+                        'v2/idb/otc-trades': {'cost': 1},
                     },
                     'post': {
                         'v2/orders': {'cost': 5},
@@ -230,10 +241,13 @@ class bullish(Exchange, ImplicitAPI):
                         'v1/wallets/withdrawal': {'cost': 1},
                         'v2/users/login': {'cost': 1},
                         'v1/simulate-portfolio-margin': {'cost': 1},
+                        'v1/bulk-simulate-portfolio-margin': {'cost': 1},
                         'v1/wallets/self-hosted/initiate': {'cost': 1},
                         'v2/mmp-configuration': {'cost': 1},
                         'v2/otc-trades': {'cost': 1},
                         'v2/otc-command': {'cost': 1},
+                        'v2/idb/otc-trades': {'cost': 1},
+                        'v2/idb/otc-command': {'cost': 1},
                     },
                 },
             },
@@ -381,14 +395,14 @@ class bullish(Exchange, ImplicitAPI):
                     '2003': BadRequest,  # Invalid handle
                     '2004': BadRequest,  # Invalid quantity
                     '2005': ExchangeError,  # Unknown error
-                    '2006': BadRequest,  # Invalid account type,  #  account must be spot
+                    '2006': BadRequest,  # Invalid account type, //  account must be spot
                     '2007': BadRequest,  # Account already exist
-                    '2008': BadRequest,  # Invalid side,  #  side must me from buy or sell
+                    '2008': BadRequest,  # Invalid side, //  side must me from buy or sell
                     '2009': BadSymbol,  # Invalid market
                     '2010': AuthenticationError,  # Account doesn't exist
                     '2011': AuthenticationError,  # Account types are different
                     '2012': BadRequest,  # Invalid price
-                    '2013': InvalidOrder,  # Invalid order type,  #  type must be from limit,  #  market,  #  stop-limit
+                    '2013': InvalidOrder,  # Invalid order type, //  type must be from limit, //  market, //  stop-limit
                     '2015': OperationRejected,  # Exceeded maximum amount of allowed open margin orders
                     '2016': BadRequest,  # Unknown request type
                     '2017': BadRequest,  # Invalid order id
@@ -489,7 +503,7 @@ class bullish(Exchange, ImplicitAPI):
         #         {
         #             "assetId": "72",
         #             "symbol": "BTT1M",
-        #             "name": "BitTorrent(millions)",
+        #             "name": "BitTorrent (millions)",
         #             "precision": "5",
         #             "minBalanceInterest": "0.00000",
         #             "apr": "10.00",
@@ -602,124 +616,124 @@ class bullish(Exchange, ImplicitAPI):
         #                 "STOP_LIMIT",
         #                 "POST_ONLY"
         #             ],
-        #         "spotTradingEnabled": True,
-        #         "marginTradingEnabled": True,
-        #         "marketEnabled": True,
-        #         "createOrderEnabled": True,
-        #         "cancelOrderEnabled": True,
-        #         "liquidityInvestEnabled": True,
-        #         "liquidityWithdrawEnabled": True,
+        #         "spotTradingEnabled": true,
+        #         "marginTradingEnabled": true,
+        #         "marketEnabled": true,
+        #         "createOrderEnabled": true,
+        #         "cancelOrderEnabled": true,
+        #         "liquidityInvestEnabled": true,
+        #         "liquidityWithdrawEnabled": true,
         #         "feeTiers":
         #             [
         #                 {
         #                     "feeTierId": "1",
         #                     "staticSpreadFee": "0.00000000",
-        #                     "isDislocationEnabled": False
+        #                     "isDislocationEnabled": false
         #                 },
         #                 {
         #                     "feeTierId": "10",
         #                     "staticSpreadFee": "0.00100000",
-        #                     "isDislocationEnabled": True
+        #                     "isDislocationEnabled": true
         #                 },
         #                 {
         #                     "feeTierId": "11",
         #                     "staticSpreadFee": "0.00150000",
-        #                     "isDislocationEnabled": False
+        #                     "isDislocationEnabled": false
         #                 },
         #                 {
         #                     "feeTierId": "12",
         #                     "staticSpreadFee": "0.00150000",
-        #                     "isDislocationEnabled": True
+        #                     "isDislocationEnabled": true
         #                 },
         #                 {
         #                     "feeTierId": "13",
         #                     "staticSpreadFee": "0.00300000",
-        #                     "isDislocationEnabled": False
+        #                     "isDislocationEnabled": false
         #                 },
         #                 {
         #                     "feeTierId": "14",
         #                     "staticSpreadFee": "0.00300000",
-        #                     "isDislocationEnabled": True
+        #                     "isDislocationEnabled": true
         #                 },
         #                 {
         #                     "feeTierId": "15",
         #                     "staticSpreadFee": "0.00500000",
-        #                     "isDislocationEnabled": False
+        #                     "isDislocationEnabled": false
         #                 },
         #                 {
         #                     "feeTierId": "16",
         #                     "staticSpreadFee": "0.00500000",
-        #                     "isDislocationEnabled": True
+        #                     "isDislocationEnabled": true
         #                 },
         #                 {
         #                     "feeTierId": "17",
         #                     "staticSpreadFee": "0.01000000",
-        #                     "isDislocationEnabled": False
+        #                     "isDislocationEnabled": false
         #                 },
         #                 {
         #                     "feeTierId": "18",
         #                     "staticSpreadFee": "0.01000000",
-        #                     "isDislocationEnabled": True
+        #                     "isDislocationEnabled": true
         #                 },
         #                 {
         #                     "feeTierId": "19",
         #                     "staticSpreadFee": "0.01500000",
-        #                     "isDislocationEnabled": False
+        #                     "isDislocationEnabled": false
         #                 },
         #                 {
         #                     "feeTierId": "2",
         #                     "staticSpreadFee": "0.00000000",
-        #                     "isDislocationEnabled": True
+        #                     "isDislocationEnabled": true
         #                 },
         #                 {
         #                     "feeTierId": "20",
         #                     "staticSpreadFee": "0.01500000",
-        #                     "isDislocationEnabled": True
+        #                     "isDislocationEnabled": true
         #                 },
         #                 {
         #                     "feeTierId": "21",
         #                     "staticSpreadFee": "0.02000000",
-        #                     "isDislocationEnabled": False
+        #                     "isDislocationEnabled": false
         #                 },
         #                 {
         #                     "feeTierId": "22",
         #                     "staticSpreadFee": "0.02000000",
-        #                     "isDislocationEnabled": True
+        #                     "isDislocationEnabled": true
         #                 },
         #                 {
         #                     "feeTierId": "3",
         #                     "staticSpreadFee": "0.00010000",
-        #                     "isDislocationEnabled": False
+        #                     "isDislocationEnabled": false
         #                 },
         #                 {
         #                     "feeTierId": "4",
         #                     "staticSpreadFee": "0.00010000",
-        #                     "isDislocationEnabled": True
+        #                     "isDislocationEnabled": true
         #                 },
         #                 {
         #                     "feeTierId": "5",
         #                     "staticSpreadFee": "0.00020000",
-        #                     "isDislocationEnabled": False
+        #                     "isDislocationEnabled": false
         #                 },
         #                 {
         #                     "feeTierId": "6",
         #                     "staticSpreadFee": "0.00020000",
-        #                     "isDislocationEnabled": True
+        #                     "isDislocationEnabled": true
         #                 },
         #                 {
         #                     "feeTierId": "7",
         #                     "staticSpreadFee": "0.00060000",
-        #                     "isDislocationEnabled": False
+        #                     "isDislocationEnabled": false
         #                 },
         #                 {
         #                     "feeTierId": "8",
         #                     "staticSpreadFee": "0.00060000",
-        #                     "isDislocationEnabled": True
+        #                     "isDislocationEnabled": true
         #                 },
         #                 {
         #                     "feeTierId": "9",
         #                     "staticSpreadFee": "0.00100000",
-        #                     "isDislocationEnabled": False
+        #                     "isDislocationEnabled": false
         #                 }
         #             ],
         #         "marketType": "DATED_FUTURE",
@@ -760,13 +774,13 @@ class bullish(Exchange, ImplicitAPI):
         #         "takerFee": "2",
         #         "roundingCorrectionFactor": "0.00000100",
         #         "makerMinLiquidityAddition": "-1",
-        #         "orderTypes": ["LMT", "MKT", "STOP_LIMIT", "POST_ONLY"],
-        #         "spotTradingEnabled": True,
-        #         "marginTradingEnabled": True,
-        #         "marketEnabled": True,
-        #         "createOrderEnabled": True,
-        #         "cancelOrderEnabled": True,
-        #         "amendOrderEnabled": True,
+        #         "orderTypes": [ "LMT", "MKT", "STOP_LIMIT", "POST_ONLY" ],
+        #         "spotTradingEnabled": true,
+        #         "marginTradingEnabled": true,
+        #         "marketEnabled": true,
+        #         "createOrderEnabled": true,
+        #         "cancelOrderEnabled": true,
+        #         "amendOrderEnabled": true,
         #         "marketType": "OPTION",
         #         "contractMultiplier": "1",
         #         "settlementAssetSymbol": "USDC",
@@ -983,7 +997,7 @@ class bullish(Exchange, ImplicitAPI):
         #             "quantity": "0.00029411",
         #             "quoteAmount": "30.5556",
         #             "side": "BUY",
-        #             "isTaker": True,
+        #             "isTaker": true,
         #             "createdAtTimestamp": "1747768055826",
         #             "createdAtDatetime": "2025-05-20T19:07:35.826Z"
         #         }, ...
@@ -1036,7 +1050,7 @@ class bullish(Exchange, ImplicitAPI):
             #             "createdAtDatetime": "2025-05-18T15:57:28.132Z",
             #             "createdAtTimestamp": "1747583848132",
             #             "handle": null,
-            #             "isTaker": True,
+            #             "isTaker": true,
             #             "orderId": "844242293909618689",
             #             "price": "103942.7048",
             #             "publishedAtTimestamp": "1747769786131",
@@ -1084,7 +1098,7 @@ class bullish(Exchange, ImplicitAPI):
         #             "quantity": "0.00029411",
         #             "quoteAmount": "30.5556",
         #             "side": "BUY",
-        #             "isTaker": True,
+        #             "isTaker": true,
         #             "createdAtTimestamp": "1747768055826",
         #             "createdAtDatetime": "2025-05-20T19:07:35.826Z"
         #         }, ...
@@ -1097,7 +1111,7 @@ class bullish(Exchange, ImplicitAPI):
         #             "price": "1.00000000",
         #             "quantity": "1.00000000",
         #             "side": "BUY",
-        #             "isTaker": True,
+        #             "isTaker": true,
         #             "createdAtDatetime": "2021-05-20T01:01:01.000Z",
         #             "createdAtTimestamp": "1621490985000"
         #         }
@@ -1110,7 +1124,7 @@ class bullish(Exchange, ImplicitAPI):
         #             "createdAtDatetime": "2025-05-18T15:57:28.132Z",
         #             "createdAtTimestamp": "1747583848132",
         #             "handle": null,
-        #             "isTaker": True,
+        #             "isTaker": true,
         #             "orderId": "844242293909618689",
         #             "price": "103942.7048",
         #             "publishedAtTimestamp": "1747769786131",
@@ -1320,7 +1334,7 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest entry
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1485,7 +1499,7 @@ class bullish(Exchange, ImplicitAPI):
             #             "price": "1.00000000",
             #             "averageFillPrice": "1.00000000",
             #             "stopPrice": "1.00000000",
-            #             "allowBorrow": False,
+            #             "allowBorrow": false,
             #             "quantity": "1.00000000",
             #             "quantityFilled": "1.00000000",
             #             "quoteAmount": "1.00000000",
@@ -1493,7 +1507,7 @@ class bullish(Exchange, ImplicitAPI):
             #             "quoteFee": "0.0010",
             #             "borrowedBaseQuantity": "1.00000000",
             #             "borrowedQuoteQuantity": "1.00000000",
-            #             "isLiquidation": False,
+            #             "isLiquidation": false,
             #             "side": "BUY",
             #             "type": "LMT",
             #             "timeInForce": "GTC",
@@ -1658,7 +1672,7 @@ class bullish(Exchange, ImplicitAPI):
         #         "price": "1.00000000",
         #         "averageFillPrice": "1.00000000",
         #         "stopPrice": "1.00000000",
-        #         "allowBorrow": False,
+        #         "allowBorrow": false,
         #         "quantity": "1.00000000",
         #         "quantityFilled": "1.00000000",
         #         "quoteAmount": "1.00000000",
@@ -1666,7 +1680,7 @@ class bullish(Exchange, ImplicitAPI):
         #         "quoteFee": "0.0010",
         #         "borrowedBaseQuantity": "1.00000000",
         #         "borrowedQuoteQuantity": "1.00000000",
-        #         "isLiquidation": False,
+        #         "isLiquidation": false,
         #         "side": "BUY",
         #         "type": "LMT",
         #         "timeInForce": "GTC",
@@ -1858,7 +1872,7 @@ class bullish(Exchange, ImplicitAPI):
         #         "price": "1.00000000",
         #         "averageFillPrice": "1.00000000",
         #         "stopPrice": "1.00000000",
-        #         "allowBorrow": False,
+        #         "allowBorrow": false,
         #         "quantity": "1.00000000",
         #         "quantityFilled": "1.00000000",
         #         "quoteAmount": "1.00000000",
@@ -1866,7 +1880,7 @@ class bullish(Exchange, ImplicitAPI):
         #         "quoteFee": "0.0010",
         #         "borrowedBaseQuantity": "1.00000000",
         #         "borrowedQuoteQuantity": "1.00000000",
-        #         "isLiquidation": False,
+        #         "isLiquidation": false,
         #         "side": "BUY",
         #         "type": "LMT",
         #         "timeInForce": "GTC",
@@ -2043,7 +2057,7 @@ class bullish(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         [self.load_markets(), self.handle_token()]
-        # todo check self method properly
+        # todo check this method properly
         currency = self.currency(code)
         request = {
             'command': {
@@ -2541,7 +2555,7 @@ class bullish(Exchange, ImplicitAPI):
             request['assetSymbol'] = currency['id']
         until = self.safe_integer(params, 'until')
         if (since is None) and (until is None):
-            # since and until are mandatory for self endpoint, set until to now if both are None
+            # since and until are mandatory for this endpoint, set until to now if both are undefined
             now = self.milliseconds()
             params = self.extend(params, {'until': now})
         params = self.handle_since_and_until(since, params)
@@ -2580,7 +2594,7 @@ class bullish(Exchange, ImplicitAPI):
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         [self.load_markets(), self.handle_token()]
-        # todo check self method properly
+        # todo check this method properly
         currency = self.currency(code)
         request = {
             'commandType': 'V2TransferAsset',
@@ -2874,7 +2888,7 @@ class bullish(Exchange, ImplicitAPI):
                     raise AuthenticationError(self.id + ' requires a token, please call signIn() first')
                 headers = {} if (headers is None) else headers
                 headers['Authorization'] = 'Bearer ' + token
-                # headers['BX-NONCE-WINDOW-ENABLED'] = 'false'  # default is False
+                # headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
         if method == 'GET':
             query = self.urlencode(request)
             if len(query) > 0:

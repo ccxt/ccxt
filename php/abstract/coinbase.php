@@ -172,6 +172,12 @@ abstract class coinbase extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v2_private_get_subscriptions_coinbase_one($params = array()) {
+        return $this->request('subscriptions/coinbase-one', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 10.6));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v2_private_post_accounts($params = array()) {
         return $this->request('accounts', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 10.6));
     }
@@ -430,6 +436,24 @@ abstract class coinbase extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v3_private_get_brokerage_cfm_intraday_current_margin_window($params = array()) {
+        return $this->request('brokerage/cfm/intraday/current_margin_window', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3_private_get_brokerage_cfm_intraday_margin_setting($params = array()) {
+        return $this->request('brokerage/cfm/intraday/margin_setting', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3_private_get_brokerage_intx_balances_portfolio_uuid($params = array()) {
+        return $this->request('brokerage/intx/balances/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v3_private_get_brokerage_intx_portfolio_portfolio_uuid($params = array()) {
         return $this->request('brokerage/intx/portfolio/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -526,8 +550,20 @@ abstract class coinbase extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v3_private_post_brokerage_cfm_intraday_margin_setting($params = array()) {
+        return $this->request('brokerage/cfm/intraday/margin_setting', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v3_private_post_brokerage_intx_allocate($params = array()) {
         return $this->request('brokerage/intx/allocate', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3_private_post_brokerage_intx_multi_asset_collateral($params = array()) {
+        return $this->request('brokerage/intx/multi_asset_collateral', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -714,6 +750,12 @@ abstract class coinbase extends \ccxt\Exchange {
      */
     public function v2PrivateGetUserAuth($params = array()) {
         return $this->request('user/auth', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 10.6));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2PrivateGetSubscriptionsCoinbaseOne($params = array()) {
+        return $this->request('subscriptions/coinbase-one', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 10.6));
     }
     /**
      * @return array<string, mixed>
@@ -976,6 +1018,24 @@ abstract class coinbase extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow($params = array()) {
+        return $this->request('brokerage/cfm/intraday/current_margin_window', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3PrivateGetBrokerageCfmIntradayMarginSetting($params = array()) {
+        return $this->request('brokerage/cfm/intraday/margin_setting', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3PrivateGetBrokerageIntxBalancesPortfolioUuid($params = array()) {
+        return $this->request('brokerage/intx/balances/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v3PrivateGetBrokerageIntxPortfolioPortfolioUuid($params = array()) {
         return $this->request('brokerage/intx/portfolio/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1072,8 +1132,20 @@ abstract class coinbase extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v3PrivatePostBrokerageCfmIntradayMarginSetting($params = array()) {
+        return $this->request('brokerage/cfm/intraday/margin_setting', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v3PrivatePostBrokerageIntxAllocate($params = array()) {
         return $this->request('brokerage/intx/allocate', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3PrivatePostBrokerageIntxMultiAssetCollateral($params = array()) {
+        return $this->request('brokerage/intx/multi_asset_collateral', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

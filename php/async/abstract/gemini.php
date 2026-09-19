@@ -134,10 +134,124 @@ abstract class gemini extends \ccxt\async\Exchange {
         return $this->request('v1/riskstats/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_prediction_markets_events($params = array()) {
+        return $this->request('v1/prediction-markets/events', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_prediction_markets_events_eventticker($params = array()) {
+        return $this->request('v1/prediction-markets/events/{eventTicker}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_prediction_markets_events_eventticker_strike($params = array()) {
+        return $this->request('v1/prediction-markets/events/{eventTicker}/strike', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_prediction_markets_events_newly_listed($params = array()) {
+        return $this->request('v1/prediction-markets/events/newly-listed', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_prediction_markets_events_recently_settled($params = array()) {
+        return $this->request('v1/prediction-markets/events/recently-settled', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_prediction_markets_events_upcoming($params = array()) {
+        return $this->request('v1/prediction-markets/events/upcoming', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_prediction_markets_categories($params = array()) {
+        return $this->request('v1/prediction-markets/categories', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function public_get_v1_prediction_markets_volume_date($params = array()) {
+        return $this->request('v1/prediction-markets/volume/{date}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function public_get_v1_prediction_markets_volume_date_hourly($params = array()) {
+        return $this->request('v1/prediction-markets/volume/{date}/hourly', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_prediction_markets_terms($params = array()) {
+        return $this->request('v1/prediction-markets/terms', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_prediction_markets_maker_rebate_rates($params = array()) {
+        return $this->request('v1/prediction-markets/maker-rebate/rates', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_prediction_markets_liquidity_rewards_config($params = array()) {
+        return $this->request('v1/prediction-markets/liquidity-rewards/config', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_prediction_markets_liquidity_rewards_events($params = array()) {
+        return $this->request('v1/prediction-markets/liquidity-rewards/events', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<string>
      */
     public function private_get_v1_perpetuals_fundingpaymentreport_records_xlsx($params = array()) {
         return $this->request('v1/perpetuals/fundingpaymentreport/records.xlsx', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v1_prediction_markets_terms_status($params = array()) {
+        return $this->request('v1/prediction-markets/terms/status', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v1_prediction_markets_maker_rebate_summary_total($params = array()) {
+        return $this->request('v1/prediction-markets/maker-rebate/summary/total', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v1_prediction_markets_liquidity_rewards_summary_daily($params = array()) {
+        return $this->request('v1/prediction-markets/liquidity-rewards/summary/daily', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v1_prediction_markets_liquidity_rewards_summary_total($params = array()) {
+        return $this->request('v1/prediction-markets/liquidity-rewards/summary/total', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_network_token($params = array()) {
+        return $this->request('v2/network/{token}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_networks_network_assets($params = array()) {
+        return $this->request('v2/networks/{network}/assets', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -500,6 +614,90 @@ abstract class gemini extends \ccxt\async\Exchange {
         return $this->request('v1/positions', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v1_prediction_markets_order($params = array()) {
+        return $this->request('v1/prediction-markets/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v1_prediction_markets_order_batch($params = array()) {
+        return $this->request('v1/prediction-markets/order/batch', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v1_prediction_markets_order_cancel($params = array()) {
+        return $this->request('v1/prediction-markets/order/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v1_prediction_markets_order_batch_cancel($params = array()) {
+        return $this->request('v1/prediction-markets/order/batch/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v1_prediction_markets_orders_active($params = array()) {
+        return $this->request('v1/prediction-markets/orders/active', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v1_prediction_markets_orders_history($params = array()) {
+        return $this->request('v1/prediction-markets/orders/history', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v1_prediction_markets_positions($params = array()) {
+        return $this->request('v1/prediction-markets/positions', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v1_prediction_markets_positions_settled($params = array()) {
+        return $this->request('v1/prediction-markets/positions/settled', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v1_prediction_markets_metrics_volume($params = array()) {
+        return $this->request('v1/prediction-markets/metrics/volume', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v1_prediction_markets_terms_accept($params = array()) {
+        return $this->request('v1/prediction-markets/terms/accept', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v1_prediction_markets_maker_rebate_payouts($params = array()) {
+        return $this->request('v1/prediction-markets/maker-rebate/payouts', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_v2_transfers($params = array()) {
+        return $this->request('v2/transfers', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_withdraw_network_ticker($params = array()) {
+        return $this->request('v2/withdraw/{network}/{ticker}', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_withdraw_network_ticker_feeestimate($params = array()) {
+        return $this->request('v2/withdraw/{network}/{ticker}/feeEstimate', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<string>
      */
     public function webExchangeGet($params = array()) {
@@ -626,10 +824,124 @@ abstract class gemini extends \ccxt\async\Exchange {
         return $this->request('v1/riskstats/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1PredictionMarketsEvents($params = array()) {
+        return $this->request('v1/prediction-markets/events', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1PredictionMarketsEventsEventTicker($params = array()) {
+        return $this->request('v1/prediction-markets/events/{eventTicker}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1PredictionMarketsEventsEventTickerStrike($params = array()) {
+        return $this->request('v1/prediction-markets/events/{eventTicker}/strike', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1PredictionMarketsEventsNewlyListed($params = array()) {
+        return $this->request('v1/prediction-markets/events/newly-listed', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1PredictionMarketsEventsRecentlySettled($params = array()) {
+        return $this->request('v1/prediction-markets/events/recently-settled', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1PredictionMarketsEventsUpcoming($params = array()) {
+        return $this->request('v1/prediction-markets/events/upcoming', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1PredictionMarketsCategories($params = array()) {
+        return $this->request('v1/prediction-markets/categories', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetV1PredictionMarketsVolumeDate($params = array()) {
+        return $this->request('v1/prediction-markets/volume/{date}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetV1PredictionMarketsVolumeDateHourly($params = array()) {
+        return $this->request('v1/prediction-markets/volume/{date}/hourly', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1PredictionMarketsTerms($params = array()) {
+        return $this->request('v1/prediction-markets/terms', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1PredictionMarketsMakerRebateRates($params = array()) {
+        return $this->request('v1/prediction-markets/maker-rebate/rates', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1PredictionMarketsLiquidityRewardsConfig($params = array()) {
+        return $this->request('v1/prediction-markets/liquidity-rewards/config', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1PredictionMarketsLiquidityRewardsEvents($params = array()) {
+        return $this->request('v1/prediction-markets/liquidity-rewards/events', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<string>
      */
     public function privateGetV1PerpetualsFundingpaymentreportRecordsXlsx($params = array()) {
         return $this->request('v1/perpetuals/fundingpaymentreport/records.xlsx', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV1PredictionMarketsTermsStatus($params = array()) {
+        return $this->request('v1/prediction-markets/terms/status', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV1PredictionMarketsMakerRebateSummaryTotal($params = array()) {
+        return $this->request('v1/prediction-markets/maker-rebate/summary/total', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily($params = array()) {
+        return $this->request('v1/prediction-markets/liquidity-rewards/summary/daily', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal($params = array()) {
+        return $this->request('v1/prediction-markets/liquidity-rewards/summary/total', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2NetworkToken($params = array()) {
+        return $this->request('v2/network/{token}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2NetworksNetworkAssets($params = array()) {
+        return $this->request('v2/networks/{network}/assets', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -990,5 +1302,89 @@ abstract class gemini extends \ccxt\async\Exchange {
      */
     public function privatePostV1Positions($params = array()) {
         return $this->request('v1/positions', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV1PredictionMarketsOrder($params = array()) {
+        return $this->request('v1/prediction-markets/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV1PredictionMarketsOrderBatch($params = array()) {
+        return $this->request('v1/prediction-markets/order/batch', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV1PredictionMarketsOrderCancel($params = array()) {
+        return $this->request('v1/prediction-markets/order/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV1PredictionMarketsOrderBatchCancel($params = array()) {
+        return $this->request('v1/prediction-markets/order/batch/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV1PredictionMarketsOrdersActive($params = array()) {
+        return $this->request('v1/prediction-markets/orders/active', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV1PredictionMarketsOrdersHistory($params = array()) {
+        return $this->request('v1/prediction-markets/orders/history', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV1PredictionMarketsPositions($params = array()) {
+        return $this->request('v1/prediction-markets/positions', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV1PredictionMarketsPositionsSettled($params = array()) {
+        return $this->request('v1/prediction-markets/positions/settled', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV1PredictionMarketsMetricsVolume($params = array()) {
+        return $this->request('v1/prediction-markets/metrics/volume', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV1PredictionMarketsTermsAccept($params = array()) {
+        return $this->request('v1/prediction-markets/terms/accept', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV1PredictionMarketsMakerRebatePayouts($params = array()) {
+        return $this->request('v1/prediction-markets/maker-rebate/payouts', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostV2Transfers($params = array()) {
+        return $this->request('v2/transfers', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2WithdrawNetworkTicker($params = array()) {
+        return $this->request('v2/withdraw/{network}/{ticker}', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2WithdrawNetworkTickerFeeEstimate($params = array()) {
+        return $this->request('v2/withdraw/{network}/{ticker}/feeEstimate', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

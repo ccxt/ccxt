@@ -225,7 +225,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'Insufficient balance for token transfer': InsufficientFunds,
                     'TWAP order value too small. Min is $1200, which is $10 per minute.': InvalidOrder,
                     'TWAP was never placed, already canceled, or filled.': OrderNotFound,
-                    'Too many cumulative requests sent': RateLimitExceeded,  # {"status":"err","response":"Too many cumulative requests sent(37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
+                    'Too many cumulative requests sent': RateLimitExceeded,  # {"status":"err","response":"Too many cumulative requests sent (37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -428,7 +428,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         response = self.publicPostInfo(self.extend(request, params))
         #
-        # {specialStatuses: null, time: '1764617438643'}
+        # { specialStatuses: null, time: '1764617438643' }
         #
         return self.safe_integer(response, 'time')
 
@@ -455,21 +455,21 @@ class hyperliquid(Exchange, ImplicitAPI):
         #                 {
         #                     "maxLeverage": 50,
         #                     "name": "SOL",
-        #                     "onlyIsolated": False,
+        #                     "onlyIsolated": false,
         #                     "szDecimals": 2
         #                 }
         #             ]
         #         }
         #     ]
         #
-        # spotMeta = self.publicPostInfo({'type': 'spotMeta'})
+        # const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
         tokens = self.safe_list(response, 'tokens', [])
-        # meta = self.safe_list(response, 'universe', [])
+        # const meta = this.safeList (response, 'universe', []);
         self.options['cachedCurrenciesById'] = {}  # used to map hip3 markets
         return self.parse_currencies(tokens)
 
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
-        # id = i
+        # const id = i;
         id = self.safe_string(rawCurrency, 'index')
         name = self.safe_string(rawCurrency, 'name')
         code = self.safe_currency_code(name)
@@ -579,7 +579,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         fetchDexesList = []
         options = self.safe_dict(self.options, 'fetchMarkets', {})
         hip3 = self.safe_dict(options, 'hip3', {})
-        dexesProvided = self.safe_list(hip3, 'dexes', [])  # users provide their own list of dexes to load
+        dexesProvided = self.safe_list(hip3, 'dexes', [])  # let users provide their own list of dexes to load
         maxLimit = self.safe_integer(hip3, 'limit', 10)
         userProvidedDexesLength = len(dexesProvided)
         if userProvidedDexesLength > 0:
@@ -587,7 +587,13 @@ class hyperliquid(Exchange, ImplicitAPI):
                 fetchDexesList = dexesProvided
         else:
             fetchDexesLength = len(fetchDexes)
-            for i in range(1, maxLimit):
+            # index 0 is the null main dex, so the loop runs 1..maxLimit to load
+            # exactly maxLimit dexes. do NOT rewrite this as `i <= maxLimit`: the
+            # python transpiler collapses every for-loop bound to an exclusive
+            # range(), so `<=` silently emits range(1, maxLimit) and loads one dex
+            # too few (build/transpile.ts treats <, <=, > and >= identically)
+            maxIteration = self.sum(maxLimit, 1)
+            for i in range(1, maxIteration):
                 if i >= fetchDexesLength:
                     break
                 dex = self.safe_dict(fetchDexes, i, {})
@@ -647,7 +653,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #                 {
         #                     "maxLeverage": 50,
         #                     "name": "SOL",
-        #                     "onlyIsolated": False,
+        #                     "onlyIsolated": false,
         #                     "szDecimals": 2
         #                 }
         #             ]
@@ -693,7 +699,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #                 {
         #                     "maxLeverage": 50,
         #                     "name": "SOL",
-        #                     "onlyIsolated": False,
+        #                     "onlyIsolated": false,
         #                     "szDecimals": 2
         #                 }
         #             ]
@@ -744,14 +750,14 @@ class hyperliquid(Exchange, ImplicitAPI):
             return 0
         priceSplitted = priceStr.split('.')
         if Precise.string_eq(priceStr, '0'):
-            # Significant digits is always hasattr(self, 5) case
+            # Significant digits is always 5 in this case
             significantDigits = 5
-            # Integer digits is always hasattr(self, 0) case(0 doesn't count)
+            # Integer digits is always 0 in this case (0 doesn't count)
             integerDigits = 0
             # Calculate the price precision
             pricePrecision = min(maxDecimals - amountPrecision, significantDigits - integerDigits)
         elif Precise.string_gt(priceStr, '0') and Precise.string_lt(priceStr, '1'):
-            # Significant digits, always hasattr(self, 5) case
+            # Significant digits, always 5 in this case
             significantDigits = 5
             # Get the part after the decimal separator
             decimalPart = self.safe_string(priceSplitted, 1, '')
@@ -768,7 +774,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             integerPart = self.safe_string(priceSplitted, 0, '')
             # Get significant digits, take the max() of 5 and the integer digits count
             significantDigits = max(5, len(integerPart))
-            # Calculate price precision based on maxDecimals - szDecimals and significantDigits - len(integerPart)
+            # Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
             pricePrecision = min(maxDecimals - amountPrecision, significantDigits - len(integerPart))
         return self.parse_to_int(pricePrecision)
 
@@ -795,7 +801,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #                 "weiDecimals" 8,
         #                 "index": 0,
         #                 "tokenId": "0x6d1e7cde53ba9467b783cb7c530ce054",
-        #                 "isCanonical": True,
+        #                 "isCanonical": true,
         #                 "evmContract":null,
         #                 "fullName":null
         #             },
@@ -805,7 +811,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #                 "weiDecimals": 5,
         #                 "index": 1,
         #                 "tokenId": "0xc1fb593aeffbeb02f85e0308e9956a90",
-        #                 "isCanonical": True,
+        #                 "isCanonical": true,
         #                 "evmContract":null,
         #                 "fullName":null
         #             }
@@ -815,7 +821,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #                 "name": "PURR/USDC",
         #                 "tokens": [1, 0],
         #                 "index": 0,
-        #                 "isCanonical": True
+        #                 "isCanonical": true
         #             }
         #         ]
         #     },
@@ -839,13 +845,13 @@ class hyperliquid(Exchange, ImplicitAPI):
             index = self.safe_integer(market, 'index')
             extraData = self.safe_dict(second, index, {})
             marketName = self.safe_string(market, 'name')
-            # if marketName.find('/') < 0:
-            #     # there are some weird spot markets in testnet, eg @2
-            #     continue
+            # if (marketName.indexOf ('/') < 0) {
+            #     // there are some weird spot markets in testnet, eg @2
+            #     continue;
             # }
-            # marketParts = marketName.split('/')
-            # baseName = self.safe_string(marketParts, 0)
-            # quoteId = self.safe_string(marketParts, 1)
+            # const marketParts = marketName.split ('/');
+            # const baseName = this.safeString (marketParts, 0);
+            # const quoteId = this.safeString (marketParts, 1);
             fees = self.safe_dict(self.fees, 'spot', {})
             taker = self.safe_number(fees, 'taker')
             maker = self.safe_number(fees, 'maker')
@@ -858,7 +864,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             quoteId = self.safe_string(quoteTokenInfo, 'name')
             if baseName is None or quoteId is None:
                 continue
-                # why sandbox sending self? check it later
+                # why sandbox sending this? check it later
             # do spot currency mapping
             spotCurrencyMapping = self.safe_dict(self.options, 'spotCurrencyMapping', {})
             mappedBaseName = self.safe_string(spotCurrencyMapping, baseName, baseName)
@@ -867,7 +873,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             mappedQuote = self.safe_currency_code(mappedQuoteId)
             mappedSymbol = mappedBase + '/' + mappedQuote
             innerBaseTokenInfo = self.safe_dict(baseTokenInfo, 'spec', baseTokenInfo)
-            # innerQuoteTokenInfo = self.safe_dict(quoteTokenInfo, 'spec', quoteTokenInfo)
+            # const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             amountPrecisionStr = self.safe_string(innerBaseTokenInfo, 'szDecimals')
             amountPrecision = int(amountPrecisionStr)
             price = self.safe_number(extraData, 'midPx')
@@ -875,7 +881,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             if price is not None:
                 pricePrecision = self.calculate_price_precision(price, amountPrecision, 8)
             pricePrecisionStr = self.number_to_string(pricePrecision)
-            # quotePrecision = self.parse_number(self.parse_precision(self.safe_string(innerQuoteTokenInfo, 'szDecimals')))
+            # const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             baseId = self.number_to_string(index + 10000)
             entry = {
                 'id': marketName,
@@ -931,17 +937,17 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'info': self.extend(extraData, market),
             }
             markets.append(self.safe_market_structure(entry))
-            #  # backward support
-            # base = self.safe_currency_code(baseName)
-            # quote = self.safe_currency_code(quoteId)
-            # newEntry = self.extend({}, entry)
-            # symbol = base + '/' + quote
-            # if symbol != mappedSymbol:
-            #     newEntry['symbol'] = symbol
-            #     newEntry['base'] = base
-            #     newEntry['quote'] = quote
-            #     newEntry['baseName'] = baseName
-            #     markets.append(self.safe_market_structure(newEntry))
+            # // backward support
+            # const base = this.safeCurrencyCode (baseName);
+            # const quote = this.safeCurrencyCode (quoteId);
+            # const newEntry = this.extend ({}, entry);
+            # const symbol = base + '/' + quote;
+            # if (symbol !== mappedSymbol) {
+            #     newEntry['symbol'] = symbol;
+            #     newEntry['base'] = base;
+            #     newEntry['quote'] = quote;
+            #     newEntry['baseName'] = baseName;
+            #     markets.push (this.safeMarketStructure (newEntry));
             # }
         return markets
 
@@ -950,7 +956,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     {
         #         "maxLeverage": "50",
         #         "name": "ETH",
-        #         "onlyIsolated": False,
+        #         "onlyIsolated": false,
         #         "szDecimals": "4",
         #         "dayNtlVlm": "1709813.11535",
         #         "funding": "0.00004807",
@@ -1222,7 +1228,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         symbols = self.market_symbols(symbols)
-        # at self stage, to get tickers data, we use fetchMarkets endpoints
+        # at this stage, to get tickers data, we use fetchMarkets endpoints
         response = []
         type = self.safe_string(params, 'type')
         params = self.omit(params, 'type')
@@ -1244,7 +1250,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             response = self.fetch_swap_markets(params)
         else:
             response = self.fetch_markets(params)
-        # same response "fetchMarkets"
+        # same response as under "fetchMarkets"
         result = {}
         for i in range(0, len(response)):
             market = response[i]
@@ -1293,7 +1299,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #                 {
         #                     "maxLeverage": 50,
         #                     "name": "SOL",
-        #                     "onlyIsolated": False,
+        #                     "onlyIsolated": false,
         #                     "szDecimals": 2
         #                 }
         #             ]
@@ -1334,7 +1340,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     {
         #         "maxLeverage": "50",
         #         "name": "ETH",
-        #         "onlyIsolated": False,
+        #         "onlyIsolated": false,
         #         "szDecimals": "4",
         #         "dayNtlVlm": "1709813.11535",
         #         "funding": "0.00004807",
@@ -1385,13 +1391,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         "dayNtlVlm": "511297257.47936022",
         #         "markPx": "3464.7",
         #         "midPx": "3465.05",
-        #         "oraclePx": "3460.1",  # only in swap
-        #         "openInterest": "64638.1108",  # only in swap
-        #         "premium": "0.00141614",  # only in swap
-        #         "funding": "0.00008727",  # only in swap
-        #         "impactPxs": ["3465.0", "3465.1"],  # only in swap
-        #         "coin": "PURR",  # only in spot
-        #         "circulatingSupply": "998949190.03400207",  # only in spot
+        #         "oraclePx": "3460.1", // only in swap
+        #         "openInterest": "64638.1108", // only in swap
+        #         "premium": "0.00141614", // only in swap
+        #         "funding": "0.00008727", // only in swap
+        #         "impactPxs": [ "3465.0", "3465.1" ], // only in swap
+        #         "coin": "PURR", // only in spot
+        #         "circulatingSupply": "998949190.03400207", // only in spot
         #     },
         #
         name = self.safe_string(ticker, 'name')
@@ -1423,7 +1429,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1539,7 +1545,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         {
         #             "closedPnl": "0.19343",
         #             "coin": "ETH",
-        #             "crossed": True,
+        #             "crossed": true,
         #             "dir": "Close Long",
         #             "fee": "0.050062",
         #             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
@@ -1561,7 +1567,13 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def amount_to_precision(self, symbol: Str, amount: object):
         market = self.market(symbol)
-        return self.decimal_to_precision(amount, ROUND, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        result = self.decimal_to_precision(amount, ROUND, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        # a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
+        # with grouping positionTpsl and size 0, so only reject a positive amount that
+        # became zero after rounding, never an explicitly requested zero
+        if Precise.string_eq(result, '0') and Precise.string_gt(self.number_to_string(amount), '0'):
+            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
+        return result
 
     def price_to_precision(self, symbol: Str, price: object) -> Str:
         market = self.market(symbol)
@@ -1613,7 +1625,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         hash = self.action_hash(action, vaultAdress, nonce, expiresAfter)
         isTestnet = self.safe_bool(self.options, 'sandboxMode', False)
         phantomAgent = self.construct_phantom_agent(hash, isTestnet)
-        # data = {
+        # const data: Dict = {
         #     'domain': {
         #         'chainId': 1337,
         #         'name': 'Exchange',
@@ -1622,21 +1634,21 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     },
         #     'types': {
         #         'Agent': [
-        #             {'name': 'source', 'type': 'string'},
-        #             {'name': 'connectionId', 'type': 'bytes32'},
+        #             { 'name': 'source', 'type': 'string' },
+        #             { 'name': 'connectionId', 'type': 'bytes32' },
         #         ],
         #         'EIP712Domain': [
-        #             {'name': 'name', 'type': 'string'},
-        #             {'name': 'version', 'type': 'string'},
-        #             {'name': 'chainId', 'type': 'uint256'},
-        #             {'name': 'verifyingContract', 'type': 'address'},
+        #             { 'name': 'name', 'type': 'string' },
+        #             { 'name': 'version', 'type': 'string' },
+        #             { 'name': 'chainId', 'type': 'uint256' },
+        #             { 'name': 'verifyingContract', 'type': 'address' },
         #         ],
         #     },
         #     'primaryType': 'Agent',
         #     'message': phantomAgent,
-        # }
+        # };
         zeroAddress = self.safe_string(self.options, 'zeroAddress')
-        chainId = 1337  # check self out
+        chainId = 1337  # check this out
         domain = {
             'chainId': chainId,
             'name': 'Exchange',
@@ -1655,7 +1667,7 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def sign_user_signed_action(self, messageTypes: object, message: object):
         zeroAddress = self.safe_string(self.options, 'zeroAddress')
-        chainId = 421614  # check self out
+        chainId = 421614  # check this out
         domain = {
             'chainId': chainId,
             'name': 'HyperliquidSignTransaction',
@@ -1752,7 +1764,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             response = self.privatePostExchange(request)
             return response
         except Exception as e:
-            response = None  # ignore self
+            response = None  # ignore this
         return response
 
     def approve_builder_fee(self, builder: str, maxFeeRate: str):
@@ -1791,7 +1803,7 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def initialize_client(self):
         try:
-            [self.handle_builder_fee_approval(), self.set_ref(), self.is_unified_enabled('fetchBalance', None, False, {})]  # for now only fetchBalance requires the unified knowledge, but we can self.extend self to other methods
+            [self.handle_builder_fee_approval(), self.set_ref(), self.is_unified_enabled('fetchBalance', None, False, {})]  # for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         except Exception as e:
             return False
         return True
@@ -1803,7 +1815,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             return True  # skip if builder fee is already approved
         try:
             builder = self.safe_string(self.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6')
-            # when the user disables the builder fee(builderFee = False) we still approve and attach the builder,
+            # when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
             # but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             maxFeeRate = self.safe_string(self.options, 'feeRate', '0.01%')
             if buildFee is not True:
@@ -1845,8 +1857,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                     response = rawResponse
             except Exception as e:
                 if isinstance(e, InvalidProxySettings):
-                    raise e  # reraise self error since it means the user has a problem with their proxy settings that needs to be fixed
-                response = None  # ignore self error and assume unified margin is not enabled
+                    raise e  # rethrow this error since it means the user has a problem with their proxy settings that needs to be fixed
+                response = None  # ignore this error and assume unified margin is not enabled
             #
             # "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             #
@@ -1854,8 +1866,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 response = response.replace('"', '')
                 response = response.replace('"', '')
                 enableUnifiedMargin = response == 'unifiedAccount'
-            # don't cache self result if self is a different addresss
-            self.options['enableUnifiedMargin'] = enableUnifiedMargin  # cache self for future calls
+            # don't cache this result if this is a different addresss
+            self.options['enableUnifiedMargin'] = enableUnifiedMargin  # cache this for future calls
         return [enableUnifiedMargin, params]
 
     def set_user_abstraction(self, abstraction: str, params={}):
@@ -2002,7 +2014,7 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}) -> Order:
         """
-        create a trade order that is executed TWAP order over a specified duration.
+        create a trade order that is executed as a TWAP order over a specified duration.
         :param str symbol: unified symbol of the market to create an order in
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
@@ -2142,7 +2154,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         px = None
         if isMarket:
             if price is None:
-                raise ArgumentsRequired(self.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options(default is 5%).')
+                raise ArgumentsRequired(self.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).')
             px = Precise.string_mul(price, Precise.string_add('1', slippage)) if (isBuy) else Precise.string_mul(price, Precise.string_sub('1', slippage))
             px = self.price_to_precision(symbol, px)  # round after adding slippage
         else:
@@ -2274,7 +2286,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         if self.safe_bool(self.options, 'approvedBuilderFee', False):
             wallet = self.safe_string_lower(self.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6')
-            # when builderFee is disabled the builder is still attached but with a 0% fee(f = 0), for statistics purposes only
+            # when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             feeInt = self.safe_integer(self.options, 'feeInt', 10)
             if not self.safe_bool(self.options, 'builderFee', True):
                 feeInt = 0
@@ -3085,7 +3097,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         request = {
             'type': 'orderStatus',
-            # 'oid': id if isClientOrderId else self.parse_to_numeric(id),
+            # 'oid': isClientOrderId ? id : this.parseToNumeric (id),
             'user': userAddress,
         }
         if clientOrderId is not None:
@@ -3102,13 +3114,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         #                 "children": [],
         #                 "cloid": null,
         #                 "coin": "ETH",
-        #                 "isPositionTpsl": False,
-        #                 "isTrigger": False,
+        #                 "isPositionTpsl": false,
+        #                 "isTrigger": false,
         #                 "limitPx": "2000.0",
         #                 "oid": "3991946565",
         #                 "orderType": "Limit",
         #                 "origSz": "0.1",
-        #                 "reduceOnly": False,
+        #                 "reduceOnly": false,
         #                 "side": "B",
         #                 "sz": "0.1",
         #                 "tif": "Gtc",
@@ -3147,7 +3159,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #        "cloid": null,
         #        "closedPnl": "0.0",
         #        "coin": "SOL",
-        #        "crossed": True,
+        #        "crossed": true,
         #        "dir": "Open Long",
         #        "fee": "0.003879",
         #        "hash": "0x4a2647998682b7f07bc5040ab531e1011400f9a51bfa0346a0b41ebe510e8875",
@@ -3168,13 +3180,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         #             "children": [],
         #             "cloid": null,
         #             "coin": "ETH",
-        #             "isPositionTpsl": False,
-        #             "isTrigger": False,
+        #             "isPositionTpsl": false,
+        #             "isTrigger": false,
         #             "limitPx": "2000.0",
         #             "oid": "3991946565",
         #             "orderType": "Limit",
         #             "origSz": "0.1",
-        #             "reduceOnly": False,
+        #             "reduceOnly": false,
         #             "side": "B",
         #             "sz": "0.1",
         #             "tif": "Gtc",
@@ -3206,13 +3218,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     "children": [],
         #     "cloid": null,
         #     "coin": "BLUR",
-        #     "isPositionTpsl": False,
-        #     "isTrigger": True,
+        #     "isPositionTpsl": false,
+        #     "isTrigger": true,
         #     "limitPx": "0.5",
         #     "oid": 8670487141,
         #     "orderType": "Stop Limit",
         #     "origSz": "20.0",
-        #     "reduceOnly": False,
+        #     "reduceOnly": false,
         #     "side": "B",
         #     "sz": "20.0",
         #     "tif": null,
@@ -3256,7 +3268,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         isTrigger = (self.safe_bool(entry, 'isTrigger') is True)
         triggerPx = self.safe_number(entry, 'triggerPx') if isTrigger else None
         # standalone stop / take-profit orders carry their trigger in triggerPx - surface it
-        # through the unified stopLossPrice / takeProfitPrice fields, see  #24318
+        # through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         orderTypeRaw = self.safe_string_lower(entry, 'orderType', '')
         stopLossPrice = None
         takeProfitPrice = None
@@ -3357,7 +3369,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         {
         #             "closedPnl": "0.19343",
         #             "coin": "ETH",
-        #             "crossed": True,
+        #             "crossed": true,
         #             "dir": "Close Long",
         #             "fee": "0.050062",
         #             "feeToken": "USDC",
@@ -3383,7 +3395,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     {
         #         "closedPnl": "0.19343",
         #         "coin": "ETH",
-        #         "crossed": True,
+        #         "crossed": true,
         #         "dir": "Close Long",
         #         "fee": "0.050062",
         #         "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
@@ -3882,7 +3894,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' transfer() only support main <> subaccount transfer')
         self.check_address(subAccountAddress)
         # hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
-        # moves perp USD, while subAccountSpotTransfer moves spot tokens(USDC included) - pass
+        # moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         # params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
         transferType = self.safe_string(params, 'type')
         params = self.omit(params, 'type')
@@ -3908,7 +3920,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             #
             return self.parse_transfer(response)
         else:
-            # Transfer spot tokens(including spot USDC) with subAccountSpotTransfer - the api
+            # Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
             # expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
             if code is None:
                 raise ArgumentsRequired(self.id + ' transfer() requires a currency code for spot sub-account transfers')
@@ -3998,7 +4010,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             sig = self.build_withdraw_sig(payload)
             action = {
                 'hyperliquidChain': payload['hyperliquidChain'],
-                'signatureChainId': '0x66eee',  # check self out
+                'signatureChainId': '0x66eee',  # check this out
                 'destination': address,
                 'amount': str(amount),
                 'time': nonce,
@@ -4014,7 +4026,7 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
-        # {status: 'ok', response: {type: 'default'}}
+        # { status: 'ok', response: { type: 'default' } }
         #
         # fetchDeposits / fetchWithdrawals
         # {
@@ -4418,7 +4430,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #      oraclePx: '27.569',
         #      markPx: '27.63',
         #      midPx: '27.599',
-        #      impactPxs: ['27.5915', '27.6319'],
+        #      impactPxs: [ '27.5915', '27.6319' ],
         #      dayBaseVlm: '10790652.83',
         #      baseId: 159
         #  }
@@ -4616,7 +4628,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         #     {
         #         status: 'ok',
-        #         response: {type: 'order', data: {statuses: [{error: 'Insufficient margin to place order. asset=4'}]}}
+        #         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
         #     }
         # {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         #

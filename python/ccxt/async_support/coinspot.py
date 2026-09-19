@@ -185,7 +185,9 @@ class coinspot(Exchange, ImplicitAPI):
                             'my/sell': {'cost': 1},
                             'my/sell/edit': {'cost': 1},
                             'my/buy/now': {'cost': 1},
+                            'my/buy/now/coinlist': {'cost': 1},
                             'my/sell/now': {'cost': 1},
+                            'my/sell/now/coinlist': {'cost': 1},
                             'my/swap/now': {'cost': 1},
                             'my/buy/cancel': {'cost': 1},
                             'my/buy/cancel/all': {'cost': 1},
@@ -193,6 +195,8 @@ class coinspot(Exchange, ImplicitAPI):
                             'my/sell/cancel/all': {'cost': 1},
                             'my/coin/withdraw/senddetails': {'cost': 1},
                             'my/coin/withdraw/send': {'cost': 1},
+                            'my/coin/withdraw/send/async': {'cost': 1},
+                            'my/coin/withdraw/send/status': {'cost': 1},
                             'ro/status': {'cost': 1},
                             'ro/orders/market/open': {'cost': 1},
                             'ro/orders/market/completed': {'cost': 1},
@@ -532,7 +536,7 @@ class coinspot(Exchange, ImplicitAPI):
         #      "status": "ok",
         #      "buyorders": [
         #          {
-        #              "otc": False,
+        #              "otc": false,
         #              "market": "ALGO/AUD",
         #              "amount": 386.95197925,
         #              "created": "2022-10-20T09:56:44.502Z",
@@ -543,7 +547,7 @@ class coinspot(Exchange, ImplicitAPI):
         #      ],
         #      "sellorders": [
         #          {
-        #              "otc": False,
+        #              "otc": false,
         #              "market": "SOLO/ALGO",
         #              "amount": 154.52345614,
         #              "total": 115.78858204658796,
@@ -578,7 +582,7 @@ class coinspot(Exchange, ImplicitAPI):
         #
         # private fetchMyTrades
         #     {
-        #       "otc": False,
+        #       "otc": false,
         #       "market": "ALGO/AUD",
         #       "amount": 386.95197925,
         #       "created": "2022-10-20T09:56:44.502Z",

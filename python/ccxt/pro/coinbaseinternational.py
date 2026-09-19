@@ -102,7 +102,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             productIds = marketIds
             for i in range(0, len(parsedSymbols)):
                 messageHashes.append(name + '::' + parsedSymbols[i])
-            # messageHash = messageHash + '::' + ','.join(parsedSymbols)
+            # messageHash = messageHash + '::' + parsedSymbols.join (',');
         elif symbolsLength == 1:
             market = self.market(symbols[0])
             messageHash = name + '::' + market['symbol']
@@ -372,7 +372,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         #        "product_id": "BTC-PERP",
         #        "time": "2023-05-10T14:58:47.000Z",
         #        "bid_price": "28787.8",
-        #        "bid_qty": "0.466",  # One side book
+        #        "bid_qty": "0.466", // One side book
         #        "channel": "LEVEL1",
         #        "type": "SNAPSHOT"
         #    }
@@ -444,7 +444,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -700,7 +700,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         #               ]
         #           }
         #       ],
-        #       "authenticated": True,
+        #       "authenticated": true,
         #       "channel": "SUBSCRIPTIONS",
         #       "type": "SNAPSHOT",
         #       "time": "2023-05-30T16:53:46.847Z"
@@ -716,7 +716,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         #       "product_id": "BTC-PERP",
         #       "time": "2023-05-10T14:58:47.000Z",
         #       "funding_rate": "0.001387",
-        #       "is_final": True,
+        #       "is_final": true,
         #       "channel": "FUNDING",
         #       "type": "SNAPSHOT"
         #    }
@@ -726,7 +726,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         #       "product_id": "BTC-PERP",
         #       "time": "2023-05-10T15:00:00.000Z",
         #       "funding_rate": "0.001487",
-        #       "is_final": False,
+        #       "is_final": false,
         #       "channel": "FUNDING",
         #       "type": "UPDATE"
         #    }

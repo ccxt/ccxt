@@ -88,7 +88,7 @@ class bitget(ccxt.async_support.bitget):
             'exceptions': {
                 'ws': {
                     'exact': {
-                        '30001': BadRequest,  # {"event":"error","code":30001,"msg":"instType:sp,channel:candleNone,instId:BTCUSDT doesn't exist"}
+                        '30001': BadRequest,  # {"event":"error","code":30001,"msg":"instType:sp,channel:candleundefined,instId:BTCUSDT doesn't exist"}
                         '30002': AuthenticationError,  # illegal request
                         '30003': BadRequest,  # invalid op
                         '30004': AuthenticationError,  # requires login
@@ -99,8 +99,8 @@ class bitget(ccxt.async_support.bitget):
                         '30012': AuthenticationError,  # invalid ACCESS_PASSPHRASE
                         '30013': AuthenticationError,  # invalid ACCESS_TIMESTAMP
                         '30014': BadRequest,  # Request timestamp expired
-                        '30015': AuthenticationError,  # {event: 'error', code: 30015, msg: 'Invalid sign'}
-                        '30016': BadRequest,  # {event: 'error', code: 30016, msg: 'Param error'}
+                        '30015': AuthenticationError,  # { event: 'error', code: 30015, msg: 'Invalid sign' }
+                        '30016': BadRequest,  # { event: 'error', code: 30016, msg: 'Param error' }
                     },
                     'broad': {},
                 },
@@ -247,7 +247,7 @@ class bitget(ccxt.async_support.bitget):
         #
         #     {
         #         "action": "snapshot",
-        #         "arg": {"instType": "spot", topic: "ticker", symbol: "BTCUSDT"},
+        #         "arg": { "instType": "spot", topic: "ticker", symbol: "BTCUSDT" },
         #         "data": [
         #             {
         #                 "highPrice24h": "120255.61",
@@ -349,7 +349,7 @@ class bitget(ccxt.async_support.bitget):
         #
         #     {
         #         "action": "snapshot",
-        #         "arg": {"instType": "spot", topic: "ticker", symbol: "BTCUSDT"},
+        #         "arg": { "instType": "spot", topic: "ticker", symbol: "BTCUSDT" },
         #         "data": [
         #             {
         #                 "highPrice24h": "120255.61",
@@ -492,7 +492,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -648,7 +648,7 @@ class bitget(ccxt.async_support.bitget):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
             self.ohlcvs[symbol][timeframe] = stored
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             parsed = self.parse_ws_ohlcv(data[i], market)
             stored.append(parsed)
@@ -662,14 +662,14 @@ class bitget(ccxt.async_support.bitget):
     def parse_ws_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
-        #         "1701871620000",  # timestamp
-        #         "44080.23",  # open
-        #         "44080.23",  # high
-        #         "44028.5",  # low
-        #         "44028.51",  # close
-        #         "9.9287",  # base volume
-        #         "437404.105512",  # quote volume
-        #         "437404.105512"  # USDT volume
+        #         "1701871620000",  // timestamp
+        #         "44080.23", // open
+        #         "44080.23", // high
+        #         "44028.5", // low
+        #         "44028.51", // close
+        #         "9.9287", // base volume
+        #         "437404.105512", // quote volume
+        #         "437404.105512" // USDT volume
         #     ]
         #
         # uta
@@ -839,7 +839,7 @@ class bitget(ccxt.async_support.bitget):
         #
         # {
         #     "action": "snapshot",
-        #     "arg": {"instType": "usdt-futures", "topic": "books", "symbol": "BTCUSDT"},
+        #     "arg": { "instType": "usdt-futures", "topic": "books", "symbol": "BTCUSDT" },
         #     "data": [
         #         {
         #             "a": [Array],
@@ -866,9 +866,9 @@ class bitget(ccxt.async_support.bitget):
         timestamp = self.safe_integer(rawOrderBook, 'ts')
         incrementalBook = channel == 'books'
         if incrementalBook:
-            # storedOrderBook = self.safe_value(self.orderbooks, symbol)
+            # storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if not (symbol in self.orderbooks):
-                # ob = self.order_book({})
+                # const ob = this.orderBook ({});
                 ob = self.counted_order_book({})
                 ob['symbol'] = symbol
                 self.orderbooks[symbol] = ob
@@ -881,7 +881,7 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook['datetime'] = self.iso8601(timestamp)
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
             isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
-            # UTA order books do not provide a crc32 checksum(they rely on seq/pseq for integrity),
+            # UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             # so only validate the checksum when the exchange actually sends one
             responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
             if not isSnapshot and (checksum is True) and (responseChecksum is not None):
@@ -926,7 +926,7 @@ class bitget(ccxt.async_support.bitget):
     def handle_delta(self, bookside: object, delta: object):
         bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         # we store the string representations in the orderbook for checksum calculation
-        # self simplifies the code for generating checksums do not need to do any complex number transformations
+        # this simplifies the code for generating checksums as we do not need to do any complex number transformations
         bidAsk.append(delta)
         bookside.storeArray(bidAsk)
 
@@ -1026,7 +1026,7 @@ class bitget(ccxt.async_support.bitget):
         #
         #     {
         #         "action": "snapshot",
-        #         "arg": {"instType": "SPOT", "channel": "trade", "instId": "BTCUSDT"},
+        #         "arg": { "instType": "SPOT", "channel": "trade", "instId": "BTCUSDT" },
         #         "data": [
         #             {
         #                 "ts": "1701910980366",
@@ -1043,7 +1043,7 @@ class bitget(ccxt.async_support.bitget):
         #
         #     {
         #         "action": "snapshot",
-        #         "arg": {"instType": "spot", "topic": "publicTrade", "symbol": "BTCUSDT"},
+        #         "arg": { "instType": "spot", "topic": "publicTrade", "symbol": "BTCUSDT" },
         #         "data": [
         #             {
         #                 "T": "1756287827920",
@@ -1166,12 +1166,12 @@ class bitget(ccxt.async_support.bitget):
         # uta
         #
         #     {
-        #         "i": "1344534089797185549",  # Fill execution ID
-        #         "L": "1344534089797185550",  # Execution correlation ID
-        #         "p": "110878.5",  # Fill price
-        #         "v": "0.07",  # Fill size
-        #         "S": "buy",  # Fill side
-        #         "T": "1756287827920"  # Fill timestamp
+        #         "i": "1344534089797185549", // Fill execution ID
+        #         "L": "1344534089797185550", // Execution correlation ID
+        #         "p": "110878.5", // Fill price
+        #         "v": "0.07", // Fill size
+        #         "S": "buy", // Fill side
+        #         "T": "1756287827920" // Fill timestamp
         #     }
         #
         instId = self.safe_string_2(trade, 'symbol', 'instId')
@@ -1553,9 +1553,9 @@ class bitget(ccxt.async_support.bitget):
         #
         #     {
         #         "action": "snapshot",
-        #         "arg": {"instType": "SPOT", "channel": "orders", "instId": "BTCUSDT"},
+        #         "arg": { "instType": "SPOT", "channel": "orders", "instId": "BTCUSDT" },
         #         "data": [
-        #             # see all examples in parseWsOrder
+        #             // see all examples in parseWsOrder
         #         ],
         #         "ts": 1701923297285
         #     }
@@ -1564,9 +1564,9 @@ class bitget(ccxt.async_support.bitget):
         #
         #     {
         #         "action": "snapshot",
-        #         "arg": {"instType": "USDT-FUTURES", "channel": "orders", "instId": "default"},
+        #         "arg": { "instType": "USDT-FUTURES", "channel": "orders", "instId": "default" },
         #         "data": [
-        #             # see all examples in parseWsOrder
+        #             // see all examples in parseWsOrder
         #         ],
         #         "ts": 1701920595879
         #     }
@@ -1575,9 +1575,9 @@ class bitget(ccxt.async_support.bitget):
         #
         #     {
         #         "action": "snapshot",
-        #         "arg": {"instType": "MARGIN", "channel": "orders-crossed", "instId": "BTCUSDT"},
+        #         "arg": { "instType": "MARGIN", "channel": "orders-crossed", "instId": "BTCUSDT" },
         #         "data": [
-        #             # see examples in parseWsOrder
+        #             // see examples in parseWsOrder
         #         ],
         #         "ts": 1701923982497
         #     }
@@ -1647,7 +1647,7 @@ class bitget(ccxt.async_support.bitget):
         isInverseSwap = (category == 'coin-futures')
         isUSDCFutures = (category == 'usdc-futures')
         if instType == 'uta':
-            # UTA order/fill pushes carry the real product in 'category'(spot / *-futures)
+            # UTA order/fill pushes carry the real product in 'category' (spot / *-futures);
             # the instType->marketType mapping above defaults UTA to 'contract', which
             # mis-resolves a UTA SPOT order to the swap market and yields a messageHash the
             # watcher never matches. Derive marketType from category for UTA.
@@ -1696,32 +1696,32 @@ class bitget(ccxt.async_support.bitget):
         #   {
         #         instId: 'EOSUSDT',
         #         orderId: '1171779081105780739',
-        #         price: '0.81075',  # limit price, field not present for market orders
+        #         price: '0.81075', // limit price, field not present for market orders
         #         clientOid: 'a2330139-1d04-4d78-98be-07de3cfd1055',
-        #         notional: '5.675250',  # self is not cost! but notional
-        #         newSize: '7.0000',  # self is not cost! quantity(for limit order or market sell) or cost(for market buy order)
-        #         size: '5.6752',  # self is not cost, neither quantity, but notional! self field for "spot" can be ignored at all
-        #         # Note: for limit order(even filled) we don't have cost value in response, only in market order
-        #         orderType: 'limit',  # limit, market
+        #         notional: '5.675250', // this is not cost! but notional
+        #         newSize: '7.0000', // this is not cost! quantity (for limit order or market sell) or cost (for market buy order)
+        #         size: '5.6752', // this is not cost, neither quantity, but notional! this field for "spot" can be ignored at all
+        #         // Note: for limit order (even filled) we don't have cost value in response, only in market order
+        #         orderType: 'limit', // limit, market
         #         force: 'gtc',
         #         side: 'buy',
-        #         accBaseVolume: '0.0000',  # in case of 'filled', self would be set(for limit orders, self is the only indicator of the amount filled)
-        #         priceAvg: '0.00000',  # in case of 'filled', self would be set
-        #         status: 'live',  # live, filled, partially_filled
+        #         accBaseVolume: '0.0000', // in case of 'filled', this would be set (for limit orders, this is the only indicator of the amount filled)
+        #         priceAvg: '0.00000', // in case of 'filled', this would be set
+        #         status: 'live', // live, filled, partially_filled
         #         cTime: '1715099824215',
         #         uTime: '1715099824215',
         #         feeDetail: [],
         #         enterPointSource: 'API'
-        #                   #### trigger order has these additional fields:  ####
+        #                   #### trigger order has these additional fields: ####
         #         "triggerPrice": "35100",
-        #         "price": "35100",  # self is same price
-        #         "executePrice": "35123",  # self is limit price
+        #         "price": "35100", // this is same as trigger price
+        #         "executePrice": "35123", // this is limit price
         #         "triggerType": "fill_price",
         #         "planType": "amount",
-        #                   #### in case order had a partial fill:  ####
+        #                   #### in case order had a partial fill: ####
         #         fillPrice: '35123',
         #         tradeId: '1171775539946528779',
-        #         baseVolume: '7',  # field present in market order
+        #         baseVolume: '7', // field present in market order
         #         fillTime: '1715098979937',
         #         fillFee: '-0.0069987',
         #         fillFeeCoin: 'BTC',
@@ -1731,14 +1731,14 @@ class bitget(ccxt.async_support.bitget):
         # contract
         #
         #     {
-        #         accBaseVolume: '0',  # total amount filled during lifetime for order
+        #         accBaseVolume: '0', // total amount filled during lifetime for order
         #         cTime: '1715065875539',
         #         clientOid: '1171636690041344003',
         #         enterPointSource: 'API',
-        #         feeDetail: [{
+        #         feeDetail: [ {
         #             "feeCoin": "USDT",
         #             "fee": "-0.162003"
-        #         }],
+        #         } ],
         #         force: 'gtc',
         #         instId: 'SEOSSUSDT',
         #         leverage: '10',
@@ -1747,18 +1747,18 @@ class bitget(ccxt.async_support.bitget):
         #         notionalUsd: '10.4468',
         #         orderId: '1171636690028761089',
         #         orderType: 'market',
-        #         posMode: 'hedge_mode',  # one_way_mode, hedge_mode
-        #         posSide: 'short',  # short, long, net
-        #         price: '0',  # zero for market order
+        #         posMode: 'hedge_mode', // one_way_mode, hedge_mode
+        #         posSide: 'short', // short, long, net
+        #         price: '0', // zero for market order
         #         reduceOnly: 'no',
         #         side: 'sell',
-        #         size: '13',  # self is contracts amount
-        #         status: 'live',  # live, filled, cancelled
+        #         size: '13', // this is contracts amount
+        #         status: 'live', // live, filled, cancelled
         #         tradeSide: 'open',
         #         uTime: '1715065875539'
-        #                   #### when filled order is incoming, these additional fields are present too:  ###
-        #         baseVolume: '9',  # amount filled for the incoming update/trade
-        #         accBaseVolume: '13',  # i.e. 9 has been filled from 13 amount(self value is same as 'size')
+        #                   #### when filled order is incoming, these additional fields are present too: ###
+        #         baseVolume: '9', // amount filled for the incoming update/trade
+        #         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount (this value is same as 'size')
         #         fillFee: '-0.0062712',
         #         fillFeeCoin: 'SUSDT',
         #         fillNotionalUsd: '10.452',
@@ -1770,7 +1770,7 @@ class bitget(ccxt.async_support.bitget):
         #         tradeScope: 'T',
         #                   #### trigger order has these additional fields:
         #         "triggerPrice": "0.800000000",
-        #         "price": "0.800000000",  # <-- self is same price, actual limit-price is not present in initial response
+        #         "price": "0.800000000",  // <-- this is same as trigger price, actual limit-price is not present in initial response
         #         "triggerType": "mark_price",
         #         "triggerTime": "1715082796679",
         #         "planType": "pl",
@@ -1795,10 +1795,10 @@ class bitget(ccxt.async_support.bitget):
         #         orderType: "limit",
         #         price: "93.170000000",
         #         fillPrice: "93.170000000",
-        #         baseSize: "0.110600000",  # total amount of order
-        #         quoteSize: "10.304602000",  # total cost of order(independently if order is filled or pending)
-        #         baseVolume: "0.107400000",  # filled amount of order(during order's lifecycle, and not for self specific incoming update)
-        #         fillTotalAmount: "10.006458000",  # filled cost of order(during order's lifecycle, and not for self specific incoming update)
+        #         baseSize: "0.110600000", // total amount of order
+        #         quoteSize: "10.304602000", // total cost of order (independently if order is filled or pending)
+        #         baseVolume: "0.107400000", // filled amount of order (during order's lifecycle, and not for this specific incoming update)
+        #         fillTotalAmount: "10.006458000", // filled cost of order (during order's lifecycle, and not for this specific incoming update)
         #         side: "buy",
         #         status: "partially_filled",
         #         cTime: "1717875017306",
@@ -1872,7 +1872,7 @@ class bitget(ccxt.async_support.bitget):
         if not isTriggerOrder:
             price = self.safe_number(order, 'price')
         elif isSpot and isTriggerOrder:
-            # for spot trigger order, limit price is self
+            # for spot trigger order, limit price is this
             price = self.safe_number(order, 'executePrice')
         avgPriceString = self.safe_string_lower_n(order, ['priceAvg', 'fillPrice', 'avgPrice'])
         avgPrice = None if (avgPriceString is None) else self.omit_zero(avgPriceString)
@@ -2121,7 +2121,7 @@ class bitget(ccxt.async_support.bitget):
             market = None
             if instType == 'uta':
                 # UTA fills carry the product in 'category'; resolve the matching
-                # market so parseWsTrade yields the correct symbol(a UTA SPOT fill
+                # market so parseWsTrade yields the correct symbol (a UTA SPOT fill
                 # otherwise resolves to the swap market and the messageHash never matches).
                 category = self.safe_string_lower(trade, 'category')
                 marketType = 'contract'
@@ -2194,7 +2194,7 @@ class bitget(ccxt.async_support.bitget):
         #
         #     {
         #         "action": "snapshot",
-        #         "arg": {"instType": "SPOT", "channel": "account", "coin": "default"},
+        #         "arg": { "instType": "SPOT", "channel": "account", "coin": "default" },
         #         "data": [
         #             {
         #                 "coin": "USDT",
@@ -2212,7 +2212,7 @@ class bitget(ccxt.async_support.bitget):
         #
         #     {
         #         "action": "snapshot",
-        #         "arg": {"instType": "USDT-FUTURES", "channel": "account", "coin": "default"},
+        #         "arg": { "instType": "USDT-FUTURES", "channel": "account", "coin": "default" },
         #         "data": [
         #             {
         #                 "marginCoin": "USDT",
@@ -2231,7 +2231,7 @@ class bitget(ccxt.async_support.bitget):
         #
         #     {
         #         "action": "snapshot",
-        #         "arg": {"instType": "MARGIN", "channel": "account-crossed", "coin": "default"},
+        #         "arg": { "instType": "MARGIN", "channel": "account-crossed", "coin": "default" },
         #         "data": [
         #             {
         #                 "uTime": "1701933110544",
@@ -2279,7 +2279,7 @@ class bitget(ccxt.async_support.bitget):
         #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             rawBalance = data[i]
             if instType == 'uta':
@@ -2419,7 +2419,7 @@ class bitget(ccxt.async_support.bitget):
 
     def handle_authenticate(self, client: Client, message: object):
         #
-        #  {event: "login", code: 0}
+        #  { event: "login", code: 0 }
         #
         messageHash = 'authenticated'
         future = self.safe_value(client.futures, messageHash)
@@ -2427,7 +2427,7 @@ class bitget(ccxt.async_support.bitget):
 
     def handle_error_message(self, client: Client, message: object) -> Bool:
         #
-        #    {event: "error", code: 30015, msg: "Invalid sign"}
+        #    { event: "error", code: 30015, msg: "Invalid sign" }
         #
         event = self.safe_string(message, 'event')
         try:
@@ -2446,7 +2446,7 @@ class bitget(ccxt.async_support.bitget):
                 if messageHash in client.subscriptions:
                     del client.subscriptions[messageHash]
             else:
-                # Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue  #19041
+                # Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
                 client.reject(e)
             return True
 
@@ -2454,7 +2454,7 @@ class bitget(ccxt.async_support.bitget):
         #
         #   {
         #       "action": "snapshot",
-        #       "arg": {instType: 'SPOT', channel: "ticker", instId: "BTCUSDT"},
+        #       "arg": { instType: 'SPOT', channel: "ticker", instId: "BTCUSDT" },
         #       "data": [
         #         {
         #           "instId": "BTCUSDT",
@@ -2476,13 +2476,13 @@ class bitget(ccxt.async_support.bitget):
         #
         # login
         #
-        #     {event: "login", code: 0}
+        #     { event: "login", code: 0 }
         #
         # subscribe
         #
         #    {
         #        "event": "subscribe",
-        #        "arg": {instType: 'SPOT', channel: "account", instId: "default"}
+        #        "arg": { instType: 'SPOT', channel: "account", instId: "default" }
         #    }
         # unsubscribe
         #    {
@@ -2500,7 +2500,7 @@ class bitget(ccxt.async_support.bitget):
         #
         #     {
         #         "action": "snapshot",
-        #         "arg": {"instType": "spot", topic: "ticker", symbol: "BTCUSDT"},
+        #         "arg": { "instType": "spot", topic: "ticker", symbol: "BTCUSDT" },
         #         "data": [
         #             {
         #                 "highPrice24h": "120255.61",
@@ -2589,7 +2589,7 @@ class bitget(ccxt.async_support.bitget):
         #
         #    {
         #        "event": "subscribe",
-        #        "arg": {instType: 'SPOT', channel: "account", instId: "default"}
+        #        "arg": { instType: 'SPOT', channel: "account", instId: "default" }
         #    }
         #
         return message

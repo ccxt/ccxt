@@ -201,6 +201,7 @@ class lighter(Exchange, ImplicitAPI):
                         'currentHeight': {'cost': 1},
                         # candlestick
                         'candles': {'cost': 1},
+                        'markPriceCandles': {'cost': 1},
                         'fundings': {'cost': 1},
                         # bridge
                         'fastbridge/info': {'cost': 1},
@@ -208,6 +209,9 @@ class lighter(Exchange, ImplicitAPI):
                         'funding-rates': {'cost': 1},
                         # info
                         'withdrawalDelay': {'cost': 1},
+                        'partnerStats': {'cost': 1},
+                        'syntheticSpotInfo': {'cost': 1},
+                        'tokenlist': {'cost': 1},
                     },
                     'post': {
                         # transaction
@@ -225,10 +229,13 @@ class lighter(Exchange, ImplicitAPI):
                         'liquidations': {'cost': 1},
                         'positionFunding': {'cost': 1},
                         'publicPoolsMetadata': {'cost': 1},
+                        'getMakerOnlyApiKeys': {'cost': 1},
                         # order
                         'accountActiveOrders': {'cost': 1},
                         'accountInactiveOrders': {'cost': 1},
+                        'accountOrders': {'cost': 1},
                         'export': {'cost': 1},
+                        'export/historicalTrades': {'cost': 1},
                         'trades': {'cost': 1},
                         # transaction
                         'accountTxs': {'cost': 1},
@@ -239,12 +246,20 @@ class lighter(Exchange, ImplicitAPI):
                         'referral/points': {'cost': 1},
                         # info
                         'transferFeeInfo': {'cost': 1},
+                        # rfq
+                        'rfq/get': {'cost': 1},
+                        'rfq/list': {'cost': 1},
                     },
                     'post': {
                         # account
                         'changeAccountTier': {'cost': 1},
+                        'setMakerOnlyApiKeys': {'cost': 1},
                         # notification
                         'notification/ack': {'cost': 1},
+                        # rfq
+                        'rfq/create': {'cost': 1},
+                        'rfq/respond': {'cost': 1},
+                        'rfq/update': {'cost': 1},
                     },
                 },
             },
@@ -310,7 +325,7 @@ class lighter(Exchange, ImplicitAPI):
                     '21730': InvalidOrder,  # order status is not pending
                     '21731': InvalidOrder,  # order can not be triggered
                     '21732': InvalidOrder,  # reduce only increases position
-                    '21733': InvalidOrder,  # order price flagged accidental price
+                    '21733': InvalidOrder,  # order price flagged as an accidental price
                     '21734': InvalidOrder,  # limit order price is too far from the mark price
                     '21735': InvalidOrder,  # SL/TP order price is too far from the trigger price
                     '21736': InvalidOrder,  # invalid order trigger status
@@ -398,7 +413,7 @@ class lighter(Exchange, ImplicitAPI):
         privateKeyIsSet = (self.privateKey is not None) and (self.privateKey != '')
         if privateKeyIsSet and (apiKeyIndex is not None) and (accountIndex is not None):
             if len(self.privateKey) > 66:
-                raise NotSupported(self.id + ' after the latest update(v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
+                raise NotSupported(self.id + ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
             # load lighter library without creating lighter client
             signer = await self.load_lighter_library(libraryPath, chainId, '', self.parse_to_int(apiKeyIndex), self.parse_to_int(accountIndex), False)
             self.options['auths'][accountIndex][apiKeyIndex]['signer'] = signer
@@ -457,7 +472,7 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
         if (apiKeyIndex is None) or (apiKeyIndex < 4) or (apiKeyIndex > 254):
-            # apiKeyIndex = self.rand_number(2)
+            # apiKeyIndex = this.randNumber (2);
             apiKeyIndex = 254
             self.options['apiKeyIndex'] = apiKeyIndex  # default to a value to avoid overriding other keys
         return [self.parse_to_int(apiKeyIndex), params]
@@ -469,7 +484,7 @@ class lighter(Exchange, ImplicitAPI):
             walletAddress = self.walletAddress
             if self.privateKey is not None:
                 if len(self.privateKey) > 66:
-                    raise NotSupported(self.id + ' after the latest update(v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
+                    raise NotSupported(self.id + ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
                 walletAddress = self.eth_get_address_from_private_key(self.privateKey)
             if walletAddress is None or walletAddress == '':
                 raise ArgumentsRequired(self.id + ' ' + methodName1 + '() requires an ' + optionName1 + '/' + optionName2 + ' parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.')
@@ -690,7 +705,7 @@ class lighter(Exchange, ImplicitAPI):
         """
         if price is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument')
-        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)  # default False
+        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)  # default false
         orderType = type.upper()
         market = self.market(symbol)
         orderSide = side.upper()
@@ -1061,10 +1076,10 @@ class lighter(Exchange, ImplicitAPI):
         #                    "market_margin_mode": 0,
         #                    "insurance_fund_account_index": 281474976710655,
         #                    "liquidation_mode": 0,
-        #                    "force_reduce_only": False,
-        #                    "funding_fee_discounts_enabled": True,
+        #                    "force_reduce_only": false,
+        #                    "funding_fee_discounts_enabled": true,
         #                    "trading_hours": "",
-        #                    "hidden": True
+        #                    "hidden": true
         #                },
         #                "strategy_index": 0
         #            }
@@ -1336,7 +1351,7 @@ class lighter(Exchange, ImplicitAPI):
         #             "market_margin_mode": 0,
         #             "insurance_fund_account_index": 281474976710654,
         #             "liquidation_mode": 0,
-        #             "force_reduce_only": False,
+        #             "force_reduce_only": false,
         #             "trading_hours": ""
         #         }
         #     }
@@ -1453,7 +1468,7 @@ class lighter(Exchange, ImplicitAPI):
         #                     "market_margin_mode": 0,
         #                     "insurance_fund_account_index": 281474976710655,
         #                     "liquidation_mode": 0,
-        #                     "force_reduce_only": False,
+        #                     "force_reduce_only": false,
         #                     "trading_hours": ""
         #                 }
         #             }
@@ -1523,7 +1538,7 @@ class lighter(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')
@@ -1692,7 +1707,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "account_index": "1077",
         #                 "name": "",
         #                 "description": "",
-        #                 "can_invite": True,
+        #                 "can_invite": true,
         #                 "referral_points_percentage": "",
         #                 "positions": [],
         #                 "assets": [
@@ -1798,7 +1813,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "account_index": 1077,
         #                 "name": "",
         #                 "description": "",
-        #                 "can_invite": True,
+        #                 "can_invite": true,
         #                 "referral_points_percentage": "",
         #                 "positions": [
         #                     {
@@ -1938,7 +1953,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "account_index": "1077",
         #                 "name": "",
         #                 "description": "",
-        #                 "can_invite": True,
+        #                 "can_invite": true,
         #                 "referral_points_percentage": "",
         #                 "positions": [],
         #                 "assets": [],
@@ -1969,7 +1984,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "account_index": "1077",
         #         "name": "",
         #         "description": "",
-        #         "can_invite": True,
+        #         "can_invite": true,
         #         "referral_points_percentage": "",
         #         "positions": [],
         #         "assets": [],
@@ -2031,7 +2046,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "price": "2221.60",
         #                 "nonce": 643418,
         #                 "remaining_base_amount": "0.0000",
-        #                 "is_ask": True,
+        #                 "is_ask": true,
         #                 "base_size": 0,
         #                 "base_price": 222160,
         #                 "filled_base_amount": "0.0000",
@@ -2039,7 +2054,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "side": "",
         #                 "type": "market",
         #                 "time_in_force": "immediate-or-cancel",
-        #                 "reduce_only": False,
+        #                 "reduce_only": false,
         #                 "trigger_price": "0.00",
         #                 "order_expiry": 0,
         #                 "status": "canceled-margin-not-allowed",
@@ -2109,7 +2124,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "price": "2221.60",
         #                 "nonce": 643418,
         #                 "remaining_base_amount": "0.0000",
-        #                 "is_ask": True,
+        #                 "is_ask": true,
         #                 "base_size": 0,
         #                 "base_price": 222160,
         #                 "filled_base_amount": "0.0000",
@@ -2117,7 +2132,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "side": "",
         #                 "type": "market",
         #                 "time_in_force": "immediate-or-cancel",
-        #                 "reduce_only": False,
+        #                 "reduce_only": false,
         #                 "trigger_price": "0.00",
         #                 "order_expiry": 0,
         #                 "status": "canceled-margin-not-allowed",
@@ -2152,7 +2167,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "price": "2221.60",
         #         "nonce": 643418,
         #         "remaining_base_amount": "0.0000",
-        #         "is_ask": True,
+        #         "is_ask": true,
         #         "base_size": 0,
         #         "base_price": 222160,
         #         "filled_base_amount": "0.0000",
@@ -2160,7 +2175,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "side": "",
         #         "type": "market",
         #         "time_in_force": "immediate-or-cancel",
-        #         "reduce_only": False,
+        #         "reduce_only": false,
         #         "trigger_price": "0.00",
         #         "order_expiry": 0,
         #         "status": "canceled-margin-not-allowed",
@@ -2200,7 +2215,7 @@ class lighter(Exchange, ImplicitAPI):
                 stopLossPrice = triggerPrice
             if type.find('take-profit') >= 0:
                 takeProfitPrice = triggerPrice
-        # Try to parse to integer first, because parsing an integer to a string wouldn't result in None
+        # Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         tif = None
         tifAsInteger = self.safe_integer(order, 'time_in_force')
         if tifAsInteger is not None:
@@ -2759,12 +2774,12 @@ class lighter(Exchange, ImplicitAPI):
         #                 "bid_client_id": 0,
         #                 "ask_account_id": 20,
         #                 "bid_account_id": 1077,
-        #                 "is_maker_ask": True,
+        #                 "is_maker_ask": true,
         #                 "block_height": 102070,
         #                 "timestamp": 1766386112741,
         #                 "taker_position_size_before": "0.0000",
         #                 "taker_entry_quote_before": "0.000000",
-        #                 "taker_position_sign_changed": True,
+        #                 "taker_position_sign_changed": true,
         #                 "maker_position_size_before": "-1856.8547",
         #                 "maker_entry_quote_before": "5491685.069325",
         #                 "maker_initial_margin_fraction_before": 500
@@ -2797,12 +2812,12 @@ class lighter(Exchange, ImplicitAPI):
         #         "bid_client_id": 0,
         #         "ask_account_id": 20,
         #         "bid_account_id": 1077,
-        #         "is_maker_ask": True,
+        #         "is_maker_ask": true,
         #         "block_height": 102070,
         #         "timestamp": 1766386112741,
         #         "taker_position_size_before": "0.0000",
         #         "taker_entry_quote_before": "0.000000",
-        #         "taker_position_sign_changed": True,
+        #         "taker_position_sign_changed": true,
         #         "maker_position_size_before": "-1856.8547",
         #         "maker_entry_quote_before": "5491685.069325",
         #         "maker_initial_margin_fraction_before": 500
@@ -3076,9 +3091,9 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex, params = self.handle_api_key_index(params, 'setMargin', 'apiKeyIndex', 'api_key_index')
         direction = self.safe_integer(params, 'direction')  # 1 increase margin 0 decrease margin
         if direction is None:
-            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1(increase margin) or 0(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)')
         if not self.in_array(direction, [0, 1]):
-            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1(increase margin) or 0(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)')
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMargin() requires a symbol argument')
         accountIndex = None

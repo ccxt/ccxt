@@ -101,7 +101,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str|None [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use.
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -178,7 +178,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         batchOperationType = 'edit_order'
@@ -231,7 +231,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param string|str[] [params.clientOrderId]: client order ids,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         batchOperationType = 'batch_orders'
@@ -253,13 +253,13 @@ class pacifica(ccxt.async_support.pacifica):
         #   "data": {
         #     "results": [
         #       {
-        #         "success": True,
+        #         "success": true,
         #         "order_id": 645953,
         #         "client_order_id": "57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e",
         #         "symbol": "BTC"
         #       },
         #       {
-        #         "success": True,
+        #         "success": true,
         #         "order_id": 645954,
         #         "symbol": "ETH"
         #       }
@@ -302,7 +302,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str|None [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         operationType = 'cancel_order'
@@ -356,7 +356,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param boolean|None [params.excludeReduceOnly]: whether to exclude reduce-only orders
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -464,7 +464,7 @@ class pacifica(ccxt.async_support.pacifica):
         #           "n": 4,
         #           "p": "157.47"
         #         },
-        #         # ... other aggegated bid levels
+        #         // ... other aggegated bid levels
         #       ],
         #       [
         #         {
@@ -477,12 +477,12 @@ class pacifica(ccxt.async_support.pacifica):
         #           "n": 3,
         #           "p": "157.5"
         #         },
-        #         # ... other aggregated ask levels
+        #         // ... other aggregated ask levels
         #       ]
         #     ],
         #     "s": "SOL",
         #     "t": 1749051881187,
-        #     "li": 1559885104  # sequence id - last order id
+        #     "li": 1559885104 // sequence id - last order id
         #   }
         # }
         #
@@ -644,7 +644,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ws_tickers(self, client: Client, message: object):
+    def handle_ws_tickers(self, client: Client, message: object) -> bool:
         #
         # {
         #     "channel": "prices",
@@ -661,7 +661,7 @@ class pacifica(ccxt.async_support.pacifica):
         #             "volume_24h": "63265.87522",
         #             "yesterday_price": "955476"
         #         }
-        #         # ... other symbol prices
+        #         // ... other symbol prices
         #     ],
         # }
         #
@@ -688,19 +688,19 @@ class pacifica(ccxt.async_support.pacifica):
         #   "channel": "account_trades",
         #   "data": [
         #     {
-        #       "h": 80063441,  # history id
-        #       "i": 1559912767,  # oid
-        #       "I": null,  # cloid
-        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",  # account address
-        #       "s": "BTC",  # symbol
-        #       "p": "89477",  # price
-        #       "o": "89505",  # entry price
-        #       "a": "0.00036",  # amount
+        #       "h": 80063441, // history id
+        #       "i": 1559912767, // oid
+        #       "I": null, // cloid
+        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        #       "s": "BTC",  // symbol
+        #       "p": "89477", // price
+        #       "o": "89505", // entry price
+        #       "a": "0.00036", // amount
         #       "te": "fulfill_taker",
         #       "ts": "close_long",
-        #       "tc": "normal",  # trade type
-        #       "f": "0.012885",  # fee
-        #       "n": "-0.022965",  # pnl
+        #       "tc": "normal", // trade type
+        #       "f": "0.012885", // fee
+        #       "n": "-0.022965", // pnl
         #       "t": 1765018588190,
         #       "li": 1559912767
         #     }
@@ -833,19 +833,19 @@ class pacifica(ccxt.async_support.pacifica):
         # fetchMyTrades
         #
         #    {
-        #       "h": 80063441,  # history id
-        #       "i": 1559912767,  # oid
-        #       "I": null,  # cloid
-        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",  # account address
-        #       "s": "BTC",  # symbol
-        #       "p": "89477",  # price
-        #       "o": "89505",  # entry price
-        #       "a": "0.00036",  # amount
+        #       "h": 80063441, // history id
+        #       "i": 1559912767, // oid
+        #       "I": null, // cloid
+        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        #       "s": "BTC",  // symbol
+        #       "p": "89477", // price
+        #       "o": "89505", // entry price
+        #       "a": "0.00036", // amount
         #       "te": "fulfill_taker",
         #       "ts": "close_long",
-        #       "tc": "normal",  # trade type
-        #       "f": "0.012885",  # fee
-        #       "n": "-0.022965",  # pnl
+        #       "tc": "normal", // trade type
+        #       "f": "0.012885", // fee
+        #       "n": "-0.022965", // pnl
         #       "t": 1765018588190,
         #       "li": 1559912767
         #     }
@@ -915,7 +915,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -949,7 +949,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1100,7 +1100,7 @@ class pacifica(ccxt.async_support.pacifica):
         #       "ot": "limit",
         #       "sp": null,
         #       "si": null,
-        #       "r": False,
+        #       "r": false,
         #       "ct": 1765017049008,
         #       "ut": 1765017219639,
         #       "li": 1559696133

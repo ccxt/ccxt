@@ -8,7 +8,7 @@ from ccxt.abstract.kucoin import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -37,7 +37,7 @@ class kucoin(Exchange, ImplicitAPI):
             'id': 'kucoin',
             'name': 'KuCoin',
             'countries': ['SC'],
-            'rateLimit': 7.5,  # 4000 requests per 30 seconds(VIP0 for spot)
+            'rateLimit': 7.5,  # 4000 requests per 30 seconds (VIP0 for spot)
             'version': 'v2',
             'certified': True,
             'pro': True,
@@ -92,7 +92,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchFundingInterval': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,  # uta only
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -158,6 +158,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'broker': 'https://api-broker.kucoin.com',
                     'earn': 'https://api.kucoin.com',
                     'uta': 'https://api.kucoin.com',
+                    'utaV2': 'https://api.kucoin.com',
                     'utaPrivate': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
@@ -200,6 +201,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'margin/config': {'cost': 25},
                         'announcements': {'cost': 20},
                         'margin/collateralRatio': {'cost': 10},
+                        'margin/available-inventory': {'cost': 10},
                         # convert
                         'convert/symbol': {'cost': 5},
                         'convert/currencies': {'cost': 5},
@@ -286,6 +288,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'margin/borrow': {'cost': 15},
                         'margin/repay': {'cost': 15},
                         'margin/interest': {'cost': 20},
+                        'margin/borrowRate': {'cost': 20},
                         'project/list': {'cost': 10},
                         'project/marketInterestRate': {'cost': 5},
                         'redeem/orders': {'cost': 10},
@@ -305,6 +308,11 @@ class kucoin(Exchange, ImplicitAPI):
                         'convert/limit/orders': {'cost': 5},
                         # affiliate
                         'affiliate/inviter/statistics': {'cost': 30},
+                        'affiliate/queryInvitees': {'cost': 30},
+                        'affiliate/queryMyCommission': {'cost': 30},
+                        'affiliate/queryTransactionByUid': {'cost': 30},
+                        'affiliate/queryTransactionByTime': {'cost': 30},
+                        'affiliate/queryKumining': {'cost': 30},
                     },
                     'post': {
                         # account
@@ -504,7 +512,7 @@ class kucoin(Exchange, ImplicitAPI):
                 },
                 'webExchange': {
                     'get': {
-                        'currency/currency/chain-info': {'cost': 1},  # self is temporary from webApi
+                        'currency/currency/chain-info': {'cost': 1},  # this is temporary from webApi
                         'contract/{symbol}/funding-rates': {'cost': 2},
                     },
                 },
@@ -514,6 +522,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'broker/nd/account': {'cost': 4},
                         'broker/nd/account/apikey': {'cost': 4},
                         'broker/nd/rebase/download': {'cost': 4},
+                        'broker/nd/mark-up': {'cost': 4},
                         'asset/ndbroker/deposit/list': {'cost': 2},
                         'broker/nd/transfer/detail': {'cost': 2},
                         'broker/nd/deposit/detail': {'cost': 2},
@@ -524,6 +533,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'broker/nd/account': {'cost': 6},
                         'broker/nd/account/apikey': {'cost': 6},
                         'broker/nd/account/update-apikey': {'cost': 6},
+                        'broker/nd/mark-up': {'cost': 6},
                     },
                     'delete': {
                         'broker/nd/account/apikey': {'cost': 6},
@@ -572,6 +582,11 @@ class kucoin(Exchange, ImplicitAPI):
                         'market/borrowable-currency': {'cost': 30},
                         'user/my-ip': {'cost': 20},
                         'market/fiat-price': {'cost': 6},
+                    },
+                },
+                'utaV2': {
+                    'get': {
+                        'market/funding-rate': {'cost': 6},  # 3PW
                     },
                 },
                 'utaPrivate': {
@@ -640,7 +655,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'order not exist': OrderNotFound,
                     'order not exist.': OrderNotFound,  # duplicated error temporarily
                     'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                    'order_not_exist_or_not_allow_to_cancel': OrderNotFound,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}, same condition spaced variant above, see https://github.com/ccxt/ccxt/issues/24154
+                    'order_not_exist_or_not_allow_to_cancel': OrderNotFound,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}, same condition as the spaced variant above, see https://github.com/ccxt/ccxt/issues/24154
                     'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
                     'Order size increment invalid.': InvalidOrder,  # {"msg":"Order size increment invalid.","code":"600100"}
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
@@ -701,7 +716,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '126010': ExchangeError,  # Trading pair suspended order cancellation
                     '126011': ExchangeError,  # There are too many orders in the order
                     '126013': InsufficientFunds,  # Insufficient account balance
-                    '126015': ExchangeError,  # It is prohibited to place orders on self trading pair
+                    '126015': ExchangeError,  # It is prohibited to place orders on this trading pair
                     '126021': NotSupported,  # This digital asset does not support user participation in your region, thank you for your understanding!
                     '126022': InvalidOrder,  # The final transaction price of your order will trigger the price protection strategy. To protect the price from deviating too much, please place an order again.
                     '126027': InvalidOrder,  # Only limit orders are supported
@@ -711,8 +726,8 @@ class kucoin(Exchange, ImplicitAPI):
                     '126033': InvalidOrder,  # Duplicate order
                     '126034': InvalidOrder,  # Failed to create take profit and stop loss order
                     '126036': InvalidOrder,  # Failed to create margin order
-                    '126037': ExchangeError,  # Due to country and region restrictions, self function has been suspended!
-                    '126038': ExchangeError,  # Third-party service call failed(internal exception)
+                    '126037': ExchangeError,  # Due to country and region restrictions, this function has been suspended!
+                    '126038': ExchangeError,  # Third-party service call failed (internal exception)
                     '126039': ExchangeError,  # Third-party service call failed, reason: xxx
                     '126041': ExchangeError,  # clientTimestamp parameter error
                     '126042': ExchangeError,  # Exceeded maximum position limit
@@ -747,7 +762,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '400370': InvalidOrder,  # {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
                     '400400': BadRequest,  # Parameter error
                     '400401': AuthenticationError,  # User is not logged in
-                    '400500': RestrictedLocation,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of self token"}
+                    '400500': RestrictedLocation,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
                     '400600': BadSymbol,  # {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
                     '400760': InvalidOrder,  # {"code":"400760","msg":"order price should be more than XX"}
                     '401000': BadRequest,  # {"code":"401000","msg":"The interface has been deprecated"}
@@ -756,7 +771,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                     '400303': PermissionDenied,  # {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
                     '500000': ExchangeNotAvailable,  # {"code":"500000","msg":"Internal Server Error"}
-                    '260220': InvalidAddress,  # {"code": "260220", "msg": "deposit.address.not.exists"}
+                    '260220': InvalidAddress,  # { "code": "260220", "msg": "deposit.address.not.exists" }
                     '600100': InsufficientFunds,  # {"msg":"Funds below the minimum requirement.","code":"600100"}
                     '600101': InvalidOrder,  # {"msg":"The order funds should more then 0.1 USDT.","code":"600101"}
                     '900014': BadRequest,  # {"code":"900014","msg":"Invalid chainId"}
@@ -776,7 +791,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'Exceeded the access frequency': RateLimitExceeded,
                     'require more permission': PermissionDenied,
                     # futures errors
-                    'Position does not exist': OrderNotFound,  # {"code":"200000", "msg":"Position does not exist"}
+                    'Position does not exist': OrderNotFound,  # { "code":"200000", "msg":"Position does not exist" }
                 },
             },
             'fees': {
@@ -970,6 +985,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'symbols': 'v2',
                             'mark-price/all-symbols': 'v3',
                             'announcements': 'v3',
+                            'margin/available-inventory': 'v3',
                         },
                     },
                     'private': {
@@ -1011,6 +1027,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
                             'margin/interest': 'v3',
+                            'margin/borrowRate': 'v3',
                             'project/list': 'v3',
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
@@ -1018,6 +1035,11 @@ class kucoin(Exchange, ImplicitAPI):
                             'migrate/user/account/status': 'v3',
                             'margin/symbols': 'v3',
                             'affiliate/inviter/statistics': 'v2',
+                            'affiliate/queryInvitees': 'v2',
+                            'affiliate/queryMyCommission': 'v2',
+                            'affiliate/queryTransactionByUid': 'v2',
+                            'affiliate/queryTransactionByTime': 'v2',
+                            'affiliate/queryKumining': 'v2',
                             'asset/ndbroker/deposit/list': 'v1',
                         },
                         'POST': {
@@ -1080,7 +1102,7 @@ class kucoin(Exchange, ImplicitAPI):
                     },
                 },
                 'partner': {
-                    # the support for spot and future exchanges settings
+                    # the support for spot and future exchanges as separate settings
                     'spot': {
                         'id': 'ccxt',
                         'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
@@ -1238,11 +1260,11 @@ class kucoin(Exchange, ImplicitAPI):
                     'SDN': 'sdn',
                     'LTO': 'lto',
                     'WEMIX': 'wemix',
-                    # 'BOBA': 'boba',  # tbd
+                    # 'BOBA': 'boba', // tbd
                     'EVER': 'ever',
                     'BNC': 'bnc',
                     'BNCDOT': 'bncdot',
-                    # 'CMP': 'cmp',  # todo: after consensus
+                    # 'CMP': 'cmp', // todo: after consensus
                     'AION': 'aion',
                     'GRIN': 'grin',
                     'LOKI': 'loki',
@@ -1260,7 +1282,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'DIVI': 'divi',
                     'PURA': 'pura',
                     'DFI': 'dfi',
-                    # 'NEO': 'neo',  # tbd neo legacy
+                    # 'NEO': 'neo', // tbd neo legacy
                     'NEON3': 'neon3',
                     'DOCK': 'dock',
                     'TRUE': 'true',
@@ -1279,15 +1301,15 @@ class kucoin(Exchange, ImplicitAPI):
                     # 'BITCOINPRIVATE': 'btcp',
                     # 'EDGEWARE': 'edg',
                     # 'JUPITER': 'jup',
-                    # 'VELAS': 'vlx',  # vlxevm is different
-                    #  # 'terra' luna lunc TBD
+                    # 'VELAS': 'vlx', // vlxevm is different
+                    # // 'terra' luna lunc TBD
                     # 'DIGITALBITS': 'xdb',
-                    #  # fra is fra-emv on kucoin
+                    # // fra is fra-emv on kucoin
                     # 'PASTEL': 'psl',
-                    #  # sysevm
+                    # // sysevm
                     # 'CONCORDIUM': 'ccd',
                     # 'AURORA': 'aurora',
-                    # 'PHA': 'pha',  # a.k.a. khala
+                    # 'PHA': 'pha', // a.k.a. khala
                     # 'PAL': 'pal',
                     # 'RSK': 'rbtc',
                     # 'NIX': 'nix',
@@ -1297,7 +1319,7 @@ class kucoin(Exchange, ImplicitAPI):
                     # 'PIONEER': 'neer',
                     # 'PIXIE': 'pix',
                     # 'ALEPHZERO': 'azero',
-                    # 'ACHAIN': 'act',  # actevm is different
+                    # 'ACHAIN': 'act', // actevm is different
                     # 'BOSCOIN': 'bos',
                     # 'ELECTRONEUM': 'etn',
                     # 'GOCHAIN': 'go',
@@ -1307,23 +1329,23 @@ class kucoin(Exchange, ImplicitAPI):
                     # 'MATRIXAI': 'man',
                     # 'METADIUM': 'meta',
                     # 'METAHASH': 'mhc',
-                    #  # eosc --"eosforce" tbd
+                    # // eosc --"eosforce" tbd
                     # 'IOTCHAIN': 'itc',
                     # 'CONTENTOS': 'cos',
                     # 'CPCHAIN': 'cpc',
                     # 'INTCHAIN': 'int',
-                    #  # 'DASH': 'dash', tbd digita-cash
+                    # // 'DASH': 'dash', tbd digita-cash
                     # 'WALTONCHAIN': 'wtc',
                     # 'CONSTELLATION': 'dag',
                     # 'ONELEDGER': 'olt',
-                    # 'AIRDAO': 'amb',  # a.k.a. AMBROSUS
+                    # 'AIRDAO': 'amb', // a.k.a. AMBROSUS
                     # 'ENERGYWEB': 'ewt',
                     # 'WAVESENTERPRISE': 'west',
                     # 'HYPERCASH': 'hc',
                     # 'ENECUUM': 'enq',
                     # 'HAVEN': 'xhv',
                     # 'CHAINX': 'pcx',
-                    #  # 'FLUXOLD': 'zel',  # zel seems old chain(with uppercase FLUX in kucoin UI and with id 'zel')
+                    # // 'FLUXOLD': 'zel', // zel seems old chain (with uppercase FLUX in kucoin UI and with id 'zel')
                     # 'BUMO': 'bu',
                     # 'DEEPONION': 'onion',
                     # 'ULORD': 'ut',
@@ -1335,7 +1357,7 @@ class kucoin(Exchange, ImplicitAPI):
                     # 'EMONEY': 'ngm',
                     # 'AURORACHAIN': 'aoa',
                     # 'KLEVER': 'klv',
-                    # undetermined: xns(insolar), rhoc, luk(luniverse), kts(klimatas), bchn(bitcoin cash node), god(shallow entry), lit(litmus),
+                    # undetermined: xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus),
                 },
                 'networksById': {
                     'btc': 'BTC',
@@ -1358,7 +1380,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'marginMode': True,
                         'triggerPrice': True,
                         'triggerPriceType': None,
-                        'triggerDirection': False,  # True for uta
+                        'triggerDirection': False,  # true for uta
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,  # not supported
@@ -1441,7 +1463,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'PO': True,
                             'GTD': False,
                         },
-                        'hedged': False,  # True for uta
+                        'hedged': False,  # true for uta
                         'trailing': False,
                         'leverage': True,  # todo implement
                         'marketBuyByCost': True,
@@ -1585,8 +1607,8 @@ class kucoin(Exchange, ImplicitAPI):
             #    {
             #        "code": "200000",
             #        "data": {
-            #            "status": "open",  #open, close, cancelonly
-            #            "msg": "upgrade match engine"  #remark for operation
+            #            "status": "open", //open, close, cancelonly
+            #            "msg": "upgrade match engine" //remark for operation
             #        }
             #    }
             #
@@ -1596,8 +1618,8 @@ class kucoin(Exchange, ImplicitAPI):
             #     {
             #         "code":"200000",
             #         "data":{
-            #             "status":"open",  #open, close, cancelonly
-            #             "msg":"upgrade match engine"  #remark for operation
+            #             "status":"open", //open, close, cancelonly
+            #             "msg":"upgrade match engine" //remark for operation
             #         }
             #     }
             #
@@ -1662,8 +1684,8 @@ class kucoin(Exchange, ImplicitAPI):
             #                 "quoteIncrement": "0.000001",
             #                 "priceIncrement": "0.000001",
             #                 "priceLimitRate": "0.1",
-            #                 "isMarginEnabled": True,
-            #                 "enableTrading": True
+            #                 "isMarginEnabled": true,
+            #                 "enableTrading": true
             #             },
             #
         if requestMarginables is True:
@@ -1675,7 +1697,7 @@ class kucoin(Exchange, ImplicitAPI):
             #            "timestamp": 1719393213421,
             #            "items": [
             #                {
-            #                    # same object market, with one additional field:
+            #                    // same object as in market, with one additional field:
             #                    "minFunds": "0.1"
             #                },
             #
@@ -1691,12 +1713,12 @@ class kucoin(Exchange, ImplicitAPI):
             #                "quoteCurrency": "USDT",
             #                "maxLeverage": 5,
             #                "flDebtRatio": "0.97",
-            #                "tradeEnable": True,
+            #                "tradeEnable": true,
             #                "autoRenewMaxDebtRatio": "0.96",
-            #                "baseBorrowEnable": True,
-            #                "quoteBorrowEnable": True,
-            #                "baseTransferInEnable": True,
-            #                "quoteTransferInEnable": True,
+            #                "baseBorrowEnable": true,
+            #                "quoteBorrowEnable": true,
+            #                "baseTransferInEnable": true,
+            #                "quoteTransferInEnable": true,
             #                "baseBorrowCoefficient": "1",
             #                "quoteBorrowCoefficient": "1"
             #            },
@@ -1709,22 +1731,22 @@ class kucoin(Exchange, ImplicitAPI):
             #             "time":1602832092060,
             #             "ticker":[
             #                 {
-            #                     "symbol": "BTC-USDT",   # symbol
-            #                     "symbolName":"BTC-USDT",  # Name of trading pairs, it would change after renaming
-            #                     "buy": "11328.9",   # bestAsk
-            #                     "sell": "11329",    # bestBid
-            #                     "changeRate": "-0.0055",    # 24h change rate
-            #                     "changePrice": "-63.6",  # 24h change price
-            #                     "high": "11610",    # 24h highest price
-            #                     "low": "11200",  # 24h lowest price
-            #                     "vol": "2282.70993217",  # 24h volume，the aggregated trading volume in BTC
-            #                     "volValue": "25984946.157790431",   # 24h total, the trading volume in quote currency of last 24 hours
-            #                     "last": "11328.9",  # last price
-            #                     "averagePrice": "11360.66065903",   # 24h average transaction price yesterday
-            #                     "takerFeeRate": "0.001",    # Basic Taker Fee
-            #                     "makerFeeRate": "0.001",    # Basic Maker Fee
-            #                     "takerCoefficient": "1",    # Taker Fee Coefficient
-            #                     "makerCoefficient": "1"  # Maker Fee Coefficient
+            #                     "symbol": "BTC-USDT",   // symbol
+            #                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+            #                     "buy": "11328.9",   // bestAsk
+            #                     "sell": "11329",    // bestBid
+            #                     "changeRate": "-0.0055",    // 24h change rate
+            #                     "changePrice": "-63.6", // 24h change price
+            #                     "high": "11610",    // 24h highest price
+            #                     "low": "11200", // 24h lowest price
+            #                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+            #                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+            #                     "last": "11328.9",  // last price
+            #                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
+            #                     "takerFeeRate": "0.001",    // Basic Taker Fee
+            #                     "makerFeeRate": "0.001",    // Basic Maker Fee
+            #                     "takerCoefficient": "1",    // Taker Fee Coefficient
+            #                     "makerCoefficient": "1" // Maker Fee Coefficient
             #                 }
             #
             promises.append(self.publicGetMarketAllTickers(params))
@@ -1769,7 +1791,7 @@ class kucoin(Exchange, ImplicitAPI):
             baseId, quoteId = id.split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            # quoteIncrement = self.safe_number(market, 'quoteIncrement')
+            # const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             ticker = self.safe_dict(tickersById, id, {})
             makerFeeRate = self.safe_string(ticker, 'makerFeeRate')
             takerFeeRate = self.safe_string(ticker, 'takerFeeRate')
@@ -1871,9 +1893,9 @@ class kucoin(Exchange, ImplicitAPI):
         #            "takerFixFee": 0.0000000000,
         #            "makerFixFee": 0.0000000000,
         #            "settlementFee": null,
-        #            "isDeleverage": True,
-        #            "isQuanto": True,
-        #            "isInverse": False,
+        #            "isDeleverage": true,
+        #            "isQuanto": true,
+        #            "isInverse": false,
         #            "markMethod": "FairPrice",
         #            "fairMethod": "FundingRate",
         #            "fundingBaseSymbol": ".ETHINT8H",
@@ -1892,7 +1914,7 @@ class kucoin(Exchange, ImplicitAPI):
         #            "lastTradePrice": 4545.4500000000,
         #            "nextFundingRateTime": 25481884,
         #            "maxLeverage": 100,
-        #            "sourceExchanges":  ["huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc"],
+        #            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
         #            "premiumsSymbol1M": ".ETHUSDTMPI",
         #            "premiumsSymbol8H": ".ETHUSDTMPI8H",
         #            "fundingBaseSymbol1M": ".ETHINT",
@@ -2021,7 +2043,7 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "feeCategory": 1,
         #                     "makerFeeCoefficient": "1.00",
         #                     "takerFeeCoefficient": "1.00",
-        #                     "st": False
+        #                     "st": false
         #                 },
         #             ]
         #         }
@@ -2043,7 +2065,7 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "tradingStatus": "1",
         #                     "settlementCurrency": "USDT",
         #                     "contractType": "0",
-        #                     "isInverse": False,
+        #                     "isInverse": false,
         #                     "launchTime": 1585555200000,
         #                     "expiryTime": null,
         #                     "settlementTime": null,
@@ -2219,8 +2241,8 @@ class kucoin(Exchange, ImplicitAPI):
             #                 "name": "CSP",
             #                 "fullName": "Caspian",
             #                 "precision": 8,
-            #                 "isMarginEnabled": False,
-            #                 "isDebitEnabled": False,
+            #                 "isMarginEnabled": false,
+            #                 "isDebitEnabled": false,
             #                 "items": [
             #                     {
             #                         "chainName": "ERC20",
@@ -2228,15 +2250,15 @@ class kucoin(Exchange, ImplicitAPI):
             #                         "minDepositSize": null,
             #                         "withdrawFeeRate": "0",
             #                         "minWithdrawFee": "2999",
-            #                         "isWithdrawEnabled": False,
-            #                         "isDepositEnabled": False,
+            #                         "isWithdrawEnabled": false,
+            #                         "isDepositEnabled": false,
             #                         "confirms": 96,
             #                         "preConfirms": 32,
             #                         "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
             #                         "withdrawPrecision": 8,
             #                         "maxWithdrawSize": null,
             #                         "maxDepositSize": null,
-            #                         "isMemoRequired": False,
+            #                         "isMemoRequired": false,
             #                         "chainId": "eth"
             #                     }
             #                 ]
@@ -2273,9 +2295,9 @@ class kucoin(Exchange, ImplicitAPI):
             #                    "withdrawPrecision": 8,
             #                    "maxWithdraw": null,
             #                    "maxDeposit": null,
-            #                    "needTag": False,
+            #                    "needTag": false,
             #                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
-            #                    "depositFeeRate": "0.001",  # present for some currencies/networks
+            #                    "depositFeeRate": "0.001", // present for some currencies/networks
             #                 }
             #              ]
             #           },
@@ -2483,7 +2505,7 @@ class kucoin(Exchange, ImplicitAPI):
         #            "withdrawMinFee": "25",
         #            "innerWithdrawMinFee": "0",
         #            "withdrawMinSize": "50",
-        #            "isWithdrawEnabled": True,
+        #            "isWithdrawEnabled": true,
         #            "precision": 6,
         #            "chain": "ERC20"
         #        }
@@ -2503,7 +2525,7 @@ class kucoin(Exchange, ImplicitAPI):
         #        "withdrawMinFee": "25",
         #        "innerWithdrawMinFee": "0",
         #        "withdrawMinSize": "50",
-        #        "isWithdrawEnabled": True,
+        #        "isWithdrawEnabled": true,
         #        "precision": 6,
         #        "chain": "ERC20"
         #    }
@@ -2566,12 +2588,12 @@ class kucoin(Exchange, ImplicitAPI):
             }
         return result
 
-    def is_futures_method(self, methodName: object, params: object):
+    def is_futures_method(self, methodName: object, params: object) -> bool:
         #
         # Helper
-        # @methodName(string): The name of the method
-        # @params(dict): The parameters passed into {methodName}
-        # @return: True if the method used is meant for futures trading, False otherwise
+        # @methodName (string): The name of the method
+        # @params (dict): The parameters passed into {methodName}
+        # @return: true if the method used is meant for futures trading, false otherwise
         #
         defaultType = self.safe_string_2(self.options, methodName, 'defaultType', 'trade')
         requestedType = self.safe_string(params, 'type', defaultType)
@@ -2581,36 +2603,36 @@ class kucoin(Exchange, ImplicitAPI):
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' isFuturesMethod() type must be one of ' + ', '.join(keys))
         params = self.omit(params, 'type')
-        return(type == 'contract') or (type == 'future') or (type == 'futures')  # * (type == 'futures') deprecated, use(type == 'future')
+        return(type == 'contract') or (type == 'future') or (type == 'futures')  # * (type === 'futures') deprecated, use (type === 'future')
 
     def parse_spot_or_uta_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
-        #         "symbol": "BTC-USDT",   # symbol
-        #         "symbolName":"BTC-USDT",  # Name of trading pairs, it would change after renaming
-        #         "buy": "11328.9",   # bestAsk
-        #         "sell": "11329",    # bestBid
-        #         "changeRate": "-0.0055",    # 24h change rate
-        #         "changePrice": "-63.6",  # 24h change price
-        #         "high": "11610",    # 24h highest price
-        #         "low": "11200",  # 24h lowest price
-        #         "vol": "2282.70993217",  # 24h volume，the aggregated trading volume in BTC
-        #         "volValue": "25984946.157790431",   # 24h total, the trading volume in quote currency of last 24 hours
-        #         "last": "11328.9",  # last price
-        #         "averagePrice": "11360.66065903",   # 24h average transaction price yesterday
-        #         "takerFeeRate": "0.001",    # Basic Taker Fee
-        #         "makerFeeRate": "0.001",    # Basic Maker Fee
-        #         "takerCoefficient": "1",    # Taker Fee Coefficient
-        #         "makerCoefficient": "1"  # Maker Fee Coefficient
+        #         "symbol": "BTC-USDT",   // symbol
+        #         "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+        #         "buy": "11328.9",   // bestAsk
+        #         "sell": "11329",    // bestBid
+        #         "changeRate": "-0.0055",    // 24h change rate
+        #         "changePrice": "-63.6", // 24h change price
+        #         "high": "11610",    // 24h highest price
+        #         "low": "11200", // 24h lowest price
+        #         "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+        #         "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+        #         "last": "11328.9",  // last price
+        #         "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
+        #         "takerFeeRate": "0.001",    // Basic Taker Fee
+        #         "makerFeeRate": "0.001",    // Basic Maker Fee
+        #         "takerCoefficient": "1",    // Taker Fee Coefficient
+        #         "makerCoefficient": "1" // Maker Fee Coefficient
         #     }
         #
         #     {
-        #         "trading": True,
+        #         "trading": true,
         #         "symbol": "KCS-BTC",
         #         "buy": 0.00011,
         #         "sell": 0.00012,
         #         "sort": 100,
-        #         "volValue": 3.13851792584,   #total
+        #         "volValue": 3.13851792584,   //total
         #         "baseCurrency": "KCS",
         #         "market": "BTC",
         #         "quoteCurrency": "BTC",
@@ -2679,16 +2701,21 @@ class kucoin(Exchange, ImplicitAPI):
         #         "markPrice": "1572.68"
         #     }
         #
-        percentage = self.safe_string(ticker, 'changeRate')
-        if percentage is not None:
-            percentage = Precise.string_mul(percentage, '100')
-        else:
-            percentage = self.safe_string(ticker, 'priceChangePercent')
         last = self.safe_string_n(ticker, ['last', 'lastTradedPrice', 'lastPrice'])
         last = self.safe_string(ticker, 'price', last)
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
+        percentage = self.safe_string(ticker, 'changeRate')
+        if percentage is not None:
+            percentage = Precise.string_mul(percentage, '100')
+        else:
+            percentage = self.safe_string(ticker, 'priceChangePercent')
+            # uta spot sends a ratio under this name and uta swap sends a percentage.
+            # An unresolved market has no `spot` key at all, so read it the way okx
+            # does and leave the value alone rather than scaling on a guess.
+            if self.safe_bool(market, 'spot', False):
+                percentage = Precise.string_mul(percentage, '100')
         baseVolume = self.safe_string_2(ticker, 'vol', 'baseVolume')
         quoteVolume = self.safe_string_2(ticker, 'volValue', 'quoteVolume')
         timestamp = self.safe_integer_n(ticker, ['time', 'datetime', 'timePoint'])
@@ -2777,9 +2804,9 @@ class kucoin(Exchange, ImplicitAPI):
         #     takerFixFee: 0,
         #     makerFixFee: 0,
         #     settlementFee: null,
-        #     isDeleverage: True,
-        #     isQuanto: True,
-        #     isInverse: False,
+        #     isDeleverage: true,
+        #     isQuanto: true,
+        #     isInverse: false,
         #     markMethod: "FairPrice",
         #     fairMethod: "FundingRate",
         #     fundingBaseSymbol: ".XBTINT8H",
@@ -2813,6 +2840,11 @@ class kucoin(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, '-')
         last = self.safe_string_2(ticker, 'price', 'lastTradePrice')
         timestamp = self.safe_integer_product(ticker, 'ts', 0.000001)
+        change = self.safe_string(ticker, 'priceChg')
+        percentage = None
+        if (last is None) or (change is None):
+            percentage = Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100')
+        # Otherwise safeTicker derives percentage from last and change, since priceChgPct can be inconsistent.
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -2828,10 +2860,8 @@ class kucoin(Exchange, ImplicitAPI):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_string(ticker, 'priceChg'),
-            # priceChgPct is a ratio: the sample above reports 0.0447 beside a priceChg
-            # of 2878.7 on a price near 64000, which is a move of 4.47 per cent
-            'percentage': Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100'),
+            'change': change,
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volumeOf24h'),
             'quoteVolume': self.safe_string(ticker, 'turnoverOf24h'),
@@ -2921,22 +2951,22 @@ class kucoin(Exchange, ImplicitAPI):
             #             "time":1602832092060,
             #             "ticker":[
             #                 {
-            #                     "symbol": "BTC-USDT",   # symbol
-            #                     "symbolName":"BTC-USDT",  # Name of trading pairs, it would change after renaming
-            #                     "buy": "11328.9",   # bestAsk
-            #                     "sell": "11329",    # bestBid
-            #                     "changeRate": "-0.0055",    # 24h change rate
-            #                     "changePrice": "-63.6",  # 24h change price
-            #                     "high": "11610",    # 24h highest price
-            #                     "low": "11200",  # 24h lowest price
-            #                     "vol": "2282.70993217",  # 24h volume，the aggregated trading volume in BTC
-            #                     "volValue": "25984946.157790431",   # 24h total, the trading volume in quote currency of last 24 hours
-            #                     "last": "11328.9",  # last price
-            #                     "averagePrice": "11360.66065903",   # 24h average transaction price yesterday
-            #                     "takerFeeRate": "0.001",    # Basic Taker Fee
-            #                     "makerFeeRate": "0.001",    # Basic Maker Fee
-            #                     "takerCoefficient": "1",    # Taker Fee Coefficient
-            #                     "makerCoefficient": "1"  # Maker Fee Coefficient
+            #                     "symbol": "BTC-USDT",   // symbol
+            #                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+            #                     "buy": "11328.9",   // bestAsk
+            #                     "sell": "11329",    // bestBid
+            #                     "changeRate": "-0.0055",    // 24h change rate
+            #                     "changePrice": "-63.6", // 24h change price
+            #                     "high": "11610",    // 24h highest price
+            #                     "low": "11200", // 24h lowest price
+            #                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+            #                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+            #                     "last": "11328.9",  // last price
+            #                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
+            #                     "takerFeeRate": "0.001",    // Basic Taker Fee
+            #                     "makerFeeRate": "0.001",    // Basic Maker Fee
+            #                     "takerCoefficient": "1",    // Taker Fee Coefficient
+            #                     "makerCoefficient": "1" // Maker Fee Coefficient
             #                 }
             #             ]
             #         }
@@ -2991,9 +3021,9 @@ class kucoin(Exchange, ImplicitAPI):
         #            "takerFixFee": 0.0000000000,
         #            "makerFixFee": 0.0000000000,
         #            "settlementFee": null,
-        #            "isDeleverage": True,
-        #            "isQuanto": True,
-        #            "isInverse": False,
+        #            "isDeleverage": true,
+        #            "isQuanto": true,
+        #            "isInverse": false,
         #            "markMethod": "FairPrice",
         #            "fairMethod": "FundingRate",
         #            "fundingBaseSymbol": ".ETHINT8H",
@@ -3012,7 +3042,7 @@ class kucoin(Exchange, ImplicitAPI):
         #            "lastTradePrice": 4545.4500000000,
         #            "nextFundingRateTime": 25481884,
         #            "maxLeverage": 100,
-        #            "sourceExchanges":  ["huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc"],
+        #            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
         #            "premiumsSymbol1M": ".ETHUSDTMPI",
         #            "premiumsSymbol8H": ".ETHUSDTMPI8H",
         #            "fundingBaseSymbol1M": ".ETHINT",
@@ -3133,22 +3163,22 @@ class kucoin(Exchange, ImplicitAPI):
             #     {
             #         "code": "200000",
             #         "data": {
-            #             "time": 1602832092060,  # time
-            #             "symbol": "BTC-USDT",   # symbol
-            #             "buy": "11328.9",   # bestAsk
-            #             "sell": "11329",    # bestBid
-            #             "changeRate": "-0.0055",    # 24h change rate
-            #             "changePrice": "-63.6",  # 24h change price
-            #             "high": "11610",    # 24h highest price
-            #             "low": "11200",  # 24h lowest price
-            #             "vol": "2282.70993217",  # 24h volume，the aggregated trading volume in BTC
-            #             "volValue": "25984946.157790431",   # 24h total, the trading volume in quote currency of last 24 hours
-            #             "last": "11328.9",  # last price
-            #             "averagePrice": "11360.66065903",   # 24h average transaction price yesterday
-            #             "takerFeeRate": "0.001",    # Basic Taker Fee
-            #             "makerFeeRate": "0.001",    # Basic Maker Fee
-            #             "takerCoefficient": "1",    # Taker Fee Coefficient
-            #             "makerCoefficient": "1"  # Maker Fee Coefficient
+            #             "time": 1602832092060,  // time
+            #             "symbol": "BTC-USDT",   // symbol
+            #             "buy": "11328.9",   // bestAsk
+            #             "sell": "11329",    // bestBid
+            #             "changeRate": "-0.0055",    // 24h change rate
+            #             "changePrice": "-63.6", // 24h change price
+            #             "high": "11610",    // 24h highest price
+            #             "low": "11200", // 24h lowest price
+            #             "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+            #             "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+            #             "last": "11328.9",  // last price
+            #             "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
+            #             "takerFeeRate": "0.001",    // Basic Taker Fee
+            #             "makerFeeRate": "0.001",    // Basic Maker Fee
+            #             "takerCoefficient": "1",    // Taker Fee Coefficient
+            #             "makerCoefficient": "1" // Maker Fee Coefficient
             #         }
             #     }
             #
@@ -3185,13 +3215,13 @@ class kucoin(Exchange, ImplicitAPI):
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
-        #         "1545904980",             # Start time of the candle cycle
-        #         "0.058",                  # opening price
-        #         "0.049",                  # closing price
-        #         "0.058",                  # highest price
-        #         "0.049",                  # lowest price
-        #         "0.018",                  # base volume
-        #         "0.000945",               # quote volume
+        #         "1545904980",             // Start time of the candle cycle
+        #         "0.058",                  // opening price
+        #         "0.049",                  // closing price
+        #         "0.058",                  // highest price
+        #         "0.049",                  // lowest price
+        #         "0.018",                  // base volume
+        #         "0.000945",               // quote volume
         #     ]
         #
         timestampString = self.safe_string(ohlcv, 0)
@@ -3231,7 +3261,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -3260,7 +3290,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -3337,7 +3367,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -3391,7 +3421,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -3509,7 +3539,7 @@ class kucoin(Exchange, ImplicitAPI):
             'currency': currency['id'],
             # for USDT - OMNI, ERC20, TRC20, default is ERC20
             # for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
-            # 'chain': 'ERC20',  # optional
+            # 'chain': 'ERC20', // optional
         }
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
@@ -3551,7 +3581,7 @@ class kucoin(Exchange, ImplicitAPI):
         #        "code": "200000",
         #        "data": {
         #            "address": "0x78d3ad1c0aa1bf068e19c94a2d7b16c9c0fcd8b1",//Deposit address
-        #            "memo": null//Address tag. If the returned value is null, it means that the requested token has no memo. If you are to transfer funds from another platform to KuCoin Futures and if the token to be  #transferred has memo(tag), you need to fill in the memo to ensure the transferred funds will be sent  #to the address you specified.
+        #            "memo": null//Address tag. If the returned value is null, it means that the requested token has no memo. If you are to transfer funds from another platform to KuCoin Futures and if the token to be //transferred has memo(tag), you need to fill in the memo to ensure the transferred funds will be sent //to the address you specified.
         #        }
         #    }
         #
@@ -3731,17 +3761,17 @@ class kucoin(Exchange, ImplicitAPI):
                 #     {
                 #         "code": "200000",
                 #         "data": {
-                #           "symbol": "XBTUSDM",      #Symbol
-                #           "sequence": 100,          #Ticker sequence number
+                #           "symbol": "XBTUSDM",      //Symbol
+                #           "sequence": 100,          //Ticker sequence number
                 #           "asks": [
-                #                 ["5000.0", 1000],   #Price, quantity
-                #                 ["6000.0", 1983]    #Price, quantity
+                #                 ["5000.0", 1000],   //Price, quantity
+                #                 ["6000.0", 1983]    //Price, quantity
                 #           ],
                 #           "bids": [
-                #                 ["3200.0", 800],    #Price, quantity
-                #                 ["3100.0", 100]     #Price, quantity
+                #                 ["3200.0", 800],    //Price, quantity
+                #                 ["3100.0", 100]     //Price, quantity
                 #           ],
-                #           "ts": 1604643655040584408  # timestamp
+                #           "ts": 1604643655040584408  // timestamp
                 #         }
                 #     }
                 #
@@ -3763,7 +3793,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             response = self.privateGetMarketOrderbookLevel2(self.extend(request, params))
         #
-        # public(v1) market/orderbook/level2_20 and market/orderbook/level2_100
+        # public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         #
         #     {
         #         "sequence": "3262786978",
@@ -3778,7 +3808,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        # private(v3) market/orderbook/level2
+        # private (v3) market/orderbook/level2
         #
         #     {
         #         "sequence": "3262786978",
@@ -3872,14 +3902,14 @@ class kucoin(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]:  extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
-        :param str [params.marginMode]: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+        :param str [params.marginMode]: 'cross',  # cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
         :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
         :param bool [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.clientOid]: client order id, defaults to uuid if not passed
         :param str [params.remark]: remark for the order, length cannot exceed 100 utf8 characters
-        :param str [params.tradeType]: 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
+        :param str [params.tradeType]: 'TRADE',  # TRADE, MARGIN_TRADE // not used with margin orders
  limit orders ---------------------------------------------------
         :param float [params.cancelAfter]: long,  # cancel after n seconds, requires timeInForce to be GTT
         :param bool [params.hidden]: False,  # Order will not be displayed in the order book
@@ -3893,7 +3923,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param float [params.leverage]: Leverage size of the order
         :param str [params.stp]: '',  # self trade prevention, CN, CO, CB or DC
         :param bool [params.autoBorrow]: False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :param bool [params.test]: set to True to test an order, no order will be created but the request will be validated
         :param bool [params.sync]: set to True to use the hf sync call
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -4122,7 +4152,7 @@ class kucoin(Exchange, ImplicitAPI):
         takeProfit = self.safe_dict(params, 'takeProfit')
         hasStopLoss = stopLoss is not None
         hasTakeProfit = takeProfit is not None
-        # isTpAndSl = stopLossPrice and takeProfitPrice
+        # const isTpAndSl = stopLossPrice && takeProfitPrice;
         triggerPriceTypes = {
             'mark': 'MP',
             'last': 'TP',
@@ -4270,29 +4300,29 @@ class kucoin(Exchange, ImplicitAPI):
             'tradeType': tradeType,  # 'SPOT', 'FUTURES', 'MARGIN', 'ISOLATED' or 'CROSS'
             'clientOid': clientOrderId,
             'symbol': market['id'],
-            # 'triggerDirection'- 'UP' or 'DOWN(required for trigger orders, supported for classic-FUTURES and unified-SPOT and unified-FUTURES)
-            # 'triggerPriceType' - 'TP', 'IP', 'MP'(required for trigger orders, supported for classic-FUTURES and unified-SPOT and unified-FUTURES)
-            # 'triggerPrice'(required for trigger orders)
+            # 'triggerDirection'- 'UP' or 'DOWN (required for trigger orders, supported for classic-FUTURES and unified-SPOT and unified-FUTURES)
+            # 'triggerPriceType' - 'TP', 'IP', 'MP' (required for trigger orders, supported for classic-FUTURES and unified-SPOT and unified-FUTURES)
+            # 'triggerPrice' (required for trigger orders)
             'side': side.upper(),
             'orderType': type.upper(),
             # 'size'
-            # 'sizeUnit' - 'BASECCY', 'QUOTECCY'(for market SPOT) or 'UNIT'(for unified-FUTURES)
+            # 'sizeUnit' - 'BASECCY', 'QUOTECCY' (for market SPOT) or 'UNIT' (for unified-FUTURES)
             # 'price'
-            # 'timeInForce' - 'GTC', 'IOC', 'FOK', 'GTT' or 'RPI'(GTT is not supported for FUTURES)
+            # 'timeInForce' - 'GTC', 'IOC', 'FOK', 'GTT' or 'RPI' (GTT is not supported for FUTURES)
             # 'postOnly'
-            # 'reduceOnly'(only for FUTURES)
-            # 'stp' - 'CN', 'CO', 'CB' or 'DC'(DC is not supported for FUTURES)
-            # 'cancelAfter' - time in seconds(only valid when timeInForce is GTT, not supported for FUTURES)
+            # 'reduceOnly' (only for FUTURES)
+            # 'stp' - 'CN', 'CO', 'CB' or 'DC' (DC is not supported for FUTURES)
+            # 'cancelAfter' - time in seconds (only valid when timeInForce is GTT, not supported for FUTURES)
             # 'tags'
-            # 'autoBorrow'(only for classic-CROSS and classic-ISOLATED)
-            # 'autoRepay'(only for classic-CROSS and classic-ISOLATED)
-            # 'positionSide' - 'BOTH', 'LONG' or 'SHORT'(only for classic-FUTURES)
-            # 'marginMode' - 'ISOLATED' or 'CROSS'(only for classic-FUTURES, default is 'ISOLATED')
-            # 'leverage'(only for classic-FUTURES-ISOLATED, required)
-            # 'tpTriggerPriceType' - 'TP', 'IP', 'MP'(only for unified-FUTURES and classic-FUTURES)
-            # 'tpTriggerPrice'(only for unified-FUTURES and classic-FUTURES)
-            # 'slTriggerPriceType' - 'TP', 'IP', 'MP'(only for unified-FUTURES and classic-FUTURES)
-            # 'slTriggerPrice'(only for unified-FUTURES and classic-FUTURES)
+            # 'autoBorrow' (only for classic-CROSS and classic-ISOLATED)
+            # 'autoRepay' (only for classic-CROSS and classic-ISOLATED)
+            # 'positionSide' - 'BOTH', 'LONG' or 'SHORT' (only for classic-FUTURES)
+            # 'marginMode' - 'ISOLATED' or 'CROSS' (only for classic-FUTURES, default is 'ISOLATED')
+            # 'leverage' (only for classic-FUTURES-ISOLATED, required)
+            # 'tpTriggerPriceType' - 'TP', 'IP', 'MP' (only for unified-FUTURES and classic-FUTURES)
+            # 'tpTriggerPrice' (only for unified-FUTURES and classic-FUTURES)
+            # 'slTriggerPriceType' - 'TP', 'IP', 'MP' (only for unified-FUTURES and classic-FUTURES)
+            # 'slTriggerPrice' (only for unified-FUTURES and classic-FUTURES)
         }
         if tradeType is not None:
             request['tradeType'] = tradeType
@@ -4481,8 +4511,8 @@ class kucoin(Exchange, ImplicitAPI):
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]:  extra parameters specific to the exchange API endpoint
-        :param bool [params.hf]: False,  # True for hf orders
-        :param bool [params.sync]: False,  # True to use the hf sync call
+        :param bool [params.hf]: False,  # true for hf orders
+        :param bool [params.sync]: False,  # true to use the hf sync call
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -4543,10 +4573,10 @@ class kucoin(Exchange, ImplicitAPI):
         #              "stopPrice": null,
         #              "timeInForce": "GTC",
         #              "cancelAfter": 0,
-        #              "postOnly": False,
-        #              "hidden": False,
-        #              "iceberge": False,
-        #              "iceberg": False,
+        #              "postOnly": false,
+        #              "hidden": false,
+        #              "iceberge": false,
+        #              "iceberg": false,
         #              "visibleSize": null,
         #              "channel": "API",
         #              "id": "6539148443fcf500079d15e5",
@@ -4715,8 +4745,8 @@ class kucoin(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if cancelling a stop order
-        :param bool [params.hf]: False,  # True for hf order
-        :param bool [params.sync]: False,  # True to use the hf sync call
+        :param bool [params.hf]: False,  # true for hf order
+        :param bool [params.sync]: False,  # true to use the hf sync call
         :param str [params.marginMode]: 'cross' or 'isolated'
         :returns: Response from the exchange
         """
@@ -4801,7 +4831,7 @@ class kucoin(Exchange, ImplicitAPI):
                     #
                     #    {
                     #        code: '200000',
-                    #        data: {cancelledOrderIds: ['vs8lgpiuaco91qk8003vebu9']}
+                    #        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
                     #    }
                     #
                     response = self.privateDeleteStopOrderOrderId(self.extend(request, params))
@@ -4826,7 +4856,7 @@ class kucoin(Exchange, ImplicitAPI):
                 #
                 #    {
                 #        code: '200000',
-                #        data: {cancelledOrderIds: ['665e4fbe28051a0007245c41']}
+                #        data: { cancelledOrderIds: [ '665e4fbe28051a0007245c41' ] }
                 #    }
                 #
             data = self.safe_dict(response, 'data')
@@ -4985,7 +5015,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param bool [params.trigger]: *invalid for isolated margin* True if cancelling all stop orders
         :param str [params.marginMode]: 'cross' or 'isolated'
         :param str [params.orderIds]: *stop orders only* Comma separated order IDs
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :returns: Response from the exchange
         """
         if self.markets is None:
@@ -5183,7 +5213,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [params.currentPage]: *trigger orders only* current page
         :param str [params.orderIds]: *trigger orders only* comma separated order ID list
         :param bool [params.trigger]: True if fetching a trigger order
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :param str [params.marginMode]: 'cross' or 'isolated', only for margin orders
         :returns: An `array of order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -5246,35 +5276,35 @@ class kucoin(Exchange, ImplicitAPI):
             #             "totalPage": 153408,
             #             "items": [
             #                 {
-            #                     "id": "5c35c02703aa673ceec2a168",   #orderid
-            #                     "symbol": "BTC-USDT",   #symbol
-            #                     "opType": "DEAL",      # operation type,deal is pending order,cancel is cancel order
-            #                     "type": "limit",       # order type,e.g. limit,markrt,stop_limit.
-            #                     "side": "buy",         # transaction direction,include buy and sell
-            #                     "price": "10",         # order price
-            #                     "size": "2",           # order quantity
-            #                     "funds": "0",          # order funds
-            #                     "dealFunds": "0.166",  # deal funds
-            #                     "dealSize": "2",       # deal quantity
-            #                     "fee": "0",            # fee
-            #                     "feeCurrency": "USDT",  # charge fee currency
-            #                     "stp": "",             # self trade prevention,include CN,CO,DC,CB
-            #                     "stop": "",            # stop type
-            #                     "stopTriggered": False,  # stop order is triggered
-            #                     "stopPrice": "0",      # stop price
-            #                     "timeInForce": "GTC",  # time InForce,include GTC,GTT,IOC,FOK
-            #                     "postOnly": False,     # postOnly
-            #                     "hidden": False,       # hidden order
-            #                     "iceberg": False,      # iceberg order
-            #                     "visibleSize": "0",    # display quantity for iceberg order
-            #                     "cancelAfter": 0,      # cancel orders time，requires timeInForce to be GTT
-            #                     "channel": "IOS",      # order source
-            #                     "clientOid": "",       # user-entered order unique mark
-            #                     "remark": "",          # remark
-            #                     "tags": "",            # tag order source
-            #                     "isActive": False,     # status before unfilled or uncancelled
-            #                     "cancelExist": False,   # order cancellation transaction record
-            #                     "createdAt": 1547026471000  # time
+            #                     "id": "5c35c02703aa673ceec2a168",   //orderid
+            #                     "symbol": "BTC-USDT",   //symbol
+            #                     "opType": "DEAL",      // operation type,deal is pending order,cancel is cancel order
+            #                     "type": "limit",       // order type,e.g. limit,markrt,stop_limit.
+            #                     "side": "buy",         // transaction direction,include buy and sell
+            #                     "price": "10",         // order price
+            #                     "size": "2",           // order quantity
+            #                     "funds": "0",          // order funds
+            #                     "dealFunds": "0.166",  // deal funds
+            #                     "dealSize": "2",       // deal quantity
+            #                     "fee": "0",            // fee
+            #                     "feeCurrency": "USDT", // charge fee currency
+            #                     "stp": "",             // self trade prevention,include CN,CO,DC,CB
+            #                     "stop": "",            // stop type
+            #                     "stopTriggered": false,  // stop order is triggered
+            #                     "stopPrice": "0",      // stop price
+            #                     "timeInForce": "GTC",  // time InForce,include GTC,GTT,IOC,FOK
+            #                     "postOnly": false,     // postOnly
+            #                     "hidden": false,       // hidden order
+            #                     "iceberg": false,      // iceberg order
+            #                     "visibleSize": "0",    // display quantity for iceberg order
+            #                     "cancelAfter": 0,      // cancel orders time，requires timeInForce to be GTT
+            #                     "channel": "IOS",      // order source
+            #                     "clientOid": "",       // user-entered order unique mark
+            #                     "remark": "",          // remark
+            #                     "tags": "",            // tag order source
+            #                     "isActive": false,     // status before unfilled or uncancelled
+            #                     "cancelExist": false,   // order cancellation transaction record
+            #                     "createdAt": 1547026471000  // time
             #                 },
             #             ]
             #         }
@@ -5358,21 +5388,21 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "stp": "",
         #                     "stop": "",
         #                     "stopPriceType": "",
-        #                     "stopTriggered": False,
+        #                     "stopTriggered": false,
         #                     "stopPrice": null,
         #                     "timeInForce": "GTC",
-        #                     "postOnly": False,
-        #                     "hidden": False,
-        #                     "iceberg": False,
+        #                     "postOnly": false,
+        #                     "hidden": false,
+        #                     "iceberg": false,
         #                     "leverage": "17",
-        #                     "forceHold": False,
-        #                     "closeOrder": False,
+        #                     "forceHold": false,
+        #                     "closeOrder": false,
         #                     "visibleSize": null,
         #                     "clientOid": null,
         #                     "remark": null,
         #                     "tags": null,
-        #                     "isActive": False,
-        #                     "cancelExist": False,
+        #                     "isActive": false,
+        #                     "cancelExist": false,
         #                     "createdAt": 1682996482000,
         #                     "updatedAt": 1682996483062,
         #                     "endAt": 1682996483062,
@@ -5381,7 +5411,7 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "status": "done",
         #                     "filledValue": "27.992",
         #                     "filledSize": 1,
-        #                     "reduceOnly": False
+        #                     "reduceOnly": false
         #                 }
         #             ]
         #         }
@@ -5472,8 +5502,8 @@ class kucoin(Exchange, ImplicitAPI):
             #                     "orderTime": 1774457869404794617,
             #                     "stp": "",
             #                     "cancelAfter": null,
-            #                     "postOnly": False,
-            #                     "reduceOnly": False,
+            #                     "postOnly": false,
+            #                     "reduceOnly": false,
             #                     "triggerDirection": "",
             #                     "triggerPrice": "",
             #                     "triggerPriceType": "",
@@ -5527,7 +5557,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.type]: limit, market, limit_stop or market_stop
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
         :param bool [params.trigger]: True if fetching a trigger order
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -5563,7 +5593,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
         :param int [params.currentPage]: *trigger orders only* current page
         :param str [params.orderIds]: *trigger orders only* comma separated order ID list
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -5636,7 +5666,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str symbol: not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
         :param dict [params]: exchange specific parameters
         :param bool [params.trigger]: True if fetching a trigger order
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :param bool [params.clientOid]: unique order id created by users to identify their orders
         :param dict [params.marginMode]: 'cross' or 'isolated'
         :returns: An `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -5677,7 +5707,7 @@ class kucoin(Exchange, ImplicitAPI):
             else:
                 response = self.privateGetOrderClientOrderClientOid(self.extend(request, params))
         else:
-            # a special case for None ids
+            # a special case for undefined ids
             # otherwise a wrong endpoint for all orders will be triggered
             # https://github.com/ccxt/ccxt/issues/7234
             if id is None:
@@ -5741,21 +5771,21 @@ class kucoin(Exchange, ImplicitAPI):
         #             "stp": "",
         #             "stop": "",
         #             "stopPriceType": "",
-        #             "stopTriggered": False,
+        #             "stopTriggered": false,
         #             "stopPrice": null,
         #             "timeInForce": "GTC",
-        #             "postOnly": False,
-        #             "hidden": False,
-        #             "iceberg": False,
+        #             "postOnly": false,
+        #             "hidden": false,
+        #             "iceberg": false,
         #             "leverage": "17",
-        #             "forceHold": False,
-        #             "closeOrder": False,
+        #             "forceHold": false,
+        #             "closeOrder": false,
         #             "visibleSize": null,
         #             "clientOid": null,
         #             "remark": null,
         #             "tags": null,
-        #             "isActive": False,
-        #             "cancelExist": False,
+        #             "isActive": false,
+        #             "cancelExist": false,
         #             "createdAt": 1682996482000,
         #             "updatedAt": 1682996483000,
         #             "endAt": 1682996483000,
@@ -5764,7 +5794,7 @@ class kucoin(Exchange, ImplicitAPI):
         #             "status": "done",
         #             "filledSize": 1,
         #             "filledValue": "27.992",
-        #             "reduceOnly": False
+        #             "reduceOnly": false
         #         }
         #     }
         #
@@ -5825,8 +5855,8 @@ class kucoin(Exchange, ImplicitAPI):
         #             "orderTime": 1774455603156417582,
         #             "stp": "",
         #             "cancelAfter": null,
-        #             "postOnly": False,
-        #             "reduceOnly": False,
+        #             "postOnly": false,
+        #             "reduceOnly": false,
         #             "triggerDirection": "",
         #             "triggerPrice": "",
         #             "triggerPriceType": "",
@@ -5902,21 +5932,21 @@ class kucoin(Exchange, ImplicitAPI):
         #         "stp": "",
         #         "stop": "",
         #         "stopPriceType": "",
-        #         "stopTriggered": False,
+        #         "stopTriggered": false,
         #         "stopPrice": null,
         #         "timeInForce": "GTC",
-        #         "postOnly": False,
-        #         "hidden": False,
-        #         "iceberg": False,
+        #         "postOnly": false,
+        #         "hidden": false,
+        #         "iceberg": false,
         #         "leverage": "17",
-        #         "forceHold": False,
-        #         "closeOrder": False,
+        #         "forceHold": false,
+        #         "closeOrder": false,
         #         "visibleSize": null,
         #         "clientOid": null,
         #         "remark": null,
         #         "tags": null,
-        #         "isActive": False,
-        #         "cancelExist": False,
+        #         "isActive": false,
+        #         "cancelExist": false,
         #         "createdAt": 1682996482000,
         #         "updatedAt": 1682996483062,
         #         "endAt": 1682996483062,
@@ -5925,7 +5955,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "status": "done",
         #         "filledValue": "27.992",
         #         "filledSize": 1,
-        #         "reduceOnly": False
+        #         "reduceOnly": false
         #     }
         #
         # createOrder
@@ -5969,7 +5999,7 @@ class kucoin(Exchange, ImplicitAPI):
             else:
                 average = Precise.string_div(Precise.string_mul(contractSize, filled), cost)
         # precision reported by their api is 8 d.p.
-        # average = Precise.string_div(cost, Precise.string_mul(filled, market['contractSize']))
+        # const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         # bool
         isActive = self.safe_value(order, 'isActive')
         cancelExist = self.safe_bool(order, 'cancelExist', False)
@@ -6025,7 +6055,7 @@ class kucoin(Exchange, ImplicitAPI):
         # cancelOrder
         #
         #    {
-        #        "cancelledOrderIds": ["63c97e47d686c5000159a656"]
+        #        "cancelledOrderIds": [ "63c97e47d686c5000159a656" ]
         #    }
         #
         # fetchOpenOrders, fetchClosedOrders
@@ -6045,25 +6075,25 @@ class kucoin(Exchange, ImplicitAPI):
         #        "feeCurrency": "USDT",
         #        "stp": "",
         #        "stop": "",
-        #        "stopTriggered": False,
+        #        "stopTriggered": false,
         #        "stopPrice": "0",
         #        "timeInForce": "GTC",
-        #        "postOnly": False,
-        #        "hidden": False,
-        #        "iceberg": False,
+        #        "postOnly": false,
+        #        "hidden": false,
+        #        "iceberg": false,
         #        "visibleSize": "0",
         #        "cancelAfter": 0,
         #        "channel": "API",
         #        "clientOid": "d602d73f-5424-4751-bef0-8debce8f0a82",
         #        "remark": null,
         #        "tags": "partner:ccxt",
-        #        "isActive": True,
-        #        "cancelExist": False,
+        #        "isActive": true,
+        #        "cancelExist": false,
         #        "createdAt": 1674149096927,
         #        "tradeType": "TRADE"
         #    }
         #
-        # stop orders(fetchOpenOrders, fetchClosedOrders)
+        # stop orders (fetchOpenOrders, fetchClosedOrders)
         #
         #    {
         #        "id": "vs9f6ou9e864rgq8000t4qnm",
@@ -6078,9 +6108,9 @@ class kucoin(Exchange, ImplicitAPI):
         #        "stp": null,
         #        "timeInForce": "GTC",
         #        "cancelAfter": -1,
-        #        "postOnly": False,
-        #        "hidden": False,
-        #        "iceberg": False,
+        #        "postOnly": false,
+        #        "hidden": false,
+        #        "iceberg": false,
         #        "visibleSize": null,
         #        "channel": "API",
         #        "clientOid": "5d3fd727-6456-438d-9550-40d9d85eee0b",
@@ -6210,8 +6240,8 @@ class kucoin(Exchange, ImplicitAPI):
         #         "orderTime": 1774455603156417582,
         #         "stp": "",
         #         "cancelAfter": null,
-        #         "postOnly": False,
-        #         "reduceOnly": False,
+        #         "postOnly": false,
+        #         "reduceOnly": false,
         #         "triggerDirection": "",
         #         "triggerPrice": "",
         #         "triggerPriceType": "",
@@ -6380,7 +6410,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :param str [params.marginMode]: 'cross' or 'isolated', only for margin trades
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
@@ -6430,7 +6460,7 @@ class kucoin(Exchange, ImplicitAPI):
         elif method == 'private_get_limit_fills':
             # does not return trades earlier than 2019-02-18T00:00:00Z
             # takes no params
-            # only returns first 1000 trades(not only "in the last 24 hours" in the docs)
+            # only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
             parseResponseData = True
             response = self.privateGetLimitFills(self.extend(request, params))
         else:
@@ -6443,25 +6473,25 @@ class kucoin(Exchange, ImplicitAPI):
         #         "totalPage": 1,
         #         "items": [
         #             {
-        #                 "symbol":"BTC-USDT",       # symbol
-        #                 "tradeId":"5c35c02709e4f67d5266954e",        # trade id
-        #                 "orderId":"5c35c02703aa673ceec2a168",        # order id
-        #                 "counterOrderId":"5c1ab46003aa676e487fa8e3",  # counter order id
-        #                 "side":"buy",              # transaction direction,include buy and sell
-        #                 "liquidity":"taker",       # include taker and maker
-        #                 "forceTaker":true,         # forced to become taker
-        #                 "price":"0.083",           # order price
-        #                 "size":"0.8424304",        # order quantity
-        #                 "funds":"0.0699217232",    # order funds
-        #                 "fee":"0",                 # fee
-        #                 "feeRate":"0",             # fee rate
-        #                 "feeCurrency":"USDT",      # charge fee currency
-        #                 "stop":"",                 # stop type
-        #                 "type":"limit",            # order type, e.g. limit, market, stop_limit.
-        #                 "createdAt":1547026472000  # time
+        #                 "symbol":"BTC-USDT",       // symbol
+        #                 "tradeId":"5c35c02709e4f67d5266954e",        // trade id
+        #                 "orderId":"5c35c02703aa673ceec2a168",        // order id
+        #                 "counterOrderId":"5c1ab46003aa676e487fa8e3", // counter order id
+        #                 "side":"buy",              // transaction direction,include buy and sell
+        #                 "liquidity":"taker",       // include taker and maker
+        #                 "forceTaker":true,         // forced to become taker
+        #                 "price":"0.083",           // order price
+        #                 "size":"0.8424304",        // order quantity
+        #                 "funds":"0.0699217232",    // order funds
+        #                 "fee":"0",                 // fee
+        #                 "feeRate":"0",             // fee rate
+        #                 "feeCurrency":"USDT",      // charge fee currency
+        #                 "stop":"",                 // stop type
+        #                 "type":"limit",            // order type, e.g. limit, market, stop_limit.
+        #                 "createdAt":1547026472000  // time
         #             },
-        #             #------------------------------------------------------
-        #             # v1(historical) trade response structure
+        #             //------------------------------------------------------
+        #             // v1 (historical) trade response structure
         #             {
         #                 "symbol": "SNOV-ETH",
         #                 "dealPrice": "0.0000246",
@@ -6476,7 +6506,7 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        # v1(historical) returns the trade list directly under 'data', v2 nests it under 'items'
+        # v1 (historical) returns the trade list directly under 'data', v2 nests it under 'items'
         trades = None
         if parseResponseData:
             trades = data
@@ -6509,12 +6539,12 @@ class kucoin(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         request = {
-            # orderId(str) [optional] Fills for a specific order(other parameters can be ignored if specified)
-            # symbol(str) [optional] Symbol of the contract
-            # side(str) [optional] buy or sell
-            # type(str) [optional] limit, market, limit_stop or market_stop
-            # startAt(long) [optional] Start time(millisecond)
-            # endAt(long) [optional] End time(millisecond)
+            # orderId (String) [optional] Fills for a specific order (other parameters can be ignored if specified)
+            # symbol (String) [optional] Symbol of the contract
+            # side (String) [optional] buy or sell
+            # type (String) [optional] limit, market, limit_stop or market_stop
+            # startAt (long) [optional] Start time (millisecond)
+            # endAt (long) [optional] End time (millisecond)
         }
         market = None
         if symbol is not None:
@@ -6536,24 +6566,24 @@ class kucoin(Exchange, ImplicitAPI):
         #          "totalPage": 251915,
         #          "items": [
         #              {
-        #                  "symbol": "XBTUSDM",  # Ticker symbol of the contract
-        #                  "tradeId": "5ce24c1f0c19fc3c58edc47c",  # Trade ID
-        #                  "orderId": "5ce24c16b210233c36ee321d",  # Order ID
-        #                  "side": "sell",  # Transaction side
-        #                  "liquidity": "taker",  # Liquidity- taker or maker
-        #                  "price": "8302",  # Filled price
-        #                  "size": 10,  # Filled amount
-        #                  "value": "0.001204529",  # Order value
-        #                  "feeRate": "0.0005",  # Floating fees
-        #                  "fixFee": "0.00000006",  # Fixed fees
-        #                  "feeCurrency": "XBT",  # Charging currency
-        #                  "stop": "",  # A mark to the stop order type
-        #                  "fee": "0.0000012022",  # Transaction fee
-        #                  "orderType": "limit",  # Order type
-        #                  "tradeType": "trade",  # Trade type(trade, liquidation, ADL or settlement)
-        #                  "createdAt": 1558334496000,  # Time the order created
-        #                  "settleCurrency": "XBT",  # settlement currency
-        #                  "tradeTime": 1558334496000000000  # trade time in nanosecond
+        #                  "symbol": "XBTUSDM",  // Ticker symbol of the contract
+        #                  "tradeId": "5ce24c1f0c19fc3c58edc47c",  // Trade ID
+        #                  "orderId": "5ce24c16b210233c36ee321d",  // Order ID
+        #                  "side": "sell",  // Transaction side
+        #                  "liquidity": "taker",  // Liquidity- taker or maker
+        #                  "price": "8302",  // Filled price
+        #                  "size": 10,  // Filled amount
+        #                  "value": "0.001204529",  // Order value
+        #                  "feeRate": "0.0005",  // Floating fees
+        #                  "fixFee": "0.00000006",  // Fixed fees
+        #                  "feeCurrency": "XBT",  // Charging currency
+        #                  "stop": "",  // A mark to the stop order type
+        #                  "fee": "0.0000012022",  // Transaction fee
+        #                  "orderType": "limit",  // Order type
+        #                  "tradeType": "trade",  // Trade type (trade, liquidation, ADL or settlement)
+        #                  "createdAt": 1558334496000,  // Time the order created
+        #                  "settleCurrency": "XBT", // settlement currency
+        #                  "tradeTime": 1558334496000000000 // trade time in nanosecond
         #              }
         #            ]
         #        }
@@ -6673,11 +6703,11 @@ class kucoin(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         # pagination is not supported on the exchange side anymore
-        # if since is not None:
-        #     request['startAt'] = int(math.floor(since / 1000))
+        # if (since !== undefined) {
+        #     request['startAt'] = Math.floor (since / 1000);
         # }
-        # if limit is not None:
-        #     request['pageSize'] = limit
+        # if (limit !== undefined) {
+        #     request['pageSize'] = limit;
         # }
         uta = False
         uta, params = self.handle_option_and_params(params, 'fetchTrades', 'uta', uta)
@@ -6742,7 +6772,7 @@ class kucoin(Exchange, ImplicitAPI):
             #                  "takerOrderId": "61c20742f172110001e0ebe4",
             #                  "makerOrderId": "61c2073fcfc88100010fcb5d",
             #                  "tradeId": "61c2074277a0c473e69029b8",
-            #                  "ts": 1640105794099993896   # filled time
+            #                  "ts": 1640105794099993896   // filled time
             #              }
             #          ]
             #      }
@@ -6765,7 +6795,7 @@ class kucoin(Exchange, ImplicitAPI):
 
     def parse_spot_or_uta_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "sequence": "1548764654235",
@@ -6788,7 +6818,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "tradeId": "5e356c4aeefabd62c62a1ece"
         #     }
         #
-        # fetchMyTrades(private) v2
+        # fetchMyTrades (private) v2
         #
         #     {
         #         "symbol":"BTC-USDT",
@@ -6813,7 +6843,7 @@ class kucoin(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol": "OPEN-BTC",
-        #         "forceTaker":  False,
+        #         "forceTaker":  false,
         #         "orderId": "5ce36420054b4663b1fff2c9",
         #         "fee": "0",
         #         "feeCurrency": "",
@@ -6827,7 +6857,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "tradeId": "5ce390cf6e0db23b861c6e80"
         #     }
         #
-        # fetchMyTrades(private) v1(historical)
+        # fetchMyTrades (private) v1 (historical)
         #
         #     {
         #         "symbol": "SNOV-ETH",
@@ -6901,7 +6931,7 @@ class kucoin(Exchange, ImplicitAPI):
 
     def parse_contract_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "sequence": 32114961,
@@ -6911,10 +6941,10 @@ class kucoin(Exchange, ImplicitAPI):
         #         "takerOrderId": "61c20742f172110001e0ebe4",
         #         "makerOrderId": "61c2073fcfc88100010fcb5d",
         #         "tradeId": "61c2074277a0c473e69029b8",
-        #         "ts": 1640105794099993896   # filled time
+        #         "ts": 1640105794099993896   // filled time
         #     }
         #
-        # fetchMyTrades(private) v2
+        # fetchMyTrades (private) v2
         #
         #     {
         #         "symbol":"BTC-USDT",
@@ -6935,7 +6965,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "createdAt":1547026472000
         #     }
         #
-        # fetchMyTrades(private) v1
+        # fetchMyTrades (private) v1
         #
         #    {
         #        "symbol":"DOGEUSDTM",
@@ -7180,9 +7210,9 @@ class kucoin(Exchange, ImplicitAPI):
             'toAddress': address,
             'withdrawType': 'ADDRESS',
             # 'memo': tag,
-            # 'isInner': False,  # internal transfer or external withdrawal
+            # 'isInner': false, // internal transfer or external withdrawal
             # 'remark': 'optional',
-            # 'chain': 'OMNI',  # 'ERC20', 'TRC20', default is ERC20, This only apply for multi-chain currency, and there is no need for single chain currency.
+            # 'chain': 'OMNI', // 'ERC20', 'TRC20', default is ERC20, This only apply for multi-chain currency, and there is no need for single chain currency.
         }
         if tag is not None:
             request['memo'] = tag
@@ -7235,7 +7265,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "fee": 0.0001,
         #         "currency": "KCS",
         #         "chain": "",
-        #         "isInner": False,
+        #         "isInner": false,
         #         "walletTxId": "5bbb57386d99522d9f954c5a@test004",
         #         "status": "SUCCESS",
         #         "createdAt": 1544178843000,
@@ -7254,7 +7284,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "amount": 1.0000000,
         #         "fee": 0.0100000,
         #         "walletTxId": "3e2414d82acce78d38be7fe9",
-        #         "isInner": False,
+        #         "isInner": false,
         #         "status": "FAILURE",
         #         "createdAt": 1546503758000,
         #         "updatedAt": 1546504603000
@@ -7383,29 +7413,29 @@ class kucoin(Exchange, ImplicitAPI):
         #             "totalNum": 2,
         #             "totalPage": 1,
         #             "items": [
-        #                 #--------------------------------------------------
-        #                 # version 2 deposit response structure
+        #                 //--------------------------------------------------
+        #                 // version 2 deposit response structure
         #                 {
         #                     "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
         #                     "memo": "5c247c8a03aa677cea2a251d",
         #                     "amount": 1,
         #                     "fee": 0.0001,
         #                     "currency": "KCS",
-        #                     "isInner": False,
+        #                     "isInner": false,
         #                     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
         #                     "status": "SUCCESS",
         #                     "createdAt": 1544178843000,
         #                     "updatedAt": 1544178891000
         #                     "remark":"foobar"
         #                 },
-        #                 #--------------------------------------------------
-        #                 # version 1(historical) deposit response structure
+        #                 //--------------------------------------------------
+        #                 // version 1 (historical) deposit response structure
         #                 {
         #                     "currency": "BTC",
         #                     "createAt": 1528536998,
         #                     "amount": "0.03266638",
         #                     "walletTxId": "55c643bc2c68d6f17266383ac1be9e454038864b929ae7cee0bc408cc5c869e8@12ffGWmMMD1zA1WbFm7Ho3JZ1w6NYXjpFk@234",
-        #                     "isInner": False,
+        #                     "isInner": false,
         #                     "status": "SUCCESS",
         #                 }
         #             ]
@@ -7452,7 +7482,7 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "amount": 1,
         #                     "fee": 0.0001,
         #                     "currency": "KCS",
-        #                     "isInner": False,
+        #                     "isInner": false,
         #                     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
         #                     "status": "SUCCESS",
         #                     "createdAt": 1544178843000,
@@ -7523,8 +7553,8 @@ class kucoin(Exchange, ImplicitAPI):
         #             "totalNum": 2,
         #             "totalPage": 1,
         #             "items": [
-        #                 #--------------------------------------------------
-        #                 # version 2 withdrawal response structure
+        #                 //--------------------------------------------------
+        #                 // version 2 withdrawal response structure
         #                 {
         #                     "id": "5c2dc64e03aa675aa263f1ac",
         #                     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
@@ -7533,20 +7563,20 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "amount": 1.0000000,
         #                     "fee": 0.0100000,
         #                     "walletTxId": "3e2414d82acce78d38be7fe9",
-        #                     "isInner": False,
+        #                     "isInner": false,
         #                     "status": "FAILURE",
         #                     "createdAt": 1546503758000,
         #                     "updatedAt": 1546504603000
         #                 },
-        #                 #--------------------------------------------------
-        #                 # version 1(historical) withdrawal response structure
+        #                 //--------------------------------------------------
+        #                 // version 1 (historical) withdrawal response structure
         #                 {
         #                     "currency": "BTC",
         #                     "createAt": 1526723468,
         #                     "amount": "0.534",
         #                     "address": "33xW37ZSW4tQvg443Pc7NLCAs167Yc2XUV",
         #                     "walletTxId": "aeacea864c020acf58e51606169240e96774838dcd4f7ce48acf38e3651323f4",
-        #                     "isInner": False,
+        #                     "isInner": false,
         #                     "status": "SUCCESS"
         #                 }
         #             ]
@@ -7595,7 +7625,7 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "amount": 1.0000000,
         #                     "fee": 0.0100000,
         #                     "walletTxId": "3e2414d82acce78d38be7fe9",
-        #                     "isInner": False,
+        #                     "isInner": false,
         #                     "status": "FAILURE",
         #                     "createdAt": 1546503758000,
         #                     "updatedAt": 1546504603000
@@ -7726,8 +7756,8 @@ class kucoin(Exchange, ImplicitAPI):
         #                    "debtRatio": "0",
         #                    "baseAsset": {
         #                        "currency": "MANA",
-        #                        "borrowEnabled": True,
-        #                        "transferInEnabled": True,
+        #                        "borrowEnabled": true,
+        #                        "transferInEnabled": true,
         #                        "total": "0",
         #                        "hold": "0",
         #                        "available": "0",
@@ -7737,8 +7767,8 @@ class kucoin(Exchange, ImplicitAPI):
         #                    },
         #                    "quoteAsset": {
         #                        "currency": "USDT",
-        #                        "borrowEnabled": True,
-        #                        "transferInEnabled": True,
+        #                        "borrowEnabled": true,
+        #                        "transferInEnabled": true,
         #                        "total": "0",
         #                        "hold": "0",
         #                        "available": "0",
@@ -8160,7 +8190,7 @@ class kucoin(Exchange, ImplicitAPI):
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
-        # transfer(spot)
+        # transfer (spot)
         #
         #    {
         #        "orderId": "605a6211e657f00006ad0ad6"
@@ -8171,7 +8201,7 @@ class kucoin(Exchange, ImplicitAPI):
         #        "msg": "Failed to transfer out. The amount exceeds the upper limit"
         #    }
         #
-        # transfer(futures)
+        # transfer (futures)
         #
         #     {
         #         "applyId": "605a87217dff1500063d485d",
@@ -8193,7 +8223,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "updatedAt": 1616545569000
         #     }
         #
-        # ledger entry - from account ledgers API(for fetchTransfers)
+        # ledger entry - from account ledgers API (for fetchTransfers)
         #
         # {
         #     "id": "611a1e7c6a053300067a88d9",
@@ -8269,40 +8299,40 @@ class kucoin(Exchange, ImplicitAPI):
             'Withdrawal': 'transaction',  # Withdrawal
             'Transfer': 'transfer',  # Transfer
             'Trade_Exchange': 'trade',  # Trade
-            # 'Vote for Coin': 'Vote for Coin',  # Vote for Coin
+            # 'Vote for Coin': 'Vote for Coin', // Vote for Coin
             'KuCoin Bonus': 'bonus',  # KuCoin Bonus
             'Referral Bonus': 'referral',  # Referral Bonus
             'Rewards': 'bonus',  # Activities Rewards
-            # 'Distribution': 'Distribution',  # Distribution, such GAS by holding NEO
+            # 'Distribution': 'Distribution', // Distribution, such as get GAS by holding NEO
             'Airdrop/Fork': 'airdrop',  # Airdrop/Fork
             'Other rewards': 'bonus',  # Other rewards, except Vote, Airdrop, Fork
             'Fee Rebate': 'rebate',  # Fee Rebate
             'Buy Crypto': 'trade',  # Use credit card to buy crypto
             'Sell Crypto': 'sell',  # Use credit card to sell crypto
             'Public Offering Purchase': 'trade',  # Public Offering Purchase for Spotlight
-            # 'Send red envelope': 'Send red envelope',  # Send red envelope
-            # 'Open red envelope': 'Open red envelope',  # Open red envelope
-            # 'Staking': 'Staking',  # Staking
-            # 'LockDrop Vesting': 'LockDrop Vesting',  # LockDrop Vesting
-            # 'Staking Profits': 'Staking Profits',  # Staking Profits
-            # 'Redemption': 'Redemption',  # Redemption
+            # 'Send red envelope': 'Send red envelope', // Send red envelope
+            # 'Open red envelope': 'Open red envelope', // Open red envelope
+            # 'Staking': 'Staking', // Staking
+            # 'LockDrop Vesting': 'LockDrop Vesting', // LockDrop Vesting
+            # 'Staking Profits': 'Staking Profits', // Staking Profits
+            # 'Redemption': 'Redemption', // Redemption
             'Refunded Fees': 'fee',  # Refunded Fees
             'KCS Pay Fees': 'fee',  # KCS Pay Fees
             'Margin Trade': 'trade',  # Margin Trade
             'Loans': 'Loans',  # Loans
-            # 'Borrowings': 'Borrowings',  # Borrowings
-            # 'Debt Repayment': 'Debt Repayment',  # Debt Repayment
-            # 'Loans Repaid': 'Loans Repaid',  # Loans Repaid
-            # 'Lendings': 'Lendings',  # Lendings
-            # 'Pool transactions': 'Pool transactions',  # Pool-X transactions
+            # 'Borrowings': 'Borrowings', // Borrowings
+            # 'Debt Repayment': 'Debt Repayment', // Debt Repayment
+            # 'Loans Repaid': 'Loans Repaid', // Loans Repaid
+            # 'Lendings': 'Lendings', // Lendings
+            # 'Pool transactions': 'Pool transactions', // Pool-X transactions
             'Instant Exchange': 'trade',  # Instant Exchange
             'Sub-account transfer': 'transfer',  # Sub-account transfer
             'Liquidation Fees': 'fee',  # Liquidation Fees
-            # 'Soft Staking Profits': 'Soft Staking Profits',  # Soft Staking Profits
-            # 'Voting Earnings': 'Voting Earnings',  # Voting Earnings on Pool-X
-            # 'Redemption of Voting': 'Redemption of Voting',  # Redemption of Voting on Pool-X
-            # 'Voting': 'Voting',  # Voting on Pool-X
-            # 'Convert to KCS': 'Convert to KCS',  # Convert to KCS
+            # 'Soft Staking Profits': 'Soft Staking Profits', // Soft Staking Profits
+            # 'Voting Earnings': 'Voting Earnings', // Voting Earnings on Pool-X
+            # 'Redemption of Voting': 'Redemption of Voting', // Redemption of Voting on Pool-X
+            # 'Voting': 'Voting', // Voting on Pool-X
+            # 'Convert to KCS': 'Convert to KCS', // Convert to KCS
             'RealisedPNL': 'trade',
             'TransferIn': 'transfer',
             'TransferOut': 'transfer',
@@ -8347,16 +8377,16 @@ class kucoin(Exchange, ImplicitAPI):
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     {
-        #         "id": "611a1e7c6a053300067a88d9",  #unique key for each ledger entry
-        #         "currency": "USDT",  #Currency
-        #         "amount": "10.00059547",  #The total amount of assets(fees included) involved in assets changes such, withdrawal and bonus distribution.
-        #         "fee": "0",  #Deposit or withdrawal fee
-        #         "balance": "0",  #Total assets of a currency remaining funds after transaction
-        #         "accountType": "MAIN",  #Account Type
-        #         "bizType": "Loans Repaid",  #business type
-        #         "direction": "in",  #side, in or out
-        #         "createdAt": 1629101692950,  #Creation time
-        #         "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}"  #Business core parameters
+        #         "id": "611a1e7c6a053300067a88d9", //unique key for each ledger entry
+        #         "currency": "USDT", //Currency
+        #         "amount": "10.00059547", //The total amount of assets (fees included) involved in assets changes such as transaction, withdrawal and bonus distribution.
+        #         "fee": "0", //Deposit or withdrawal fee
+        #         "balance": "0", //Total assets of a currency remaining funds after transaction
+        #         "accountType": "MAIN", //Account Type
+        #         "bizType": "Loans Repaid", //business type
+        #         "direction": "in", //side, in or out
+        #         "createdAt": 1629101692950, //Creation time
+        #         "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}" //Business core parameters
         #     }
         #
         # ledger entry from contracts API
@@ -8515,11 +8545,11 @@ class kucoin(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, maxLimit)
         request = {
-            # 'currency': currency['id'],  # can choose up to 10, if not provided returns for all currencies by default
-            # 'direction': 'in',  # 'out'
-            # 'bizType': 'DEPOSIT',  # DEPOSIT, WITHDRAW, TRANSFER, SUB_TRANSFER,TRADE_EXCHANGE, MARGIN_EXCHANGE, KUCOIN_BONUS(optional)
+            # 'currency': currency['id'], // can choose up to 10, if not provided returns for all currencies by default
+            # 'direction': 'in', // 'out'
+            # 'bizType': 'DEPOSIT', // DEPOSIT, WITHDRAW, TRANSFER, SUB_TRANSFER,TRADE_EXCHANGE, MARGIN_EXCHANGE, KUCOIN_BONUS (optional)
             # 'startAt': since,
-            # 'endAt': exchange.milliseconds(),
+            # 'endAt': exchange.milliseconds (),
         }
         if since is not None:
             request['startAt'] = since
@@ -8563,7 +8593,7 @@ class kucoin(Exchange, ImplicitAPI):
             #                     "currency": "USDT"
             #                 }
             #             ],
-            #             "hasMore": False
+            #             "hasMore": false
             #         }
             #     }
             #
@@ -8593,14 +8623,14 @@ class kucoin(Exchange, ImplicitAPI):
         #                 }
         #                 {
         #                     "id": "611a1e7c6a053300067a88d9",//unique key
-        #                     "currency": "USDT",  #Currency
-        #                     "amount": "10.00059547",  #Change amount of the funds
-        #                     "fee": "0",  #Deposit or withdrawal fee
-        #                     "balance": "0",  #Total assets of a currency
-        #                     "accountType": "MAIN",  #Account Type
-        #                     "bizType": "Loans Repaid",  #business type
-        #                     "direction": "in",  #side, in or out
-        #                     "createdAt": 1629101692950,  #Creation time
+        #                     "currency": "USDT", //Currency
+        #                     "amount": "10.00059547", //Change amount of the funds
+        #                     "fee": "0", //Deposit or withdrawal fee
+        #                     "balance": "0", //Total assets of a currency
+        #                     "accountType": "MAIN", //Account Type
+        #                     "bizType": "Loans Repaid", //business type
+        #                     "direction": "in", //side, in or out
+        #                     "createdAt": 1629101692950, //Creation time
         #                     "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}"
         #                 },
         #             ]
@@ -8723,8 +8753,8 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "hold": "0",
         #                     "liability": "0",
         #                     "maxBorrowSize": "0",
-        #                     "borrowEnabled": True,
-        #                     "transferInEnabled": True
+        #                     "borrowEnabled": true,
+        #                     "transferInEnabled": true
         #                 }
         #             ]
         #         }
@@ -8744,9 +8774,9 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "status": "BORROW",
         #                     "baseAsset": {
         #                         "currency": "MANA",
-        #                         "borrowEnabled": True,
-        #                         "repayEnabled": True,
-        #                         "transferEnabled": True,
+        #                         "borrowEnabled": true,
+        #                         "repayEnabled": true,
+        #                         "transferEnabled": true,
         #                         "borrowed": "0",
         #                         "totalAsset": "0",
         #                         "available": "0",
@@ -8755,9 +8785,9 @@ class kucoin(Exchange, ImplicitAPI):
         #                     },
         #                     "quoteAsset": {
         #                         "currency": "USDT",
-        #                         "borrowEnabled": True,
-        #                         "repayEnabled": True,
-        #                         "transferEnabled": True,
+        #                         "borrowEnabled": true,
+        #                         "repayEnabled": true,
+        #                         "transferEnabled": true,
         #                         "borrowed": "0",
         #                         "totalAsset": "0",
         #                         "available": "0",
@@ -8788,8 +8818,8 @@ class kucoin(Exchange, ImplicitAPI):
         #         "liabilityPrincipal": "10",
         #         "liabilityInterest": "0.00004692",
         #         "maxBorrowSize": "1140",
-        #         "borrowEnabled": True,
-        #         "transferInEnabled": True
+        #         "borrowEnabled": true,
+        #         "transferInEnabled": true
         #     }
         #
         # Isolated
@@ -8800,8 +8830,8 @@ class kucoin(Exchange, ImplicitAPI):
         #         "debtRatio": "0.0822",
         #         "baseAsset": {
         #             "currency": "DOGE",
-        #             "borrowEnabled": True,
-        #             "transferInEnabled": True,
+        #             "borrowEnabled": true,
+        #             "transferInEnabled": true,
         #             "liability": "10.00009385",
         #             "liabilityPrincipal": "10.00004692",
         #             "liabilityInterest": "0.00004693",
@@ -8812,8 +8842,8 @@ class kucoin(Exchange, ImplicitAPI):
         #         },
         #         "quoteAsset": {
         #             "currency": "USDT",
-        #             "borrowEnabled": True,
-        #             "transferInEnabled": True,
+        #             "borrowEnabled": true,
+        #             "transferInEnabled": true,
         #             "liability": "0",
         #             "liabilityPrincipal": "0",
         #             "liabilityInterest": "0",
@@ -8870,7 +8900,7 @@ class kucoin(Exchange, ImplicitAPI):
             self.load_markets()
         marginResult = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params)
         marginMode = self.safe_string(marginResult, 0, 'cross')
-        isIsolated = (marginMode == 'isolated')  # True-isolated, False-cross
+        isIsolated = (marginMode == 'isolated')  # true-isolated, false-cross
         request = {
             'isIsolated': isIsolated,
         }
@@ -8922,7 +8952,7 @@ class kucoin(Exchange, ImplicitAPI):
             self.load_markets()
         marginResult = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params)
         marginMode = self.safe_string(marginResult, 0, 'cross')
-        isIsolated = (marginMode == 'isolated')  # True-isolated, False-cross
+        isIsolated = (marginMode == 'isolated')  # true-isolated, false-cross
         currency = self.currency(code)
         request = {
             'isIsolated': isIsolated,
@@ -9041,10 +9071,10 @@ class kucoin(Exchange, ImplicitAPI):
         response = self.privatePostMarginBorrow(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "code": "200",
         #         "msg": "success",
-        #         "retry": False,
+        #         "retry": false,
         #         "data": {
         #             "orderNo": "5da6dba0f943c0c81f5d5db5",
         #             "actualSize": 10
@@ -9081,10 +9111,10 @@ class kucoin(Exchange, ImplicitAPI):
         response = self.privatePostMarginBorrow(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "code": "200",
         #         "msg": "success",
-        #         "retry": False,
+        #         "retry": false,
         #         "data": {
         #             "orderNo": "5da6dba0f943c0c81f5d5db5",
         #             "actualSize": 10
@@ -9115,10 +9145,10 @@ class kucoin(Exchange, ImplicitAPI):
         response = self.privatePostMarginRepay(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "code": "200",
         #         "msg": "success",
-        #         "retry": False,
+        #         "retry": false,
         #         "data": {
         #             "orderNo": "5da6dba0f943c0c81f5d5db5",
         #             "actualSize": 10
@@ -9153,10 +9183,10 @@ class kucoin(Exchange, ImplicitAPI):
         response = self.privatePostMarginRepay(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "code": "200",
         #         "msg": "success",
-        #         "retry": False,
+        #         "retry": false,
         #         "data": {
         #             "orderNo": "5da6dba0f943c0c81f5d5db5",
         #             "actualSize": 10
@@ -9209,10 +9239,10 @@ class kucoin(Exchange, ImplicitAPI):
         #        "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
         #        "withdrawalMinSize": "2000",
         #        "withdrawalMinFee": "1000",
-        #        "isWithdrawEnabled": True,
-        #        "isDepositEnabled": True,
-        #        "isMarginEnabled": False,
-        #        "isDebitEnabled": False
+        #        "isWithdrawEnabled": true,
+        #        "isDepositEnabled": true,
+        #        "isMarginEnabled": false,
+        #        "isDebitEnabled": false
         #      },
         #  ]
         #
@@ -9350,7 +9380,7 @@ class kucoin(Exchange, ImplicitAPI):
             #
             #    {
             #        "code": "200000",
-            #        "data": True
+            #        "data": true
             #    }
             #
             response = self.futuresPrivatePostChangeCrossUserLeverage(self.extend(request, params))
@@ -9435,6 +9465,50 @@ class kucoin(Exchange, ImplicitAPI):
             response = self.futuresPublicGetFundingRateSymbolCurrent(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
+
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetch the current funding rates for multiple markets
+
+        https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding
+
+        :param str[] [symbols]: unified market symbols, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.productType]: filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES
+        :param str [params.symbol]: exchange-specific contract id(e.g. XBTUSDTM), overrides productType when provided
+        :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`, indexed by market symbols
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.utaV2GetMarketFundingRate(params)
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "symbol": "XBTUSDTM",
+        #                 "nextFundingRate": "-0.000004",
+        #                 "fundingTime": 1789315200000,
+        #                 "fundingRateCap": "0.003",
+        #                 "fundingRateFloor": "-0.003",
+        #                 "currentGranularity": 28800000,
+        #                 "newGranularity": 28800000,
+        #                 "newGranularityStartTime": 1750147200000
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'symbol')
+            # kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
+            isFundingIndex = (marketId is not None) and (marketId.startswith('.'))
+            if not isFundingIndex:
+                rates.append(entry)
+        return self.parse_funding_rates(rates, symbols)
 
     def parse_funding_rate(self, data: object, market: Market = None) -> FundingRate:
         # uta
@@ -9674,7 +9748,7 @@ class kucoin(Exchange, ImplicitAPI):
             #                },
             #                ...
             #            ],
-            #            "hasMore": True
+            #            "hasMore": true
             #        }
             #    }
             #
@@ -9761,11 +9835,11 @@ class kucoin(Exchange, ImplicitAPI):
             #        "data": {
             #            "id": "6505ee6eaff4070001f651c4",
             #            "symbol": "XBTUSDTM",
-            #            "autoDeposit": False,
+            #            "autoDeposit": false,
             #            "maintMarginReq": 0,
             #            "riskLimit": 200,
             #            "realLeverage": 0.0,
-            #            "crossMode": False,
+            #            "crossMode": false,
             #            "delevPercentage": 0.0,
             #            "currentTimestamp": 1694887534594,
             #            "currentQty": 0,
@@ -9774,7 +9848,7 @@ class kucoin(Exchange, ImplicitAPI):
             #            "unrealisedCost": 0.0,
             #            "realisedGrossCost": 0.0,
             #            "realisedCost": 0.0,
-            #            "isOpen": False,
+            #            "isOpen": false,
             #            "markPrice": 26611.71,
             #            "markValue": 0.0,
             #            "posCost": 0.0,
@@ -9832,11 +9906,11 @@ class kucoin(Exchange, ImplicitAPI):
             #            {
             #                "id": "615ba79f83a3410001cde321",
             #                "symbol": "ETHUSDTM",
-            #                "autoDeposit": False,
+            #                "autoDeposit": false,
             #                "maintMarginReq": 0.005,
             #                "riskLimit": 1000000,
             #                "realLeverage": 18.61,
-            #                "crossMode": False,
+            #                "crossMode": false,
             #                "delevPercentage": 0.86,
             #                "openingTimestamp": 1638563515618,
             #                "currentTimestamp": 1638576872774,
@@ -9846,7 +9920,7 @@ class kucoin(Exchange, ImplicitAPI):
             #                "unrealisedCost": 83.64200000,
             #                "realisedGrossCost": 0.00000000,
             #                "realisedCost": 0.05018520,
-            #                "isOpen": True,
+            #                "isOpen": true,
             #                "markPrice": 4225.01,
             #                "markValue": 84.50020000,
             #                "posCost": 83.64200000,
@@ -9866,7 +9940,7 @@ class kucoin(Exchange, ImplicitAPI):
             #                "liquidationPrice": 4023.00,
             #                "bankruptPrice": 4000.25,
             #                "settleCurrency": "USDT",
-            #                "isInverse": False
+            #                "isInverse": false
             #            }
             #        ]
             #    }
@@ -9948,10 +10022,10 @@ class kucoin(Exchange, ImplicitAPI):
                 request['to'] = until
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "code": "200",
             #     "msg": "success",
-            #     "retry": False,
+            #     "retry": false,
             #     "data": {
             #         "currentPage": 1,
             #         "pageSize": 10,
@@ -9995,43 +10069,43 @@ class kucoin(Exchange, ImplicitAPI):
         #        "code": "200000",
         #        "data": [
         #            {
-        #                "id": "615ba79f83a3410001cde321",         # Position ID
-        #                "symbol": "ETHUSDTM",                     # Symbol
-        #                "autoDeposit": False,                     # Auto deposit margin or not
-        #                "maintMarginReq": 0.005,                  # Maintenance margin requirement
-        #                "riskLimit": 1000000,                     # Risk limit
-        #                "realLeverage": 25.92,                    # Leverage of the order
-        #                "crossMode": False,                       # Cross mode or not
-        #                "delevPercentage": 0.76,                  # ADL ranking percentile
-        #                "openingTimestamp": 1638578546031,        # Open time
-        #                "currentTimestamp": 1638578563580,        # Current timestamp
-        #                "currentQty": 2,                          # Current postion quantity
-        #                "currentCost": 83.787,                    # Current postion value
-        #                "currentComm": 0.0167574,                 # Current commission
-        #                "unrealisedCost": 83.787,                 # Unrealised value
-        #                "realisedGrossCost": 0.0,                 # Accumulated realised gross profit value
-        #                "realisedCost": 0.0167574,                # Current realised position value
-        #                "isOpen": True,                           # Opened position or not
-        #                "markPrice": 4183.38,                     # Mark price
-        #                "markValue": 83.6676,                     # Mark value
-        #                "posCost": 83.787,                        # Position value
-        #                "posCross": 0.0,                          # added margin
-        #                "posInit": 3.35148,                       # Leverage margin
-        #                "posComm": 0.05228309,                    # Bankruptcy cost
-        #                "posLoss": 0.0,                           # Funding fees paid out
-        #                "posMargin": 3.40376309,                  # Position margin
-        #                "posMaint": 0.50707892,                   # Maintenance margin
-        #                "maintMargin": 3.28436309,                # Position margin
-        #                "realisedGrossPnl": 0.0,                  # Accumulated realised gross profit value
-        #                "realisedPnl": -0.0167574,                # Realised profit and loss
-        #                "unrealisedPnl": -0.1194,                 # Unrealised profit and loss
-        #                "unrealisedPnlPcnt": -0.0014,             # Profit-loss ratio of the position
-        #                "unrealisedRoePcnt": -0.0356,             # Rate of return on investment
-        #                "avgEntryPrice": 4189.35,                 # Average entry price
-        #                "liquidationPrice": 4044.55,              # Liquidation price
-        #                "bankruptPrice": 4021.75,                 # Bankruptcy price
-        #                "settleCurrency": "USDT",                 # Currency used to clear and settle the trades
-        #                "isInverse": False
+        #                "id": "615ba79f83a3410001cde321",         // Position ID
+        #                "symbol": "ETHUSDTM",                     // Symbol
+        #                "autoDeposit": false,                     // Auto deposit margin or not
+        #                "maintMarginReq": 0.005,                  // Maintenance margin requirement
+        #                "riskLimit": 1000000,                     // Risk limit
+        #                "realLeverage": 25.92,                    // Leverage of the order
+        #                "crossMode": false,                       // Cross mode or not
+        #                "delevPercentage": 0.76,                  // ADL ranking percentile
+        #                "openingTimestamp": 1638578546031,        // Open time
+        #                "currentTimestamp": 1638578563580,        // Current timestamp
+        #                "currentQty": 2,                          // Current postion quantity
+        #                "currentCost": 83.787,                    // Current postion value
+        #                "currentComm": 0.0167574,                 // Current commission
+        #                "unrealisedCost": 83.787,                 // Unrealised value
+        #                "realisedGrossCost": 0.0,                 // Accumulated realised gross profit value
+        #                "realisedCost": 0.0167574,                // Current realised position value
+        #                "isOpen": true,                           // Opened position or not
+        #                "markPrice": 4183.38,                     // Mark price
+        #                "markValue": 83.6676,                     // Mark value
+        #                "posCost": 83.787,                        // Position value
+        #                "posCross": 0.0,                          // added margin
+        #                "posInit": 3.35148,                       // Leverage margin
+        #                "posComm": 0.05228309,                    // Bankruptcy cost
+        #                "posLoss": 0.0,                           // Funding fees paid out
+        #                "posMargin": 3.40376309,                  // Position margin
+        #                "posMaint": 0.50707892,                   // Maintenance margin
+        #                "maintMargin": 3.28436309,                // Position margin
+        #                "realisedGrossPnl": 0.0,                  // Accumulated realised gross profit value
+        #                "realisedPnl": -0.0167574,                // Realised profit and loss
+        #                "unrealisedPnl": -0.1194,                 // Unrealised profit and loss
+        #                "unrealisedPnlPcnt": -0.0014,             // Profit-loss ratio of the position
+        #                "unrealisedRoePcnt": -0.0356,             // Rate of return on investment
+        #                "avgEntryPrice": 4189.35,                 // Average entry price
+        #                "liquidationPrice": 4044.55,              // Liquidation price
+        #                "bankruptPrice": 4021.75,                 // Bankruptcy price
+        #                "settleCurrency": "USDT",                 // Currency used to clear and settle the trades
+        #                "isInverse": false
         #            }
         #        ]
         #    }
@@ -10119,10 +10193,10 @@ class kucoin(Exchange, ImplicitAPI):
         notional = Precise.string_abs(self.safe_string_2(position, 'posCost', 'positionValue'))
         initialMargin = self.safe_string_2(position, 'posInit', 'initialMargin')
         initialMarginPercentage = Precise.string_div(initialMargin, notional)
-        # marginRatio = Precise.string_div(maintenanceRate, collateral)
+        # const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         unrealisedPnl = self.safe_string_2(position, 'unrealisedPnl', 'unrealizedPnL')
         crossMode = self.safe_value(position, 'crossMode')
-        # currently crossMode is always set to False and only isolated positions are supported
+        # currently crossMode is always set to false and only isolated positions are supported
         marginMode = self.safe_string_lower(position, 'marginMode')
         if crossMode is not None:
             marginMode = 'cross' if (crossMode is True) else 'isolated'
@@ -10283,11 +10357,11 @@ class kucoin(Exchange, ImplicitAPI):
         #        "data": {
         #            "id": "62311d26064e8f00013f2c6d",
         #            "symbol": "XRPUSDTM",
-        #            "autoDeposit": False,
+        #            "autoDeposit": false,
         #            "maintMarginReq": 0.01,
         #            "riskLimit": 200000,
         #            "realLeverage": 0.88,
-        #            "crossMode": False,
+        #            "crossMode": false,
         #            "delevPercentage": 0.4,
         #            "openingTimestamp": 1647385894798,
         #            "currentTimestamp": 1647414510672,
@@ -10297,7 +10371,7 @@ class kucoin(Exchange, ImplicitAPI):
         #            "unrealisedCost": -7.658,
         #            "realisedGrossCost": 0,
         #            "realisedCost": 0.0053561,
-        #            "isOpen": True,
+        #            "isOpen": true,
         #            "markPrice": 0.7635,
         #            "markValue": -7.635,
         #            "posCost": -7.658,
@@ -10379,11 +10453,11 @@ class kucoin(Exchange, ImplicitAPI):
         #    {
         #        "id": "62311d26064e8f00013f2c6d",
         #        "symbol": "XRPUSDTM",
-        #        "autoDeposit": False,
+        #        "autoDeposit": false,
         #        "maintMarginReq": 0.01,
         #        "riskLimit": 200000,
         #        "realLeverage": 0.88,
-        #        "crossMode": False,
+        #        "crossMode": false,
         #        "delevPercentage": 0.4,
         #        "openingTimestamp": 1647385894798,
         #        "currentTimestamp": 1647414510672,
@@ -10393,7 +10467,7 @@ class kucoin(Exchange, ImplicitAPI):
         #        "unrealisedCost": -7.658,
         #        "realisedGrossCost": 0,
         #        "realisedCost": 0.0053561,
-        #        "isOpen": True,
+        #        "isOpen": true,
         #        "markPrice": 0.7635,
         #        "markValue": -7.635,
         #        "posCost": -7.658,
@@ -10512,7 +10586,7 @@ class kucoin(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_margin_mode(data, market)  # widened to Dict to match the base setMarginMode return({}) — narrowing it to MarginMode breaks the Go IExchange interface
+        return self.parse_margin_mode(data, market)  # widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
 
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
@@ -10816,7 +10890,7 @@ class kucoin(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: '5m', '15m', '30m', '1h', '4h' or '1d'
-        :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
+        :param int [since]: the time(ms) of the earliest record to retrieve as a unix timestamp
         :param int [limit]: default 30，max 200
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
@@ -10892,6 +10966,8 @@ class kucoin(Exchange, ImplicitAPI):
         version = self.safe_string(params, 'version', defaultVersion)
         params = self.omit(params, 'version')
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
+        if api == 'utaV2':
+            endpoint = '/api/ua/v2/' + self.implode_params(path, params)
         if api == 'webExchange':
             endpoint = '/' + self.implode_params(path, params)
         if api == 'earn':
@@ -10962,9 +11038,9 @@ class kucoin(Exchange, ImplicitAPI):
             return None
         #
         # bad
-        #     {"code": "400100", "msg": "validation.createOrder.clientOidIsRequired"}
+        #     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
         # good
-        #     {code: '200000', data: {...}}
+        #     { code: '200000', data: { ... }}
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string_2(response, 'msg', 'data', '')
@@ -11065,7 +11141,7 @@ class kucoin(Exchange, ImplicitAPI):
         #             {
         #                 "id": "600000000001260912",
         #                 "symbol": "XBTUSDTM",
-        #                 "crossMode": True,
+        #                 "crossMode": true,
         #                 "maintMarginReq": 0.0040000133,
         #                 "delevPercentage": 0.0,
         #                 "openingTimestamp": 1768481882915,
@@ -11076,7 +11152,7 @@ class kucoin(Exchange, ImplicitAPI):
         #                 "unrealisedCost": 96.9768,
         #                 "realisedGrossCost": 0.0,
         #                 "realisedCost": 0.05818608,
-        #                 "isOpen": True,
+        #                 "isOpen": true,
         #                 "markPrice": 96985.6,
         #                 "markValue": 96.9856,
         #                 "posCost": 96.9768,
@@ -11092,7 +11168,7 @@ class kucoin(Exchange, ImplicitAPI):
         #                 "liquidationPrice": 52351.69,
         #                 "bankruptPrice": 52110.87,
         #                 "settleCurrency": "USDT",
-        #                 "isInverse": False,
+        #                 "isInverse": false,
         #                 "maintainMargin": 0.0040000133,
         #                 "marginMode": "CROSS",
         #                 "positionSide": "LONG",
@@ -11114,7 +11190,7 @@ class kucoin(Exchange, ImplicitAPI):
         #     {
         #         "id": "600000000001260912",
         #         "symbol": "XBTUSDTM",
-        #         "crossMode": True,
+        #         "crossMode": true,
         #         "maintMarginReq": 0.0040000133,
         #         "delevPercentage": 0.0,
         #         "openingTimestamp": 1768481882915,
@@ -11125,7 +11201,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "unrealisedCost": 96.9768,
         #         "realisedGrossCost": 0.0,
         #         "realisedCost": 0.05818608,
-        #         "isOpen": True,
+        #         "isOpen": true,
         #         "markPrice": 96985.6,
         #         "markValue": 96.9856,
         #         "posCost": 96.9768,
@@ -11141,7 +11217,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "liquidationPrice": 52351.69,
         #         "bankruptPrice": 52110.87,
         #         "settleCurrency": "USDT",
-        #         "isInverse": False,
+        #         "isInverse": false,
         #         "maintainMargin": 0.0040000133,
         #         "marginMode": "CROSS",
         #         "positionSide": "LONG",

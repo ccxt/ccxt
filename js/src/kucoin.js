@@ -76,7 +76,7 @@ export default class kucoin extends Exchange {
                 'fetchFundingInterval': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': true, // uta only
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -142,6 +142,7 @@ export default class kucoin extends Exchange {
                     'broker': 'https://api-broker.kucoin.com',
                     'earn': 'https://api.kucoin.com',
                     'uta': 'https://api.kucoin.com',
+                    'utaV2': 'https://api.kucoin.com',
                     'utaPrivate': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
@@ -184,6 +185,7 @@ export default class kucoin extends Exchange {
                         'margin/config': { 'cost': 25 },
                         'announcements': { 'cost': 20 },
                         'margin/collateralRatio': { 'cost': 10 },
+                        'margin/available-inventory': { 'cost': 10 },
                         // convert
                         'convert/symbol': { 'cost': 5 },
                         'convert/currencies': { 'cost': 5 },
@@ -270,6 +272,7 @@ export default class kucoin extends Exchange {
                         'margin/borrow': { 'cost': 15 },
                         'margin/repay': { 'cost': 15 },
                         'margin/interest': { 'cost': 20 },
+                        'margin/borrowRate': { 'cost': 20 },
                         'project/list': { 'cost': 10 },
                         'project/marketInterestRate': { 'cost': 5 },
                         'redeem/orders': { 'cost': 10 },
@@ -289,6 +292,11 @@ export default class kucoin extends Exchange {
                         'convert/limit/orders': { 'cost': 5 },
                         // affiliate
                         'affiliate/inviter/statistics': { 'cost': 30 },
+                        'affiliate/queryInvitees': { 'cost': 30 },
+                        'affiliate/queryMyCommission': { 'cost': 30 },
+                        'affiliate/queryTransactionByUid': { 'cost': 30 },
+                        'affiliate/queryTransactionByTime': { 'cost': 30 },
+                        'affiliate/queryKumining': { 'cost': 30 },
                     },
                     'post': {
                         // account
@@ -498,6 +506,7 @@ export default class kucoin extends Exchange {
                         'broker/nd/account': { 'cost': 4 },
                         'broker/nd/account/apikey': { 'cost': 4 },
                         'broker/nd/rebase/download': { 'cost': 4 },
+                        'broker/nd/mark-up': { 'cost': 4 },
                         'asset/ndbroker/deposit/list': { 'cost': 2 },
                         'broker/nd/transfer/detail': { 'cost': 2 },
                         'broker/nd/deposit/detail': { 'cost': 2 },
@@ -508,6 +517,7 @@ export default class kucoin extends Exchange {
                         'broker/nd/account': { 'cost': 6 },
                         'broker/nd/account/apikey': { 'cost': 6 },
                         'broker/nd/account/update-apikey': { 'cost': 6 },
+                        'broker/nd/mark-up': { 'cost': 6 },
                     },
                     'delete': {
                         'broker/nd/account/apikey': { 'cost': 6 },
@@ -556,6 +566,11 @@ export default class kucoin extends Exchange {
                         'market/borrowable-currency': { 'cost': 30 },
                         'user/my-ip': { 'cost': 20 },
                         'market/fiat-price': { 'cost': 6 },
+                    },
+                },
+                'utaV2': {
+                    'get': {
+                        'market/funding-rate': { 'cost': 6 }, // 3PW
                     },
                 },
                 'utaPrivate': {
@@ -954,6 +969,7 @@ export default class kucoin extends Exchange {
                             'symbols': 'v2',
                             'mark-price/all-symbols': 'v3',
                             'announcements': 'v3',
+                            'margin/available-inventory': 'v3',
                         },
                     },
                     'private': {
@@ -995,6 +1011,7 @@ export default class kucoin extends Exchange {
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
                             'margin/interest': 'v3',
+                            'margin/borrowRate': 'v3',
                             'project/list': 'v3',
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
@@ -1002,6 +1019,11 @@ export default class kucoin extends Exchange {
                             'migrate/user/account/status': 'v3',
                             'margin/symbols': 'v3',
                             'affiliate/inviter/statistics': 'v2',
+                            'affiliate/queryInvitees': 'v2',
+                            'affiliate/queryMyCommission': 'v2',
+                            'affiliate/queryTransactionByUid': 'v2',
+                            'affiliate/queryTransactionByTime': 'v2',
+                            'affiliate/queryKumining': 'v2',
                             'asset/ndbroker/deposit/list': 'v1',
                         },
                         'POST': {
@@ -2720,18 +2742,24 @@ export default class kucoin extends Exchange {
         //         "markPrice": "1572.68"
         //     }
         //
+        let last = this.safeStringN(ticker, ['last', 'lastTradedPrice', 'lastPrice']);
+        last = this.safeString(ticker, 'price', last);
+        const marketId = this.safeString(ticker, 'symbol');
+        market = this.safeMarket(marketId, market, '-');
+        const symbol = market['symbol'];
         let percentage = this.safeString(ticker, 'changeRate');
         if (percentage !== undefined) {
             percentage = Precise.stringMul(percentage, '100');
         }
         else {
             percentage = this.safeString(ticker, 'priceChangePercent');
+            // uta spot sends a ratio under this name and uta swap sends a percentage.
+            // An unresolved market has no `spot` key at all, so read it the way okx
+            // does and leave the value alone rather than scaling on a guess.
+            if (this.safeBool(market, 'spot', false)) {
+                percentage = Precise.stringMul(percentage, '100');
+            }
         }
-        let last = this.safeStringN(ticker, ['last', 'lastTradedPrice', 'lastPrice']);
-        last = this.safeString(ticker, 'price', last);
-        const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market, '-');
-        const symbol = market['symbol'];
         const baseVolume = this.safeString2(ticker, 'vol', 'baseVolume');
         const quoteVolume = this.safeString2(ticker, 'volValue', 'quoteVolume');
         const timestamp = this.safeIntegerN(ticker, ['time', 'datetime', 'timePoint']);
@@ -2856,6 +2884,12 @@ export default class kucoin extends Exchange {
         market = this.safeMarket(marketId, market, '-');
         const last = this.safeString2(ticker, 'price', 'lastTradePrice');
         const timestamp = this.safeIntegerProduct(ticker, 'ts', 0.000001);
+        const change = this.safeString(ticker, 'priceChg');
+        let percentage = undefined;
+        if ((last === undefined) || (change === undefined)) {
+            percentage = Precise.stringMul(this.safeString(ticker, 'priceChgPct'), '100');
+        }
+        // Otherwise safeTicker derives percentage from last and change, since priceChgPct can be inconsistent.
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -2871,10 +2905,8 @@ export default class kucoin extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString(ticker, 'priceChg'),
-            // priceChgPct is a ratio: the sample above reports 0.0447 beside a priceChg
-            // of 2878.7 on a price near 64000, which is a move of 4.47 per cent
-            'percentage': Precise.stringMul(this.safeString(ticker, 'priceChgPct'), '100'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volumeOf24h'),
             'quoteVolume': this.safeString(ticker, 'turnoverOf24h'),
@@ -10134,6 +10166,53 @@ export default class kucoin extends Exchange {
         const data = this.safeDict(response, 'data', {});
         return this.parseFundingRate(data, market);
     }
+    /**
+     * @method
+     * @name kucoin#fetchFundingRates
+     * @description fetch the current funding rates for multiple markets
+     * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding
+     * @param {string[]} [symbols] unified market symbols, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES
+     * @param {string} [params.symbol] exchange-specific contract id (e.g. XBTUSDTM), overrides productType when provided
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+     */
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        const response = await this.utaV2GetMarketFundingRate(params);
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "symbol": "XBTUSDTM",
+        //                 "nextFundingRate": "-0.000004",
+        //                 "fundingTime": 1789315200000,
+        //                 "fundingRateCap": "0.003",
+        //                 "fundingRateFloor": "-0.003",
+        //                 "currentGranularity": 28800000,
+        //                 "newGranularity": 28800000,
+        //                 "newGranularityStartTime": 1750147200000
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString(entry, 'symbol');
+            // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
+            const isFundingIndex = (marketId !== undefined) && (marketId.startsWith('.'));
+            if (!isFundingIndex) {
+                rates.push(entry);
+            }
+        }
+        return this.parseFundingRates(rates, symbols);
+    }
     parseFundingRate(data, market = undefined) {
         // uta
         //     {
@@ -11676,6 +11755,9 @@ export default class kucoin extends Exchange {
         const version = this.safeString(params, 'version', defaultVersion);
         params = this.omit(params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams(path, params);
+        if (api === 'utaV2') {
+            endpoint = '/api/ua/v2/' + this.implodeParams(path, params);
+        }
         if (api === 'webExchange') {
             endpoint = '/' + this.implodeParams(path, params);
         }

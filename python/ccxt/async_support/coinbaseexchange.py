@@ -67,7 +67,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
-                'fetchDepositAddress': False,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchDepositAddress': False,  # the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
@@ -182,11 +182,15 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'time': {'cost': 1},
                         'products/spark-lines': {'cost': 1},
                         'products/volume-summary': {'cost': 1},
+                        'wrapped-assets': {'cost': 1},
+                        'wrapped-assets/{wrapped_asset_id}': {'cost': 1},
+                        'wrapped-assets/{wrapped_asset_id}/conversion-rate': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
                         'address-book': {'cost': 1},
+                        'address-book/counterparty': {'cost': 1},
                         'accounts': {'cost': 1},
                         'accounts/{id}': {'cost': 1},
                         'accounts/{id}/holds': {'cost': 1},
@@ -216,9 +220,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'reports/{report_id}': {'cost': 1},
                         'transfers': {'cost': 1},
                         'transfers/{transfer_id}': {'cost': 1},
+                        'travel-rules': {'cost': 1},
                         'users/self/exchange-limits': {'cost': 1},
                         'users/self/hold-balances': {'cost': 1},
                         'users/self/trailing-volume': {'cost': 1},
+                        'users/{user_id}/trading-volumes': {'cost': 1},
                         'withdrawals/fee-estimate': {'cost': 1},
                         'conversions/{conversion_id}': {'cost': 1},
                         'conversions': {'cost': 1},
@@ -234,12 +240,18 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'loans/interest': {'cost': 1},
                         'loans/assets': {'cost': 1},
                         'loans': {'cost': 1},
+                        'loans/options': {'cost': 1},
+                        'wrapped-assets/redeem': {'cost': 1},
+                        'wrapped-assets/redeem/{redeem_id}': {'cost': 1},
+                        'wrapped-assets/stake-wrap': {'cost': 1},
+                        'wrapped-assets/stake-wrap/{stake_wrap_id}': {'cost': 1},
                     },
                     'post': {
                         'conversions': {'cost': 1},
                         'deposits/coinbase-account': {'cost': 1},
                         'deposits/payment-method': {'cost': 1},
                         'coinbase-accounts/{id}/addresses': {'cost': 1},
+                        'address-book': {'cost': 1},
                         'funding/repay': {'cost': 1},
                         'orders': {'cost': 1},
                         'position/close': {'cost': 1},
@@ -249,8 +261,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'reports': {'cost': 1},
                         'withdrawals/coinbase': {'cost': 1},
                         'withdrawals/coinbase-account': {'cost': 1},
+                        'withdrawals/counterparty': {'cost': 1},
                         'withdrawals/crypto': {'cost': 1},
                         'withdrawals/payment-method': {'cost': 1},
+                        'transfers/{transfer_id}/travel-rules': {'cost': 1},
+                        'travel-rules': {'cost': 1},
+                        'users/{user_id}/settlement-preferences': {'cost': 1},
+                        'wrapped-assets/redeem': {'cost': 1},
+                        'wrapped-assets/stake-wrap': {'cost': 1},
                         'loans/open': {'cost': 1},
                         'loans/repay-interest': {'cost': 1},
                         'loans/repay-principal': {'cost': 1},
@@ -259,10 +277,13 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'orders': {'cost': 1},
                         'orders/client:{client_oid}': {'cost': 1},
                         'orders/{id}': {'cost': 1},
+                        'address-book/{id}': {'cost': 1},
+                        'travel-rules/{id}': {'cost': 1},
                     },
                     'put': {
                         'profiles/{id}/deactivate': {'cost': 1},
                         'profiles/{id}': {'cost': 1},
+                        'address-book/{id}': {'cost': 1},
                     },
                 },
             },
@@ -605,16 +626,16 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #             "display_name": "BTCAUCTION/USD",
         #             "min_market_funds": "1",
         #             "max_market_funds": "20000000",
-        #             "margin_enabled": False,
-        #             "fx_stablecoin": False,
+        #             "margin_enabled": false,
+        #             "fx_stablecoin": false,
         #             "max_slippage_percentage": "0.02000000",
-        #             "post_only": False,
-        #             "limit_only": False,
-        #             "cancel_only": True,
-        #             "trading_disabled": False,
+        #             "post_only": false,
+        #             "limit_only": false,
+        #             "cancel_only": true,
+        #             "trading_disabled": false,
         #             "status": "online",
         #             "status_message": '',
-        #             "auction_mode": False
+        #             "auction_mode": false
         #         },
         #         {
         #             "id": "BTC-USD",
@@ -627,16 +648,16 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #             "display_name": "BTC/USD",
         #             "min_market_funds": "1",
         #             "max_market_funds": "20000000",
-        #             "margin_enabled": False,
-        #             "fx_stablecoin": False,
+        #             "margin_enabled": false,
+        #             "fx_stablecoin": false,
         #             "max_slippage_percentage": "0.02000000",
-        #             "post_only": False,
-        #             "limit_only": False,
-        #             "cancel_only": False,
-        #             "trading_disabled": False,
+        #             "post_only": false,
+        #             "limit_only": false,
+        #             "cancel_only": false,
+        #             "trading_disabled": false,
         #             "status": "online",
         #             "status_message": '',
-        #             "auction_mode": False
+        #             "auction_mode": false
         #         }
         #     ]
         #
@@ -647,8 +668,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             id = self.safe_string(market, 'id')
             baseId, quoteId = id.split('-')
             # BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
-            # baseId = self.safe_string(market, 'base_currency')
-            # quoteId = self.safe_string(market, 'quote_currency')
+            # const baseId = this.safeString (market, 'base_currency');
+            # const quoteId = this.safeString (market, 'quote_currency');
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
@@ -799,8 +820,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         # level 1 - only the best bid and ask
-        # level 2 - top 50 bids and asks(aggregated)
-        # level 3 - full order book(non aggregated)
+        # level 2 - top 50 bids and asks (aggregated)
+        # level 3 - full order book (non aggregated)
         request = {
             'id': self.market_id(symbol),
             'level': 2,  # 1 best bidask, 2 aggregated, 3 full
@@ -830,11 +851,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         # fetchTickers
         #
         #      [
-        #         1639472400,  # timestamp
-        #         4.26,  # low
-        #         4.38,  # high
-        #         4.35,  # open
-        #         4.27  # close
+        #         1639472400, // timestamp
+        #         4.26, // low
+        #         4.38, // high
+        #         4.35, // open
+        #         4.27 // close
         #      ]
         #
         # fetchTicker
@@ -923,11 +944,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #     {
         #         YYY-USD: [
         #             [
-        #                 1639472400,  # timestamp
-        #                 4.26,  # low
-        #                 4.38,  # high
-        #                 4.35,  # open
-        #                 4.27  # close
+        #                 1639472400, // timestamp
+        #                 4.26, // low
+        #                 4.38, // high
+        #                 4.35, // open
+        #                 4.27 // close
         #             ],
         #             [
         #                 1639468800,
@@ -1016,7 +1037,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #         "created_at": "2014-11-07T22:19:28.578544Z",
         #         "liquidity": "T",
         #         "fee": "0.00025",
-        #         "settled": True,
+        #         "settled": true,
         #         "usd_volume": "0.0924556000000000",
         #         "user_id": "595eb864313c2b02ddf2937d"
         #     }
@@ -1121,7 +1142,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'id': market['id'],  # fixes issue  #2
+            'id': market['id'],  # fixes issue #2
         }
         if limit is not None:
             request['limit'] = limit  # default 100
@@ -1206,7 +1227,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1289,13 +1310,13 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #         "stp": "dc",
         #         "type": "limit",
         #         "time_in_force": "GTC",
-        #         "post_only": False,
+        #         "post_only": false,
         #         "created_at": "2016-12-08T20:02:28.53864Z",
         #         "fill_fees": "0.0000000000000000",
         #         "filled_size": "0.00000000",
         #         "executed_value": "0.0000000000000000",
         #         "status": "pending",
-        #         "settled": False
+        #         "settled": false
         #     }
         #
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
@@ -1489,19 +1510,19 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'type': type,
             'side': side,
             'product_id': market['id'],
-            # 'size': self.amount_to_precision(symbol, amount),
-            # 'stp': 'dc',  # self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
-            # 'stop': 'loss',  # "loss" = stop loss below price, "entry" = take profit above price
-            # 'stop_price': self.price_to_precision(symbol, price),
+            # 'size': this.amountToPrecision (symbol, amount),
+            # 'stp': 'dc', // self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
+            # 'stop': 'loss', // "loss" = stop loss below price, "entry" = take profit above price
+            # 'stop_price': this.priceToPrecision (symbol, price),
             # limit order params ---------------------------------------------
-            # 'price': self.price_to_precision(symbol, price),
-            # 'size': self.amount_to_precision(symbol, amount),
-            # 'time_in_force': 'GTC',  # GTC, GTT, IOC, or FOK
+            # 'price': this.priceToPrecision (symbol, price),
+            # 'size': this.amountToPrecision (symbol, amount),
+            # 'time_in_force': 'GTC', // GTC, GTT, IOC, or FOK
             # 'cancel_after' [optional]* min, hour, day, requires time_in_force to be GTT
-            # 'post_only': False,  # invalid when time_in_force is IOC or FOK
+            # 'post_only': false, // invalid when time_in_force is IOC or FOK
             # market order params --------------------------------------------
-            # 'size': self.amount_to_precision(symbol, amount),
-            # 'funds': self.cost_to_precision(symbol, amount),
+            # 'size': this.amountToPrecision (symbol, amount),
+            # 'funds': this.costToPrecision (symbol, amount),
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
         if clientOrderId is not None:
@@ -1541,13 +1562,13 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #         "stp": "dc",
         #         "type": "limit",
         #         "time_in_force": "GTC",
-        #         "post_only": False,
+        #         "post_only": false,
         #         "created_at": "2016-12-08T20:02:28.53864Z",
         #         "fill_fees": "0.0000000000000000",
         #         "filled_size": "0.00000000",
         #         "executed_value": "0.0000000000000000",
         #         "status": "pending",
-        #         "settled": False
+        #         "settled": false
         #     }
         #
         return self.parse_order(response, market)
@@ -1566,7 +1587,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         request = {
-            # 'product_id': market['id'],  # the request will be more performant if you include it
+            # 'product_id': market['id'], // the request will be more performant if you include it
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
         if clientOrderId is None:
@@ -1648,8 +1669,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     def parse_ledger_entry_type(self, type: object):
         types = {
             'transfer': 'transfer',  # Funds moved between portfolios
-            'match': 'trade',       # Funds moved result of a trade
-            'fee': 'fee',           # Fee result of a trade
+            'match': 'trade',       # Funds moved as a result of a trade
+            'fee': 'fee',           # Fee as a result of a trade
             'rebate': 'rebate',     # Fee rebate
             'conversion': 'trade',  # Funds converted between fiat currency and a stablecoin
         }
@@ -1751,11 +1772,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
         request = {
             'id': account['id'],
-            # 'start_date': self.iso8601(since),
-            # 'end_date': self.iso8601(self.milliseconds()),
-            # 'before': 'cursor',  # sets start cursor to before date
-            # 'after': 'cursor',  # sets end cursor to after date
-            # 'limit': limit,  # default 100
+            # 'start_date': this.iso8601 (since),
+            # 'end_date': this.iso8601 (this.milliseconds ()),
+            # 'before': 'cursor', // sets start cursor to before date
+            # 'after': 'cursor', // sets end cursor to after date
+            # 'limit': limit, // default 100
             # 'profile_id': 'string'
         }
         if since is not None:
@@ -1821,7 +1842,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             #                "network": "litecoin",
             #                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
             #                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
-            #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17",  # withdrawals only
+            #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17", // withdrawals only
             #                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
             #                "tx_service_transaction_id": "1873249104",
             #                "coinbase_payment_method_id": ""
@@ -1855,7 +1876,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             #                "network": "litecoin",
             #                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
             #                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
-            #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17",  # withdrawals only
+            #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17", // withdrawals only
             #                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
             #                "tx_service_transaction_id": "1873249104",
             #                "coinbase_payment_method_id": ""
@@ -1927,14 +1948,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #            "type": "deposit",
         #            "created_at": "2022-12-21 00:48:45.477503+00",
         #            "completed_at": null,
-        #            "account_id": "sal3802-36bd-46be-a7b8-alsjf383sldak",     # only from privateGetTransfers
-        #            "user_id": "6382048209f92as392039dlks2",                  # only from privateGetTransfers
+        #            "account_id": "sal3802-36bd-46be-a7b8-alsjf383sldak",     // only from privateGetTransfers
+        #            "user_id": "6382048209f92as392039dlks2",                  // only from privateGetTransfers
         #            "amount": "0.01000000",
         #            "details": {
         #                "network": "litecoin",
         #                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
         #                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
-        #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17",  # withdrawals only
+        #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17", // withdrawals only
         #                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
         #                "tx_service_transaction_id": "1873249104",
         #                "coinbase_payment_method_id": ""

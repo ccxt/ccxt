@@ -174,7 +174,7 @@ class binance(ccxt.async_support.binance):
                     'name': 'miniTicker',  # miniTicker or ticker_<window_size>
                 },
                 'watchOHLCV': {
-                    'name': 'kline',  # or indexPriceKline or markPriceKline(coin-m futures)
+                    'name': 'kline',  # or indexPriceKline or markPriceKline (coin-m futures)
                 },
                 'watchOrderBook': {
                     'maxRetries': 3,
@@ -185,14 +185,14 @@ class binance(ccxt.async_support.binance):
                     'lastAuthenticatedTime': 0,
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': False,  # or True
+                    'fetchBalanceSnapshot': False,  # or true
                     'awaitBalanceSnapshot': True,  # whether to wait for the balance snapshot before providing updates
                 },
                 'watchLiquidationsForSymbols': {
                     'defaultType': 'swap',
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': True,  # or False
+                    'fetchPositionsSnapshot': True,  # or false
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
                 'wallet': 'wb',  # wb = wallet balance, cw = cross balance
@@ -224,7 +224,7 @@ class binance(ccxt.async_support.binance):
         self.options['requestId'][url] = newValue
         return newValue
 
-    def is_spot_url(self, client: Client):
+    def is_spot_url(self, client: Client) -> bool:
         return(client.url.find('/stream') > -1) or (client.url.find('demo-stream') > -1)
 
     def stream(self, type: Str, subscriptionHash: Str, numSubscriptions=1):
@@ -253,22 +253,22 @@ class binance(ccxt.async_support.binance):
 
     def get_ws_url(self, type: object, category: object):
         if (type == 'option') or (type == 'optionMarket') or (type == 'optionPrivate'):
-            # eOptions urls are stored public/market/private paths, no category rewrite needed,
+            # eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             # see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
             return self.urls['api']['ws'][type]
         baseUrl = self.urls['api']['ws'][type]
         if type == 'future':
-            # skip URL manipulation for proxied/bridge URLs(contain an embedded protocol)
-            # firstProtocol = baseUrl.find('://')
-            # if firstProtocol != -1 and baseUrl.find('://', firstProtocol + 3) != -1:
-            #     return baseUrl
+            # skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
+            # const firstProtocol = baseUrl.indexOf ('://');
+            # if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
+            #     return baseUrl;
             # }
             baseUrlSplit = baseUrl.split('://')
             baseUrlSplitLength = len(baseUrlSplit)
             if baseUrlSplitLength > 2:
                 return baseUrl
             # only rewrite when the URL ends with exactly "/ws"
-            # self avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
+            # this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
             if baseUrl.endswith('/ws'):
                 prefix = baseUrl[0:len(baseUrl) - 3]
                 return prefix + '/' + category + '/ws'
@@ -422,21 +422,21 @@ class binance(ccxt.async_support.binance):
         #    }
         # delivery
         #    {
-        #        "e":"forceOrder",              # Event Type
-        #        "E": 1591154240950,            # Event Time
+        #        "e":"forceOrder",              // Event Type
+        #        "E": 1591154240950,            // Event Time
         #        "o":{
-        #            "s":"BTCUSD_200925",       # Symbol
-        #            "ps": "BTCUSD",            # Pair
-        #            "S":"SELL",                # Side
-        #            "o":"LIMIT",               # Order Type
-        #            "f":"IOC",                 # Time in Force
-        #            "q":"1",                   # Original Quantity
-        #            "p":"9425.5",              # Price
-        #            "ap":"9496.5",             # Average Price
-        #            "X":"FILLED",              # Order Status
-        #            "l":"1",                   # Order Last Filled Quantity
-        #            "z":"1",                   # Order Filled Accumulated Quantity
-        #            "T": 1591154240949,        # Order Trade Time
+        #            "s":"BTCUSD_200925",       // Symbol
+        #            "ps": "BTCUSD",            // Pair
+        #            "S":"SELL",                // Side
+        #            "o":"LIMIT",               // Order Type
+        #            "f":"IOC",                 // Time in Force
+        #            "q":"1",                   // Original Quantity
+        #            "p":"9425.5",              // Price
+        #            "ap":"9496.5",             // Average Price
+        #            "X":"FILLED",              // Order Status
+        #            "l":"1",                   // Order Last Filled Quantity
+        #            "z":"1",                   // Order Filled Accumulated Quantity
+        #            "T": 1591154240949,        // Order Trade Time
         #        }
         #    }
         #
@@ -471,61 +471,61 @@ class binance(ccxt.async_support.binance):
         #    }
         # delivery
         #    {
-        #        "s":"BTCUSD_200925",       # Symbol
-        #        "ps": "BTCUSD",            # Pair
-        #        "S":"SELL",                # Side
-        #        "o":"LIMIT",               # Order Type
-        #        "f":"IOC",                 # Time in Force
-        #        "q":"1",                   # Original Quantity
-        #        "p":"9425.5",              # Price
-        #        "ap":"9496.5",             # Average Price
-        #        "X":"FILLED",              # Order Status
-        #        "l":"1",                   # Order Last Filled Quantity
-        #        "z":"1",                   # Order Filled Accumulated Quantity
-        #        "T": 1591154240949,        # Order Trade Time
+        #        "s":"BTCUSD_200925",       // Symbol
+        #        "ps": "BTCUSD",            // Pair
+        #        "S":"SELL",                // Side
+        #        "o":"LIMIT",               // Order Type
+        #        "f":"IOC",                 // Time in Force
+        #        "q":"1",                   // Original Quantity
+        #        "p":"9425.5",              // Price
+        #        "ap":"9496.5",             // Average Price
+        #        "X":"FILLED",              // Order Status
+        #        "l":"1",                   // Order Last Filled Quantity
+        #        "z":"1",                   // Order Filled Accumulated Quantity
+        #        "T": 1591154240949,        // Order Trade Time
         #    }
         # myLiquidation
         #    {
-        #        "s":"BTCUSDT",              # Symbol
-        #        "c":"TEST",                 # Client Order Id
-        #          # special client order id:
-        #          # starts with "autoclose-": liquidation order
-        #          # "adl_autoclose": ADL auto close order
-        #          # "settlement_autoclose-": settlement order for delisting or delivery
-        #        "S":"SELL",                 # Side
-        #        "o":"TRAILING_STOP_MARKET",  # Order Type
-        #        "f":"GTC",                  # Time in Force
-        #        "q":"0.001",                # Original Quantity
-        #        "p":"0",                    # Original Price
-        #        "ap":"0",                   # Average Price
-        #        "sp":"7103.04",             # Stop Price. Please ignore with TRAILING_STOP_MARKET order
-        #        "x":"NEW",                  # Execution Type
-        #        "X":"NEW",                  # Order Status
-        #        "i":8886774,                # Order Id
-        #        "l":"0",                    # Order Last Filled Quantity
-        #        "z":"0",                    # Order Filled Accumulated Quantity
-        #        "L":"0",                    # Last Filled Price
-        #        "N":"USDT",                 # Commission Asset, will not push if no commission
-        #        "n":"0",                    # Commission, will not push if no commission
-        #        "T":1568879465650,          # Order Trade Time
-        #        "t":0,                      # Trade Id
-        #        "b":"0",                    # Bids Notional
-        #        "a":"9.91",                 # Ask Notional
-        #        "m":false,                  # Is self trade the maker side?
-        #        "R":false,                  # Is self reduce only
-        #        "wt":"CONTRACT_PRICE",      # Stop Price Working Type
+        #        "s":"BTCUSDT",              // Symbol
+        #        "c":"TEST",                 // Client Order Id
+        #          // special client order id:
+        #          // starts with "autoclose-": liquidation order
+        #          // "adl_autoclose": ADL auto close order
+        #          // "settlement_autoclose-": settlement order for delisting or delivery
+        #        "S":"SELL",                 // Side
+        #        "o":"TRAILING_STOP_MARKET", // Order Type
+        #        "f":"GTC",                  // Time in Force
+        #        "q":"0.001",                // Original Quantity
+        #        "p":"0",                    // Original Price
+        #        "ap":"0",                   // Average Price
+        #        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        #        "x":"NEW",                  // Execution Type
+        #        "X":"NEW",                  // Order Status
+        #        "i":8886774,                // Order Id
+        #        "l":"0",                    // Order Last Filled Quantity
+        #        "z":"0",                    // Order Filled Accumulated Quantity
+        #        "L":"0",                    // Last Filled Price
+        #        "N":"USDT",                 // Commission Asset, will not push if no commission
+        #        "n":"0",                    // Commission, will not push if no commission
+        #        "T":1568879465650,          // Order Trade Time
+        #        "t":0,                      // Trade Id
+        #        "b":"0",                    // Bids Notional
+        #        "a":"9.91",                 // Ask Notional
+        #        "m":false,                  // Is this trade the maker side?
+        #        "R":false,                  // Is this reduce only
+        #        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
         #        "ot":"TRAILING_STOP_MARKET",// Original Order Type
-        #        "ps":"LONG",                # Position Side
-        #        "cp":false,                 # If Close-All, pushed with conditional order
-        #        "AP":"7476.89",             # Activation Price, only puhed with TRAILING_STOP_MARKET order
-        #        "cr":"5.0",                 # Callback Rate, only puhed with TRAILING_STOP_MARKET order
-        #        "pP": False,                # If price protection is turned on
-        #        "si": 0,                    # ignore
-        #        "ss": 0,                    # ignore
-        #        "rp":"0",                   # Realized Profit of the trade
-        #        "V":"EXPIRE_TAKER",         # STP mode
-        #        "pm":"OPPONENT",            # Price match mode
-        #        "gtd":0                     # TIF GTD order auto cancel time
+        #        "ps":"LONG",                // Position Side
+        #        "cp":false,                 // If Close-All, pushed with conditional order
+        #        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        #        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        #        "pP": false,                // If price protection is turned on
+        #        "si": 0,                    // ignore
+        #        "ss": 0,                    // ignore
+        #        "rp":"0",                   // Realized Profit of the trade
+        #        "V":"EXPIRE_TAKER",         // STP mode
+        #        "pm":"OPPONENT",            // Price match mode
+        #        "gtd":0                     // TIF GTD order auto cancel time
         #    }
         #
         marketId = self.safe_string(liquidation, 's')
@@ -600,46 +600,46 @@ class binance(ccxt.async_support.binance):
     def handle_my_liquidation(self, client: Client, message: object):
         #
         #    {
-        #        "s":"BTCUSDT",              # Symbol
-        #        "c":"TEST",                 # Client Order Id
-        #          # special client order id:
-        #          # starts with "autoclose-": liquidation order
-        #          # "adl_autoclose": ADL auto close order
-        #          # "settlement_autoclose-": settlement order for delisting or delivery
-        #        "S":"SELL",                 # Side
-        #        "o":"TRAILING_STOP_MARKET",  # Order Type
-        #        "f":"GTC",                  # Time in Force
-        #        "q":"0.001",                # Original Quantity
-        #        "p":"0",                    # Original Price
-        #        "ap":"0",                   # Average Price
-        #        "sp":"7103.04",             # Stop Price. Please ignore with TRAILING_STOP_MARKET order
-        #        "x":"NEW",                  # Execution Type
-        #        "X":"NEW",                  # Order Status
-        #        "i":8886774,                # Order Id
-        #        "l":"0",                    # Order Last Filled Quantity
-        #        "z":"0",                    # Order Filled Accumulated Quantity
-        #        "L":"0",                    # Last Filled Price
-        #        "N":"USDT",                 # Commission Asset, will not push if no commission
-        #        "n":"0",                    # Commission, will not push if no commission
-        #        "T":1568879465650,          # Order Trade Time
-        #        "t":0,                      # Trade Id
-        #        "b":"0",                    # Bids Notional
-        #        "a":"9.91",                 # Ask Notional
-        #        "m":false,                  # Is self trade the maker side?
-        #        "R":false,                  # Is self reduce only
-        #        "wt":"CONTRACT_PRICE",      # Stop Price Working Type
+        #        "s":"BTCUSDT",              // Symbol
+        #        "c":"TEST",                 // Client Order Id
+        #          // special client order id:
+        #          // starts with "autoclose-": liquidation order
+        #          // "adl_autoclose": ADL auto close order
+        #          // "settlement_autoclose-": settlement order for delisting or delivery
+        #        "S":"SELL",                 // Side
+        #        "o":"TRAILING_STOP_MARKET", // Order Type
+        #        "f":"GTC",                  // Time in Force
+        #        "q":"0.001",                // Original Quantity
+        #        "p":"0",                    // Original Price
+        #        "ap":"0",                   // Average Price
+        #        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        #        "x":"NEW",                  // Execution Type
+        #        "X":"NEW",                  // Order Status
+        #        "i":8886774,                // Order Id
+        #        "l":"0",                    // Order Last Filled Quantity
+        #        "z":"0",                    // Order Filled Accumulated Quantity
+        #        "L":"0",                    // Last Filled Price
+        #        "N":"USDT",                 // Commission Asset, will not push if no commission
+        #        "n":"0",                    // Commission, will not push if no commission
+        #        "T":1568879465650,          // Order Trade Time
+        #        "t":0,                      // Trade Id
+        #        "b":"0",                    // Bids Notional
+        #        "a":"9.91",                 // Ask Notional
+        #        "m":false,                  // Is this trade the maker side?
+        #        "R":false,                  // Is this reduce only
+        #        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
         #        "ot":"TRAILING_STOP_MARKET",// Original Order Type
-        #        "ps":"LONG",                # Position Side
-        #        "cp":false,                 # If Close-All, pushed with conditional order
-        #        "AP":"7476.89",             # Activation Price, only puhed with TRAILING_STOP_MARKET order
-        #        "cr":"5.0",                 # Callback Rate, only puhed with TRAILING_STOP_MARKET order
-        #        "pP": False,                # If price protection is turned on
-        #        "si": 0,                    # ignore
-        #        "ss": 0,                    # ignore
-        #        "rp":"0",                   # Realized Profit of the trade
-        #        "V":"EXPIRE_TAKER",         # STP mode
-        #        "pm":"OPPONENT",            # Price match mode
-        #        "gtd":0                     # TIF GTD order auto cancel time
+        #        "ps":"LONG",                // Position Side
+        #        "cp":false,                 // If Close-All, pushed with conditional order
+        #        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        #        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        #        "pP": false,                // If price protection is turned on
+        #        "si": 0,                    // ignore
+        #        "ss": 0,                    // ignore
+        #        "rp":"0",                   // Realized Profit of the trade
+        #        "V":"EXPIRE_TAKER",         // STP mode
+        #        "pm":"OPPONENT",            // Price match mode
+        #        "gtd":0                     // TIF GTD order auto cancel time
         #    }
         #
         orderType = self.safe_string(message, 'o')
@@ -676,42 +676,10 @@ class binance(ccxt.async_support.binance):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         #
-        # todo add support for <levels>-snapshots(depth)
-        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        # <symbol>@depth<levels>@100ms or <symbol>@depth<levels>(1000ms)
-        # valid <levels> are 5, 10, or 20
-        #
-        # default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        #
-        # notice the differences between trading futures and spot trading
-        # the algorithms use different urls in step 1
-        # delta caching and merging also differs in steps 4, 5, 6
-        #
-        # spot/margin
-        # https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
-        #
-        # 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        # 2. Buffer the events you receive from the stream.
-        # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-        # 4. Drop any event where u is <= lastUpdateId in the snapshot.
-        # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-        # 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-        # 7. The data in each event is the absolute quantity for a price level.
-        # 8. If the quantity is 0, remove the price level.
-        # 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-        #
-        # futures
-        # https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-        #
-        # 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
-        # 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
-        # 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
-        # 4. Drop any event where u is < lastUpdateId in the snapshot.
-        # 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-        # 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
-        # 7. The data in each event is the absolute quantity for a price level.
-        # 8. If the quantity is 0, remove the price level.
-        # 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-        #
+        # todo add support for <levels>-snapshots (depth): <symbol>@depth<levels>[@100ms], levels 5/10/20
+        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
+        # sync recipe differs between spot and futures (stream/snapshot urls, delta caching/merging, U/u/pu continuity check):
+        # https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly and https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
         return self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
@@ -944,7 +912,7 @@ class binance(ccxt.async_support.binance):
             limit = self.safe_integer(subscription, 'limit', defaultLimit)
             params = self.safe_value(subscription, 'params')
             # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-            # todo: self is a synch blocking call - make it async
+            # todo: this is a synch blocking call - make it async
             # default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
             snapshot = await self.fetch_rest_order_book_safe(symbol, limit, params)
             if self.safe_value(self.orderbooks, symbol) is None:
@@ -1008,16 +976,16 @@ class binance(ccxt.async_support.binance):
         # the feed does not include a snapshot, just the deltas
         #
         #     {
-        #         "e": "depthUpdate",  # Event type
-        #         "E": 1577554482280,  # Event time
-        #         "s": "BNBBTC",  # Symbol
-        #         "U": 157,  # First update ID in event
-        #         "u": 160,  # Final update ID in event
-        #         "b": [ # bids
-        #             ["0.0024", "10"],  # price, size
+        #         "e": "depthUpdate", // Event type
+        #         "E": 1577554482280, // Event time
+        #         "s": "BNBBTC", // Symbol
+        #         "U": 157, // First update ID in event
+        #         "u": 160, // Final update ID in event
+        #         "b": [ // bids
+        #             [ "0.0024", "10" ], // price, size
         #         ],
-        #         "a": [ # asks
-        #             ["0.0026", "100"],  # price, size
+        #         "a": [ // asks
+        #             [ "0.0026", "100" ], // price, size
         #         ]
         #     }
         #
@@ -1025,7 +993,7 @@ class binance(ccxt.async_support.binance):
         # the client url is the authoritative source for the market type — an
         # ambiguous id like BTCUSDT maps to both the spot and the linear swap
         # market, and picking the first match drops the message under the wrong
-        # symbol and stalls the orderbook future(delivery/option ids are
+        # symbol and stalls the orderbook future (delivery/option ids are
         # unique, so the swap hint resolves those correctly too)
         isSpot = self.is_spot_url(client)
         marketType = 'spot' if isSpot else 'swap'
@@ -1101,7 +1069,7 @@ class binance(ccxt.async_support.binance):
 
     def handle_order_book_subscription(self, client: Client, message: object, subscription: object):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
-        # messageHash = self.safe_string(subscription, 'messageHash')
+        # const messageHash = this.safeString (subscription, 'messageHash');
         symbolOfSubscription = self.safe_string(subscription, 'symbol')  # watchOrderBook
         symbols = self.safe_value(subscription, 'symbols', [symbolOfSubscription])  # watchOrderBookForSymbols
         limit = self.safe_integer(subscription, 'limit', defaultLimit)
@@ -1180,7 +1148,7 @@ class binance(ccxt.async_support.binance):
         messageHashes = []
         subParams = []
         if isOption is True:
-            # eOptions: always subscribe per-underlying(<underlying>@optionTrade)
+            # eOptions: always subscribe per-underlying (<underlying>@optionTrade)
             # handleTrade filters to the correct symbol via the 's' field
             seenUnderlyings = {}
             for i in range(0, len(symbols)):
@@ -1256,7 +1224,7 @@ class binance(ccxt.async_support.binance):
         subParams = []
         messageHashes = []
         if isOption is True:
-            # eOptions: always subscribe per-underlying(<underlying>@optionTrade)
+            # eOptions: always subscribe per-underlying (<underlying>@optionTrade)
             # handleTrade filters to the correct symbol via the 's' field
             seenUnderlyings = {}
             for i in range(0, len(symbols)):
@@ -1337,31 +1305,31 @@ class binance(ccxt.async_support.binance):
         # public watchTrades
         #
         #     {
-        #         "e": "trade",       # event type
-        #         "E": 1579481530912,  # event time
-        #         "s": "ETHBTC",      # symbol
-        #         "t": 158410082,     # trade id
-        #         "p": "0.01914100",  # price
-        #         "q": "0.00700000",  # quantity
-        #         "b": 586187049,     # buyer order id
-        #         "a": 586186710,     # seller order id
-        #         "T": 1579481530910,  # trade time
-        #         "m": False,         # is the buyer the market maker
-        #         "M": True           # binance docs say it should be ignored
+        #         "e": "trade",       // event type
+        #         "E": 1579481530912, // event time
+        #         "s": "ETHBTC",      // symbol
+        #         "t": 158410082,     // trade id
+        #         "p": "0.01914100",  // price
+        #         "q": "0.00700000",  // quantity
+        #         "b": 586187049,     // buyer order id
+        #         "a": 586186710,     // seller order id
+        #         "T": 1579481530910, // trade time
+        #         "m": false,         // is the buyer the market maker
+        #         "M": true           // binance docs say it should be ignored
         #     }
         #
         #     {
-        #        "e": "aggTrade",  # Event type
-        #        "E": 123456789,   # Event time
-        #        "s": "BNBBTC",    # Symbol
-        #        "a": 12345,       # Aggregate trade ID
-        #        "p": "0.001",     # Price
-        #        "q": "100",       # Quantity
-        #        "f": 100,         # First trade ID
-        #        "l": 105,         # Last trade ID
-        #        "T": 123456785,   # Trade time
-        #        "m": True,        # Is the buyer the market maker?
-        #        "M": True         # Ignore
+        #        "e": "aggTrade",  // Event type
+        #        "E": 123456789,   // Event time
+        #        "s": "BNBBTC",    // Symbol
+        #        "a": 12345,       // Aggregate trade ID
+        #        "p": "0.001",     // Price
+        #        "q": "100",       // Quantity
+        #        "f": 100,         // First trade ID
+        #        "l": 105,         // Last trade ID
+        #        "T": 123456785,   // Trade time
+        #        "m": true,        // Is the buyer the market maker?
+        #        "M": true         // Ignore
         #     }
         #
         # private watchMyTrades spot
@@ -1392,9 +1360,9 @@ class binance(ccxt.async_support.binance):
         #         "T": 1611063861488,
         #         "t": 109747654,
         #         "I": 2696953381,
-        #         "w": False,
-        #         "m": False,
-        #         "M": True,
+        #         "w": false,
+        #         "m": false,
+        #         "M": true,
         #         "O": 1611063861488,
         #         "Z": "15.55951200",
         #         "Y": "15.55951200",
@@ -1425,14 +1393,14 @@ class binance(ccxt.async_support.binance):
         #         "t": 458032604,
         #         "b": "0",
         #         "a": "0",
-        #         "m": False,
-        #         "R": False,
+        #         "m": false,
+        #         "R": false,
         #         "wt": "CONTRACT_PRICE",
         #         "ot": "MARKET",
         #         "ps": "BOTH",
-        #         "cp": False,
+        #         "cp": false,
         #         "rp": "0.00335000",
-        #         "pP": False,
+        #         "pP": false,
         #         "si": 0,
         #         "ss": 0
         #     }
@@ -1460,7 +1428,7 @@ class binance(ccxt.async_support.binance):
         orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
             if side is None:
-                side = 'sell' if (trade['m'] is True) else 'buy'  # self is reversed intentionally
+                side = 'sell' if (trade['m'] is True) else 'buy'  # this is reversed intentionally
             takerOrMaker = 'maker' if (trade['m'] is True) else 'taker'
         fee = None
         feeCost = self.safe_string(trade, 'n')
@@ -1524,7 +1492,7 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.stock]: set to True to use stocks market streams
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1555,7 +1523,7 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.stock]: set to True to use stocks market streams
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1647,7 +1615,7 @@ class binance(ccxt.async_support.binance):
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1720,7 +1688,7 @@ class binance(ccxt.async_support.binance):
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1748,7 +1716,7 @@ class binance(ccxt.async_support.binance):
         #             "l": "0.01913200",
         #             "v": "5.08400000",
         #             "n": 16,
-        #             "x": False,
+        #             "x": false,
         #             "q": "0.09728060",
         #             "V": "3.30200000",
         #             "Q": "0.06318500",
@@ -1848,7 +1816,7 @@ class binance(ccxt.async_support.binance):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str params['timeZone']: default=0(UTC)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1891,18 +1859,18 @@ class binance(ccxt.async_support.binance):
         #        "status": 200,
         #        "result": [
         #            [
-        #                1655971200000,      # Kline open time
-        #                "0.01086000",       # Open price
-        #                "0.01086600",       # High price
-        #                "0.01083600",       # Low price
-        #                "0.01083800",       # Close price
-        #                "2290.53800000",    # Volume
-        #                1655974799999,      # Kline close time
-        #                "24.85074442",      # Quote asset volume
-        #                2283,               # Number of trades
-        #                "1171.64000000",    # Taker buy base asset volume
-        #                "12.71225884",      # Taker buy quote asset volume
-        #                "0"                 # Unused field, ignore
+        #                1655971200000,      // Kline open time
+        #                "0.01086000",       // Open price
+        #                "0.01086600",       // High price
+        #                "0.01083600",       // Low price
+        #                "0.01083800",       // Close price
+        #                "2290.53800000",    // Volume
+        #                1655974799999,      // Kline close time
+        #                "24.85074442",      // Quote asset volume
+        #                2283,               // Number of trades
+        #                "1171.64000000",    // Taker buy base asset volume
+        #                "12.71225884",      // Taker buy quote asset volume
+        #                "0"                 // Unused field, ignore
         #            ]
         #        ],
         #        "rateLimits": [
@@ -1975,9 +1943,9 @@ class binance(ccxt.async_support.binance):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         channelName = None
-        # for now watchmarkPrice uses the same messageHash
+        # for now watchmarkPrice uses the same messageHash as watchTicker
         # so it's impossible to watch both at the same time
-        # refactor self to use different messageHashes
+        # refactor this to use different messageHashes
         channelName, params = self.handle_option_and_params(params, 'watchMarkPrices', 'name', 'markPrice')
         newTickers = await self.watch_multi_ticker_helper('watchMarkPrices', channelName, symbols, params)
         if self.newUpdates:
@@ -2154,11 +2122,11 @@ class binance(ccxt.async_support.binance):
         marketType, params = self.handle_market_type_and_params(methodName, firstMarket, params, defaultMarket)
         subType = None
         subType, params = self.handle_sub_type_and_params(methodName, firstMarket, params)
-        # use marketType(not firstMarket) so the no-symbols case with defaultType='option' is also detected
+        # use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
         isOptionMarkPrice = (isMarkPrice and marketType == 'option')
         rawMarketType = None
         if marketType == 'option':
-            # check option first — isLinear returns True for linear-settled options, which would incorrectly route to futures
+            # check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
             # eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
             rawMarketType = 'optionMarket' if (isOptionMarkPrice) else 'option'
         elif self.isLinear(marketType, subType):
@@ -2169,7 +2137,7 @@ class binance(ccxt.async_support.binance):
             rawMarketType = marketType
         else:
             raise NotSupported(self.id + ' ' + methodName + '() does not support options markets')
-        # eOptions tickers have a different stream name(@optionTicker) but the same event type(24hrTicker)
+        # eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
         # so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
         isOptionTicker = (marketType == 'option' and not isMarkPrice and not isBidAsk)
         if isMarkPrice and not self.in_array(marketType, ['swap', 'future', 'option']):
@@ -2204,7 +2172,7 @@ class binance(ccxt.async_support.binance):
                         seenUnderlyings[underlying] = True
                         subscriptionArgs.append(underlying + '@optionMarkPrice')
                 elif isOptionTicker:
-                    # eOptions tickers: group by underlying + expiry date(<underlying>@optionTicker@<YYMMDD>)
+                    # eOptions tickers: group by underlying + expiry date (<underlying>@optionTicker@<YYMMDD>)
                     # market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
                     marketId = self.safe_string(market, 'id', '')
                     parts = marketId.split('-')
@@ -2228,7 +2196,7 @@ class binance(ccxt.async_support.binance):
                     # eOptions tickers are per underlying+expiry: <underlying>@optionTicker@<YYMMDD>
                     expirationDate = self.safe_string(params, 'expirationDate')
                     if expirationDate is None:
-                        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires params["expirationDate"](e.g. "260227") for eOptions tickers when no symbols are provided')
+                        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires params["expirationDate"] (e.g. "260227") for eOptions tickers when no symbols are provided')
                     subscriptionArgs.append(underlying + '@optionTicker@' + expirationDate)
                 else:
                     # isOptionMarkPrice: one stream covers all contracts for the underlying
@@ -2294,41 +2262,41 @@ class binance(ccxt.async_support.binance):
     def parse_ws_ticker(self, message: object, marketType: object):
         # markPrice
         #   {
-        #       "e": "markPriceUpdate",   # Event type
-        #       "E": 1562305380000,       # Event time
-        #       "s": "BTCUSDT",           # Symbol
-        #       "p": "11794.15000000",    # Mark price
-        #       "i": "11784.62659091",    # Index price
-        #       "P": "11784.25641265",    # Estimated Settle Price, only useful in the last hour before the settlement starts
-        #       "r": "0.00038167",        # Funding rate
-        #       "T": 1562306400000        # Next funding time
+        #       "e": "markPriceUpdate",   // Event type
+        #       "E": 1562305380000,       // Event time
+        #       "s": "BTCUSDT",           // Symbol
+        #       "p": "11794.15000000",    // Mark price
+        #       "i": "11784.62659091",    // Index price
+        #       "P": "11784.25641265",    // Estimated Settle Price, only useful in the last hour before the settlement starts
+        #       "r": "0.00038167",        // Funding rate
+        #       "T": 1562306400000        // Next funding time
         #   }
         #
         # ticker
         #     {
-        #         "e": "24hrTicker",      # event type
-        #         "E": 1579485598569,     # event time
-        #         "s": "ETHBTC",          # symbol
-        #         "p": "-0.00004000",     # price change
-        #         "P": "-0.209",          # price change percent
-        #         "w": "0.01920495",      # weighted average price
-        #         "x": "0.01916500",      # the price of the first trade before the 24hr rolling window
-        #         "c": "0.01912500",      # last(closing) price
-        #         "Q": "0.10400000",      # last quantity
-        #         "b": "0.01912200",      # best bid
-        #         "B": "4.10400000",      # best bid quantity
-        #         "a": "0.01912500",      # best ask
-        #         "A": "0.00100000",      # best ask quantity
-        #         "o": "0.01916500",      # open price
-        #         "h": "0.01956500",      # high price
-        #         "l": "0.01887700",      # low price
-        #         "v": "173518.11900000",  # base volume
-        #         "q": "3332.40703994",   # quote volume
-        #         "O": 1579399197842,     # open time
-        #         "C": 1579485597842,     # close time
-        #         "F": 158251292,         # first trade id
-        #         "L": 158414513,         # last trade id
-        #         "n": 163222,            # total number of trades
+        #         "e": "24hrTicker",      // event type
+        #         "E": 1579485598569,     // event time
+        #         "s": "ETHBTC",          // symbol
+        #         "p": "-0.00004000",     // price change
+        #         "P": "-0.209",          // price change percent
+        #         "w": "0.01920495",      // weighted average price
+        #         "x": "0.01916500",      // the price of the first trade before the 24hr rolling window
+        #         "c": "0.01912500",      // last (closing) price
+        #         "Q": "0.10400000",      // last quantity
+        #         "b": "0.01912200",      // best bid
+        #         "B": "4.10400000",      // best bid quantity
+        #         "a": "0.01912500",      // best ask
+        #         "A": "0.00100000",      // best ask quantity
+        #         "o": "0.01916500",      // open price
+        #         "h": "0.01956500",      // high price
+        #         "l": "0.01887700",      // low price
+        #         "v": "173518.11900000", // base volume
+        #         "q": "3332.40703994",   // quote volume
+        #         "O": 1579399197842,     // open time
+        #         "C": 1579485597842,     // close time
+        #         "F": 158251292,         // first trade id
+        #         "L": 158414513,         // last trade id
+        #         "n": 163222,            // total number of trades
         #     }
         #
         # miniTicker
@@ -2366,7 +2334,7 @@ class binance(ccxt.async_support.binance):
         if event == '24hrTicker':
             event = 'ticker'
         if event == 'markPriceUpdate' or event == 'markPrice':
-            # handle self separately because some fields clash with the ticker fields
+            # handle this separately because some fields clash with the ticker fields
             # futures use 'p' for mark price; options use 'mp'
             return self.safe_ticker({
                 'symbol': symbol,
@@ -2445,7 +2413,7 @@ class binance(ccxt.async_support.binance):
         #            "bidQty":"431.00000000",
         #            "askPrice":"4.00000200",
         #            "askQty":"9.00000000",
-        #            "time":1589437530011   # Transaction time
+        #            "time":1589437530011   // Transaction time
         #        }
         #    }
         #
@@ -2474,29 +2442,29 @@ class binance(ccxt.async_support.binance):
         # arrives one symbol dict or array of symbol dicts
         #
         #     {
-        #         "e": "24hrTicker",      # event type
-        #         "E": 1579485598569,     # event time
-        #         "s": "ETHBTC",          # symbol
-        #         "p": "-0.00004000",     # price change
-        #         "P": "-0.209",          # price change percent
-        #         "w": "0.01920495",      # weighted average price
-        #         "x": "0.01916500",      # the price of the first trade before the 24hr rolling window
-        #         "c": "0.01912500",      # last(closing) price
-        #         "Q": "0.10400000",      # last quantity
-        #         "b": "0.01912200",      # best bid
-        #         "B": "4.10400000",      # best bid quantity
-        #         "a": "0.01912500",      # best ask
-        #         "A": "0.00100000",      # best ask quantity
-        #         "o": "0.01916500",      # open price
-        #         "h": "0.01956500",      # high price
-        #         "l": "0.01887700",      # low price
-        #         "v": "173518.11900000",  # base volume
-        #         "q": "3332.40703994",   # quote volume
-        #         "O": 1579399197842,     # open time
-        #         "C": 1579485597842,     # close time
-        #         "F": 158251292,         # first trade id
-        #         "L": 158414513,         # last trade id
-        #         "n": 163222,            # total number of trades
+        #         "e": "24hrTicker",      // event type
+        #         "E": 1579485598569,     // event time
+        #         "s": "ETHBTC",          // symbol
+        #         "p": "-0.00004000",     // price change
+        #         "P": "-0.209",          // price change percent
+        #         "w": "0.01920495",      // weighted average price
+        #         "x": "0.01916500",      // the price of the first trade before the 24hr rolling window
+        #         "c": "0.01912500",      // last (closing) price
+        #         "Q": "0.10400000",      // last quantity
+        #         "b": "0.01912200",      // best bid
+        #         "B": "4.10400000",      // best bid quantity
+        #         "a": "0.01912500",      // best ask
+        #         "A": "0.00100000",      // best ask quantity
+        #         "o": "0.01916500",      // open price
+        #         "h": "0.01956500",      // high price
+        #         "l": "0.01887700",      // low price
+        #         "v": "173518.11900000", // base volume
+        #         "q": "3332.40703994",   // quote volume
+        #         "O": 1579399197842,     // open time
+        #         "C": 1579485597842,     // close time
+        #         "F": 158251292,         // first trade id
+        #         "L": 158414513,         // last trade id
+        #         "n": 163222,            // total number of trades
         #     }
         #
         self.handle_tickers_and_bids_asks(client, message, 'tickers')
@@ -2526,7 +2494,7 @@ class binance(ccxt.async_support.binance):
             ticker = rawTickers[i]
             event = self.safe_string(ticker, 'e')
             if isBidAsk:
-                event = 'bookTicker'  # in `handleMessage`, bookTicker doesn't have identifier, so manually set here
+                event = 'bookTicker'  # as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
             channelName = self.safe_string(self.options['tickerChannelsMap'], event, event)
             if channelName is None:
                 continue
@@ -2790,8 +2758,8 @@ class binance(ccxt.async_support.binance):
             # the flight is registered on a never-dialed client because the
             # user-data url embeds the listenKey, so no real client exists
             # before the fetch and no listenKey-free parking url is needed.
-            # client.futures is the registry: client.future() is the atomic
-            # check-and-insert and client.resolve() / client.reject() settle
+            # client.futures is the registry: client.future () is the atomic
+            # check-and-insert and client.resolve () / client.reject () settle
             # and remove the entry under the same lock in every port
             messageHash = 'authenticate:' + type
             client = self.client('authenticationFlights')
@@ -2800,8 +2768,8 @@ class binance(ccxt.async_support.binance):
                 # settles it: the listenKey is then in the bucket
                 await client.future(messageHash)
                 return
-            # reusableFuture(), not future() - the two match in
-            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # reusableFuture (), not future () - the two match in
+            # js/py/php/cs/java, but go's Client.Future () yields a channel
             # that the trailing suspension point below would panic on
             future = client.reusableFuture(messageHash)
             try:
@@ -2825,7 +2793,7 @@ class binance(ccxt.async_support.binance):
                     # reject the flight BEFORE any cache write: a hollow 200
                     # otherwise caches an empty credential AND stamps
                     # lastAuthenticatedTime, parking every caller on
-                    # .../ws/None with no retry until the staleness
+                    # .../ws/undefined with no retry until the staleness
                     # window reopens - the catch below rejects the flight so
                     # waiters retry and the next caller re-leads
                     raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
@@ -2839,12 +2807,12 @@ class binance(ccxt.async_support.binance):
                 if isStock:
                     delayParams = self.extend(params, {'type': 'stock', 'defaultType': 'stock'})
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, delayParams)
-                # settle the flight: client.resolve() removes the future from
+                # settle the flight: client.resolve () removes the future from
                 # client.futures and wakes every waiter
                 client.resolve(listenKey, messageHash)
             except Exception as e:
-                # reject the flight - waiters raise and the next caller re-leads.
-                # no reraise here, the trailing suspension point rethrows to self
+                # reject the flight - waiters throw and the next caller re-leads.
+                # no rethrow here, the trailing suspension point rethrows to this
                 # caller AND attaches the handler an alone leader needs
                 client.reject(e, messageHash)
             await future
@@ -2858,7 +2826,7 @@ class binance(ccxt.async_support.binance):
         subTypeInfo = self.handle_sub_type_and_params('keepAliveListenKey', None, params)
         subType = subTypeInfo[0]
         if type != 'option' and type != 'stock':
-            # guard options first: isLinear returns True for linear-settled options(subType='linear')
+            # guard options first: isLinear returns true for linear-settled options (subType='linear')
             # which would incorrectly convert type='option' to 'future'.
             # stock needs the same exemption: with a defaultSubType of 'linear' -
             # always on binanceusdm, common on mixed instances - isLinear keys off
@@ -2877,7 +2845,7 @@ class binance(ccxt.async_support.binance):
         listenKey = self.safe_string(options, 'listenKey')
         if listenKey is None:
             # A network error happened: we can't renew a listen key that does not exist.
-            # self guard now covers stock too - the old stock path would POST here and
+            # this guard now covers stock too - the old stock path would POST here and
             # resurrect a fresh key without reconnecting the dead stream, leaving the
             # options bucket claiming a healthy auth over a broken user stream
             return
@@ -2886,7 +2854,7 @@ class binance(ccxt.async_support.binance):
         time = self.milliseconds()
         try:
             if isStock:
-                # the equity endpoint is create-or-renew: with an active key self
+                # the equity endpoint is create-or-renew: with an active key this
                 # POST extends the validity of that same key
                 requestParams = self.omit(params, ['stock', 'name', 'callerMethodName', 'subType', 'timeframe'])
                 await self.sapiPostEquityListenKey(requestParams)
@@ -3041,17 +3009,17 @@ class binance(ccxt.async_support.binance):
         #            "takerCommission": 15,
         #            "buyerCommission": 0,
         #            "sellerCommission": 0,
-        #            "canTrade": True,
-        #            "canWithdraw": True,
-        #            "canDeposit": True,
+        #            "canTrade": true,
+        #            "canWithdraw": true,
+        #            "canDeposit": true,
         #            "commissionRates": {
         #                "maker": "0.00150000",
         #                "taker": "0.00150000",
         #                "buyer": "0.00000000",
         #                "seller": "0.00000000"
         #            },
-        #            "brokered": False,
-        #            "requireSelfTradePrevention": False,
+        #            "brokered": false,
+        #            "requireSelfTradePrevention": false,
         #            "updateTime": 1660801833000,
         #            "accountType": "SPOT",
         #            "balances": [{
@@ -3166,7 +3134,7 @@ class binance(ccxt.async_support.binance):
         #                notional: '-994.78378584',
         #                isolatedWallet: '0',
         #                updateTime: 1708906343111,
-        #                isolated: False,
+        #                isolated: false,
         #                adlQuantile: 2
         #            },
         #            ...
@@ -3194,7 +3162,7 @@ class binance(ccxt.async_support.binance):
         if self.markets is None:
             await self.load_markets()
         # derive BEFORE authenticating and pass the result in: authenticate
-        # re-derives from its own method scope, so without self a method-scoped
+        # re-derives from its own method scope, so without this a method-scoped
         # options.watchBalance.type seeds one bucket while the read below
         # indexes another - the same derive-first shape watchOrders uses
         type = None
@@ -3244,14 +3212,14 @@ class binance(ccxt.async_support.binance):
         # sent upon creating or filling an order
         #
         #     {
-        #         "e": "outboundAccountPosition",  # Event type
-        #         "E": 1564034571105,             # Event Time
-        #         "u": 1564034571073,             # Time of last account update
-        #         "B": [                         # Balances Array
+        #         "e": "outboundAccountPosition", // Event type
+        #         "E": 1564034571105,             // Event Time
+        #         "u": 1564034571073,             // Time of last account update
+        #         "B": [                          // Balances Array
         #             {
-        #                 "a": "ETH",                 # Asset
-        #                 "f": "10000.000000",        # Free
-        #                 "l": "0.000000"             # Locked
+        #                 "a": "ETH",                 // Asset
+        #                 "f": "10000.000000",        // Free
+        #                 "l": "0.000000"             // Locked
         #             }
         #         ]
         #     }
@@ -3259,40 +3227,40 @@ class binance(ccxt.async_support.binance):
         # future/delivery
         #
         #     {
-        #         "e": "ACCOUNT_UPDATE",            # Event Type
-        #         "E": 1564745798939,               # Event Time
-        #         "T": 1564745798938 ,              # Transaction
-        #         "i": "SfsR",                      # Account Alias
-        #         "a": {                           # Update Data
-        #             "m":"ORDER",                  # Event reason type
-        #             "B":[                        # Balances
+        #         "e": "ACCOUNT_UPDATE",            // Event Type
+        #         "E": 1564745798939,               // Event Time
+        #         "T": 1564745798938 ,              // Transaction
+        #         "i": "SfsR",                      // Account Alias
+        #         "a": {                            // Update Data
+        #             "m":"ORDER",                  // Event reason type
+        #             "B":[                         // Balances
         #                 {
-        #                     "a":"BTC",                # Asset
-        #                     "wb":"122624.12345678",   # Wallet Balance
-        #                     "cw":"100.12345678"       # Cross Wallet Balance
+        #                     "a":"BTC",                // Asset
+        #                     "wb":"122624.12345678",   // Wallet Balance
+        #                     "cw":"100.12345678"       // Cross Wallet Balance
         #                 },
         #             ],
         #             "P":[
         #                 {
-        #                     "s":"BTCUSD_200925",      # Symbol
-        #                     "pa":"0",                 # Position Amount
-        #                     "ep":"0.0",               # Entry Price
-        #                     "cr":"200",               #(Pre-fee) Accumulated Realized
-        #                     "up":"0",                 # Unrealized PnL
-        #                     "mt":"isolated",          # Margin Type
-        #                     "iw":"0.00000000",        # Isolated Wallet(if isolated position)
-        #                     "ps":"BOTH"               # Position Side
+        #                     "s":"BTCUSD_200925",      // Symbol
+        #                     "pa":"0",                 // Position Amount
+        #                     "ep":"0.0",               // Entry Price
+        #                     "cr":"200",               // (Pre-fee) Accumulated Realized
+        #                     "up":"0",                 // Unrealized PnL
+        #                     "mt":"isolated",          // Margin Type
+        #                     "iw":"0.00000000",        // Isolated Wallet (if isolated position)
+        #                     "ps":"BOTH"               // Position Side
         #                 },
         #             ]
         #         }
         #     }
         # externalLockUpdate
         #    {
-        #        "e": "externalLockUpdate",  # Event Type
-        #        "E": 1581557507324,         # Event Time
-        #        "a": "NEO",                 # Asset
-        #        "d": "10.00000000",         # Delta
-        #        "T": 1581557507268          # Transaction Time
+        #        "e": "externalLockUpdate",  // Event Type
+        #        "E": 1581557507324,         // Event Time
+        #        "a": "NEO",                 // Asset
+        #        "d": "10.00000000",         // Delta
+        #        "T": 1581557507268          // Transaction Time
         #    }
         #
         wallet = self.safe_string(self.options, 'wallet', 'wb')  # cw for cross wallet
@@ -3354,7 +3322,7 @@ class binance(ccxt.async_support.binance):
         # and the guarded linear/inverse rewrite. option and stock must keep
         # their own type, or the listenKey bucket, the endpoint dispatch and
         # the stream selection all silently degrade to futures - the guarded
-        # sites used to carry seven inline copies of self dance, and the
+        # sites used to carry seven inline copies of this dance, and the
         # unguarded copies were the bug class behind the option keepalive and
         # stock keepalive fixes
         type = None
@@ -3366,7 +3334,7 @@ class binance(ccxt.async_support.binance):
                 type = 'future'
             elif self.isInverse(type, subType):
                 type = 'delivery'
-        # sites consuming every element unpack self; the two that skip subType
+        # sites consuming every element unpack this; the two that skip subType
         # index it positionally instead, so no receiver is declared-but-unread
         return [type, subType, params]
 
@@ -3521,7 +3489,7 @@ class binance(ccxt.async_support.binance):
         #            "icebergQty": "0.00000000",
         #            "time": 1687642884646,
         #            "updateTime": 1687642884646,
-        #            "isWorking": True,
+        #            "isWorking": true,
         #            "workingTime": 1687642884646,
         #            "origQuoteOrderQty": "0.00000000",
         #            "selfTradePreventionMode": "NONE"
@@ -4003,7 +3971,7 @@ class binance(ccxt.async_support.binance):
         marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
         urlType = type
         if (type == 'margin') or ((type == 'spot') and (marginMode is not None)):
-            urlType = 'spot'  # spot-margin shares the same stream spot
+            urlType = 'spot'  # spot-margin shares the same stream as regular spot
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchOrders', 'papi', 'portfolioMargin', False)
         url = ''
@@ -4033,106 +4001,106 @@ class binance(ccxt.async_support.binance):
         # spot
         #
         #     {
-        #         "e": "executionReport",        # Event type
-        #         "E": 1499405658658,            # Event time
-        #         "s": "ETHBTC",                 # Symbol
-        #         "c": "mUvoqJxFIILMdfAW5iGSOW",  # Client order ID
-        #         "S": "BUY",                    # Side
-        #         "o": "LIMIT",                  # Order type
-        #         "f": "GTC",                    # Time in force
-        #         "q": "1.00000000",             # Order quantity
-        #         "p": "0.10264410",             # Order price
-        #         "P": "0.00000000",             # Stop price
-        #         "F": "0.00000000",             # Iceberg quantity
-        #         "g": -1,                       # OrderListId
-        #         "C": null,                     # Original client order ID; This is the ID of the order being canceled
-        #         "x": "NEW",                    # Current execution type
-        #         "X": "NEW",                    # Current order status
-        #         "r": "NONE",                   # Order reject reason; will be an error code.
-        #         "i": 4293153,                  # Order ID
-        #         "l": "0.00000000",             # Last executed quantity
-        #         "z": "0.00000000",             # Cumulative filled quantity
-        #         "L": "0.00000000",             # Last executed price
-        #         "n": "0",                      # Commission amount
-        #         "N": null,                     # Commission asset
-        #         "T": 1499405658657,            # Transaction time
-        #         "t": -1,                       # Trade ID
-        #         "I": 8641984,                  # Ignore
-        #         "w": True,                     # Is the order on the book?
-        #         "m": False,                    # Is self trade the maker side?
-        #         "M": False,                    # Ignore
-        #         "O": 1499405658657,            # Order creation time
-        #         "Z": "0.00000000",             # Cumulative quote asset transacted quantity
-        #         "Y": "0.00000000"              # Last quote asset transacted quantity(i.e. lastPrice * lastQty),
-        #         "Q": "0.00000000"              # Quote Order Qty
+        #         "e": "executionReport",        // Event type
+        #         "E": 1499405658658,            // Event time
+        #         "s": "ETHBTC",                 // Symbol
+        #         "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+        #         "S": "BUY",                    // Side
+        #         "o": "LIMIT",                  // Order type
+        #         "f": "GTC",                    // Time in force
+        #         "q": "1.00000000",             // Order quantity
+        #         "p": "0.10264410",             // Order price
+        #         "P": "0.00000000",             // Stop price
+        #         "F": "0.00000000",             // Iceberg quantity
+        #         "g": -1,                       // OrderListId
+        #         "C": null,                     // Original client order ID; This is the ID of the order being canceled
+        #         "x": "NEW",                    // Current execution type
+        #         "X": "NEW",                    // Current order status
+        #         "r": "NONE",                   // Order reject reason; will be an error code.
+        #         "i": 4293153,                  // Order ID
+        #         "l": "0.00000000",             // Last executed quantity
+        #         "z": "0.00000000",             // Cumulative filled quantity
+        #         "L": "0.00000000",             // Last executed price
+        #         "n": "0",                      // Commission amount
+        #         "N": null,                     // Commission asset
+        #         "T": 1499405658657,            // Transaction time
+        #         "t": -1,                       // Trade ID
+        #         "I": 8641984,                  // Ignore
+        #         "w": true,                     // Is the order on the book?
+        #         "m": false,                    // Is this trade the maker side?
+        #         "M": false,                    // Ignore
+        #         "O": 1499405658657,            // Order creation time
+        #         "Z": "0.00000000",             // Cumulative quote asset transacted quantity
+        #         "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        #         "Q": "0.00000000"              // Quote Order Qty
         #     }
         #
         # future
         #
         #     {
-        #         "s":"BTCUSDT",                 # Symbol
-        #         "c":"TEST",                    # Client Order Id
-        #                                        # special client order id:
-        #                                        # starts with "autoclose-": liquidation order
-        #                                        # "adl_autoclose": ADL auto close order
-        #         "S":"SELL",                    # Side
-        #         "o":"TRAILING_STOP_MARKET",    # Order Type
-        #         "f":"GTC",                     # Time in Force
-        #         "q":"0.001",                   # Original Quantity
-        #         "p":"0",                       # Original Price
-        #         "ap":"0",                      # Average Price
-        #         "sp":"7103.04",                # Stop Price. Please ignore with TRAILING_STOP_MARKET order
-        #         "x":"NEW",                     # Execution Type
-        #         "X":"NEW",                     # Order Status
-        #         "i":8886774,                   # Order Id
-        #         "l":"0",                       # Order Last Filled Quantity
-        #         "z":"0",                       # Order Filled Accumulated Quantity
-        #         "L":"0",                       # Last Filled Price
-        #         "N":"USDT",                    # Commission Asset, will not push if no commission
-        #         "n":"0",                       # Commission, will not push if no commission
-        #         "T":1568879465651,             # Order Trade Time
-        #         "t":0,                         # Trade Id
-        #         "b":"0",                       # Bids Notional
-        #         "a":"9.91",                    # Ask Notional
-        #         "m":false,                     # Is self trade the maker side?
-        #         "R":false,                     # Is self reduce only
-        #         "wt":"CONTRACT_PRICE",         # Stop Price Working Type
-        #         "ot":"TRAILING_STOP_MARKET",   # Original Order Type
-        #         "ps":"LONG",                   # Position Side
-        #         "cp":false,                    # If Close-All, pushed with conditional order
-        #         "AP":"7476.89",                # Activation Price, only puhed with TRAILING_STOP_MARKET order
-        #         "cr":"5.0",                    # Callback Rate, only puhed with TRAILING_STOP_MARKET order
-        #         "rp":"0"                       # Realized Profit of the trade
+        #         "s":"BTCUSDT",                 // Symbol
+        #         "c":"TEST",                    // Client Order Id
+        #                                        // special client order id:
+        #                                        // starts with "autoclose-": liquidation order
+        #                                        // "adl_autoclose": ADL auto close order
+        #         "S":"SELL",                    // Side
+        #         "o":"TRAILING_STOP_MARKET",    // Order Type
+        #         "f":"GTC",                     // Time in Force
+        #         "q":"0.001",                   // Original Quantity
+        #         "p":"0",                       // Original Price
+        #         "ap":"0",                      // Average Price
+        #         "sp":"7103.04",                // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        #         "x":"NEW",                     // Execution Type
+        #         "X":"NEW",                     // Order Status
+        #         "i":8886774,                   // Order Id
+        #         "l":"0",                       // Order Last Filled Quantity
+        #         "z":"0",                       // Order Filled Accumulated Quantity
+        #         "L":"0",                       // Last Filled Price
+        #         "N":"USDT",                    // Commission Asset, will not push if no commission
+        #         "n":"0",                       // Commission, will not push if no commission
+        #         "T":1568879465651,             // Order Trade Time
+        #         "t":0,                         // Trade Id
+        #         "b":"0",                       // Bids Notional
+        #         "a":"9.91",                    // Ask Notional
+        #         "m":false,                     // Is this trade the maker side?
+        #         "R":false,                     // Is this reduce only
+        #         "wt":"CONTRACT_PRICE",         // Stop Price Working Type
+        #         "ot":"TRAILING_STOP_MARKET",   // Original Order Type
+        #         "ps":"LONG",                   // Position Side
+        #         "cp":false,                    // If Close-All, pushed with conditional order
+        #         "AP":"7476.89",                // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        #         "cr":"5.0",                    // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        #         "rp":"0"                       // Realized Profit of the trade
         #     }
         #
         # watchOrders: linear swap trigger order
         #
         #     {
-        #         "caid":"Q5xaq5EGKgXXa0fD7fs0Ip",     # Client Algo Id
-        #         "aid":2148719,                       # Algo Id
-        #         "at":"CONDITIONAL",                  # Algo Type
-        #         "o":"TAKE_PROFIT",                   # Order Type
-        #         "s":"BNBUSDT",                       # Symbol
-        #         "S":"SELL",                          # Side
-        #         "ps":"BOTH",                         # Position Side
-        #         "f":"GTC",                           # Time in force
-        #         "q":"0.01",                          # quantity
-        #         "X":"CANCELED",                      # Algo status
-        #         "ai":"",                             # order id
-        #         "ap": "0.00000",                     # avg fill price in matching engine, only display when order is triggered and placed in matching engine
-        #         "aq": "0.00000",                     # execuated quantity in matching engine, only display when order is triggered and placed in matching engine
-        #         "act": "0",                          # actual order type in matching engine, only display when order is triggered and placed in matching engine
-        #         "tp":"750",                          # Trigger price
-        #         "p":"750",                           # Order Price
-        #         "V":"EXPIRE_MAKER",                  # STP mode
-        #         "wt":"CONTRACT_PRICE",               # Working type
-        #         "pm":"NONE",                         # Price match mode
-        #         "cp":false,                          # If Close-All
-        #         "pP":false,                          # If price protection is turned on
-        #         "R":false,                           # Is self reduce only
-        #         "tt":0,                              # Trigger time
-        #         "gtd":0,                             # good till time for GTD time in force
-        #         "rm": "Reduce Only reject"           # algo order failed reason
+        #         "caid":"Q5xaq5EGKgXXa0fD7fs0Ip",     // Client Algo Id
+        #         "aid":2148719,                       // Algo Id
+        #         "at":"CONDITIONAL",                  // Algo Type
+        #         "o":"TAKE_PROFIT",                   // Order Type
+        #         "s":"BNBUSDT",                       // Symbol
+        #         "S":"SELL",                          // Side
+        #         "ps":"BOTH",                         // Position Side
+        #         "f":"GTC",                           // Time in force
+        #         "q":"0.01",                          // quantity
+        #         "X":"CANCELED",                      // Algo status
+        #         "ai":"",                             // order id
+        #         "ap": "0.00000",                     // avg fill price in matching engine, only display when order is triggered and placed in matching engine
+        #         "aq": "0.00000",                     // execuated quantity in matching engine, only display when order is triggered and placed in matching engine
+        #         "act": "0",                          // actual order type in matching engine, only display when order is triggered and placed in matching engine
+        #         "tp":"750",                          // Trigger price
+        #         "p":"750",                           // Order Price
+        #         "V":"EXPIRE_MAKER",                  // STP mode
+        #         "wt":"CONTRACT_PRICE",               // Working type
+        #         "pm":"NONE",                         // Price match mode
+        #         "cp":false,                          // If Close-All
+        #         "pP":false,                          // If price protection is turned on
+        #         "R":false,                           // Is this reduce only
+        #         "tt":0,                              // Trigger time
+        #         "gtd":0,                             // good till time for GTD time in force
+        #         "rm": "Reduce Only reject"           // algo order failed reason
         #     }
         #
         # watchOrders: tokenized equities
@@ -4277,115 +4245,115 @@ class binance(ccxt.async_support.binance):
         # spot
         #
         #     {
-        #         "e": "executionReport",        # Event type
-        #         "E": 1499405658658,            # Event time
-        #         "s": "ETHBTC",                 # Symbol
-        #         "c": "mUvoqJxFIILMdfAW5iGSOW",  # Client order ID
-        #         "S": "BUY",                    # Side
-        #         "o": "LIMIT",                  # Order type
-        #         "f": "GTC",                    # Time in force
-        #         "q": "1.00000000",             # Order quantity
-        #         "p": "0.10264410",             # Order price
-        #         "P": "0.00000000",             # Stop price
-        #         "F": "0.00000000",             # Iceberg quantity
-        #         "g": -1,                       # OrderListId
-        #         "C": null,                     # Original client order ID; This is the ID of the order being canceled
-        #         "x": "NEW",                    # Current execution type
-        #         "X": "NEW",                    # Current order status
-        #         "r": "NONE",                   # Order reject reason; will be an error code.
-        #         "i": 4293153,                  # Order ID
-        #         "l": "0.00000000",             # Last executed quantity
-        #         "z": "0.00000000",             # Cumulative filled quantity
-        #         "L": "0.00000000",             # Last executed price
-        #         "n": "0",                      # Commission amount
-        #         "N": null,                     # Commission asset
-        #         "T": 1499405658657,            # Transaction time
-        #         "t": -1,                       # Trade ID
-        #         "I": 8641984,                  # Ignore
-        #         "w": True,                     # Is the order on the book?
-        #         "m": False,                    # Is self trade the maker side?
-        #         "M": False,                    # Ignore
-        #         "O": 1499405658657,            # Order creation time
-        #         "Z": "0.00000000",             # Cumulative quote asset transacted quantity
-        #         "Y": "0.00000000"              # Last quote asset transacted quantity(i.e. lastPrice * lastQty),
-        #         "Q": "0.00000000"              # Quote Order Qty
+        #         "e": "executionReport",        // Event type
+        #         "E": 1499405658658,            // Event time
+        #         "s": "ETHBTC",                 // Symbol
+        #         "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+        #         "S": "BUY",                    // Side
+        #         "o": "LIMIT",                  // Order type
+        #         "f": "GTC",                    // Time in force
+        #         "q": "1.00000000",             // Order quantity
+        #         "p": "0.10264410",             // Order price
+        #         "P": "0.00000000",             // Stop price
+        #         "F": "0.00000000",             // Iceberg quantity
+        #         "g": -1,                       // OrderListId
+        #         "C": null,                     // Original client order ID; This is the ID of the order being canceled
+        #         "x": "NEW",                    // Current execution type
+        #         "X": "NEW",                    // Current order status
+        #         "r": "NONE",                   // Order reject reason; will be an error code.
+        #         "i": 4293153,                  // Order ID
+        #         "l": "0.00000000",             // Last executed quantity
+        #         "z": "0.00000000",             // Cumulative filled quantity
+        #         "L": "0.00000000",             // Last executed price
+        #         "n": "0",                      // Commission amount
+        #         "N": null,                     // Commission asset
+        #         "T": 1499405658657,            // Transaction time
+        #         "t": -1,                       // Trade ID
+        #         "I": 8641984,                  // Ignore
+        #         "w": true,                     // Is the order on the book?
+        #         "m": false,                    // Is this trade the maker side?
+        #         "M": false,                    // Ignore
+        #         "O": 1499405658657,            // Order creation time
+        #         "Z": "0.00000000",             // Cumulative quote asset transacted quantity
+        #         "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        #         "Q": "0.00000000"              // Quote Order Qty
         #     }
         #
         # future
         #
         #     {
-        #         "e":"ORDER_TRADE_UPDATE",           # Event Type
-        #         "E":1568879465651,                  # Event Time
-        #         "T":1568879465650,                  # Trasaction Time
+        #         "e":"ORDER_TRADE_UPDATE",           // Event Type
+        #         "E":1568879465651,                  // Event Time
+        #         "T":1568879465650,                  // Trasaction Time
         #         "o": {
-        #             "s":"BTCUSDT",                  # Symbol
-        #             "c":"TEST",                     # Client Order Id
-        #                                             # special client order id:
-        #                                             # starts with "autoclose-": liquidation order
-        #                                             # "adl_autoclose": ADL auto close order
-        #             "S":"SELL",                     # Side
-        #             "o":"TRAILING_STOP_MARKET",     # Order Type
-        #             "f":"GTC",                      # Time in Force
-        #             "q":"0.001",                    # Original Quantity
-        #             "p":"0",                        # Original Price
-        #             "ap":"0",                       # Average Price
-        #             "sp":"7103.04",                 # Stop Price. Please ignore with TRAILING_STOP_MARKET order
-        #             "x":"NEW",                      # Execution Type
-        #             "X":"NEW",                      # Order Status
-        #             "i":8886774,                    # Order Id
-        #             "l":"0",                        # Order Last Filled Quantity
-        #             "z":"0",                        # Order Filled Accumulated Quantity
-        #             "L":"0",                        # Last Filled Price
-        #             "N":"USDT",                     # Commission Asset, will not push if no commission
-        #             "n":"0",                        # Commission, will not push if no commission
-        #             "T":1568879465651,              # Order Trade Time
-        #             "t":0,                          # Trade Id
-        #             "b":"0",                        # Bids Notional
-        #             "a":"9.91",                     # Ask Notional
-        #             "m":false,                      # Is self trade the maker side?
-        #             "R":false,                      # Is self reduce only
-        #             "wt":"CONTRACT_PRICE",          # Stop Price Working Type
-        #             "ot":"TRAILING_STOP_MARKET",    # Original Order Type
-        #             "ps":"LONG",                    # Position Side
-        #             "cp":false,                     # If Close-All, pushed with conditional order
-        #             "AP":"7476.89",                 # Activation Price, only puhed with TRAILING_STOP_MARKET order
-        #             "cr":"5.0",                     # Callback Rate, only puhed with TRAILING_STOP_MARKET order
-        #             "rp":"0"                        # Realized Profit of the trade
+        #             "s":"BTCUSDT",                  // Symbol
+        #             "c":"TEST",                     // Client Order Id
+        #                                             // special client order id:
+        #                                             // starts with "autoclose-": liquidation order
+        #                                             // "adl_autoclose": ADL auto close order
+        #             "S":"SELL",                     // Side
+        #             "o":"TRAILING_STOP_MARKET",     // Order Type
+        #             "f":"GTC",                      // Time in Force
+        #             "q":"0.001",                    // Original Quantity
+        #             "p":"0",                        // Original Price
+        #             "ap":"0",                       // Average Price
+        #             "sp":"7103.04",                 // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        #             "x":"NEW",                      // Execution Type
+        #             "X":"NEW",                      // Order Status
+        #             "i":8886774,                    // Order Id
+        #             "l":"0",                        // Order Last Filled Quantity
+        #             "z":"0",                        // Order Filled Accumulated Quantity
+        #             "L":"0",                        // Last Filled Price
+        #             "N":"USDT",                     // Commission Asset, will not push if no commission
+        #             "n":"0",                        // Commission, will not push if no commission
+        #             "T":1568879465651,              // Order Trade Time
+        #             "t":0,                          // Trade Id
+        #             "b":"0",                        // Bids Notional
+        #             "a":"9.91",                     // Ask Notional
+        #             "m":false,                      // Is this trade the maker side?
+        #             "R":false,                      // Is this reduce only
+        #             "wt":"CONTRACT_PRICE",          // Stop Price Working Type
+        #             "ot":"TRAILING_STOP_MARKET",    // Original Order Type
+        #             "ps":"LONG",                    // Position Side
+        #             "cp":false,                     // If Close-All, pushed with conditional order
+        #             "AP":"7476.89",                 // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        #             "cr":"5.0",                     // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        #             "rp":"0"                        // Realized Profit of the trade
         #         }
         #     }
         #
         # linear swap conditional
         #
         #     {
-        #         "e":"ALGO_UPDATE",  # Event Type
-        #         "T":1750515742297,  # Event Time
-        #         "E":1750515742303,  # Transaction Time
+        #         "e":"ALGO_UPDATE",  // Event Type
+        #         "T":1750515742297,  // Event Time
+        #         "E":1750515742303,  // Transaction Time
         #         "o":{
-        #             "caid":"Q5xaq5EGKgXXa0fD7fs0Ip",     # Client Algo Id
-        #             "aid":2148719,                       # Algo Id
-        #             "at":"CONDITIONAL",                  # Algo Type
-        #             "o":"TAKE_PROFIT",                   # Order Type
-        #             "s":"BNBUSDT",                       # Symbol
-        #             "S":"SELL",                          # Side
-        #             "ps":"BOTH",                         # Position Side
-        #             "f":"GTC",                           # Time in force
-        #             "q":"0.01",                          # quantity
-        #             "X":"CANCELED",                      # Algo status
-        #             "ai":"",                             # order id
-        #             "ap": "0.00000",                     # avg fill price in matching engine, only display when order is triggered and placed in matching engine
-        #             "aq": "0.00000",                     # execuated quantity in matching engine, only display when order is triggered and placed in matching engine
-        #             "act": "0",                          # actual order type in matching engine, only display when order is triggered and placed in matching engine
-        #             "tp":"750",                          # Trigger price
-        #             "p":"750",                           # Order Price
-        #             "V":"EXPIRE_MAKER",                  # STP mode
-        #             "wt":"CONTRACT_PRICE",               # Working type
-        #             "pm":"NONE",                         # Price match mode
-        #             "cp":false,                          # If Close-All
-        #             "pP":false,                          # If price protection is turned on
-        #             "R":false,                           # Is self reduce only
-        #             "tt":0,                              # Trigger time
-        #             "gtd":0,                             # good till time for GTD time in force
-        #             "rm": "Reduce Only reject"           # algo order failed reason
+        #             "caid":"Q5xaq5EGKgXXa0fD7fs0Ip",     // Client Algo Id
+        #             "aid":2148719,                       // Algo Id
+        #             "at":"CONDITIONAL",                  // Algo Type
+        #             "o":"TAKE_PROFIT",                   // Order Type
+        #             "s":"BNBUSDT",                       // Symbol
+        #             "S":"SELL",                          // Side
+        #             "ps":"BOTH",                         // Position Side
+        #             "f":"GTC",                           // Time in force
+        #             "q":"0.01",                          // quantity
+        #             "X":"CANCELED",                      // Algo status
+        #             "ai":"",                             // order id
+        #             "ap": "0.00000",                     // avg fill price in matching engine, only display when order is triggered and placed in matching engine
+        #             "aq": "0.00000",                     // execuated quantity in matching engine, only display when order is triggered and placed in matching engine
+        #             "act": "0",                          // actual order type in matching engine, only display when order is triggered and placed in matching engine
+        #             "tp":"750",                          // Trigger price
+        #             "p":"750",                           // Order Price
+        #             "V":"EXPIRE_MAKER",                  // STP mode
+        #             "wt":"CONTRACT_PRICE",               // Working type
+        #             "pm":"NONE",                         // Price match mode
+        #             "cp":false,                          // If Close-All
+        #             "pP":false,                          // If price protection is turned on
+        #             "R":false,                           // Is this reduce only
+        #             "tt":0,                              // Trigger time
+        #             "gtd":0,                             // good till time for GTD time in force
+        #             "rm": "Reduce Only reject"           // algo order failed reason
         #         }
         #     }
         #
@@ -4464,34 +4432,34 @@ class binance(ccxt.async_support.binance):
 
     def handle_options_order_update(self, client: Client, message: object):
         #
-        # eOptions ORDER_TRADE_UPDATE: "o" is an array of orders(not a dict like futures)
+        # eOptions ORDER_TRADE_UPDATE: "o" is an array of orders (not a dict like futures)
         #
         #     {
         #         "e": "ORDER_TRADE_UPDATE",
         #         "E": 1657613775883,
         #         "o": [
         #             {
-        #                 "T": 1657613342918,          # order create time
-        #                 "t": 1657613342918,          # order last update time
-        #                 "s": "BTC-220930-18000-C",   # symbol
-        #                 "c": "",                     # client order ID
-        #                 "oid": "4611869636869226548",  # order ID
-        #                 "p": "1993",                 # price
-        #                 "q": "1",                    # signed qty(positive = BUY, negative = SELL)
-        #                 "S": "PARTIALLY_FILLED",     # status
-        #                 "e": "0.1",                  # cumulative filled qty
-        #                 "ec": "199.3",               # cumulative filled amount(USDT)
-        #                 "f": "2",                    # cumulative fee
-        #                 "tif": "GTC",                # time in force
-        #                 "oty": "LIMIT",              # order type
+        #                 "T": 1657613342918,          // order create time
+        #                 "t": 1657613342918,          // order last update time
+        #                 "s": "BTC-220930-18000-C",   // symbol
+        #                 "c": "",                     // client order ID
+        #                 "oid": "4611869636869226548", // order ID
+        #                 "p": "1993",                 // price
+        #                 "q": "1",                    // signed qty (positive = BUY, negative = SELL)
+        #                 "S": "PARTIALLY_FILLED",     // status
+        #                 "e": "0.1",                  // cumulative filled qty
+        #                 "ec": "199.3",               // cumulative filled amount (USDT)
+        #                 "f": "2",                    // cumulative fee
+        #                 "tif": "GTC",                // time in force
+        #                 "oty": "LIMIT",              // order type
         #                 "fi": [
         #                     {
-        #                         "t": "20",           # trade ID
-        #                         "p": "1993",         # fill price
-        #                         "q": "0.1",          # fill qty
-        #                         "T": 1657613774336,  # fill time
-        #                         "m": "TAKER",        # "TAKER" or "MAKER"
-        #                         "f": "0.0002"        # commission(positive) or rebate(negative)
+        #                         "t": "20",           // trade ID
+        #                         "p": "1993",         // fill price
+        #                         "q": "0.1",          // fill qty
+        #                         "T": 1657613774336,  // fill time
+        #                         "m": "TAKER",        // "TAKER" or "MAKER"
+        #                         "f": "0.0002"        // commission (positive) or rebate (negative)
         #                     }
         #                 ]
         #             }
@@ -4574,12 +4542,12 @@ class binance(ccxt.async_support.binance):
         # spot and margin have no positions - whatever still RESOLVES to spot
         # or margin after the helper falls through to the derivatives stream
         # matching the subType. requests a defaultSubType already rewrote
-        # arrive here or delivery and pass untouched, which lands on
+        # arrive here as future or delivery and pass untouched, which lands on
         # the same stream the old raw-type ordering produced in every case
         if type == 'spot' or type == 'margin':
             type = 'delivery' if (subType == 'inverse') else 'future'
         # 'option' stays as 'option', don't redirect to 'future' - the helper's
-        # guard finally makes self comment True
+        # guard finally makes this comment true
         marketTypeObject = {}
         marketTypeObject['type'] = type
         marketTypeObject['subType'] = subType
@@ -4709,14 +4677,14 @@ class binance(ccxt.async_support.binance):
     def parse_ws_position(self, position: object, market: Market = None):
         #
         #     {
-        #         "s": "BTCUSDT",  # Symbol
-        #         "pa": "0",  # Position Amount
-        #         "ep": "0.00000",  # Entry Price
-        #         "cr": "200",  #(Pre-fee) Accumulated Realized
-        #         "up": "0",  # Unrealized PnL
-        #         "mt": "isolated",  # Margin Type
-        #         "iw": "0.00000000",  # Isolated Wallet(if isolated position)
-        #         "ps": "BOTH"  # Position Side
+        #         "s": "BTCUSDT", // Symbol
+        #         "pa": "0", // Position Amount
+        #         "ep": "0.00000", // Entry Price
+        #         "cr": "200", // (Pre-fee) Accumulated Realized
+        #         "up": "0", // Unrealized PnL
+        #         "mt": "isolated", // Margin Type
+        #         "iw": "0.00000000", // Isolated Wallet (if isolated position)
+        #         "ps": "BOTH" // Position Side
         #     }
         #
         marketId = self.safe_string(position, 's')
@@ -4761,10 +4729,10 @@ class binance(ccxt.async_support.binance):
         #
         #  from BALANCE_POSITION_UPDATE event P[] array:
         #  {
-        #      "s": "BTC-251123-126000-C",  # option symbol
-        #      "c": "-0.1000",              # position quantity(negative = short)
-        #      "p": "-120.00000000",        # position value(USDT)
-        #      "a": "1200.00000000"         # average entry price
+        #      "s": "BTC-251123-126000-C",  // option symbol
+        #      "c": "-0.1000",              // position quantity (negative = short)
+        #      "p": "-120.00000000",        // position value (USDT)
+        #      "a": "1200.00000000"         // average entry price
         #  }
         #
         marketId = self.safe_string(position, 's')
@@ -4913,9 +4881,9 @@ class binance(ccxt.async_support.binance):
         #                "commission": "0.00000000",
         #                "commissionAsset": "BNB",
         #                "time": 1660801715793,
-        #                "isBuyer": False,
-        #                "isMaker": True,
-        #                "isBestMatch": True
+        #                "isBuyer": false,
+        #                "isMaker": true,
+        #                "isBestMatch": true
         #            },
         #            ...
         #        ],
@@ -4933,8 +4901,8 @@ class binance(ccxt.async_support.binance):
         #                "qty": "40.00000000",
         #                "quoteQty": "0.00200000",
         #                "time": 1500004800376,
-        #                "isBuyerMaker": True,
-        #                "isBestMatch": True
+        #                "isBuyerMaker": true,
+        #                "isBestMatch": true
         #            }
         #            ...
         #        ],
@@ -4973,7 +4941,7 @@ class binance(ccxt.async_support.binance):
         await self.authenticate(self.extend({'type': type, 'subType': subType}, params))
         urlType = type  # we don't change type because the listening key is different
         if type == 'margin':
-            urlType = 'spot'  # spot-margin shares the same stream spot
+            urlType = 'spot'  # spot-margin shares the same stream as regular spot
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchMyTrades', 'papi', 'portfolioMargin', False)
         url = ''
@@ -5043,19 +5011,19 @@ class binance(ccxt.async_support.binance):
                                 order['fee'] = None
                         else:
                             order['fee'] = tradeFee
-                        # save self trade in the order
+                        # save this trade in the order
                         orderTrades = self.safe_list(order, 'trades', [])
                         orderTrades.append(trade)
                         order['trades'] = orderTrades
                         # write the updated order back into the cache: php
                         # arrays are value types, so the fee/trades mutations
                         # above only touched a local copy there — the cache
-                        # hashmap rows are wired by reference, so self
-                        # assignment reaches the cached row(and is a no-op
+                        # hashmap rows are wired by reference, so this
+                        # assignment reaches the cached row (and is a no-op
                         # in the reference-semantics runtimes)
                         orders[orderId] = order
                         # don't append twice cause it breaks newUpdates mode
-                        # self order already exists in the cache
+                        # this order already exists in the cache
             if self.myTrades is None:
                 limit = self.safe_integer(self.options, 'tradesLimit', 1000)
                 self.myTrades = ArrayCacheBySymbolById(limit)
@@ -5100,15 +5068,15 @@ class binance(ccxt.async_support.binance):
 
     def handle_options_account_update(self, client: Client, message: object):
         #
-        # BALANCE_POSITION_UPDATE(options user data stream)
+        # BALANCE_POSITION_UPDATE (options user data stream)
         #
         #  {
         #      "e": "BALANCE_POSITION_UPDATE",
-        #      "E": 1762917544216,   # event time
-        #      "T": 1762917544206,   # transaction time
-        #      "m": "ORDER",         # reason
+        #      "E": 1762917544216,   // event time
+        #      "T": 1762917544206,   // transaction time
+        #      "m": "ORDER",         // reason
         #      "B": [
-        #          {"a": "USDT", "b": "10000471.37940900", "bc": "0"}
+        #          { "a": "USDT", "b": "10000471.37940900", "bc": "0" }
         #      ],
         #      "P": [
         #          {
@@ -5187,7 +5155,7 @@ class binance(ccxt.async_support.binance):
             self.handle_errors(codeValue, msg, client.url, '', {}, self.json(error), error, {}, {})
         except Exception as e:
             rejected = True
-            # private endpoint uses id
+            # private endpoint uses id as messageHash
             client.reject(e, id)
             # public endpoint stores messageHash in subscriptions
             subscriptionKeys = list(client.subscriptions.keys())
@@ -5222,8 +5190,8 @@ class binance(ccxt.async_support.binance):
             client.reject(message, accountType)
 
     def handle_message(self, client: Client, message: object):
-        # eOptions combined stream endpoints(/public/stream, /market/stream) wrap events as:
-        #   {"stream": "<streamName>", "data": {"e": "...", ...}}
+        # eOptions combined stream endpoints (/public/stream, /market/stream) wrap events as:
+        #   { "stream": "<streamName>", "data": { "e": "...", ... } }
         streamWrapper = self.safe_string(message, 'stream')
         if streamWrapper is not None:
             message = self.safe_dict(message, 'data', message)

@@ -62,7 +62,7 @@ class bittrade(ccxt.async_support.bittrade):
             await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        # only supports a limit of 150 at self time
+        # only supports a limit of 150 at this time
         messageHash = 'market.' + market['id'] + '.detail'
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
@@ -127,7 +127,7 @@ class bittrade(ccxt.async_support.bittrade):
             await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        # only supports a limit of 150 at self time
+        # only supports a limit of 150 at this time
         messageHash = 'market.' + market['id'] + '.trade.detail'
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
@@ -197,7 +197,7 @@ class bittrade(ccxt.async_support.bittrade):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -276,7 +276,7 @@ class bittrade(ccxt.async_support.bittrade):
             await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        # only supports a limit of 150 at self time
+        # only supports a limit of 150 at this time
         limit = 150 if (limit is None) else limit
         messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
         api = self.safe_string(self.options, 'api', 'api')
@@ -351,7 +351,7 @@ class bittrade(ccxt.async_support.bittrade):
                 'req': messageHash,
                 'id': requestId,
             }
-            # self is a temporary subscription by a specific requestId
+            # this is a temporary subscription by a specific requestId
             # it has a very short lifetime until the snapshot is received over ws
             snapshotSubscription = {
                 'id': requestId,
@@ -486,11 +486,11 @@ class bittrade(ccxt.async_support.bittrade):
     def handle_system_status(self, client: Client, message: object):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
-        # and unified for any usage pattern that
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {
-        #         "id": "1578090234088",  # connectId
+        #         "id": "1578090234088", // connectId
         #         "type": "welcome",
         #     }
         #
@@ -535,7 +535,7 @@ class bittrade(ccxt.async_support.bittrade):
 
     async def pong(self, client: Client, message: object):
         #
-        #     {ping: 1583491673714}
+        #     { ping: 1583491673714 }
         #
         await client.send({'pong': self.safe_integer(message, 'ping')})
 
@@ -583,7 +583,7 @@ class bittrade(ccxt.async_support.bittrade):
             #
             #     " {"ch":"market.ethbtc.m "
             #
-            # self is passed to handleMessage string since it failed to be decoded
+            # this is passed to handleMessage as a string since it failed to be decoded as JSON
             #
             if self.safe_string(message, 'id') is not None:
                 self.handle_subscription_status(client, message)

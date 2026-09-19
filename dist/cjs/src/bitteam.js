@@ -189,6 +189,7 @@ class bitteam extends bitteam$1["default"] {
                         'trade/api/pairs': { 'cost': 1 }, // not unified
                         'trade/api/pairs/precisions': { 'cost': 1 }, // not unified
                         'trade/api/rates': { 'cost': 1 }, // not unified
+                        'trade/api/stats': { 'cost': 1 }, // not unified
                         'trade/api/trade/{id}': { 'cost': 1 }, // not unified
                         'trade/api/trades': { 'cost': 1 }, // not unified
                         'trade/api/ccxt/pairs': { 'cost': 1 },

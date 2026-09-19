@@ -167,6 +167,16 @@ impl BitmexCore {
         self.call_method(Value::Str("public_get_wallet_assets".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetWalletCurrencies` implicit endpoint.
+    pub async fn public_get_wallet_currencies(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_wallet_currencies".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetWalletHaircuts` implicit endpoint.
+    pub async fn public_get_wallet_haircuts(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_wallet_haircuts".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetWalletNetworks` implicit endpoint.
     pub async fn public_get_wallet_networks(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_wallet_networks".to_string()), optional_args).await
@@ -177,9 +187,19 @@ impl BitmexCore {
         self.call_method(Value::Str("private_get_address".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetAddressConfig` implicit endpoint.
+    pub async fn private_get_address_config(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_address_config".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetApiKey` implicit endpoint.
     pub async fn private_get_api_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_api_key".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiKeySelf` implicit endpoint.
+    pub async fn private_get_api_key_self(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_key_self".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetExecution` implicit endpoint.
@@ -202,6 +222,21 @@ impl BitmexCore {
         self.call_method(Value::Str("private_get_leaderboard_name".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetLeagueoftraderMyRankings` implicit endpoint.
+    pub async fn private_get_leagueoftrader_my_rankings(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_leagueoftrader_my_rankings".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetManagedSubAccountBindingInvestor` implicit endpoint.
+    pub async fn private_get_managed_sub_account_binding_investor(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_managed_sub_account_binding_investor".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetManagedSubAccountBindingTradingTeam` implicit endpoint.
+    pub async fn private_get_managed_sub_account_binding_trading_team(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_managed_sub_account_binding_trading_team".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetOrder` implicit endpoint.
     pub async fn private_get_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_order".to_string()), optional_args).await
@@ -215,6 +250,26 @@ impl BitmexCore {
     /// Auto-generated wrapper for the `privateGetPosition` implicit endpoint.
     pub async fn private_get_position(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_position".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetReferralCode` implicit endpoint.
+    pub async fn private_get_referral_code(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_referral_code".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetReferralCodeCheckCode` implicit endpoint.
+    pub async fn private_get_referral_code_check_code(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_referral_code_check_code".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetReferralCodeCodeCode` implicit endpoint.
+    pub async fn private_get_referral_code_code_code(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_referral_code_code_code".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetReferralCodeId` implicit endpoint.
+    pub async fn private_get_referral_code_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_referral_code_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUser` implicit endpoint.
@@ -247,6 +302,11 @@ impl BitmexCore {
         self.call_method(Value::Str("private_get_user_deposit_address".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetUserDepositAddressInformation` implicit endpoint.
+    pub async fn private_get_user_deposit_address_information(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_user_deposit_address_information".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetUserExecutionHistory` implicit endpoint.
     pub async fn private_get_user_execution_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_user_execution_history".to_string()), optional_args).await
@@ -260,6 +320,11 @@ impl BitmexCore {
     /// Auto-generated wrapper for the `privateGetUserMargin` implicit endpoint.
     pub async fn private_get_user_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_user_margin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUserMarginingMode` implicit endpoint.
+    pub async fn private_get_user_margining_mode(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_user_margining_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUserQuoteFillRatio` implicit endpoint.
@@ -285,6 +350,11 @@ impl BitmexCore {
     /// Auto-generated wrapper for the `privateGetUserStakingTiers` implicit endpoint.
     pub async fn private_get_user_staking_tiers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_user_staking_tiers".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUserTradingSettings` implicit endpoint.
+    pub async fn private_get_user_trading_settings(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_user_trading_settings".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUserTradingVolume` implicit endpoint.
@@ -320,6 +390,16 @@ impl BitmexCore {
     /// Auto-generated wrapper for the `privateGetUserEvent` implicit endpoint.
     pub async fn private_get_user_event(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_user_event".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUserPriceAlert` implicit endpoint.
+    pub async fn private_get_user_price_alert(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_user_price_alert".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUserStatsVolumeRank` implicit endpoint.
+    pub async fn private_get_user_stats_volume_rank(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_user_stats_volume_rank".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAddress` implicit endpoint.
@@ -362,6 +442,36 @@ impl BitmexCore {
         self.call_method(Value::Str("private_post_guild_shares_trades".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostManagedSubAccountBindingApprove` implicit endpoint.
+    pub async fn private_post_managed_sub_account_binding_approve(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_managed_sub_account_binding_approve".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostManagedSubAccountBindingCancel` implicit endpoint.
+    pub async fn private_post_managed_sub_account_binding_cancel(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_managed_sub_account_binding_cancel".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostManagedSubAccountBindingCreateMSA` implicit endpoint.
+    pub async fn private_post_managed_sub_account_binding_create_msa(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_managed_sub_account_binding_create_msa".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostManagedSubAccountBindingReject` implicit endpoint.
+    pub async fn private_post_managed_sub_account_binding_reject(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_managed_sub_account_binding_reject".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostManagedSubAccountBindingToggleTradeHistory` implicit endpoint.
+    pub async fn private_post_managed_sub_account_binding_toggle_trade_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_managed_sub_account_binding_toggle_trade_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostManagedSubAccountBindingUnbind` implicit endpoint.
+    pub async fn private_post_managed_sub_account_binding_unbind(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_managed_sub_account_binding_unbind".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostOrder` implicit endpoint.
     pub async fn private_post_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_order".to_string()), optional_args).await
@@ -375,6 +485,11 @@ impl BitmexCore {
     /// Auto-generated wrapper for the `privatePostOrderClosePosition` implicit endpoint.
     pub async fn private_post_order_close_position(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_order_close_position".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostPositionCrossLeverage` implicit endpoint.
+    pub async fn private_post_position_cross_leverage(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_position_cross_leverage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostPositionIsolate` implicit endpoint.
@@ -395,6 +510,11 @@ impl BitmexCore {
     /// Auto-generated wrapper for the `privatePostPositionTransferMargin` implicit endpoint.
     pub async fn private_post_position_transfer_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_position_transfer_margin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostReferralCode` implicit endpoint.
+    pub async fn private_post_referral_code(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_referral_code".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUserAddSubaccount` implicit endpoint.
@@ -422,9 +542,24 @@ impl BitmexCore {
         self.call_method(Value::Str("private_post_user_confirm_withdrawal".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostUserCreateIndependentSubaccount` implicit endpoint.
+    pub async fn private_post_user_create_independent_subaccount(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_user_create_independent_subaccount".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostUserLogout` implicit endpoint.
     pub async fn private_post_user_logout(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_user_logout".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostUserMarginingMode` implicit endpoint.
+    pub async fn private_post_user_margining_mode(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_user_margining_mode".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostUserPositionMode` implicit endpoint.
+    pub async fn private_post_user_position_mode(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_user_position_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUserPreferences` implicit endpoint.
@@ -452,6 +587,16 @@ impl BitmexCore {
         self.call_method(Value::Str("private_post_user_wallet_transfer".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostUserPriceAlert` implicit endpoint.
+    pub async fn private_post_user_price_alert(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_user_price_alert".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutAddress` implicit endpoint.
+    pub async fn private_put_address(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_address".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePutGuild` implicit endpoint.
     pub async fn private_put_guild(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_put_guild".to_string()), optional_args).await
@@ -460,6 +605,16 @@ impl BitmexCore {
     /// Auto-generated wrapper for the `privatePutOrder` implicit endpoint.
     pub async fn private_put_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_put_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutReferralCodeId` implicit endpoint.
+    pub async fn private_put_referral_code_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_referral_code_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutUserPriceAlertId` implicit endpoint.
+    pub async fn private_put_user_price_alert_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_user_price_alert_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrder` implicit endpoint.
@@ -472,9 +627,29 @@ impl BitmexCore {
         self.call_method(Value::Str("private_delete_order_all".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateDeleteReferralCodeId` implicit endpoint.
+    pub async fn private_delete_referral_code_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_referral_code_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateDeleteUserUnstakingRequests` implicit endpoint.
     pub async fn private_delete_user_unstaking_requests(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_delete_user_unstaking_requests".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateDeleteUserWithdrawal` implicit endpoint.
+    pub async fn private_delete_user_withdrawal(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_user_withdrawal".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateDeleteUserPriceAlert` implicit endpoint.
+    pub async fn private_delete_user_price_alert(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_user_price_alert".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateDeleteUserPriceAlertId` implicit endpoint.
+    pub async fn private_delete_user_price_alert_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_user_price_alert_id".to_string()), optional_args).await
     }
 
 }

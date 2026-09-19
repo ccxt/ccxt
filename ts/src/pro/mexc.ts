@@ -1258,7 +1258,7 @@ export default class mexc extends mexcRest {
             'symbol': this.safeSymbol (undefined, market),
             'type': undefined,
             'side': side,
-            'takerOrMaker': (isMaker !== undefined && isMaker !== null && isMaker !== 0) ? 'maker' : 'taker',
+            'takerOrMaker': (isMaker !== undefined && isMaker !== 0) ? 'maker' : 'taker',
             'price': priceString,
             'amount': amountString,
             'cost': this.safeString (trade, 'amount'),
@@ -2108,7 +2108,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    handleProtobufMessage (client: Client, message: any) {
+    handleProtobufMessage (client: Client, message: any): boolean {
         // protobuf message decoded
         //  {
         //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",

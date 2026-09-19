@@ -6,19 +6,11 @@
 
 /* eslint-disable */
 /*  ------------------------------------------------------------------------ */
-// Hand-written EVM ABI encoder + EIP-712 TypedDataEncoder on @noble/hashes
-// keccak. Replaces the formerly vendored static_dependencies/ethers subset and
-// covers exactly what Exchange.ethAbiEncode / Exchange.ethEncodeStructuredData
-// need (mirrors python/ccxt/static_dependencies/ethabi from PR #29112):
-//
-//   ABI:     uint<N>/int<N>/uint/int, address, bool, bytes<N>, bytes, string,
-//            T[], T[k], tuples
-//   EIP-712: domain (name/version/chainId/verifyingContract/salt), nested
-//            structs, arrays of structs, atomic types; bare `uint`/`int` are
-//            rejected and mixed-case addresses must be valid EIP-55 checksums,
-//            matching ethers' throw behaviour.
-//
-// Differentially fuzzed against the vendored ethers: 9,133 cases, 0 mismatches.
+// EVM ABI encoder + EIP-712 TypedDataEncoder on @noble/hashes keccak, covering what
+// Exchange.ethAbiEncode / ethEncodeStructuredData need; mirrors
+// python/ccxt/static_dependencies/ethabi. ABI: uint<N>/int<N>/uint/int, address, bool,
+// bytes<N>, bytes, string, T[], T[k], tuples. EIP-712: domain fields, nested structs, arrays;
+// bare `uint`/`int` are rejected and mixed-case addresses must be valid EIP-55 (as ethers).
 import { keccak_256 } from '@noble/hashes/sha3.js';
 const utf8Encoder = new TextEncoder();
 const MASK256 = (1n << 256n) - 1n;

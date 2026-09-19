@@ -17,6 +17,11 @@ impl BlofinCore {
         self.call_method(Value::Str("public_get_market_instruments".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetMarketInstrumentsHistory` implicit endpoint.
+    pub async fn public_get_market_instruments_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_market_instruments_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetMarketTickers` implicit endpoint.
     pub async fn public_get_market_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_tickers".to_string()), optional_args).await
@@ -67,6 +72,31 @@ impl BlofinCore {
         self.call_method(Value::Str("public_get_market_position_tiers".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetSpotMarketInstruments` implicit endpoint.
+    pub async fn public_get_spot_market_instruments(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_spot_market_instruments".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetSpotMarketTickers` implicit endpoint.
+    pub async fn public_get_spot_market_tickers(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_spot_market_tickers".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetSpotMarketBooks` implicit endpoint.
+    pub async fn public_get_spot_market_books(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_spot_market_books".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetSpotMarketTrades` implicit endpoint.
+    pub async fn public_get_spot_market_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_spot_market_trades".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetSpotMarketCandles` implicit endpoint.
+    pub async fn public_get_spot_market_candles(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_spot_market_candles".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetAssetBalances` implicit endpoint.
     pub async fn private_get_asset_balances(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_balances".to_string()), optional_args).await
@@ -85,6 +115,11 @@ impl BlofinCore {
     /// Auto-generated wrapper for the `privateGetAssetDepositHistory` implicit endpoint.
     pub async fn private_get_asset_deposit_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_deposit_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAssetDepositAddress` implicit endpoint.
+    pub async fn private_get_asset_deposit_address(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_asset_deposit_address".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAccountConfig` implicit endpoint.
@@ -110,6 +145,11 @@ impl BlofinCore {
     /// Auto-generated wrapper for the `privateGetAccountPositionsHistory` implicit endpoint.
     pub async fn private_get_account_positions_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_account_positions_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAccountFundingFees` implicit endpoint.
+    pub async fn private_get_account_funding_fees(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_account_funding_fees".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAccountMarginMode` implicit endpoint.
@@ -287,6 +327,36 @@ impl BlofinCore {
         self.call_method(Value::Str("private_get_spot_trade_fills_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetSpotTradeOrdersPending` implicit endpoint.
+    pub async fn private_get_spot_trade_orders_pending(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_spot_trade_orders_pending".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetSpotTradeOrderDetail` implicit endpoint.
+    pub async fn private_get_spot_trade_order_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_spot_trade_order_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetSpotTradeOrdersAlgoPending` implicit endpoint.
+    pub async fn private_get_spot_trade_orders_algo_pending(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_spot_trade_orders_algo_pending".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetSpotTradeOrdersHistory` implicit endpoint.
+    pub async fn private_get_spot_trade_orders_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_spot_trade_orders_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetSpotTradeOrdersAlgoHistory` implicit endpoint.
+    pub async fn private_get_spot_trade_orders_algo_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_spot_trade_orders_algo_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetSpotTradeOrderPriceRange` implicit endpoint.
+    pub async fn private_get_spot_trade_order_price_range(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_spot_trade_order_price_range".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostAssetTransfer` implicit endpoint.
     pub async fn private_post_asset_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_asset_transfer".to_string()), optional_args).await
@@ -295,6 +365,11 @@ impl BlofinCore {
     /// Auto-generated wrapper for the `privatePostAssetDemoApplyMoney` implicit endpoint.
     pub async fn private_post_asset_demo_apply_money(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_asset_demo_apply_money".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAssetWithdrawalApply` implicit endpoint.
+    pub async fn private_post_asset_withdrawal_apply(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_asset_withdrawal_apply".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountSetMarginMode` implicit endpoint.
@@ -352,9 +427,59 @@ impl BlofinCore {
         self.call_method(Value::Str("private_post_trade_cancel_algo".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostTradeAmendOrder` implicit endpoint.
+    pub async fn private_post_trade_amend_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_trade_amend_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostTradeAmendBatchOrders` implicit endpoint.
+    pub async fn private_post_trade_amend_batch_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_trade_amend_batch_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostTradeAmendTpsl` implicit endpoint.
+    pub async fn private_post_trade_amend_tpsl(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_trade_amend_tpsl".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostTradeAmendAlgo` implicit endpoint.
+    pub async fn private_post_trade_amend_algo(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_trade_amend_algo".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostTradeClosePosition` implicit endpoint.
     pub async fn private_post_trade_close_position(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_trade_close_position".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostSpotTradeOrder` implicit endpoint.
+    pub async fn private_post_spot_trade_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_spot_trade_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostSpotTradeBatchOrders` implicit endpoint.
+    pub async fn private_post_spot_trade_batch_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_spot_trade_batch_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostSpotTradeOrderAlgo` implicit endpoint.
+    pub async fn private_post_spot_trade_order_algo(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_spot_trade_order_algo".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostSpotTradeCancelOrder` implicit endpoint.
+    pub async fn private_post_spot_trade_cancel_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_spot_trade_cancel_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostSpotTradeCancelBatchOrders` implicit endpoint.
+    pub async fn private_post_spot_trade_cancel_batch_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_spot_trade_cancel_batch_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostSpotTradeCancelAlgo` implicit endpoint.
+    pub async fn private_post_spot_trade_cancel_algo(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_spot_trade_cancel_algo".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCopytradingAccountSetPositionMode` implicit endpoint.

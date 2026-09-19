@@ -37,6 +37,7 @@ const langKeys = {
 const debugKeys = {
     '--warnings': false,
     '--info': false,
+    '--show-timer': false,
 }
 
 const exchangeSpecificFlags = {
@@ -44,8 +45,10 @@ const exchangeSpecificFlags = {
     '--sandbox': false,
     '--useProxy': false,
     '--verbose': false,
+    '--debug': false,
     '--private': false,
     '--privateOnly': false,
+    '--loadKeys': false,
     '--request': false,
     '--response': false,
     // force the prediction-markets namespace for ids present in both ccxt and ccxt.prediction
@@ -80,14 +83,25 @@ if (maxConcurrency === undefined) {
     const lightLangKeys = [ '--js', '--ts', '--python', '--python-async', '--php', '--php-async' ]
     const selectedLangs = Object.keys (langKeys).filter (key => langKeys[key])
     const onlyLightLangs = (selectedLangs.length > 0) && selectedLangs.every (key => lightLangKeys.includes (key))
-    maxConcurrency = langKeys['--java'] ? 3 : (onlyLightLangs ? 20 : 5)
+    // Live tests are network-bound: the processes sit in epoll/futex waiting on exchange
+    // endpoints, so concurrency is limited by memory, not CPU. A rust tests.bin holds
+    // ~100-270 MB, so 20 is affordable and keeps the lane from serialising on latency.
+    const onlyRust = (selectedLangs.length === 1) && langKeys['--rust']
+    maxConcurrency = langKeys['--java'] ? 3 : ((onlyLightLangs || onlyRust) ? 20 : 5)
 }
 
 const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 
 const timeoutSeconds = wsFlag ? (langKeys['--java'] ? 180 : 120) : 250;
 
-
+const SHOW_TIMER = debugKeys['--show-timer'];
+if (SHOW_TIMER) {
+    const secondsElapsedFrom = (startTime) => Math.floor((Date.now() - startTime) / 1000);
+    const startTime = Date.now ();
+    setInterval (() => {
+        log.bright.yellow(`\t\t\t\t\t\t\t[RUNTESTS ELAPSED ${wsFlag}: ${secondsElapsedFrom(startTime)} s]`);
+    }, 20 * 1000); // every X seconds
+}
 //  --------------------------------------------------------------------------- //
 
 const exchangeOptions = []
@@ -370,6 +384,9 @@ const testExchange = async (exchange) => {
     // CI can pass a prebuilt tests binary (see go-app.yml) so live tests don't pay the
     // full single-package recompile of go/v4 that `go run` triggers on a fresh runner
     const goExec = process.env.GO_TESTS_BINARY ? [ process.env.GO_TESTS_BINARY ] : [ 'go', 'run', '-C', 'go', './tests/main.go' ];
+    // same for rust (see rust.yml): `cargo run` re-checks freshness and rebuilds the whole
+    // workspace on a fresh runner, which the build job has already paid for
+    const rustExec = process.env.RUST_TESTS_BINARY ? [ process.env.RUST_TESTS_BINARY ] : [ 'cargo', 'run', '--quiet', '--manifest-path', 'rust/tests/Cargo.toml', '--bin', 'ti-rust', '--' ];
     let allTests = [
         { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/tests.init.js',                     ...args] },
         { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/tests_init.py',          ...args] },
@@ -380,7 +397,7 @@ const testExchange = async (exchange) => {
         { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
         { key: '--go',           language: 'GO',           exec: [ ...goExec,          ...args] },
         { key: '--java',         language: 'Java',         exec: [ './java/gradlew', '-p', 'java', 'tests:run', getJavaArgs(args)] },
-        { key: '--rust',         language: 'Rust',         exec: ['cargo', 'run', '--quiet', '--manifest-path', 'rust/tests/Cargo.toml', '--bin', 'ti-rust', '--', ...args] },
+        { key: '--rust',         language: 'Rust',         exec: [ ...rustExec,        ...args] },
     ];
 
     // select tests based on cli arguments

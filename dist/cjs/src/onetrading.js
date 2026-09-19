@@ -172,6 +172,9 @@ class onetrading extends onetrading$1["default"] {
                         'market-ticker': { 'cost': 1 },
                         'market-ticker/{instrument_code}': { 'cost': 1 },
                         'time': { 'cost': 1 },
+                        'funding-rate': { 'cost': 1 },
+                        'funding-rate/history': { 'cost': 1 },
+                        'funding-rate/settings': { 'cost': 1 },
                     },
                 },
                 'private': {
@@ -184,9 +187,16 @@ class onetrading extends onetrading$1["default"] {
                         'account/orders/{order_id}/trades': { 'cost': 1 },
                         'account/trades': { 'cost': 1 },
                         'account/trade/{trade_id}': { 'cost': 1 },
+                        'account/futures/summary': { 'cost': 1 },
+                        'account/futures/positions': { 'cost': 1 },
+                        'account/futures/positions-history': { 'cost': 1 },
+                        'account/futures/positions/{position_id}/trades': { 'cost': 1 },
+                        'account/futures/positions/{position_id}/funding-payments': { 'cost': 1 },
+                        'account/futures/funding-payments': { 'cost': 1 },
                     },
                     'post': {
                         'account/orders': { 'cost': 1 },
+                        'subaccounts/transfers': { 'cost': 1 },
                     },
                     'delete': {
                         'account/orders': { 'cost': 1 },
@@ -1181,7 +1191,7 @@ class onetrading extends onetrading$1["default"] {
         }, market);
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'balances', []);
+        const balances = this.safeList(response, 'balances', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];

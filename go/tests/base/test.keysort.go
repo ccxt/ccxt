@@ -12,7 +12,7 @@ func TestKeysort() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	// temporarily disable, as this test doesn't make sense in lib (bcz of GO) // todo: do something
-	if ccxt.IsTrue(ccxt.IsGreaterThan(exchange.Milliseconds(), 0)) {
+	if ccxt.IsGreaterThan(exchange.Milliseconds(), 0) {
 		return
 	}
 	// Test 1: Basic key sorting
@@ -26,7 +26,7 @@ func TestKeysort() {
 		"b": 2,
 		"c": 3,
 	}
-	var result1 any = exchange.Keysort(unsortedDict1)
+	var result1 map[string]any = exchange.Keysort(unsortedDict1)
 	AssertDeepEqual(exchange, nil, "testKeysort", ccxt.ObjectKeys(result1), ccxt.ObjectKeys(expectedSorted1))
 	// Test 2: Already sorted dictionary
 	var unsortedDict2 map[string]any = map[string]any{
@@ -39,7 +39,7 @@ func TestKeysort() {
 		"beta":  "second",
 		"gamma": "third",
 	}
-	var result2 any = exchange.Keysort(unsortedDict2)
+	var result2 map[string]any = exchange.Keysort(unsortedDict2)
 	AssertDeepEqual(exchange, nil, "testKeysort", ccxt.ObjectKeys(result2), ccxt.ObjectKeys(expectedSorted2))
 	// Test 3: ccxt.Reverse sorted input
 	var unsortedDict3 map[string]any = map[string]any{
@@ -52,12 +52,12 @@ func TestKeysort() {
 		"n": "middle",
 		"z": "last",
 	}
-	var result3 any = exchange.Keysort(unsortedDict3)
+	var result3 map[string]any = exchange.Keysort(unsortedDict3)
 	AssertDeepEqual(exchange, nil, "testKeysort", ccxt.ObjectKeys(result3), ccxt.ObjectKeys(expectedSorted3))
 	// Test 4: Empty dictionary
 	var unsortedDict4 map[string]any = map[string]any{}
 	var expectedSorted4 map[string]any = map[string]any{}
-	var result4 any = exchange.Keysort(unsortedDict4)
+	var result4 map[string]any = exchange.Keysort(unsortedDict4)
 	AssertDeepEqual(exchange, nil, "testKeysort", ccxt.ObjectKeys(result4), ccxt.ObjectKeys(expectedSorted4))
 	// Test 5: Single key dictionary
 	var unsortedDict5 map[string]any = map[string]any{
@@ -66,7 +66,7 @@ func TestKeysort() {
 	var expectedSorted5 map[string]any = map[string]any{
 		"only": "one",
 	}
-	var result5 any = exchange.Keysort(unsortedDict5)
+	var result5 map[string]any = exchange.Keysort(unsortedDict5)
 	AssertDeepEqual(exchange, nil, "testKeysort", ccxt.ObjectKeys(result5), ccxt.ObjectKeys(expectedSorted5))
 	// Test 6: Numeric string keys
 	var unsortedDict6 map[string]any = map[string]any{
@@ -79,7 +79,7 @@ func TestKeysort() {
 		"10": "ten",
 		"2":  "two",
 	}
-	var result6 any = exchange.Keysort(unsortedDict6)
+	var result6 map[string]any = exchange.Keysort(unsortedDict6)
 	AssertDeepEqual(exchange, nil, "testKeysort", ccxt.ObjectKeys(result6), ccxt.ObjectKeys(expectedSorted6))
 	// Test 7: Mixed case keys (lexicographic sort)
 	var unsortedDict7 map[string]any = map[string]any{
@@ -92,6 +92,6 @@ func TestKeysort() {
 		"Cherry": 3,
 		"apple":  2,
 	}
-	var result7 any = exchange.Keysort(unsortedDict7)
+	var result7 map[string]any = exchange.Keysort(unsortedDict7)
 	AssertDeepEqual(exchange, nil, "testKeysort", ccxt.ObjectKeys(result7), ccxt.ObjectKeys(expectedSorted7))
 }

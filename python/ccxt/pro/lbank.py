@@ -84,7 +84,7 @@ class lbank(ccxt.async_support.lbank):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -120,7 +120,7 @@ class lbank(ccxt.async_support.lbank):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -436,7 +436,7 @@ class lbank(ccxt.async_support.lbank):
         #
         # request
         #     {
-        #         columns: ['timestamp', 'price', 'volume', 'direction'],
+        #         columns: [ 'timestamp', 'price', 'volume', 'direction' ],
         #         SERVER: 'V2',
         #         count: 100,
         #         trades: [],
@@ -450,7 +450,7 @@ class lbank(ccxt.async_support.lbank):
         #             "volume":6.3607,
         #             "amount":77148.9303,
         #             "price":12129,
-        #             "direction":"sell",  # buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        #             "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         #             "TS":"2019-06-28T19:55:49.460"
         #         },
         #         "type":"trade",
@@ -482,13 +482,13 @@ class lbank(ccxt.async_support.lbank):
     def parse_ws_trade(self, trade: object, market: Market = None):
         #
         # request
-        #    ['timestamp', 'price', 'volume', 'direction']
+        #    [ 'timestamp', 'price', 'volume', 'direction' ]
         # subscribe
         #    {
         #        "volume":6.3607,
         #        "amount":77148.9303,
         #        "price":12129,
-        #        "direction":"sell",  # buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        #        "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         #        "TS":"2019-06-28T19:55:49.460"
         #    }
         #
@@ -856,7 +856,7 @@ class lbank(ccxt.async_support.lbank):
         orderBook = self.safe_value(message, 'depth', message)
         datetime = self.safe_string(message, 'TS')
         timestamp = self.parse8601(datetime)
-        # orderbook = self.safe_value(self.orderbooks, symbol)
+        # let orderbook = this.safeValue (this.orderbooks, symbol);
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book({})
         orderbook = self.orderbooks[symbol]
@@ -882,16 +882,10 @@ class lbank(ccxt.async_support.lbank):
 
     async def handle_ping(self, client: Client, message: object):
         #
-        #  {ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping'}
+        #  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         #
-        # lbank drives liveness from its side: the server sends self
-        # application-level ping and closes the socket if it is not answered
-        # within a minute, but it does not reliably answer the RFC 6455 ping
-        # frames the base client sends from onPingInterval. an inbound ping is
-        # proof the connection is alive, so record it last pong -
-        # otherwise lastPong never advances past the first onPingInterval and
-        # the keepAlive * maxPingPongMisses check tears down a healthy,
-        # streaming socket every 60 seconds
+        # lbank closes the socket if this app-level ping is unanswered within a minute, but does not
+        # reliably answer RFC 6455 ping frames; treat the inbound ping as a pong so keepAlive doesn't tear down a healthy socket
         client.lastPong = self.milliseconds()
         pingId = self.safe_string(message, 'ping')
         try:
@@ -924,18 +918,11 @@ class lbank(ccxt.async_support.lbank):
             handler(client, message)
 
     async def authenticate(self, params={}):
-        # single-flight leader election, see
-        # https://github.com/ccxt/ccxt/issues/29393: both branches below read
-        # the cache, then fetch, then write it back, so concurrent
-        # watchOrders/watchBalance calls on a cold instance each POST
-        # subscribe/get_key, and concurrent callers past the expiry each POST
-        # subscribe/refresh_key - every loser burns rate limit on a
-        # subscribeKey that is immediately overwritten. the flight is parked
-        # on self exchange's own ws client - the same one that carries
-        # subscriptions['authenticated'] - under a key that is not one of its
-        # messageHashes, registered in client.futures before the first fetch
-        # and settled through client.resolve / client.reject so that every
-        # write to the futures map goes through the client itself
+        # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        # concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
+        # subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
+        # overwritten. the flight lives in client.futures of this exchange's own ws client under
+        # a key that is not a messageHash, and settles via client.resolve / client.reject only
         self.check_required_credentials()
         url = self.urls['api']['ws']
         client = self.client(url)
@@ -979,7 +966,7 @@ class lbank(ccxt.async_support.lbank):
             # futures map happens inside the base class
             client.resolve(client.subscriptions['authenticated']['key'], messageHash)
         except Exception as e:
-            # reject the flight - all waiters raise and the next caller
+            # reject the flight - all waiters throw and the next caller
             # re-leads instead of deadlocking on a dead flight
             client.reject(e, messageHash)
         # rethrows a rejected flight to the leader and attaches the handler

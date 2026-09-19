@@ -51,6 +51,37 @@ function testSortBy1 () {
         { 'x': 9 },
         { 'x': 10 },
     ]);
+
+    // immutability - original array should not be modified (ascending)
+    const original = [ { 'x': 5 }, { 'x': 2 }, { 'x': 4 }, { 'x': 0 }, { 'x': 1 }, { 'x': 3 } ];
+    exchange.sortBy (original, 'x');
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', original, [
+        { 'x': 5 },
+        { 'x': 2 },
+        { 'x': 4 },
+        { 'x': 0 },
+        { 'x': 1 },
+        { 'x': 3 },
+    ]);
+
+    // immutability - original array should not be modified (descending)
+    const originalDescending = [ { 'x': 5 }, { 'x': 2 }, { 'x': 4 }, { 'x': 0 }, { 'x': 1 }, { 'x': 3 } ];
+    exchange.sortBy (originalDescending, 'x', true);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', originalDescending, [
+        { 'x': 5 },
+        { 'x': 2 },
+        { 'x': 4 },
+        { 'x': 0 },
+        { 'x': 1 },
+        { 'x': 3 },
+    ]);
+
+    // immutability - array rows (orderbook-style numeric keys) should not be modified
+    const originalRows = [ [ 3000.5, 1 ], [ 2900.5, 2 ], [ 2950.5, 3 ] ];
+    exchange.sortBy (originalRows, 0);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', originalRows, [ [ 3000.5, 1 ], [ 2900.5, 2 ], [ 2950.5, 3 ] ]);
+    exchange.sortBy (originalRows, 0, true);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', originalRows, [ [ 3000.5, 1 ], [ 2900.5, 2 ], [ 2950.5, 3 ] ]);
 }
 
 function testSortBy2 () {
@@ -138,6 +169,36 @@ function testSortBy2 () {
     // empty array
     const emptyArray = exchange.sortBy2 ([], 'x', 'y');
     testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy2', emptyArray, []);
+
+    // immutability - original array should not be modified (ascending)
+    const original = [
+        { 'x': 3, 'y': 1 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 2, 'y': 3 },
+        { 'x': 0, 'y': 4 },
+    ];
+    exchange.sortBy2 (original, 'x', 'y');
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy2', original, [
+        { 'x': 3, 'y': 1 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 2, 'y': 3 },
+        { 'x': 0, 'y': 4 },
+    ]);
+
+    // immutability - original array should not be modified (descending)
+    const originalDescending = [
+        { 'x': 3, 'y': 1 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 2, 'y': 3 },
+        { 'x': 0, 'y': 4 },
+    ];
+    exchange.sortBy2 (originalDescending, 'x', 'y', true);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy2', originalDescending, [
+        { 'x': 3, 'y': 1 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 2, 'y': 3 },
+        { 'x': 0, 'y': 4 },
+    ]);
 }
 
 function testSortBy () {

@@ -99,23 +99,23 @@ class bitopro extends \ccxt\async\bitopro {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "ORDER_BOOK",
-        //         "timestamp" => 1650121915308,
-        //         "datetime" => "2022-04-16T15:11:55.308Z",
-        //         "pair" => "BTC_TWD",
-        //         "limit" => 5,
-        //         "scale" => 0,
-        //         "bids" => array(
-        //             array( price => "1188178", amount => '0.0425', count => 1, total => "0.0425" ),
-        //         ),
-        //         "asks" => array(
-        //             array(
-        //                 "price" => "1190740",
-        //                 "amount" => "0.40943964",
-        //                 "count" => 1,
-        //                 "total" => "0.40943964"
-        //             ),
-        //         )
+        //         "event": "ORDER_BOOK",
+        //         "timestamp": 1650121915308,
+        //         "datetime": "2022-04-16T15:11:55.308Z",
+        //         "pair": "BTC_TWD",
+        //         "limit": 5,
+        //         "scale": 0,
+        //         "bids": [
+        //             { price: "1188178", amount: '0.0425', count: 1, total: "0.0425" },
+        //         ],
+        //         "asks": [
+        //             {
+        //                 "price": "1190740",
+        //                 "amount": "0.40943964",
+        //                 "count": 1,
+        //                 "total": "0.40943964"
+        //             },
+        //         ]
         //     }
         //
         $marketId = $this->safe_string($message, 'pair');
@@ -165,21 +165,21 @@ class bitopro extends \ccxt\async\bitopro {
     public function handle_trade(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "TRADE",
-        //         "timestamp" => 1650116346665,
-        //         "datetime" => "2022-04-16T13:39:06.665Z",
-        //         "pair" => "BTC_TWD",
-        //         "data" => array(
-        //             array(
-        //                 "event" => '',
-        //                 "datetime" => '',
-        //                 "pair" => '',
-        //                 "timestamp" => 1650116227,
-        //                 "price" => "1189429",
-        //                 "amount" => "0.0153127",
-        //                 "isBuyer" => true
-        //             ),
-        //         )
+        //         "event": "TRADE",
+        //         "timestamp": 1650116346665,
+        //         "datetime": "2022-04-16T13:39:06.665Z",
+        //         "pair": "BTC_TWD",
+        //         "data": [
+        //             {
+        //                 "event": '',
+        //                 "datetime": '',
+        //                 "pair": '',
+        //                 "timestamp": 1650116227,
+        //                 "price": "1189429",
+        //                 "amount": "0.0153127",
+        //                 "isBuyer": true
+        //             },
+        //         ]
         //     }
         //
         $marketId = $this->safe_string($message, 'pair');
@@ -238,24 +238,24 @@ class bitopro extends \ccxt\async\bitopro {
     public function handle_my_trade(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "USER_TRADE",
-        //         "timestamp" => 1694667358782,
-        //         "datetime" => "2023-09-14T12:55:58.782Z",
-        //         "data" => {
-        //             "base" => "usdt",
-        //             "quote" => "twd",
-        //             "side" => "ask",
-        //             "price" => "32.039",
-        //             "volume" => "1",
-        //             "fee" => "6407800",
-        //             "feeCurrency" => "twd",
-        //             "transactionTimestamp" => 1694667358,
-        //             "eventTimestamp" => 1694667358,
-        //             "orderID" => 390733918,
-        //             "orderType" => "LIMIT",
-        //             "matchID" => "bd07673a-94b1-419e-b5ee-d7b723261a5d",
-        //             "isMarket" => false,
-        //             "isMaker" => false
+        //         "event": "USER_TRADE",
+        //         "timestamp": 1694667358782,
+        //         "datetime": "2023-09-14T12:55:58.782Z",
+        //         "data": {
+        //             "base": "usdt",
+        //             "quote": "twd",
+        //             "side": "ask",
+        //             "price": "32.039",
+        //             "volume": "1",
+        //             "fee": "6407800",
+        //             "feeCurrency": "twd",
+        //             "transactionTimestamp": 1694667358,
+        //             "eventTimestamp": 1694667358,
+        //             "orderID": 390733918,
+        //             "orderType": "LIMIT",
+        //             "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
+        //             "isMarket": false,
+        //             "isMaker": false
         //         }
         //     }
         //
@@ -280,20 +280,20 @@ class bitopro extends \ccxt\async\bitopro {
     public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         "base" => "usdt",
-        //         "quote" => "twd",
-        //         "side" => "ask",
-        //         "price" => "32.039",
-        //         "volume" => "1",
-        //         "fee" => "6407800",
-        //         "feeCurrency" => "twd",
-        //         "transactionTimestamp" => 1694667358,
-        //         "eventTimestamp" => 1694667358,
-        //         "orderID" => 390733918,
-        //         "orderType" => "LIMIT",
-        //         "matchID" => "bd07673a-94b1-419e-b5ee-d7b723261a5d",
-        //         "isMarket" => false,
-        //         "isMaker" => false
+        //         "base": "usdt",
+        //         "quote": "twd",
+        //         "side": "ask",
+        //         "price": "32.039",
+        //         "volume": "1",
+        //         "fee": "6407800",
+        //         "feeCurrency": "twd",
+        //         "transactionTimestamp": 1694667358,
+        //         "eventTimestamp": 1694667358,
+        //         "orderID": 390733918,
+        //         "orderType": "LIMIT",
+        //         "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
+        //         "isMarket": false,
+        //         "isMaker": false
         //     }
         //
         $id = $this->safe_string($trade, 'matchID');
@@ -378,36 +378,36 @@ class bitopro extends \ccxt\async\bitopro {
     public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "TICKER",
-        //         "timestamp" => 1650119165710,
-        //         "datetime" => "2022-04-16T14:26:05.710Z",
-        //         "pair" => "BTC_TWD",
-        //         "lastPrice" => "1189110",
-        //         "lastPriceUSD" => "40919.1328",
-        //         "lastPriceTWD" => "1189110",
-        //         "isBuyer" => true,
-        //         "priceChange24hr" => "1.23",
-        //         "volume24hr" => "7.2090",
-        //         "volume24hrUSD" => "294985.5375",
-        //         "volume24hrTWD" => "8572279",
-        //         "high24hr" => "1193656",
-        //         "low24hr" => "1179321"
+        //         "event": "TICKER",
+        //         "timestamp": 1650119165710,
+        //         "datetime": "2022-04-16T14:26:05.710Z",
+        //         "pair": "BTC_TWD",
+        //         "lastPrice": "1189110",
+        //         "lastPriceUSD": "40919.1328",
+        //         "lastPriceTWD": "1189110",
+        //         "isBuyer": true,
+        //         "priceChange24hr": "1.23",
+        //         "volume24hr": "7.2090",
+        //         "volume24hrUSD": "294985.5375",
+        //         "volume24hrTWD": "8572279",
+        //         "high24hr": "1193656",
+        //         "low24hr": "1179321"
         //     }
         //
         $marketId = $this->safe_string_lower($message, 'pair');
         if ($marketId === null) {
             return; // some TICKER frames arrive without a pair - nothing to resolve them against
         }
-        // $market-ids are lowercase in REST API and uppercase in WS API
+        // market-ids are lowercase in REST API and uppercase in WS API
         $market = $this->safe_market($marketId, null, '_');
         $symbol = $market['symbol'];
         $event = $this->safe_string($message, 'event');
         $messageHash = $event . ':' . $symbol;
         $result = $this->parse_ticker($message, $market);
-        $result['symbol'] = $this->safe_string($market, 'symbol'); // $symbol returned from REST's parseTicker is distorted for WS, so re-set it from $market object
+        $result['symbol'] = $this->safe_string($market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         $timestamp = $this->safe_integer($message, 'timestamp');
         $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp); // we shouldn't set "datetime" string provided by server, values are obviously wrong offset from UTC
+        $result['datetime'] = $this->iso8601($timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         $this->tickers[$symbol] = $result;
         $client->resolve($result, $messageHash);
     }
@@ -431,7 +431,7 @@ class bitopro extends \ccxt\async\bitopro {
                 ),
             ),
         );
-        // $this->options = $this->extend($defaultOptions, $this->options);
+        // this.options = this.extend (defaultOptions, this.options);
         $this->extend_exchange_options($defaultOptions);
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(
@@ -472,17 +472,17 @@ class bitopro extends \ccxt\async\bitopro {
     public function handle_balance(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "ACCOUNT_BALANCE",
-        //         "timestamp" => 1650450505715,
-        //         "datetime" => "2022-04-20T10:28:25.715Z",
-        //         "data" => {
-        //           "ADA" => array(
-        //             "currency" => "ADA",
-        //             "amount" => "0",
-        //             "available" => "0",
-        //             "stake" => "0",
-        //             "tradable" => true
-        //           ),
+        //         "event": "ACCOUNT_BALANCE",
+        //         "timestamp": 1650450505715,
+        //         "datetime": "2022-04-20T10:28:25.715Z",
+        //         "data": {
+        //           "ADA": {
+        //             "currency": "ADA",
+        //             "amount": "0",
+        //             "available": "0",
+        //             "stake": "0",
+        //             "tradable": true
+        //           },
         //         }
         //     }
         //

@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class alpaca { public alpaca(object args = null) : base(args) { } }
 public partial class alpaca : ccxt.alpaca
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -74,14 +74,14 @@ public partial class alpaca : ccxt.alpaca
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
         await this.authenticate(url);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object messageHash = add("ticker:", getValue(market, "symbol"));
+        Dictionary<string, object> market = this.market(symbol);
+        string messageHash = add("ticker:", getValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "quotes", new List<object>() {getValue(market, "id")} },
@@ -102,9 +102,9 @@ public partial class alpaca : ccxt.alpaca
         //         "t": "2022-12-16T06:07:56.611063286Z"
         //    ]
         //
-        object ticker = this.parseTicker(message);
+        Dictionary<string, object> ticker = this.parseTicker(message);
         object symbol = getValue(ticker, "symbol");
-        object messageHash = add("ticker:", symbol);
+        string messageHash = add("ticker:", symbol);
         if (isTrue(!isEqual(symbol, null)))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -112,7 +112,7 @@ public partial class alpaca : ccxt.alpaca
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //    {
@@ -170,19 +170,19 @@ public partial class alpaca : ccxt.alpaca
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
         await this.authenticate(url);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "bars", new List<object>() {getValue(market, "id")} },
         };
-        object messageHash = add("ohlcv:", symbolVar);
+        string messageHash = add("ohlcv:", symbolVar);
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -208,7 +208,7 @@ public partial class alpaca : ccxt.alpaca
         //    }
         //
         string? marketId = this.safeString(message, "S");
-        object symbol = this.safeSymbol(marketId);
+        string? symbol = this.safeSymbol(marketId);
         object stored = this.safeValue(this.ohlcvs, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -218,7 +218,7 @@ public partial class alpaca : ccxt.alpaca
         }
         object parsed = this.parseOHLCV(message);
         callDynamically(stored, "append", new object[] {parsed});
-        object messageHash = add("ohlcv:", symbol);
+        string messageHash = add("ohlcv:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
@@ -236,15 +236,15 @@ public partial class alpaca : ccxt.alpaca
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
         await this.authenticate(url);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object messageHash = add(add("orderbook", ":"), symbolVar);
+        string messageHash = add(add("orderbook", ":"), symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "orderbooks", new List<object>() {getValue(market, "id")} },
@@ -277,42 +277,42 @@ public partial class alpaca : ccxt.alpaca
         //    }
         //
         string? marketId = this.safeString(message, "S");
-        object symbol = this.safeSymbol(marketId);
+        string? symbol = this.safeSymbol(marketId);
         string? datetime = this.safeString(message, "t");
         Int64? timestamp = this.parse8601(datetime);
-        object isSnapshot = this.safeBool(message, "r", false);
+        bool? isSnapshot = this.safeBool(message, "r", false);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
-        object orderbook = getValue(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(isSnapshot, true)))
         {
-            object snapshot = this.parseOrderBook(message, symbol, timestamp, "b", "a", "p", "s");
+            Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(message, symbol, timestamp, "b", "a", "p", "s"));
             (orderbook as IOrderBook).reset(snapshot);
         } else
         {
-            object asks = this.safeList(message, "a", new List<object>() {});
-            object bids = this.safeList(message, "b", new List<object>() {});
+            List<object> asks = this.safeList(message, "a", new List<object>() {});
+            List<object> bids = this.safeList(message, "b", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
         }
-        object messageHash = add(add("orderbook", ":"), symbol);
+        string messageHash = add(add("orderbook", ":"), symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta, "p", "s");
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, "p", "s");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -334,15 +334,15 @@ public partial class alpaca : ccxt.alpaca
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
         await this.authenticate(url);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object messageHash = add("trade:", symbolVar);
+        string messageHash = add("trade:", symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "trades", new List<object>() {getValue(market, "id")} },
@@ -369,7 +369,7 @@ public partial class alpaca : ccxt.alpaca
         //     ]
         //
         string? marketId = this.safeString(message, "S");
-        object symbol = this.safeSymbol(marketId);
+        string? symbol = this.safeSymbol(marketId);
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -377,9 +377,9 @@ public partial class alpaca : ccxt.alpaca
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object parsed = this.parseTrade(message);
+        Dictionary<string, object> parsed = this.parseTrade(message);
         callDynamically(stored, "append", new object[] {parsed});
-        object messageHash = add(add("trade", ":"), symbol);
+        string messageHash = add(add("trade", ":"), symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
@@ -400,9 +400,9 @@ public partial class alpaca : ccxt.alpaca
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "trading");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "trading"));
         await this.authenticate(url);
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -441,16 +441,16 @@ public partial class alpaca : ccxt.alpaca
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "trading");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "trading"));
         await this.authenticate(url);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object messageHash = "orders";
+        string messageHash = "orders";
         if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbolVar);
+            Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             messageHash = add("orders:", symbolVar);
         }
@@ -529,9 +529,9 @@ public partial class alpaca : ccxt.alpaca
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object orders = this.orders;
-        object order = this.parseOrder(rawOrder);
+        Dictionary<string, object> order = this.parseOrder(rawOrder);
         callDynamically(orders, "append", new object[] {order});
-        object messageHash = "orders";
+        string messageHash = "orders";
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
         messageHash = add("orders:", getValue(order, "symbol"));
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
@@ -603,7 +603,7 @@ public partial class alpaca : ccxt.alpaca
             return;
         }
         callDynamically(myTrades, "append", new object[] {trade});
-        object messageHash = add("myTrades:", getValue(trade, "symbol"));
+        string messageHash = add("myTrades:", getValue(trade, "symbol"));
         callDynamically(client as WebSocketClient, "resolve", new object[] {myTrades, messageHash});
         messageHash = "myTrades";
         callDynamically(client as WebSocketClient, "resolve", new object[] {myTrades, messageHash});
@@ -708,7 +708,7 @@ public partial class alpaca : ccxt.alpaca
         return await (future as Exchange.Future);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -717,7 +717,7 @@ public partial class alpaca : ccxt.alpaca
         //        "msg": "invalid syntax"
         //    }
         //
-        object code = this.safeString(message, "code");
+        string? code = this.safeString(message, "code");
         object msg = this.safeValue(message, "msg", new Dictionary<string, object>() {});
         throw new ExchangeError ((string)add(add(add(add(this.id, " code: "), code), " message: "), msg)) ;
     }
@@ -735,7 +735,7 @@ public partial class alpaca : ccxt.alpaca
 
     public virtual void handleCryptoMessage(WebSocketClient client, object message)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
         {
             object data = getValue(message, i);
             string? T = this.safeString(data, "T");

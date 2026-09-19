@@ -19,7 +19,7 @@ public partial class BaseTest
                 { "extra_param", "should_be_ignored" },
             };
             string expected = "v2/watchlists/1m/BTC/USDT";
-            object result = exchange.implodeParams(path, parameters);
+            string? result = exchange.implodeParams(path, parameters);
             Assert(isEqual(result, expected), add(add(add("implodeParams did not produce the expected result: ", result), " != "), expected));
         }
 }
