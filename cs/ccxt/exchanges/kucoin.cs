@@ -10506,13 +10506,13 @@ public partial class kucoin : Exchange
         string? version = this.safeString(parameters, "version", defaultVersion);
         if ((version == "v3") && (((IDictionary<string, object>)config).ContainsKey("v3")))
         {
-            return ((IDictionary<string,object>)config)["v3"];
+            return getValue(config, "v3");
         } else if ((version == "v2") && (((IDictionary<string, object>)config).ContainsKey("v2")))
         {
-            return ((IDictionary<string,object>)config)["v2"];
+            return getValue(config, "v2");
         } else if ((version == "v1") && (((IDictionary<string, object>)config).ContainsKey("v1")))
         {
-            return ((IDictionary<string,object>)config)["v1"];
+            return getValue(config, "v1");
         }
         return this.safeValue(config, "cost", 1);
     }

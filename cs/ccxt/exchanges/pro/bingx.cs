@@ -1338,7 +1338,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object subType)
+    public async virtual Task<object> loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object subType)
     {
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, { "subType", subType }, }));
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
@@ -1447,7 +1447,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task<object> loadPositionsSnapshot(WebSocketClient client, object messageHash, object type)
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "type", type }, { "subType", "linear" }, }));
         this.positions = new ArrayCacheBySymbolBySide();
@@ -1623,7 +1623,7 @@ public partial class bingx : ccxt.bingx
         return ((bool)((object)(true))!);
     }
 
-    public async virtual Task keepAliveListenKey(object parameters = null)
+    public async virtual Task<object> keepAliveListenKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? listenKey = this.safeString(this.options, "listenKey");
@@ -1719,7 +1719,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public async virtual Task pong(WebSocketClient client, object message)
+    public async virtual Task<object> pong(WebSocketClient client, object message)
     {
         try
         {

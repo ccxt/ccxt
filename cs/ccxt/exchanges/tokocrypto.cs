@@ -3016,18 +3016,18 @@ public partial class tokocrypto : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("coin"))))
+        if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !(inOp(parameters, "coin")))
         {
-            return ((IDictionary<string,object>)config)["noCoin"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("symbol"))))
+            return getValue(config, "noCoin");
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
-            return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("poolId"))))
+            return getValue(config, "noSymbol");
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !(inOp(parameters, "poolId")))
         {
-            return ((IDictionary<string,object>)config)["noPoolId"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("limit"))))
+            return getValue(config, "noPoolId");
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
-            object limit = ((IDictionary<string,object>)parameters)["limit"];
+            object limit = getValue(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {

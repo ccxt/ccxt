@@ -812,10 +812,10 @@ public partial class coinsph : Exchange
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
-            return ((IDictionary<string,object>)config)["noSymbol"];
+            return getValue(config, "noSymbol");
         } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbolAndNoSymbols")) && !(inOp(parameters, "symbol")) && !(inOp(parameters, "symbols")))
         {
-            return ((IDictionary<string,object>)config)["noSymbolAndNoSymbols"];
+            return getValue(config, "noSymbolAndNoSymbols");
         } else if ((((IDictionary<string, object>)config).ContainsKey("byNumberOfSymbols")) && (inOp(parameters, "symbols")))
         {
             object symbols = getValue(parameters, "symbols");

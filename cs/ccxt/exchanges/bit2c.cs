@@ -351,7 +351,7 @@ public partial class bit2c : Exchange
             Dictionary<string, object> account = this.account();
             Dictionary<string, object> currency = this.currency(((string)code));
             string uppercase = ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper();
-            if ((response != null && ((IDictionary<string, object>)response).ContainsKey(uppercase)))
+            if (inOp(response, uppercase))
             {
                 ((IDictionary<string,object>)account)["free"] = this.safeString(response, ("AVAILABLE_" + uppercase));
                 ((IDictionary<string,object>)account)["total"] = this.safeString(response, uppercase);

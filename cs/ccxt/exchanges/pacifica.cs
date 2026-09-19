@@ -1164,7 +1164,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToDict(this.parseAccountSettings(this.safeList(response, "data", new List<object>() {})));
     }
 
-    public async virtual Task loadAccountSettings(object refresh = null, object parameters = null)
+    public async virtual Task<object> loadAccountSettings(object refresh = null, object parameters = null)
     {
         refresh ??= false;
         parameters ??= new Dictionary<string, object>();

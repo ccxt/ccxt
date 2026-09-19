@@ -301,7 +301,7 @@ public partial class woo : ccxt.woo
         this.spawn(this.fetchOrderBookSnapshot, new object[] { client, message, subscription});
     }
 
-    public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public async virtual Task<object> fetchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
     {
         string? symbol = this.safeString(subscription, "symbol");
         string? messageHash = this.safeString(message, "topic");
@@ -1509,7 +1509,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task<object> loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
@@ -1863,7 +1863,7 @@ public partial class woo : ccxt.woo
         };
     }
 
-    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
+    public async virtual Task<object> pong(WebSocketClient client, Dictionary<string, object> message)
     {
         await client.send(new Dictionary<string, object>() {
             { "event", "pong" },

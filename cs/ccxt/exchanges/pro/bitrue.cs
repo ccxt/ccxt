@@ -898,7 +898,7 @@ public partial class bitrue : ccxt.bitrue
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
+    public async virtual Task<object> pong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1018,7 +1018,7 @@ public partial class bitrue : ccxt.bitrue
         return (this.options.ContainsKey("listenKeyUrl") ? this.options["listenKeyUrl"] : null);
     }
 
-    public async virtual Task keepAliveListenKey(object parameters = null)
+    public async virtual Task<object> keepAliveListenKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? listenKey = this.safeString(this.options, "listenKey");

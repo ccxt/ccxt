@@ -875,7 +875,7 @@ public partial class toobit : ccxt.toobit
         (client as WebSocketClient).resolve(getValue(this.balance, type), (type + ":balance"));
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object marketType)
+    public async virtual Task<object> loadBalanceSnapshot(WebSocketClient client, object messageHash, object marketType)
     {
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", marketType }, }));
         string type = (isEqual(marketType, "spot")) ? "spot" : "contract";
@@ -1193,7 +1193,7 @@ public partial class toobit : ccxt.toobit
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task<object> loadPositionsSnapshot(WebSocketClient client, object messageHash, object type)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
@@ -1319,7 +1319,7 @@ public partial class toobit : ccxt.toobit
         });
     }
 
-    public async virtual Task authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 time = this.milliseconds();
@@ -1373,7 +1373,7 @@ public partial class toobit : ccxt.toobit
         }
     }
 
-    public async virtual Task keepAliveListenKey(object parameters = null)
+    public async virtual Task<object> keepAliveListenKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> options = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});

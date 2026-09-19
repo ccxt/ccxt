@@ -1749,7 +1749,7 @@ public partial class bybit : ccxt.bybit
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task<object> loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         List<object> fetchFunctions = new List<object> {this.FetchPositions(null, new Dictionary<string, object>() {

@@ -3686,7 +3686,7 @@ public partial class bitrue : Exchange
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
-            return ((IDictionary<string,object>)config)["noSymbol"];
+            return getValue(config, "noSymbol");
         } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
             object limit = getValue(parameters, "limit");

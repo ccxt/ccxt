@@ -54,7 +54,7 @@ public partial class cryptocom : ccxt.cryptocom
         });
     }
 
-    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
+    public async virtual Task<object> pong(WebSocketClient client, Dictionary<string, object> message)
     {
         try
         {
@@ -1095,7 +1095,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task<object> loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();

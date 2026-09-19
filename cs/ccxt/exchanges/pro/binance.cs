@@ -1050,7 +1050,7 @@ public partial class binance : ccxt.binance
         (client as WebSocketClient).resolve(orderbook, messageHash);
     }
 
-    public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, object message, object subscription)
+    public async virtual Task<object> fetchOrderBookSnapshot(WebSocketClient client, object message, object subscription)
     {
         string? symbol = this.safeString(subscription, "symbol");
         string messageHash = ("orderbook::" + symbol);
@@ -3182,7 +3182,7 @@ public partial class binance : ccxt.binance
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */
-    public async virtual Task ensureUserDataStreamWsSubscribeSignature(object marketType = null)
+    public async virtual Task<object> ensureUserDataStreamWsSubscribeSignature(object marketType = null)
     {
         marketType ??= "spot";
         object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketType);
@@ -3267,7 +3267,7 @@ public partial class binance : ccxt.binance
      * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    public async virtual Task ensureUserDataStreamWsSubscribeListenToken(object marketType = null, object parameters = null)
+    public async virtual Task<object> ensureUserDataStreamWsSubscribeListenToken(object marketType = null, object parameters = null)
     {
         marketType ??= "margin";
         parameters ??= new Dictionary<string, object>();
@@ -3367,7 +3367,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task renewListenToken(object parameters = null)
+    public async virtual Task<object> renewListenToken(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString(parameters, "type", "margin");
@@ -3518,7 +3518,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task keepAliveListenKey(object parameters = null)
+    public async virtual Task<object> keepAliveListenKey(object parameters = null)
     {
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         parameters ??= new Dictionary<string, object>();
@@ -3685,7 +3685,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object isPortfolioMargin)
+    public async virtual Task<object> loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object isPortfolioMargin)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
@@ -5720,7 +5720,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type, object isPortfolioMargin)
+    public async virtual Task<object> loadPositionsSnapshot(WebSocketClient client, object messageHash, object type, object isPortfolioMargin)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },

@@ -40,7 +40,7 @@ public partial class bithumb : ccxt.bithumb
         });
     }
 
-    public async virtual Task pong(WebSocketClient client, object message)
+    public async virtual Task<object> pong(WebSocketClient client, object message)
     {
         Int64? ping = this.safeInteger(message, "ping");
         if (!isEqual(ping, null))

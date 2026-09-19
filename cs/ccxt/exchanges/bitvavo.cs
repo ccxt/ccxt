@@ -3044,7 +3044,7 @@ public partial class bitvavo : Exchange
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("noMarket")) && !(inOp(parameters, "market")))
         {
-            return ((IDictionary<string,object>)config)["noMarket"];
+            return getValue(config, "noMarket");
         }
         return this.safeNumber(config, "cost", 1);
     }

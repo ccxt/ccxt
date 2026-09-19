@@ -5670,7 +5670,7 @@ public partial class hyperliquid : Exchange
         if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))
         {
             object type = getValue(parameters, "type");
-            object byType = ((IDictionary<string,object>)config)["byType"];
+            object byType = getValue(config, "byType");
             if (inOp(byType, type))
             {
                 return getValue(byType, type);

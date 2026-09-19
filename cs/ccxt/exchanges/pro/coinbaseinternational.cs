@@ -826,7 +826,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return message;
     }
 
-    public virtual void handleFundingRate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleFundingRate(WebSocketClient client, object message)
     {
         //
         // snapshot

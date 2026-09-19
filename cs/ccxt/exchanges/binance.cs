@@ -15855,13 +15855,13 @@ public partial class binance : Exchange
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !(inOp(parameters, "coin")))
         {
-            return ((IDictionary<string,object>)config)["noCoin"];
+            return getValue(config, "noCoin");
         } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
-            return ((IDictionary<string,object>)config)["noSymbol"];
+            return getValue(config, "noSymbol");
         } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !(inOp(parameters, "poolId")))
         {
-            return ((IDictionary<string,object>)config)["noPoolId"];
+            return getValue(config, "noPoolId");
         } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
             object limit = getValue(parameters, "limit");

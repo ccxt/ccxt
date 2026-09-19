@@ -891,7 +891,7 @@ public partial class apex : ccxt.apex
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task<object> loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         List<object> fetchFunctions = new List<object> {this.FetchPositions()};
@@ -1183,7 +1183,7 @@ public partial class apex : ccxt.apex
         };
     }
 
-    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
+    public async virtual Task<object> pong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {"op": "ping", "args": ["1761069137485"]}

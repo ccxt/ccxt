@@ -2956,7 +2956,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task<object> loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
     {
         bool uta = (isEqual(type, "unified"));
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
@@ -3263,7 +3263,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object uta)
+    public async virtual Task<object> loadPositionsSnapshot(WebSocketClient client, object messageHash, object uta)
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "uta", uta }, }));
         this.positions = new ArrayCacheBySymbolById();
@@ -3300,7 +3300,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public async virtual Task loadPositionSnapshot(WebSocketClient client, object messageHash, object symbol)
+    public async virtual Task<object> loadPositionSnapshot(WebSocketClient client, object messageHash, object symbol)
     {
         object position = ccxt.BaseExchange.FromPosition(await this.FetchPosition(((string)symbol)));
         this.positions = new ArrayCacheBySymbolById();

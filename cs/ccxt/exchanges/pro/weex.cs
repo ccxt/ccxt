@@ -1815,7 +1815,7 @@ public partial class weex : ccxt.weex
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task<object> loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
@@ -1988,7 +1988,7 @@ public partial class weex : ccxt.weex
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object parameters)
+    public async virtual Task<object> loadPositionsSnapshot(WebSocketClient client, object messageHash, object parameters)
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         this.positions = new ArrayCacheBySymbolById();
@@ -2122,7 +2122,7 @@ public partial class weex : ccxt.weex
         return ((Dictionary<string, object>)((object)(market)));
     }
 
-    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
+    public async virtual Task<object> pong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     { "event": "ping", "time": "1776078750000" } - public
