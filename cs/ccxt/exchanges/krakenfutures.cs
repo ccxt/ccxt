@@ -1055,7 +1055,7 @@ public partial class krakenfutures : Exchange
         if ((since != null))
         {
             int duration = this.parseTimeframe(timeframeVar);
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
             if ((limitVar == null))
             {
                 limitVar = 2000;
@@ -2000,7 +2000,7 @@ public partial class krakenfutures : Exchange
         IDictionary<string, object> order = this.safeDict(orders, 0);
         if ((order == null))
         {
-            throw new OrderNotFound ((string)((this.id + " fetchOrder could not find order id ") + (id))) ;
+            throw new OrderNotFound ((string)((this.id + " fetchOrder could not find order id ") + id)) ;
         }
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -2846,7 +2846,7 @@ public partial class krakenfutures : Exchange
             // each trade execution emits two rows and the position-size legs are
             // filtered out below, so ask for twice the limit to compensate,
             // parseLedger re-applies the limit on the filtered entries
-            ((IDictionary<string,object>)request)["count"] = multiply(limit, 2);
+            ((IDictionary<string,object>)request)["count"] = (limit * 2);
         }
         Int64? until = this.safeInteger(parameters, "until");
         if (!isEqual(until, null))
@@ -3889,7 +3889,7 @@ public partial class krakenfutures : Exchange
         {
             if (!isEqual(this.parseAccount(fromAccount), "cash"))
             {
-                throw new BadRequest ((string)((((this.id + " transfer cannot transfer from ") + (fromAccount)) + " to ") + (toAccount))) ;
+                throw new BadRequest ((string)((((this.id + " transfer cannot transfer from ") + fromAccount) + " to ") + toAccount)) ;
             }
             ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             response = await this.privatePostWithdrawal(this.extend(request, parameters));

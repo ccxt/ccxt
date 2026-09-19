@@ -2247,7 +2247,7 @@ public partial class deepcoin : Exchange
         int length = (data?.Count ?? 0);
         if ((length == 0))
         {
-            throw new OrderNotFound ((string)((this.id + " fetchOpenOrder() could not find order id ") + (id))) ;
+            throw new OrderNotFound ((string)((this.id + " fetchOpenOrder() could not find order id ") + id)) ;
         }
         IDictionary<string, object> entry = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(entry, market));

@@ -1395,7 +1395,7 @@ public partial class hyperliquid : Exchange
         IDictionary<string, object> rate = this.safeDict(rates, (market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((rate == null))
         {
-            throw new BadSymbol ((string)((this.id + " fetchFundingRate() could not find a funding rate for ") + (symbol))) ;
+            throw new BadSymbol ((string)((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;
         }
         return ccxt.BaseExchange.ToFundingRate(rate);
     }
@@ -1578,7 +1578,7 @@ public partial class hyperliquid : Exchange
             {
                 // optimization if limit is provided
                 Int64 timeframeInMilliseconds = multiply(this.parseTimeframe(timeframeVar), 1000);
-                sinceVar = this.sum(until, multiply(multiply(timeframeInMilliseconds, limit), -1));
+                sinceVar = this.sum(until, ((timeframeInMilliseconds * limit) * -1));
                 if (isLessThan(sinceVar, 0))
                 {
                     sinceVar = 0;

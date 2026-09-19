@@ -8978,7 +8978,7 @@ public partial class kucoin : Exchange
         if ((since != null) && isLessThan(since, 1550448000000))
         {
             // if since is earlier than 2019-02-18T00:00:00Z
-            ((IDictionary<string,object>)request)["startAt"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((since / 1000));
             response = await this.privateGetHistDeposits(this.extend(request, parameters));
         } else
         {
@@ -9155,7 +9155,7 @@ public partial class kucoin : Exchange
         if ((since != null) && isLessThan(since, 1550448000000))
         {
             // if since is earlier than 2019-02-18T00:00:00Z
-            ((IDictionary<string,object>)request)["startAt"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((since / 1000));
             response = await this.privateGetHistWithdrawals(this.extend(request, parameters));
         } else
         {

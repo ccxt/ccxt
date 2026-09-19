@@ -2332,7 +2332,7 @@ public partial class toobit : Exchange
         string? status = this.parseOrderStatus(this.safeString(response, "status"));
         if ((status != "open"))
         {
-            throw new OrderNotFound ((string)((((this.id + " order ") + (id)) + " can not be canceled, ") + this.json(response))) ;
+            throw new OrderNotFound ((string)((((this.id + " order ") + id) + " can not be canceled, ") + this.json(response))) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }

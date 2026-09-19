@@ -987,7 +987,7 @@ public partial class coinbase : Exchange
         }
         if ((accountId == null))
         {
-            throw new ExchangeError ((string)(((this.id + " createDepositAddress() could not find the account with matching currency code ") + (code)) + ", specify an `account_id` extra param to target specific wallet")) ;
+            throw new ExchangeError ((string)(((this.id + " createDepositAddress() could not find the account with matching currency code ") + code) + ", specify an `account_id` extra param to target specific wallet")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account_id", accountId },
@@ -3343,7 +3343,7 @@ public partial class coinbase : Exchange
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError ((string)(((this.id + " prepareAccountRequestWithCurrencyCode() could not find account id for ") + (code)) + ". You might try to generate the deposit address in the website for that coin first.")) ;
+                throw new ExchangeError ((string)(((this.id + " prepareAccountRequestWithCurrencyCode() could not find account id for ") + code) + ". You might try to generate the deposit address in the website for that coin first.")) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4374,7 +4374,7 @@ public partial class coinbase : Exchange
         string? sinceString = null;
         if ((since != null))
         {
-            sinceString = this.numberToString(this.parseToInt(divide(since, 1000)));
+            sinceString = this.numberToString(this.parseToInt((since / 1000)));
         } else
         {
             string now = ((object)this.seconds()).ToString();
@@ -4462,7 +4462,7 @@ public partial class coinbase : Exchange
         };
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start"] = this.numberToString(this.parseToInt(divide(since, 1000)));
+            ((IDictionary<string,object>)request)["start"] = this.numberToString(this.parseToInt((since / 1000)));
         }
         if ((limit != null))
         {
@@ -4756,7 +4756,7 @@ public partial class coinbase : Exchange
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError ((string)((this.id + " withdraw() could not find account id for ") + (code))) ;
+                throw new ExchangeError ((string)((this.id + " withdraw() could not find account id for ") + code)) ;
             }
             ((IDictionary<string,object>)request)["account_id"] = accountId;
         } else
@@ -5018,7 +5018,7 @@ public partial class coinbase : Exchange
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError ((string)((this.id + " deposit() could not find account id for ") + (code))) ;
+                throw new ExchangeError ((string)((this.id + " deposit() could not find account id for ") + code)) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5099,7 +5099,7 @@ public partial class coinbase : Exchange
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError ((string)((this.id + " fetchDeposit() could not find account id for ") + (code))) ;
+                throw new ExchangeError ((string)((this.id + " fetchDeposit() could not find account id for ") + code)) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

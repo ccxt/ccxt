@@ -873,7 +873,7 @@ public partial class cryptomus : Exchange
         {
             if ((price == null))
             {
-                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price parameter for a ") + (type)) + " order")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price parameter for a ") + type) + " order")) ;
             }
             ((IDictionary<string,object>)request)["quantity"] = amountToString;
             ((IDictionary<string,object>)request)["price"] = price;

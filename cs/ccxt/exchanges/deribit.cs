@@ -3843,7 +3843,7 @@ public partial class deribit : Exchange
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a limit argument")) ;
             }
-            object maxUntil = this.sum(sinceVar, multiply(limit, duration));
+            object maxUntil = this.sum(sinceVar, (limit * duration));
             ((IDictionary<string,object>)request)["end_timestamp"] = mathMin((request != null && ((IDictionary<string, object>)request).ContainsKey("end_timestamp") ? ((IDictionary<string, object>)request)["end_timestamp"] : null), maxUntil);
         }
         Dictionary<string, object> response = await this.publicGetGetFundingRateHistory(this.extend(request, parameters));

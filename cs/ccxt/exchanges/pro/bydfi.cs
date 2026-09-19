@@ -168,7 +168,7 @@ public partial class bydfi : ccxt.bydfi
         }
         Dictionary<string, object> market = this.market(symbol);
         object marketId = (market.ContainsKey("id") ? market["id"] : null);
-        string messageHash = ("ticker::" + (symbol));
+        string messageHash = ("ticker::" + symbol);
         object channel = add(marketId, "@ticker");
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(new List<object>() {messageHash}, new List<object>() {channel}, parameters));
     }

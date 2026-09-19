@@ -1559,7 +1559,7 @@ public partial class luno : Exchange
             IDictionary<string, object> account = this.safeDict(accountsByCurrencyCode, code);
             if ((account == null))
             {
-                throw new ExchangeError ((string)((this.id + " fetchLedger() could not find account id for ") + (code))) ;
+                throw new ExchangeError ((string)((this.id + " fetchLedger() could not find account id for ") + code)) ;
             }
             id = (account != null && account.ContainsKey("id") ? account["id"] : null);
         }

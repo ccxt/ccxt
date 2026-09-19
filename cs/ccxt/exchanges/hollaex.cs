@@ -1283,7 +1283,7 @@ public partial class hollaex : Exchange
         Dictionary<string, object> order = response;
         if ((order == null))
         {
-            throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order id ") + (id))) ;
+            throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order id ") + id)) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order));
     }

@@ -3982,7 +3982,7 @@ public partial class htx : Exchange
                     calcualtedEnd = now;
                 } else
                 {
-                    Int64? start = this.parseToInt(divide(since, 1000));
+                    Int64? start = this.parseToInt((since / 1000));
                     ((IDictionary<string,object>)request)["from"] = start;
                     calcualtedEnd = this.sum(start, multiply(duration, (subtract(limitVar, 1))));
                 }
@@ -4078,7 +4078,7 @@ public partial class htx : Exchange
                 // "from & to" only available for the this endpoint
                 if ((since != null))
                 {
-                    ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+                    ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
                 }
                 if (!isEqual(untilSeconds, null))
                 {
@@ -8300,7 +8300,7 @@ public partial class htx : Exchange
         bool toSpot = isEqual(toAccountId, "pro");
         if (fromSpot && toSpot)
         {
-            throw new BadRequest ((string)((((this.id + " transfer () cannot make a transfer between ") + (fromAccount)) + " and ") + (toAccount))) ;
+            throw new BadRequest ((string)((((this.id + " transfer () cannot make a transfer between ") + fromAccount) + " and ") + toAccount)) ;
         }
         bool fromOrToFuturesAccount = (isEqual(fromAccountId, "futures")) || (isEqual(toAccountId, "futures"));
         Dictionary<string, object> response = null;

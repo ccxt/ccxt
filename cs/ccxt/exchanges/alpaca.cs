@@ -1402,7 +1402,7 @@ public partial class alpaca : Exchange
                 newType = "stop_limit";
             } else
             {
-                throw new NotSupported ((string)(((this.id + " createOrder() does not support stop orders for ") + (type)) + " orders, only stop_limit orders are supported")) ;
+                throw new NotSupported ((string)(((this.id + " createOrder() does not support stop orders for ") + type) + " orders, only stop_limit orders are supported")) ;
             }
             ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["type"] = newType;

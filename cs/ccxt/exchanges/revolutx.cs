@@ -653,7 +653,7 @@ public partial class revolutx : Exchange
         IDictionary<string, object> ticker = this.safeDict(tickers, symbol);
         if ((ticker == null))
         {
-            throw new ExchangeError ((string)((this.id + " fetchTicker() could not find ticker for symbol ") + (symbol))) ;
+            throw new ExchangeError ((string)((this.id + " fetchTicker() could not find ticker for symbol ") + symbol)) ;
         }
         return ccxt.BaseExchange.ToTicker(ticker);
     }
@@ -1121,7 +1121,7 @@ public partial class revolutx : Exchange
             ((IDictionary<string,object>)orderConfiguration)["market"] = marketConfig;
         } else
         {
-            throw new InvalidOrder ((string)((this.id + " createOrder() does not support order type ") + (type))) ;
+            throw new InvalidOrder ((string)((this.id + " createOrder() does not support order type ") + type)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },

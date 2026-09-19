@@ -3763,7 +3763,7 @@ public partial class bybit : Exchange
             // start up to the interval boundary so that the exchange returns
             // candles from the first bucket at or after `since`
             Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
-            object rounded = (this.parseToInt(divide(since, duration)) * duration);
+            object rounded = (this.parseToInt((since / duration)) * duration);
             ((IDictionary<string,object>)request)["start"] = ((bool) (isEqual(rounded, since))) ? since : this.sum(rounded, duration);
         }
         if ((limitVar != null))
@@ -8928,7 +8928,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) || ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true)))
         {
-            throw new BadRequest ((string)((this.id + " fetchOpenInterestHistory() symbol does not support market ") + (symbol))) ;
+            throw new BadRequest ((string)((this.id + " fetchOpenInterestHistory() symbol does not support market ") + symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -9550,7 +9550,7 @@ public partial class bybit : Exchange
         market = this.market(symbol);
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) || ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true)))
         {
-            throw new BadRequest ((string)((this.id + " fetchMarketLeverageTiers() symbol does not support market ") + (symbol))) ;
+            throw new BadRequest ((string)((this.id + " fetchMarketLeverageTiers() symbol does not support market ") + symbol)) ;
         }
         ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         return await this.FetchDerivativesMarketLeverageTiers(((string)symbol), parameters);

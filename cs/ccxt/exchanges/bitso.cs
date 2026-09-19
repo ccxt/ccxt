@@ -972,13 +972,13 @@ public partial class bitso : Exchange
             if ((limit != null))
             {
                 int duration = this.parseTimeframe(timeframeVar);
-                ((IDictionary<string,object>)request)["end"] = this.sum(since, multiply(multiply(duration, limit), 1000));
+                ((IDictionary<string,object>)request)["end"] = this.sum(since, ((duration * limit) * 1000));
             }
         } else if ((limit != null))
         {
             Int64 now = this.milliseconds();
             ((IDictionary<string,object>)request)["end"] = now;
-            ((IDictionary<string,object>)request)["start"] = subtract(now, multiply(multiply(this.parseTimeframe(timeframeVar), 1000), limit));
+            ((IDictionary<string,object>)request)["start"] = subtract(now, (multiply(this.parseTimeframe(timeframeVar), 1000) * limit));
         }
         Dictionary<string, object> response = await this.publicGetOhlc(this.extend(request, parameters));
         //
@@ -1577,7 +1577,7 @@ public partial class bitso : Exchange
                 return ccxt.BaseExchange.ToOrder(this.parseOrder((payload != null && 0 < payload.Count ? payload[0] : null)));
             }
         }
-        throw new OrderNotFound ((string)(((this.id + ": The order ") + (id)) + " not found.")) ;
+        throw new OrderNotFound ((string)(((this.id + ": The order ") + id) + " not found.")) ;
     }
 
     /**
@@ -2038,7 +2038,7 @@ public partial class bitso : Exchange
         object method = ((bool) (methods.ContainsKey(code))) ? (methods != null && methods.ContainsKey(code) ? methods[code] : null) : null;
         if ((method == null))
         {
-            throw new ExchangeError ((string)((this.id + " not valid withdraw coin: ") + (code))) ;
+            throw new ExchangeError ((string)((this.id + " not valid withdraw coin: ") + code)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", amount },

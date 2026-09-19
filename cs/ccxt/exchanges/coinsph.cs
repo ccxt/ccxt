@@ -1625,7 +1625,7 @@ public partial class coinsph : Exchange
         {
             if ((price == null))
             {
-                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
             newOrderRespType = this.safeString(newOrderRespType, "limit", "FULL");
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);

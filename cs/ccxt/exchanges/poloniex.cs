@@ -3116,7 +3116,7 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!(inOp(this.currencies, code)))
         {
-            throw new BadSymbol ((string)(((this.id + " fetchDepositAddress(): can not recognize ") + (code)) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
+            throw new BadSymbol ((string)(((this.id + " fetchDepositAddress(): can not recognize ") + code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         object networkCode = null;
@@ -3125,7 +3125,7 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired ((string)(((this.id + " fetchDepositAddress requires a network parameter for ") + (code)) + ".")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " fetchDepositAddress requires a network parameter for ") + code) + ".")) ;
         }
         object exchangeNetworkId = null;
         networkCode = this.networkIdToCode(networkCode, code);
@@ -3257,7 +3257,7 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired ((string)(((this.id + " withdraw requires a network parameter for ") + (code)) + ".")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " withdraw requires a network parameter for ") + code) + ".")) ;
         }
         ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, code);
         if ((tagVar != null))

@@ -465,7 +465,7 @@ public partial class pacifica : ccxt.pacifica
         IList<object> aggLevelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
         aggLevel = ((IList<object>)aggLevelparametersVariable)[0];
         parameters = ((IList<object>)aggLevelparametersVariable)[1];
-        string messageHash = ("orderbook:" + (symbol));
+        string messageHash = ("orderbook:" + symbol);
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) (isTestnet)) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");

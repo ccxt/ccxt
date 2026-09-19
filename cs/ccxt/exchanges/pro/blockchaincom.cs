@@ -714,7 +714,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string? type = this.safeString(parameters, "type", "l2");
         parameters = this.omit(parameters, "type");
-        string messageHash = ((("orderbook:" + (symbol)) + ":") + type);
+        string messageHash = ((("orderbook:" + symbol) + ":") + type);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", type },

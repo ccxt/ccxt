@@ -2245,7 +2245,7 @@ public partial class bitrue : Exchange
             object validOrderTypes = this.safeValue((market.ContainsKey("info") ? market["info"] : null), "orderTypes");
             if (!this.inArray(uppercaseType, validOrderTypes))
             {
-                throw new InvalidOrder ((string)((((this.id + " ") + (type)) + " is not a valid order type in market ") + (symbol))) ;
+                throw new InvalidOrder ((string)((((this.id + " ") + type) + " is not a valid order type in market ") + symbol)) ;
             }
             string? clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
             if ((clientOrderId != null))

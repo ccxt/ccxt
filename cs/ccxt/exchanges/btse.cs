@@ -926,7 +926,7 @@ public partial class btse : Exchange
         if ((since != null))
         {
             // the endpoint accepts timestamps in seconds
-            ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["start"] = this.parseToInt((since / 1000));
         }
         object until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
@@ -1531,7 +1531,7 @@ public partial class btse : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new BadRequest ((string)((this.id + " fetchOpenInterest() symbol does not support market ") + (symbol))) ;
+            throw new BadRequest ((string)((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },

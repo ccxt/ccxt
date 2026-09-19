@@ -2532,7 +2532,7 @@ public partial class bitfinex : Exchange
         object order = this.safeValue(orders, 0);
         if ((order == null))
         {
-            throw new OrderNotFound ((string)(((this.id + " order ") + (id)) + " not found")) ;
+            throw new OrderNotFound ((string)(((this.id + " order ") + id) + " not found")) ;
         }
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -2558,7 +2558,7 @@ public partial class bitfinex : Exchange
         object order = this.safeValue(orders, 0);
         if ((order == null))
         {
-            throw new OrderNotFound ((string)(((this.id + " order ") + (id)) + " not found")) ;
+            throw new OrderNotFound ((string)(((this.id + " order ") + id) + " not found")) ;
         }
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -2882,7 +2882,7 @@ public partial class bitfinex : Exchange
         string? networkId = this.safeString(currencyNetwork, "id");
         if ((networkId == null))
         {
-            throw new ArgumentsRequired ((string)(((this.id + " fetchDepositAddress() could not find a network for '") + (code)) + "'. You can specify it by providing the 'network' value inside params")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " fetchDepositAddress() could not find a network for '") + code) + "'. You can specify it by providing the 'network' value inside params")) ;
         }
         string? wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         parameters = this.omit(parameters, "network", "wallet");
@@ -3311,7 +3311,7 @@ public partial class bitfinex : Exchange
         string? networkId = this.safeString(currencyNetwork, "id");
         if ((networkId == null))
         {
-            throw new ArgumentsRequired ((string)(((this.id + " withdraw() could not find a network for '") + (code)) + "'. You can specify it by providing the 'network' value inside params")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " withdraw() could not find a network for '") + code) + "'. You can specify it by providing the 'network' value inside params")) ;
         }
         string? wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         parameters = this.omit(parameters, "network", "wallet");

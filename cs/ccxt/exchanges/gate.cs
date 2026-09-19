@@ -3605,7 +3605,7 @@ public partial class gate : Exchange
         if ((since != null))
         {
             // from should be integer
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
         }
         if ((limit != null))
         {
@@ -4449,7 +4449,7 @@ public partial class gate : Exchange
         if ((since != null))
         {
             int duration = this.parseTimeframe(timeframeVar);
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
             object distance = multiply((subtract(limitVar, 1)), duration);
             object toTimestamp = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), distance);
             Int64 currentTimestamp = this.seconds();
@@ -4560,7 +4560,7 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
         }
         Int64? until = this.safeInteger(parameters, "until");
         if (!isEqual(until, null))
@@ -4696,7 +4696,7 @@ public partial class gate : Exchange
         }
         if ((since != null) && ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)))
         {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
         }
         object response = null;
         if ((((market.ContainsKey("type") ? market["type"] : null) as string) == "spot") || (((market.ContainsKey("type") ? market["type"] : null) as string) == "margin"))
@@ -4884,7 +4884,7 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
         }
         if (!isEqual(until, null))
         {
@@ -5189,7 +5189,7 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            Int64? start = this.parseToInt(divide(since, 1000));
+            Int64? start = this.parseToInt((since / 1000));
             ((IDictionary<string,object>)request)["from"] = start;
             ((IDictionary<string,object>)request)["to"] = this.sum(start, ((multiply(30, 24) * 60) * 60));
         }
@@ -5241,7 +5241,7 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            Int64? start = this.parseToInt(divide(since, 1000));
+            Int64? start = this.parseToInt((since / 1000));
             ((IDictionary<string,object>)request)["from"] = start;
             ((IDictionary<string,object>)request)["to"] = this.sum(start, ((multiply(30, 24) * 60) * 60));
         }
@@ -6728,7 +6728,7 @@ public partial class gate : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
         }
         if (!isEqual(until, null))
         {
@@ -8818,7 +8818,7 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
         }
         List<object> response = await this.publicFuturesGetSettleContractStats(this.extend(request, parameters));
         //
@@ -9769,7 +9769,7 @@ public partial class gate : Exchange
                 return ccxt.BaseExchange.ToGreeks(this.parseGreeks(entry, market));
             }
         }
-        throw new NullResponse ((string)((this.id + " fetchGreeks() could not find greeks for ") + (symbol))) ;
+        throw new NullResponse ((string)((this.id + " fetchGreeks() could not find greeks for ") + symbol)) ;
     }
 
     public override object parseGreeks(object greeks, object market = null)
@@ -10192,7 +10192,7 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
         }
         if (!isEqual(until, null))
         {

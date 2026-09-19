@@ -996,7 +996,7 @@ public partial class bitflyer : Exchange
         {
             return ccxt.BaseExchange.ToOrder((ordersById != null && ordersById.ContainsKey(id) ? ordersById[id] : null));
         }
-        throw new OrderNotFound ((string)((this.id + " No order found with id ") + (id))) ;
+        throw new OrderNotFound ((string)((this.id + " No order found with id ") + id)) ;
     }
 
     /**
@@ -1114,7 +1114,7 @@ public partial class bitflyer : Exchange
         }
         if ((code != "JPY") && (code != "USD") && (code != "EUR"))
         {
-            throw new ExchangeError ((string)(((this.id + " allows withdrawing JPY, USD, EUR only, ") + (code)) + " is not supported")) ;
+            throw new ExchangeError ((string)(((this.id + " allows withdrawing JPY, USD, EUR only, ") + code) + " is not supported")) ;
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {

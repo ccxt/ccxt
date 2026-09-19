@@ -1704,7 +1704,7 @@ public partial class myriad : PredictionExchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["since"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["since"] = this.parseToInt((since / 1000));
         }
         if ((limit != null))
         {

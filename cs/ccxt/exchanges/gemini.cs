@@ -2108,7 +2108,7 @@ public partial class gemini : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["timestamp"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["timestamp"] = this.parseToInt((since / 1000));
         }
         List<object> response = await this.privatePostV1Mytrades(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));

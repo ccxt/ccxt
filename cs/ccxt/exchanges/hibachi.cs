@@ -2423,7 +2423,7 @@ public partial class hibachi : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["startTime"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["startTime"] = this.parseToInt((since / 1000));
         }
         if ((limit != null))
         {

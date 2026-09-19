@@ -1118,7 +1118,7 @@ public partial class paradex : Exchange
             ((IDictionary<string,object>)request)["start_at"] = since;
             if ((limit != null))
             {
-                ((IDictionary<string,object>)request)["end_at"] = subtract(this.sum(since, multiply(multiply(duration, (add(limit, 1))), 1000)), 1);
+                ((IDictionary<string,object>)request)["end_at"] = subtract(this.sum(since, ((duration * ((limit + 1))) * 1000)), 1);
             } else
             {
                 ((IDictionary<string,object>)request)["end_at"] = until;
@@ -1128,7 +1128,7 @@ public partial class paradex : Exchange
             ((IDictionary<string,object>)request)["end_at"] = until;
             if ((limit != null))
             {
-                ((IDictionary<string,object>)request)["start_at"] = add(subtract(until, multiply(multiply(duration, (add(limit, 1))), 1000)), 1);
+                ((IDictionary<string,object>)request)["start_at"] = add(subtract(until, ((duration * ((limit + 1))) * 1000)), 1);
             } else
             {
                 ((IDictionary<string,object>)request)["start_at"] = add(subtract(until, multiply(multiply(duration, 101), 1000)), 1);
@@ -1373,7 +1373,7 @@ public partial class paradex : Exchange
         IDictionary<string, object> rate = this.safeDict(rates, (market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((rate == null))
         {
-            throw new BadSymbol ((string)((this.id + " fetchFundingRate() could not find a funding rate for ") + (symbol))) ;
+            throw new BadSymbol ((string)((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;
         }
         return ccxt.BaseExchange.ToFundingRate(rate);
     }

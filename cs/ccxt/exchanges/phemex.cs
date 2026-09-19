@@ -3641,10 +3641,10 @@ public partial class phemex : Exchange
             {
                 if ((clientOrderId != null))
                 {
-                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + (symbol)) + " order with clientOrderId ") + clientOrderId) + " not found")) ;
+                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + symbol) + " order with clientOrderId ") + clientOrderId) + " not found")) ;
                 } else
                 {
-                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + (symbol)) + " order with id ") + (id)) + " not found")) ;
+                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + symbol) + " order with id ") + id) + " not found")) ;
                 }
             }
             order = this.safeDict(data, 0, new Dictionary<string, object>() {});
@@ -3656,10 +3656,10 @@ public partial class phemex : Exchange
             {
                 if ((clientOrderId != null))
                 {
-                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + (symbol)) + " order with clientOrderId ") + clientOrderId) + " not found")) ;
+                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + symbol) + " order with clientOrderId ") + clientOrderId) + " not found")) ;
                 } else
                 {
-                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + (symbol)) + " order with id ") + (id)) + " not found")) ;
+                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + symbol) + " order with id ") + id) + " not found")) ;
                 }
             }
             order = this.safeDict(rows, 0, new Dictionary<string, object>() {});

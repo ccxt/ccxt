@@ -1983,7 +1983,7 @@ public partial class limitless : PredictionExchange
         IDictionary<string, object> order = this.safeDict(orders, 0);
         if ((order == null))
         {
-            throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order ") + (id))) ;
+            throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order ") + id)) ;
         }
         return ccxt.BaseExchange.ToPredictionOrder(order);
     }

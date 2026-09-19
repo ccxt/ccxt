@@ -887,7 +887,7 @@ public partial class coincheck : Exchange
         };
         if ((type == "market"))
         {
-            ((IDictionary<string,object>)request)["order_type"] = add(add(type, "_"), side);
+            ((IDictionary<string,object>)request)["order_type"] = ((type + "_") + side);
             if ((side == "sell"))
             {
                 ((IDictionary<string,object>)request)["amount"] = amount;

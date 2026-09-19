@@ -1919,7 +1919,7 @@ public partial class bitstamp : Exchange
             } else
             {
                 limitVar = 1000;
-                Int64? start = this.parseToInt(divide(since, 1000));
+                Int64? start = this.parseToInt((since / 1000));
                 ((IDictionary<string,object>)request)["start"] = start;
                 ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(duration, (subtract(limitVar, 1))));
                 ((IDictionary<string,object>)request)["limit"] = limitVar;
@@ -1928,7 +1928,7 @@ public partial class bitstamp : Exchange
         {
             if ((since != null))
             {
-                Int64? start = this.parseToInt(divide(since, 1000));
+                Int64? start = this.parseToInt((since / 1000));
                 ((IDictionary<string,object>)request)["start"] = start;
                 ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(duration, (subtract(limitVar, 1))));
             }
@@ -2603,7 +2603,7 @@ public partial class bitstamp : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["since_timestamp"] = Math.Round(Convert.ToDouble(divide(since, 1000)));
+            ((IDictionary<string,object>)request)["since_timestamp"] = Math.Round(Convert.ToDouble((since / 1000)));
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("until_timestamp", request, parameters, 0.001);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
@@ -3300,7 +3300,7 @@ public partial class bitstamp : Exchange
         parameters ??= new Dictionary<string, object>();
         if (this.isFiat(code))
         {
-            throw new NotSupported ((string)(((this.id + " fiat fetchDepositAddress() for ") + (code)) + " is not supported!")) ;
+            throw new NotSupported ((string)(((this.id + " fiat fetchDepositAddress() for ") + code) + " is not supported!")) ;
         }
         object name = this.getCurrencyName(code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route

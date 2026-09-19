@@ -799,7 +799,7 @@ public partial class indodax : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["from"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
+            ((IDictionary<string,object>)request)["from"] = (Math.Floor(Double.Parse(((since / 1000)).ToString())));
         } else
         {
             int duration = this.parseTimeframe(timeframeVar);
@@ -1123,7 +1123,7 @@ public partial class indodax : Exchange
         {
             if ((price == null))
             {
-                throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
             ((IDictionary<string,object>)request)["price"] = price;
         }
