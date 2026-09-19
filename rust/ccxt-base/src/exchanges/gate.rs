@@ -3571,7 +3571,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut marginStatus: Option<i64> = self.safe_integer_k(market.clone(), "status", &[Value::Int(1)]).as_i64(); // 0 disabled, 1 enabled
             let mut leverage: Option<f64> = self.safe_number_k(market.clone(), "leverage", &[]).as_f64();
             let mut margin: Value = Value::Bool(leverage.is_some());
-            let mut buyStart: Value = self.safe_integer_product(spotMarket.clone(), Value::Str("buy_start".into()), Value::Int(1000), &[]); // buy_start is the trading start time, while sell_start is offline orders start time
+            let mut buyStart: Value = self.safe_integer_product_k(spotMarket.clone(), "buy_start", Value::Int(1000), &[]); // buy_start is the trading start time, while sell_start is offline orders start time
             let mut createdTs: Value = (if (buyStart.as_f64() != Some(0.0)) { buyStart } else { Value::Null });
             let mut active: Value = Value::Bool((tradeStatus.as_deref() == Some("tradable")) || (matches!(&margin, Value::Bool(true)) && (marginStatus == Some(1))));
             append_to_array(&mut result, Value::Map({
@@ -3840,7 +3840,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut expiry: Value = self.safe_timestamp(market.clone(), Value::Str("expire_time".into()), &[]);
+        let mut expiry: Value = self.safe_timestamp_k(market.clone(), "expire_time", &[]);
         let mut symbol: Value = Value::Str("".into());
         let mut marketType: Value = Value::Str("swap".into());
         if (date.is_some()) {
@@ -3923,7 +3923,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
     m
 }));
-        m.insert("created".to_string(), self.safe_integer_product(market.clone(), Value::Str("create_time".into()), Value::Int(1000), &[]));
+        m.insert("created".to_string(), self.safe_integer_product_k(market.clone(), "create_time", Value::Int(1000), &[]));
         m.insert("info".to_string(), market);
     m
 });
@@ -3964,7 +3964,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
                 let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
                 let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-                let mut expiry: Value = self.safe_timestamp(market.clone(), Value::Str("expiration_time".into()), &[]);
+                let mut expiry: Value = self.safe_timestamp_k(market.clone(), "expiration_time", &[]);
                 let mut strike: Value = self.safe_string_k(market.clone(), "strike_price", &[]);
                 let mut isCall: Value = self.safe_bool_k(market.clone(), "is_call", &[]);
                 let mut optionLetter: Value = (if (isCall.as_bool() == Some(true)) { Value::Str("C".into()) } else { Value::Str("P".into()) });
@@ -3976,7 +3976,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut maxMultiplier: Value = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &priceDeviate);
                 let mut minPrice: Value = crate::precise::Precise::stringMul(&minMultiplier, &markPrice);
                 let mut maxPrice: Value = crate::precise::Precise::stringMul(&maxMultiplier, &markPrice);
-                let mut createdTs: Value = self.safe_timestamp(market.clone(), Value::Str("create_time".into()), &[]);
+                let mut createdTs: Value = self.safe_timestamp_k(market.clone(), "create_time", &[]);
                 if (createdTs.as_f64() == Some(0.0)) {
                     createdTs = Value::Null;
                 }
@@ -4121,7 +4121,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut future: bool = type_var.as_str() == Some("future");
             if swap || future {
                 let mut defaultSettle: Value = (if swap { Value::Str("usdt".into()) } else { Value::Str("btc".into()) });
-                let mut settle: Value = self.safe_string_lower(params.clone(), Value::Str("settle".into()), &[defaultSettle.clone()]);
+                let mut settle: Value = self.safe_string_lower_k(params.clone(), "settle", &[defaultSettle.clone()]);
                 params = self.omit(params.clone(), Value::Str("settle".into()), &[]);
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("settle".to_string(), settle.clone()); }
             }
@@ -4469,7 +4469,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut indexPrice: Value = self.safe_number_k(contract.clone(), "index_price", &[]);
         let mut interestRate: Value = self.safe_number_k(contract.clone(), "interest_rate", &[]);
         let mut fundingRate: Value = self.safe_number_k(contract.clone(), "funding_rate", &[]);
-        let mut fundingTime: Value = self.safe_timestamp(contract.clone(), Value::Str("funding_next_apply".into()), &[]);
+        let mut fundingTime: Value = self.safe_timestamp_k(contract.clone(), "funding_next_apply", &[]);
         let mut fundingRateIndicative: Value = self.safe_number_k(contract.clone(), "funding_rate_indicative", &[]);
         let mut fundingInterval: Value = crate::precise::Precise::stringMul(&Value::Str("1000".into()), &self.safe_string_k(contract.clone(), "funding_interval", &[]));
         return Value::Map({
@@ -5052,7 +5052,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "type": "fund"
         //    }
         //
-        let mut timestamp: Value = self.safe_timestamp(info.clone(), Value::Str("time".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(info.clone(), "time", &[]);
         let mut marketId: Value = self.safe_string_k(info.clone(), "text", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".into()), Value::Str("swap".into())]);
         return Value::Map({
@@ -5987,7 +5987,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut timestamp: Value = self.safe_timestamp(entry.clone(), Value::Str("t".into()), &[]);
+            let mut timestamp: Value = self.safe_timestamp_k(entry.clone(), "t", &[]);
             append_to_array(&mut rates, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
@@ -6034,7 +6034,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (matches!(&ohlcv, Value::Arr(_))) {
             return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(6), &[])]);
         }  else {
-            return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("t".into()), &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
+            return Value::from(vec![self.safe_timestamp_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
         }
 
     Value::Null
@@ -6726,7 +6726,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (type_var.as_str() == Some("withdrawal")) {
             amountString = crate::precise::Precise::stringSub(&amountString, &feeCostString);
         }
-        let mut networkId: Value = self.safe_string_upper(transaction.clone(), Value::Str("chain".into()), &[]);
+        let mut networkId: Value = self.safe_string_upper_k(transaction.clone(), "chain", &[]);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[]);
         let mut txid: Value = self.safe_string_k(transaction.clone(), "txid", &[]);
@@ -6734,7 +6734,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut status: Value = self.parse_transaction_status(rawStatus);
         let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
         let mut tag: Value = self.safe_string_k(transaction.clone(), "memo", &[]);
-        let mut timestamp: Value = self.safe_timestamp(transaction.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(transaction.clone(), "timestamp", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
@@ -8321,7 +8321,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut type_var: Value = Value::Null;
         let mut defaultSettle: Value = (if (market == Value::Null) { Value::Str("usdt".into()) } else { market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null) });
-        let mut settle: Value = self.safe_string_lower(params.clone(), Value::Str("settle".into()), &[defaultSettle.clone()]);
+        let mut settle: Value = self.safe_string_lower_k(params.clone(), "settle", &[defaultSettle.clone()]);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isSpot: bool = type_var.as_str() == Some("spot");
         if isSpot && (symbol == Value::Null) {
@@ -9386,7 +9386,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marginMode: Option<String> = self.safe_string2(self.options.clone(), Value::Str("defaultMarginMode".into()), Value::Str("marginMode".into()), &[Value::Str("cross".into())]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.safe_integer_k(info.clone(), "create_time", &[]);
         if (marginMode.as_deref() == Some("isolated")) {
-            timestamp = self.safe_timestamp(info.clone(), Value::Str("create_time".into()), &[]);
+            timestamp = self.safe_timestamp_k(info.clone(), "create_time", &[]);
         }
         let mut currencyId: Value = self.safe_string_k(info.clone(), "currency", &[]);
         let mut marketId: Value = self.safe_string_k(info.clone(), "currency_pair", &[]);
@@ -9822,7 +9822,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "lsr_taker": "9.3765153315902"
         //    }
         //
-        let mut timestamp: Value = self.safe_timestamp(interest.clone(), Value::Str("time".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(interest.clone(), "time", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
@@ -10047,7 +10047,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "fee": "0.03079386"
         //     }
         //
-        let mut timestamp: Value = self.safe_timestamp(settlement.clone(), Value::Str("time".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(settlement.clone(), "time", &[]);
         let mut marketId: Value = self.safe_string_k(settlement.clone(), "contract", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10156,7 +10156,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if (type_var.as_str() == Some("swap")) || (type_var.as_str() == Some("future")) {
             let mut defaultSettle: Value = (if (type_var.as_str() == Some("swap")) { Value::Str("usdt".into()) } else { Value::Str("btc".into()) });
-            let mut settle: Value = self.safe_string_lower(params.clone(), Value::Str("settle".into()), &[defaultSettle.clone()]);
+            let mut settle: Value = self.safe_string_lower_k(params.clone(), "settle", &[defaultSettle.clone()]);
             params = self.omit(params.clone(), Value::Str("settle".into()), &[]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("settle".to_string(), settle.clone()); }
         }
@@ -10559,7 +10559,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut marketId: Value = self.safe_string_k(liquidation.clone(), "contract", &[]);
-        let mut timestamp: Value = self.safe_timestamp(liquidation.clone(), Value::Str("time".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(liquidation.clone(), "time", &[]);
         let mut size: Value = self.safe_string2(liquidation.clone(), Value::Str("size".into()), Value::Str("settle_size".into()), &[]);
         let mut left: Value = self.safe_string_k(liquidation.clone(), "left", &[Value::Str("0".into())]);
         let mut contractsString: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&size, &left));
@@ -10572,7 +10572,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // --- derive side ---
         // 1) options payload has explicit 'side': 'long' | 'short'
-        let mut optPos: Option<String> = self.safe_string_lower(liquidation.clone(), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
+        let mut optPos: Option<String> = self.safe_string_lower_k(liquidation.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
         if (optPos.as_deref() == Some("long")) {
             side = Value::Str("buy".into());
@@ -10968,7 +10968,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut marketId: Value = self.safe_string_k(chain.clone(), "name", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(chain.clone(), Value::Str("create_time".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(chain.clone(), "create_time", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());

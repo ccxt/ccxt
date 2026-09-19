@@ -1355,7 +1355,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
         let mut isConditional: bool = (stopLossPrice != Value::Null) || (takeProfitPrice != Value::Null);
         let mut isMarketOrder: Value = (Value::Bool(orderType.as_str() == Some("MARKET")));
-        let mut timeInForce: Option<String> = self.safe_string_lower(params.clone(), Value::Str("timeInForce".into()), &[Value::Str("gtt".into())]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[Value::Str("gtt".into())]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Null, &[params.clone()]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("timeInForce".into())]), &[]);
         let mut orderTypeNum: Value = Value::Null;
@@ -1740,7 +1740,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut response: Value = self.root_get(&[params.clone()]).await;
-        return self.safe_timestamp(response, Value::Str("timestamp".into()), &[]);
+        return self.safe_timestamp_k(response, "timestamp", &[]);
 
     Value::Null
 }
@@ -3147,7 +3147,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut marketId: Value = self.safe_string_k(order.clone(), "market_index", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(order.clone(), "timestamp", &[]);
         let mut isAsk: Value = self.safe_bool_k(order.clone(), "is_ask", &[]);
         if (isAsk == Value::Null) {
             let mut isAskAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "is_ask", &[]).as_i64();
@@ -3199,7 +3199,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp(order.clone(), Value::Str("updated_at".into()), &[]));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(order.clone(), "updated_at", &[]));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), self.parse_order_type(type_var));
         m.insert("timeInForce".to_string(), self.parse_order_time_in_force(tif.clone()));

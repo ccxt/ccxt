@@ -1142,7 +1142,7 @@ impl TokocryptoCore {
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-            let mut lowercaseId: Value = self.safe_string_lower(market.clone(), Value::Str("symbol".into()), &[]);
+            let mut lowercaseId: Value = self.safe_string_lower_k(market.clone(), "symbol", &[]);
             let mut settleId: Value = self.safe_string_k(market.clone(), "marginAsset", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
@@ -1473,7 +1473,7 @@ impl TokocryptoCore {
             side = (if (buyerMaker.as_bool() == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) }); // this is reversed intentionally
             takerOrMaker = Value::Str("taker".into());
         }  else if (matches!(&trade, Value::Dict(__d) if __d.contains_key("side"))) {
-            side = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+            side = self.safe_string_lower_k(trade.clone(), "side", &[]);
         }  else {
             if (matches!(&trade, Value::Dict(__d) if __d.contains_key("isBuyer"))) {
                 side = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("isBuyer")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("buy".into()) } else { Value::Str("sell".into()) }); // this is a true side
@@ -2004,7 +2004,7 @@ impl TokocryptoCore {
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]);
         let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType]);
         let mut defaultMarginMode: Value = self.safe_string2(self.options.clone(), Value::Str("marginMode".into()), Value::Str("defaultMarginMode".into()), &[]);
-        let mut marginMode: Value = self.safe_string_lower(params.clone(), Value::Str("marginMode".into()), &[defaultMarginMode]);
+        let mut marginMode: Value = self.safe_string_lower_k(params.clone(), "marginMode", &[defaultMarginMode]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2189,8 +2189,8 @@ impl TokocryptoCore {
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         let mut cost: Value = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("cummulativeQuoteQty".into()), Value::Str("cumQuote".into()), Value::Str("executedQuoteQty".into()), Value::Str("cumBase".into())]), &[]);
         let mut id: Value = self.safe_string_k(order.clone(), "orderId", &[]);
-        let mut type_var: Value = self.parse_order_type(self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]));
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut type_var: Value = self.parse_order_type(self.safe_string_lower_k(order.clone(), "type", &[]));
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         if (side.as_str() == Some("0")) {
             side = Value::Str("buy".into());
         }  else if (side.as_str() == Some("1")) {
@@ -2818,7 +2818,7 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]); // this line allows the user to specify either ERC20 or ETH
+        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]); // this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network.clone(), &[network.clone()]); // handle ERC20>ETH alias
         if (network != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".to_string(), network); }

@@ -2700,7 +2700,7 @@ impl ToobitCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut rawType: Value = self.safe_string_k(order.clone(), "type", &[]);
-        let mut rawSideLower: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut rawSideLower: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut reduceOnly: Value = Value::Null;
         if (rawSideLower != Value::Null) {
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
@@ -3863,7 +3863,7 @@ impl ToobitCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string2(leverage.clone(), Value::Str("symbolId".into()), Value::Str("symbol".into()), &[]);
         let mut leverageValue: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
-        let mut marginType: Option<String> = self.safe_string_lower(leverage.clone(), Value::Str("marginType".into()), &[]).as_str().map(str::to_owned);
+        let mut marginType: Option<String> = self.safe_string_lower_k(leverage.clone(), "marginType", &[]).as_str().map(str::to_owned);
         let mut marginMode: Value = (if (marginType.as_deref() == Some("cross")) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3923,7 +3923,7 @@ impl ToobitCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut side: Value = self.safe_string_lower(position.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(position.clone(), "side", &[]);
         let mut quantity: Value = self.safe_string_k(position.clone(), "position", &[]);
         let mut leverage: Value = self.safe_integer_k(position.clone(), "leverage", &[]);
         return self.safe_position(Value::Map({

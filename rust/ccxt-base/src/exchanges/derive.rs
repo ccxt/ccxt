@@ -1530,7 +1530,7 @@ impl DeriveCore {
             option = Value::Bool(true);
             marketType = Value::Str("option".into());
             let mut optionDetails: Value = self.safe_dict_k(market.clone(), "option_details", &[]);
-            expiry = self.safe_timestamp(optionDetails.clone(), Value::Str("expiry".into()), &[]);
+            expiry = self.safe_timestamp_k(optionDetails.clone(), "expiry", &[]);
             strike = self.safe_integer_k(optionDetails.clone(), "strike", &[]);
             optionLetter = self.safe_string_k(optionDetails, "option_type", &[]);
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into()), Value::Str("-".into())).into()), self.number_to_string(strike.clone())).into()), Value::Str("-".into())).into()), optionLetter).into());
@@ -1967,7 +1967,7 @@ impl DeriveCore {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "trade_id", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
         m.insert("symbol".to_string(), symbol);
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("direction".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "direction", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "liquidity_role", &[]));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "trade_price", &[]));
@@ -3020,7 +3020,7 @@ impl DeriveCore {
         let mut amount: Value = self.safe_string_k(order.clone(), "desired_amount", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "filled_amount", &[]);
         let mut fee: Value = self.safe_string_k(order.clone(), "order_fee", &[]);
-        let mut orderType: Value = self.safe_string_lower(order.clone(), Value::Str("order_type".into()), &[]);
+        let mut orderType: Value = self.safe_string_lower_k(order.clone(), "order_type", &[]);
         let mut isBid: Value = self.safe_bool_k(order.clone(), "is_bid", &[]);
         let mut side: Value = self.safe_string_k(order.clone(), "direction", &[]);
         if (side == Value::Null) {

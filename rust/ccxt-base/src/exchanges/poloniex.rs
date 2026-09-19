@@ -2514,7 +2514,7 @@ impl PoloniexCore {
         let mut amount: Value = self.safe_string2(order.clone(), Value::Str("quantity".into()), Value::Str("sz".into()), &[]);
         let mut filled: Value = self.safe_string2(order.clone(), Value::Str("filledQuantity".into()), Value::Str("execQty".into()), &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut rawType: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut type_var: Value = self.parse_order_type(rawType.clone());
         let mut id: Value = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("orderNumber".into()), Value::Str("id".into()), Value::Str("orderId".into()), Value::Str("ordId".into())]), &[]);
@@ -2540,7 +2540,7 @@ impl PoloniexCore {
             });
         }
         let mut clientOrderId: Value = self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[]);
-        let mut marginMode: Value = self.safe_string_lower(order.clone(), Value::Str("mgnMode".into()), &[]);
+        let mut marginMode: Value = self.safe_string_lower_k(order.clone(), "mgnMode", &[]);
         let mut reduceOnly: Value = self.safe_bool_k(order.clone(), "reduceOnly", &[]);
         let mut leverage: Value = self.safe_integer_k(order.clone(), "lever", &[]);
         let mut hedged: Value = Value::Bool(self.safe_string_k(order.clone(), "posSide", &[]).as_str() != Some("BOTH"));
@@ -4178,7 +4178,7 @@ impl PoloniexCore {
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("withdrawNetworkEntry"))) {
             transaction = crate::value::get_value_k(&transaction, "response");
         }
-        let mut timestamp: Value = self.safe_timestamp(transaction.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(transaction.clone(), "timestamp", &[]);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[]);
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[Value::Str("pending".into())]);
@@ -4324,7 +4324,7 @@ impl PoloniexCore {
             marketId = self.safe_string_k(entry.clone(), "symbol", &[]);
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower
-            marginMode = self.safe_string_lower(entry.clone(), Value::Str("mgnMode".into()), &[]);
+            marginMode = self.safe_string_lower_k(entry.clone(), "mgnMode", &[]);
             let mut lever: Value = self.safe_integer_k(entry.clone(), "lever", &[]);
             let mut posSide: Option<String> = self.safe_string_k(entry, "posSide", &[]).as_str().map(str::to_owned);
             if (posSide.as_deref() == Some("LONG")) {
@@ -4514,7 +4514,7 @@ impl PoloniexCore {
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "cTime", &[]);
-        let mut marginMode: Value = self.safe_string_lower(position.clone(), Value::Str("mgnMode".into()), &[]);
+        let mut marginMode: Value = self.safe_string_lower_k(position.clone(), "mgnMode", &[]);
         let mut leverage: Value = self.safe_string_k(position.clone(), "lever", &[]);
         let mut initialMargin: Value = self.safe_string_k(position.clone(), "im", &[]);
         let mut notional: Value = crate::precise::Precise::stringMul(&leverage, &initialMargin);
@@ -4536,7 +4536,7 @@ impl PoloniexCore {
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPx", &[]));
         m.insert("lastPrice".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(position.clone(), Value::Str("posSide".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "posSide", &[]));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));

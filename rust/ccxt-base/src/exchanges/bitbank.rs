@@ -1114,8 +1114,8 @@ impl BitbankCore {
         let mut remaining: Value = self.safe_string_k(order.clone(), "remaining_amount", &[]);
         let mut average: Value = self.safe_string_k(order.clone(), "average_price", &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);

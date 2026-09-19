@@ -1095,7 +1095,7 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("symbol".to_string(), symbol);
-        m.insert("marginMode".to_string(), self.safe_string_lower(data.clone(), Value::Str("margin_type".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(data.clone(), "margin_type", &[]));
         m.insert("longLeverage".to_string(), self.safe_number_k(data.clone(), "leverage", &[]));
         m.insert("shortLeverage".to_string(), self.safe_number_k(data.clone(), "leverage", &[]));
     m
@@ -1324,7 +1324,7 @@ impl MudrexCore {
         let mut oms: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[oms, market.clone()]);
         let mut oid: Value = self.safe_string2(order.clone(), Value::Str("order_id".into()), Value::Str("id".into()), &[]);
-        let mut rawSide: Option<String> = self.safe_string_upper(order.clone(), Value::Str("order_type".into()), &[]).as_str().map(str::to_owned);
+        let mut rawSide: Option<String> = self.safe_string_upper_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
         if (rawSide.as_deref() == Some("LONG")) {
             side = Value::Str("buy".into());
@@ -1347,7 +1347,7 @@ impl MudrexCore {
                 takeProfitPrice = priceString;
             }
         }
-        let mut trig: Option<String> = self.safe_string_upper(order.clone(), Value::Str("trigger_type".into()), &[]).as_str().map(str::to_owned);
+        let mut trig: Option<String> = self.safe_string_upper_k(order.clone(), "trigger_type", &[]).as_str().map(str::to_owned);
         let mut typ: Value = Value::Null;
         if (trig.as_deref() == Some("MARKET")) {
             typ = Value::Str("market".into());
@@ -1355,7 +1355,7 @@ impl MudrexCore {
             typ = Value::Str("limit".into());
         }
         let mut ts: Value = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
-        let mut status: Value = self.parse_order_status(self.safe_string_lower(order.clone(), Value::Str("status".into()), &[]));
+        let mut status: Value = self.parse_order_status(self.safe_string_lower_k(order.clone(), "status", &[]));
         let mut sym: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1807,7 +1807,7 @@ impl MudrexCore {
             m
         });
         if (amount != Value::Null) {
-            let mut orderType: Value = self.safe_string_upper(params.clone(), Value::Str("order_type".into()), &[Value::Str("LIMIT".into())]);
+            let mut orderType: Value = self.safe_string_upper_k(params.clone(), "order_type", &[Value::Str("LIMIT".into())]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".to_string(), orderType.clone()); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount)); }
             let mut lp: Value = self.safe_string_k(params.clone(), "limit_price", &[]);
@@ -2051,14 +2051,14 @@ impl MudrexCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut ts: Value = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
-        let mut side: Option<String> = self.safe_string_lower(trade.clone(), Value::Str("order_type".into()), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut tradeSide: Value = Value::Null;
         if (side.as_deref() == Some("long")) {
             tradeSide = Value::Str("buy".into());
         }  else if (side.as_deref() == Some("short")) {
             tradeSide = Value::Str("sell".into());
         }
-        let mut trig: Option<String> = self.safe_string_upper(trade.clone(), Value::Str("trigger_type".into()), &[]).as_str().map(str::to_owned);
+        let mut trig: Option<String> = self.safe_string_upper_k(trade.clone(), "trigger_type", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
         if (trig.as_deref() == Some("MARKET")) {
             // a market execution always takes liquidity, a limit execution can be either
@@ -2087,7 +2087,7 @@ impl MudrexCore {
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
         m.insert("order".to_string(), Value::Null);
-        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("trigger_type".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "trigger_type", &[]));
         m.insert("side".to_string(), tradeSide);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), Value::Null);

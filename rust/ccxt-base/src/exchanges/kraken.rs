@@ -1933,7 +1933,7 @@ impl KrakenCore {
         }  else {
             direction = Value::Str("in".into());
         }
-        let mut timestamp: Value = self.safe_integer_product(item.clone(), Value::Str("time".into()), Value::Int(1000), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(item.clone(), "time", Value::Int(1000), &[]);
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
@@ -2199,7 +2199,7 @@ impl KrakenCore {
             }
             orderId = self.safe_string_k(trade.clone(), "ordertxid", &[]);
             id = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("postxid".into()), &[]);
-            timestamp = self.safe_timestamp(trade.clone(), Value::Str("time".into()), &[]);
+            timestamp = self.safe_timestamp_k(trade.clone(), "time", &[]);
             side = self.safe_string_k(trade.clone(), "type", &[]);
             type_var = self.safe_string_k(trade.clone(), "ordertype", &[]);
             price = self.safe_string_k(trade.clone(), "price", &[]);
@@ -2844,7 +2844,7 @@ impl KrakenCore {
             // delisted market ids go here
             market = self.get_delisted_market_by_id(marketId);
         }
-        let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("opentm".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(order.clone(), "opentm", &[]);
         amount = self.safe_string_k(order.clone(), "vol", &[amount.clone()]);
         let mut filled: Value = self.safe_string_k(order.clone(), "vol_exec", &[]);
         let mut fee: Value = Value::Null;
@@ -2949,7 +2949,7 @@ impl KrakenCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp(order.clone(), Value::Str("closetm".into()), &[]));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(order.clone(), "closetm", &[]));
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), typeParsed);
@@ -4019,7 +4019,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut id: Value = self.safe_string_k(transaction.clone(), "refid", &[]);
         let mut txid: Value = self.safe_string_k(transaction.clone(), "txid", &[]);
-        let mut timestamp: Value = self.safe_timestamp(transaction.clone(), Value::Str("time".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(transaction.clone(), "time", &[]);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "asset", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut address: Value = self.safe_string_k(transaction.clone(), "info", &[]);
@@ -4187,7 +4187,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.safe_timestamp(result, Value::Str("unixtime".into()), &[]);
+        return self.safe_timestamp_k(result, "unixtime", &[]);
 
     Value::Null
 }
@@ -4380,7 +4380,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]);
+        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

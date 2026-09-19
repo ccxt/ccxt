@@ -864,8 +864,8 @@ impl CoinoneCore {
             while { if !__for_first_576 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_576 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(tickers.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_k(entry.clone(), "id", &[]);
-            let mut baseId: Value = self.safe_string_upper(entry.clone(), Value::Str("target_currency".into()), &[]);
-            let mut quoteId: Value = self.safe_string_upper(entry.clone(), Value::Str("quote_currency".into()), &[]);
+            let mut baseId: Value = self.safe_string_upper_k(entry.clone(), "target_currency", &[]);
+            let mut quoteId: Value = self.safe_string_upper_k(entry.clone(), "quote_currency", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             append_to_array(&mut result, Value::Map({
@@ -1556,7 +1556,7 @@ impl CoinoneCore {
         }
         let mut side: Value = self.safe_string_lower2(order.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]);
         if (side.as_str() == Some("limit")) || (side.as_str() == Some("market")) || (side.as_str() == Some("stop_limit")) {
-            side = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]); // in v2.1 rows the type field carries the order type, the side lives in side
+            side = self.safe_string_lower_k(order.clone(), "side", &[]); // in v2.1 rows the type field carries the order type, the side lives in side
         }
         if (side.as_str() == Some("ask")) {
             side = Value::Str("sell".into());

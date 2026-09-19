@@ -923,7 +923,7 @@ impl BitflyerCore {
         //          "commission": 0,
         //      },
         //
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         if (side != Value::Null) {
             if ((side.len() as i64) as f64) < ((1i64) as f64) {
                 side = Value::Null;
@@ -1154,8 +1154,8 @@ impl BitflyerCore {
         let mut filled: Value = self.safe_string_k(order.clone(), "executed_size", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "outstanding_size", &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "child_order_state", &[]));
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("child_order_type".into()), &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "child_order_type", &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "product_code", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut fee: Value = Value::Null;

@@ -770,7 +770,7 @@ impl HashkeyCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "O", &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("S".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "S", &[]);
         let mut reduceOnly: Value = Value::Null;
         { let __destr_tmp = self.parent.parse_order_side_and_reduce_only(side.clone()); side = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut type_var: Value = self.parent.parse_order_type(self.safe_string_k(order.clone(), "o", &[]));
@@ -932,7 +932,7 @@ impl HashkeyCore {
                 side = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
             }  else {
                 takerOrMaker = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
-                side = self.safe_string_lower(trade.clone(), Value::Str("S".into()), &[]);
+                side = self.safe_string_lower_k(trade.clone(), "S", &[]);
             }
         }
         return self.safe_trade(Value::Map({
@@ -1051,7 +1051,7 @@ impl HashkeyCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "P", &[]));
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(position.clone(), Value::Str("S".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "S", &[]));
         m.insert("notional".to_string(), self.safe_number_k(position.clone(), "pv", &[]));
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "v", &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "up", &[]));
@@ -1060,7 +1060,7 @@ impl HashkeyCore {
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "p", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "f", &[]));
-        m.insert("marginMode".to_string(), self.safe_string_lower(position.clone(), Value::Str("mt".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(position.clone(), "mt", &[]));
         m.insert("hedged".to_string(), Value::Bool(true));
         m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "mm", &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);

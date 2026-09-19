@@ -1701,7 +1701,7 @@ impl ApexCore {
         let mut amount: Value = self.safe_string_k(order.clone(), "size", &[]);
         let mut orderType: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         let mut remaining: Value = self.omit_zero(self.safe_string_k(order.clone(), "remainingSize", &[]));
         let mut lastUpdateTimestamp: Value = self.safe_integer_k(order.clone(), "updatedTime", &[]);
@@ -1926,7 +1926,7 @@ impl ApexCore {
         if matches!(&isMarket, Value::Bool(true)) && (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".into()))));
         }
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[]);
+        let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[]);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
         if (timeInForce == Value::Null) {
             timeInForce = Value::Str("GOOD_TIL_CANCEL".into());
@@ -2719,7 +2719,7 @@ impl ApexCore {
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut side: Value = self.safe_string_lower(position.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(position.clone(), "side", &[]);
         let mut quantity: Value = self.safe_string_k(position.clone(), "size", &[]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "updatedTime", &[]);
         let mut leverage: Value = Value::Int(20);

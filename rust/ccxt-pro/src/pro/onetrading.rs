@@ -982,7 +982,7 @@ impl OnetradingCore {
         m.insert("type".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "side", &[]));
         m.insert("price".to_string(), self.safe_number2(order.clone(), Value::Str("price".into()), Value::Str("matched_price".into()), &[]));
         m.insert("stopPrice".to_string(), self.safe_number_k(order.clone(), "trigger_price", &[]));
         m.insert("amount".to_string(), self.safe_number_k(order.clone(), "amount", &[]));

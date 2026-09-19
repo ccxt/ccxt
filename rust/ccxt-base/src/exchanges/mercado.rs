@@ -717,7 +717,7 @@ impl MercadoCore {
         //     }
         //
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("date".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "date", &[]);
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1107,7 +1107,7 @@ impl MercadoCore {
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         let mut marketId: Value = self.safe_string_k(order.clone(), "coin_pair", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("created_timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(order.clone(), "created_timestamp", &[]);
         let mut fee: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), self.safe_string_k(order.clone(), "fee", &[]));
@@ -1119,7 +1119,7 @@ impl MercadoCore {
         let mut average: Value = self.safe_string_k(order.clone(), "executed_price_avg", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "executed_quantity", &[]);
-        let mut lastTradeTimestamp: Value = self.safe_timestamp(order.clone(), Value::Str("updated_timestamp".into()), &[]);
+        let mut lastTradeTimestamp: Value = self.safe_timestamp_k(order.clone(), "updated_timestamp", &[]);
         let mut rawTrades: Value = self.safe_list_k(order.clone(), "operations", &[Value::from(vec![])]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         return self.safe_order(Value::Map({

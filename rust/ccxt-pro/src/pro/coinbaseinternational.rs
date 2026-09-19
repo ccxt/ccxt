@@ -986,7 +986,7 @@ impl CoinbaseinternationalCore {
         m.insert("datetime".to_string(), datetime);
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("agressor_side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "agressor_side", &[]));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "trade_price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade, "trade_qty", &[]));

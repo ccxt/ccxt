@@ -1656,7 +1656,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settle: Value = (if matches!(&spot, Value::Bool(true)) { Value::Null } else { self.safe_currency_code(settleId.clone(), &[]) });
-            let mut optionType: Value = self.safe_string_lower(market.clone(), Value::Str("put_call".into()), &[]);
+            let mut optionType: Value = self.safe_string_lower_k(market.clone(), "put_call", &[]);
             let mut strike: Value = self.safe_string_k(market.clone(), "strike", &[]);
             let mut marginBuyEnabled: Value = self.safe_bool_k(market.clone(), "margin_buy_enabled", &[]);
             let mut marginSellEnabled: Value = self.safe_bool_k(market.clone(), "margin_sell_enabled", &[]);
@@ -3308,7 +3308,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]);
+        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("network".into())]), &[]);
         let mut depositAddressesRaw: Value = self.fetch_deposit_addresses_by_network(code, &[params.clone()]).await;
         let mut depositAddresses: Value = depositAddressesRaw;
@@ -3595,7 +3595,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
         m.insert("side".to_string(), self.safe_string_lower2(trade.clone(), Value::Str("s".into()), Value::Str("side".into()), &[]));
-        m.insert("takerOrMaker".to_string(), self.safe_string_lower(trade.clone(), Value::Str("taker_side".into()), &[]));
+        m.insert("takerOrMaker".to_string(), self.safe_string_lower_k(trade.clone(), "taker_side", &[]));
         m.insert("price".to_string(), self.safe_number2(trade.clone(), Value::Str("p".into()), Value::Str("traded_price".into()), &[]));
         m.insert("amount".to_string(), self.safe_number2(trade, Value::Str("q".into()), Value::Str("traded_quantity".into()), &[]));
         m.insert("cost".to_string(), Value::Null);
@@ -3736,10 +3736,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "update_time", &[]));
         m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])));
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("type".to_string(), self.safe_string_lower(order.clone(), Value::Str("order_type".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "order_type", &[]));
         m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "time_in_force", &[])));
         m.insert("postOnly".to_string(), postOnly);
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "side", &[]));
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "limit_price", &[]));
         m.insert("amount".to_string(), self.safe_number_k(order.clone(), "quantity", &[]));
         m.insert("filled".to_string(), self.safe_number_k(order.clone(), "cumulative_quantity", &[]));
@@ -4871,7 +4871,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), Value::Str("MARKET".into()));
             m
         });
-        let mut type_var: Value = self.safe_string_upper(params.clone(), Value::Str("type".into()), &[]);
+        let mut type_var: Value = self.safe_string_upper_k(params.clone(), "type", &[]);
         let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
         if (type_var != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), type_var); }

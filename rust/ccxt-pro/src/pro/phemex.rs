@@ -374,7 +374,7 @@ impl PhemexCore {
         let mut marketResolved: Value = self.safe_market(&[marketId, market.clone()]);
         market = marketResolved.clone();
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_product(ticker.clone(), Value::Str("timestamp".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "timestamp", Value::Float(0.000001), &[]);
         let mut lastString: Value = self.from_ep(self.safe_string_k(ticker.clone(), "close", &[]), &[market.clone()]);
         let mut last: Value = self.parse_number(lastString.clone(), &[]);
         let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(ticker.clone(), "turnover", &[]), &[market.clone()]), &[]);
@@ -583,7 +583,7 @@ impl PhemexCore {
             let mut ticker: Value = tickers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut symbol: Value = crate::value::get_value_k(&ticker, "symbol");
             let mut messageHash: Value = add(&Value::Str("ticker:".into()), &symbol);
-            let mut timestamp: Value = self.safe_integer_product(message.clone(), Value::Str("timestamp".into()), Value::Float(0.000001), &[]);
+            let mut timestamp: Value = self.safe_integer_product_k(message.clone(), "timestamp", Value::Float(0.000001), &[]);
             add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(timestamp));
             add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
@@ -1143,7 +1143,7 @@ impl PhemexCore {
         let mut name: Value = Value::Str("orderbook".into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), symbol).into());
         let mut nonce: Value = self.safe_integer_k(message.clone(), "sequence", &[]);
-        let mut timestamp: Value = self.safe_integer_product(message.clone(), Value::Str("timestamp".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(message.clone(), "timestamp", Value::Float(0.000001), &[]);
         if (type_var.as_deref() == Some("snapshot")) {
             let mut book: Value = self.safe_dict2(message.clone(), Value::Str("book".into()), Value::Str("orderbook_p".into()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1784,15 +1784,15 @@ impl PhemexCore {
         market = marketResolved.clone();
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut status: Value = self.parent.parse_order_status(self.safe_string_k(order.clone(), "ordStatus", &[]));
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut type_var: Value = self.parent.parse_order_type(self.safe_string_k(order.clone(), "ordType", &[]));
         let mut price: Value = self.safe_string_k(order.clone(), "priceRp", &[self.from_ep(self.safe_string(order.clone(), Value::Str("priceEp".into()), &[]), &[market.clone()])]);
         let mut amount: Value = self.safe_string_k(order.clone(), "orderQty", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "cumQty", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "leavesQty", &[]);
-        let mut timestamp: Value = self.safe_integer_product(order.clone(), Value::Str("actionTimeNs".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(order.clone(), "actionTimeNs", Value::Float(0.000001), &[]);
         let mut cost: Value = self.safe_string_k(order.clone(), "cumValueRv", &[self.from_ev(self.safe_string(order.clone(), Value::Str("cumValueEv".into()), &[]), &[market.clone()])]);
-        let mut lastTradeTimestamp: Value = self.safe_integer_product(order.clone(), Value::Str("transactTimeNs".into()), Value::Float(0.000001), &[]);
+        let mut lastTradeTimestamp: Value = self.safe_integer_product_k(order.clone(), "transactTimeNs", Value::Float(0.000001), &[]);
         if (lastTradeTimestamp.as_f64() == Some(0.0)) {
             lastTradeTimestamp = Value::Null;
         }

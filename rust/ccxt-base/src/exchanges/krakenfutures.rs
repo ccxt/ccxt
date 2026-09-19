@@ -1838,7 +1838,7 @@ impl KrakenfuturesCore {
     m
 })]);
             if (taker != Value::Null) {
-                side = self.safe_string_lower(taker, Value::Str("direction".into()), &[]);
+                side = self.safe_string_lower_k(taker, "direction", &[]);
                 takerOrMaker = Value::Str("taker".into());
             }
         }
@@ -3574,7 +3574,7 @@ impl KrakenfuturesCore {
         //    }
         //
         // the account log spells the contract in lower case, the market ids are upper case
-        let mut marketId: Value = self.safe_string_upper(income.clone(), Value::Str("contract".into()), &[]);
+        let mut marketId: Value = self.safe_string_upper_k(income.clone(), "contract", &[]);
         let mut currencyId: Value = self.safe_string_k(income.clone(), "asset", &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(income.clone(), "date", &[]));
         return Value::Map({
@@ -4090,7 +4090,7 @@ impl KrakenfuturesCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.safe_string_upper(market, Value::Str("id".into()), &[]));
+                m.insert("symbol".to_string(), self.safe_string_upper_k(market, "id", &[]));
             m
         });
         let __ws_arg_18 = self.extend(request, &[params]);

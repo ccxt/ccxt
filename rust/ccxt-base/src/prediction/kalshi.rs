@@ -1120,7 +1120,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut status: Option<String> = self.safe_string_k(raw.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = Value::Bool((status.as_deref() == Some("active")) || (status.as_deref() == Some("open")));
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
-        let mut result: Value = self.safe_string_lower(raw.clone(), Value::Str("result".into()), &[]);
+        let mut result: Value = self.safe_string_lower_k(raw.clone(), "result", &[]);
         let mut resolved: Value = Value::Bool((status.as_deref() == Some("settled")) || ((result != Value::Null) && (result.as_str() != Some(""))));
         let mut endDate: Value = self.safe_string_k(raw.clone(), "expiration_time", &[]);
         let mut volume: Value = self.safe_number2(raw.clone(), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[]);
@@ -2003,7 +2003,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut previous: Value = self.safe_number_k(price.clone(), "previous_dollars", &[]);
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
-        let mut endTimestamp: Value = self.safe_timestamp(ohlcv.clone(), Value::Str("end_period_ts".into()), &[]);
+        let mut endTimestamp: Value = self.safe_timestamp_k(ohlcv.clone(), "end_period_ts", &[]);
         let mut durationSeconds: Value = self.safe_integer_k(self.options.clone(), "ohlcvCandleDurationSeconds", &[Value::Int(0)]);
         let mut timestamp: Value = endTimestamp.clone();
         if (endTimestamp != Value::Null) {
@@ -2086,14 +2086,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut amountFp: Value = self.safe_number2(trade.clone(), Value::Str("count_fp".into()), Value::Str("size_fp".into()), &[]);
         let mut amount: Value = self.safe_number_k(trade.clone(), "count", &[amountFp]);
-        let mut rawSide: Value = self.safe_string_lower(trade.clone(), Value::Str("taker_side".into()), &[]);
+        let mut rawSide: Value = self.safe_string_lower_k(trade.clone(), "taker_side", &[]);
         let mut marketAny: Value = market.clone();
         let mut outcomeObj: Value = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]);
         let mut marketInfo: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut requestedOutcomeLabel: Value = self.safe_string_lower(outcomeObj.clone(), Value::Str("label".into()), &[self.safe_string_lower(marketInfo, Value::Str("outcomeLabel".into()), &[])]);
+        let mut requestedOutcomeLabel: Value = self.safe_string_lower_k(outcomeObj.clone(), "label", &[self.safe_string_lower(marketInfo, Value::Str("outcomeLabel".into()), &[])]);
         let mut outcomeSymbol: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
         let mut outcomeId: Value = self.safe_string2(outcomeObj.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]);
         let mut side: Value = Value::Null;
@@ -2218,7 +2218,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderId: Value = self.safe_string_k(fill.clone(), "order_id", &[]);
         let mut ticker: Value = self.safe_string2(fill.clone(), Value::Str("ticker".into()), Value::Str("market_ticker".into()), &[]);
         // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
-        let mut sideLeg: Option<String> = self.safe_string_lower(fill.clone(), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
+        let mut sideLeg: Option<String> = self.safe_string_lower_k(fill.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut outcomeKey: Value = ticker.clone();
         if (sideLeg.as_deref() == Some("no")) && (ticker != Value::Null) {
             outcomeKey = Value::Str(format!("{}{}", ticker, Value::Str("-NO".into())).into());
@@ -2226,7 +2226,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut mkt: Value = self.safe_outcome(outcomeKey.clone(), &[market.clone()]);
         let mut ts: Value = self.parse8601(self.safe_string_k(fill.clone(), "created_time", &[]));
         // action is the order side (buy/sell) of the held leg
-        let mut action: Option<String> = self.safe_string_lower(fill.clone(), Value::Str("action".into()), &[]).as_str().map(str::to_owned);
+        let mut action: Option<String> = self.safe_string_lower_k(fill.clone(), "action", &[]).as_str().map(str::to_owned);
         let mut side: Value = (if (action.as_deref() == Some("sell")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         let mut price: Value = Value::Null;
@@ -2497,7 +2497,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut heldTicker: Value = (if (useHeldYesTicker) { ticker.clone() } else { (Value::Str(format!("{}{}", ticker, Value::Str("-NO".into())).into())) });
         let mut mkt: Value = self.safe_outcome(heldTicker.clone(), &[market]);
         // which leg won; market_result is yes or no
-        let mut marketResult: Value = self.safe_string_upper(settlement.clone(), Value::Str("market_result".into()), &[]);
+        let mut marketResult: Value = self.safe_string_upper_k(settlement.clone(), "market_result", &[]);
         let mut won: Value = (Value::Bool(marketResult.as_str() == heldLabel.as_str()));
         // kalshi reports money as dollar keys on V2, else cents
         let mut payout: Value = self.safe_number_k(settlement.clone(), "revenue_dollars", &[]);
@@ -2772,7 +2772,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ticker: Value = self.safe_string_k(order.clone(), "ticker", &[]);
         // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
         // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
-        let mut sideLeg: Option<String> = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
+        let mut sideLeg: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut outcomeKey: Value = ticker.clone();
         if (sideLeg.as_deref() == Some("no")) && (ticker != Value::Null) {
             outcomeKey = Value::Str(format!("{}{}", ticker, Value::Str("-NO".into())).into());
@@ -2781,7 +2781,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
-        let mut action: Option<String> = self.safe_string_lower(order.clone(), Value::Str("action".into()), &[]).as_str().map(str::to_owned);
+        let mut action: Option<String> = self.safe_string_lower_k(order.clone(), "action", &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
         if (action.as_deref() == Some("buy")) {
             side = Value::Str("buy".into());
@@ -2790,7 +2790,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         // legacy returned yes_price/no_price in cents
-        let mut labelIsNo: bool = self.safe_string_upper(mkt.clone(), Value::Str("label".into()), &[]).as_str() == Some("NO");
+        let mut labelIsNo: bool = self.safe_string_upper_k(mkt.clone(), "label", &[]).as_str() == Some("NO");
         let mut dollarsKey: Value = (if (labelIsNo) { Value::Str("no_price_dollars".into()) } else { Value::Str("yes_price_dollars".into()) });
         let mut centsKey: Value = (if (labelIsNo) { Value::Str("no_price".into()) } else { Value::Str("yes_price".into()) });
         let mut price: Value = self.safe_number(order.clone(), dollarsKey, &[]);
@@ -2821,7 +2821,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("outcomeId".to_string(), self.safe_string2(mkt.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("label".to_string(), self.safe_string_k(mkt.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string2(mkt.clone(), Value::Str("market".into()), Value::Str("outcome".into()), &[]));
-        m.insert("type".to_string(), self.safe_string_lower(order.clone(), Value::Str("type".into()), &[Value::Str("limit".into())]));
+        m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "type", &[Value::Str("limit".into())]));
         m.insert("timeInForce".to_string(), Value::Str("GTC".into()));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
@@ -2905,7 +2905,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isMarket: bool = type_var.as_str() == Some("market");
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
-        let mut unifiedTif: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
+        let mut unifiedTif: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("timeInForce".into()), &[]);
         let mut defaultTif: Value = (if (isMarket) { Value::Str("immediate_or_cancel".into()) } else { Value::Str("good_till_canceled".into()) });
         // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);

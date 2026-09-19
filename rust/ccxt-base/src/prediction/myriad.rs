@@ -1184,7 +1184,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), self.safe_string_k(market, "outcome", &[]));
-        m.insert("side".to_string(), self.safe_string_lower(quote.clone(), Value::Str("action".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(quote.clone(), "action", &[]));
         m.insert("value".to_string(), self.safe_number_k(quote.clone(), "value", &[]));
         m.insert("shares".to_string(), self.safe_number_k(quote.clone(), "shares", &[]));
         m.insert("sharesThreshold".to_string(), self.safe_number_k(quote.clone(), "shares_threshold", &[]));
@@ -1320,7 +1320,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut defaultModel: Value = self.safe_string_k(info, "tradingModel", &[Value::Str("amm".into())]);
-        let mut tradingModel: Option<String> = self.safe_string_lower(params.clone(), Value::Str("tradingModel".into()), &[defaultModel]).as_str().map(str::to_owned);
+        let mut tradingModel: Option<String> = self.safe_string_lower_k(params.clone(), "tradingModel", &[defaultModel]).as_str().map(str::to_owned);
         let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("tradingModel".into())]), &[]);
         if (tradingModel.as_deref() == Some("ob")) {
             return self.create_orderbook_order(outcome.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), rest.clone()]).await;
@@ -1453,7 +1453,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut sideInt: Value = (if (sideStr.as_str() == Some("buy")) { Value::Int(0) } else { Value::Int(1) });
         let mut isMarket: bool = typeStr.as_str() == Some("market");
         let mut defaultTif: Value = (if isMarket { Value::Str("FOK".into()) } else { Value::Str("GTC".into()) });
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[defaultTif]);
+        let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[defaultTif]);
         let mut priceValue: Value = price;
         if (priceValue == Value::Null) {
             if isMarket {
@@ -1991,10 +1991,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amount: Value = (if (amountWei == Value::Null) { Value::Null } else { self.parse_number(crate::precise::Precise::stringDiv(&amountWei, &Value::Str("1000000000000000000".into())), &[]) });
         let mut price: Value = (if (priceWei == Value::Null) { Value::Null } else { self.parse_number(crate::precise::Precise::stringDiv(&priceWei, &Value::Str("1000000000000000000".into())), &[]) });
         let mut filled: Value = (if (filledWei == Value::Null) { Value::Null } else { self.parse_number(crate::precise::Precise::stringDiv(&filledWei, &Value::Str("1000000000000000000".into())), &[]) });
-        let mut statusRaw: Value = self.safe_string_lower(order.clone(), Value::Str("status".into()), &[]);
+        let mut statusRaw: Value = self.safe_string_lower_k(order.clone(), "status", &[]);
         let mut status: Value = self.parse_order_status(statusRaw);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "createdAt", &[]));
-        let mut tif: Value = self.safe_string_upper(order.clone(), Value::Str("timeInForce".into()), &[]);
+        let mut tif: Value = self.safe_string_upper_k(order.clone(), "timeInForce", &[]);
         let mut isMarketTif: bool = (tif.as_str() == Some("FOK")) || (tif.as_str() == Some("FAK"));
         // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
         let mut outcome: Value = (if (market == Value::Null) { Value::Null } else { self.safe_string_k(market.clone(), "outcome", &[]) });
@@ -2076,7 +2076,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (label == Value::Null) {
             label = outcomeTitle;
         }
-        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "timestamp", &[]);
         let mut amountStr: Value = self.safe_string_k(trade.clone(), "shares", &[]);
         let mut costStr: Value = self.safe_string_k(trade.clone(), "value", &[]);
         let mut priceStr: Value = Value::Null;
@@ -2100,7 +2100,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), Value::Str("market".into()));
         m.insert("timeInForce".to_string(), Value::Str("IOC".into()));
         m.insert("postOnly".to_string(), Value::Bool(false));
-        m.insert("side".to_string(), self.safe_string_lower(trade, Value::Str("action".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade, "action", &[]));
         m.insert("price".to_string(), self.parse_number(priceStr.clone(), &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), self.parse_number(amountStr.clone(), &[]));
@@ -2137,7 +2137,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requestedStatus: Option<String> = self.safe_string_lower(params.clone(), Value::Str("status".into()), &[]).as_str().map(str::to_owned);
+        let mut requestedStatus: Option<String> = self.safe_string_lower_k(params.clone(), "status", &[]).as_str().map(str::to_owned);
         if (requestedStatus.as_deref() == Some("open")) || (requestedStatus.as_deref() == Some("cancelled")) || (requestedStatus.as_deref() == Some("canceled")) || (requestedStatus.as_deref() == Some("expired")) {
             return Value::from(vec![]);
         }
@@ -2215,7 +2215,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1312: bool = true;
             while { if !__for_first_1312 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1312 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
             let mut row: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut action: Option<String> = self.safe_string_lower(row.clone(), Value::Str("action".into()), &[]).as_str().map(str::to_owned);
+            let mut action: Option<String> = self.safe_string_lower_k(row.clone(), "action", &[]).as_str().map(str::to_owned);
             if (action.as_deref() != Some("buy")) && (action.as_deref() != Some("sell")) {
                 continue;
             }
@@ -2583,7 +2583,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                requestedTradingModel = self.safe_string_lower(info, Value::Str("tradingModel".into()), &[]);
+                requestedTradingModel = self.safe_string_lower_k(info, "tradingModel", &[]);
             }
         }
         if (requestedTradingModel.as_str() == Some("amm")) {
@@ -3821,7 +3821,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut low: Value = self.safe_number_k(ohlcv.clone(), "low", &[]);
         let mut close: Value = self.safe_number_k(ohlcv.clone(), "close", &[]);
         let mut price: Value = self.safe_number_k(ohlcv.clone(), "price", &[self.safe_number(ohlcv.clone(), Value::Str("value".into()), &[])]); // fallback single-value tick
-        return Value::from(vec![self.safe_timestamp(ohlcv, Value::Str("timestamp".into()), &[]), (if (open != Value::Null) { open } else { price.clone() }), (if (high != Value::Null) { high } else { price.clone() }), (if (low != Value::Null) { low } else { price.clone() }), (if (close != Value::Null) { close } else { price }), Value::Int(0)]);
+        return Value::from(vec![self.safe_timestamp_k(ohlcv, "timestamp", &[]), (if (open != Value::Null) { open } else { price.clone() }), (if (high != Value::Null) { high } else { price.clone() }), (if (low != Value::Null) { low } else { price.clone() }), (if (close != Value::Null) { close } else { price }), Value::Int(0)]);
 
     Value::Null
 }
@@ -4023,7 +4023,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  */
     pub fn parse_prediction_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "timestamp", &[]);
         let mut amountStr: Value = self.safe_string_k(trade.clone(), "shares", &[]);
         let mut costStr: Value = self.safe_string_k(trade.clone(), "value", &[]);
         let mut priceStr: Value = Value::Null;
@@ -4677,7 +4677,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
         m.insert("order".to_string(), self.safe_string_k(taker.clone(), "orderHash", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(taker.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(taker.clone(), "side", &[]));
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
         m.insert("price".to_string(), self.safe_number_k(taker.clone(), "averagePrice", &[]));
         m.insert("amount".to_string(), self.safe_number_k(taker.clone(), "totalAmount", &[]));
@@ -4704,7 +4704,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut myWallet: Value = self.wallet_address_or_undefined();
         if (myWallet != Value::Null) {
             let mut myLegs: Value = Value::from(vec![]);
-            let mut takerTrader: Value = self.safe_string_lower(taker, Value::Str("trader".into()), &[]);
+            let mut takerTrader: Value = self.safe_string_lower_k(taker, "trader", &[]);
             if (takerTrader.as_str() == myWallet.as_str()) {
                 append_to_array(&mut myLegs, trade);
             }
@@ -4715,7 +4715,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1338: bool = true;
                 while { if !__for_first_1338 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1338 = false; i.as_f64().unwrap_or(f64::NAN) < makersLength } {
                 let mut maker: Value = makers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut makerTrader: Value = self.safe_string_lower(maker.clone(), Value::Str("trader".into()), &[]);
+                let mut makerTrader: Value = self.safe_string_lower_k(maker.clone(), "trader", &[]);
                 if (makerTrader.as_str() == myWallet.as_str()) {
                     let mut makerSym: Value = self.market_outcome_to_symbol(networkId.clone(), marketId.clone(), self.safe_string_k(maker.clone(), "outcome", &[]));
                     let mut makerMarket: Value = self.safe_market(&[makerSym.clone()]);
@@ -4736,7 +4736,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("market".to_string(), self.safe_string_k(makerOutcomeObj, "market", &[]));
         m.insert("order".to_string(), self.safe_string_k(maker.clone(), "orderHash", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(maker.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(maker.clone(), "side", &[]));
         m.insert("takerOrMaker".to_string(), Value::Str("maker".into()));
         m.insert("price".to_string(), self.safe_number_k(maker.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_number_k(maker, "amount", &[]));
@@ -5010,8 +5010,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut price: Value = self.from_wei(self.safe_string_k(data.clone(), "price", &[]));
         let mut amount: Value = self.from_wei(self.safe_string_k(data.clone(), "amount", &[]));
         let mut filled: Value = self.from_wei(self.safe_string_k(data.clone(), "filledAmount", &[]));
-        let mut status: Value = self.parse_order_status(self.safe_string_lower(data.clone(), Value::Str("status".into()), &[]));
-        let mut tif: Value = self.safe_string_upper(data.clone(), Value::Str("timeInForce".into()), &[]);
+        let mut status: Value = self.parse_order_status(self.safe_string_lower_k(data.clone(), "status", &[]));
+        let mut tif: Value = self.safe_string_upper_k(data.clone(), "timeInForce", &[]);
         let mut isMarketTif: bool = (tif.as_str() == Some("FOK")) || (tif.as_str() == Some("FAK"));
         let mut timestamp: Value = self.parse8601(self.safe_string2(data.clone(), Value::Str("updatedAt".into()), Value::Str("createdAt".into()), &[]));
         let mut parsed: Value = self.safe_prediction_order(Value::Map({
@@ -5027,7 +5027,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
         m.insert("type".to_string(), (if isMarketTif { Value::Str("market".into()) } else { Value::Str("limit".into()) }));
         m.insert("timeInForce".to_string(), tif);
-        m.insert("side".to_string(), self.safe_string_lower(data, Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(data, "side", &[]));
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), amount);
         m.insert("filled".to_string(), filled);

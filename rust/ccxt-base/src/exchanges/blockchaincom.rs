@@ -901,10 +901,10 @@ impl BlockchaincomCore {
         //     }
         //
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clOrdId", &[]);
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("ordType".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "ordType", &[]);
         let mut statusId: Value = self.safe_string_k(order.clone(), "ordStatus", &[]);
         let mut state: Value = self.parse_order_state(statusId);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market, Value::Str("-".into())]);
         let mut exchangeOrderId: Value = self.safe_string_k(order.clone(), "exOrdId", &[]);
@@ -1260,7 +1260,7 @@ impl BlockchaincomCore {
         //
         let mut orderId: Value = self.safe_string_k(trade.clone(), "exOrdId", &[]);
         let mut tradeId: Value = self.safe_string_k(trade.clone(), "tradeId", &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "qty", &[]);

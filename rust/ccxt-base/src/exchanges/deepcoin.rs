@@ -1083,7 +1083,7 @@ impl DeepcoinCore {
         //     }
         //
         let mut id: Value = self.safe_string_k(market.clone(), "instId", &[]);
-        let mut type_var: Value = self.safe_string_lower(market.clone(), Value::Str("instType".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(market.clone(), "instType", &[]);
         let mut spot: Value = (Value::Bool(type_var.as_str() == Some("spot")));
         let mut swap: Value = (Value::Bool(type_var.as_str() == Some("swap")));
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseCcy", &[]);
@@ -1842,7 +1842,7 @@ impl DeepcoinCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "coin", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
-        let mut timestamp: Value = self.safe_timestamp(transaction.clone(), Value::Str("createTime".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(transaction.clone(), "createTime", &[]);
         let mut networkId: Value = self.safe_string_k(transaction.clone(), "chainName", &[]);
         let mut network: Value = self.network_id_to_code(&[networkId, code.clone()]);
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
@@ -3493,7 +3493,7 @@ impl DeepcoinCore {
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "cTime", &[]);
         let mut timestampString: Value = self.safe_string_k(order.clone(), "cTime", &[Value::Str("".into())]);
         if ((timestampString.len() as i64) as f64) < ((13i64) as f64) {
-            timestamp = self.safe_timestamp(order.clone(), Value::Str("cTime".into()), &[]);
+            timestamp = self.safe_timestamp_k(order.clone(), "cTime", &[]);
         }
         let mut state: Value = self.safe_string_k(order.clone(), "state", &[]);
         let mut orderType: Value = self.safe_string_k(order.clone(), "ordType", &[]);
@@ -4040,7 +4040,7 @@ impl DeepcoinCore {
         //         "ratePeriodSec": 0
         //     }
         //
-        let mut timestamp: Value = self.safe_timestamp(info.clone(), Value::Str("CreateTime".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(info.clone(), "CreateTime", &[]);
         let mut instrumentID: Value = self.safe_string2(info.clone(), Value::Str("instrumentID".into()), Value::Str("instrumentId".into()), &[]);
         market = self.safe_market(&[instrumentID, market.clone(), Value::Null, Value::Str("swap".into())]);
         return Value::Map({

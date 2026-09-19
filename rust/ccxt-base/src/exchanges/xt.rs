@@ -3661,7 +3661,7 @@ impl XtCore {
             side = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
             takerOrMaker = Value::Str("taker".into()); // public trades always taker
         }  else {
-            let mut takerMaker: Value = self.safe_string_lower(trade.clone(), Value::Str("takerMaker".into()), &[]);
+            let mut takerMaker: Value = self.safe_string_lower_k(trade.clone(), "takerMaker", &[]);
             if (takerMaker != Value::Null) {
                 takerOrMaker = takerMaker;
             }  else {
@@ -3670,7 +3670,7 @@ impl XtCore {
                     takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
                 }
             }
-            let mut orderSide: Value = self.safe_string_lower(trade.clone(), Value::Str("orderSide".into()), &[]);
+            let mut orderSide: Value = self.safe_string_lower_k(trade.clone(), "orderSide", &[]);
             if (orderSide != Value::Null) {
                 side = orderSide;
             }  else {
@@ -3700,7 +3700,7 @@ impl XtCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string2(trade.clone(), Value::Str("orderId".into()), Value::Str("oi".into()), &[]));
-        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("orderType".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "orderType", &[]));
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), self.safe_string2(trade.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]));
@@ -3971,7 +3971,7 @@ impl XtCore {
         let mut marginOrSpotRequest: Value = (if (marginMode != Value::Null) { Value::Str("LEVER".into()) } else { Value::Str("SPOT".into()) });
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("bizType".to_string(), marginOrSpotRequest); }
         if (type_var.as_str() == Some("market")) {
-            timeInForce = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[Value::Str("FOK".into())]);
+            timeInForce = self.safe_string_upper_k(params.clone(), "timeInForce", &[Value::Str("FOK".into())]);
             if (side.as_str() == Some("buy")) {
                 let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
                 params = self.omit(params.clone(), Value::Str("cost".into()), &[]);
@@ -3996,7 +3996,7 @@ impl XtCore {
                 }
             }
         }  else {
-            timeInForce = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]);
+            timeInForce = self.safe_string_upper_k(params.clone(), "timeInForce", &[Value::Str("GTC".into())]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         let mut postOnly: Value = Value::Null;
@@ -4046,7 +4046,7 @@ impl XtCore {
                 m.insert("origQty".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
             m
         });
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[]);
+        let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[]);
         let mut postOnly: Value = Value::Null;
         { let __destr_tmp = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(timeInForce.as_str() == Some("GTX")), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (postOnly.as_bool() == Some(true)) {
@@ -7376,7 +7376,7 @@ impl XtCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("hedged".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(position.clone(), Value::Str("positionSide".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "positionSide", &[]));
         m.insert("contracts".to_string(), self.safe_number2(position.clone(), Value::Str("positionSize".into()), Value::Str("closePositionSize".into()), &[]));
         m.insert("contractSize".to_string(), market.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null));
         m.insert("entryPrice".to_string(), self.safe_number2(position.clone(), Value::Str("entryPrice".into()), Value::Str("closeOpenPrice".into()), &[]));
@@ -7497,7 +7497,7 @@ impl XtCore {
         }  else {
             marginMode = Value::Str("ISOLATED".into());
         }
-        let mut posSide: Value = self.safe_string_upper(params.clone(), Value::Str("positionSide".into()), &[]);
+        let mut posSide: Value = self.safe_string_upper_k(params.clone(), "positionSide", &[]);
         self.check_required_argument(Value::Str("setMarginMode".into()), posSide.clone(), Value::Str("positionSide".into()), &[Value::from(vec![Value::Str("LONG".into()), Value::Str("SHORT".into())])]);
         params = self.omit(params.clone(), Value::Str("positionSide".into()), &[]);
         let mut request: Value = Value::Map({

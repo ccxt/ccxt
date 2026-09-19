@@ -1093,7 +1093,7 @@ impl RevolutxCore {
         let mut symbol: Value = self.safe_symbol(tradeSymbol, &[market, Value::Str("/".into())]);
         let mut price: Value = self.safe_number_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_number_k(trade.clone(), "quantity", &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         let mut cost: Value = Value::Null;
         if (price != Value::Null) && (amount != Value::Null) {
@@ -1301,8 +1301,8 @@ impl RevolutxCore {
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "client_order_id", &[]);
         let mut orderSymbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(orderSymbol, &[market.clone(), Value::Str("/".into())]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
-        let mut orderType: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
+        let mut orderType: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
         let mut quantity: Value = self.safe_string_k(order.clone(), "quantity", &[]);
         let mut filledQuantity: Value = self.safe_string_k(order.clone(), "filled_quantity", &[]);
         let mut leavesQuantity: Value = self.safe_string_k(order.clone(), "leaves_quantity", &[]);
@@ -1313,7 +1313,7 @@ impl RevolutxCore {
         let mut totalFee: Value = self.safe_string_k(order.clone(), "total_fee", &[]);
         let mut feeCurrency: Value = self.safe_string_k(order.clone(), "fee_currency", &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
-        let mut timeInForce: Value = self.safe_string_upper(order.clone(), Value::Str("time_in_force".into()), &[]);
+        let mut timeInForce: Value = self.safe_string_upper_k(order.clone(), "time_in_force", &[]);
         let mut createdDate: Value = self.safe_integer_k(order.clone(), "created_date", &[]);
         let mut updatedDate: Value = self.safe_integer_k(order.clone(), "updated_date", &[]);
         let mut fee: Value = Value::Null;
@@ -1805,7 +1805,7 @@ impl RevolutxCore {
         let mut orderId: Value = self.safe_string_k(trade.clone(), "oid", &[]);
         let mut price: Value = self.safe_number_k(trade.clone(), "p", &[]);
         let mut amount: Value = self.safe_number_k(trade.clone(), "q", &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("s".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "s", &[]);
         let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("tdt".into()), Value::Str("pdt".into()), &[]);
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "im", &[Value::Bool(false)]);
         let mut takerOrMaker: Value = (if isMaker.as_bool() == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });

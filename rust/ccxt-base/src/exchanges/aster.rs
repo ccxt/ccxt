@@ -2313,7 +2313,7 @@ impl AsterCore {
         let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("price".into()), Value::Str("p".into()), &[]);
         let mut costString: Value = self.safe_string2(trade.clone(), Value::Str("quoteQty".into()), Value::Str("baseQty".into()), &[]);
         let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("time".into()), Value::Str("T".into()), &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "maker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker != Value::Null) {
@@ -3343,10 +3343,10 @@ impl AsterCore {
         let mut defaultType: Value = (if (positionSide.is_some()) { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, defaultType]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "time", &[]);
-        let mut statusId: Value = self.safe_string_upper(order.clone(), Value::Str("status".into()), &[]);
-        let mut rawType: Value = self.safe_string_upper(order.clone(), Value::Str("type".into()), &[]);
+        let mut statusId: Value = self.safe_string_upper_k(order.clone(), "status", &[]);
+        let mut rawType: Value = self.safe_string_upper_k(order.clone(), "type", &[]);
         let mut stopPriceString: Value = self.safe_string_k(order.clone(), "stopPrice", &[]);
         let mut triggerPrice: Value = self.parse_number(self.omit_zero(stopPriceString), &[]);
         return self.safe_order(Value::Map({
@@ -4076,8 +4076,8 @@ impl AsterCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(leverage.clone(), "symbol", &[]);
-        let mut marginMode: Value = self.safe_string_lower(leverage.clone(), Value::Str("marginType".into()), &[]);
-        let mut side: Option<String> = self.safe_string_lower(leverage.clone(), Value::Str("positionSide".into()), &[]).as_str().map(str::to_owned);
+        let mut marginMode: Value = self.safe_string_lower_k(leverage.clone(), "marginType", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k(leverage.clone(), "positionSide", &[]).as_str().map(str::to_owned);
         let mut longLeverage: Value = Value::Null;
         let mut shortLeverage: Value = Value::Null;
         let mut leverageValue: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
@@ -4151,7 +4151,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode.clone());
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
-        m.insert("marginMode".to_string(), self.safe_string_lower(marginMode, Value::Str("marginType".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(marginMode, "marginType", &[]));
     m
 });
 
@@ -5279,7 +5279,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]);
+        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         network = self.safe_string(networks, network.clone(), &[network.clone()]);
         if (chainId == Value::Null) && (network != Value::Null) {
             let mut chainIds: Value = self.safe_dict_k(self.options.clone(), "networksToChainId", &[Value::Map({

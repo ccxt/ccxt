@@ -1631,7 +1631,7 @@ impl PhemexCore {
         //         "leverage":5
         //     },
         //
-        let mut type_var: Value = self.safe_string_lower(market.clone(), Value::Str("type".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(market.clone(), "type", &[]);
         let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrency", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
@@ -1935,7 +1935,7 @@ impl PhemexCore {
             let mut __for_first_1054: bool = true;
             while { if !__for_first_1054 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1054 = false; i.as_f64().unwrap_or(f64::NAN) < ((products.len() as i64) as f64) } {
             let mut market: Value = products.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut type_var: Option<String> = self.safe_string_lower(market.clone(), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
+            let mut type_var: Option<String> = self.safe_string_lower_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("perpetual")) || (type_var.as_deref() == Some("perpetualv2")) || (type_var.as_deref() == Some("perpetualpilot")) {
                 let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
                 let mut riskLimitValues: Value = self.safe_dict(riskLimitsById.clone(), id.clone(), &[Value::Map({
@@ -2188,7 +2188,7 @@ impl PhemexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_product(result.clone(), Value::Str("timestamp".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(result.clone(), "timestamp", Value::Float(0.000001), &[]);
         let mut orderbook: Value = self.custom_parse_order_book(book, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), market.clone()]);
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(result, "sequence", &[]));
         return orderbook;
@@ -2465,7 +2465,7 @@ impl PhemexCore {
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_product(ticker.clone(), Value::Str("timestamp".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "timestamp", Value::Float(0.000001), &[]);
         let mut last: Value = self.from_ep(self.safe_string2(ticker.clone(), Value::Str("lastEp".into()), Value::Str("closeRp".into()), &[]), &[market.clone()]);
         let mut quoteVolume: Value = self.from_er(self.safe_string2(ticker.clone(), Value::Str("turnoverEv".into()), Value::Str("turnoverRv".into()), &[]), &[market.clone()]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "volume", &[]);
@@ -2909,14 +2909,14 @@ impl PhemexCore {
                 amountString = self.from_ev(amountString.clone(), &[market.clone()]);
             }
         }  else {
-            timestamp = self.safe_integer_product(trade.clone(), Value::Str("transactTimeNs".into()), Value::Float(0.000001), &[]);
+            timestamp = self.safe_integer_product_k(trade.clone(), "transactTimeNs", Value::Float(0.000001), &[]);
             if (timestamp == Value::Null) {
                 timestamp = self.safe_integer_k(trade.clone(), "createdAt", &[]);
             }
             id = self.safe_string2(trade.clone(), Value::Str("execId".into()), Value::Str("execID".into()), &[]);
             orderId = self.safe_string_k(trade.clone(), "orderID", &[]);
             if (market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) || (market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDC")) {
-                let mut sideId: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+                let mut sideId: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
                 if (sideId.as_str() == Some("buy")) || (sideId.as_str() == Some("sell")) {
                     side = sideId.clone();
                 }  else if (sideId != Value::Null) {
@@ -2944,7 +2944,7 @@ impl PhemexCore {
                     }
                 }
             }  else {
-                side = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+                side = self.safe_string_lower_k(trade.clone(), "side", &[]);
                 type_var = self.parse_order_type(self.safe_string_k(trade.clone(), "ordType", &[]));
                 let mut execStatus: Option<String> = self.safe_string_k(trade.clone(), "execStatus", &[]).as_str().map(str::to_owned);
                 if (execStatus.as_deref() == Some("MakerFill")) {
@@ -3054,7 +3054,7 @@ impl PhemexCore {
             let mut lockedTradingBalance: Value = self.from_en(lockedTradingBalanceEv, scale.clone());
             let mut lockedWithdraw: Value = self.from_en(lockedWithdrawEv, scale);
             let mut used: Value = crate::precise::Precise::stringAdd(&lockedTradingBalance, &lockedWithdraw);
-            let mut lastUpdateTimeNs: Value = self.safe_integer_product(balance, Value::Str("lastUpdateTimeNs".into()), Value::Float(0.000001), &[]);
+            let mut lastUpdateTimeNs: Value = self.safe_integer_product_k(balance, "lastUpdateTimeNs", Value::Float(0.000001), &[]);
             timestamp = (if (timestamp == Value::Null) { lastUpdateTimeNs.clone() } else { crate::runtime::Math::max(&timestamp, &lastUpdateTimeNs) });
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), total); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used); }
@@ -3453,7 +3453,7 @@ impl PhemexCore {
         let mut cost: Value = self.from_er(self.safe_string2(order.clone(), Value::Str("cumQuoteValueEv".into()), Value::Str("quoteQtyEv".into()), &[]), &[market.clone()]);
         let mut average: Value = self.from_ep(self.safe_string_k(order.clone(), "avgPriceEp", &[]), &[market.clone()]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "ordStatus", &[]));
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut type_var: Value = self.parse_order_type(self.safe_string_k(order.clone(), "ordType", &[]));
         let mut timestamp: Value = self.safe_integer_product2(order.clone(), Value::Str("actionTimeNs".into()), Value::Str("createTimeNs".into()), Value::Float(0.000001), &[]);
         let mut fee: Value = Value::Null;
@@ -3622,7 +3622,7 @@ impl PhemexCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "ordStatus", &[]));
-        let mut side: Value = self.parse_order_side(self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]));
+        let mut side: Value = self.parse_order_side(self.safe_string_lower_k(order.clone(), "side", &[]));
         let mut type_var: Value = self.parse_order_type(self.safe_string_k(order.clone(), "orderType", &[]));
         let mut price: Value = self.safe_string_k(order.clone(), "priceRp", &[]);
         if (price == Value::Null) {
@@ -3631,12 +3631,12 @@ impl PhemexCore {
         let mut amount: Value = self.safe_number2(order.clone(), Value::Str("orderQty".into()), Value::Str("orderQtyRq".into()), &[]);
         let mut filled: Value = self.safe_number2(order.clone(), Value::Str("cumQty".into()), Value::Str("cumQtyRq".into()), &[]);
         let mut remaining: Value = self.safe_number2(order.clone(), Value::Str("leavesQty".into()), Value::Str("leavesQtyRq".into()), &[]);
-        let mut timestamp: Value = self.safe_integer_product(order.clone(), Value::Str("actionTimeNs".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(order.clone(), "actionTimeNs", Value::Float(0.000001), &[]);
         if (timestamp == Value::Null) {
             timestamp = self.safe_integer_k(order.clone(), "createdAt", &[]);
         }
         let mut cost: Value = self.safe_number2(order.clone(), Value::Str("cumValue".into()), Value::Str("cumValueRv".into()), &[]);
-        let mut lastTradeTimestamp: Value = self.safe_integer_product(order.clone(), Value::Str("transactTimeNs".into()), Value::Float(0.000001), &[]);
+        let mut lastTradeTimestamp: Value = self.safe_integer_product_k(order.clone(), "transactTimeNs", Value::Float(0.000001), &[]);
         if (lastTradeTimestamp.as_f64() == Some(0.0)) {
             lastTradeTimestamp = Value::Null;
         }
@@ -3815,7 +3815,7 @@ impl PhemexCore {
         }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let mut hedged: Value = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]);
             params = self.omit(params.clone(), Value::Str("hedged".into()), &[]);
-            let mut posSide: Value = self.safe_string_lower(params.clone(), Value::Str("posSide".into()), &[]);
+            let mut posSide: Value = self.safe_string_lower_k(params.clone(), "posSide", &[]);
             if (posSide == Value::Null) {
                 if (hedged.as_bool() == Some(true)) {
                     let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
@@ -5005,7 +5005,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut code: Value = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
         let mut networkId: Value = self.safe_string_k(transaction.clone(), "chainName", &[]);
         let mut timestamp: Value = self.safe_integer_n(transaction.clone(), Value::from(vec![Value::Str("createdAt".into()), Value::Str("submitedAt".into()), Value::Str("submittedAt".into())]), &[]);
-        let mut type_var: Value = self.safe_string_lower(transaction.clone(), Value::Str("type".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(transaction.clone(), "type", &[]);
         let mut feeCost: Value = self.parse_number(self.from_en(self.safe_string_k(transaction.clone(), "feeEv", &[]), self.safe_integer_k(currency.clone(), "valueScale", &[])), &[]);
         if (feeCost == Value::Null) {
             feeCost = self.safe_number_k(transaction.clone(), "feeRv", &[]);
@@ -5425,7 +5425,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marginRatio: Value = crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateral);
         let mut isCross: Value = self.safe_bool_k(position.clone(), "crossMargin", &[]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "openedTimeNs", &[]);
-        let mut lastUpdateTimestamp: Value = self.safe_integer_k(position.clone(), "updatedTimeNs", &[self.safe_integer_product(position.clone(), Value::Str("transactTimeNs".into()), Value::Float(0.000001), &[])]);
+        let mut lastUpdateTimestamp: Value = self.safe_integer_k(position.clone(), "updatedTimeNs", &[self.safe_integer_product_k(position.clone(), "transactTimeNs", Value::Float(0.000001), &[])]);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -5691,7 +5691,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut marketId: Value = self.safe_string_k(contract.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
-        let mut timestamp: Value = self.safe_integer_product(contract.clone(), Value::Str("timestamp".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(contract.clone(), "timestamp", Value::Float(0.000001), &[]);
         let mut markEp: Value = self.from_ep(self.safe_string_k(contract.clone(), "markEp", &[]), &[market.clone()]);
         let mut indexEp: Value = self.from_ep(self.safe_string_k(contract.clone(), "indexEp", &[]), &[market.clone()]);
         let mut fundingRateEr: Value = self.from_er(self.safe_string_k(contract.clone(), "fundingRateEr", &[]), &[market.clone()]);

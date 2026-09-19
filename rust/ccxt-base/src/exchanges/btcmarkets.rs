@@ -818,7 +818,7 @@ impl BtcmarketsCore {
         //
         let mut timestamp: Value = self.parse8601(self.safe_string_k(transaction.clone(), "creationTime", &[]));
         let mut lastUpdate: Value = self.parse8601(self.safe_string_k(transaction.clone(), "lastUpdate", &[]));
-        let mut type_var: Value = self.parse_transaction_type(self.safe_string_lower(transaction.clone(), Value::Str("type".into()), &[]));
+        let mut type_var: Value = self.parse_transaction_type(self.safe_string_lower_k(transaction.clone(), "type", &[]));
         if (type_var.as_str() == Some("withdraw")) {
             type_var = Value::Str("withdrawal".into());
         }
@@ -1151,7 +1151,7 @@ impl BtcmarketsCore {
         //         ]
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product(response.clone(), Value::Str("snapshotId".into()), Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(response.clone(), "snapshotId", Value::Float(0.001), &[]);
         let mut orderbook: Value = self.parse_order_book(response.clone(), symbol, &[timestamp]);
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(response, "snapshotId", &[]));
         return orderbook;
@@ -1318,7 +1318,7 @@ impl BtcmarketsCore {
                 m
             });
         }
-        let mut takerOrMaker: Value = self.safe_string_lower(trade.clone(), Value::Str("liquidityType".into()), &[]);
+        let mut takerOrMaker: Value = self.safe_string_lower_k(trade.clone(), "liquidityType", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
@@ -1646,7 +1646,7 @@ impl BtcmarketsCore {
         }  else if (side.as_str() == Some("Ask")) {
             side = Value::Str("sell".into());
         }
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "openAmount", &[]);

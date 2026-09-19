@@ -491,14 +491,14 @@ impl HyperliquidCore {
         let mut questionDescription: Value = self.safe_string_k(question.clone(), "description", &[]);
         if (questionDescription != Value::Null) && (questionDescription.as_str() != Some("")) {
             let mut questionDesc: Value = self.parse_outcome_description(questionDescription);
-            let mut questionClass: Option<String> = self.safe_string_lower(questionDesc.clone(), Value::Str("class".into()), &[]).as_str().map(str::to_owned);
+            let mut questionClass: Option<String> = self.safe_string_lower_k(questionDesc.clone(), "class", &[]).as_str().map(str::to_owned);
             if (questionClass.as_deref() == Some("pricebucket")) {
                 let mut questionUnderlying: Value = self.safe_string_k(questionDesc.clone(), "underlying", &[]);
                 let mut questionExpiry: Value = self.safe_string_k(questionDesc.clone(), "expiry", &[Value::Str("".into())]);
                 let mut expiryDate: Value = (if (questionExpiry.as_str() != Some("")) { split(&questionExpiry, &Value::Str("-".into())).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Str("".into()) });
                 let mut thresholdsRaw: Value = self.safe_string_k(questionDesc, "priceThresholds", &[Value::Str("".into())]);
                 let mut indexStr: Value = self.safe_string_k(desc.clone(), "index", &[]);
-                let mut rawDescription: Option<String> = self.safe_string_lower(desc, Value::Str("description".into()), &[Value::Str("".into())]).as_str().map(str::to_owned);
+                let mut rawDescription: Option<String> = self.safe_string_lower_k(desc, "description", &[Value::Str("".into())]).as_str().map(str::to_owned);
                 let mut nameLower: Value = to_lower(&name);
                 if ((questionUnderlying != Value::Null) && (questionUnderlying.as_str() != Some(""))) && (thresholdsRaw.as_str() != Some("")) && (indexStr != Value::Null) {
                     let mut thresholdParts: Value = split(&thresholdsRaw, &Value::Str(",".into()));
@@ -1590,7 +1590,7 @@ impl HyperliquidCore {
     m
 })]);
                 let mut ocSymbol: Value = self.safe_string2(oc.clone(), Value::Str("outcome".into()), Value::Str("symbol".into()), &[Value::Str("".into())]);
-                let mut ocLabel: Value = self.safe_string_upper(oc.clone(), Value::Str("label".into()), &[]);
+                let mut ocLabel: Value = self.safe_string_upper_k(oc.clone(), "label", &[]);
                 if (ocLabel.as_str() == normalizedHint.as_str()) || (ends_with(&ocSymbol, &Value::Str(format!("{}{}", Value::Str(":".into()), normalizedHint).into()))) {
                     return oc;
                 }
@@ -1760,7 +1760,7 @@ impl HyperliquidCore {
         if (postOnly.as_bool() == Some(true)) {
             defaultTif = Value::Str("Alo".into());
         }
-        let mut tif: Value = self.capitalize(self.safe_string_lower(params.clone(), Value::Str("timeInForce".into()), &[defaultTif])); // eslint-disable-line
+        let mut tif: Value = self.capitalize(self.safe_string_lower_k(params.clone(), "timeInForce", &[defaultTif])); // eslint-disable-line
         if (price == Value::Null) {
             if isMarket {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.".into()))));
@@ -1812,7 +1812,7 @@ impl HyperliquidCore {
             m
         });
         if matches!(self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]), Value::Bool(true)) {
-            let mut wallet: Value = self.safe_string_lower(self.options.clone(), Value::Str("builder".into()), &[Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".into())]);
+            let mut wallet: Value = self.safe_string_lower_k(self.options.clone(), "builder", &[Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".into())]);
             // feeInt defaults to 0: the builder is attached for statistics purposes only and the
             // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
             let mut feeInt: Value = self.safe_integer_k(self.options.clone(), "feeInt", &[Value::Int(0)]);

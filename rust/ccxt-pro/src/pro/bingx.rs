@@ -1827,7 +1827,7 @@ impl BingxCore {
         let mut marketId: Value = self.safe_string_k(position.clone(), "s", &[]);
         let mut contracts: Value = self.safe_string_k(position.clone(), "pa", &[]);
         let mut contractsAbs: Value = crate::precise::Precise::stringAbs(&contracts);
-        let mut positionSide: Value = self.safe_string_lower(position.clone(), Value::Str("ps".into()), &[]);
+        let mut positionSide: Value = self.safe_string_lower_k(position.clone(), "ps", &[]);
         let mut hedged: Value = Value::Bool(true);
         if (positionSide.as_str() == Some("both")) {
             hedged = Value::Bool(false);

@@ -2336,7 +2336,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.clean_unsubscription(client.clone(), subHash, unSubHash, &[Value::Bool(true)]);
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
-        let mut user: Value = self.safe_string_lower(subscription, Value::Str("user".into()), &[]);
+        let mut user: Value = self.safe_string_lower_k(subscription, "user", &[]);
         if (user != Value::Null) {
             let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:orderUpdates::".into()), user).into());
             if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {
@@ -2357,7 +2357,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.clean_unsubscription(client.clone(), subHash, unSubHash, &[Value::Bool(true)]);
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
-        let mut user: Value = self.safe_string_lower(subscription, Value::Str("user".into()), &[]);
+        let mut user: Value = self.safe_string_lower_k(subscription, "user", &[]);
         if (user != Value::Null) {
             let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:userFills::".into()), user).into());
             if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {

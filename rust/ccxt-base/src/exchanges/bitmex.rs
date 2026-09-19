@@ -2252,7 +2252,7 @@ impl BitmexCore {
         // For withdrawals, transactTime is submission, timestamp is processed
         let mut transactTime: Value = self.parse8601(self.safe_string_k(transaction.clone(), "transactTime", &[]));
         let mut timestamp: Value = self.parse8601(self.safe_string_k(transaction.clone(), "timestamp", &[]));
-        let mut type_var: Value = self.safe_string_lower(transaction.clone(), Value::Str("transactType".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(transaction.clone(), "transactType", &[]);
         // Deposits have no from address or to address, withdrawals have both
         let mut address: Value = Value::Null;
         let mut addressFrom: Value = Value::Null;
@@ -2616,7 +2616,7 @@ impl BitmexCore {
         let mut execCost: Value = self.number_to_string(self.convert_from_raw_cost(symbol.clone(), self.safe_string_k(trade.clone(), "execCost", &[])));
         let mut id: Value = self.safe_string_k(trade.clone(), "trdMatchID", &[]);
         let mut order: Value = self.safe_string_k(trade.clone(), "orderID", &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         let mut fee: Value = Value::Null;
         let mut feeCostString: Value = self.number_to_string(self.convert_from_raw_cost(symbol.clone(), self.safe_string_k(trade.clone(), "execComm", &[])));
@@ -2636,7 +2636,7 @@ impl BitmexCore {
         if (feeCostString != Value::Null) && (execType.as_deref() == Some("Trade")) {
             takerOrMaker = (if is_true(&crate::precise::Precise::stringLt(&feeCostString, &Value::Str("0".into()))) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
-        let mut type_var: Value = self.safe_string_lower(trade.clone(), Value::Str("ordType".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(trade.clone(), "ordType", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
@@ -2778,11 +2778,11 @@ impl BitmexCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), self.parse8601(self.safe_string_k(order.clone(), "transactTime", &[])));
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("type".to_string(), self.safe_string_lower(order.clone(), Value::Str("ordType".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "ordType", &[]));
         m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "timeInForce", &[])));
         m.insert("postOnly".to_string(), postOnly);
         m.insert("reduceOnly".to_string(), reduceOnly);
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "side", &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("amount".to_string(), amount.clone());
@@ -3222,7 +3222,7 @@ impl BitmexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
-        m.insert("marginMode".to_string(), self.safe_string_lower(leverage.clone(), Value::Str("marginMode".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(leverage.clone(), "marginMode", &[]));
         m.insert("longLeverage".to_string(), self.safe_integer_k(leverage.clone(), "leverage", &[]));
         m.insert("shortLeverage".to_string(), self.safe_integer_k(leverage, "leverage", &[]));
     m
@@ -4141,7 +4141,7 @@ impl BitmexCore {
         m.insert("contracts".to_string(), Value::Null);
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
         m.insert("price".to_string(), self.safe_number_k(liquidation.clone(), "price", &[]));
-        m.insert("side".to_string(), self.safe_string_lower(liquidation, Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(liquidation, "side", &[]));
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
@@ -4510,7 +4510,7 @@ impl BitmexCore {
             self.check_required_credentials(&[]);
             let mut auth: Value = Value::Str(format!("{}{}", method, query).into());
             let mut apiExpires: Value = self.safe_integer_k(self.options.clone(), "api-expires", &[]); // backwards compatibility
-            let mut expires: Value = self.safe_integer_product(self.options.clone(), Value::Str("recvWindow".into()), Value::Float(0.001), &[apiExpires.clone()]);
+            let mut expires: Value = self.safe_integer_product_k(self.options.clone(), "recvWindow", Value::Float(0.001), &[apiExpires.clone()]);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));

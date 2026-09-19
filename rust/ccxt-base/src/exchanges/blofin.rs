@@ -1297,7 +1297,7 @@ impl BlofinCore {
 
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut id: Value = self.safe_string_k(market.clone(), "instId", &[]);
-        let mut type_var: Value = self.safe_string_lower(market.clone(), Value::Str("instType".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(market.clone(), "instType", &[]);
         let mut spot: Value = (Value::Bool(type_var.as_str() == Some("spot")));
         let mut future: Value = (Value::Bool(type_var.as_str() == Some("future")));
         let mut swap: Value = (Value::Bool(type_var.as_str() == Some("swap")));
@@ -3920,7 +3920,7 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
-        m.insert("marginMode".to_string(), self.safe_string_lower(leverage, Value::Str("marginMode".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(leverage, "marginMode", &[]));
         m.insert("longLeverage".to_string(), leverageValue.clone());
         m.insert("shortLeverage".to_string(), leverageValue);
     m

@@ -823,7 +823,7 @@ impl ZaifCore {
         //
         let mut side: Value = self.safe_string_k(trade.clone(), "trade_type", &[]);
         side = (if (side.as_str() == Some("bid")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
-        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("date".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "date", &[]);
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tid".into()), &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
@@ -1029,7 +1029,7 @@ impl ZaifCore {
         //
         let mut side: Value = self.safe_string_k(order.clone(), "action", &[]);
         side = (if (side.as_str() == Some("bid")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
-        let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(order.clone(), "timestamp", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "currency_pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("_".into())]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);

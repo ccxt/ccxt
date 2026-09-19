@@ -353,8 +353,8 @@ impl CoinoneCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut baseId: Value = self.safe_string_upper(data.clone(), Value::Str("target_currency".into()), &[]);
-        let mut quoteId: Value = self.safe_string_upper(data.clone(), Value::Str("quote_currency".into()), &[]);
+        let mut baseId: Value = self.safe_string_upper_k(data.clone(), "target_currency", &[]);
+        let mut quoteId: Value = self.safe_string_upper_k(data.clone(), "quote_currency", &[]);
         let mut base: Value = self.safe_currency_code(baseId, &[]);
         let mut quote: Value = self.safe_currency_code(quoteId, &[]);
         let mut symbol: Value = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
@@ -615,8 +615,8 @@ impl CoinoneCore {
         //         "is_seller_maker": false
         //     }
         //
-        let mut baseId: Value = self.safe_string_upper(trade.clone(), Value::Str("target_currency".into()), &[]);
-        let mut quoteId: Value = self.safe_string_upper(trade.clone(), Value::Str("quote_currency".into()), &[]);
+        let mut baseId: Value = self.safe_string_upper_k(trade.clone(), "target_currency", &[]);
+        let mut quoteId: Value = self.safe_string_upper_k(trade.clone(), "quote_currency", &[]);
         let mut base: Value = self.safe_currency_code(baseId, &[]);
         let mut quote: Value = self.safe_currency_code(quoteId, &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());

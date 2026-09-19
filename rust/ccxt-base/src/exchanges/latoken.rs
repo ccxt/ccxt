@@ -2305,7 +2305,7 @@ impl LatokenCore {
         //         "fee": 0
         //     }
         //
-        let mut timestamp: Value = self.safe_timestamp(transfer.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(transfer.clone(), "timestamp", &[]);
         let mut currencyId: Value = self.safe_string_k(transfer.clone(), "currency", &[]);
         let mut status: Value = self.safe_string_k(transfer.clone(), "status", &[]);
         return Value::Map({

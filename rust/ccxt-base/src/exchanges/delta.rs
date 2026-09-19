@@ -926,7 +926,7 @@ impl DeltaCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.safe_integer_product(result, Value::Str("server_time".into()), Value::Float(0.001), &[]);
+        return self.safe_integer_product_k(result, "server_time", Value::Float(0.001), &[]);
 
     Value::Null
 }
@@ -1003,7 +1003,7 @@ impl DeltaCore {
 })]);
         let mut underMaintenance: Option<String> = self.safe_string_k(result.clone(), "under_maintenance", &[]).as_str().map(str::to_owned);
         let mut status: Value = (if (underMaintenance.as_deref() == Some("true")) { Value::Str("maintenance".into()) } else { Value::Str("ok".into()) });
-        let mut updated: Value = self.safe_integer_product(result, Value::Str("server_time".into()), Value::Float(0.001), &[self.milliseconds()]);
+        let mut updated: Value = self.safe_integer_product_k(result, "server_time", Value::Float(0.001), &[self.milliseconds()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), status);
@@ -1676,7 +1676,7 @@ impl DeltaCore {
         //         "turnover_symbol": "USDT"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product(ticker.clone(), Value::Str("timestamp".into()), Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "timestamp", Value::Float(0.001), &[]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1687,8 +1687,8 @@ impl DeltaCore {
 })]);
         // turnover_symbol names the currency turnover is denominated in, and on
         // spot markets that is the base currency rather than the quote
-        let mut turnoverSymbol: Value = self.safe_string_upper(ticker.clone(), Value::Str("turnover_symbol".into()), &[]);
-        let mut quoteId: Value = self.safe_string_upper(market.clone(), Value::Str("quoteId".into()), &[]);
+        let mut turnoverSymbol: Value = self.safe_string_upper_k(ticker.clone(), "turnover_symbol", &[]);
+        let mut quoteId: Value = self.safe_string_upper_k(market.clone(), "quoteId", &[]);
         let mut baseDenominated: bool = (turnoverSymbol != Value::Null) && (quoteId != Value::Null) && (turnoverSymbol.as_str() != quoteId.as_str());
         let mut quoteVolume: Value = (if baseDenominated { self.safe_number_k(ticker.clone(), "turnover_usd", &[]) } else { self.safe_number_k(ticker.clone(), "turnover", &[]) });
         return self.safe_ticker(Value::Map({
@@ -2158,7 +2158,7 @@ impl DeltaCore {
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
         let mut orderId: Value = self.safe_string_k(trade.clone(), "order_id", &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
-        timestamp = self.safe_integer_product(trade.clone(), Value::Str("timestamp".into()), Value::Float(0.001), &[timestamp.clone()]);
+        timestamp = self.safe_integer_product_k(trade.clone(), "timestamp", Value::Float(0.001), &[timestamp.clone()]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "size", &[]);
         let mut product: Value = self.safe_dict_k(trade.clone(), "product", &[Value::Map({
@@ -2272,7 +2272,7 @@ impl DeltaCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("time".into()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
+        return Value::from(vec![self.safe_timestamp_k(ohlcv.clone(), "time", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -2307,7 +2307,7 @@ impl DeltaCore {
         });
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         limit = (if ((limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0))) { limit.clone() } else { Value::Int(2000) }); // max 2000
-        let mut until: Value = self.safe_integer_product(params.clone(), Value::Str("until".into()), Value::Float(0.001), &[]);
+        let mut until: Value = self.safe_integer_product_k(params.clone(), "until", Value::Float(0.001), &[]);
         let mut untilIsDefined: bool = until != Value::Null;
         if untilIsDefined {
             until = self.parse_to_int(until.clone());
@@ -2519,7 +2519,7 @@ impl DeltaCore {
         let mut marketId: Value = self.safe_string_k(position.clone(), "product_symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_product(position.clone(), Value::Str("timestamp".into()), Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(position.clone(), "timestamp", Value::Float(0.001), &[]);
         let mut sizeString: Value = self.safe_string_k(position.clone(), "size", &[]);
         let mut side: Value = Value::Null;
         if (sizeString != Value::Null) {
@@ -2643,7 +2643,7 @@ impl DeltaCore {
             if Value::Int(createdAt.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 timestamp = self.parse8601(createdAt.clone());
             }  else {
-                timestamp = self.safe_integer_product(order.clone(), Value::Str("created_at".into()), Value::Float(0.001), &[]);
+                timestamp = self.safe_integer_product_k(order.clone(), "created_at", Value::Float(0.001), &[]);
             }
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "product_id", &[]);
@@ -3409,7 +3409,7 @@ impl DeltaCore {
                 m.insert("asset_symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut networkCode: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]);
+        let mut networkCode: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         if (networkCode != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".to_string(), self.network_code_to_id(networkCode, &[code])); }
             params = self.omit(params.clone(), Value::Str("network".into()), &[]);
@@ -3677,7 +3677,7 @@ impl DeltaCore {
         //         "volume": 1226.3029999999485
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product(contract.clone(), Value::Str("timestamp".into()), Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(contract.clone(), "timestamp", Value::Float(0.001), &[]);
         let mut marketId: Value = self.safe_string_k(contract.clone(), "symbol", &[]);
         let mut fundingRateString: Value = self.safe_string_k(contract.clone(), "funding_rate", &[]);
         let mut fundingRate: Value = crate::precise::Precise::stringDiv(&fundingRateString, &Value::Str("100".into()));
@@ -3978,7 +3978,7 @@ impl DeltaCore {
         //         "volume": 0.15200000000000002
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product(interest.clone(), Value::Str("timestamp".into()), Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(interest.clone(), "timestamp", Value::Float(0.001), &[]);
         let mut marketId: Value = self.safe_string_k(interest.clone(), "symbol", &[]);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4049,7 +4049,7 @@ impl DeltaCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market]));
-        m.insert("marginMode".to_string(), self.safe_string_lower(leverage, Value::Str("margin_mode".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(leverage, "margin_mode", &[]));
         m.insert("longLeverage".to_string(), leverageValue.clone());
         m.insert("shortLeverage".to_string(), leverageValue);
     m
@@ -4409,7 +4409,7 @@ impl DeltaCore {
         //         "volume": 0.005
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product(greeks.clone(), Value::Str("timestamp".into()), Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(greeks.clone(), "timestamp", Value::Float(0.001), &[]);
         let mut marketId: Value = self.safe_string_k(greeks.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market]);
         let mut stats: Value = self.safe_dict_k(greeks.clone(), "greeks", &[Value::Map({
@@ -4764,7 +4764,7 @@ impl DeltaCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_product(chain.clone(), Value::Str("timestamp".into()), Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(chain.clone(), "timestamp", Value::Float(0.001), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());

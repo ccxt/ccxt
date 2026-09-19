@@ -3347,7 +3347,7 @@ impl KucoinCore {
         if is_true(&uta) {
             let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]).as_str().map(str::to_owned);
             let mut defaultTradeType: Value = (if (defaultType.as_deref() == Some("spot")) { Value::Str("SPOT".into()) } else { Value::Str("FUTURES".into()) });
-            let mut tradeType: Value = self.safe_string_upper(params.clone(), Value::Str("tradeType".into()), &[defaultTradeType]);
+            let mut tradeType: Value = self.safe_string_upper_k(params.clone(), "tradeType", &[defaultTradeType]);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tradeType".to_string(), tradeType);
@@ -4811,7 +4811,7 @@ impl KucoinCore {
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone(), Value::Str("-".into())]);
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("price".into()), Value::Str("lastTradePrice".into()), &[]);
-        let mut timestamp: Value = self.safe_integer_product(ticker.clone(), Value::Str("ts".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "ts", Value::Float(0.000001), &[]);
         let mut change: Value = self.safe_string_k(ticker.clone(), "priceChg", &[]);
         let mut percentage: Value = Value::Null;
         if (last == Value::Null) || (change == Value::Null) {
@@ -6396,7 +6396,7 @@ impl KucoinCore {
                 m.insert("leverage".to_string(), Value::Int(1));
             m
         });
-        let mut marginModeUpper: Value = self.safe_string_upper(params.clone(), Value::Str("marginMode".into()), &[]);
+        let mut marginModeUpper: Value = self.safe_string_upper_k(params.clone(), "marginMode", &[]);
         if (marginModeUpper != Value::Null) {
             params = self.omit(params.clone(), Value::Str("marginMode".into()), &[]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".to_string(), marginModeUpper); }
@@ -6467,7 +6467,7 @@ impl KucoinCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPriceType".to_string(), triggerPriceTypeValue.clone()); }
         }
         let mut uppercaseType: Value = to_upper(&type_var);
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[]);
+        let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[]);
         if (uppercaseType.as_str() == Some("LIMIT")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit orders".into()))));
@@ -9067,7 +9067,7 @@ impl KucoinCore {
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_product2(order.clone(), Value::Str("orderTime".into()), Value::Str("ts".into()), Value::Float(0.000001), &[]);
-        let mut lastUpdateTimestamp: Value = self.safe_integer_product(order.clone(), Value::Str("updatedTime".into()), Value::Float(0.000001), &[]);
+        let mut lastUpdateTimestamp: Value = self.safe_integer_product_k(order.clone(), "updatedTime", Value::Float(0.000001), &[]);
         let mut rawTimeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         let mut amount: Value = Value::Null;
         let mut cost: Value = Value::Null;
@@ -9094,11 +9094,11 @@ impl KucoinCore {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientOid", &[]));
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("type".to_string(), self.safe_string_lower(order.clone(), Value::Str("orderType".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "orderType", &[]));
         m.insert("timeInForce".to_string(), self.parse_order_time_in_force(rawTimeInForce));
         m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "postOnly", &[]));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "side", &[]));
         m.insert("amount".to_string(), amount.clone());
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), self.safe_string2(order.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]));
@@ -10054,7 +10054,7 @@ impl KucoinCore {
         //
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut timestamp: Value = self.safe_integer_product(trade.clone(), Value::Str("executionTime".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(trade.clone(), "executionTime", Value::Float(0.000001), &[]);
         let mut fee: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "fee", &[]));
@@ -10069,9 +10069,9 @@ impl KucoinCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("orderType".into()), &[]));
-        m.insert("takerOrMaker".to_string(), self.safe_string_lower(trade.clone(), Value::Str("liquidityRole".into()), &[]));
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "orderType", &[]));
+        m.insert("takerOrMaker".to_string(), self.safe_string_lower_k(trade.clone(), "liquidityRole", &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "side", &[]));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "size", &[]));
         m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "value", &[]));
@@ -11618,7 +11618,7 @@ impl KucoinCore {
         let mut accountToRaw: Value = Value::Null;
         if isLedgerEntry {
             // Ledger entry format: uses accountType + direction
-            let mut accountType: Value = self.safe_string_lower(transfer.clone(), Value::Str("accountType".into()), &[]);
+            let mut accountType: Value = self.safe_string_lower_k(transfer.clone(), "accountType", &[]);
             let mut direction: Option<String> = self.safe_string_k(transfer.clone(), "direction", &[]).as_str().map(str::to_owned);
             if (direction.as_deref() == Some("out")) {
                 accountFromRaw = accountType.clone();
@@ -11627,8 +11627,8 @@ impl KucoinCore {
             }
         }  else {
             // Transfer API format: uses payAccountType/recAccountType
-            accountFromRaw = self.safe_string_lower(transfer.clone(), Value::Str("payAccountType".into()), &[]);
-            accountToRaw = self.safe_string_lower(transfer.clone(), Value::Str("recAccountType".into()), &[]);
+            accountFromRaw = self.safe_string_lower_k(transfer.clone(), "payAccountType", &[]);
+            accountToRaw = self.safe_string_lower_k(transfer.clone(), "recAccountType", &[]);
         }
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
         let mut accountFrom: Value = (if (accountFromRaw == Value::Null) { Value::Null } else { self.safe_string(accountsByType.clone(), accountFromRaw.clone(), &[accountFromRaw.clone()]) });
@@ -11803,7 +11803,7 @@ impl KucoinCore {
             if (timestamp != Value::Null) {
                 account = Value::Str("CONTRACT".into()); // contract ledger entries do not have an accountType field, so we set it to CONTRACT if the time field is present
             }  else {
-                timestamp = self.safe_integer_product(item.clone(), Value::Str("ts".into()), Value::Float(0.000001), &[]); // for UTA API
+                timestamp = self.safe_integer_product_k(item.clone(), "ts", Value::Float(0.000001), &[]); // for UTA API
             }
         }
         let mut datetime: Value = self.iso8601(timestamp.clone());
@@ -13964,11 +13964,11 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         market = self.safe_market(&[symbol.clone(), market.clone()]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "currentTimestamp", &[]);
         if (timestamp == Value::Null) {
-            timestamp = self.safe_integer_product(position.clone(), Value::Str("creationTime".into()), Value::Float(0.000001), &[]);
+            timestamp = self.safe_integer_product_k(position.clone(), "creationTime", Value::Float(0.000001), &[]);
         }
         let mut size: Value = self.safe_string_n(position.clone(), Value::from(vec![Value::Str("currentQty".into()), Value::Str("size".into()), Value::Str("maxSize".into()), Value::Str("closeSize".into())]), &[]);
-        let mut side: Value = self.safe_string_lower(position.clone(), Value::Str("side".into()), &[]);
-        let mut type_var: Value = self.safe_string_lower(position.clone(), Value::Str("type".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(position.clone(), "side", &[]);
+        let mut type_var: Value = self.safe_string_lower_k(position.clone(), "type", &[]);
         if (side == Value::Null) {
             if (size != Value::Null) {
                 if is_true(&crate::precise::Precise::stringGt(&size, &Value::Str("0".into()))) {
@@ -13991,16 +13991,16 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut unrealisedPnl: Value = self.safe_string2(position.clone(), Value::Str("unrealisedPnl".into()), Value::Str("unrealizedPnL".into()), &[]);
         let mut crossMode: Value = self.safe_bool_k(position.clone(), "crossMode", &[]);
         // currently crossMode is always set to false and only isolated positions are supported
-        let mut marginMode: Value = self.safe_string_lower(position.clone(), Value::Str("marginMode".into()), &[]);
+        let mut marginMode: Value = self.safe_string_lower_k(position.clone(), "marginMode", &[]);
         if (crossMode != Value::Null) {
             marginMode = (if (crossMode.as_bool() == Some(true)) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         }
         let mut lastUpdateTimestamp: Value = self.safe_integer_k(position.clone(), "closeTime", &[]);
         if (lastUpdateTimestamp == Value::Null) {
             if (matches!(&position, Value::Dict(__d) if __d.contains_key("closingTime"))) {
-                lastUpdateTimestamp = self.safe_integer_product(position.clone(), Value::Str("closingTime".into()), Value::Float(0.000001), &[]);
+                lastUpdateTimestamp = self.safe_integer_product_k(position.clone(), "closingTime", Value::Float(0.000001), &[]);
             }  else if (matches!(&position, Value::Dict(__d) if __d.contains_key("updateTime"))) {
-                lastUpdateTimestamp = self.safe_integer_product(position.clone(), Value::Str("updateTime".into()), Value::Float(0.000001), &[]);
+                lastUpdateTimestamp = self.safe_integer_product_k(position.clone(), "updateTime", Value::Float(0.000001), &[]);
             }
         }
         return self.safe_position(Value::Map({

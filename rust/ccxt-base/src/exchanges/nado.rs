@@ -2953,7 +2953,7 @@ impl NadoCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("timestamp".into()), &[]), self.parse_x18(self.safe_string_k(ohlcv.clone(), "open_x18", &[])), self.parse_x18(self.safe_string_k(ohlcv.clone(), "high_x18", &[])), self.parse_x18(self.safe_string_k(ohlcv.clone(), "low_x18", &[])), self.parse_x18(self.safe_string_k(ohlcv.clone(), "close_x18", &[])), self.parse_x18(self.safe_string_k(ohlcv, "volume", &[]))]);
+        return Value::from(vec![self.safe_timestamp_k(ohlcv.clone(), "timestamp", &[]), self.parse_x18(self.safe_string_k(ohlcv.clone(), "open_x18", &[])), self.parse_x18(self.safe_string_k(ohlcv.clone(), "high_x18", &[])), self.parse_x18(self.safe_string_k(ohlcv.clone(), "low_x18", &[])), self.parse_x18(self.safe_string_k(ohlcv.clone(), "close_x18", &[])), self.parse_x18(self.safe_string_k(ohlcv, "volume", &[]))]);
 
     Value::Null
 }
@@ -2991,7 +2991,7 @@ impl NadoCore {
         //
         let mut marketId: Value = self.safe_string_k(trade.clone(), "product_id", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "timestamp", &[]);
         let mut rawOrder: Value = self.safe_dict_k(trade.clone(), "order", &[]);
         let mut isArchiveMatch: bool = rawOrder != Value::Null;
         let mut order: Value = (if (rawOrder == Value::Null) { Value::Map({
@@ -3103,7 +3103,7 @@ impl NadoCore {
         //
         let mut marketId: Value = self.safe_string_k(contract.clone(), "product_id", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut fundingTimestamp: Value = self.safe_timestamp(contract.clone(), Value::Str("next_funding_rate_timestamp".into()), &[]);
+        let mut fundingTimestamp: Value = self.safe_timestamp_k(contract.clone(), "next_funding_rate_timestamp", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
@@ -3145,7 +3145,7 @@ impl NadoCore {
         //
         let mut marketId: Value = self.safe_string_k(funding.clone(), "product_id", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(funding.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(funding.clone(), "timestamp", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), funding.clone());
@@ -3362,7 +3362,7 @@ impl NadoCore {
         //
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "product_id", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
-        let mut timestamp: Value = self.safe_timestamp(transaction.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(transaction.clone(), "timestamp", &[]);
         let mut preBalance: Value = self.safe_dict_k(transaction.clone(), "pre_balance", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3622,8 +3622,8 @@ impl NadoCore {
             if (amountString != Value::Null) && (archiveFilled != Value::Null) {
                 remaining = self.parse_x18(crate::precise::Precise::stringMax(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringAbs(&amountString), &crate::precise::Precise::stringAbs(&archiveFilled)), &Value::Str("0".into())));
             }
-            timestamp = self.safe_timestamp(order.clone(), Value::Str("first_fill_timestamp".into()), &[]);
-            lastTradeTimestamp = self.safe_timestamp(order.clone(), Value::Str("last_fill_timestamp".into()), &[]);
+            timestamp = self.safe_timestamp_k(order.clone(), "first_fill_timestamp", &[]);
+            lastTradeTimestamp = self.safe_timestamp_k(order.clone(), "last_fill_timestamp", &[]);
             price = self.parse_x18(self.safe_string_k(order.clone(), "price_x18", &[]));
             status = self.safe_string_k(order.clone(), "status", &[]);
             if (status == Value::Null) {
@@ -3653,7 +3653,7 @@ impl NadoCore {
             if (unfilledAmount != Value::Null) {
                 remaining = self.parse_x18(crate::precise::Precise::stringAbs(&unfilledAmount));
             }
-            timestamp = self.safe_timestamp(order.clone(), Value::Str("placed_at".into()), &[]);
+            timestamp = self.safe_timestamp_k(order.clone(), "placed_at", &[]);
             let mut orderType: Value = self.safe_string_k(order.clone(), "order_type", &[]);
             timeInForce = self.parse_order_time_in_force(orderType.clone());
             postOnly = Value::Bool(orderType.as_str() == Some("post_only"));
@@ -3677,8 +3677,8 @@ impl NadoCore {
             id = self.safe_string_k(data, "digest", &[]);
             if (id == Value::Null) {
                 id = self.safe_string_k(placeOrder.clone(), "digest", &[]);
-                timestamp = self.safe_timestamp(order.clone(), Value::Str("placed_at".into()), &[]);
-                lastUpdateTimestamp = self.safe_timestamp(order.clone(), Value::Str("updated_at".into()), &[]);
+                timestamp = self.safe_timestamp_k(order.clone(), "placed_at", &[]);
+                lastUpdateTimestamp = self.safe_timestamp_k(order.clone(), "updated_at", &[]);
             }
             let mut amountString: Value = self.safe_string_k(rawOrder.clone(), "amount", &[]);
             if (amountString != Value::Null) {
@@ -3786,7 +3786,7 @@ impl NadoCore {
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut postOnly: Value = self.is_post_only(Value::Bool(false), Value::Null, &[params.clone()]);
-        let mut timeInForce: Option<String> = self.safe_string_upper(params, Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_upper_k(params, "timeInForce", &[]).as_str().map(str::to_owned);
         let mut orderType: Value = Value::Int(0);
         if (timeInForce.as_deref() == Some("IOC")) {
             orderType = Value::Int(1);

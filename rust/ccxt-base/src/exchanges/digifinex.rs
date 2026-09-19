@@ -1791,7 +1791,7 @@ impl DigifinexCore {
             timestamp = self.safe_integer_k(orderBook.clone(), "timestamp", &[]);
         }  else {
             orderBook = response.clone();
-            timestamp = self.safe_timestamp(response.clone(), Value::Str("date".into()), &[]);
+            timestamp = self.safe_timestamp_k(response.clone(), "date", &[]);
         }
         return self.parse_order_book(orderBook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp]);
 
@@ -2064,7 +2064,7 @@ impl DigifinexCore {
         let mut marketId: Value = self.safe_string_upper2(ticker.clone(), Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, marketType.clone()]);
         market = self.safe_market(&[marketId, market.clone(), Value::Null, marketType.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("date".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "date", &[]);
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             timestamp = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
         }
@@ -2265,7 +2265,7 @@ impl DigifinexCore {
     m
 }));
         let mut response: Value = self.public_spot_get_time(&[params.clone()]).await;
-        return self.safe_timestamp(response.clone(), Value::Str("server_time".into()), &[]);
+        return self.safe_timestamp_k(response.clone(), "server_time", &[]);
 
     Value::Null
 }
@@ -3159,8 +3159,8 @@ impl DigifinexCore {
             timestamp = self.safe_integer_k(order.clone(), "insert_time", &[]);
             lastTradeTimestamp = self.safe_integer_k(order.clone(), "time_stamp", &[]);
         }  else {
-            timestamp = self.safe_timestamp(order.clone(), Value::Str("created_date".into()), &[]);
-            lastTradeTimestamp = self.safe_timestamp(order.clone(), Value::Str("finished_date".into()), &[]);
+            timestamp = self.safe_timestamp_k(order.clone(), "created_date", &[]);
+            lastTradeTimestamp = self.safe_timestamp_k(order.clone(), "finished_date", &[]);
             if (side != Value::Null) {
                 let mut parts: Value = split(&side, &Value::Str("_".into()));
                 let mut numParts: f64 = ((parts.len() as i64) as f64);
@@ -3721,7 +3721,7 @@ impl DigifinexCore {
         currency = self.safe_currency(currencyId, &[currency.clone()]);
         let mut amount: Value = self.safe_number2(item.clone(), Value::Str("num".into()), Value::Str("change".into()), &[]);
         let mut after: Value = self.safe_number_k(item.clone(), "balance", &[]);
-        let mut timestamp: Value = self.safe_timestamp(item.clone(), Value::Str("time".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(item.clone(), "time", &[]);
         if (timestamp == Value::Null) {
             timestamp = self.safe_integer_k(item.clone(), "timestamp", &[]);
         }
@@ -3873,7 +3873,7 @@ impl DigifinexCore {
         //
         let mut address: Value = self.safe_string_k(depositAddress.clone(), "address", &[]);
         let mut tag: Value = self.safe_string_k(depositAddress.clone(), "addressTag", &[]);
-        let mut currencyId: Value = self.safe_string_upper(depositAddress.clone(), Value::Str("currency".into()), &[]);
+        let mut currencyId: Value = self.safe_string_upper_k(depositAddress.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4092,7 +4092,7 @@ impl DigifinexCore {
         let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
         let mut tag: Value = self.safe_string_k(transaction.clone(), "memo", &[]);
         let mut txid: Value = self.safe_string_k(transaction.clone(), "hash", &[]);
-        let mut currencyId: Value = self.safe_string_upper(transaction.clone(), Value::Str("currency".into()), &[]);
+        let mut currencyId: Value = self.safe_string_upper_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(transaction.clone(), "created_date", &[]));
         let mut updated: Value = self.parse8601(self.safe_string_k(transaction.clone(), "finished_date", &[]));

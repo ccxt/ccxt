@@ -982,7 +982,7 @@ impl BitoproCore {
         let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
         let mut timestamp: Value = Value::Null;
         if (id == Value::Null) {
-            timestamp = self.safe_timestamp(trade.clone(), Value::Str("timestamp".into()), &[]);
+            timestamp = self.safe_timestamp_k(trade.clone(), "timestamp", &[]);
         }  else {
             timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         }
@@ -990,8 +990,8 @@ impl BitoproCore {
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut type_var: Value = self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("action".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(trade.clone(), "type", &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "action", &[]);
         if (side == Value::Null) {
             let mut isBuyer: Value = self.safe_bool_k(trade.clone(), "isBuyer", &[]);
             if (isBuyer.as_bool() == Some(true)) {
@@ -1445,7 +1445,7 @@ impl BitoproCore {
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut orderStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut status: Value = self.parse_order_status(orderStatus);
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
         let mut average: Value = self.safe_string_k(order.clone(), "avgExecutionPrice", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "executedAmount", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "remainingAmount", &[]);
@@ -2189,7 +2189,7 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut requestedNetwork: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]);
+            let mut requestedNetwork: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
             params = self.omit(params.clone(), Value::from(vec![Value::Str("network".into())]), &[]);
             let mut networkId: Value = (if (requestedNetwork == Value::Null) { Value::Null } else { self.safe_string(networks, requestedNetwork.clone(), &[]) });
             if (networkId == Value::Null) {

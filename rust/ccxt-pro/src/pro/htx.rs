@@ -1792,7 +1792,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         let mut genericMessageHash: Value = replace_str(&messageHash, &Value::Str(format!("{}{}", Value::Str(".".into()), market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null)).into()), &Value::Str("".into()));
-        let mut lowerCaseBaseId: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".into()), &[]);
+        let mut lowerCaseBaseId: Value = self.safe_string_lower_k(market.clone(), "baseId", &[]);
         genericMessageHash = replace_str(&genericMessageHash, &Value::Str(format!("{}{}", Value::Str(".".into()), lowerCaseBaseId).into()), &Value::Str("".into()));
         client.resolve(&[self.orders.clone(), genericMessageHash]);
 }
@@ -2008,7 +2008,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("type".to_string(), type_var.clone());
-        m.insert("timeInForce".to_string(), self.safe_string_upper(order.clone(), Value::Str("time_in_force".into()), &[]));
+        m.insert("timeInForce".to_string(), self.safe_string_upper_k(order.clone(), "time_in_force", &[]));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price);
@@ -2302,7 +2302,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut position: Value = self.parse_position(rawPosition, &[]);
             add_element_to_object(&mut position, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut position, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
-            let mut marginMode: Value = self.safe_string_lower(position.clone(), Value::Str("marginMode".into()), &[defaultMarginMode.clone()]);
+            let mut marginMode: Value = self.safe_string_lower_k(position.clone(), "marginMode", &[defaultMarginMode.clone()]);
             if (marginMode.as_str() != Some("cross")) && (marginMode.as_str() != Some("isolated")) {
                 marginMode = defaultMarginMode.clone();
             }
@@ -3331,7 +3331,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
                 let mut genericOrderHash: Value = replace_str(&messageHash, &Value::Str(format!("{}{}", Value::Str(".".into()), market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null)).into()), &Value::Str("".into()));
-                let mut lowerCaseBaseId: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".into()), &[]);
+                let mut lowerCaseBaseId: Value = self.safe_string_lower_k(market.clone(), "baseId", &[]);
                 genericOrderHash = replace_str(&genericOrderHash, &Value::Str(format!("{}{}", Value::Str(".".into()), lowerCaseBaseId).into()), &Value::Str("".into()));
                 let mut genericTradesHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", genericOrderHash, Value::Str(":".into())).into()), Value::Str("trade".into())).into());
                 client.resolve(&[self.myTrades.clone(), genericTradesHash]);
@@ -3399,7 +3399,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (aggressor != Value::Null) {
             takerOrMaker = (if (aggressor.as_bool() == Some(true)) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }  else {
-            takerOrMaker = self.safe_string_lower(trade.clone(), Value::Str("role".into()), &[]);
+            takerOrMaker = self.safe_string_lower_k(trade.clone(), "role", &[]);
         }
         let mut type_var: Value = Value::Null;
         let mut orderTypeParts: Value = Value::from(vec![]);

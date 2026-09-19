@@ -2068,7 +2068,7 @@ impl HashkeyCore {
         let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("t".into()), Value::Str("time".into()), &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]); // swap trades have side param
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]); // swap trades have side param
         if (side != Value::Null) {
             side = self.safe_string(split(&side, &Value::Str("_".into())), Value::Int(0), &[]);
         }
@@ -4224,7 +4224,7 @@ impl HashkeyCore {
         if (price == Value::Null) {
             price = average.clone();
         }
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut reduceOnly: Value = Value::Null;
         { let __destr_tmp = self.parse_order_side_and_reduce_only(side.clone()); side = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut feeCurrncyId: Value = self.safe_string_k(order.clone(), "feeCoin", &[]);
@@ -4606,7 +4606,7 @@ impl HashkeyCore {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "position", &[]));
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(position.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "side", &[]));
         m.insert("notional".to_string(), self.safe_number_k(position.clone(), "positionValue", &[]));
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "leverage", &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedPnL", &[]));
@@ -4679,7 +4679,7 @@ impl HashkeyCore {
 
     pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marginMode: Value = self.safe_string_lower(leverage.clone(), Value::Str("marginType".into()), &[]);
+        let mut marginMode: Value = self.safe_string_lower_k(leverage.clone(), "marginType", &[]);
         let mut leverageValue: Value = self.safe_number_k(leverage.clone(), "leverage", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

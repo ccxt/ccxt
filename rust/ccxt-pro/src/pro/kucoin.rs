@@ -1210,7 +1210,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         market = self.safe_market(&[symbol.clone(), market.clone()]);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[]);
         if (timestamp == Value::Null) {
-            timestamp = self.safe_integer_product(ticker.clone(), Value::Str("M".into()), Value::Float(0.000001), &[]);
+            timestamp = self.safe_integer_product_k(ticker.clone(), "M", Value::Float(0.000001), &[]);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1396,7 +1396,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone()]);
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-            let mut timestamp: Value = self.safe_integer_product(data.clone(), Value::Str("ts".into()), Value::Float(0.000001), &[]);
+            let mut timestamp: Value = self.safe_integer_product_k(data.clone(), "ts", Value::Float(0.000001), &[]);
             return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -1657,7 +1657,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             stored = ArrayCacheByTimestamp::new(limit);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
         }
-        let mut parsed: Value = Value::from(vec![self.safe_integer_product(data.clone(), Value::Str("O".into()), Value::Int(1000), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data.clone(), "v", &[])]);
+        let mut parsed: Value = Value::from(vec![self.safe_integer_product_k(data.clone(), "O", Value::Int(1000), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data.clone(), "v", &[])]);
         stored.append(parsed);
         client.resolve(&[stored, messageHash.clone()]);
 }
@@ -1986,9 +1986,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("oT".into()), &[]));
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("S".into()), &[]));
-        m.insert("takerOrMaker".to_string(), self.safe_string_lower(trade.clone(), Value::Str("lR".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "oT", &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "S", &[]));
+        m.insert("takerOrMaker".to_string(), self.safe_string_lower_k(trade.clone(), "lR", &[]));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "p", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade, "q", &[]));
         m.insert("cost".to_string(), Value::Null);
@@ -2396,7 +2396,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_product(data.clone(), Value::Str("M".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(data.clone(), "M", Value::Float(0.000001), &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
@@ -2469,7 +2469,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
-        let mut timestamp: Value = self.safe_integer_product(delta.clone(), Value::Str("M".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(delta.clone(), "M", Value::Float(0.000001), &[]);
         if (timestamp == Value::Null) {
             timestamp = self.safe_integer2(delta.clone(), Value::Str("time".into()), Value::Str("timestamp".into()), &[]);
         }
@@ -2810,7 +2810,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            timestamp = self.safe_integer_product(order.clone(), Value::Str("orderTime".into()), Value::Float(0.000001), &[]);
+            timestamp = self.safe_integer_product_k(order.clone(), "orderTime", Value::Float(0.000001), &[]);
         }
         let mut triggerPrice: Value = self.safe_string_k(order.clone(), "stopPrice", &[]);
         let mut triggerSuccess: Value = self.safe_bool_k(order.clone(), "triggerSuccess", &[]);
@@ -2827,10 +2827,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("type".to_string(), self.safe_string_lower(order.clone(), Value::Str("orderType".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "orderType", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "side", &[]));
         m.insert("price".to_string(), self.safe_string2(order.clone(), Value::Str("price".into()), Value::Str("orderPrice".into()), &[]));
         m.insert("stopPrice".to_string(), triggerPrice.clone());
         m.insert("triggerPrice".to_string(), triggerPrice);
@@ -2892,7 +2892,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "U": 1774794309608959200
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product(order.clone(), Value::Str("O".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(order.clone(), "O", Value::Float(0.000001), &[]);
         let mut rawStatus: Value = self.safe_string_k(order.clone(), "os", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
         let mut rawTimeInForce: Value = self.safe_string_k(order.clone(), "tIF", &[]);
@@ -2914,12 +2914,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_product(order.clone(), Value::Str("U".into()), Value::Float(0.000001), &[]));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_product_k(order.clone(), "U", Value::Float(0.000001), &[]));
         m.insert("status".to_string(), self.parent.parse_order_status(rawStatus));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), self.safe_string_lower(order.clone(), Value::Str("oT".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "oT", &[]));
         m.insert("timeInForce".to_string(), self.parent.parse_order_time_in_force(rawTimeInForce));
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("S".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "S", &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "p", &[]));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "aP", &[]));
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "q", &[]));
@@ -3612,7 +3612,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         }
         add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("info".into()), data.clone());
-        let mut timestamp: Value = self.safe_integer_product(data.clone(), Value::Str("U".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(data.clone(), "U", Value::Float(0.000001), &[]);
         add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("timestamp".into()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("datetime".into()), __be_tmp); };
         let mut account: Value = self.account();
@@ -4028,7 +4028,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Value = self.safe_string_k(position.clone(), "s", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_product(position.clone(), Value::Str("O".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(position.clone(), "O", Value::Float(0.000001), &[]);
         let mut amountString: Value = self.safe_string_k(position.clone(), "q", &[]);
         let mut size: Value = crate::precise::Precise::stringAbs(&amountString);
         let mut side: Value = (if is_true(&crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into()))) { Value::Str("long".into()) } else { Value::Str("short".into()) });
@@ -4039,7 +4039,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_product(position.clone(), Value::Str("U".into()), Value::Float(0.000001), &[]));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_product_k(position.clone(), "U", Value::Float(0.000001), &[]));
         m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "iM", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "mtM", &[]));
@@ -4056,7 +4056,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "mP", &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), self.safe_string_lower(position, Value::Str("mM".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(position, "mM", &[]));
         m.insert("side".to_string(), side);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);

@@ -1566,7 +1566,7 @@ impl HitbtcCore {
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "quantity", &[]));
         m.insert("type".to_string(), self.safe_string_k(order.clone(), "type", &[]));
-        m.insert("side".to_string(), self.safe_string_upper(order.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_upper_k(order.clone(), "side", &[]));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "time_in_force", &[]));
         m.insert("postOnly".to_string(), self.safe_string_k(order.clone(), "post_only", &[]));
         m.insert("reduceOnly".to_string(), self.safe_value_k(order, "reduce_only", &[]));

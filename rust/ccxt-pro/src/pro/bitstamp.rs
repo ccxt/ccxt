@@ -479,7 +479,7 @@ impl BitstampCore {
 }
 
     pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
-        let mut timestamp: Value = self.safe_timestamp(delta.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(delta.clone(), "timestamp", &[]);
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(delta.clone(), "microtimestamp", &[]));
@@ -1077,9 +1077,9 @@ impl BitstampCore {
         //    }
         //
         let mut id: Value = self.safe_string_k(order.clone(), "id_str", &[]);
-        let mut orderTypeRaw: Option<String> = self.safe_string_lower(order.clone(), Value::Str("order_type".into()), &[]).as_str().map(str::to_owned);
+        let mut orderTypeRaw: Option<String> = self.safe_string_lower_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut side: Value = (if (orderTypeRaw.as_deref() == Some("1")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
-        let mut orderSubTypeRaw: Option<String> = self.safe_string_lower(order.clone(), Value::Str("order_subtype".into()), &[]).as_str().map(str::to_owned); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
+        let mut orderSubTypeRaw: Option<String> = self.safe_string_lower_k(order.clone(), "order_subtype", &[]).as_str().map(str::to_owned); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         let mut orderType: Value = Value::Null;
         let mut timeInForce: Value = Value::Null;
         if (orderSubTypeRaw.as_deref() == Some("0")) {
@@ -1117,7 +1117,7 @@ impl BitstampCore {
             status = Value::Str("canceled".into());
         }
         let mut triggerPrice: Value = self.safe_string_k(order.clone(), "stop_price", &[]);
-        let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("datetime".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(order.clone(), "datetime", &[]);
         market = self.safe_market(&[Value::Null, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         return self.safe_order(Value::Map({
@@ -1423,7 +1423,7 @@ impl BitstampCore {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty token".into()))));
                 }
                 let mut userId: Value = self.safe_string_k(response.clone(), "user_id", &[]);
-                let mut validity: Value = self.safe_integer_product(response.clone(), Value::Str("valid_sec".into()), Value::Int(1000), &[]);
+                let mut validity: Value = self.safe_integer_product_k(response.clone(), "valid_sec", Value::Int(1000), &[]);
                 { let __be_tmp = self.sum(&[time.clone(), validity.clone()]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".to_string(), __be_tmp); } }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".to_string(), userId.clone()); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsSessionToken".to_string(), sessionToken.clone()); }

@@ -1870,7 +1870,7 @@ impl BybitCore {
         market = self.safe_market(&[marketId, market.clone(), Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("t".into()), Value::Str("T".into()), &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("S".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "S", &[]);
         let mut takerOrMaker: Value = Value::Null;
         let mut m: Value = self.safe_value_k(trade.clone(), "m", &[]);
         if (side == Value::Null) {
@@ -3052,7 +3052,7 @@ impl BybitCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                account = self.safe_string_lower(result.clone(), Value::Str("accountType".into()), &[]);
+                account = self.safe_string_lower_k(result.clone(), "accountType", &[]);
                 rawBalances = self.array_concat(rawBalances.clone(), self.safe_list_k(result, "coin", &[Value::from(vec![])]));
             }
             }

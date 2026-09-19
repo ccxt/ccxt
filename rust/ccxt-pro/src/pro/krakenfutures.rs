@@ -1096,7 +1096,7 @@ impl KrakenfuturesCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
-        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "type", &[]));
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
         m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "matchRole", &[]));
         m.insert("price".to_string(), self.safe_string2(trade.clone(), Value::Str("price".into()), Value::Str("limit_price".into()), &[]));

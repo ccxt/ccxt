@@ -2216,7 +2216,7 @@ impl LunoCore {
         //         "total_unconfirmed": "string"
         //     }
         //
-        let mut currencyId: Value = self.safe_string_upper(depositAddress.clone(), Value::Str("currency".into()), &[]);
+        let mut currencyId: Value = self.safe_string_upper_k(depositAddress.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

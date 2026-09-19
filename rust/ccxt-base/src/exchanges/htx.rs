@@ -4026,12 +4026,12 @@ impl HtxCore {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing id".into()))));
                     }
                     let mut parts: Value = split(&id, &Value::Str("-".into()));
-                    baseId = self.safe_string_lower(market.clone(), Value::Str("symbol".into()), &[]);
+                    baseId = self.safe_string_lower_k(market.clone(), "symbol", &[]);
                     quoteId = self.safe_string_lower(parts.clone(), Value::Int(1), &[]);
                     settleId = (if inverse.as_bool() == Some(true) { baseId.clone() } else { quoteId.clone() });
                 }  else if future.as_bool() == Some(true) {
                     type_var = Value::Str("future".into());
-                    baseId = self.safe_string_lower(market.clone(), Value::Str("symbol".into()), &[]);
+                    baseId = self.safe_string_lower_k(market.clone(), "symbol", &[]);
                     if inverse.as_bool() == Some(true) {
                         quoteId = Value::Str("USD".into());
                         settleId = baseId.clone();
@@ -4882,7 +4882,7 @@ impl HtxCore {
             side = typeParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             type_var = typeParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         }
-        let mut takerOrMaker: Value = self.safe_string_lower(trade.clone(), Value::Str("role".into()), &[]);
+        let mut takerOrMaker: Value = self.safe_string_lower_k(trade.clone(), "role", &[]);
         let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("price".into()), Value::Str("trade_price".into()), &[]);
         let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("filled-amount".into()), Value::Str("amount".into()), &[]);
         amountString = self.safe_string_k(trade.clone(), "trade_volume", &[amountString.clone()]);
@@ -5316,7 +5316,7 @@ impl HtxCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("id".into()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "amount", &[])]);
+        return Value::from(vec![self.safe_timestamp_k(ohlcv.clone(), "id", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "amount", &[])]);
 
     Value::Null
 }
@@ -7547,7 +7547,7 @@ impl HtxCore {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone());
-        m.insert("timeInForce".to_string(), self.safe_string_upper(order.clone(), Value::Str("time_in_force".into()), &[]));
+        m.insert("timeInForce".to_string(), self.safe_string_upper_k(order.clone(), "time_in_force", &[]));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), price);

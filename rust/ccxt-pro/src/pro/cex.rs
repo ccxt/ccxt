@@ -1682,7 +1682,7 @@ impl CexCore {
         let mut pair: Value = self.safe_string_k(data.clone(), "pair", &[]);
         let mut symbol: Value = self.pair_to_symbol(pair);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into());
-        let mut ohlcv: Value = Value::from(vec![self.safe_timestamp(data.clone(), Value::Str("time".into()), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
+        let mut ohlcv: Value = Value::from(vec![self.safe_timestamp_k(data.clone(), "time", &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
         let mut stored: Value = self.safe_value(self.ohlcvs.clone(), symbol, &[]);
         stored.append(ohlcv);
         client.resolve(&[stored, messageHash.clone()]);

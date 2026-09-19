@@ -1145,7 +1145,7 @@ impl DydxCore {
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "size", &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1422,16 +1422,16 @@ impl DydxCore {
         //     "subaccountNumber": 0
         // }
         //
-        let mut status: Value = self.parse_order_status(self.safe_string_upper(order.clone(), Value::Str("status".into()), &[]));
+        let mut status: Value = self.parse_order_status(self.safe_string_upper_k(order.clone(), "status", &[]));
         let mut marketId: Value = self.safe_string_k(order.clone(), "ticker", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut filled: Value = self.safe_string_k(order.clone(), "totalFilled", &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "updatedAt", &[]));
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "size", &[]);
-        let mut type_var: Value = self.parse_order_type(self.safe_string_upper(order.clone(), Value::Str("type".into()), &[]));
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
-        let mut timeInForce: Value = self.safe_string_upper(order.clone(), Value::Str("timeInForce".into()), &[]);
+        let mut type_var: Value = self.parse_order_type(self.safe_string_upper_k(order.clone(), "type", &[]));
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
+        let mut timeInForce: Value = self.safe_string_upper_k(order.clone(), "timeInForce", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -1664,7 +1664,7 @@ impl DydxCore {
         let mut marketId: Value = self.safe_string_k(position.clone(), "market", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut side: Value = self.safe_string_lower(position.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(position.clone(), "side", &[]);
         let mut quantity: Value = self.safe_string_k(position.clone(), "size", &[]);
         if (side.as_str() != Some("long")) {
             quantity = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &quantity);
@@ -1967,7 +1967,7 @@ impl DydxCore {
         let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut isConditional: bool = (triggerPrice != Value::Null) || (stopLossPrice != Value::Null) || (takeProfitPrice != Value::Null);
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
-        let mut timeInForce: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[Value::Str("GTT".into())]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[Value::Str("GTT".into())]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarket, Value::Null, &[params.clone()]);
         let mut amountStr: Value = self.amount_to_precision(symbol.clone(), amount);
         let mut priceStr: Value = self.price_to_precision(symbol.clone(), price);
@@ -2489,7 +2489,7 @@ impl DydxCore {
         let mut currencyId: Value = self.safe_string_k(item.clone(), "symbol", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         currency = self.safe_currency(currencyId, &[currency.clone()]);
-        let mut type_var: Value = self.safe_string_upper(item.clone(), Value::Str("type".into()), &[]);
+        let mut type_var: Value = self.safe_string_upper_k(item.clone(), "type", &[]);
         let mut direction: Value = Value::Null;
         if (type_var != Value::Null) {
             if (type_var.as_str() == Some("TRANSFER_IN")) || (type_var.as_str() == Some("DEPOSIT")) {
@@ -2884,7 +2884,7 @@ impl DydxCore {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), self.safe_string_lower(transaction, Value::Str("type".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(transaction, "type", &[]));
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), Value::Null);

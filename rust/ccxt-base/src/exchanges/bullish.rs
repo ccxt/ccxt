@@ -1366,7 +1366,7 @@ impl BullishCore {
                     future = Value::Bool(true);
                 }  else if (type_var.as_str() == Some("option")) {
                     option = Value::Bool(true);
-                    optionType = self.safe_string_lower(market.clone(), Value::Str("optionType".into()), &[]);
+                    optionType = self.safe_string_lower_k(market.clone(), "optionType", &[]);
                     strike = self.parse_to_numeric(self.safe_string_k(market.clone(), "optionStrikePrice", &[]));
                     symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".into()), self.number_to_string(strike.clone())).into()), Value::Str("-".into())).into()), self.safe_string(idParts, Value::Int(4), &[])).into())).into());
                 }
@@ -1733,7 +1733,7 @@ impl BullishCore {
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "createdAtTimestamp", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "quantity", &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         let mut isTaker: Value = self.safe_bool_k(trade.clone(), "isTaker", &[]);
         let mut currency: Value = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
         let mut code: Value = self.safe_currency_code(currency, &[]);
@@ -2686,7 +2686,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut id: Value = self.safe_string_k(order.clone(), "orderId", &[]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "createdAtTimestamp", &[]);
         let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "quantityFilled", &[]);

@@ -509,7 +509,7 @@ impl PaymiumCore {
         // }
         //
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("at".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "at", &[]);
         let mut vwap: Value = self.safe_string_k(ticker.clone(), "vwap", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "volume", &[]);
         let mut quoteVolume: Value = crate::precise::Precise::stringMul(&baseVolume, &vwap);
@@ -574,7 +574,7 @@ impl PaymiumCore {
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("created_at_int".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "created_at_int", &[]);
         let mut id: Value = self.safe_string_k(trade.clone(), "uuid", &[]);
         market = self.safe_market(&[Value::Null, market.clone()]);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);

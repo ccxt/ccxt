@@ -1611,7 +1611,7 @@ impl DeribitCore {
         //
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
         let mut locked: Option<String> = self.safe_string_k(result, "locked", &[]).as_str().map(str::to_owned);
-        let mut updateTime: Value = self.safe_integer_product(response.clone(), Value::Str("usIn".into()), Value::Float(0.001), &[self.milliseconds()]);
+        let mut updateTime: Value = self.safe_integer_product_k(response.clone(), "usIn", Value::Float(0.001), &[self.milliseconds()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if (locked.as_deref() == Some("false")) { Value::Str("ok".into()) } else { Value::Str("maintenance".into()) }));
@@ -3089,7 +3089,7 @@ impl DeribitCore {
             }
         }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "order_state", &[]));
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("direction".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "direction", &[]);
         let mut feeCostString: Value = self.safe_string_k(order.clone(), "commission", &[]);
         let mut fee: Value = Value::Null;
         if (feeCostString != Value::Null) {
@@ -3237,7 +3237,7 @@ impl DeribitCore {
             m
         });
         let mut trigger: Value = self.safe_string_k(params.clone(), "trigger", &[Value::Str("last_price".into())]);
-        let mut timeInForce: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut reduceOnly: Value = self.safe_value2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         // only stop loss sell orders are allowed when price crossed from above
         let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[]);

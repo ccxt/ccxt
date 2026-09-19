@@ -4761,7 +4761,7 @@ impl BybitCore {
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), self.iso8601(expiry.clone()));
         m.insert("strike".to_string(), self.parse_number(strike, &[]));
-        m.insert("optionType".to_string(), self.safe_string_lower(market.clone(), Value::Str("optionsType".into()), &[]));
+        m.insert("optionType".to_string(), self.safe_string_lower_k(market.clone(), "optionsType", &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.safe_number_k(lotSizeFilter.clone(), "qtyStep", &[]));
@@ -5766,7 +5766,7 @@ impl BybitCore {
         let mut priceString: Value = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("execPrice".into()), Value::Str("orderPrice".into()), Value::Str("price".into())]), &[]);
         let mut costString: Value = self.safe_string_k(trade.clone(), "execValue", &[]);
         let mut timestamp: Value = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("time".into()), Value::Str("execTime".into()), Value::Str("tradeTime".into())]), &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         if (side == Value::Null) {
             let mut isBuyer: Option<i64> = self.safe_integer_k(trade.clone(), "isBuyer", &[]).as_i64();
             if (isBuyer.is_some()) {
@@ -5790,7 +5790,7 @@ impl BybitCore {
                 }
             }
         }
-        let mut orderType: Value = self.safe_string_lower(trade.clone(), Value::Str("orderType".into()), &[]);
+        let mut orderType: Value = self.safe_string_lower_k(trade.clone(), "orderType", &[]);
         if (orderType.as_str() == Some("unknown")) {
             orderType = Value::Null;
         }
@@ -6451,9 +6451,9 @@ impl BybitCore {
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
         // see https://github.com/ccxt/ccxt/issues/27725
         let mut id: Value = self.safe_string_k(order.clone(), "orderId", &[]);
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("orderType".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "orderType", &[]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut amount: Value = Value::Null;
         let mut cost: Value = Value::Null;
         let mut qtyIsQuote: bool = (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (type_var.as_str() == Some("market")) && ((marketUnit.as_deref() == Some("quoteCoin")) || ((marketUnit.is_none()) && (side.as_str() == Some("buy"))));
@@ -6826,7 +6826,7 @@ impl BybitCore {
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".to_string(), self.capitalize(side.clone())); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderType".to_string(), self.capitalize(lowerCaseType.clone())); }
-            let mut timeInForce: Option<String> = self.safe_string_lower(params.clone(), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned); // this is same as exchange specific param
+            let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned); // this is same as exchange specific param
             let mut postOnly: Value = Value::Null;
             { let __destr_tmp = self.handle_post_only(isMarket, Value::Bool(timeInForce.as_deref() == Some("postonly")), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             if (postOnly.as_bool() == Some(true)) {
@@ -9890,7 +9890,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("marginMode".to_string(), self.safe_string_lower(leverage.clone(), Value::Str("marginMode".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(leverage.clone(), "marginMode", &[]));
         m.insert("longLeverage".to_string(), leverageValue.clone());
         m.insert("shortLeverage".to_string(), leverageValue);
     m

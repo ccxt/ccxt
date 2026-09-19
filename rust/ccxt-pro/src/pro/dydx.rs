@@ -412,8 +412,8 @@ impl DydxCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("order".to_string(), Value::Null);
-        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]));
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "type", &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "side", &[]));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade, "size", &[]));

@@ -970,7 +970,7 @@ impl CoinmateCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_timestamp(orderbook.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(orderbook.clone(), "timestamp", &[]);
         return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
 
     Value::Null
@@ -1101,7 +1101,7 @@ impl CoinmateCore {
         //         "timestamp": "1708074485"
         //     }
         //
-        let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "timestamp", &[]);
         let mut last: Value = self.safe_number_k(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1243,7 +1243,7 @@ impl CoinmateCore {
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("transactionId".into()), Value::Str("id".into()), &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
-        m.insert("type".to_string(), self.safe_string_lower(transaction.clone(), Value::Str("transferType".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(transaction.clone(), "transferType", &[]));
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), self.safe_string_k(transaction.clone(), "walletType", &[]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
@@ -1450,7 +1450,7 @@ impl CoinmateCore {
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         let mut side: Value = self.safe_string_lower2(trade.clone(), Value::Str("type".into()), Value::Str("tradeType".into()), &[]);
-        let mut type_var: Value = self.safe_string_lower(trade.clone(), Value::Str("orderType".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(trade.clone(), "orderType", &[]);
         let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
         let mut id: Value = self.safe_string_k(trade.clone(), "transactionId", &[]);
         let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("timestamp".into()), Value::Str("createdTimestamp".into()), &[]);
@@ -1750,7 +1750,7 @@ impl CoinmateCore {
         //
         let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "timestamp", &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
         let mut priceString: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(order.clone(), "originalAmount", &[]);
         let mut remainingString: Value = self.safe_string2(order.clone(), Value::Str("remainingAmount".into()), Value::Str("amount".into()), &[]);

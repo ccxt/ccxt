@@ -1298,7 +1298,7 @@ impl LbankCore {
         //
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
         if (timestamp == Value::Null) {
-            timestamp = self.safe_timestamp(ticker.clone(), Value::Str("lastTime".into()), &[]);
+            timestamp = self.safe_timestamp_k(ticker.clone(), "lastTime", &[]);
         }
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
@@ -2349,7 +2349,7 @@ impl LbankCore {
         let mut market: Value = self.market(symbol.clone());
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("custom_id".into()), Value::Str("clientOrderId".into()), &[]);
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        let mut timeInForce: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("custom_id".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3089,7 +3089,7 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[defaultNetwork]); // this line allows the user to specify either ERC20 or ETH
+        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[defaultNetwork]); // this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network.clone(), &[network.clone()]); // handle ERC20>ETH alias
         return network;
 
@@ -3198,7 +3198,7 @@ impl LbankCore {
             m
         });
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
-        let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]);
+        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         network = self.safe_string(networks, network.clone(), &[network.clone()]);
         if (network != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("networkName".to_string(), network); }

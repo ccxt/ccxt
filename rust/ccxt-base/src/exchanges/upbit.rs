@@ -2374,7 +2374,7 @@ impl UpbitCore {
         m.insert("tag".to_string(), tag);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_lower(transaction.clone(), Value::Str("state".into()), &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_lower_k(transaction.clone(), "state", &[])));
         m.insert("type".to_string(), type_var);
         m.insert("updated".to_string(), self.parse8601(updatedRaw));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
@@ -2483,7 +2483,7 @@ impl UpbitCore {
         //        new_order_identifier: '22'
         //      }
         let mut id: Value = self.safe_string_k(order.clone(), "uuid", &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         if (side.as_str() == Some("bid")) {
             side = Value::Str("buy".into());
         }  else if (side.as_str() == Some("ask")) {
@@ -2564,7 +2564,7 @@ impl UpbitCore {
         m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
-        m.insert("timeInForce".to_string(), self.safe_string_upper(order, Value::Str("time_in_force".into()), &[]));
+        m.insert("timeInForce".to_string(), self.safe_string_upper_k(order, "time_in_force", &[]));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price);

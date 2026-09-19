@@ -549,7 +549,7 @@ impl BitoproCore {
         //
         let mut id: Value = self.safe_string_k(trade.clone(), "matchID", &[]);
         let mut orderId: Value = self.safe_string_k(trade.clone(), "orderID", &[]);
-        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("transactionTimestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "transactionTimestamp", &[]);
         let mut baseId: Value = self.safe_string_k(trade.clone(), "base", &[]);
         let mut quoteId: Value = self.safe_string_k(trade.clone(), "quote", &[]);
         let mut base: Value = self.safe_currency_code(baseId, &[]);
@@ -557,7 +557,7 @@ impl BitoproCore {
         let mut symbol: Value = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
         market = self.safe_market(&[symbol.clone(), market.clone()]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut type_var: Value = self.safe_string_lower(trade.clone(), Value::Str("orderType".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(trade.clone(), "orderType", &[]);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         if (side != Value::Null) {
             if (side.as_str() == Some("ask")) {
@@ -653,7 +653,7 @@ impl BitoproCore {
         //         "low24hr": "1179321"
         //     }
         //
-        let mut marketId: Value = self.safe_string_lower(message.clone(), Value::Str("pair".into()), &[]);
+        let mut marketId: Value = self.safe_string_lower_k(message.clone(), "pair", &[]);
         if (marketId == Value::Null) {
             return;
         }

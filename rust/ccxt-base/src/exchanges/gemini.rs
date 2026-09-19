@@ -1584,7 +1584,7 @@ impl GeminiCore {
         let mut isString: bool = matches!(&response, Value::Str(_));
         let mut isArray: bool = matches!(&response, Value::Arr(_));
         if !isString && !isArray {
-            marketId = self.safe_string_lower(response.clone(), Value::Str("symbol".into()), &[]);
+            marketId = self.safe_string_lower_k(response.clone(), "symbol", &[]);
             amountPrecision = self.safe_number_k(response.clone(), "tick_size", &[]); // right, exchange has an imperfect naming and this turns out to be an amount-precision
             tickSize = self.safe_number_k(response.clone(), "quote_increment", &[]); // this is tick-size actually
             minSize = self.safe_number_k(response.clone(), "min_order_size", &[]);
@@ -1894,7 +1894,7 @@ impl GeminiCore {
 })]);
         let mut timestamp: Value = self.safe_integer_k(volume.clone(), "timestamp", &[]);
         let mut symbol: Value = Value::Null;
-        let mut marketId: Value = self.safe_string_lower(ticker.clone(), Value::Str("pair".into()), &[]);
+        let mut marketId: Value = self.safe_string_lower_k(ticker.clone(), "pair", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut baseId: Value = Value::Null;
         let mut quoteId: Value = Value::Null;
@@ -1915,8 +1915,8 @@ impl GeminiCore {
         }
         if (symbol == Value::Null) && (market != Value::Null) {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            baseId = self.safe_string_upper(market.clone(), Value::Str("baseId".into()), &[]);
-            quoteId = self.safe_string_upper(market.clone(), Value::Str("quoteId".into()), &[]);
+            baseId = self.safe_string_upper_k(market.clone(), "baseId", &[]);
+            quoteId = self.safe_string_upper_k(market.clone(), "quoteId", &[]);
         }
         let mut price: Value = self.safe_string_k(ticker.clone(), "price", &[]);
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[price]);
@@ -2040,7 +2040,7 @@ impl GeminiCore {
         });
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "type", &[]);
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2355,7 +2355,7 @@ impl GeminiCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut id: Value = self.safe_string_k(order.clone(), "order_id", &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "client_order_id", &[]);
         let mut optionsArray: Value = self.safe_list_k(order.clone(), "options", &[Value::from(vec![])]);
         let mut option: Option<String> = self.safe_string(optionsArray, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -2785,7 +2785,7 @@ impl GeminiCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
         let mut address: Value = self.safe_string_k(transaction.clone(), "destination", &[]);
-        let mut type_var: Value = self.safe_string_lower(transaction.clone(), Value::Str("type".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(transaction.clone(), "type", &[]);
         // if status field is available, then it's complete
         let mut statusRaw: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut fee: Value = Value::Null;

@@ -1463,7 +1463,7 @@ impl ParadexCore {
         m.insert("expiry".to_string(), expiry);
         m.insert("expiryDatetime".to_string(), expireDatetime);
         m.insert("strike".to_string(), self.parse_number(strikePrice, &[]));
-        m.insert("optionType".to_string(), self.safe_string_lower(market.clone(), Value::Str("option_type".into()), &[]));
+        m.insert("optionType".to_string(), self.safe_string_lower_k(market.clone(), "option_type", &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.safe_number_k(market.clone(), "order_size_increment", &[]));
@@ -2225,8 +2225,8 @@ impl ParadexCore {
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "created_at", &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "size", &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
-        let mut liability: Option<String> = self.safe_string_lower(trade.clone(), Value::Str("liquidity".into()), &[Value::Str("taker".into())]).as_str().map(str::to_owned);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
+        let mut liability: Option<String> = self.safe_string_lower_k(trade.clone(), "liquidity", &[Value::Str("taker".into())]).as_str().map(str::to_owned);
         let mut isTaker: bool = liability.as_deref() == Some("taker");
         let mut takerOrMaker: Value = (if (isTaker) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         let mut currencyId: Value = self.safe_string_k(trade.clone(), "fee_currency", &[]);
@@ -2636,7 +2636,7 @@ impl ParadexCore {
                 status = Value::Str("canceled".into());
             }
         }
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut average: Value = self.omit_zero(self.safe_string_k(order.clone(), "avg_fill_price", &[]));
         let mut remaining: Value = self.omit_zero(self.safe_string_k(order.clone(), "remaining_size", &[]));
         let mut triggerPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "trigger_price", &[]));
@@ -2765,7 +2765,7 @@ impl ParadexCore {
         let mut isTakeProfitOrder: bool = takeProfitPrice != Value::Null;
         let mut isStopLossOrder: bool = stopLossPrice != Value::Null;
         let mut isStopOrder: bool = (triggerPrice != Value::Null) || isTakeProfitOrder || isStopLossOrder;
-        let mut timeInForce: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
         if !(matches!(&isMarket, Value::Bool(true))) {
             if is_true(&postOnly) {
@@ -3753,7 +3753,7 @@ impl ParadexCore {
         let mut marketId: Value = self.safe_string_k(position.clone(), "market", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut side: Value = self.safe_string_lower(position.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(position.clone(), "side", &[]);
         let mut quantity: Value = self.safe_string_k(position.clone(), "size", &[]);
         if (side.as_str() != Some("long")) {
             quantity = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &quantity);
@@ -4277,7 +4277,7 @@ impl ParadexCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(rawMarginMode.clone(), "market", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut marginMode: Value = self.safe_string_lower(rawMarginMode.clone(), Value::Str("margin_type".into()), &[]);
+        let mut marginMode: Value = self.safe_string_lower_k(rawMarginMode.clone(), "margin_type", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawMarginMode);
@@ -4375,7 +4375,7 @@ impl ParadexCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(leverage.clone(), "market", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut marginMode: Value = self.safe_string_lower(leverage.clone(), Value::Str("margin_type".into()), &[]);
+        let mut marginMode: Value = self.safe_string_lower_k(leverage.clone(), "margin_type", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());

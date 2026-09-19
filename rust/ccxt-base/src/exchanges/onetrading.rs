@@ -1599,7 +1599,7 @@ impl OnetradingCore {
                     m.insert("rate".to_string(), feeRateString);
                 m
             });
-            takerOrMaker = self.safe_string_lower(feeInfo, Value::Str("fee_type".into()), &[]);
+            takerOrMaker = self.safe_string_lower_k(feeInfo, "fee_type", &[]);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1770,8 +1770,8 @@ impl OnetradingCore {
         let mut price: Value = self.safe_string_k(rawOrder.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(rawOrder.clone(), "amount", &[]);
         let mut filled: Value = self.safe_string_k(rawOrder.clone(), "filled_amount", &[]);
-        let mut side: Value = self.safe_string_lower(rawOrder.clone(), Value::Str("side".into()), &[]);
-        let mut type_var: Value = self.safe_string_lower(rawOrder.clone(), Value::Str("type".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(rawOrder.clone(), "side", &[]);
+        let mut type_var: Value = self.safe_string_lower_k(rawOrder.clone(), "type", &[]);
         let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(rawOrder.clone(), "time_in_force", &[]));
         let mut postOnly: Value = self.safe_bool_k(rawOrder.clone(), "is_post_only", &[]);
         let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]);

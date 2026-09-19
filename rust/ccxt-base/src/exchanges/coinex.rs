@@ -3569,7 +3569,7 @@ impl CoinexCore {
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "market", &[]);
         let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
-        let mut orderType: Value = self.safe_string_lower(order.clone(), Value::Str("market_type".into()), &[defaultType]);
+        let mut orderType: Value = self.safe_string_lower_k(order.clone(), "market_type", &[defaultType]);
         if (orderType.as_str() == Some("futures")) {
             orderType = Value::Str("swap".into());
         }
@@ -3677,7 +3677,7 @@ impl CoinexCore {
         let mut option: Option<String> = self.safe_string_k(params.clone(), "option", &[]).as_str().map(str::to_owned);
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(option.as_deref() == Some("maker_only")), &[params.clone()]);
-        let mut timeInForceRaw: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForceRaw: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
         if (reduceOnly.as_bool() == Some(true)) {
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
@@ -5341,7 +5341,7 @@ impl CoinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut status: Value = self.safe_string_lower(response.clone(), Value::Str("message".into()), &[]);
+        let mut status: Value = self.safe_string_lower_k(response.clone(), "message", &[]);
         let mut type_var: Value = (if (addOrReduce.as_str() == Some("reduce")) { Value::Str("reduce".into()) } else { Value::Str("add".into()) });
         let __ws_arg_51 = self.parse_margin_modification(data, &[market.clone()]);
         let __ws_arg_52 = self.parse_number(amount, &[]);

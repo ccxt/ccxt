@@ -1577,7 +1577,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
-        let mut marketId: Value = self.safe_string_lower(data.clone(), Value::Str("s".into()), &[]);
+        let mut marketId: Value = self.safe_string_lower_k(data.clone(), "s", &[]);
         if (marketId != Value::Null) {
             let mut trade: Value = self.parse_trade(data.clone(), &[]);
             let mut i: Option<String> = self.safe_string_k(data, "i", &[]).as_str().map(str::to_owned);
@@ -1779,7 +1779,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "i", &[Value::Str("orderId".into())]));
         m.insert("type".to_string(), self.parent.parse_order_status(self.safe_string_k(trade.clone(), "st", &[Value::Str("state".into())])));
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("sd".into()), &[Value::Str("orderSide".into())]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "sd", &[Value::Str("orderSide".into())]));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_number_k(trade.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "origQty", &[]));

@@ -1690,7 +1690,7 @@ impl HitbtcCore {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]);
+        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
             let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
             let mut parsedNetwork: Value = self.safe_string(networks, network, &[]);
@@ -1741,7 +1741,7 @@ impl HitbtcCore {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]);
+        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
             let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
             let mut parsedNetwork: Value = self.safe_string(networks, network, &[]);
@@ -1815,7 +1815,7 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut type_var: Value = self.safe_string_lower(params.clone(), Value::Str("type".into()), &[Value::Str("spot".into())]);
+        let mut type_var: Value = self.safe_string_lower_k(params.clone(), "type", &[Value::Str("spot".into())]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("type".into())]), &[]);
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3596,7 +3596,7 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
-        m.insert("marginMode".to_string(), self.safe_string_lower(marginMode, Value::Str("margin_mode".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(marginMode, "margin_mode", &[]));
     m
 });
 
@@ -3753,7 +3753,7 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]);
+        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
             let mut parsedNetwork: Value = self.safe_string(networks.clone(), network, &[]);
             if (parsedNetwork != Value::Null) {
@@ -4634,7 +4634,7 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
-        m.insert("marginMode".to_string(), self.safe_string_lower(leverage.clone(), Value::Str("type".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(leverage.clone(), "type", &[]));
         m.insert("longLeverage".to_string(), leverageValue.clone());
         m.insert("shortLeverage".to_string(), leverageValue);
     m
