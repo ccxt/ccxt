@@ -1874,7 +1874,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var feeType *string = this.SafeString(entry, "fee_type")
-		var pairKey any = Add(Add(Add(Add(this.SafeString(entry, "symbol", ""), ":"), this.SafeString(entry, "created_at", "")), ":"), this.SafeString(entry, "transaction_amount", ""))
+		var pairKey any = *this.SafeString(entry, "symbol", "") + ":" + *this.SafeString(entry, "created_at", "") + ":" + *this.SafeString(entry, "transaction_amount", "")
 		if feeType != nil && *feeType == "TRANSACTION" {
 			transactions = append(transactions, entry)
 			transactionKeys = append(transactionKeys, pairKey)
