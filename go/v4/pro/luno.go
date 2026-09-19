@@ -99,7 +99,7 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Luno) HandleTrades(client any, message any, subscription any) {
+func (this *Luno) HandleTrades(client any, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "sequence": "110980825",
@@ -120,7 +120,7 @@ func (this *Luno) HandleTrades(client any, message any, subscription any) {
 	if length == 0 {
 		return
 	}
-	var symbol any = ccxt.GetValue(subscription, "symbol")
+	var symbol any = subscription["symbol"]
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var stored any = this.SafeValue(this.Trades, symbol)
@@ -228,7 +228,7 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Luno) HandleOrderBook(client any, message any, subscription any) {
+func (this *Luno) HandleOrderBook(client any, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "sequence": "24352",
@@ -261,7 +261,7 @@ func (this *Luno) HandleOrderBook(client any, message any, subscription any) {
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var symbol any = ccxt.GetValue(subscription, "symbol")
+	var symbol any = subscription["symbol"]
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {

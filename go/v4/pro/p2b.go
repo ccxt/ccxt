@@ -388,7 +388,7 @@ func (this *P2b) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *P2b) HandleOHLCV(client any, message any) any {
+func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 	//
 	//    {
 	//        "method": "kline.update",
@@ -432,7 +432,7 @@ func (this *P2b) HandleOHLCV(client any, message any) any {
 	}
 	return message
 }
-func (this *P2b) HandleTrade(client any, message any) any {
+func (this *P2b) HandleTrade(client any, message map[string]any) any {
 	//
 	//    {
 	//        "method": "deals.update",
@@ -472,7 +472,7 @@ func (this *P2b) HandleTrade(client any, message any) any {
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	return message
 }
-func (this *P2b) HandleTicker(client any, message any) any {
+func (this *P2b) HandleTicker(client any, message map[string]any) any {
 	//
 	// state
 	//
@@ -529,7 +529,7 @@ func (this *P2b) HandleTicker(client any, message any) any {
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	return message
 }
-func (this *P2b) HandleOrderBook(client any, message any) {
+func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	//
 	//    {
 	//        "method": "depth.update",

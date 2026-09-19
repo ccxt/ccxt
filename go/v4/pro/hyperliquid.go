@@ -427,7 +427,7 @@ func (this *Hyperliquid) unWatchOrderBookBody(ch chan any, symbol any, optionalA
 	ch <- retRes28115
 	return nil
 }
-func (this *Hyperliquid) HandleOrderBook(client any, message any) {
+func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "channel": "l2Book",
@@ -797,7 +797,7 @@ func (this *Hyperliquid) unWatchMyTradesBody(ch chan any, optionalArgs ...any) a
 	ch <- retRes54115
 	return nil
 }
-func (this *Hyperliquid) HandleWsTickers(client any, message any) any {
+func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) any {
 	// hip3 mids
 	// {
 	//     channel: 'allMids',
@@ -836,7 +836,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message any) any {
 	}
 	return true
 }
-func (this *Hyperliquid) HandleActiveAssetCtx(client any, message any) any {
+func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any) any {
 	//
 	//     {
 	//         "channel": "activeAssetCtx",
@@ -876,7 +876,7 @@ func (this *Hyperliquid) ParseWsTicker(rawTicker any, optionalArgs ...any) any {
 	_ = market
 	return this.ParseTicker(rawTicker, market)
 }
-func (this *Hyperliquid) HandleMyTrades(client any, message any) {
+func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "channel": "userFills",
@@ -1045,7 +1045,7 @@ func (this *Hyperliquid) unWatchTradesBody(ch chan any, symbol any, optionalArgs
 	ch <- retRes74215
 	return nil
 }
-func (this *Hyperliquid) HandleTrades(client any, message any) {
+func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "channel": "trades",
@@ -1274,7 +1274,7 @@ func (this *Hyperliquid) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	ch <- retRes91515
 	return nil
 }
-func (this *Hyperliquid) HandleOHLCV(client any, message any) {
+func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         channel: 'candle',
@@ -1311,7 +1311,7 @@ func (this *Hyperliquid) HandleOHLCV(client any, message any) {
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
-func (this *Hyperliquid) HandleWsPost(client any, message any) {
+func (this *Hyperliquid) HandleWsPost(client any, message map[string]any) {
 	//    {
 	//         channel: "post",
 	//         data: {
@@ -1462,7 +1462,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan any, optionalArgs ...any) an
 	ch <- retRes105715
 	return nil
 }
-func (this *Hyperliquid) HandleBalance(client any, message any) {
+func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 	//
 	// spot
 	// {
@@ -1691,7 +1691,7 @@ func (this *Hyperliquid) SetPositionsCache(client any, optionalArgs ...any) {
 	}
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 }
-func (this *Hyperliquid) HandlePositions(client any, message any) {
+func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
@@ -1903,7 +1903,7 @@ func (this *Hyperliquid) unWatchOrdersBody(ch chan any, optionalArgs ...any) any
 	ch <- retRes141515
 	return nil
 }
-func (this *Hyperliquid) HandleOrder(client any, message any) {
+func (this *Hyperliquid) HandleOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         channel: 'orderUpdates',
@@ -2172,7 +2172,7 @@ func (this *Hyperliquid) HandleSpotBalanceUnsubscription(client any, subscriptio
 		ccxt.Remove(this.Balance, "spot")
 	}
 }
-func (this *Hyperliquid) HandleSubscriptionResponse(client any, message any) {
+func (this *Hyperliquid) HandleSubscriptionResponse(client any, message map[string]any) {
 	// {
 	//     "channel":"subscriptionResponse",
 	//     "data":{
@@ -2277,7 +2277,7 @@ func (this *Hyperliquid) Ping(client any) any {
 		"method": "ping",
 	}
 }
-func (this *Hyperliquid) HandlePong(client any, message any) any {
+func (this *Hyperliquid) HandlePong(client any, message map[string]any) any {
 	//
 	//   {
 	//       "channel": "pong"

@@ -88,7 +88,7 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Independentreserve) HandleTrades(client any, message any) {
+func (this *Independentreserve) HandleTrades(client any, message map[string]any) {
 	//
 	//    {
 	//        "Channel": "ticker-btc-usd",
@@ -200,7 +200,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Independentreserve) HandleOrderBook(client any, message any) {
+func (this *Independentreserve) HandleOrderBook(client any, message map[string]any) {
 	//
 	//    {
 	//        "Channel": "orderbook/1/eth/aud",
@@ -312,7 +312,7 @@ func (this *Independentreserve) HandleDeltas(bookside any, deltas any) {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
-func (this *Independentreserve) HandleHeartbeat(client any, message any) any {
+func (this *Independentreserve) HandleHeartbeat(client any, message map[string]any) any {
 	//
 	//    {
 	//        "Time": 1676156208182,
@@ -321,7 +321,7 @@ func (this *Independentreserve) HandleHeartbeat(client any, message any) any {
 	//
 	return message
 }
-func (this *Independentreserve) HandleSubscriptions(client any, message any) any {
+func (this *Independentreserve) HandleSubscriptions(client any, message map[string]any) any {
 	//
 	//    {
 	//        "Data": [ "ticker-btc-sgd" ],

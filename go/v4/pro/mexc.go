@@ -291,7 +291,7 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 	return nil
 }
-func (this *Mexc) HandleTickers(client any, message any) {
+func (this *Mexc) HandleTickers(client any, message map[string]any) {
 	//
 	// swap
 	//
@@ -943,7 +943,7 @@ func (this *Mexc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Mexc) HandleOrderBookSubscription(client any, message any) {
+func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any) {
 	// spot
 	//     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
 	//
@@ -1990,7 +1990,7 @@ func (this *Mexc) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs .
 
 	return nil
 }
-func (this *Mexc) HandleFundingRate(client any, message any) {
+func (this *Mexc) HandleFundingRate(client any, message map[string]any) {
 	//
 	//     {
 	//         "symbol": "BTC_USDT",

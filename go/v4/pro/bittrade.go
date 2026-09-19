@@ -108,7 +108,7 @@ func (this *Bittrade) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- retRes8315
 	return nil
 }
-func (this *Bittrade) HandleTicker(client any, message any) any {
+func (this *Bittrade) HandleTicker(client any, message map[string]any) any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.detail",
@@ -203,7 +203,7 @@ func (this *Bittrade) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Bittrade) HandleTrades(client any, message any) any {
+func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.trade.detail",
@@ -316,7 +316,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Bittrade) HandleOHLCV(client any, message any) {
+func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "ch": "market.btcusdt.kline.1min",
@@ -420,7 +420,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Bittrade) HandleOrderBookSnapshot(client any, message any, subscription any) {
+func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "id": 1583473663565,
@@ -577,7 +577,7 @@ func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook 
 	}
 	return orderbook
 }
-func (this *Bittrade) HandleOrderBook(client any, message any) {
+func (this *Bittrade) HandleOrderBook(client any, message map[string]any) {
 	//
 	// deltas
 	//
@@ -613,7 +613,7 @@ func (this *Bittrade) HandleOrderBook(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Bittrade) HandleOrderBookSubscription(client any, message any, subscription any) {
+func (this *Bittrade) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var symbol *string = this.SafeString(subscription, "symbol")
 	if symbol == nil {
 		return
@@ -653,7 +653,7 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message any) any {
 	}
 	return message
 }
-func (this *Bittrade) HandleSystemStatus(client any, message any) any {
+func (this *Bittrade) HandleSystemStatus(client any, message map[string]any) any {
 	//
 	// todo: answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that

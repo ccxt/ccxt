@@ -151,7 +151,7 @@ func (this *Woofipro) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Woofipro) HandleOrderBook(client any, message any) {
+func (this *Woofipro) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDC@orderbook",
@@ -265,7 +265,7 @@ func (this *Woofipro) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		"info":          ticker,
 	}, market)
 }
-func (this *Woofipro) HandleTicker(client any, message any) any {
+func (this *Woofipro) HandleTicker(client any, message map[string]any) any {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDC@ticker",
@@ -336,7 +336,7 @@ func (this *Woofipro) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(tickers, "symbol", symbols)
 	return nil
 }
-func (this *Woofipro) HandleTickers(client any, message any) {
+func (this *Woofipro) HandleTickers(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic":"tickers",
@@ -423,7 +423,7 @@ func (this *Woofipro) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(tickers, "symbol", symbols)
 	return nil
 }
-func (this *Woofipro) HandleBidAsk(client any, message any) {
+func (this *Woofipro) HandleBidAsk(client any, message map[string]any) {
 	//
 	//     {
 	//       "topic": "bbos",
@@ -533,7 +533,7 @@ func (this *Woofipro) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Woofipro) HandleOHLCV(client any, message any) {
+func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic":"PERP_BTC_USDC@kline_1m",
@@ -621,7 +621,7 @@ func (this *Woofipro) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Woofipro) HandleTrade(client any, message any) {
+func (this *Woofipro) HandleTrade(client any, message map[string]any) {
 	//
 	// {
 	//     "topic":"PERP_ADA_USDC@trade",
@@ -734,7 +734,7 @@ func (this *Woofipro) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"info":         trade,
 	}, market)
 }
-func (this *Woofipro) HandleAuth(client any, message any) {
+func (this *Woofipro) HandleAuth(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "auth",
@@ -1100,7 +1100,7 @@ func (this *Woofipro) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":             trades,
 	})
 }
-func (this *Woofipro) HandleOrderUpdate(client any, message any) {
+func (this *Woofipro) HandleOrderUpdate(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "executionreport",
@@ -1346,7 +1346,7 @@ func (this *Woofipro) loadPositionsSnapshotBody(ch chan any, client any, message
 	}
 	return nil
 }
-func (this *Woofipro) HandlePositions(client any, message any) {
+func (this *Woofipro) HandlePositions(client any, message map[string]any) {
 	//
 	//    {
 	//        "topic":"position",
@@ -1514,7 +1514,7 @@ func (this *Woofipro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes123015
 	return nil
 }
-func (this *Woofipro) HandleBalance(client any, message any) {
+func (this *Woofipro) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic":"balance",
@@ -1695,17 +1695,17 @@ func (this *Woofipro) pongBody(ch chan any, client any, message any) any {
 	ccxt.PanicOnError(retRes13838)
 	return nil
 }
-func (this *Woofipro) HandlePing(client any, message any) {
+func (this *Woofipro) HandlePing(client any, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Woofipro) HandlePong(client any, message any) any {
+func (this *Woofipro) HandlePong(client any, message map[string]any) any {
 	//
 	// { event: "pong", ts: 1614667590000 }
 	//
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Woofipro) HandleSubscribe(client any, message any) any {
+func (this *Woofipro) HandleSubscribe(client any, message map[string]any) any {
 	//
 	//     {
 	//         "id": "666888",

@@ -497,7 +497,7 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 	ch <- this.FilterBySymbolsSinceLimit(this.Liquidations, symbols, since, limit, true)
 	return nil
 }
-func (this *Binance) HandleLiquidation(client any, message any) {
+func (this *Binance) HandleLiquidation(client any, message map[string]any) {
 	//
 	// future
 	//    {
@@ -1138,7 +1138,7 @@ func (this *Binance) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs 
 	ch <- orderbook
 	return nil
 }
-func (this *Binance) HandleFetchOrderBook(client any, message any) {
+func (this *Binance) HandleFetchOrderBook(client any, message map[string]any) {
 	//
 	//    {
 	//        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
@@ -2329,7 +2329,7 @@ func (this *Binance) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- retRes185615
 	return nil
 }
-func (this *Binance) HandleOHLCV(client any, message any) {
+func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "kline",
@@ -2538,7 +2538,7 @@ func (this *Binance) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- retRes202615
 	return nil
 }
-func (this *Binance) HandleFetchOHLCV(client any, message any) {
+func (this *Binance) HandleFetchOHLCV(client any, message map[string]any) {
 	//
 	//    {
 	//        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
@@ -3360,7 +3360,7 @@ func (this *Binance) ParseWsTicker(message any, marketType any) any {
 		"info":          message,
 	}, market)
 }
-func (this *Binance) HandleTickerWs(client any, message any) {
+func (this *Binance) HandleTickerWs(client any, message map[string]any) {
 	//
 	// ticker.price
 	//    {
@@ -4260,12 +4260,12 @@ func (this *Binance) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes328715
 	return nil
 }
-func (this *Binance) HandleBalanceWs(client any, message any) {
+func (this *Binance) HandleBalanceWs(client any, message map[string]any) {
 	//
 	//
 	var messageHash *string = this.SafeString(message, "id")
 	var rawBalance any = nil
-	if ccxt.IsArray(ccxt.GetValue(message, "result")) {
+	if ccxt.IsArray(message["result"]) {
 		// account.balance
 		rawBalance = this.SafeList(message, "result", []any{})
 	} else {
@@ -4276,7 +4276,7 @@ func (this *Binance) HandleBalanceWs(client any, message any) {
 	var parsedBalances any = this.ParseBalanceCustom(rawBalance)
 	client.(ccxt.ClientInterface).Resolve(parsedBalances, messageHash)
 }
-func (this *Binance) HandleAccountStatusWs(client any, message any) {
+func (this *Binance) HandleAccountStatusWs(client any, message map[string]any) {
 	//
 	// spot
 	//    {
@@ -4430,7 +4430,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
 	return nil
 }
-func (this *Binance) HandlePositionsWs(client any, message any) {
+func (this *Binance) HandlePositionsWs(client any, message map[string]any) {
 	//
 	//    {
 	//        id: '1',
@@ -4828,7 +4828,7 @@ func (this *Binance) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 	ch <- retRes376315
 	return nil
 }
-func (this *Binance) HandleOrderWs(client any, message any) {
+func (this *Binance) HandleOrderWs(client any, message map[string]any) {
 	//
 	//    {
 	//        "id": 1,
@@ -4881,7 +4881,7 @@ func (this *Binance) HandleOrderWs(client any, message any) {
 	var order any = this.ParseOrder(result)
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
-func (this *Binance) HandleOrdersWs(client any, message any) {
+func (this *Binance) HandleOrdersWs(client any, message map[string]any) {
 	//
 	//    {
 	//        "id": 1,
@@ -4999,7 +4999,7 @@ func (this *Binance) editOrderWsBody(ch chan any, id any, symbol any, typeVar an
 	ch <- retRes391015
 	return nil
 }
-func (this *Binance) HandleEditOrderWs(client any, message any) {
+func (this *Binance) HandleEditOrderWs(client any, message map[string]any) {
 	//
 	// spot
 	//    {
@@ -6041,7 +6041,7 @@ func (this *Binance) HandleOrderUpdate(client any, message any) {
 	this.HandleOrder(client, message)
 	this.HandleMyLiquidation(client, message)
 }
-func (this *Binance) HandleStockPrice(client any, message any) {
+func (this *Binance) HandleStockPrice(client any, message map[string]any) {
 	//
 	//     {
 	//         "rates": [
@@ -6082,7 +6082,7 @@ func (this *Binance) HandleStockPrice(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(tickers, "stock:price")
 }
-func (this *Binance) HandleStockQuote(client any, message any) {
+func (this *Binance) HandleStockQuote(client any, message map[string]any) {
 	var stockSymbol *string = this.SafeString(message, "s")
 	var symbol any = this.GetStockUnifiedSymbol(stockSymbol, "USDC")
 	if symbol == nil {
@@ -6695,7 +6695,7 @@ func (this *Binance) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...
 	ch <- this.FilterBySinceLimit(trades, since, limit)
 	return nil
 }
-func (this *Binance) HandleTradesWs(client any, message any) {
+func (this *Binance) HandleTradesWs(client any, message map[string]any) {
 	//
 	// fetchMyTradesWs
 	//

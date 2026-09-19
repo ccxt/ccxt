@@ -155,7 +155,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Apex) HandleTrades(client any, message any) {
+func (this *Apex) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "recentlyTrade.H.BTCUSDT",
@@ -381,7 +381,7 @@ func (this *Apex) GetWsPrivateUrl() any {
 	}
 	return url
 }
-func (this *Apex) HandleOrderBook(client any, message any) {
+func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "orderbook25.H.BTCUSDT",
@@ -540,7 +540,7 @@ func (this *Apex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 	return nil
 }
-func (this *Apex) HandleTicker(client any, message any) {
+func (this *Apex) HandleTicker(client any, message map[string]any) {
 	// "topic":"instrumentInfo.H.BTCUSDT",
 	//     "type":"snapshot",
 	//     "data":{
@@ -681,7 +681,7 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	ch <- this.CreateOHLCVObject(symbol, timeframe, filtered)
 	return nil
 }
-func (this *Apex) HandleOHLCV(client any, message any) {
+func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "candle.5.BTCUSDT",
@@ -1391,11 +1391,11 @@ func (this *Apex) HandlePong(client any, message any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
 	return message
 }
-func (this *Apex) HandlePing(client any, message any) {
+func (this *Apex) HandlePing(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Apex) HandleAccount(client any, message any) {
+func (this *Apex) HandleAccount(client any, message map[string]any) {
 	var contents map[string]any = ccxt.SafeMapTyped(message, "contents")
 	var fills any = this.SafeList(contents, "fills", []any{})
 	if !ccxt.IsEqual(fills, nil) {
@@ -1434,7 +1434,7 @@ func (this *Apex) HandleAuthenticate(client any, message any) any {
 	}
 	return message
 }
-func (this *Apex) HandleSubscriptionStatus(client any, message any) any {
+func (this *Apex) HandleSubscriptionStatus(client any, message map[string]any) any {
 	//
 	//    {
 	//        "topic": "kline",

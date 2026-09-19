@@ -267,7 +267,7 @@ func (this *Toobit) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Toobit) HandleTrades(client any, message any) {
+func (this *Toobit) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         symbol: "DOGEUSDT",
@@ -421,7 +421,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	ch <- this.CreateOHLCVObject(symbol, timeframe, filtered)
 	return nil
 }
-func (this *Toobit) HandleOHLCV(client any, message any) {
+func (this *Toobit) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         symbol: 'DOGEUSDT',
@@ -590,7 +590,7 @@ func (this *Toobit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 	return nil
 }
-func (this *Toobit) HandleTickers(client any, message any) {
+func (this *Toobit) HandleTickers(client any, message map[string]any) {
 	//
 	//    {
 	//        "symbol": "DOGEUSDT",
@@ -742,7 +742,7 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Toobit) HandleOrderBook(client any, message any) {
+func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         symbol: 'DOGEUSDT',
@@ -800,7 +800,7 @@ func (this *Toobit) HandleDelta(bookside any, delta any) {
 	var bidAsk any = this.ParseOrderBookBidAsk(delta)
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func (this *Toobit) HandleOrderBookPartialSnapshot(client any, message any) {
+func (this *Toobit) HandleOrderBookPartialSnapshot(client any, message map[string]any) {
 	//
 	//     {
 	//         symbol: 'DOGEUSDT',
@@ -940,7 +940,7 @@ func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...
 		this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, marketType)
 	}
 }
-func (this *Toobit) HandleBalance(client any, message any) {
+func (this *Toobit) HandleBalance(client any, message map[string]any) {
 	//
 	// spot
 	//
@@ -1087,7 +1087,7 @@ func (this *Toobit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Toobit) HandleOrder(client any, message any) {
+func (this *Toobit) HandleOrder(client any, message map[string]any) {
 	//
 	//    {
 	//        "e": "executionReport",
@@ -1233,7 +1233,7 @@ func (this *Toobit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Toobit) HandleMyTrade(client any, message any) {
+func (this *Toobit) HandleMyTrade(client any, message map[string]any) {
 	//
 	//    {
 	//        "e": "ticketInfo",

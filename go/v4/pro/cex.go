@@ -102,7 +102,7 @@ func (this *Cex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes8015
 	return nil
 }
-func (this *Cex) HandleBalance(client any, message any) {
+func (this *Cex) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "get-balance",
@@ -211,7 +211,7 @@ func (this *Cex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Cex) HandleTradesSnapshot(client any, message any) {
+func (this *Cex) HandleTradesSnapshot(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "history",
@@ -259,7 +259,7 @@ func (this *Cex) ParseWsOldTrade(trade any, optionalArgs ...any) any {
 		"fee":          nil,
 	}, market)
 }
-func (this *Cex) HandleTrade(client any, message any) {
+func (this *Cex) HandleTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "history-update",
@@ -270,7 +270,7 @@ func (this *Cex) HandleTrade(client any, message any) {
 	//
 	this.HandleTradesInner(client, message)
 }
-func (this *Cex) HandleTradesInner(client any, message any) {
+func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var symbol *string = this.SafeString(ccxt.GetValue(this.Options, "watchTrades"), "symbol")
 	if symbol == nil {
@@ -443,7 +443,7 @@ func (this *Cex) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- retRes35615
 	return nil
 }
-func (this *Cex) HandleTicker(client any, message any) {
+func (this *Cex) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "tick",
@@ -694,7 +694,7 @@ func (this *Cex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, market["symbol"], since, limit)
 	return nil
 }
-func (this *Cex) HandleTransaction(client any, message any) {
+func (this *Cex) HandleTransaction(client any, message map[string]any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var symbol2 *string = this.SafeString(data, "symbol2")
 	if symbol2 == nil {
@@ -703,7 +703,7 @@ func (this *Cex) HandleTransaction(client any, message any) {
 	this.HandleOrderUpdate(client, message)
 	this.HandleMyTrades(client, message)
 }
-func (this *Cex) HandleMyTrades(client any, message any) {
+func (this *Cex) HandleMyTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "tx",
@@ -822,7 +822,7 @@ func (this *Cex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	return this.SafeTrade(parsedTrade, market)
 }
-func (this *Cex) HandleOrderUpdate(client any, message any) {
+func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	//
 	//  partialExecution
 	//     {
@@ -1068,7 +1068,7 @@ func (this *Cex) CurrencyFromPrecision(currency any, amount any) any {
 	var scale *int64 = this.SafeInteger(ccxt.GetValue(this.Currencies, currency), "precision", 0)
 	return this.FromPrecision(amount, scale)
 }
-func (this *Cex) HandleOrdersSnapshot(client any, message any) {
+func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "open-orders",
@@ -1168,7 +1168,7 @@ func (this *Cex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Cex) HandleOrderBookSnapshot(client any, message any) {
+func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "order-book-subscribe",
@@ -1216,7 +1216,7 @@ func (this *Cex) PairToSymbol(pair any) any {
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
 	return symbol
 }
-func (this *Cex) HandleOrderBookUpdate(client any, message any) {
+func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "md_update",
@@ -1314,7 +1314,7 @@ func (this *Cex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Cex) HandleInitOHLCV(client any, message any) {
+func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "init-ohlcv-data",
@@ -1357,7 +1357,7 @@ func (this *Cex) HandleInitOHLCV(client any, message any) {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), "unknown", stored)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Cex) HandleOHLCV24(client any, message any) any {
+func (this *Cex) HandleOHLCV24(client any, message map[string]any) any {
 	//
 	//     {
 	//         "e": "ohlcv24",
@@ -1367,7 +1367,7 @@ func (this *Cex) HandleOHLCV24(client any, message any) any {
 	//
 	return message
 }
-func (this *Cex) HandleOHLCV1m(client any, message any) {
+func (this *Cex) HandleOHLCV1m(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "ohlcv1m",
@@ -1392,7 +1392,7 @@ func (this *Cex) HandleOHLCV1m(client any, message any) {
 	stored.(ccxt.Appender).Append(ohlcv)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Cex) HandleOHLCV(client any, message any) {
+func (this *Cex) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "ohlcv",
@@ -1816,7 +1816,7 @@ func (this *Cex) ResolveData(client any, message any) {
 	var messageHash *string = this.SafeString(message, "oid")
 	client.(ccxt.ClientInterface).Resolve(data, messageHash)
 }
-func (this *Cex) HandleConnected(client any, message any) any {
+func (this *Cex) HandleConnected(client any, message map[string]any) any {
 	//
 	//     {
 	//         "e": "connected"
@@ -1898,7 +1898,7 @@ func (this *Cex) HandleMessage(client any, message any) {
 		ccxt.CallDynamically(handler, client, message)
 	}
 }
-func (this *Cex) HandleAuthenticationMessage(client any, message any) {
+func (this *Cex) HandleAuthenticationMessage(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "auth",

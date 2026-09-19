@@ -196,7 +196,7 @@ func (this *Lbank) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Lbank) HandleOHLCV(client any, message any) {
+func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 	//
 	// request
 	//    {
@@ -369,7 +369,7 @@ func (this *Lbank) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- retRes30515
 	return nil
 }
-func (this *Lbank) HandleTicker(client any, message any) {
+func (this *Lbank) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "tick":{
@@ -553,7 +553,7 @@ func (this *Lbank) watchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- this.SortBy(result, "timestamp") // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
 	return nil
 }
-func (this *Lbank) HandleTrades(client any, message any) {
+func (this *Lbank) HandleTrades(client any, message map[string]any) {
 	//
 	// request
 	//     {
@@ -718,7 +718,7 @@ func (this *Lbank) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Lbank) HandleOrders(client any, message any) {
+func (this *Lbank) HandleOrders(client any, message map[string]any) {
 	//
 	//     {
 	//         "orderUpdate":{
@@ -895,7 +895,7 @@ func (this *Lbank) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes73915
 	return nil
 }
-func (this *Lbank) HandleBalance(client any, message any) {
+func (this *Lbank) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -1028,7 +1028,7 @@ func (this *Lbank) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Lbank) HandleOrderBook(client any, message any) {
+func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
 	//
 	// request
 	//    {

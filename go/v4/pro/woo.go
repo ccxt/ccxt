@@ -264,7 +264,7 @@ func (this *Woo) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- retRes18415
 	return nil
 }
-func (this *Woo) HandleOrderBook(client any, message any) {
+func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDT@orderbookupdate",
@@ -352,7 +352,7 @@ func (this *Woo) HandleOrderBook(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, topic)
 	}
 }
-func (this *Woo) HandleOrderBookSubscription(client any, message any, subscription any) {
+func (this *Woo) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 	var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 	var symbol *string = this.SafeString(subscription, "symbol") // watchOrderBook
@@ -562,7 +562,7 @@ func (this *Woo) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		"info":          ticker,
 	}, market)
 }
-func (this *Woo) HandleTicker(client any, message any) any {
+func (this *Woo) HandleTicker(client any, message map[string]any) any {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDT@ticker",
@@ -671,7 +671,7 @@ func (this *Woo) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes48915
 	return nil
 }
-func (this *Woo) HandleTickers(client any, message any) {
+func (this *Woo) HandleTickers(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic":"tickers",
@@ -801,7 +801,7 @@ func (this *Woo) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes58215
 	return nil
 }
-func (this *Woo) HandleBidAsk(client any, message any) {
+func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "bbos",
@@ -953,7 +953,7 @@ func (this *Woo) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	ch <- retRes69615
 	return nil
 }
-func (this *Woo) HandleOHLCV(client any, message any) {
+func (this *Woo) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic":"SPOT_BTC_USDT@kline_1m",
@@ -1075,7 +1075,7 @@ func (this *Woo) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- retRes79215
 	return nil
 }
-func (this *Woo) HandleTrade(client any, message any) {
+func (this *Woo) HandleTrade(client any, message map[string]any) {
 	//
 	// {
 	//     "topic":"SPOT_ADA_USDT@trade",
@@ -1540,7 +1540,7 @@ func (this *Woo) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":             trades,
 	})
 }
-func (this *Woo) HandleOrderUpdate(client any, message any) {
+func (this *Woo) HandleOrderUpdate(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "executionreport",
@@ -1785,7 +1785,7 @@ func (this *Woo) loadPositionsSnapshotBody(ch chan any, client any, messageHash 
 	}
 	return nil
 }
-func (this *Woo) HandlePositions(client any, message any) {
+func (this *Woo) HandlePositions(client any, message map[string]any) {
 	//
 	//    {
 	//        "topic":"position",
@@ -1868,7 +1868,7 @@ func (this *Woo) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes143615
 	return nil
 }
-func (this *Woo) HandleBalance(client any, message any) {
+func (this *Woo) HandleBalance(client any, message map[string]any) {
 	//
 	//   {
 	//       "topic": "balance",
@@ -1963,7 +1963,7 @@ func (this *Woo) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- retRes151715
 	return nil
 }
-func (this *Woo) HandleFundingRate(client any, message any) {
+func (this *Woo) HandleFundingRate(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDT@estfundingrate",
@@ -2034,7 +2034,7 @@ func (this *Woo) HandleErrorMessage(client any, message any) any {
 		return nil
 	}
 }
-func (this *Woo) HandleUnSubscription(client any, message any) {
+func (this *Woo) HandleUnSubscription(client any, message map[string]any) {
 	//
 	//     {
 	//         "id": "2",
@@ -2145,17 +2145,17 @@ func (this *Woo) pongBody(ch chan any, client any, message any) any {
 	ccxt.PanicOnError(retRes16628)
 	return nil
 }
-func (this *Woo) HandlePing(client any, message any) {
+func (this *Woo) HandlePing(client any, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Woo) HandlePong(client any, message any) any {
+func (this *Woo) HandlePong(client any, message map[string]any) any {
 	//
 	// { event: "pong", ts: 1657117026090 }
 	//
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Woo) HandleSubscribe(client any, message any) any {
+func (this *Woo) HandleSubscribe(client any, message map[string]any) any {
 	//
 	//     {
 	//         "id": "666888",
@@ -2173,7 +2173,7 @@ func (this *Woo) HandleSubscribe(client any, message any) any {
 	}
 	return message
 }
-func (this *Woo) HandleAuth(client any, message any) {
+func (this *Woo) HandleAuth(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "auth",

@@ -123,7 +123,7 @@ func (this *Onetrading) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes10415
 	return nil
 }
-func (this *Onetrading) HandleBalanceSnapshot(client any, message any) {
+func (this *Onetrading) HandleBalanceSnapshot(client any, message map[string]any) {
 	//
 	// snapshot
 	//     {
@@ -245,7 +245,7 @@ func (this *Onetrading) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(tickers, "symbol", symbols)
 	return nil
 }
-func (this *Onetrading) HandleTicker(client any, message any) {
+func (this *Onetrading) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "ticker_updates": [{
@@ -436,7 +436,7 @@ func (this *Onetrading) watchOrderBookBody(ch chan any, symbol any, optionalArgs
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Onetrading) HandleOrderBook(client any, message any) {
+func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 	//
 	//  snapshot
 	//     {
@@ -590,7 +590,7 @@ func (this *Onetrading) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- orders
 	return nil
 }
-func (this *Onetrading) HandleTrading(client any, message any) {
+func (this *Onetrading) HandleTrading(client any, message map[string]any) {
 	//
 	//     {
 	//         "order_book_sequence": 892925263,
@@ -771,7 +771,7 @@ func (this *Onetrading) ParseTradingOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Onetrading) HandleOrders(client any, message any) {
+func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 	//
 	//  snapshot
 	//     {
@@ -872,7 +872,7 @@ func (this *Onetrading) HandleOrders(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades")
 }
-func (this *Onetrading) HandleAccountUpdate(client any, message any) {
+func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) {
 	//
 	// order created
 	//     {
@@ -1278,7 +1278,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Onetrading) HandleOHLCV(client any, message any) {
+func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	//
 	//  snapshot
 	//     {
@@ -1351,7 +1351,7 @@ func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) any {
 	}
 	return nil
 }
-func (this *Onetrading) HandleSubscriptions(client any, message any) any {
+func (this *Onetrading) HandleSubscriptions(client any, message map[string]any) any {
 	//
 	//     {
 	//         "channels": [{
@@ -1365,7 +1365,7 @@ func (this *Onetrading) HandleSubscriptions(client any, message any) any {
 	//
 	return message
 }
-func (this *Onetrading) HandleHeartbeat(client any, message any) any {
+func (this *Onetrading) HandleHeartbeat(client any, message map[string]any) any {
 	//
 	//     {
 	//         "subscription": "SYSTEM",
@@ -1417,7 +1417,7 @@ func (this *Onetrading) HandleMessage(client any, message any) {
 		ccxt.CallDynamically(handler, client, message)
 	}
 }
-func (this *Onetrading) HandlePricePointUpdates(client any, message any) any {
+func (this *Onetrading) HandlePricePointUpdates(client any, message map[string]any) any {
 	//
 	//     {
 	//         "channel_name": "MARKET_TICKER",
@@ -1438,7 +1438,7 @@ func (this *Onetrading) HandlePricePointUpdates(client any, message any) any {
 	//
 	return message
 }
-func (this *Onetrading) HandleAuthenticationMessage(client any, message any) any {
+func (this *Onetrading) HandleAuthenticationMessage(client any, message map[string]any) any {
 	//
 	//    {
 	//        "channel_name": "SYSTEM",

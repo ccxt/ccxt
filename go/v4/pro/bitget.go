@@ -305,7 +305,7 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 	return nil
 }
-func (this *Bitget) HandleTicker(client any, message any) {
+func (this *Bitget) HandleTicker(client any, message map[string]any) {
 	//
 	// default
 	//
@@ -589,7 +589,7 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Bidsasks, "symbol", symbols)
 	return nil
 }
-func (this *Bitget) HandleBidAsk(client any, message any) {
+func (this *Bitget) HandleBidAsk(client any, message map[string]any) {
 	var ticker any = this.ParseWsBidAsk(message)
 	var symbol any = ccxt.GetValue(ticker, "symbol")
 	if symbol != nil {
@@ -1446,7 +1446,7 @@ func (this *Bitget) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- retRes109415
 	return nil
 }
-func (this *Bitget) HandleTrades(client any, message any) {
+func (this *Bitget) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "action": "snapshot",
@@ -1747,7 +1747,7 @@ func (this *Bitget) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolsSinceLimit(newPositions, symbols, since, limit, true)
 	return nil
 }
-func (this *Bitget) HandlePositions(client any, message any) {
+func (this *Bitget) HandlePositions(client any, message map[string]any) {
 	//
 	//     {
 	//         "action": "snapshot",
@@ -2124,7 +2124,7 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Bitget) HandleOrder(client any, message any) {
+func (this *Bitget) HandleOrder(client any, message map[string]any) {
 	//
 	// spot
 	//
@@ -2650,7 +2650,7 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Bitget) HandleMyTrades(client any, message any) {
+func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 	//
 	// spot
 	// {
@@ -2889,7 +2889,7 @@ func (this *Bitget) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes233515
 	return nil
 }
-func (this *Bitget) HandleBalance(client any, message any) {
+func (this *Bitget) HandleBalance(client any, message map[string]any) {
 	//
 	// spot
 	//

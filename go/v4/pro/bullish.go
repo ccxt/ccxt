@@ -880,7 +880,7 @@ func (this *Bullish) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolsSinceLimit(positions, symbols, since, limit, true)
 	return nil
 }
-func (this *Bullish) HandlePositions(client any, message any) {
+func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	// exchange does not return messages for sandbox mode
 	// current method is implemented blindly
 	// todo: check if this works with not-sandbox mode

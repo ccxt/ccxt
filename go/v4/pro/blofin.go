@@ -158,7 +158,7 @@ func (this *Blofin) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	ch <- this.SortBy(result, "timestamp") // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
 	return nil
 }
-func (this *Blofin) HandleTrades(client any, message any) {
+func (this *Blofin) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//       arg: {
@@ -275,7 +275,7 @@ func (this *Blofin) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Blofin) HandleOrderBook(client any, message any) {
+func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	//
 	//   {
 	//     arg: {
@@ -389,7 +389,7 @@ func (this *Blofin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 	return nil
 }
-func (this *Blofin) HandleTicker(client any, message any) {
+func (this *Blofin) HandleTicker(client any, message map[string]any) {
 	//
 	// message
 	//
@@ -481,7 +481,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Bidsasks, "symbol", symbols)
 	return nil
 }
-func (this *Blofin) HandleBidAsk(client any, message any) {
+func (this *Blofin) HandleBidAsk(client any, message map[string]any) {
 	var data any = this.SafeList(message, "data")
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var ticker any = this.ParseWsBidAsk(ccxt.GetValue(data, i))
@@ -592,7 +592,7 @@ func (this *Blofin) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	ch <- this.CreateOHLCVObject(symbol, timeframe, filtered)
 	return nil
 }
-func (this *Blofin) HandleOHLCV(client any, message any) {
+func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 	//
 	// message
 	//
@@ -676,7 +676,7 @@ func (this *Blofin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes49415
 	return nil
 }
-func (this *Blofin) HandleBalance(client any, message any) {
+func (this *Blofin) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         arg: {
@@ -795,7 +795,7 @@ func (this *Blofin) watchOrdersForSymbolsBody(ch chan any, symbols any, optional
 	ch <- this.FilterBySinceLimit(orders, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Blofin) HandleOrders(client any, message any) {
+func (this *Blofin) HandleOrders(client any, message map[string]any) {
 	//
 	//     {
 	//         action: 'update',
@@ -875,7 +875,7 @@ func (this *Blofin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolsSinceLimit(this.Positions, symbols, since, limit)
 	return nil
 }
-func (this *Blofin) HandlePositions(client any, message any) {
+func (this *Blofin) HandlePositions(client any, message map[string]any) {
 	//
 	//     {
 	//         arg: { channel: 'positions' },
@@ -948,7 +948,7 @@ func (this *Blofin) watchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	ch <- retRes67615
 	return nil
 }
-func (this *Blofin) HandleFundingRate(client any, message any) {
+func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	//
 	//     {
 	//         "arg": {

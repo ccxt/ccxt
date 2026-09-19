@@ -792,7 +792,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	ch <- retRes51415
 	return nil
 }
-func (this *Gate) HandleOrderBookSubscription(client any, message any, optionalArgs ...any) {
+func (this *Gate) HandleOrderBookSubscription(client any, message map[string]any, optionalArgs ...any) {
 	subscription := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = subscription
 	var symbol *string = this.SafeString(subscription, "symbol")
@@ -1076,7 +1076,7 @@ func (this *Gate) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes76015
 	return nil
 }
-func (this *Gate) HandleTicker(client any, message any) {
+func (this *Gate) HandleTicker(client any, message map[string]any) {
 	//
 	//    {
 	//        "time": 1649326221,
@@ -1129,7 +1129,7 @@ func (this *Gate) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes79715
 	return nil
 }
-func (this *Gate) HandleBidAsk(client any, message any) {
+func (this *Gate) HandleBidAsk(client any, message map[string]any) {
 	//
 	//    {
 	//        "time": 1671363004,
@@ -1216,7 +1216,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 	ch <- this.FilterByArray(result, "symbol", symbols, true)
 	return nil
 }
-func (this *Gate) HandleTickerAndBidAsk(objectName any, client any, message any) {
+func (this *Gate) HandleTickerAndBidAsk(objectName any, client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")
 	var parts []string = ccxt.Split(channel, ".")
 	var rawMarketType *string = this.SafeString(parts, 0)
@@ -1414,7 +1414,7 @@ func (this *Gate) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- retRes98115
 	return nil
 }
-func (this *Gate) HandleTrades(client any, message any) {
+func (this *Gate) HandleTrades(client any, message map[string]any) {
 	//
 	// {
 	//     "time": 1648725035,
@@ -1508,7 +1508,7 @@ func (this *Gate) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Gate) HandleOHLCV(client any, message any) {
+func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 	//
 	// {
 	//     "time": 1606292600,
@@ -1648,7 +1648,7 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Gate) HandleMyTrades(client any, message any) {
+func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	//
 	// {
 	//     "time": 1543205083,
@@ -1752,7 +1752,7 @@ func (this *Gate) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes125215
 	return nil
 }
-func (this *Gate) HandleBalance(client any, message any) {
+func (this *Gate) HandleBalance(client any, message map[string]any) {
 	//
 	// spot order fill
 	//     {
@@ -1988,7 +1988,7 @@ func (this *Gate) loadPositionsSnapshotBody(ch chan any, client any, messageHash
 	}
 	return nil
 }
-func (this *Gate) HandlePositions(client any, message any) {
+func (this *Gate) HandlePositions(client any, message map[string]any) {
 	//
 	//    {
 	//        time: 1693158497,
@@ -2180,7 +2180,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySinceLimit(orders, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Gate) HandleOrder(client any, message any) {
+func (this *Gate) HandleOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         "time": 1774613210,
@@ -2402,7 +2402,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, op
 	ch <- this.FilterBySymbolsSinceLimit(this.Liquidations, symbols, since, limit, true)
 	return nil
 }
-func (this *Gate) HandleLiquidation(client any, message any) {
+func (this *Gate) HandleLiquidation(client any, message map[string]any) {
 	//
 	// future / delivery
 	//     {
@@ -2640,7 +2640,7 @@ func (this *Gate) HandleErrorMessage(client any, message any) any {
 	}
 	return false
 }
-func (this *Gate) HandleBalanceSubscription(client any, message any, optionalArgs ...any) {
+func (this *Gate) HandleBalanceSubscription(client any, message map[string]any, optionalArgs ...any) {
 	subscription := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = subscription
 	this.Balance = map[string]any{}

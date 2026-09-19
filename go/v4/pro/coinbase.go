@@ -502,7 +502,7 @@ func (this *Coinbase) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes36515
 	return nil
 }
-func (this *Coinbase) HandleTickers(client any, message any) {
+func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 	//
 	//    {
 	//        "channel": "ticker",
@@ -1008,7 +1008,7 @@ func (this *Coinbase) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Coinbase) HandleTrade(client any, message any) {
+func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 	//
 	//    {
 	//        "channel": "market_trades",
@@ -1064,7 +1064,7 @@ func (this *Coinbase) HandleTrade(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	this.TryResolveUsdc(client, messageHash, tradesArray)
 }
-func (this *Coinbase) HandleOrder(client any, message any) {
+func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 	//
 	//    {
 	//        "channel": "user",
@@ -1193,7 +1193,7 @@ func (this *Coinbase) HandleOrderBookHelper(orderbook any, updates any) {
 		orderbookSide.(ccxt.IOrderBookSide).Store(price, amount)
 	}
 }
-func (this *Coinbase) HandleOrderBook(client any, message any) {
+func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 	//
 	//    {
 	//        "channel": "l2_data",
@@ -1259,7 +1259,7 @@ func (this *Coinbase) TryResolveUsdc(client any, messageHash any, result any) {
 		client.(ccxt.ClientInterface).Resolve(result, ccxt.Add(messageHash, "C")) // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
 	}
 }
-func (this *Coinbase) HandleSubscriptionStatus(client any, message any) any {
+func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]any) any {
 	//
 	//     {
 	//         "type": "subscriptions",
@@ -1308,7 +1308,7 @@ func (this *Coinbase) HandleSubscriptionStatus(client any, message any) any {
 	}
 	return message
 }
-func (this *Coinbase) HandleHeartbeats(client any, message any) any {
+func (this *Coinbase) HandleHeartbeats(client any, message map[string]any) any {
 	// although the subscription takes a product_ids parameter (i.e. symbol),
 	// there is no (clear) way of mapping the message back to the symbol.
 	//

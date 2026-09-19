@@ -97,7 +97,7 @@ func (this *Hollaex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Hollaex) HandleOrderBook(client any, message any) {
+func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic":"orderbook",
@@ -188,7 +188,7 @@ func (this *Hollaex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Hollaex) HandleTrades(client any, message any) {
+func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "trade",
@@ -273,7 +273,7 @@ func (this *Hollaex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Hollaex) HandleMyTrades(client any, message any, optionalArgs ...any) {
+func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optionalArgs ...any) {
 	//
 	// {
 	//     "topic":"usertrade",
@@ -382,7 +382,7 @@ func (this *Hollaex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Hollaex) HandleOrder(client any, message any, optionalArgs ...any) {
+func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArgs ...any) {
 	//
 	//     {
 	//         "topic": "order",
@@ -507,7 +507,7 @@ func (this *Hollaex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes41115
 	return nil
 }
-func (this *Hollaex) HandleBalance(client any, message any) {
+func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "wallet",

@@ -235,7 +235,7 @@ func (this *Htx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- retRes19315
 	return nil
 }
-func (this *Htx) HandleTicker(client any, message any) any {
+func (this *Htx) HandleTicker(client any, message map[string]any) any {
 	//
 	// "market.btcusdt.detail"
 	//     {
@@ -374,7 +374,7 @@ func (this *Htx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- retRes29715
 	return nil
 }
-func (this *Htx) HandleTrades(client any, message any) any {
+func (this *Htx) HandleTrades(client any, message map[string]any) any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.trade.detail",
@@ -516,7 +516,7 @@ func (this *Htx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	ch <- retRes39715
 	return nil
 }
-func (this *Htx) HandleOHLCV(client any, message any) {
+func (this *Htx) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "ch": "market.btcusdt.kline.1min",
@@ -668,7 +668,7 @@ func (this *Htx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- retRes51815
 	return nil
 }
-func (this *Htx) HandleOrderBookSnapshot(client any, message any, subscription any) {
+func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "id": 1583473663565,
@@ -732,7 +732,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message any, subscription a
 			}
 			ccxt.AddElementToObject(snapshot, "nonce", nonce)
 			var snapshotTimestamp *int64 = this.SafeInteger(message, "ts")
-			ccxt.AddElementToObject(subscription, "lastTimestamp", snapshotTimestamp)
+			subscription["lastTimestamp"] = snapshotTimestamp
 			var snapshotLimit *int64 = this.SafeInteger(subscription, "limit")
 			var snapshotOrderBook ccxt.OrderBookInterface = this.OrderBook(snapshot, snapshotLimit)
 			client.(ccxt.ClientInterface).Resolve(snapshotOrderBook, id)
@@ -748,7 +748,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message any, subscription a
 						if (lastTimestamp != nil) && (snapshotTimestamp != nil) {
 							delayTime = this.Sum(1000, ccxt.Subtract(lastTimestamp, snapshotTimestamp))
 						}
-						ccxt.AddElementToObject(subscription, "numAttempts", numAttempts)
+						subscription["numAttempts"] = numAttempts
 						ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, subscription)
 						this.Delay(delayTime, this.WatchOrderBookSnapshotAsync, client, message, subscription)
 					}
@@ -960,7 +960,7 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
 }
-func (this *Htx) HandleOrderBook(client any, message any) {
+func (this *Htx) HandleOrderBook(client any, message map[string]any) {
 	//
 	// deltas
 	//
@@ -1033,7 +1033,7 @@ func (this *Htx) HandleOrderBook(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Htx) HandleOrderBookSubscription(client any, message any, subscription any) {
+func (this *Htx) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var market any = this.Market(symbol)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
@@ -2572,7 +2572,7 @@ func (this *Htx) HandleUnSubscription(client any, subscription any) {
 	}
 	this.CleanCache(subscription)
 }
-func (this *Htx) HandleSystemStatus(client any, message any) any {
+func (this *Htx) HandleSystemStatus(client any, message map[string]any) any {
 	//
 	// todo: answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that

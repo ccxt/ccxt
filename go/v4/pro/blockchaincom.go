@@ -95,7 +95,7 @@ func (this *Blockchaincom) watchBalanceBody(ch chan any, optionalArgs ...any) an
 	ch <- retRes7215
 	return nil
 }
-func (this *Blockchaincom) HandleBalance(client any, message any) {
+func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
 	//
 	//  subscribed
 	//     {
@@ -209,7 +209,7 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Blockchaincom) HandleOHLCV(client any, message any) {
+func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
 	//
 	//  subscribed
 	//     {
@@ -295,7 +295,7 @@ func (this *Blockchaincom) watchTickerBody(ch chan any, symbol any, optionalArgs
 	ch <- retRes23115
 	return nil
 }
-func (this *Blockchaincom) HandleTicker(client any, message any) {
+func (this *Blockchaincom) HandleTicker(client any, message map[string]any) {
 	//
 	//  subscribed
 	//     {
@@ -429,7 +429,7 @@ func (this *Blockchaincom) watchTradesBody(ch chan any, symbol any, optionalArgs
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Blockchaincom) HandleTrades(client any, message any) {
+func (this *Blockchaincom) HandleTrades(client any, message map[string]any) {
 	//
 	//  subscribed
 	//     {
@@ -561,7 +561,7 @@ func (this *Blockchaincom) watchOrdersBody(ch chan any, optionalArgs ...any) any
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Blockchaincom) HandleOrders(client any, message any) {
+func (this *Blockchaincom) HandleOrders(client any, message map[string]any) {
 	//
 	//     {
 	//         "seqnum": 1,
@@ -793,7 +793,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan any, symbol any, optionalA
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Blockchaincom) HandleOrderBook(client any, message any) {
+func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 	//
 	//  subscribe
 	//     {
@@ -885,7 +885,7 @@ func (this *Blockchaincom) HandleMessage(client any, message any) {
 	}
 	panic(ccxt.NotSupported(ccxt.Add(this.Id+" received an unsupported message: ", this.Json(message))))
 }
-func (this *Blockchaincom) HandleAuthenticationMessage(client any, message any) {
+func (this *Blockchaincom) HandleAuthenticationMessage(client any, message map[string]any) {
 	//
 	//     {
 	//         "seqnum": 0,

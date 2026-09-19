@@ -151,7 +151,7 @@ func (this *Modetrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Modetrade) HandleOrderBook(client any, message any) {
+func (this *Modetrade) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDC@orderbook",
@@ -265,7 +265,7 @@ func (this *Modetrade) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		"info":          ticker,
 	}, market)
 }
-func (this *Modetrade) HandleTicker(client any, message any) any {
+func (this *Modetrade) HandleTicker(client any, message map[string]any) any {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDC@ticker",
@@ -336,7 +336,7 @@ func (this *Modetrade) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(tickers, "symbol", symbols)
 	return nil
 }
-func (this *Modetrade) HandleTickers(client any, message any) {
+func (this *Modetrade) HandleTickers(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic":"tickers",
@@ -423,7 +423,7 @@ func (this *Modetrade) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(tickers, "symbol", symbols)
 	return nil
 }
-func (this *Modetrade) HandleBidAsk(client any, message any) {
+func (this *Modetrade) HandleBidAsk(client any, message map[string]any) {
 	//
 	//     {
 	//       "topic": "bbos",
@@ -534,7 +534,7 @@ func (this *Modetrade) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Modetrade) HandleOHLCV(client any, message any) {
+func (this *Modetrade) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic":"PERP_BTC_USDC@kline_1m",
@@ -624,7 +624,7 @@ func (this *Modetrade) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Modetrade) HandleTrade(client any, message any) {
+func (this *Modetrade) HandleTrade(client any, message map[string]any) {
 	//
 	// {
 	//     "topic":"PERP_ADA_USDC@trade",
@@ -737,7 +737,7 @@ func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"info":         trade,
 	}, market)
 }
-func (this *Modetrade) HandleAuth(client any, message any) {
+func (this *Modetrade) HandleAuth(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "auth",
@@ -1103,7 +1103,7 @@ func (this *Modetrade) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":             trades,
 	})
 }
-func (this *Modetrade) HandleOrderUpdate(client any, message any) {
+func (this *Modetrade) HandleOrderUpdate(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "executionreport",
@@ -1360,7 +1360,7 @@ func (this *Modetrade) loadPositionsSnapshotBody(ch chan any, client any, messag
 	}
 	return nil
 }
-func (this *Modetrade) HandlePositions(client any, message any) {
+func (this *Modetrade) HandlePositions(client any, message map[string]any) {
 	//
 	//    {
 	//        "topic":"position",
@@ -1528,7 +1528,7 @@ func (this *Modetrade) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes122915
 	return nil
 }
-func (this *Modetrade) HandleBalance(client any, message any) {
+func (this *Modetrade) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic":"balance",
@@ -1720,17 +1720,17 @@ func (this *Modetrade) pongBody(ch chan any, client any, message any) any {
 	ccxt.PanicOnError(retRes13838)
 	return nil
 }
-func (this *Modetrade) HandlePing(client any, message any) {
+func (this *Modetrade) HandlePing(client any, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Modetrade) HandlePong(client any, message any) any {
+func (this *Modetrade) HandlePong(client any, message map[string]any) any {
 	//
 	// { event: "pong", ts: 1614667590000 }
 	//
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Modetrade) HandleSubscribe(client any, message any) any {
+func (this *Modetrade) HandleSubscribe(client any, message map[string]any) any {
 	//
 	//     {
 	//         "id": "666888",
