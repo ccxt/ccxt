@@ -1095,9 +1095,9 @@ func (this *Zaif) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/")
 	if IsEqual(api, "public") {
-		url = Add(url, Add(Add(Add("api/", this.Version), "/"), this.ImplodeParams(path, params)))
+		url = Add(url, Add("api/"+this.Version+"/", this.ImplodeParams(path, params)))
 	} else if IsEqual(api, "fapi") {
-		url = Add(url, Add(Add(Add("fapi/", this.Version), "/"), this.ImplodeParams(path, params)))
+		url = Add(url, Add("fapi/"+this.Version+"/", this.ImplodeParams(path, params)))
 	} else {
 		this.CheckRequiredCredentials()
 		if IsEqual(api, "ecapi") {

@@ -5058,7 +5058,7 @@ func (this *Deribit) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var request any = Add(Add(Add(Add(Add("/"+"api/", this.Version), "/"), api), "/"), path)
+	var request any = Add(Add(Add("/"+"api/"+this.Version+"/", api), "/"), path)
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
 			request = Add(request, "?"+this.Urlencode(params))

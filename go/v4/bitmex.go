@@ -4781,7 +4781,7 @@ func (this *Bitmex) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var query any = Add(Add(Add("/api/", this.Version), "/"), path)
+	var query any = Add("/api/"+this.Version+"/", path)
 	if IsEqual(method, "GET") {
 		if len(ObjectKeys(params)) > 0 {
 			query = Add(query, "?"+this.Urlencode(params))
