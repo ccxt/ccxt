@@ -8119,7 +8119,7 @@ func (this *Binance) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 	ch <- this.ParseOrders(response)
 	return nil
 }
-func (this *Binance) ParseOrderStatus(status any) *string {
+func (this *Binance) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":              "open",
 		"PARTIALLY_FILLED": "open",
@@ -8139,7 +8139,7 @@ func (this *Binance) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Binance) ParseOrderTypeByMarket(typeVar any, marketType any) any {
+func (this *Binance) ParseOrderTypeByMarket(typeVar *string, marketType any) any {
 	var types map[string]any = map[string]any{}
 	if (marketType != nil) && (IsEqual(marketType, "spot")) {
 		types = map[string]any{
@@ -12239,7 +12239,7 @@ func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"fee":         fee,
 	}
 }
-func (this *Binance) ParseTransferStatus(status any) *string {
+func (this *Binance) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"CONFIRMED": "ok",
 	}
