@@ -360,7 +360,6 @@ export default class alpaca extends alpacaRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -534,21 +533,20 @@ export default class alpaca extends alpacaRest {
         //        }
         //      }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const event = this.safeString (data, 'event');
         if (event !== 'fill' && event !== 'partial_fill') {
             return;
         }
-        const rawOrder = this.safeValue (data, 'order', {});
-        let myTrades = this.myTrades;
-        if (myTrades === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            myTrades = new ArrayCacheBySymbolById (limit);
-        }
-        const trade = this.parseMyTrade (rawOrder);
+        const trade = this.parseMyTrade (data);
         if (trade === undefined) {
             return;
         }
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const myTrades = this.myTrades;
         myTrades.append (trade);
         let messageHash = 'myTrades:' + trade['symbol'];
         client.resolve (myTrades, messageHash);
@@ -558,45 +556,37 @@ export default class alpaca extends alpacaRest {
 
     parseMyTrade (trade: any, market: Market = undefined) {
         //
+        // the fill event envelope, the order snapshot is nested
+        //
         //    {
-        //        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
-        //        "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
-        //        "created_at": "2022-12-16T02:28:51.673531798-05:00",
-        //        "updated_at": "2022-12-16T02:28:51.678736847-05:00",
-        //        "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
-        //        "filled_at": null,
-        //        "expired_at": null,
-        //        "cancel_requested_at": null,
-        //        "canceled_at": null,
-        //        "failed_at": null,
-        //        "replaced_at": null,
-        //        "replaced_by": null,
-        //        "replaces": null,
-        //        "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
-        //        "symbol": "BTC/USD",
-        //        "asset_class": "crypto",
-        //        "notional": null,
-        //        "qty": "0.01",
-        //        "filled_qty": "0",
-        //        "filled_avg_price": null,
-        //        "order_class": '',
-        //        "order_type": "market",
-        //        "type": "market",
-        //        "side": "buy",
-        //        "time_in_force": "gtc",
-        //        "limit_price": null,
-        //        "stop_price": null,
-        //        "status": "new",
-        //        "extended_hours": false,
-        //        "legs": null,
-        //        "trail_percent": null,
-        //        "trail_price": null,
-        //        "hwm": null
+        //        "at": "2026-09-18T13:19:45.035521Z",
+        //        "event_id": "01M2TARJCBBPGJ4TG85D0VRCKF",
+        //        "event": "fill",
+        //        "timestamp": "2026-09-18T13:19:45.018819297Z",
+        //        "price": "0.08518",
+        //        "qty": "130",
+        //        "position_qty": "259.025",
+        //        "execution_id": "f3af83c1-4855-41f7-aa1a-40a7d248637c",
+        //        "swap_rate": "1",
+        //        "settle_date": "2026-09-18",
+        //        "order": {
+        //            "id": "9e09dabb-c49a-4531-b895-54247a336467",
+        //            "symbol": "DOGE/USD",
+        //            "qty": "130",
+        //            "filled_qty": "130",
+        //            "filled_avg_price": "0.08518",
+        //            "filled_at": "2026-09-18T13:19:45.018819297Z",
+        //            "type": "market",
+        //            "side": "sell",
+        //            "status": "filled",
+        //            ...
+        //        }
         //    }
         //
-        const marketId = this.safeString (trade, 'symbol');
-        const datetime = this.safeString (trade, 'filled_at');
-        let type = this.safeString (trade, 'type');
+        const order = this.safeDict (trade, 'order', {});
+        const marketId = this.safeString (order, 'symbol');
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
+        let type = this.safeString (order, 'type');
         if (type === undefined) {
             return undefined;
         }
@@ -605,17 +595,17 @@ export default class alpaca extends alpacaRest {
             type = 'limit';
         }
         return this.safeTrade ({
-            'id': this.safeString (trade, 'i'),
+            'id': this.safeString (trade, 'execution_id'),
             'info': trade,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': this.safeSymbol (marketId, undefined, '/'),
-            'order': this.safeString (trade, 'id'),
+            'order': this.safeString (order, 'id'),
             'type': type,
-            'side': this.safeString (trade, 'side'),
-            'takerOrMaker': (type === 'market') ? 'taker' : 'maker',
-            'price': this.safeString (trade, 'filled_avg_price'),
-            'amount': this.safeString (trade, 'filled_qty'),
+            'side': this.safeString (order, 'side'),
+            'takerOrMaker': undefined, // the event carries no liquidity flag
+            'price': this.safeString (trade, 'price'), // the price of the single execution, while the order filled_avg_price is cumulative
+            'amount': this.safeString (trade, 'qty'), // the size of the single execution, while the order filled_qty is cumulative
             'cost': undefined,
             'fee': undefined,
         }, market);
