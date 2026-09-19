@@ -438,7 +438,7 @@ impl KrakenfuturesCore {
             let mut market: Value = self.market(marketIds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
         }
-        add_element_to_object(&mut subscribe, &Value::Str("product_ids".to_string()), marketIds.clone());
+        if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("product_ids".to_string(), marketIds.clone()); }
         let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
 
@@ -1945,8 +1945,8 @@ impl KrakenfuturesCore {
                 }
             }
             }
-            add_element_to_object(&mut self.balance, &Value::Str("cash".to_string()), holdingResult.clone());
-            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "cash")); add_element_to_object(&mut self.balance, &Value::Str("cash".to_string()), __be_tmp); };
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("cash".to_string(), holdingResult.clone()); }
+            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "cash")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("cash".to_string(), __be_tmp); } }
             client.resolve(&[holdingResult.clone(), messageHash.clone()]);
         }
         if (futures != Value::Null) {
@@ -1981,8 +1981,8 @@ impl KrakenfuturesCore {
                 }
             }
             }
-            add_element_to_object(&mut self.balance, &Value::Str("margin".to_string()), futuresResult.clone());
-            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "margin")); add_element_to_object(&mut self.balance, &Value::Str("margin".to_string()), __be_tmp); };
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("margin".to_string(), futuresResult.clone()); }
+            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "margin")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("margin".to_string(), __be_tmp); } }
             client.resolve(&[crate::value::get_value_k(&self.balance, "margin"), Value::Str(format!("{}{}", messageHash, Value::Str("futures".to_string())))]);
         }
         if (flexFutures != Value::Null) {
@@ -2015,8 +2015,8 @@ impl KrakenfuturesCore {
                 }
             }
             }
-            add_element_to_object(&mut self.balance, &Value::Str("flex".to_string()), flexFuturesResult.clone());
-            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "flex")); add_element_to_object(&mut self.balance, &Value::Str("flex".to_string()), __be_tmp); };
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("flex".to_string(), flexFuturesResult.clone()); }
+            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "flex")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("flex".to_string(), __be_tmp); } }
             client.resolve(&[crate::value::get_value_k(&self.balance, "flex"), Value::Str(format!("{}{}", messageHash, Value::Str("flex_futures".to_string())))]);
         }
         client.resolve(&[self.balance.clone(), messageHash.clone()]);

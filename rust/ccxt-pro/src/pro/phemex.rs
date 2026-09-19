@@ -665,7 +665,7 @@ impl PhemexCore {
         //        }
         //    ]
         //
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), message.clone());
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), message.clone()); }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_589: bool = true;

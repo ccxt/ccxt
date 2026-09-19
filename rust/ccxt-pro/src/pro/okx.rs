@@ -528,7 +528,7 @@ impl OkxCore {
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             messageHash = add(&messageHash, &Value::Str(format!("{}{}", Value::Str(":".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
-            add_element_to_object(&mut firstArgument, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut firstArgument { std::sync::Arc::make_mut(__d).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2370,7 +2370,7 @@ impl OkxCore {
             });
             // Only add params['access'] to prevent sending custom parameters, such as extraParams.
             if is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("access")))) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("access".to_string(), crate::value::get_value_k(&params, "access")); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("access".to_string(), crate::value::get_value_k(&params, "access")); }
             }
             self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
         }
@@ -3258,9 +3258,9 @@ impl OkxCore {
             m
         });
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut arg, &Value::Str("clOrdId".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d) = &mut arg { std::sync::Arc::make_mut(__d).insert("clOrdId".to_string(), clientOrderId.clone()); }
         }  else {
-            add_element_to_object(&mut arg, &Value::Str("ordId".to_string()), id.clone());
+            if let Value::Dict(__d) = &mut arg { std::sync::Arc::make_mut(__d).insert("ordId".to_string(), id.clone()); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

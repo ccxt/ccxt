@@ -541,8 +541,8 @@ impl MexcCore {
         if isSpot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers does not support spot markets".to_string()))));
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("method".to_string(), Value::Str("sub.tickers".to_string())); }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("params".to_string(), Value::Map({
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("method".to_string(), Value::Str("sub.tickers".to_string())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
@@ -2288,8 +2288,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isSpot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers does not support spot markets".to_string()))));
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("method".to_string(), Value::Str("unsub.tickers".to_string())); }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("params".to_string(), Value::Map({
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("method".to_string(), Value::Str("unsub.tickers".to_string())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }

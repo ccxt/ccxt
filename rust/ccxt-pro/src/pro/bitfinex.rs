@@ -1040,7 +1040,7 @@ impl BitfinexCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("len".to_string(), limit.clone()); } // string, number of price points, '25', '100', default = '25'
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("len".to_string(), limit.clone()); }; // string, number of price points, '25', '100', default = '25'
         }
         let mut orderbook: Value = self.subscribe(Value::Str("book".to_string()), symbol.clone(), &[self.deep_extend(request.clone(), &[params.clone()])]).await;
         return orderbook.limit();

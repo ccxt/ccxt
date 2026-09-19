@@ -1169,7 +1169,7 @@ impl PolymarketCore {
                 m
             });
             if (eventsStatus != Value::Null) {
-                add_element_to_object(&mut baseRequest, &Value::Str("events_status".to_string()), eventsStatus.clone());
+                if let Value::Dict(__d) = &mut baseRequest { std::sync::Arc::make_mut(__d).insert("events_status".to_string(), eventsStatus.clone()); }
             }
             let mut firstRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2514,7 +2514,7 @@ impl PolymarketCore {
                 m.insert("market".to_string(), conditionId.clone());
             m
         });
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), self.safe_integer_k(self.options.clone(), "tradesPageSize", &[Value::Int(500)])); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), self.safe_integer_k(self.options.clone(), "tradesPageSize", &[Value::Int(500)])); }
         let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.data_public_get_trades(&[__ws_arg_6]).await;
         let mut rawTrades: Value = (if is_true(&(matches!(&response, Value::Arr(_)))) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
@@ -2563,7 +2563,7 @@ impl PolymarketCore {
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
             outcomeObj = self.load_outcome(outcome.clone(), &[]).await;
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("asset_id".to_string(), crate::value::get_value_k(&outcomeObj, "outcomeId")); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("asset_id".to_string(), crate::value::get_value_k(&outcomeObj, "outcomeId")); }
         }
         let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.clob_private_get_data_trades(&[__ws_arg_7]).await;
@@ -2932,7 +2932,7 @@ impl PolymarketCore {
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
             outcomeObj = self.load_outcome(outcome.clone(), &[]).await;
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("asset_id".to_string(), crate::value::get_value_k(&outcomeObj, "outcomeId")); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("asset_id".to_string(), crate::value::get_value_k(&outcomeObj, "outcomeId")); }
         }
         let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.clob_private_get_data_orders(&[__ws_arg_10]).await;
@@ -3370,7 +3370,7 @@ impl PolymarketCore {
         });
         if (cost == Value::Null) {
             // a cost-sized market buy specifies spend, not shares — leave size to the fill
-            add_element_to_object(&mut requestEcho, &Value::Str("original_size".to_string()), amount.clone());
+            if let Value::Dict(__d) = &mut requestEcho { std::sync::Arc::make_mut(__d).insert("original_size".to_string(), amount.clone()); }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3820,9 +3820,9 @@ impl PolymarketCore {
                 m
             });
             if (requestedEventId != Value::Null) {
-                add_element_to_object(&mut lookup, &Value::Str("id".to_string()), requestedEventId.clone());
+                if let Value::Dict(__d) = &mut lookup { std::sync::Arc::make_mut(__d).insert("id".to_string(), requestedEventId.clone()); }
             }  else {
-                add_element_to_object(&mut lookup, &Value::Str("slug".to_string()), requestedSlug.clone());
+                if let Value::Dict(__d) = &mut lookup { std::sync::Arc::make_mut(__d).insert("slug".to_string(), requestedSlug.clone()); }
             }
             let mut response: Value = self.gamma_public_get_events(&[lookup.clone()]).await;
             let mut responseIsArray: bool = matches!(&response, Value::Arr(_));

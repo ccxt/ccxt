@@ -519,15 +519,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if privateAccess {
             if !is_true(&isContract) {
-                add_element_to_object(&mut subscribe, &Value::Str("params".to_string()), Value::from(vec![name.clone()]));
-                add_element_to_object(&mut subscribe, &Value::Str("listenKey".to_string()), self.get_listen_key(isContract.clone()).await);
+                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![name.clone()])); }
+                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), self.get_listen_key(isContract.clone()).await); }
             }  else {
                 let mut listenKey: Value = self.get_listen_key(isContract.clone()).await;
                 let mut param: Value = add(&Value::Str(format!("{}{}", name, Value::Str("@".to_string()))), &listenKey);
-                add_element_to_object(&mut subscribe, &Value::Str("params".to_string()), Value::from(vec![param.clone()]));
+                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![param.clone()])); }
             }
         }  else {
-            add_element_to_object(&mut subscribe, &Value::Str("params".to_string()), Value::from(vec![name.clone()]));
+            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![name.clone()])); }
         }
         let mut tradeType: Value = (if is_true(&isContract) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".to_string()))), tradeType));
@@ -591,15 +591,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if privateAccess {
             if !is_true(&isContract) {
-                add_element_to_object(&mut unsubscribe, &Value::Str("params".to_string()), Value::from(vec![name.clone()]));
-                add_element_to_object(&mut unsubscribe, &Value::Str("listenKey".to_string()), self.get_listen_key(isContract.clone()).await);
+                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![name.clone()])); }
+                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), self.get_listen_key(isContract.clone()).await); }
             }  else {
                 let mut listenKey: Value = self.get_listen_key(isContract.clone()).await;
                 let mut param: Value = add(&Value::Str(format!("{}{}", name, Value::Str("@".to_string()))), &listenKey);
-                add_element_to_object(&mut unsubscribe, &Value::Str("params".to_string()), Value::from(vec![param.clone()]));
+                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![param.clone()])); }
             }
         }  else {
-            add_element_to_object(&mut unsubscribe, &Value::Str("params".to_string()), Value::from(vec![name.clone()]));
+            if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![name.clone()])); }
         }
         let mut tradeType: Value = (if is_true(&isContract) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".to_string()))), tradeType));
@@ -621,7 +621,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut symbolsAndTimeframes: Value = self.safe_list_k(subscriptionParams.clone(), "symbolsAndTimeframes", &[]);
         if (symbolsAndTimeframes != Value::Null) {
-            add_element_to_object(&mut subscription, &Value::Str("symbolsAndTimeframes".to_string()), symbolsAndTimeframes.clone());
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".to_string(), symbolsAndTimeframes.clone()); }
             subscriptionParams = self.omit(subscriptionParams.clone(), Value::Str("symbolsAndTimeframes".to_string()), &[]);
         }
         let __ws_arg_0 = self.extend(request, &[params.clone()]);

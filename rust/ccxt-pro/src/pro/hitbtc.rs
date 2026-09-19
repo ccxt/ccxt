@@ -1031,7 +1031,7 @@ impl HitbtcCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut name: Value = Value::Str("trades".to_string());
         let mut trades: Value = self.subscribe_public(name.clone(), Value::Str("trades".to_string()), &[Value::from(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;

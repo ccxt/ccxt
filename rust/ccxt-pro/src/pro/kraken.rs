@@ -1218,7 +1218,7 @@ impl KrakenCore {
         });
         if (limit != Value::Null) {
             if is_true(&self.in_array(limit.clone(), Value::from(vec![Value::Int(10), Value::Int(25), Value::Int(100), Value::Int(500), Value::Int(1000)]))) {
-                add_element_to_object(&mut requiredParams, &Value::Str("depth".to_string()), limit.clone()); // default 10, valid options 10, 25, 100, 500, 1000
+                if let Value::Dict(__d) = &mut requiredParams { std::sync::Arc::make_mut(__d).insert("depth".to_string(), limit.clone()); }; // default 10, valid options 10, 25, 100, 500, 1000
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only".to_string()))));
             }
@@ -1328,9 +1328,9 @@ impl KrakenCore {
             m
         });
         if Value::Int(url.as_str().and_then(|__s| __s.find("v2")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("method".to_string(), Value::Str("ping".to_string())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("method".to_string(), Value::Str("ping".to_string())); }
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("event".to_string(), Value::Str("ping".to_string())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("event".to_string(), Value::Str("ping".to_string())); }
         }
         return request;
 
@@ -1659,7 +1659,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (params != Value::Null) {
-            { let __be_tmp = self.deep_extend(crate::value::get_value_k(&subscribe, "params"), &[params.clone()]); add_element_to_object(&mut subscribe, &Value::Str("params".to_string()), __be_tmp); };
+            { let __be_tmp = self.deep_extend(crate::value::get_value_k(&subscribe, "params"), &[params.clone()]); if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), __be_tmp); } }
         }
         let mut result: Value = self.watch(url.clone(), messageHash.clone(), &[subscribe.clone(), subscriptionHash.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -2072,7 +2072,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("req_id".to_string(), self.request_id());
             m
         });
-        { let __be_tmp = self.deep_extend(crate::value::get_value_k(&request, "params"), &[params.clone()]); if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("params".to_string(), __be_tmp); } };
+        { let __be_tmp = self.deep_extend(crate::value::get_value_k(&request, "params"), &[params.clone()]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".to_string(), __be_tmp); } }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2");
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[request.clone(), messageHashes.clone(), subscriptionArgs.clone()]).await;
 

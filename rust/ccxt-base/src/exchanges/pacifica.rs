@@ -2010,7 +2010,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if until.as_f64().unwrap_or(f64::NAN) > nowMillis.as_f64().unwrap_or(f64::NAN) {
                 until = nowMillis.clone();
             }
-            add_element_to_object(&mut request, &Value::Str("end_time".to_string()), until.clone());
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_time".to_string(), until.clone()); }
         }
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_kline(&[__ws_arg_5]).await;
@@ -2144,15 +2144,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         { let __destr_tmp = self.handle_until_option(Value::Str("end_time".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        add_element_to_object(&mut request, &Value::Str("account".to_string()), userAddress.clone());
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("account".to_string(), userAddress.clone()); }
         if (symbol != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("start_time".to_string()), since.clone());
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".to_string(), since.clone()); }
         }
         let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_trades_history(&[__ws_arg_7]).await;
@@ -2411,15 +2411,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timeInForce: Value = self.map_time_in_force(tifRaw.clone());
         if isMarket {
             operationType = Value::Str("create_market_order".to_string());
-            add_element_to_object(&mut sigPayload, &Value::Str("reduce_only".to_string()), reduceOnly.clone());
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("reduce_only".to_string(), reduceOnly.clone()); }
             let mut defaultSlippage: Value = self.handle_option(Value::Str("createOrder".to_string()), Value::Str("defaultSlippage".to_string()), &[Value::Str("0.5".to_string())]);
             let mut slippage: Value = self.safe_string2(params.clone(), Value::Str("slippage".to_string()), Value::Str("slippage_percent".to_string()), &[defaultSlippage.clone()]);
-            add_element_to_object(&mut sigPayload, &Value::Str("slippage_percent".to_string()), slippage.clone());
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("slippage_percent".to_string(), slippage.clone()); }
         }  else if (isTakeProfitOrder || isStopLossOrder) && is_true(&(price == Value::Null)) {
             operationType = Value::Str("set_position_tpsl".to_string());
         }  else if isStopOrder {
             operationType = Value::Str("create_stop_order".to_string());
-            add_element_to_object(&mut sigPayload, &Value::Str("reduce_only".to_string()), reduceOnly.clone());
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("reduce_only".to_string(), reduceOnly.clone()); }
             let mut stopClientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
             params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string())]), &[]);
             let mut stopPayload: Value = Value::Map({
@@ -2429,19 +2429,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             if (stopClientOrderId != Value::Null) {
-                add_element_to_object(&mut stopPayload, &Value::Str("client_order_id".to_string()), stopClientOrderId.clone());
+                if let Value::Dict(__d) = &mut stopPayload { std::sync::Arc::make_mut(__d).insert("client_order_id".to_string(), stopClientOrderId.clone()); }
             }
             if (price != Value::Null) {
-                add_element_to_object(&mut stopPayload, &Value::Str("limit_price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+                if let Value::Dict(__d) = &mut stopPayload { std::sync::Arc::make_mut(__d).insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             }
-            add_element_to_object(&mut sigPayload, &Value::Str("stop_order".to_string()), stopPayload.clone());
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("stop_order".to_string(), stopPayload.clone()); }
         }  else {
             operationType = Value::Str("create_order".to_string());
-            add_element_to_object(&mut sigPayload, &Value::Str("reduce_only".to_string()), reduceOnly.clone());
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("reduce_only".to_string(), reduceOnly.clone()); }
             if (timeInForce == Value::Null) {
-                add_element_to_object(&mut sigPayload, &Value::Str("tif".to_string()), Value::Str("GTC".to_string()));
+                if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("tif".to_string(), Value::Str("GTC".to_string())); }
             }  else {
-                add_element_to_object(&mut sigPayload, &Value::Str("tif".to_string()), timeInForce.clone());
+                if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("tif".to_string(), timeInForce.clone()); }
             }
         }
         if isTakeProfitOrder {
@@ -2451,9 +2451,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             if (price != Value::Null) {
-                add_element_to_object(&mut tpPayload, &Value::Str("limit_price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+                if let Value::Dict(__d) = &mut tpPayload { std::sync::Arc::make_mut(__d).insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             }
-            add_element_to_object(&mut sigPayload, &Value::Str("take_profit".to_string()), tpPayload.clone());
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("take_profit".to_string(), tpPayload.clone()); }
         }
         if isStopLossOrder {
             let mut slPayload: Value = Value::Map({
@@ -2462,19 +2462,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             if (price != Value::Null) {
-                add_element_to_object(&mut slPayload, &Value::Str("limit_price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+                if let Value::Dict(__d) = &mut slPayload { std::sync::Arc::make_mut(__d).insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             }
-            add_element_to_object(&mut sigPayload, &Value::Str("stop_loss".to_string()), slPayload.clone());
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("stop_loss".to_string(), slPayload.clone()); }
         }
         if (price != Value::Null) && (operationType.as_str() == Some("create_order")) {
-            add_element_to_object(&mut sigPayload, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         if (amount != Value::Null) && is_true(&((operationType.as_str() != Some("create_stop_order")) && (operationType.as_str() != Some("set_position_tpsl")))) {
-            add_element_to_object(&mut sigPayload, &Value::Str("amount".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
         }
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut sigPayload, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("client_order_id".to_string(), clientOrderId.clone()); }
         }
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
         return Value::from(vec![request.clone(), operationType.clone()]);
@@ -2829,13 +2829,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut excludeReduceOnly: Value = self.safe_bool_k(params.clone(), "excludeReduceOnly", &[Value::Bool(false)]);
-        add_element_to_object(&mut sigPayload, &Value::Str("exclude_reduce_only".to_string()), excludeReduceOnly.clone());
+        if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("exclude_reduce_only".to_string(), excludeReduceOnly.clone()); }
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            add_element_to_object(&mut sigPayload, &Value::Str("all_symbols".to_string()), Value::Bool(false));
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("all_symbols".to_string(), Value::Bool(false)); }
             add_element_to_object(&mut sigPayload, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }  else {
-            add_element_to_object(&mut sigPayload, &Value::Str("all_symbols".to_string()), Value::Bool(true));
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("all_symbols".to_string(), Value::Bool(true)); }
         }
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
         return request;
@@ -2923,9 +2923,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut sigPayload, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("client_order_id".to_string(), clientOrderId.clone()); }
         }  else {
-            add_element_to_object(&mut sigPayload, &Value::Str("order_id".to_string()), self.parse_to_int(id.clone()));
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("order_id".to_string(), self.parse_to_int(id.clone())); }
         }
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
         return request;
@@ -3017,9 +3017,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str("this.id".to_string()), Value::Str("editOrder() requires either \"id\" or \"clientOrderId\"".to_string()))));
         }
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut sigPayload, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("client_order_id".to_string(), clientOrderId.clone()); }
         }  else {
-            add_element_to_object(&mut sigPayload, &Value::Str("order_id".to_string()), self.parse_to_int(id.clone()));
+            if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("order_id".to_string(), self.parse_to_int(id.clone())); }
         }
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
         return request;
@@ -3067,7 +3067,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_19 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_funding_rate_history(&[__ws_arg_19]).await;
@@ -3417,7 +3417,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_21 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_orders_history(&[__ws_arg_21]).await;
@@ -4256,7 +4256,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_26 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_account_balance_history(&[__ws_arg_26]).await;
@@ -4383,7 +4383,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         let mut defaultLimit: Value = Value::Int(100);
         if is_true(&paginate) {
@@ -4576,7 +4576,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials".to_string()))));
         }
         if (agentAddress != Value::Null) {
-            add_element_to_object(&mut finalHeaders, &Value::Str("agent_wallet".to_string()), agentAddress.clone());
+            if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("agent_wallet".to_string(), agentAddress.clone()); }
         }
         let mut subAccountAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createSubAccount".to_string()), Value::Str("subAccountAddress".to_string()), &[]); subAccountAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -4618,12 +4618,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut main_signature: Value = self.sign_message(mainSignatureHeader.clone(), mainSigPayload.clone(), self.privateKey.clone());
-        add_element_to_object(&mut finalHeaders, &Value::Str("main_account".to_string()), originAddress.clone());
-        add_element_to_object(&mut finalHeaders, &Value::Str("subaccount".to_string()), subAccountAddress.clone());
-        add_element_to_object(&mut finalHeaders, &Value::Str("sub_signature".to_string()), subaccountSignature.clone());
-        add_element_to_object(&mut finalHeaders, &Value::Str("main_signature".to_string()), main_signature.clone());
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_account".to_string(), originAddress.clone()); }
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("subaccount".to_string(), subAccountAddress.clone()); }
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("sub_signature".to_string(), subaccountSignature.clone()); }
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_signature".to_string(), main_signature.clone()); }
         add_element_to_object(&mut finalHeaders, &Value::Str("timestamp".to_string()), timestamp.clone());
-        add_element_to_object(&mut finalHeaders, &Value::Str("expiry_window".to_string()), expiryWindow.clone());
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("expiry_window".to_string(), expiryWindow.clone()); }
         let mut request: Value = finalHeaders.clone();
         let __ws_arg_31 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_account_subaccount_create(&[__ws_arg_31]).await;
@@ -4960,13 +4960,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (originAddress == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" action: ".to_string()))), operationType)), Value::Str(" postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials".to_string()))));
         }
-        add_element_to_object(&mut finalHeaders, &Value::Str("account".to_string()), originAddress.clone());
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("account".to_string(), originAddress.clone()); }
         if (agentAddress != Value::Null) {
-            add_element_to_object(&mut finalHeaders, &Value::Str("agent_wallet".to_string()), agentAddress.clone());
+            if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("agent_wallet".to_string(), agentAddress.clone()); }
         }
-        add_element_to_object(&mut finalHeaders, &Value::Str("signature".to_string()), signature.clone());
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature.clone()); }
         add_element_to_object(&mut finalHeaders, &Value::Str("timestamp".to_string()), self.safe_integer_k(signatureHeader.clone(), "timestamp", &[]));
-        add_element_to_object(&mut finalHeaders, &Value::Str("expiry_window".to_string()), self.safe_integer_k(signatureHeader.clone(), "expiry_window", &[]));
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("expiry_window".to_string(), self.safe_integer_k(signatureHeader.clone(), "expiry_window", &[])); }
         let mut request: Value = self.extend(finalHeaders.clone(), &[sigPayload.clone()]);
         return request;
 

@@ -431,7 +431,7 @@ impl BingxCore {
         });
         let mut symbolsAndTimeframes: Value = self.safe_list_k(params.clone(), "symbolsAndTimeframes", &[]);
         if (symbolsAndTimeframes != Value::Null) {
-            add_element_to_object(&mut subscription, &Value::Str("symbolsAndTimeframes".to_string()), symbolsAndTimeframes.clone());
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".to_string(), symbolsAndTimeframes.clone()); }
             params = self.omit(params.clone(), Value::Str("symbolsAndTimeframes".to_string()), &[]);
         }
         let __ws_arg_0 = self.extend(request, &[params.clone()]);
@@ -480,7 +480,7 @@ impl BingxCore {
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reqType".to_string(), Value::Str("sub".to_string())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reqType".to_string(), Value::Str("sub".to_string())); }
         }
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -741,7 +741,7 @@ impl BingxCore {
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reqType".to_string(), Value::Str("sub".to_string())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reqType".to_string(), Value::Str("sub".to_string())); }
         }
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -955,7 +955,7 @@ impl BingxCore {
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reqType".to_string(), Value::Str("sub".to_string())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reqType".to_string(), Value::Str("sub".to_string())); }
         }
         let mut subscriptionArgs: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1361,7 +1361,7 @@ impl BingxCore {
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reqType".to_string(), Value::Str("sub".to_string())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reqType".to_string(), Value::Str("sub".to_string())); }
         }
         let mut subscriptionArgs: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

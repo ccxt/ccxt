@@ -1952,7 +1952,7 @@ impl GateCore {
         //   }
         //
         let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::from(vec![])]);
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), result.clone());
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), result.clone()); }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_349: bool = true;
@@ -3136,11 +3136,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if is_true(&(channel.as_str() == Some("spot.order_place"))) || is_true(&(channel.as_str() == Some("futures.order_place"))) {
-            add_element_to_object(&mut payload, &Value::Str("req_header".to_string()), Value::Map({
+            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("req_header".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("X-Gate-Channel-Id".to_string(), Value::Str("ccxt".to_string()));
     m
-}));
+})); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3193,7 +3193,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (payload != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("payload".to_string(), payload.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payload".to_string(), payload.clone()); }
         }
         let mut client: Value = self.client(&[url.clone()]);
         if !(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {

@@ -25,20 +25,20 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
     let mut isNative: Value = Value::Bool(is_true(&(get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null) != Value::Null)) && is_true(&(get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) && is_true(&(get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_str() != Some("emulated"))));
     let mut currencyType: Value = exchange.safe_string(entry.clone(), Value::Str("type".to_string()), &[]);
     if (isNative.as_bool() == Some(true)) {
-        add_element_to_object(&mut format, &Value::Str("info".to_string()), Value::Map({
+        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-        add_element_to_object(&mut format, &Value::Str("withdraw".to_string()), Value::Bool(true)); // withdraw enabled
-        add_element_to_object(&mut format, &Value::Str("deposit".to_string()), Value::Bool(true)); // deposit enabled
-        add_element_to_object(&mut format, &Value::Str("precision".to_string()), exchange.parse_number(Value::Str("0.0001".to_string()), &[])); // in case of Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS) it will be 4 - number of digits "after the dot"
-        add_element_to_object(&mut format, &Value::Str("fee".to_string()), exchange.parse_number(Value::Str("0.001".to_string()), &[]));
-        add_element_to_object(&mut format, &Value::Str("networks".to_string()), Value::Map({
+        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("withdraw".to_string(), Value::Bool(true)); }; // withdraw enabled
+        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("deposit".to_string(), Value::Bool(true)); }; // deposit enabled
+        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("precision".to_string(), exchange.parse_number(Value::Str("0.0001".to_string()), &[])); }; // in case of Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS) it will be 4 - number of digits "after the dot"
+        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("fee".to_string(), exchange.parse_number(Value::Str("0.001".to_string()), &[])); }
+        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
-        add_element_to_object(&mut format, &Value::Str("limits".to_string()), Value::Map({
+})); }
+        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -53,8 +53,8 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
     m
 }));
     m
-}));
-        add_element_to_object(&mut format, &Value::Str("type".to_string()), Value::Str("crypto".to_string())); // crypto, fiat, leverage, other
+})); }
+        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("crypto".to_string())); }; // crypto, fiat, leverage, other
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".to_string()).clone(), Value::from(vec![Value::Str("fiat".to_string()), Value::Str("crypto".to_string()), Value::Str("leveraged".to_string()), Value::Str("other".to_string()), Value::Null]).clone()]); // todo: remove undefined
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
         if (currencyType.as_str() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("depositForNonCrypto".to_string()))) {
@@ -87,7 +87,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // check structure if key is numeric, not string
         if Value::Int(message.as_str().and_then(|__s| __s.find("\"id\" key")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             // @ts-ignore
-            add_element_to_object(&mut format, &Value::Str("id".to_string()), Value::Int(123));
+            if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("id".to_string(), Value::Int(123)); }
             crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
         }  else {
             assert!(ccxt::runtime::is_true(&((message.as_str() == Some("")))));

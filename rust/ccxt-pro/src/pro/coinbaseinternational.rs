@@ -389,7 +389,7 @@ impl CoinbaseinternationalCore {
             m
         });
         if (productIds != Value::Null) {
-            add_element_to_object(&mut subscribe, &Value::Str("product_ids".to_string()), productIds.clone());
+            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("product_ids".to_string(), productIds.clone()); }
         }
         if symbolsLength > ((1i64) as f64) {
             let __ws_arg_0 = self.extend(subscribe.clone(), &[params.clone()]);

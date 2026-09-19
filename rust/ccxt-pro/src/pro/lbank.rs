@@ -375,10 +375,10 @@ impl LbankCore {
             m
         });
         if (since != Value::Null) {
-            add_element_to_object(&mut message, &Value::Str("start".to_string()), self.parse_to_int(math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+            if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("start".to_string(), self.parse_to_int(math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut message, &Value::Str("size".to_string()), limit.clone());
+            if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("size".to_string(), limit.clone()); }
         }
         let mut request: Value = self.deep_extend(message.clone(), &[params.clone()]);
         let mut requestId: Value = self.request_id();
@@ -1137,7 +1137,7 @@ impl LbankCore {
         })]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(message.clone(), "TS", &[]));
         let mut datetime: Value = self.iso8601(timestamp.clone());
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), data.clone()); }
         add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), datetime.clone());
         let mut currencyId: Value = self.safe_string_k(data.clone(), "assetCode", &[]);

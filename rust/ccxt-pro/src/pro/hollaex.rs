@@ -749,7 +749,7 @@ impl HollaexCore {
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
         let mut keys: Value = object_keys(&data);
         let mut timestamp: Value = self.safe_timestamp(message.clone(), Value::Str("time".to_string()), &[]);
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), data.clone()); }
         add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };
         {

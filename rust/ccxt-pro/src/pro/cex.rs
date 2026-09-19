@@ -1078,13 +1078,13 @@ impl CexCore {
         });
         let mut fee: Value = self.safe_string_k(trade.clone(), "fee_amount", &[]);
         if (fee != Value::Null) {
-            add_element_to_object(&mut parsedTrade, &Value::Str("fee".to_string()), Value::Map({
+            if let Value::Dict(__d) = &mut parsedTrade { std::sync::Arc::make_mut(__d).insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), fee.clone());
         m.insert("currency".to_string(), quote.clone());
         m.insert("rate".to_string(), Value::Null);
     m
-}));
+})); }
         }
         return self.safe_trade(parsedTrade.clone(), &[market.clone()]);
 
@@ -1332,7 +1332,7 @@ impl CexCore {
             m
         });
         if isTransaction {
-            add_element_to_object(&mut parsedOrder, &Value::Str("trades".to_string()), self.parse_ws_trade(order.clone(), &[market.clone()]));
+            if let Value::Dict(__d) = &mut parsedOrder { std::sync::Arc::make_mut(__d).insert("trades".to_string(), self.parse_ws_trade(order.clone(), &[market.clone()])); }
         }
         return self.safe_order(parsedOrder.clone(), &[market.clone()]);
 
