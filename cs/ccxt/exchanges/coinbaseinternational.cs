@@ -989,7 +989,7 @@ public partial class coinbaseinternational : Exchange
         if (isEqual(method, "v1PrivatePostTransfersAddress"))
         {
             Dictionary<string, object> currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["asset"] = (currency.ContainsKey("id") ? currency["id"] : null);
             object networkId = null;
             var networkIdparametersVariable = await this.handleNetworkIdAndParams(code, "createDepositAddress", parameters);
             networkId = ((IList<object>)networkIdparametersVariable)[0];
@@ -1047,7 +1047,7 @@ public partial class coinbaseinternational : Exchange
             return false;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         List<object> rawNetworks = await this.v1PublicGetAssetsAssetNetworks(request);
         //
@@ -2012,7 +2012,7 @@ public partial class coinbaseinternational : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
             { "from", fromAccount },
             { "to", toAccount },
@@ -2689,10 +2689,10 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "portfolio", portfolio },
             { "type", "send" },
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "address", address },
             { "amount", amount },
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "network_arn_id", networkId },
             { "nonce", this.nonce() },
         };

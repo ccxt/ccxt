@@ -407,7 +407,7 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        return await this.FetchCurrencyById(getValue(currency, "id"), parameters);
+        return await this.FetchCurrencyById((currency.ContainsKey("id") ? currency["id"] : null), parameters);
     }
 
     public async virtual Task<Dictionary<string, object>> FetchCurrencyById(object id, object parameters = null)
@@ -1760,7 +1760,7 @@ public partial class upbit : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -1812,7 +1812,7 @@ public partial class upbit : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         Dictionary<string, object> response = await this.privateGetDeposit(this.extend(request, parameters));
         //
@@ -1857,7 +1857,7 @@ public partial class upbit : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -1910,7 +1910,7 @@ public partial class upbit : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         Dictionary<string, object> response = await this.privateGetWithdraw(this.extend(request, parameters));
         //
@@ -2548,8 +2548,8 @@ public partial class upbit : Exchange
             throw new ArgumentsRequired ((string)(this.id + " fetchDepositAddress requires params[\"network\"]")) ;
         }
         Dictionary<string, object> response = await this.privateGetDepositsCoinAddress(this.extend(new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-            { "net_type", this.networkCodeToId(networkCode, getValue(currency, "code")) },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
+            { "net_type", this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)) },
         }, parameters));
         //
         //    {
@@ -2581,7 +2581,7 @@ public partial class upbit : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         // https://github.com/ccxt/ccxt/issues/6452
         Dictionary<string, object> response = await this.privatePostDepositsGenerateCoinAddress(this.extend(request, parameters));
@@ -2648,7 +2648,7 @@ public partial class upbit : Exchange
             }
             parameters = this.omit(parameters, new List<object>() {"network"});
             ((IDictionary<string,object>)request)["net_type"] = network;
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             ((IDictionary<string,object>)request)["address"] = address;
             if ((tagVar != null))
             {

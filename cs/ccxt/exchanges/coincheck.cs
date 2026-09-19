@@ -354,7 +354,7 @@ public partial class coincheck : Exchange
         {
             string? code = ((string)codes[i]);
             Dictionary<string, object> currency = this.currency(((string)code));
-            object currencyId = getValue(currency, "id");
+            object currencyId = (currency.ContainsKey("id") ? currency["id"] : null);
             if (inOp(response, currencyId))
             {
                 Dictionary<string, object> account = this.account();
@@ -961,7 +961,7 @@ public partial class coincheck : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(limit, null))
         {

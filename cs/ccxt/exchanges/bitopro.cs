@@ -1793,7 +1793,7 @@ public partial class bitopro : Exchange
         }
         Dictionary<string, object> currency = this.safeCurrency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -1851,7 +1851,7 @@ public partial class bitopro : Exchange
         }
         Dictionary<string, object> currency = this.safeCurrency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -1908,7 +1908,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> currency = this.safeCurrency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "serial", id },
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateGetWalletWithdrawCurrencySerial(this.extend(request, parameters));
         IDictionary<string, object> result = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -1957,7 +1957,7 @@ public partial class bitopro : Exchange
         this.checkAddress(address);
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.numberToString(amount) },
             { "address", address },
         };

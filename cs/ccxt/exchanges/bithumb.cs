@@ -3014,7 +3014,7 @@ public partial class bithumb : Exchange
                     throw new ArgumentsRequired ((string)(((this.id + " ") + (code)) + " withdraw() requires a network parameter")) ;
                 }
                 ((IDictionary<string,object>)request)["address"] = address;
-                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
                 ((IDictionary<string,object>)request)["net_type"] = network;
                 ((IDictionary<string,object>)request)["amount"] = this.numberToString(amount);
                 if ((destinationRequest != null))
@@ -3030,7 +3030,7 @@ public partial class bithumb : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["address"] = address;
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             ((IDictionary<string,object>)request)["units"] = amount;
             if ((network != null))
             {
@@ -3227,7 +3227,7 @@ public partial class bithumb : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         if ((id != null))
         {
@@ -3301,7 +3301,7 @@ public partial class bithumb : Exchange
             if ((code != null))
             {
                 currency = this.currency(((string)code));
-                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             }
             response = await this.privateGetV1Withdraws(this.extend(request, parameters));
         }
@@ -3358,7 +3358,7 @@ public partial class bithumb : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         if ((id != null))
         {
@@ -3432,7 +3432,7 @@ public partial class bithumb : Exchange
             if ((code != null))
             {
                 currency = this.currency(((string)code));
-                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             }
             response = await this.privateGetV1Deposits(this.extend(request, parameters));
         }
@@ -3484,7 +3484,7 @@ public partial class bithumb : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? network = this.safeString2(parameters, "network", "net_type");
         parameters = this.omit(parameters, "network");
@@ -3533,7 +3533,7 @@ public partial class bithumb : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? network = this.safeString2(parameters, "network", "net_type");
         parameters = this.omit(parameters, "network");

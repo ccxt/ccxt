@@ -3129,7 +3129,7 @@ public partial class poloniex : Exchange
         }
         object exchangeNetworkId = null;
         networkCode = this.networkIdToCode(networkCode, code);
-        IDictionary<string, object> networkEntry = ((bool) ((networkCode == null))) ? null : this.safeDict(getValue(currency, "networks"), networkCode);
+        IDictionary<string, object> networkEntry = ((bool) ((networkCode == null))) ? null : this.safeDict((currency.ContainsKey("networks") ? currency["networks"] : null), networkCode);
         if ((networkEntry != null))
         {
             exchangeNetworkId = getValue(networkEntry, "id");
@@ -3192,7 +3192,7 @@ public partial class poloniex : Exchange
         string? toId = this.safeString(accountsByType, toAccount, fromAccount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", this.currencyToPrecision(((string)code), amount) },
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "fromAccount", fromId },
             { "toAccount", toId },
         };
@@ -3247,7 +3247,7 @@ public partial class poloniex : Exchange
         this.checkAddress(address);
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "coin", getValue(currency, "id") },
+            { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "address", address },
         };
@@ -3513,7 +3513,7 @@ public partial class poloniex : Exchange
                     {
                         object networkId = getValue(childChains, j);
                         networkId = ((string)networkId).Replace((string)code, (string)"");
-                        object networkCode = this.networkIdToCode(networkId, getValue(currency, "code"));
+                        object networkCode = this.networkIdToCode(networkId, (currency.ContainsKey("code") ? currency["code"] : null));
                         IDictionary<string, object> networkInfo = this.safeDict(response, networkId);
                         Dictionary<string, object> networkObject = new Dictionary<string, object>() {};
                         double? withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");

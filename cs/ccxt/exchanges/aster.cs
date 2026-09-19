@@ -4772,7 +4772,7 @@ public partial class aster : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         Int64 nonce = (this.milliseconds() * 1000);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "receiver", address },
             { "userNonce", ((object)nonce).ToString() },
         };
@@ -4855,7 +4855,7 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
         };
         string? type = null;

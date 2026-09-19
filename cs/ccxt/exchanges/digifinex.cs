@@ -3208,7 +3208,7 @@ public partial class digifinex : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)[(string)currencyIdRequest] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)[(string)currencyIdRequest] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -3315,7 +3315,7 @@ public partial class digifinex : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateSpotGetDepositAddress(this.extend(request, parameters));
         //
@@ -3332,7 +3332,7 @@ public partial class digifinex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object addresses = this.parseDepositAddresses(data, new List<object>() {getValue(currency, "code")});
+        object addresses = this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)});
         object address = this.safeValue(addresses, code);
         if ((address == null))
         {
@@ -3353,7 +3353,7 @@ public partial class digifinex : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -3594,7 +3594,7 @@ public partial class digifinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        string? currencyId = ((string)getValue(currency, "id"));
+        string? currencyId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3670,7 +3670,7 @@ public partial class digifinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", address },
             { "amount", this.currencyToPrecision(((string)code), amount) },
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         if ((tagVar != null))
         {

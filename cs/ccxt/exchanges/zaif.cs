@@ -850,7 +850,7 @@ public partial class zaif : Exchange
             throw new ExchangeError ((string)(((this.id + " withdraw() does not allow ") + (code)) + " withdrawals")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
             { "address", address },
         };

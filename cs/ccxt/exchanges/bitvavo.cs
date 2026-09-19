@@ -1429,7 +1429,7 @@ public partial class bitvavo : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccountId", subaccountId },
             { "direction", direction },
-            { "symbol", getValue(currency, "id") },
+            { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
         };
         Dictionary<string, object> response = await this.privatePostSubaccountsTransfers(this.extend(request, parameters));
@@ -1473,7 +1473,7 @@ public partial class bitvavo : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["symbol"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         string? subaccountId = this.safeString(parameters, "subaccountId");
         if ((subaccountId == null))
@@ -1619,7 +1619,7 @@ public partial class bitvavo : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(currency, "id") },
+            { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateGetDeposit(this.extend(request, parameters));
         //
@@ -2604,7 +2604,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(currency, "id") },
+            { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "address", address },
         };
@@ -2660,7 +2660,7 @@ public partial class bitvavo : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["symbol"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -2723,7 +2723,7 @@ public partial class bitvavo : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["symbol"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(since, null))
         {

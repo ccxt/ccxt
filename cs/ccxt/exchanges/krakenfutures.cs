@@ -3891,13 +3891,13 @@ public partial class krakenfutures : Exchange
             {
                 throw new BadRequest ((string)((((this.id + " transfer cannot transfer from ") + (fromAccount)) + " to ") + (toAccount))) ;
             }
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             response = await this.privatePostWithdrawal(this.extend(request, parameters));
         } else
         {
             ((IDictionary<string,object>)request)["fromAccount"] = this.parseAccount(fromAccount);
             ((IDictionary<string,object>)request)["toAccount"] = this.parseAccount(toAccount);
-            ((IDictionary<string,object>)request)["unit"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["unit"] = (currency.ContainsKey("id") ? currency["id"] : null);
             response = await this.privatePostTransfer(this.extend(request, parameters));
         }
         //

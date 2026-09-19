@@ -5299,7 +5299,7 @@ public partial class mexc : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "coin", getValue(currency, "id") },
+            { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? networkCode = this.safeString(parameters, "network");
         object networkId = null;
@@ -5358,7 +5358,7 @@ public partial class mexc : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "coin", getValue(currency, "id") },
+            { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? networkCode = this.safeString(parameters, "network");
         if ((networkCode == null))
@@ -5457,7 +5457,7 @@ public partial class mexc : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["coin"] = (currency.ContainsKey("id") ? currency["id"] : null);
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
             string? rawNetwork = this.safeString(parameters, "network");
@@ -5525,7 +5525,7 @@ public partial class mexc : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["coin"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -6111,7 +6111,7 @@ public partial class mexc : Exchange
             throw new ExchangeError ((string)((this.id + " toAccount must be one of ") + String.Join(", ", ((IList<object>)keys).ToArray()))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
             { "fromAccountType", fromId },
             { "toAccountType", toId },
@@ -6269,7 +6269,7 @@ public partial class mexc : Exchange
         {
             parameters = this.omit(parameters, "internal");
             Dictionary<string, object> requestForInternal = new Dictionary<string, object>() {
-                { "asset", getValue(currency, "id") },
+                { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
                 { "amount", amount },
                 { "toAccount", address },
             };
@@ -6289,10 +6289,10 @@ public partial class mexc : Exchange
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId(network, getValue(currency, "code"));
+        network = this.networkCodeToId(network, (currency.ContainsKey("code") ? currency["code"] : null));
         this.checkAddress(address);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "coin", getValue(currency, "id") },
+            { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "address", address },
             { "amount", amount },
         };

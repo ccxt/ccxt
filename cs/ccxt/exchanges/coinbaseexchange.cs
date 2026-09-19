@@ -2011,7 +2011,7 @@ public partial class coinbaseexchange : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
         };
         Dictionary<string, object> response = null;
@@ -2479,7 +2479,7 @@ public partial class coinbaseexchange : Exchange
             ((IDictionary<string,object>)this.options)["coinbaseAccounts"] = accounts; // cache it
             ((IDictionary<string,object>)this.options)["coinbaseAccountsByCurrencyId"] = this.indexBy(accounts, "currency");
         }
-        string? currencyId = ((string)getValue(currency, "id"));
+        string? currencyId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
         IDictionary<string, object> account = this.safeDict((this.options.ContainsKey("coinbaseAccountsByCurrencyId") ? this.options["coinbaseAccountsByCurrencyId"] : null), currencyId);
         if ((account == null))
         {

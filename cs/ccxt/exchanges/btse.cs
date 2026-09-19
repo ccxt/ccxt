@@ -3189,7 +3189,7 @@ public partial class btse : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["asset"] = (currency.ContainsKey("id") ? currency["id"] : null);
         } else if ((walletType == "SPOT"))
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires a code argument for the spot wallet history")) ;
@@ -3432,7 +3432,7 @@ public partial class btse : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["asset"] = (currency.ContainsKey("id") ? currency["id"] : null);
         } else if ((walletType == "SPOT"))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchLedger() requires a code argument for the spot wallet history")) ;

@@ -1118,7 +1118,7 @@ public partial class bitflyer : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency_code", getValue(currency, "id") },
+            { "currency_code", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
         };
         Dictionary<string, object> response = await this.privatePostWithdraw(this.extend(request, parameters));

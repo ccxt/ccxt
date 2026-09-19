@@ -893,7 +893,7 @@ public partial class mercado : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "coin", getValue(currency, "id") },
+            { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "quantity", toFixed(amount, 10) },
             { "address", address },
         };

@@ -1214,7 +1214,7 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(currency, "id") },
+            { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "page", 0 },
         };
         Dictionary<string, object> response = await this.v1PostDepositHistorySymbol(this.extend(request, parameters));
@@ -1268,7 +1268,7 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(currency, "id") },
+            { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "page", 0 },
         };
         Dictionary<string, object> response = await this.v1PostWithdrawHistorySymbol(this.extend(request, parameters));
@@ -1393,7 +1393,7 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(currency, "id") },
+            { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.v1PostGetCoinAddressSymbol(this.extend(request, parameters));
         //

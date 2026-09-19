@@ -2196,7 +2196,7 @@ public partial class bigone : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_symbol", getValue(currency, "id") },
+            { "asset_symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         IList<object> networkCodeparamsOmittedVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodeparamsOmittedVariable)[0];
@@ -2358,7 +2358,7 @@ public partial class bigone : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["asset_symbol"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["asset_symbol"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -2413,7 +2413,7 @@ public partial class bigone : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["asset_symbol"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["asset_symbol"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -2470,7 +2470,7 @@ public partial class bigone : Exchange
         string? toId = this.safeString(accountsByType, toAccount, toAccount);
         string? guid = this.safeString(parameters, "guid", this.uuid());
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(currency, "id") },
+            { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "from", fromId },
             { "to", toId },
@@ -2551,7 +2551,7 @@ public partial class bigone : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(currency, "id") },
+            { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "target_address", address },
             { "amount", this.currencyToPrecision(((string)code), amount) },
         };
@@ -2565,7 +2565,7 @@ public partial class bigone : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode != null))
         {
-            ((IDictionary<string,object>)request)["gateway_name"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
+            ((IDictionary<string,object>)request)["gateway_name"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
         }
         // requires write permission on the wallet
         Dictionary<string, object> response = await this.privatePostWithdrawals(this.extend(request, parameters));

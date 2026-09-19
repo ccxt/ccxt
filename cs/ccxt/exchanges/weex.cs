@@ -3970,7 +3970,7 @@ public partial class weex : Exchange
         {
             if ((currency != null))
             {
-                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             }
             if (!isEqual(since, null))
             {

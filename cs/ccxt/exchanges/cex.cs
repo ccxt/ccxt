@@ -1619,7 +1619,7 @@ public partial class cex : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -1856,7 +1856,7 @@ public partial class cex : Exchange
         object targetAccount = ((bool) fromMain) ? toAccount : fromAccount;
         string? guid = this.safeString(parameters, "guid", this.uuid());
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "accountId", targetAccount },
             { "clientTxId", guid },
@@ -1895,7 +1895,7 @@ public partial class cex : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "fromAccountId", fromAccount },
             { "toAccountId", toAccount },
@@ -1984,8 +1984,8 @@ public partial class cex : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", accountId },
-            { "currency", getValue(currency, "id") },
-            { "blockchain", this.networkCodeToId(networkCode, getValue(currency, "code")) },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
+            { "blockchain", this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)) },
         };
         Dictionary<string, object> response = await this.privatePostGetDepositAddress(this.extend(request, parameters));
         //

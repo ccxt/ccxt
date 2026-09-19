@@ -2861,7 +2861,7 @@ public partial class modetrade : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["balance_token"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["balance_token"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if (!isEqual(since, null))
         {

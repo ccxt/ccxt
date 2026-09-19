@@ -1168,7 +1168,7 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "primaryCurrencyCode", getValue(currency, "id") },
+            { "primaryCurrencyCode", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostGetDigitalCurrencyDepositAddress(this.extend(request, parameters));
         //
@@ -1231,7 +1231,7 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "primaryCurrencyCode", getValue(currency, "id") },
+            { "primaryCurrencyCode", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "withdrawalAddress", address },
             { "amount", this.currencyToPrecision(((string)code), amount) },
         };

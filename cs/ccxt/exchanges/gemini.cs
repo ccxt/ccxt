@@ -2140,7 +2140,7 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
             { "address", address },
         };
@@ -2350,7 +2350,7 @@ public partial class gemini : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)codeVar));
-        codeVar = getValue(currency, "code");
+        codeVar = (currency.ContainsKey("code") ? currency["code"] : null);
         string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
@@ -2359,7 +2359,7 @@ public partial class gemini : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchDepositAddresses() requires a network parameter")) ;
         }
-        object networkId = this.networkCodeToId(networkCode, getValue(currency, "code"));
+        object networkId = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "network", networkId },
         };
@@ -2473,7 +2473,7 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostV1DepositCurrencyNewAddress(this.extend(request, parameters));
         string? address = this.safeString(response, "address");

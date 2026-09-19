@@ -1758,7 +1758,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(currency, "id") },
+            { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "quantity", this.numberToString(amount) },
             { "address", address },
         };
@@ -1769,7 +1769,7 @@ public partial class backpack : Exchange
         IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodequeryVariable)[0];
         var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode, getValue(currency, "code"));
+        object networkId = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
         if ((networkId == null))
         {
             throw new BadRequest ((string)(this.id + " withdraw() requires a network parameter")) ;
@@ -1941,7 +1941,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "blockchain", this.networkCodeToId(networkCode, getValue(currency, "code")) },
+            { "blockchain", this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)) },
         };
         Dictionary<string, object> response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters));
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));

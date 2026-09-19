@@ -2446,7 +2446,7 @@ public partial class bullish : Exchange
             { "command", new Dictionary<string, object>() {
                 { "commandType", "V1Withdraw" },
                 { "destinationId", address },
-                { "symbol", getValue(currency, "id") },
+                { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
                 { "quantity", this.currencyToPrecision(((string)code), amount) },
             } },
         };
@@ -2723,7 +2723,7 @@ public partial class bullish : Exchange
         await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(currency, "id") },
+            { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         List<object> response = await this.privateGetV1WalletsDepositInstructionsCryptoSymbol(this.extend(request, parameters));
         //
@@ -3016,7 +3016,7 @@ public partial class bullish : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["assetSymbol"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["assetSymbol"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         Int64? until = this.safeInteger(parameters, "until");
         if ((isEqual(since, null)) && (isEqual(until, null)))
@@ -3072,7 +3072,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "commandType", "V2TransferAsset" },
-            { "assetSymbol", getValue(currency, "id") },
+            { "assetSymbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "quantity", this.currencyToPrecision(((string)code), amount) },
             { "fromTradingAccountId", fromAccount },
             { "toTradingAccountId", toAccount },
@@ -3171,7 +3171,7 @@ public partial class bullish : Exchange
         object tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "assetSymbol", getValue(currency, "id") },
+            { "assetSymbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "tradingAccountId", tradingAccountId },
         };
         Int64 now = this.milliseconds();
