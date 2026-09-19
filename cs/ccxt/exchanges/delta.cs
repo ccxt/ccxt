@@ -3470,7 +3470,7 @@ public partial class delta : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        object settlements = this.parseSettlements(result, market);
+        List<object> settlements = ((List<object>)this.parseSettlements(result, market));
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }

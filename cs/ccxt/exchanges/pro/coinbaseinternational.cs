@@ -851,7 +851,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //    }
         //
         object channel = this.safeString(message, "channel");
-        object fundingRate = this.parseFundingRate(message);
+        IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(message));
         ((IDictionary<string,object>)this.fundingRates)[(string)getValue(fundingRate, "symbol")] = fundingRate;
         (client as WebSocketClient).resolve(fundingRate, add(add(channel, "::"), getValue(fundingRate, "symbol")));
     }

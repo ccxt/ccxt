@@ -1092,7 +1092,7 @@ public partial class modetrade : Exchange
         string? price = this.safeString(trade, "executed_price");
         string? amount = this.safeString(trade, "executed_quantity");
         string? order_id = this.safeString(trade, "order_id");
-        object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(trade, "fee_asset", "fee"));
         string? feeCost = this.safeString(fee, "cost");
         if (((feeCost != null)) && ((fee != null)))
         {
@@ -2916,7 +2916,7 @@ public partial class modetrade : Exchange
         string? side = this.safeString(item, "token_side");
         string direction = ((bool) ((side == "DEPOSIT"))) ? "in" : "out";
         Int64? timestamp = this.safeInteger(item, "created_time");
-        object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount"));
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "id", this.safeString(item, "id") },
             { "currency", code },
@@ -2974,7 +2974,7 @@ public partial class modetrade : Exchange
         {
             movementDirection = "withdrawal";
         }
-        object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount"));
         string? addressTo = this.safeString(transaction, "target_address");
         string? addressFrom = this.safeString(transaction, "source_address");
         Int64? timestamp = this.safeInteger(transaction, "created_time");

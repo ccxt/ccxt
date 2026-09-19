@@ -3385,7 +3385,7 @@ public partial class krakenfutures : Exchange
                 }
             }
             Dictionary<string, object> market = this.safeMarket(entry_symbol);
-            object parsed = this.parseFundingRate(entry, market);
+            IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseFundingRate(entry, market));
             ((IList<object>)fundingRates).Add(parsed);
         }
         return ccxt.BaseExchange.ToFundingRates(this.indexBy(fundingRates, "symbol"));
@@ -3906,7 +3906,7 @@ public partial class krakenfutures : Exchange
         //        "serverTime": "2022-04-12T01:22:53.420Z"
         //    }
         //
-        object transfer = this.parseTransfer(response, currency);
+        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(response, currency));
         return ccxt.BaseExchange.ToTransferEntry(this.extend(transfer, new Dictionary<string, object>() {             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));
     }
 

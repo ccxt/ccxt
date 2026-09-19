@@ -5404,7 +5404,7 @@ public partial class coinbase : Exchange
         //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
         //     }
         //
-        object transfer = this.parseTransfer(response, currency);
+        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(response, currency));
         ((IDictionary<string,object>)transfer)["amount"] = amount;
         ((IDictionary<string,object>)transfer)["status"] = "ok";
         return ccxt.BaseExchange.ToTransferEntry(transfer);

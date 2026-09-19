@@ -2925,7 +2925,7 @@ public partial class toobit : Exchange
         Dictionary<string, object> entry = response;
         string? marketId = this.safeString(entry, "symbol");
         market = this.safeMarket(marketId, market);
-        object fee = this.parseTradingFee(entry, market);
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(entry, market));
         ((IDictionary<string,object>)result)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = fee;
         return ccxt.BaseExchange.ToTradingFees(result);
     }

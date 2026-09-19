@@ -2076,8 +2076,8 @@ public partial class bitstamp : Exchange
         };
         for (int i = 0; i < getArrayLength(fees); i++)
         {
-            object fee = this.parseTradingFee(getValue(fees, i));
-            object symbol = getValue(fee, "symbol");
+            IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(getValue(fees, i)));
+            string? symbol = ((string)getValue(fee, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = fee;
@@ -3095,13 +3095,13 @@ public partial class bitstamp : Exchange
             }, currency);
         } else
         {
-            object parsedTransaction = this.parseTransaction(item, currency);
+            IDictionary<string, object> parsedTransaction = ((IDictionary<string, object>)this.parseTransaction(item, currency));
             string? direction = null;
             if ((item != null && ((IDictionary<string, object>)item).ContainsKey("amount")))
             {
                 string? amount = this.safeString(item, "amount");
                 direction = ((bool) Precise.stringGt(amount, "0")) ? "in" : "out";
-            } else if ((inOp(parsedTransaction, "currency")) && !isEqual(getValue(parsedTransaction, "currency"), null))
+            } else if ((parsedTransaction.ContainsKey("currency")) && !isEqual(getValue(parsedTransaction, "currency"), null))
             {
                 string? currencyCode = this.safeString(parsedTransaction, "currency");
                 currency = this.currency(((string)currencyCode));
@@ -3415,7 +3415,7 @@ public partial class bitstamp : Exchange
         //
         //    { status: 'ok' }
         //
-        object transfer = this.parseTransfer(response, currency);
+        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(response, currency));
         ((IDictionary<string,object>)transfer)["amount"] = amount;
         ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
         ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;

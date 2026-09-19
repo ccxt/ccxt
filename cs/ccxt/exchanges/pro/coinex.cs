@@ -161,7 +161,7 @@ public partial class coinex : ccxt.coinex
             string? marketId = this.safeString(entry, "market");
             string? symbol = this.safeSymbol(marketId, null, null, defaultType);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
-            object parsedTicker = this.parseWSTicker(entry, market);
+            IDictionary<string, object> parsedTicker = ((IDictionary<string, object>)this.parseWSTicker(entry, market));
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
             ((IDictionary<string,object>)newTickers)[(string)symbol] = parsedTicker;
         }

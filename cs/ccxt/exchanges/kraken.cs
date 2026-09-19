@@ -3427,9 +3427,9 @@ public partial class kraken : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(transactions); i++)
         {
-            object transaction = this.parseTransaction(this.extend(new Dictionary<string, object>() {
+            IDictionary<string, object> transaction = ((IDictionary<string, object>)this.parseTransaction(this.extend(new Dictionary<string, object>() {
                 { "type", type },
-            }, getValue(transactions, i)));
+            }, getValue(transactions, i))));
             ((IList<object>)result).Add(transaction);
         }
         return this.filterByCurrencySinceLimit(result,((string)code), since, limit);
@@ -4035,7 +4035,7 @@ public partial class kraken : Exchange
         //       }
         //   }
         //
-        object transfer = this.parseTransfer(response, currency);
+        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(response, currency));
         return ccxt.BaseExchange.ToTransferEntry(this.extend(transfer, new Dictionary<string, object>() {             { "amount", amount },             { "fromAccount", fromAccountParsed },             { "toAccount", toAccountParsed },         }));
     }
 

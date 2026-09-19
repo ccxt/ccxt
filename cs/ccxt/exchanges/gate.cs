@@ -3643,7 +3643,7 @@ public partial class gate : Exchange
         for (int i = 0; i < getArrayLength(response); i++)
         {
             object entry = getValue(response, i);
-            object funding = this.parseFundingHistory(entry);
+            IDictionary<string, object> funding = ((IDictionary<string, object>)this.parseFundingHistory(entry));
             ((IList<object>)result).Add(funding);
         }
         List<object> sorted = this.sortBy(result, "timestamp");
@@ -8933,7 +8933,7 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        object settlements = this.parseSettlements(response, market);
+        List<object> settlements = ((List<object>)this.parseSettlements(response, market));
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
@@ -9037,7 +9037,7 @@ public partial class gate : Exchange
         }
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "list", new List<object>() {});
-        object settlements = this.parseSettlements(data, market);
+        List<object> settlements = ((List<object>)this.parseSettlements(data, market));
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }

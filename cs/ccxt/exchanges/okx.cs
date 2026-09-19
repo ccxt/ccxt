@@ -8718,7 +8718,7 @@ public partial class okx : Exchange
         Dictionary<string, object> rates = new Dictionary<string, object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object rate = this.parseBorrowRate(data[i]);
+            IDictionary<string, object> rate = ((IDictionary<string, object>)this.parseBorrowRate(data[i]));
             string? code = this.safeString(rate, "currency");
             if ((code != null))
             {
@@ -8813,7 +8813,7 @@ public partial class okx : Exchange
                 {
                     ((IDictionary<string,object>)borrowRateHistories)[(string)code] = new List<object>() {};
                 }
-                object borrowRateStructure = this.parseBorrowRate(item);
+                IDictionary<string, object> borrowRateStructure = ((IDictionary<string, object>)this.parseBorrowRate(item));
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
                 ((IDictionary<string,object>)borrowRateStructure)["period"] = 31536000000;
                 object borrrowRateCode = getValue(borrowRateHistories, code);
@@ -9898,7 +9898,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object settlements = this.parseSettlements(data, market);
+        List<object> settlements = ((List<object>)this.parseSettlements(data, market));
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
     }

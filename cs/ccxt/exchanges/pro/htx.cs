@@ -1367,7 +1367,7 @@ public partial class htx : ccxt.htx
             {
                 // when a spot order is filled we get an update message
                 // with the trade info
-                object parsedTrade = this.parseOrderTrade(data, market);
+                IDictionary<string, object> parsedTrade = ((IDictionary<string, object>)this.parseOrderTrade(data, market));
                 // inject trade in existing order by faking an order object
                 string? orderId = this.safeString(parsedTrade, "order");
                 List<object> trades = new List<object>() {parsedTrade};

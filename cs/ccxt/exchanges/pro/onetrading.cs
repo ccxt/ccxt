@@ -563,7 +563,7 @@ public partial class onetrading : ccxt.onetrading
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        object order = this.parseTradingOrder(message);
+        IDictionary<string, object> order = ((IDictionary<string, object>)this.parseTradingOrder(message));
         object orders = this.orders;
         callDynamically(orders, "append", new object[] {order});
         (client as WebSocketClient).resolve(this.orders, ("orders:" + (getValue(order, "symbol"))));

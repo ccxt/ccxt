@@ -970,7 +970,7 @@ public partial class coinmate : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data");
-        object transaction = this.parseTransaction(data, currency);
+        IDictionary<string, object> transaction = ((IDictionary<string, object>)this.parseTransaction(data, currency));
         bool? fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if ((fillResponseFromRequest == true))
         {

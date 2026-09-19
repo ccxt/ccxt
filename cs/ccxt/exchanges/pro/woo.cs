@@ -1710,8 +1710,8 @@ public partial class woo : ccxt.woo
         //     }
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object fundingRate = this.parseFundingRate(data);
-        object symbol = getValue(fundingRate, "symbol");
+        IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(data));
+        string? symbol = ((string)getValue(fundingRate, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;

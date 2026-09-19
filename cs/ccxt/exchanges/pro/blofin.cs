@@ -786,10 +786,10 @@ public partial class blofin : ccxt.blofin
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        object fundingRate = this.parseFundingRate(first);
-        object symbol = getValue(fundingRate, "symbol");
+        IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(first));
+        string? symbol = ((string)getValue(fundingRate, "symbol"));
         ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
-        string messageHash = ("fundingRate:" + (symbol));
+        string messageHash = ("fundingRate:" + symbol);
         (client as WebSocketClient).resolve(fundingRate, messageHash);
     }
 

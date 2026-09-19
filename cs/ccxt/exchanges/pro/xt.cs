@@ -829,11 +829,11 @@ public partial class xt : ccxt.xt
                 { "symbol", marketId },
                 { "fundingRate", this.safeString(data, "r") },
             };
-            object fundingRate = this.parseFundingRate(raw);
+            IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(raw));
             Int64? timestamp = this.safeInteger(data, "t");
             ((IDictionary<string,object>)fundingRate)["timestamp"] = timestamp;
             ((IDictionary<string,object>)fundingRate)["datetime"] = this.iso8601(timestamp);
-            object symbol = getValue(fundingRate, "symbol");
+            string? symbol = ((string)getValue(fundingRate, "symbol"));
             ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
             object eventVar = this.safeString(message, "event");
             object messageHash = add(eventVar, "::contract");

@@ -1211,7 +1211,7 @@ public partial class woo : Exchange
         string? price = this.safeString2(trade, "executed_price", "executedPrice");
         string? amount = this.safeString2(trade, "executed_quantity", "executedQuantity");
         string? order_id = this.safeString2(trade, "order_id", "orderId");
-        object fee = this.parseTokenAndFeeTemp(trade, new List<object>() {"fee_asset", "feeAsset"}, new List<object>() {"fee"});
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(trade, new List<object>() {"fee_asset", "feeAsset"}, new List<object>() {"fee"}));
         string? feeCost = this.safeString(fee, "cost");
         if (((fee != null)) && ((feeCost != null)))
         {
@@ -3349,7 +3349,7 @@ public partial class woo : Exchange
         string? side = this.safeString(item, "tokenSide");
         string direction = ((bool) ((side == "DEPOSIT"))) ? "in" : "out";
         Int64? timestamp = this.safeTimestamp(item, "createdTime");
-        object fee = this.parseTokenAndFeeTemp(item, new List<object>() {"feeToken"}, new List<object>() {"feeAmount"});
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(item, new List<object>() {"feeToken"}, new List<object>() {"feeAmount"}));
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", this.safeString(item, "id") },
@@ -3493,7 +3493,7 @@ public partial class woo : Exchange
         {
             movementDirection = "withdrawal";
         }
-        object fee = this.parseTokenAndFeeTemp(transaction, new List<object>() {"fee_token", "feeToken"}, new List<object>() {"fee_amount", "feeAmount"});
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(transaction, new List<object>() {"fee_token", "feeToken"}, new List<object>() {"fee_amount", "feeAmount"}));
         string? addressTo = this.safeStringN(transaction, new List<object>() {"target_address", "targetAddress", "addressTo"});
         string? addressFrom = this.safeString2(transaction, "source_address", "sourceAddress");
         Int64? timestamp = this.safeTimestampN(transaction, new List<object>() {"created_time", "createdTime"}, this.safeInteger(transaction, "timestamp"));
@@ -3574,7 +3574,7 @@ public partial class woo : Exchange
         ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
         ((IDictionary<string,object>)data)["token"] = getValue(currency, "id");
         ((IDictionary<string,object>)data)["status"] = "ok";
-        object transfer = this.parseTransfer(data, currency);
+        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(data, currency));
         IDictionary<string, object> transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if ((fillResponseFromRequest == true))

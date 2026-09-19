@@ -2461,7 +2461,7 @@ public partial class extended : Exchange
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> fee = this.safeDict(data, i, new Dictionary<string, object>() {});
-            object parsed = this.parseTradingFee(fee);
+            IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseTradingFee(fee));
             string? symbol = this.safeString(parsed, "symbol");
             if ((symbol != null))
             {

@@ -2076,7 +2076,7 @@ public partial class hashkey : Exchange
         //         "coinType": "ERC20_TOKEN"
         //     }
         //
-        object depositAddress = this.parseDepositAddress(response, currency);
+        IDictionary<string, object> depositAddress = ((IDictionary<string, object>)this.parseDepositAddress(response, currency));
         ((IDictionary<string,object>)depositAddress)["network"] = networkCode;
         return ccxt.BaseExchange.ToDepositAddress(depositAddress);
     }
@@ -4615,7 +4615,7 @@ public partial class hashkey : Exchange
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             IDictionary<string, object> fee = this.safeDict(data, i, new Dictionary<string, object>() {});
-            object parsedFee = this.parseTradingFee(fee);
+            IDictionary<string, object> parsedFee = ((IDictionary<string, object>)this.parseTradingFee(fee));
             ((IDictionary<string,object>)result)[(string)((string)getValue(parsedFee, "symbol"))] = parsedFee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);

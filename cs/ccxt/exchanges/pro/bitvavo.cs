@@ -1509,7 +1509,7 @@ public partial class bitvavo : ccxt.bitvavo
         // const messageHash = this.buildMessageHash (action, message);
         string? messageHash = this.safeString(message, "requestId");
         IDictionary<string, object> response = this.safeDict(message, "response", new Dictionary<string, object>() {});
-        object withdraw = this.parseTransaction(response);
+        IDictionary<string, object> withdraw = ((IDictionary<string, object>)this.parseTransaction(response));
         (client as WebSocketClient).resolve(withdraw, messageHash);
     }
 
