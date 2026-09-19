@@ -322,7 +322,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Object stored = Helpers.GetValue(storesForSymbols, symbol);
+                Object stored = (storesForSymbols == null || symbol == null ? null : storesForSymbols.get(symbol));
                 String messageHash = ("trades:" + symbol);
                 client.resolve(stored, messageHash);
             }

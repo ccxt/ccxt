@@ -1139,7 +1139,7 @@ public class Gemini extends GeminiApi
             Object lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
             if (conflictingMarkets.containsKey(lowerCaseId))
             {
-                Object conflictingMarket = Helpers.GetValue(conflictingMarkets, lowerCaseId);
+                Object conflictingMarket = (conflictingMarkets == null || lowerCaseId == null ? null : conflictingMarkets.get(lowerCaseId));
                 baseId = Helpers.GetValue(conflictingMarket, "base");
                 quoteId = Helpers.GetValue(conflictingMarket, "quote");
                 if (Boolean.TRUE.equals(isPerp))

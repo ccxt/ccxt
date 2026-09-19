@@ -1125,7 +1125,7 @@ public class Bitflyer extends BitflyerApi
             Map<String, Object> ordersById = this.indexBy(orders, "id");
             if (ordersById.containsKey(id))
             {
-                return Helpers.GetValue(ordersById, id);
+                return (ordersById == null || id == null ? null : ordersById.get(id));
             }
             throw new OrderNotFound(((this.id + " No order found with id ") + id)) ;
         }).thenApply(Order::new);

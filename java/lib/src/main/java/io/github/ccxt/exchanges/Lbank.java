@@ -3598,7 +3598,7 @@ public class Lbank extends LbankApi
                             ((Map<String, Object>)result).put((String)code, this.depositWithdrawFee(new ArrayList<Object>(Arrays.asList(fee))));
                         } else
                         {
-                            Object resultCodeInfo = Helpers.GetValue(Helpers.GetValue(result, code), "info");
+                            Object resultCodeInfo = Helpers.GetValue((result == null || code == null ? null : result.get(code)), "info");
                             ((List<Object>)resultCodeInfo).add(fee);
                         }
                         Object networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);

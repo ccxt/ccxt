@@ -1562,7 +1562,7 @@ public class Coinone extends CoinoneApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object value = Helpers.GetValue(walletAddress, key);
+                Object value = (walletAddress == null || key == null ? null : walletAddress.get(key));
                 if ((java.util.Objects.equals(value, null)) || (java.util.Objects.equals(value, null)) || (java.util.Objects.equals(value, "")) || (java.util.Objects.equals(value, "-1")))
                 {
                     continue;

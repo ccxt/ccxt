@@ -990,7 +990,7 @@ public class Ndax extends NdaxApi
             List<Object> bidask = (List<Object>) this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Long levelSide = this.safeInteger(level, 9);
             Object side = (((!java.util.Objects.equals(levelSide, null) && (levelSide == null || levelSide != 0)))) ? asksKey : bidsKey;
-            ((List<Object>)Helpers.GetValue(result, side)).add(bidask);
+            ((List<Object>)(result == null || side == null ? null : result.get(side))).add(bidask);
         }
         ((Map<String, Object>)result).put("bids", this.sortBy(((Map<String, Object>)result).get("bids"), 0, true));
         ((Map<String, Object>)result).put("asks", this.sortBy(((Map<String, Object>)result).get("asks"), 0));

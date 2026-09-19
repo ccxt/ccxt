@@ -1545,8 +1545,8 @@ public class Phemex extends PhemexApi
             }
             ((Map<String, Object>)result).put((String)side, orders);
         }
-        ((Map<String, Object>)result).put((String)bidsKey, this.sortBy(Helpers.GetValue(result, bidsKey), 0, true));
-        ((Map<String, Object>)result).put((String)asksKey, this.sortBy(Helpers.GetValue(result, asksKey), 0));
+        ((Map<String, Object>)result).put((String)bidsKey, this.sortBy((result == null || bidsKey == null ? null : result.get(bidsKey)), 0, true));
+        ((Map<String, Object>)result).put((String)asksKey, this.sortBy((result == null || asksKey == null ? null : result.get(asksKey)), 0));
         return result;
     }
 

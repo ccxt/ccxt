@@ -409,7 +409,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-            List<Object> timeframes = Helpers.objectKeys(Helpers.GetValue(updates, marketId));
+            List<Object> timeframes = Helpers.objectKeys((updates == null || marketId == null ? null : updates.get(marketId)));
             for (var j = 0; j < ((List<?>)timeframes).size(); j++)
             {
                 Object timeframe = (timeframes == null || j < 0 || j >= timeframes.size() ? null : timeframes.get(j));

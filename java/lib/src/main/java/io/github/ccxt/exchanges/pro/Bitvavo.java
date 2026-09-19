@@ -643,7 +643,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 {
                     ((Map<String, Object>)marketIdsByInterval).put((String)interval, new ArrayList<Object>(Arrays.asList()));
                 }
-                Object intervalIds = Helpers.GetValue(marketIdsByInterval, interval);
+                Object intervalIds = (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval));
                 ((List<Object>)intervalIds).add(((Map<String, Object>)market).get("id"));
                 ((List<Object>)messageHashes).add(((((("multi:" + name) + "@") + ((Map<String, Object>)market).get("id")) + "_") + interval));
             }
@@ -656,7 +656,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                             ((List<Object>)channels).add(new HashMap<String, Object>() {{
                     put( "name", name );
                     put( "interval", new ArrayList<Object>(Arrays.asList(finalInterval)) );
-                    put( "markets", Helpers.GetValue(marketIdsByInterval, finalInterval) );
+                    put( "markets", (marketIdsByInterval == null || finalInterval == null ? null : marketIdsByInterval.get(finalInterval)) );
                 }});
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -733,7 +733,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 {
                     ((Map<String, Object>)marketIdsByInterval).put((String)interval, new ArrayList<Object>(Arrays.asList()));
                 }
-                Object intervalIds = Helpers.GetValue(marketIdsByInterval, interval);
+                Object intervalIds = (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval));
                 ((List<Object>)intervalIds).add(((Map<String, Object>)market).get("id"));
                 // both the single-symbol and the multi-symbol watch hashes must be released
                 ((List<Object>)subMessageHashes).add(((((name + "@") + ((Map<String, Object>)market).get("id")) + "_") + interval));
@@ -749,7 +749,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                             ((List<Object>)channels).add(new HashMap<String, Object>() {{
                     put( "name", finalName );
                     put( "interval", new ArrayList<Object>(Arrays.asList(finalInterval)) );
-                    put( "markets", Helpers.GetValue(marketIdsByInterval, finalInterval) );
+                    put( "markets", (marketIdsByInterval == null || finalInterval == null ? null : marketIdsByInterval.get(finalInterval)) );
                 }});
             }
             Object subscriptionArgs = new HashMap<String, Object>() {{

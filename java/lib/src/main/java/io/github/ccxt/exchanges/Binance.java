@@ -2982,11 +2982,11 @@ public class Binance extends BinanceApi
                 put( "option", new HashMap<String, Object>() {{}} );
             }} );
             put( "currencies", new HashMap<String, Object>() {{
-                put( "BNFCR", Binance.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                put( "BNFCR", Binance.this.safeCurrencyStructure(new HashMap<String, Object>() {{
                     put( "id", "BNFCR" );
                     put( "code", "BNFCR" );
                     put( "precision", Binance.this.parseNumber("0.001") );
-                }})) );
+                }}) );
             }} );
             put( "commonCurrencies", new HashMap<String, Object>() {{
                 put( "BCC", "BCC" );
@@ -4787,7 +4787,7 @@ public class Binance extends BinanceApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < Helpers.getArrayLength(responseCurrencies); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency((Map<String, Object>) (Helpers.GetValue(responseCurrencies, i)));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
             if (java.util.Objects.equals(parsed, null))
             {
                 throw new ExchangeError((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
@@ -4808,7 +4808,7 @@ public class Binance extends BinanceApi
         return result;
     }
 
-    public Object parseCurrency(Map<String, Object> rawCurrency)
+    public Object parseCurrency(Object rawCurrency)
     {
         //
         //    {
@@ -4992,7 +4992,7 @@ public class Binance extends BinanceApi
         }
         Boolean trading = (Boolean) this.safeBool(entry, "trading");
         final Object finalType = type;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", name );
             put( "code", code );
@@ -5006,7 +5006,7 @@ public class Binance extends BinanceApi
             put( "fee", null );
             put( "fees", fees );
             put( "limits", null );
-        }}));
+        }});
     }
 
     /**
@@ -5718,11 +5718,11 @@ public class Binance extends BinanceApi
                 String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (!java.util.Objects.equals(baseCode, null))
                 {
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper(base)));
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
                 }
                 if (!java.util.Objects.equals(quoteCode, null))
                 {
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper(quote)));
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
             }
         } else if (java.util.Objects.equals(type, "savings"))
@@ -5880,7 +5880,7 @@ public class Binance extends BinanceApi
                     Object symbols = "";
                     if ((paramSymbols instanceof List))
                     {
-                        Object mid = this.marketId((String) ((paramSymbols == null || 0 >= ((List<?>)paramSymbols).size() ? null : ((List<?>)paramSymbols).get(0))));
+                        Object mid = this.marketId((paramSymbols == null || 0 >= ((List<?>)paramSymbols).size() ? null : ((List<?>)paramSymbols).get(0)));
                         if (!java.util.Objects.equals(mid, null))
                         {
                             symbols = mid;
@@ -5888,7 +5888,7 @@ public class Binance extends BinanceApi
                         for (var i = 1; i < ((List<?>)paramSymbols).size(); i++)
                         {
                             Object symbol = (paramSymbols == null || i < 0 || i >= paramSymbols.size() ? null : paramSymbols.get(i));
-                            Object id = this.marketId((String) (symbol));
+                            Object id = this.marketId(symbol);
                             if (!java.util.Objects.equals(id, null))
                             {
                                 symbols = (symbols + ("," + id));
@@ -6201,7 +6201,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         // markPrices
         //
@@ -6354,19 +6354,19 @@ public class Binance extends BinanceApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = (Long) this.safeInteger2(ticker, "closeTime", "time");
         String marketType = null;
-        if ((ticker.containsKey("time")))
+        if ((((Map<?, ?>)ticker).containsKey("time")))
         {
             marketType = "contract";
         }
         if (java.util.Objects.equals(marketType, null))
         {
-            marketType = (((ticker.containsKey("bidQty")))) ? "spot" : "contract";
+            marketType = (((((Map<?, ?>)ticker).containsKey("bidQty")))) ? "spot" : "contract";
         }
         String marketId = this.safeString(ticker, "symbol");
         String symbol = this.safeSymbol(marketId, market, null, marketType);
         String last = this.safeString(ticker, "lastPrice");
         String wAvg = this.safeString(ticker, "weightedAvgPrice");
-        Boolean isCoinm = (ticker.containsKey("baseVolume"));
+        Boolean isCoinm = (((Map<?, ?>)ticker).containsKey("baseVolume"));
         String baseVolume = null;
         String quoteVolume = null;
         if (Boolean.TRUE.equals(isCoinm))
@@ -6504,13 +6504,13 @@ public class Binance extends BinanceApi
             if ((response instanceof List))
             {
                 Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-                return this.parseTicker((Map<String, Object>) (firstTicker), market);
+                return this.parseTicker(firstTicker, market);
             }
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " fetchTicker() returned empty response")) ;
             }
-            return this.parseTicker((Map<String, Object>) (response), market);
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -6573,7 +6573,7 @@ public class Binance extends BinanceApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    ((Map<String, Object>)request).put("symbol", this.marketId((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)))));
+                    ((Map<String, Object>)request).put("symbol", this.marketId((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
                 }
             }
             Object response = null;
@@ -6788,7 +6788,7 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(Helpers.GetValue(response, i), "symbol");
             Map<String, Object> tickerMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, "spot");
-            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (Helpers.GetValue(response, i)));
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(response, i));
             Helpers.addElementToObject(parsedTicker, "symbol", ((Map<String, Object>)tickerMarket).get("symbol"));
             ((List<Object>)results).add(parsedTicker);
         }
@@ -6845,13 +6845,13 @@ public class Binance extends BinanceApi
             }
             if ((response instanceof List))
             {
-                return this.parseTicker((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), market);
+                return this.parseTicker(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
             }
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " fetchMarkPrice() returned empty response")) ;
             }
-            return this.parseTicker((Map<String, Object>) (response), market);
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -7426,7 +7426,7 @@ public class Binance extends BinanceApi
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalAmount = amount;
         final Object finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Binance.this.iso8601(timestamp) );
@@ -7440,7 +7440,7 @@ public class Binance extends BinanceApi
             put( "amount", finalAmount );
             put( "cost", Binance.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("quoteQty", "baseQty", "total"))) );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -8835,10 +8835,10 @@ public class Binance extends BinanceApi
             String msg = this.safeString(order, "msg");
             if ((!java.util.Objects.equals(code, "200")) && !((java.util.Objects.equals(msg, "success")) || (java.util.Objects.equals(msg, "The operation of cancel all open order is done."))))
             {
-                return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                return this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", order );
                     put( "status", "rejected" );
-                }}), market);
+                }}, market);
             }
         }
         String status = this.parseOrderStatus(this.safeStringN(order, new ArrayList<Object>(Arrays.asList("status", "strategyStatus", "algoStatus"))));
@@ -8901,7 +8901,7 @@ public class Binance extends BinanceApi
         final Object finalCost = cost;
         final Object finalStatus = status;
         final Object finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Binance.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("strategyId", "orderId", "algoId"))) );
             put( "clientOrderId", Binance.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("clientOrderId", "newClientStrategyId", "clientAlgoId"))) );
@@ -8925,7 +8925,7 @@ public class Binance extends BinanceApi
             put( "status", finalStatus );
             put( "fee", finalFee );
             put( "trades", fills );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -11225,9 +11225,9 @@ public class Binance extends BinanceApi
             } else
             {
                 final Object finalResponse = response;
-                Object order = this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                Object order = this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", finalResponse );
-                }}));
+                }});
                 return new ArrayList<Object>(Arrays.asList(order));
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -11802,7 +11802,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Map<String, Object> parseDustTrade(Object trade, Object... optionalArgs)
+    public Object parseDustTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -11932,7 +11932,7 @@ public class Binance extends BinanceApi
             {
                 if (!java.util.Objects.equals(code, null))
                 {
-                    currency = this.currency((String) (code));
+                    currency = this.currency(code);
                 }
                 ((Map<String, Object>)request).put("transactionType", 0);
                 if (!java.util.Objects.equals(since, null))
@@ -11949,7 +11949,7 @@ public class Binance extends BinanceApi
             {
                 if (!java.util.Objects.equals(code, null))
                 {
-                    currency = this.currency((String) (code));
+                    currency = this.currency(code);
                     ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
                 }
                 if (!java.util.Objects.equals(since, null))
@@ -12039,7 +12039,7 @@ public class Binance extends BinanceApi
             {
                 if (!java.util.Objects.equals(code, null))
                 {
-                    currency = this.currency((String) (code));
+                    currency = this.currency(code);
                 }
                 ((Map<String, Object>)request).put("transactionType", 1);
                 if (!java.util.Objects.equals(since, null))
@@ -12052,7 +12052,7 @@ public class Binance extends BinanceApi
             {
                 if (!java.util.Objects.equals(code, null))
                 {
-                    currency = this.currency((String) (code));
+                    currency = this.currency(code);
                     ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
                 }
                 if (!java.util.Objects.equals(since, null))
@@ -12128,7 +12128,7 @@ public class Binance extends BinanceApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -12290,7 +12290,7 @@ public class Binance extends BinanceApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
         //
         // transfer
@@ -12453,10 +12453,10 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
+                put( "amount", Binance.this.currencyToPrecision(code, amount) );
             }};
             ((Map<String, Object>)request).put("type", this.safeString(parameters, "type"));
             parameters = this.omit(parameters, "type");
@@ -12555,7 +12555,7 @@ public class Binance extends BinanceApi
             //         "tranId":13526853623
             //     }
             //
-            return this.parseTransfer((Map<String, Object>) (response), currency);
+            return this.parseTransfer(response, currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -12600,7 +12600,7 @@ public class Binance extends BinanceApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String limitKey = "limit";
@@ -12679,7 +12679,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
             }};
@@ -13054,7 +13054,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "address", address );
@@ -13071,15 +13071,15 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)request).put("network", this.networkCodeToId(networkCode, ((Map<String, Object>)currency).get("code")));
             }
-            ((Map<String, Object>)request).put("amount", this.currencyToPrecision((String) (((Map<String, Object>)currency).get("code")), amount, networkCode));
+            ((Map<String, Object>)request).put("amount", this.currencyToPrecision(((Map<String, Object>)currency).get("code"), amount, networkCode));
             Map<String, Object> response = (this.sapiPostCapitalWithdrawApply(this.extend(request, parameters))).join();
             //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         // spot
@@ -13323,7 +13323,7 @@ public class Binance extends BinanceApi
                 List<Object> fees = this.toArray(response);
                 for (var i = 0; i < ((List<?>)fees).size(); i++)
                 {
-                    Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))));
+                    Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))));
                     Object symbol = ((Map<String, Object>)fee).get("symbol");
                     if (!java.util.Objects.equals(symbol, null))
                     {
@@ -13456,7 +13456,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             final Object finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
@@ -13469,7 +13469,7 @@ public class Binance extends BinanceApi
             //       "tranId": 100000001
             //   }
             //
-            return this.parseTransfer((Map<String, Object>) (response), currency);
+            return this.parseTransfer(response, currency);
         });
 
     }
@@ -13792,9 +13792,9 @@ public class Binance extends BinanceApi
                 if (balances.containsKey(code))
                 {
                     final Object finalCode = code;
-                    Map<String, Object> parsed = this.parseAccountPosition(this.extend(position, new HashMap<String, Object>() {{
-                        put( "crossMargin", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossMargin") );
-                        put( "crossWalletBalance", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossWalletBalance") );
+                    Object parsed = this.parseAccountPosition(this.extend(position, new HashMap<String, Object>() {{
+                        put( "crossMargin", Helpers.GetValue((balances == null || finalCode == null ? null : balances.get(finalCode)), "crossMargin") );
+                        put( "crossWalletBalance", Helpers.GetValue((balances == null || finalCode == null ? null : balances.get(finalCode)), "crossWalletBalance") );
                     }}), market);
                     ((List<Object>)result).add(parsed);
                 }
@@ -13803,7 +13803,7 @@ public class Binance extends BinanceApi
         return result;
     }
 
-    public Map<String, Object> parseAccountPosition(Object position, Object... optionalArgs)
+    public Object parseAccountPosition(Object position, Object... optionalArgs)
     {
         //
         // usdm
@@ -14327,7 +14327,7 @@ public class Binance extends BinanceApi
         final Object finalMarginMode = marginMode;
         final Object finalSide = side;
         final Object finalPercentage = percentage;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -14354,7 +14354,7 @@ public class Binance extends BinanceApi
             put( "percentage", finalPercentage );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
 
     public CompletableFuture<Object> loadLeverageBrackets(Object... optionalArgs)
@@ -14753,7 +14753,7 @@ final Object finalMarket = market;
         Long timestamp = this.safeInteger(position, "time");
         final Object finalSide = side;
         final Object finalQuantity = quantity;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -14777,7 +14777,7 @@ final Object finalMarket = market;
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );
-        }}));
+        }});
     }
 
     /**
@@ -15540,7 +15540,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
+    public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(leverage, "symbol");
@@ -15723,7 +15723,7 @@ final Object finalMarket = market;
 
     }
 
-    public Map<String, Object> parseSettlement(Object settlement, Object market)
+    public Object parseSettlement(Object settlement, Object market)
     {
         //
         // fetchSettlementHistory
@@ -15840,7 +15840,7 @@ final Object finalMarket = market;
                 throw new BadRequest((this.id + " fetchLedgerEntry() can only be used for type option")) ;
             }
             this.checkRequiredArgument("fetchLedgerEntry", code, "code");
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "recordId", id );
                 put( "currency", ((Map<String, Object>)currency).get("id") );
@@ -15858,7 +15858,7 @@ final Object finalMarket = market;
             //     ]
             //
             Object first = this.safeDict(response, 0, response);
-            return this.parseLedgerEntry((Map<String, Object>) (first), currency);
+            return this.parseLedgerEntry(first, currency);
         }).thenApply(LedgerEntry::new);
 
     }
@@ -15908,7 +15908,7 @@ final Object finalMarket = market;
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
@@ -16000,7 +16000,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
         //
         // options (eapi)
@@ -16063,7 +16063,7 @@ final Object finalMarket = market;
         }}, currency);
     }
 
-    public String parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(Object type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "FEE", "fee" );
@@ -16098,13 +16098,13 @@ final Object finalMarket = market;
             return null;
         }
         Object networkCode = null;
-        Map<String, Object> currency = (Map<String, Object>) this.currency((String) (currencyCode));
+        Map<String, Object> currency = (Map<String, Object>) this.currency(currencyCode);
         Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
         List<Object> networkCodes = new ArrayList<Object>(networks.keySet());
         for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
         {
             Object currentNetworkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(Helpers.GetValue(networks, currentNetworkCode), "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = (Map<String, Object>) this.safeDict((networks == null || currentNetworkCode == null ? null : networks.get(currentNetworkCode)), "info", new HashMap<String, Object>() {{}});
             String siteUrl = this.safeString(info, "contractAddressUrl");
             // check if url matches the field's value
             Object baseDomain = this.getBaseDomainFromUrl(siteUrl);
@@ -16568,14 +16568,14 @@ final Object finalMarket = market;
                 throw new NullResponse((this.id + " parseMarginModification() returned empty response")) ;
             }
             final Object finalCode = code;
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
                 put( "code", finalCode );
             }});
         });
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    public Object parseMarginModification(Object data, Object... optionalArgs)
     {
         //
         // add/reduce margin
@@ -16688,7 +16688,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
@@ -16823,7 +16823,7 @@ final Object finalMarket = market;
             {
                 throw new BadRequest((this.id + " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             final Object finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
@@ -16847,7 +16847,7 @@ final Object finalMarket = market;
             //         },
             //     ]
             //
-            return this.parseBorrowRateHistory(response, (String) (code), since, limit);
+            return this.parseBorrowRateHistory(response, code, since, limit);
         });
 
     }
@@ -16875,7 +16875,7 @@ final Object finalMarket = market;
         }};
     }
 
-    public Object parseIsolatedBorrowRate(Map<String, Object> info, Object... optionalArgs)
+    public Object parseIsolatedBorrowRate(Object info, Object... optionalArgs)
     {
         //
         //    {
@@ -16936,7 +16936,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             // ensure you have enough token in your funding account before calling this code
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token", ((Map<String, Object>)currency).get("id") );
@@ -17068,7 +17068,7 @@ final Object finalMarket = market;
             Object market = null;
             if (!java.util.Objects.equals(code, null))
             {
-                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -17138,7 +17138,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseBorrowInterest(Map<String, Object> info, Object... optionalArgs)
+    public Object parseBorrowInterest(Object info, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String symbol = this.safeString(info, "isolatedSymbol");
@@ -17183,10 +17183,10 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
+                put( "amount", Binance.this.currencyToPrecision(code, amount) );
             }};
             Object response = null;
             Object isPortfolioMargin = null;
@@ -17238,11 +17238,11 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
+                put( "amount", Binance.this.currencyToPrecision(code, amount) );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "isIsolated", "TRUE" );
                 put( "type", "REPAY" );
@@ -17281,10 +17281,10 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
+                put( "amount", Binance.this.currencyToPrecision(code, amount) );
             }};
             Object response = null;
             Object isPortfolioMargin = null;
@@ -17332,11 +17332,11 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
+                put( "amount", Binance.this.currencyToPrecision(code, amount) );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "isIsolated", "TRUE" );
                 put( "type", "BORROW" );
@@ -17353,7 +17353,7 @@ final Object finalMarket = market;
 
     }
 
-    public Map<String, Object> parseMarginLoan(Object info, Object... optionalArgs)
+    public Object parseMarginLoan(Object info, Object... optionalArgs)
     {
         //
         //     {
@@ -17888,7 +17888,7 @@ final Object finalMarket = market;
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(liquidation, "symbol");
         Long timestamp = (Long) this.safeInteger2(liquidation, "updatedTime", "updateTime");
-        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Binance.this.safeSymbol(marketId, market) );
             put( "contracts", Binance.this.safeNumber(liquidation, "executedQty") );
@@ -17899,7 +17899,7 @@ final Object finalMarket = market;
             put( "quoteValue", Binance.this.safeNumber(liquidation, "cumQuote") );
             put( "timestamp", timestamp );
             put( "datetime", Binance.this.iso8601(timestamp) );
-        }}));
+        }});
     }
 
     /**
@@ -17943,7 +17943,7 @@ final Object finalMarket = market;
             //         }
             //     ]
             //
-            return this.parseGreeks((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), market);
+            return this.parseGreeks(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
         }).thenApply(Greeks::new);
 
     }
@@ -18003,7 +18003,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseGreeks(Map<String, Object> greeks, Object... optionalArgs)
+    public Object parseGreeks(Object greeks, Object... optionalArgs)
     {
         //
         //     {
@@ -18228,12 +18228,12 @@ final Object finalMarket = market;
             {
                 throw new NullResponse((this.id + " fetchMarginMode() returned empty response")) ;
             }
-            return this.parseMarginMode((Map<String, Object>) (Helpers.GetValue(response, 0)), market);
+            return this.parseMarginMode(Helpers.GetValue(response, 0), market);
         }).thenApply(MarginMode::new);
 
     }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
+    public Object parseMarginMode(Object marginMode, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(marginMode, "symbol");
@@ -18307,12 +18307,12 @@ final Object finalMarket = market;
             //     ]
             //
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseOption((Map<String, Object>) (chain), null, market);
+            return this.parseOption(chain, null, market);
         }).thenApply(Option::new);
 
     }
 
-    public Object parseOption(Map<String, Object> chain, Object... optionalArgs)
+    public Object parseOption(Object chain, Object... optionalArgs)
     {
         //
         //     {
@@ -18568,13 +18568,13 @@ final Object finalMarket = market;
             //         "fromAmount":"0.1"
             //     }
             //
-            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency((String) (fromCode));
-            Map<String, Object> toCurrency = (Map<String, Object>) this.currency((String) (toCode));
+            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCode);
+            Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCode);
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion((Map<String, Object>) (response), fromCurrency, toCurrency);
+            return this.parseConversion(response, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18622,13 +18622,13 @@ final Object finalMarket = market;
                 ((Map<String, Object>)request).put("quoteId", id);
                 response = (this.sapiPostConvertAcceptQuote(this.extend(request, parameters))).join();
             }
-            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency((String) (fromCode));
-            Map<String, Object> toCurrency = (Map<String, Object>) this.currency((String) (toCode));
+            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCode);
+            Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCode);
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion((Map<String, Object>) (response), fromCurrency, toCurrency);
+            return this.parseConversion(response, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18662,7 +18662,7 @@ final Object finalMarket = market;
                 Long now = this.milliseconds();
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+                    Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                     ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
                 }
                 ((Map<String, Object>)request).put("tranId", id);
@@ -18696,7 +18696,7 @@ final Object finalMarket = market;
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
+            return this.parseConversion(data, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18751,7 +18751,7 @@ final Object finalMarket = market;
             String toCurrencyKey = null;
             if (java.util.Objects.equals(code, "BUSD"))
             {
-                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
                 if (!java.util.Objects.equals(limit, null))
                 {
@@ -18782,7 +18782,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseConversion(Map<String, Object> conversion, Object... optionalArgs)
+    public Object parseConversion(Object conversion, Object... optionalArgs)
     {
         //
         // fetchConvertQuote
@@ -19005,7 +19005,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseLongShortRatio(Map<String, Object> info, Object... optionalArgs)
+    public Object parseLongShortRatio(Object info, Object... optionalArgs)
     {
         //
         // linear
@@ -19080,7 +19080,7 @@ final Object finalMarket = market;
             {
                 throw new NullResponse((this.id + " parseADLRank() returned empty response")) ;
             }
-            return this.parseADLRank((Map<String, Object>) (response), market);
+            return this.parseADLRank(response, market);
         }).thenApply(ADL::new);
 
     }
@@ -19164,7 +19164,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseADLRank(Map<String, Object> info, Object... optionalArgs)
+    public Object parseADLRank(Object info, Object... optionalArgs)
     {
         //
         // fetchADLRank

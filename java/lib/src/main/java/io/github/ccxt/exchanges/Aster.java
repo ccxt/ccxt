@@ -1207,11 +1207,11 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parseCurrency(Map<String, Object> rawCurrency)
+    public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "asset");
         String code = this.safeCurrencyCode(currencyId);
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "code", code );
             put( "id", currencyId );
@@ -1238,7 +1238,7 @@ public class Aster extends AsterApi
             }} );
             put( "networks", null );
             put( "type", "crypto" );
-        }}));
+        }});
     }
 
     /**
@@ -1712,7 +1712,7 @@ public class Aster extends AsterApi
         final Object finalMarket = market;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1729,7 +1729,7 @@ public class Aster extends AsterApi
                 put( "cost", Aster.this.parseNumber(Precise.stringAbs(Aster.this.safeString(trade, "commission"))) );
                 put( "currency", currencyCode );
             }} );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -1948,7 +1948,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker & fetchTickers: both SPOT & PERP has similar format
@@ -2001,14 +2001,14 @@ public class Aster extends AsterApi
         String baseVolume = this.safeString(ticker, "volume");
         String high = this.safeString(ticker, "highPrice");
         String low = this.safeString(ticker, "lowPrice");
-        Boolean isTickerResponse = (ticker.containsKey("priceChange"));
+        Boolean isTickerResponse = (((Map<?, ?>)ticker).containsKey("priceChange"));
         String marketType = null;
         if (Boolean.TRUE.equals(isTickerResponse))
         {
-            marketType = (((ticker.containsKey("baseAsset")))) ? "spot" : "swap";
+            marketType = (((((Map<?, ?>)ticker).containsKey("baseAsset")))) ? "spot" : "swap";
         } else
         {
-            marketType = (((ticker.containsKey("lastUpdateId")))) ? "swap" : "spot";
+            marketType = (((((Map<?, ?>)ticker).containsKey("lastUpdateId")))) ? "swap" : "spot";
         }
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);
@@ -2099,7 +2099,7 @@ public class Aster extends AsterApi
             //        "askQty": "0.32399"            // only in SPOT
             //    }
             //
-            return this.parseTicker((Map<String, Object>) (response), market);
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -2752,7 +2752,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "symbol");
@@ -2905,7 +2905,7 @@ public class Aster extends AsterApi
         String stopPriceString = this.safeString(order, "stopPrice");
         Object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         final Object finalMarket = market;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", info );
             put( "id", Aster.this.safeString(order, "orderId") );
             put( "clientOrderId", Aster.this.safeString(order, "clientOrderId") );
@@ -2929,7 +2929,7 @@ public class Aster extends AsterApi
             put( "fee", null );
             put( "trades", null );
             put( "reduceOnly", Aster.this.safeBool2(order, "reduceOnly", "ro") );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -3676,9 +3676,9 @@ public class Aster extends AsterApi
             //     }
             //
             final Object finalResponse = response;
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
-    }}))));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3873,7 +3873,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
+    public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         //
         //     {
@@ -3969,7 +3969,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
+    public Object parseMarginMode(Object marginMode, Object... optionalArgs)
     {
         //
         //     {
@@ -4070,7 +4070,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    public Object parseMarginModification(Object data, Object... optionalArgs)
     {
         //
         //     {
@@ -4139,7 +4139,7 @@ public class Aster extends AsterApi
             //         "type": 1
             //     }
             //
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
                 put( "code", code );
             }});
         });
@@ -4267,7 +4267,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
         //
         //     {
@@ -4318,7 +4318,7 @@ public class Aster extends AsterApi
         }}, currency);
     }
 
-    public String parseLedgerEntryType(String type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "TRANSFER", "transfer" );
@@ -4357,7 +4357,7 @@ public class Aster extends AsterApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
@@ -4567,7 +4567,7 @@ public class Aster extends AsterApi
         final Object finalMarginMode = marginMode;
         final Object finalSide = side;
         final Object finalPercentage = percentage;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -4593,7 +4593,7 @@ public class Aster extends AsterApi
             put( "percentage", finalPercentage );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
 
     /**
@@ -4742,9 +4742,9 @@ public class Aster extends AsterApi
                 if (balances.containsKey(code))
                 {
                     final Object finalCode = code;
-                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, new HashMap<String, Object>() {{
-                        put( "crossMargin", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossMargin") );
-                        put( "crossWalletBalance", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossWalletBalance") );
+                    Object parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, new HashMap<String, Object>() {{
+                        put( "crossMargin", Helpers.GetValue((balances == null || finalCode == null ? null : balances.get(finalCode)), "crossMargin") );
+                        put( "crossWalletBalance", Helpers.GetValue((balances == null || finalCode == null ? null : balances.get(finalCode)), "crossWalletBalance") );
                     }})), market);
                     ((List<Object>)result).add(parsed);
                 }
@@ -4753,7 +4753,7 @@ public class Aster extends AsterApi
         return result;
     }
 
-    public Map<String, Object> parseAccountPosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parseAccountPosition(Map<String, Object> position, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "symbol");
@@ -5139,7 +5139,7 @@ public class Aster extends AsterApi
             parameters = ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object nonce = Helpers.multiply(this.milliseconds(), 1000);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
@@ -5168,7 +5168,7 @@ public class Aster extends AsterApi
             }
             ((Map<String, Object>)request).put("fee", fee);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "fee")));
-            ((Map<String, Object>)request).put("amount", this.currencyToPrecision((String) (code), amount, network));
+            ((Map<String, Object>)request).put("amount", this.currencyToPrecision(code, amount, network));
             ((Map<String, Object>)request).put("userSignature", this.signWithdrawPayload(request, network));
             Map<String, Object> response = (this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, parameters))).join();
             //
@@ -5177,12 +5177,12 @@ public class Aster extends AsterApi
             //       "hash": "0x9e6baa3eb75d92a1164eef51a0cc97b9591930518ba3e8e5ab40ce524ba4e463"
             //   }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
@@ -5231,10 +5231,10 @@ public class Aster extends AsterApi
             Object toAccount = toAccount3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Aster.this.currencyToPrecision((String) (code), amount) );
+                put( "amount", Aster.this.currencyToPrecision(code, amount) );
             }};
             String type = null;
             Object fromId = null;
@@ -5263,12 +5263,12 @@ public class Aster extends AsterApi
             ((Map<String, Object>)request).put("kindType", type);
             ((Map<String, Object>)request).put("clientTranId", clientTranId);
             Map<String, Object> response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
-            return this.parseTransfer((Map<String, Object>) (response), currency);
+            return this.parseTransfer(response, currency);
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(transfer, "code");
@@ -5439,7 +5439,7 @@ public class Aster extends AsterApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = Helpers.GetValue(values, key);
+            Object value = (values == null || key == null ? null : values.get(key));
             Boolean isObj = (value instanceof List) || Boolean.TRUE.equals(this.isDictionary(value));
             Object valueJsonified = ((Boolean.TRUE.equals(isObj))) ? this.json(value) : String.valueOf(value);
             Object encoded = this.encodeURIComponent(valueJsonified);
@@ -5455,7 +5455,7 @@ public class Aster extends AsterApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = Helpers.GetValue(dict, key);
+            Object value = (dict == null || key == null ? null : dict.get(key));
             Object capitalizedKey = this.capitalize(key);
             ((Map<String, Object>)capitalized).put((String)capitalizedKey, value);
         }

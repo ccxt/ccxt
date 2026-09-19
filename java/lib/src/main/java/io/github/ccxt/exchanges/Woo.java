@@ -1587,8 +1587,8 @@ public class Woo extends WooApi
                 Object id = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
                 Map<String, Object> customCurrency = new HashMap<String, Object>() {{
                     put( "_coin_id", id );
-                    put( "_tokens_by_id", Helpers.GetValue(tokensById, id) );
-                    put( "_networks_by_id", Helpers.GetValue(networksById, id) );
+                    put( "_tokens_by_id", (tokensById == null || id == null ? null : tokensById.get(id)) );
+                    put( "_networks_by_id", (networksById == null || id == null ? null : networksById.get(id)) );
                 }};
                 Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency((Map<String, Object>) (customCurrency));
                 String code = this.safeString(parsed, "code");

@@ -1572,7 +1572,7 @@ public class Bitfinex extends BitfinexApi
                 String signedAmount = this.safeString(order, 2);
                 String amount = Precise.stringAbs(signedAmount);
                 String side = ((Precise.stringGt(signedAmount, "0"))) ? "bids" : "asks";
-                ((List<Object>)Helpers.GetValue(result, side)).add(new ArrayList<Object>(Arrays.asList(price, this.parseNumber(amount))));
+                ((List<Object>)(result == null || !(side instanceof String) ? null : result.get(side))).add(new ArrayList<Object>(Arrays.asList(price, this.parseNumber(amount))));
             }
             ((Map<String, Object>)result).put("bids", this.sortBy(((Map<String, Object>)result).get("bids"), 0, true));
             ((Map<String, Object>)result).put("asks", this.sortBy(((Map<String, Object>)result).get("asks"), 0));

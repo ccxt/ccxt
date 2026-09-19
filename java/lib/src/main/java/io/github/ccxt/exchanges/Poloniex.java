@@ -3791,7 +3791,7 @@ public class Poloniex extends PoloniexApi
     }} );
 }});
                         }
-                        Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFees, code), "networks", this.extend(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkObject));
+                        Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFees, code), "networks", this.extend(Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "networks"), networkObject));
                     }
                 }
             }

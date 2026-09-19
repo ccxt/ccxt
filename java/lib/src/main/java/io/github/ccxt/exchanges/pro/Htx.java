@@ -2052,7 +2052,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             ((List<Object>)newPositions).add(position);
             ((Map<String, Object>)positionsByMarginMode).put((String)marginMode, this.safeList(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList())));
-            ((List<Object>)Helpers.GetValue(positionsByMarginMode, marginMode)).add(position);
+            ((List<Object>)(positionsByMarginMode == null || marginMode == null ? null : positionsByMarginMode.get(marginMode))).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
         List<Object> marginModes = new ArrayList<Object>(positionsByMarginMode.keySet());

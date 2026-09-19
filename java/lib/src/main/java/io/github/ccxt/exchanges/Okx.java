@@ -2395,31 +2395,31 @@ public class Okx extends OkxApi
                 }} );
             }} );
             put( "currencies", new HashMap<String, Object>() {{
-                put( "USD", Okx.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                put( "USD", Okx.this.safeCurrencyStructure(new HashMap<String, Object>() {{
                     put( "id", "USD" );
                     put( "code", "USD" );
                     put( "precision", Okx.this.parseNumber("0.0001") );
-                }})) );
-                put( "EUR", Okx.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                }}) );
+                put( "EUR", Okx.this.safeCurrencyStructure(new HashMap<String, Object>() {{
                     put( "id", "EUR" );
                     put( "code", "EUR" );
                     put( "precision", Okx.this.parseNumber("0.0001") );
-                }})) );
-                put( "AED", Okx.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                }}) );
+                put( "AED", Okx.this.safeCurrencyStructure(new HashMap<String, Object>() {{
                     put( "id", "AED" );
                     put( "code", "AED" );
                     put( "precision", Okx.this.parseNumber("0.0001") );
-                }})) );
-                put( "GBP", Okx.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                }}) );
+                put( "GBP", Okx.this.safeCurrencyStructure(new HashMap<String, Object>() {{
                     put( "id", "GBP" );
                     put( "code", "GBP" );
                     put( "precision", Okx.this.parseNumber("0.0001") );
-                }})) );
-                put( "AUD", Okx.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                }}) );
+                put( "AUD", Okx.this.safeCurrencyStructure(new HashMap<String, Object>() {{
                     put( "id", "AUD" );
                     put( "code", "AUD" );
                     put( "precision", Okx.this.parseNumber("0.0001") );
-                }})) );
+                }}) );
             }} );
             put( "commonCurrencies", new HashMap<String, Object>() {{
                 put( "AE", "AET" );
@@ -3137,7 +3137,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseCurrency(Map<String, Object> currency)
+    public Object parseCurrency(Object currency)
     {
         Object chains = currency;
         // currencies are grouped by chain entries, so there is at least one entry
@@ -3184,7 +3184,7 @@ public class Okx extends OkxApi
             }
         }
         final Object finalType = type;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", chains );
             put( "code", code );
             put( "id", currencyId );
@@ -3202,7 +3202,7 @@ public class Okx extends OkxApi
             }} );
             put( "type", finalType );
             put( "networks", networks );
-        }}));
+        }});
     }
 
     /**
@@ -3301,7 +3301,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -3430,7 +3430,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker((Map<String, Object>) (first), market);
+            return this.parseTicker(first, market);
         }).thenApply(Ticker::new);
 
     }
@@ -3549,7 +3549,7 @@ public class Okx extends OkxApi
             // }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data");
-            return this.parseTicker((Map<String, Object>) (this.safeDict(data, 0)), market);
+            return this.parseTicker(this.safeDict(data, 0), market);
         }).thenApply(Ticker::new);
 
     }
@@ -3686,7 +3686,7 @@ public class Okx extends OkxApi
         }
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Okx.this.iso8601(timestamp) );
@@ -3700,7 +3700,7 @@ public class Okx extends OkxApi
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -4140,7 +4140,7 @@ public class Okx extends OkxApi
         return this.safeBalance(result);
     }
 
-    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         // https://www.okx.com/docs-v5/en/#rest-api-account-get-fee-rates
         //
@@ -5733,12 +5733,12 @@ public class Okx extends OkxApi
         String scode = this.safeString(order, "sCode");
         if ((!java.util.Objects.equals(scode, null)) && (!java.util.Objects.equals(scode, "0")))
         {
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", Okx.this.safeString(order, "ordId") );
                 put( "clientOrderId", Okx.this.safeString(order, "clOrdId") );
                 put( "status", "rejected" );
                 put( "info", order );
-            }}));
+            }});
         }
         String id = this.safeString2(order, "algoId", "ordId");
         Long timestamp = this.safeInteger(order, "cTime");
@@ -5823,7 +5823,7 @@ public class Okx extends OkxApi
         final Object finalAmount = amount;
         final Object finalFee = fee;
         final Object finalReduceOnly = reduceOnly;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
@@ -5849,7 +5849,7 @@ public class Okx extends OkxApi
             put( "fee", finalFee );
             put( "trades", null );
             put( "reduceOnly", finalReduceOnly );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -6798,7 +6798,7 @@ public class Okx extends OkxApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
                 ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
@@ -6869,7 +6869,7 @@ public class Okx extends OkxApi
 
     }
 
-    public String parseLedgerEntryType(String type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "1", "transfer" );
@@ -6887,7 +6887,7 @@ public class Okx extends OkxApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -7084,7 +7084,7 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ccy", ((Map<String, Object>)currency).get("id") );
             }};
@@ -7140,7 +7140,7 @@ public class Okx extends OkxApi
             }
             String rawNetwork = this.safeString(parameters, "network"); // some networks are like "Dora Vota Mainnet"
             parameters = this.omit(parameters, "network");
-            code = ((String)this.safeCurrencyCode((String) (code)));
+            code = ((String)this.safeCurrencyCode(code));
             Object network = this.networkIdToCode(rawNetwork, code);
             Object responseRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object response = responseRaw;
@@ -7193,7 +7193,7 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             if ((!java.util.Objects.equals(tag, null)) && (((String)tag).length() > 0))
             {
                 address = ((address + ":") + tag);
@@ -7244,7 +7244,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transaction = (Map<String, Object>) this.safeDict(data, 0);
-            return this.parseTransaction((Map<String, Object>) (transaction), currency);
+            return this.parseTransaction(transaction, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -7287,7 +7287,7 @@ public class Okx extends OkxApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
                 ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -7373,13 +7373,13 @@ public class Okx extends OkxApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
                 ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data");
             Map<String, Object> deposit = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (deposit), currency);
+            return this.parseTransaction(deposit, currency);
         });
 
     }
@@ -7422,7 +7422,7 @@ public class Okx extends OkxApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
                 ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -7500,7 +7500,7 @@ public class Okx extends OkxApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
                 ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
@@ -7527,7 +7527,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> withdrawal = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (withdrawal));
+            return this.parseTransaction(withdrawal);
         });
 
     }
@@ -7583,7 +7583,7 @@ public class Okx extends OkxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // withdraw
@@ -7756,12 +7756,12 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
+    public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = null;
@@ -7883,7 +7883,7 @@ public class Okx extends OkxApi
             {
                 throw new NullResponse(((this.id + " fetchPosition() could not find a position for ") + symbol)) ;
             }
-            return this.parsePosition((Map<String, Object>) (position), market);
+            return this.parsePosition(position, market);
         }).thenApply(Position::new);
 
     }
@@ -7986,7 +7986,7 @@ public class Okx extends OkxApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)))));
+                ((List<Object>)result).add(this.parsePosition((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))));
             }
             return this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols), false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -8014,7 +8014,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {
@@ -8180,7 +8180,7 @@ public class Okx extends OkxApi
         final Object finalCollateralString = collateralString;
         final Object finalInitialMarginString = initialMarginString;
         final Object finalInitialMarginPercentage = initialMarginPercentage;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Okx.this.safeString(position, "posId") );
             put( "symbol", symbol );
@@ -8209,7 +8209,7 @@ public class Okx extends OkxApi
             put( "marginRatio", marginRatio );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
 
     /**
@@ -8234,7 +8234,7 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -8242,7 +8242,7 @@ public class Okx extends OkxApi
             final Object finalToId = toId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ccy", ((Map<String, Object>)currency).get("id") );
-                put( "amt", Okx.this.currencyToPrecision((String) (code), amount) );
+                put( "amt", Okx.this.currencyToPrecision(code, amount) );
                 put( "type", "0" );
                 put( "from", finalFromId );
                 put( "to", finalToId );
@@ -8278,12 +8278,12 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> rawTransfer = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTransfer((Map<String, Object>) (rawTransfer), currency);
+            return this.parseTransfer(rawTransfer, currency);
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
         //
         // transfer
@@ -8426,7 +8426,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transfer = (Map<String, Object>) this.safeDict(data, 0);
-            return this.parseTransfer((Map<String, Object>) (transfer));
+            return this.parseTransfer(transfer);
         }).thenApply(TransferEntry::new);
 
     }
@@ -8461,7 +8461,7 @@ public class Okx extends OkxApi
             }};
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
                 ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -9238,7 +9238,7 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ccy", ((Map<String, Object>)currency).get("id") );
             }};
@@ -9313,7 +9313,7 @@ public class Okx extends OkxApi
                 Map<String, Object> borrowRateStructure = (Map<String, Object>) this.parseBorrowRate(item);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
                 ((Map<String, Object>)borrowRateStructure).put("period", 31536000000L);
-                Object borrrowRateCode = Helpers.GetValue(borrowRateHistories, code);
+                Object borrrowRateCode = (borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code));
                 ((List<Object>)borrrowRateCode).add(borrowRateStructure);
             }
         }
@@ -9321,7 +9321,7 @@ public class Okx extends OkxApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            ((Map<String, Object>)borrowRateHistories).put((String)code, this.filterByCurrencySinceLimit(Helpers.GetValue(borrowRateHistories, code), code, since, limit));
+            ((Map<String, Object>)borrowRateHistories).put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit));
         }
         return borrowRateHistories;
     }
@@ -9403,7 +9403,7 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ccy", ((Map<String, Object>)currency).get("id") );
             }};
@@ -9431,7 +9431,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseBorrowRateHistory(data, (String) (code), since, limit);
+            return this.parseBorrowRateHistory(data, code, since, limit);
         });
 
     }
@@ -9474,14 +9474,14 @@ public class Okx extends OkxApi
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             String errorCode = this.safeString(response, "code");
             final Object finalErrorCode = errorCode;
-            return this.extend(this.parseMarginModification((Map<String, Object>) (entry), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification(entry, market), new HashMap<String, Object>() {{
                 put( "status", (((java.util.Objects.equals(finalErrorCode, "0")))) ? "ok" : "failed" );
             }});
         });
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    public Object parseMarginModification(Object data, Object... optionalArgs)
     {
         //
         // addMargin/reduceMargin
@@ -9771,7 +9771,7 @@ public class Okx extends OkxApi
             Object market = null;
             if (!java.util.Objects.equals(code, null))
             {
-                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -9814,7 +9814,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseBorrowInterest(Map<String, Object> info, Object... optionalArgs)
+    public Object parseBorrowInterest(Object info, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String instId = this.safeString(info, "instId");
@@ -9857,10 +9857,10 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ccy", ((Map<String, Object>)currency).get("id") );
-                put( "amt", Okx.this.currencyToPrecision((String) (code), amount) );
+                put( "amt", Okx.this.currencyToPrecision(code, amount) );
                 put( "side", "borrow" );
             }};
             Map<String, Object> response = (this.privatePostAccountBorrowRepay(this.extend(request, parameters))).join();
@@ -9913,11 +9913,11 @@ public class Okx extends OkxApi
             {
                 throw new ArgumentsRequired((this.id + " repayCrossMargin() requires an id parameter")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             final Object finalId = id;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ccy", ((Map<String, Object>)currency).get("id") );
-                put( "amt", Okx.this.currencyToPrecision((String) (code), amount) );
+                put( "amt", Okx.this.currencyToPrecision(code, amount) );
                 put( "side", "repay" );
                 put( "ordId", finalId );
             }};
@@ -9944,7 +9944,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
+    public Object parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
     {
         //
         //     {
@@ -10147,7 +10147,7 @@ public class Okx extends OkxApi
                 currencyId = ((Map<String, Object>)market).get("baseId");
             } else
             {
-                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (symbol));
+                Map<String, Object> currency = (Map<String, Object>) this.currency(symbol);
                 currencyId = ((Map<String, Object>)currency).get("id");
             }
             final Object finalCurrencyId = currencyId;
@@ -10426,8 +10426,8 @@ public class Okx extends OkxApi
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
             Object code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees(Helpers.GetValue(depositWithdrawFees, code), currency));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
         }
         return depositWithdrawFees;
     }
@@ -10509,7 +10509,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Map<String, Object> market)
+    public Object parseSettlement(Map<String, Object> settlement, Map<String, Object> market)
     {
         //
         //     {
@@ -10550,7 +10550,7 @@ public class Okx extends OkxApi
             List<Object> details = (List<Object>) this.safeList(entry, "details", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)details).size(); j++)
             {
-                Map<String, Object> settlement = this.parseSettlement((Map<String, Object>) ((details == null || j < 0 || j >= details.size() ? null : details.get(j))), (Map<String, Object>) (market));
+                Object settlement = this.parseSettlement((Map<String, Object>) ((details == null || j < 0 || j >= details.size() ? null : details.get(j))), (Map<String, Object>) (market));
                 ((List<Object>)result).add(this.extend(settlement, new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", Okx.this.iso8601(timestamp) );
@@ -10678,7 +10678,7 @@ public class Okx extends OkxApi
                 String entryMarketId = this.safeString(entry, "instId");
                 if (java.util.Objects.equals(entryMarketId, marketId))
                 {
-                    return this.parseGreeks((Map<String, Object>) (entry), market);
+                    return this.parseGreeks(entry, market);
                 }
             }
             throw new NullResponse(((this.id + " fetchGreeks() could not find greeks for ") + symbol)) ;
@@ -10782,7 +10782,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseGreeks(Map<String, Object> greeks, Object... optionalArgs)
+    public Object parseGreeks(Object greeks, Object... optionalArgs)
     {
         //
         //     {
@@ -10973,7 +10973,7 @@ public class Okx extends OkxApi
             //
             List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
-            return this.parseOption((Map<String, Object>) (chain), null, market);
+            return this.parseOption(chain, null, market);
         }).thenApply(Option::new);
 
     }
@@ -10998,7 +10998,7 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "uly", (((Map<String, Object>)currency).get("code") + "-USD") );
                 put( "instType", "OPTION" );
@@ -11036,7 +11036,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseOption(Map<String, Object> chain, Object... optionalArgs)
+    public Object parseOption(Object chain, Object... optionalArgs)
     {
         //
         //     {
@@ -11144,7 +11144,7 @@ public class Okx extends OkxApi
             Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(result, "quoteCcy", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
-            return this.parseConversion((Map<String, Object>) (result), fromCurrency, toCurrency);
+            return this.parseConversion(result, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -11209,7 +11209,7 @@ public class Okx extends OkxApi
             Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(result, "quoteCcy", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
-            return this.parseConversion((Map<String, Object>) (result), fromCurrency, toCurrency);
+            return this.parseConversion(result, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -11274,7 +11274,7 @@ public class Okx extends OkxApi
             {
                 toCurrency = this.currency(toCurrencyId);
             }
-            return this.parseConversion((Map<String, Object>) (result), fromCurrency, toCurrency);
+            return this.parseConversion(result, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -11344,7 +11344,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseConversion(Map<String, Object> conversion, Object... optionalArgs)
+    public Object parseConversion(Object conversion, Object... optionalArgs)
     {
         //
         // fetchConvertQuote
@@ -11849,7 +11849,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseLongShortRatio(Map<String, Object> info, Object... optionalArgs)
+    public Object parseLongShortRatio(Object info, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(info, "timestamp");

@@ -2392,7 +2392,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }};
         if (((status != null && errors.containsKey(status))) && !this.inArray(status, omit))
         {
-            Helpers.throwDynamicException(Helpers.GetValue(errors, status), Helpers.add((Helpers.add((this.id + ": "), method) + " failed due to "), status));
+            Helpers.throwDynamicException((errors == null || !(status instanceof String) ? null : errors.get(status)), Helpers.add((Helpers.add((this.id + ": "), method) + " failed due to "), status));
         }
     }
 
@@ -4107,7 +4107,7 @@ final Object finalI = i;
         }};
         if ((account != null && accountByType.containsKey(account)))
         {
-            return Helpers.GetValue(accountByType, account);
+            return (accountByType == null || !(account instanceof String) ? null : accountByType.get(account));
         } else if ((!java.util.Objects.equals(this.markets, null)) && ((account != null && ((Map<?, ?>)this.markets).containsKey(account))))
         {
             Map<String, Object> market = (Map<String, Object>) this.market(account);

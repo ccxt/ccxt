@@ -1323,7 +1323,7 @@ public class Coinbase extends CoinbaseApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fiat deposit
@@ -1683,7 +1683,7 @@ public class Coinbase extends CoinbaseApi
         final Object finalCost = cost;
         final Object finalFeeCost = feeCost;
         final Object finalFeeCurrencyId = feeCurrencyId;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Coinbase.this.safeString2(trade, "id", "trade_id") );
             put( "order", Coinbase.this.safeString(trade, "order_id") );
@@ -1698,9 +1698,9 @@ public class Coinbase extends CoinbaseApi
             put( "cost", finalCost );
             put( "fee", new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", Coinbase.this.safeCurrencyCode((String) (finalFeeCurrencyId)) );
+                put( "currency", Coinbase.this.safeCurrencyCode(finalFeeCurrencyId) );
             }} );
-        }}));
+        }});
     }
 
     /**
@@ -1752,7 +1752,7 @@ public class Coinbase extends CoinbaseApi
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {
                 Object baseId = (baseIds == null || i < 0 || i >= baseIds.size() ? null : baseIds.get(i));
-                String base = this.safeCurrencyCode((String) (baseId));
+                String base = this.safeCurrencyCode(baseId);
                 String type = (((dataById.containsKey(baseId)))) ? "fiat" : "crypto";
                 // https://github.com/ccxt/ccxt/issues/6066
                 if (java.util.Objects.equals(type, "crypto"))
@@ -2428,7 +2428,7 @@ public class Coinbase extends CoinbaseApi
                 if (!java.util.Objects.equals(code, null))
                 {
                     final Object finalCode = code;
-                    ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
         put( "info", currency );
         put( "id", id );
         put( "code", finalCode );
@@ -2450,7 +2450,7 @@ public class Coinbase extends CoinbaseApi
                 put( "max", null );
             }} );
         }} );
-    }})));
+    }}));
                 }
                 if (!java.util.Objects.equals(assetId, null))
                 {
@@ -2466,19 +2466,19 @@ public class Coinbase extends CoinbaseApi
             for (var i = 0; i < ((List<?>)ratesIds).size(); i++)
             {
                 Object currencyId = (ratesIds == null || i < 0 || i >= ratesIds.size() ? null : ratesIds.get(i));
-                String code = this.safeCurrencyCode((String) (currencyId));
+                String code = this.safeCurrencyCode(currencyId);
                 if ((java.util.Objects.equals(code, null)) || !(result.containsKey(code)))
                 {
                     if (!java.util.Objects.equals(code, null))
                     {
                         final Object finalCode = code;
-                        ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                        ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
         put( "info", new HashMap<String, Object>() {{}} );
         put( "id", currencyId );
         put( "code", finalCode );
         put( "type", "crypto" );
         put( "networks", new HashMap<String, Object>() {{}} );
-    }})));
+    }}));
                     }
                 }
             }
@@ -2556,7 +2556,7 @@ public class Coinbase extends CoinbaseApi
                 Object marketId = ((baseId + delimiter) + quoteId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, delimiter);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                ((Map<String, Object>)result).put((String)symbol, this.parseTicker((Map<String, Object>) (Helpers.GetValue(rates, baseId)), market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTicker((rates == null || baseId == null ? null : rates.get(baseId)), market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });
@@ -2645,7 +2645,7 @@ public class Coinbase extends CoinbaseApi
                 String marketId = this.safeString(entry, "product_id");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                ((Map<String, Object>)result).put((String)symbol, this.parseTicker((Map<String, Object>) (entry), market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(entry, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });
@@ -2714,7 +2714,7 @@ public class Coinbase extends CoinbaseApi
                 put( "ask", Coinbase.this.safeNumber(askData, "amount") );
                 put( "price", Coinbase.this.safeNumber(spotData, "amount") );
             }};
-            return this.parseTicker((Map<String, Object>) (bidAskLast), market);
+            return this.parseTicker(bidAskLast, market);
         });
 
     }
@@ -2766,7 +2766,7 @@ public class Coinbase extends CoinbaseApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (first), market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(first, market);
             Helpers.addElementToObject(ticker, "bid", this.safeNumber(response, "best_bid"));
             Helpers.addElementToObject(ticker, "ask", this.safeNumber(response, "best_ask"));
             return ticker;
@@ -2774,7 +2774,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTickerV2
@@ -2871,7 +2871,7 @@ public class Coinbase extends CoinbaseApi
         Double ask = this.safeNumber(ticker, "ask");
         Object bidVolume = null;
         Object askVolume = null;
-        if ((ticker.containsKey("bids")))
+        if ((((Map<?, ?>)ticker).containsKey("bids")))
         {
             List<Object> bids = (List<Object>) this.safeList(ticker, "bids", new ArrayList<Object>(Arrays.asList()));
             List<Object> asks = (List<Object>) this.safeList(ticker, "asks", new ArrayList<Object>(Arrays.asList()));
@@ -3144,7 +3144,7 @@ public class Coinbase extends CoinbaseApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
             }
             Object request = null;
             var requestparametersVariable = (this.prepareAccountRequestWithCurrencyCode(code, limit, parameters)).join();
@@ -3183,7 +3183,7 @@ public class Coinbase extends CoinbaseApi
         return this.safeString(types, status, status);
     }
 
-    public String parseLedgerEntryType(String type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "buy", "trade" );
@@ -3199,7 +3199,7 @@ public class Coinbase extends CoinbaseApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
         //
         // crypto deposit transaction
@@ -3484,7 +3484,7 @@ public class Coinbase extends CoinbaseApi
         }
         Long timestamp = this.parse8601(this.safeString(item, "created_at"));
         String id = this.safeString(item, "id");
-        String type = this.parseLedgerEntryType(this.safeString(item, "type"));
+        Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
         String status = this.parseLedgerEntryStatus(this.safeString(item, "status"));
         String path = this.safeString(item, "resource_path");
         Object accountId = null;
@@ -4068,7 +4068,7 @@ public class Coinbase extends CoinbaseApi
         final Object finalTriggerPrice = triggerPrice;
         final Object finalAmount = amount;
         final Object finalCurrencyFee = currencyFee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Coinbase.this.safeString(order, "order_id") );
             put( "clientOrderId", Coinbase.this.safeString(order, "client_order_id") );
@@ -4093,7 +4093,7 @@ public class Coinbase extends CoinbaseApi
                 put( "currency", finalCurrencyFee );
             }} );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
 
     public String parseOrderStatus(String status)
@@ -5117,7 +5117,7 @@ public class Coinbase extends CoinbaseApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "send" );
                 put( "to", address );
@@ -5200,7 +5200,7 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), currency);
+            return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -5224,7 +5224,7 @@ public class Coinbase extends CoinbaseApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object request = null;
             var requestparametersVariable = (this.prepareAccountRequestWithCurrencyCode(((Map<String, Object>)currency).get("code"), null, parameters)).join();
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -5354,7 +5354,7 @@ public class Coinbase extends CoinbaseApi
         String address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         String networkId = this.safeString(depositAddress, "network");
-        String code = this.safeCurrencyCode((String) (null), currency);
+        String code = this.safeCurrencyCode(null, currency);
         String addressLabel = this.safeString(depositAddress, "address_label");
         String currencyId = null;
         if (!java.util.Objects.equals(addressLabel, null))
@@ -5369,7 +5369,7 @@ public class Coinbase extends CoinbaseApi
         final Object finalCurrencyId = currencyId;
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", Coinbase.this.safeCurrencyCode((String) (finalCurrencyId), currency) );
+            put( "currency", Coinbase.this.safeCurrencyCode(finalCurrencyId, currency) );
             put( "network", Coinbase.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "tag", Coinbase.this.safeString(addressInfo, "destination_tag") );
@@ -5460,7 +5460,7 @@ public class Coinbase extends CoinbaseApi
             //
             // https://github.com/ccxt/ccxt/issues/25484
             Object data = this.safeDict2(response, "data", "transfer", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data));
+            return this.parseTransaction(data);
         });
 
     }
@@ -5545,7 +5545,7 @@ public class Coinbase extends CoinbaseApi
             //
             // https://github.com/ccxt/ccxt/issues/25484
             Object data = this.safeDict2(response, "data", "transfer", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data));
+            return this.parseTransaction(data);
         });
 
     }
@@ -5652,7 +5652,7 @@ public class Coinbase extends CoinbaseApi
         return result;
     }
 
-    public Map<String, Object> parseDepositMethodId(Map<String, Object> depositId)
+    public Object parseDepositMethodId(Map<String, Object> depositId)
     {
         return new HashMap<String, Object>() {{
             put( "info", depositId );
@@ -5695,7 +5695,7 @@ public class Coinbase extends CoinbaseApi
             }};
             Map<String, Object> response = (this.v3PrivatePostBrokerageConvertQuote(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "trade", new HashMap<String, Object>() {{}});
-            return this.parseConversion((Map<String, Object>) (data));
+            return this.parseConversion(data);
         }).thenApply(Conversion::new);
 
     }
@@ -5730,7 +5730,7 @@ public class Coinbase extends CoinbaseApi
             }};
             Map<String, Object> response = (this.v3PrivatePostBrokerageConvertTradeTradeId(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "trade", new HashMap<String, Object>() {{}});
-            return this.parseConversion((Map<String, Object>) (data));
+            return this.parseConversion(data);
         }).thenApply(Conversion::new);
 
     }
@@ -5776,12 +5776,12 @@ public class Coinbase extends CoinbaseApi
             }};
             Map<String, Object> response = (this.v3PrivateGetBrokerageConvertTradeTradeId(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "trade", new HashMap<String, Object>() {{}});
-            return this.parseConversion((Map<String, Object>) (data));
+            return this.parseConversion(data);
         }).thenApply(Conversion::new);
 
     }
 
-    public Object parseConversion(Map<String, Object> conversion, Object... optionalArgs)
+    public Object parseConversion(Object conversion, Object... optionalArgs)
     {
         Object fromCurrency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object toCurrency = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -5825,10 +5825,10 @@ public class Coinbase extends CoinbaseApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "funds", new HashMap<String, Object>() {{
-                    put( "value", Coinbase.this.currencyToPrecision((String) (code), amount) );
+                    put( "value", Coinbase.this.currencyToPrecision(code, amount) );
                     put( "currency", ((Map<String, Object>)currency).get("id") );
                 }} );
                 put( "source_portfolio_uuid", fromAccount );
@@ -5841,7 +5841,7 @@ public class Coinbase extends CoinbaseApi
             //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
             //     }
             //
-            Object transfer = this.parseTransfer((Map<String, Object>) (response), currency);
+            Object transfer = this.parseTransfer(response, currency);
             ((Map<String, Object>)transfer).put("amount", amount);
             ((Map<String, Object>)transfer).put("status", "ok");
             return transfer;
@@ -5849,7 +5849,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
         //
         //     {
@@ -5858,7 +5858,7 @@ public class Coinbase extends CoinbaseApi
         //     }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String currencyCode = this.safeCurrencyCode((String) (null), currency);
+        String currencyCode = this.safeCurrencyCode(null, currency);
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
@@ -6025,12 +6025,12 @@ public class Coinbase extends CoinbaseApi
                 response = (this.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.extend(request, parameters))).join();
             }
             Map<String, Object> position = (Map<String, Object>) this.safeDict(response, "position", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (position), market);
+            return this.parsePosition(position, market);
         }).thenApply(Position::new);
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parsePosition(Object position, Object... optionalArgs)
     {
         //
         // {
@@ -6140,7 +6140,7 @@ public class Coinbase extends CoinbaseApi
         Map<String, Object> summaryObject = (Map<String, Object>) this.safeDict(position, "portfolio_summary", new HashMap<String, Object>() {{}});
         final Object finalMarket = market;
         final Object finalMarginMode = marginMode;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Coinbase.this.safeString(position, "product_id") );
             put( "symbol", Coinbase.this.safeSymbol(marketId, finalMarket) );
@@ -6169,7 +6169,7 @@ public class Coinbase extends CoinbaseApi
             put( "marginRatio", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
 
     /**

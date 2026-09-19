@@ -903,9 +903,9 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         for (var i = 0; i < ((List<?>)keys).size(); i++)
                         {
                             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                            if (!java.util.Objects.equals(Helpers.GetValue(order, key), null))
+                            if (!java.util.Objects.equals((order == null || key == null ? null : order.get(key)), null))
                             {
-                                ((Map<String, Object>)previousOrder).put((String)key, Helpers.GetValue(order, key));
+                                ((Map<String, Object>)previousOrder).put((String)key, (order == null || key == null ? null : order.get(key)));
                             }
                         }
                         // update the newUpdates count

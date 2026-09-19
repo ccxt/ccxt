@@ -1495,7 +1495,7 @@ public class Bitmex extends BitmexApi
                 // the exchange sometimes returns null price in the orderbook
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((List<Object>)Helpers.GetValue(result, side)).add(new ArrayList<Object>(Arrays.asList(price, amount)));
+                    ((List<Object>)(result == null || !(side instanceof String) ? null : result.get(side))).add(new ArrayList<Object>(Arrays.asList(price, amount)));
                 }
             }
             ((Map<String, Object>)result).put("bids", this.sortBy(((Map<String, Object>)result).get("bids"), 0, true));

@@ -727,7 +727,7 @@ public class Hyperliquid extends HyperliquidApi
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
                 Object dexName = Helpers.GetValue(fetchDexesList, i);
-                Object offset = Helpers.GetValue(perpDexesOffset, dexName);
+                Object offset = (perpDexesOffset == null || !(dexName instanceof String) ? null : perpDexesOffset.get(dexName));
                 Object response = Helpers.GetValue(promises, i);
                 Map<String, Object> meta = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 String collateralToken = this.safeString(meta, "collateralToken");
@@ -3986,7 +3986,7 @@ final Object finalClientOrderId = clientOrderId;
                         ((Map<String, Object>)deduplicatedByOid).put((String)oid, rawOrder);
                     } else
                     {
-                        Long existingTimestamp = this.safeInteger(Helpers.GetValue(deduplicatedByOid, oid), "statusTimestamp");
+                        Long existingTimestamp = this.safeInteger((deduplicatedByOid == null || oid == null ? null : deduplicatedByOid.get(oid)), "statusTimestamp");
                         Long currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
                         if (!java.util.Objects.equals(currentTimestamp, null) && (java.util.Objects.equals(existingTimestamp, null) || Helpers.isGreaterThan(currentTimestamp, existingTimestamp)))
                         {
