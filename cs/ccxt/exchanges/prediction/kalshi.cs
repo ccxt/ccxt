@@ -518,7 +518,7 @@ public partial class kalshi : PredictionExchange
                 {
                     throw new ExchangeError ((string)(this.id + " fetchOutcome() could not resolve parsed")) ;
                 }
-                ((IDictionary<string,object>)this.markets)[(string)getValue(parsed, "market")] = parsed;
+                ((IDictionary<string,object>)this.markets)[(string)(parsed != null && parsed.ContainsKey("market") ? parsed["market"] : null)] = parsed;
                 // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
                 this.indexMarketOutcomes(parsed);
@@ -622,7 +622,7 @@ public partial class kalshi : PredictionExchange
                 {
                     throw new ExchangeError ((string)(this.id + " fetchOutcomes() could not resolve parsed")) ;
                 }
-                ((IDictionary<string,object>)this.markets)[(string)getValue(parsed, "market")] = parsed;
+                ((IDictionary<string,object>)this.markets)[(string)(parsed != null && parsed.ContainsKey("market") ? parsed["market"] : null)] = parsed;
                 this.indexMarketOutcomes(parsed);
             }
             startIndex = this.sum(startIndex, chunkSize);
@@ -1668,7 +1668,7 @@ public partial class kalshi : PredictionExchange
             {
                 throw new ArgumentsRequired ((string)(this.id + " requires a valid outcome")) ;
             }
-            ((IDictionary<string,object>)request)["ticker"] = this.safeString(getValue(outcomeObj, "info"), "ticker");
+            ((IDictionary<string,object>)request)["ticker"] = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "ticker");
         }
         if ((limit != null))
         {
@@ -2091,7 +2091,7 @@ public partial class kalshi : PredictionExchange
             {
                 throw new ArgumentsRequired ((string)(this.id + " requires a valid outcome")) ;
             }
-            ((IDictionary<string,object>)request)["ticker"] = this.safeString(getValue(outcomeObj, "info"), "ticker");
+            ((IDictionary<string,object>)request)["ticker"] = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "ticker");
         }
         Dictionary<string, object> response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters));
         IList<object> orders = (IList<object>)(this.safeList(response, "orders", new List<object>() {}));
@@ -2126,7 +2126,7 @@ public partial class kalshi : PredictionExchange
             {
                 throw new ArgumentsRequired ((string)(this.id + " requires a valid outcome")) ;
             }
-            ((IDictionary<string,object>)request)["ticker"] = this.safeString(getValue(outcomeObj, "info"), "ticker");
+            ((IDictionary<string,object>)request)["ticker"] = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "ticker");
         }
         Dictionary<string, object> response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters));
         IList<object> orders = (IList<object>)(this.safeList(response, "orders", new List<object>() {}));

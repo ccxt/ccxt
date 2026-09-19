@@ -1608,7 +1608,7 @@ public partial class bittrade : Exchange
         //                                 "state": "filled",
         //                         "canceled-at":  0                      }  ] }
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(getValue(response, "data"), market, since, limit));
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders((response != null && response.ContainsKey("data") ? response["data"] : null), market, since, limit));
     }
 
     /**

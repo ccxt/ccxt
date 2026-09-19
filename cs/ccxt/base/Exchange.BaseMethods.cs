@@ -1196,7 +1196,7 @@ public partial class BaseExchange
             {
                 continue;
             }
-            string? code = ((string)getValue(parsed, "code"));
+            string? code = ((string)(parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null));
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
         return result;
@@ -4493,7 +4493,7 @@ public partial class BaseExchange
                 object response = await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
                 if ((fetchData != null))
                 {
-                    ((IDictionary<string,object>)getValue(fetchData, "response"))["body"] = response;
+                    ((IDictionary<string,object>)(fetchData != null && fetchData.ContainsKey("response") ? fetchData["response"] : null))["body"] = response;
                     this.addFetchCache(fetchData);
                 }
                 return response;
@@ -6560,7 +6560,7 @@ public partial class BaseExchange
         string lowercaseAccount = ((string)account).ToLower();
         if ((accountsByType != null && accountsByType.ContainsKey(lowercaseAccount)))
         {
-            return getValue(accountsByType, lowercaseAccount);
+            return (accountsByType != null && accountsByType.ContainsKey(lowercaseAccount) ? accountsByType[lowercaseAccount] : null);
         }
         object markets = this.markets;
         object marketsById = this.markets_by_id;

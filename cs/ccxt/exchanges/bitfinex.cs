@@ -1122,7 +1122,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < (arr?.Count ?? 0); i++)
         {
             Dictionary<string, object> parsed = this.parseCurrencyCustom(arr[i], indexed, indexedNetworks);
-            object code = getValue(parsed, "code");
+            object code = (parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null);
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
         return ((Dictionary<string, object>)((object)(result)));
@@ -1478,7 +1478,7 @@ public partial class bitfinex : Exchange
             string? signedAmount = this.safeString(order, 2);
             string? amount = Precise.stringAbs(signedAmount);
             string side = ((bool) Precise.stringGt(signedAmount, "0")) ? "bids" : "asks";
-            ((IList<object>)getValue(result, side)).Add(new List<object>() {price, this.parseNumber(amount)});
+            ((IList<object>)(result != null && result.ContainsKey(side) ? result[side] : null)).Add(new List<object>() {price, this.parseNumber(amount)});
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
         ((IDictionary<string,object>)result)["asks"] = this.sortBy(((IDictionary<string,object>)result)["asks"], 0);

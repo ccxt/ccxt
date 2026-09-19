@@ -667,7 +667,7 @@ public partial class lighter : Exchange
                 {
                     throw new ArgumentsRequired ((string)(((((((this.id + " ") + (methodName1)) + "() requires an ") + (optionName1)) + " or ") + (optionName2)) + " parameter")) ;
                 }
-                accountIndex = getValue(account, "index");
+                accountIndex = (account != null && account.ContainsKey("index") ? account["index"] : null);
                 ((IDictionary<string,object>)this.options)["accountIndex"] = accountIndex;
             }
         }

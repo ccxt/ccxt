@@ -3343,7 +3343,7 @@ public partial class htx : Exchange
         }
         if (response.ContainsKey("tick"))
         {
-            if ((isEqual(getValue(response, "tick"), null)) || (isEqual(getValue(response, "tick"), null)))
+            if ((isEqual((response != null && response.ContainsKey("tick") ? response["tick"] : null), null)) || (isEqual((response != null && response.ContainsKey("tick") ? response["tick"] : null), null)))
             {
                 throw new BadSymbol ((string)((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
             }
@@ -9989,7 +9989,7 @@ public partial class htx : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Int64? amountType = this.safeInteger2(parameters, "amount_type", "amountType", 2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "period", getValue(timeframes, timeframeVar) },
+            { "period", (timeframes != null && timeframes.ContainsKey(timeframeVar) ? timeframes[timeframeVar] : null) },
             { "amount_type", amountType },
         };
         if ((limit != null))

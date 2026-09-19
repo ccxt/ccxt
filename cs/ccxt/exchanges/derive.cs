@@ -3007,7 +3007,7 @@ public partial class derive : Exchange
                 } else
                 {
                     string? amount = this.safeString(balance, "amount");
-                    ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(getValue(account, "total"), amount);
+                    ((IDictionary<string,object>)account)["total"] = Precise.stringAdd((account != null && account.ContainsKey("total") ? account["total"] : null), amount);
                 }
                 if ((code != null))
                 {

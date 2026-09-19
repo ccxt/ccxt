@@ -1419,7 +1419,7 @@ public partial class bitmex : Exchange
             // the exchange sometimes returns null price in the orderbook
             if (!isEqual(price, null))
             {
-                ((IList<object>)getValue(result, side)).Add(new List<object>() {price, amount});
+                ((IList<object>)(result != null && result.ContainsKey(side) ? result[side] : null)).Add(new List<object>() {price, amount});
             }
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
@@ -1509,7 +1509,7 @@ public partial class bitmex : Exchange
         // Bitmex doesn't like that. Hence resorting to this hack.
         if (request.ContainsKey("filter"))
         {
-            ((IDictionary<string,object>)request)["filter"] = this.json(getValue(request, "filter"));
+            ((IDictionary<string,object>)request)["filter"] = this.json((request != null && request.ContainsKey("filter") ? request["filter"] : null));
         }
         List<object> response = await this.privateGetOrder(request);
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
@@ -1610,7 +1610,7 @@ public partial class bitmex : Exchange
         // Bitmex doesn't like that. Hence resorting to this hack.
         if (request.ContainsKey("filter"))
         {
-            ((IDictionary<string,object>)request)["filter"] = this.json(getValue(request, "filter"));
+            ((IDictionary<string,object>)request)["filter"] = this.json((request != null && request.ContainsKey("filter") ? request["filter"] : null));
         }
         List<object> response = await this.privateGetExecutionTradeHistory(request);
         //

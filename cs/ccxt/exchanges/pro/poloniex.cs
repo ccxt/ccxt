@@ -972,15 +972,15 @@ public partial class poloniex : ccxt.poloniex
                         ((IList<object>)marketIds).Add(marketId);
                         continue;
                     }
-                    if (isEqual(getValue(previousOrder, "trades"), null))
+                    if (isEqual((previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null), null))
                     {
                         ((IDictionary<string,object>)previousOrder)["trades"] = new List<object>() {};
                     }
-                    ((IList<object>)getValue(previousOrder, "trades")).Add(trade);
+                    ((IList<object>)(previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null)).Add(trade);
                     ((IDictionary<string,object>)previousOrder)["lastTradeTimestamp"] = (trade != null && ((IDictionary<string, object>)trade).ContainsKey("timestamp") ? ((IDictionary<string, object>)trade)["timestamp"] : null);
                     string? totalCost = "0";
                     string? totalAmount = "0";
-                    object previousOrderTrades = getValue(previousOrder, "trades");
+                    object previousOrderTrades = (previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null);
                     for (int j = 0; j < getArrayLength(previousOrderTrades); j++)
                     {
                         object previousOrderTrade = getValue(previousOrderTrades, j);
@@ -994,19 +994,19 @@ public partial class poloniex : ccxt.poloniex
                         ((IDictionary<string,object>)previousOrder)["average"] = this.parseNumber(Precise.stringDiv(totalCost, totalAmount));
                     }
                     ((IDictionary<string,object>)previousOrder)["cost"] = this.parseNumber(totalCost);
-                    if (!isEqual(getValue(previousOrder, "filled"), null))
+                    if (!isEqual((previousOrder != null && previousOrder.ContainsKey("filled") ? previousOrder["filled"] : null), null))
                     {
                         string? tradeAmount = this.numberToString((trade != null && ((IDictionary<string, object>)trade).ContainsKey("amount") ? ((IDictionary<string, object>)trade)["amount"] : null));
-                        string? previousOrderFilled = this.numberToString(getValue(previousOrder, "filled"));
+                        string? previousOrderFilled = this.numberToString((previousOrder != null && previousOrder.ContainsKey("filled") ? previousOrder["filled"] : null));
                         previousOrderFilled = Precise.stringAdd(previousOrderFilled, tradeAmount);
                         ((IDictionary<string,object>)previousOrder)["filled"] = previousOrderFilled;
-                        if (!isEqual(getValue(previousOrder, "amount"), null))
+                        if (!isEqual((previousOrder != null && previousOrder.ContainsKey("amount") ? previousOrder["amount"] : null), null))
                         {
-                            string? previousOrderAmount = this.numberToString(getValue(previousOrder, "amount"));
+                            string? previousOrderAmount = this.numberToString((previousOrder != null && previousOrder.ContainsKey("amount") ? previousOrder["amount"] : null));
                             ((IDictionary<string,object>)previousOrder)["remaining"] = this.parseNumber(Precise.stringSub(previousOrderAmount, previousOrderFilled));
                         }
                     }
-                    if (isEqual(getValue(previousOrder, "fee"), null))
+                    if (isEqual((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), null))
                     {
                         ((IDictionary<string,object>)previousOrder)["fee"] = new Dictionary<string, object>() {
                             { "rate", null },
@@ -1014,11 +1014,11 @@ public partial class poloniex : ccxt.poloniex
                             { "currency", this.safeString((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "currency") },
                         };
                     }
-                    if ((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"), null)))
+                    if ((!isEqual(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"), null)))
                     {
-                        string? stringOrderCost = this.numberToString(getValue(getValue(previousOrder, "fee"), "cost"));
+                        string? stringOrderCost = this.numberToString(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost"));
                         string? stringTradeCost = this.numberToString(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"));
-                        ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
+                        ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                     }
                     string? rawState = this.safeString(order, "state");
                     string? state = this.parseStatus(rawState);

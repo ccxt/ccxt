@@ -1111,7 +1111,7 @@ public partial class coinbase : Exchange
         {
             response = await this.v2PrivateGetAccountsAccountIdDeposits(this.extend(request, parameters));
         }
-        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(getValue(response, "data"), null, since, limit));
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions((response != null && response.ContainsKey("data") ? response["data"] : null), null, since, limit));
     }
 
     /**
@@ -2735,8 +2735,8 @@ public partial class coinbase : Exchange
                         ((IDictionary<string,object>)account)["total"] = total;
                     } else
                     {
-                        ((IDictionary<string,object>)account)["free"] = Precise.stringAdd(getValue(account, "free"), total);
-                        ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(getValue(account, "total"), total);
+                        ((IDictionary<string,object>)account)["free"] = Precise.stringAdd((account != null && account.ContainsKey("free") ? account["free"] : null), total);
+                        ((IDictionary<string,object>)account)["total"] = Precise.stringAdd((account != null && account.ContainsKey("total") ? account["total"] : null), total);
                     }
                     if ((code != null))
                     {
@@ -2763,9 +2763,9 @@ public partial class coinbase : Exchange
                         ((IDictionary<string,object>)account)["total"] = total;
                     } else
                     {
-                        ((IDictionary<string,object>)account)["free"] = Precise.stringAdd(getValue(account, "free"), free);
-                        ((IDictionary<string,object>)account)["used"] = Precise.stringAdd(getValue(account, "used"), used);
-                        ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(getValue(account, "total"), total);
+                        ((IDictionary<string,object>)account)["free"] = Precise.stringAdd((account != null && account.ContainsKey("free") ? account["free"] : null), free);
+                        ((IDictionary<string,object>)account)["used"] = Precise.stringAdd((account != null && account.ContainsKey("used") ? account["used"] : null), used);
+                        ((IDictionary<string,object>)account)["total"] = Precise.stringAdd((account != null && account.ContainsKey("total") ? account["total"] : null), total);
                     }
                     if ((code != null))
                     {

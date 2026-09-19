@@ -5887,10 +5887,10 @@ public partial class gate : Exchange
                 };
                 if (isEqual(type, "market"))
                 {
-                    ((IDictionary<string,object>)getValue(request, "initial"))["price"] = "0";
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("initial") ? request["initial"] : null))["price"] = "0";
                 } else
                 {
-                    ((IDictionary<string,object>)getValue(request, "initial"))["price"] = ((bool) (isEqual(price, 0))) ? "0" : this.priceToPrecision(symbol, price);
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("initial") ? request["initial"] : null))["price"] = ((bool) (isEqual(price, 0))) ? "0" : this.priceToPrecision(symbol, price);
                 }
                 if ((trigger == null))
                 {
@@ -5921,15 +5921,15 @@ public partial class gate : Exchange
                 }
                 if ((reduceOnly != null))
                 {
-                    ((IDictionary<string,object>)getValue(request, "initial"))["reduce_only"] = reduceOnly;
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("initial") ? request["initial"] : null))["reduce_only"] = reduceOnly;
                 }
                 if ((timeInForce != null))
                 {
-                    ((IDictionary<string,object>)getValue(request, "initial"))["tif"] = timeInForce;
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("initial") ? request["initial"] : null))["tif"] = timeInForce;
                 }
                 if ((clientOrderId != null))
                 {
-                    ((IDictionary<string,object>)getValue(request, "initial"))["text"] = clientOrderId;
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("initial") ? request["initial"] : null))["text"] = clientOrderId;
                 }
             } else
             {
@@ -5978,7 +5978,7 @@ public partial class gate : Exchange
                     };
                     if ((clientOrderId != null))
                     {
-                        ((IDictionary<string,object>)getValue(request, "trigger"))["text"] = clientOrderId;
+                        ((IDictionary<string,object>)(request != null && request.ContainsKey("trigger") ? request["trigger"] : null))["text"] = clientOrderId;
                     }
                 }
             }

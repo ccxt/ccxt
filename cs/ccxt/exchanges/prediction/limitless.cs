@@ -1694,7 +1694,7 @@ public partial class limitless : PredictionExchange
                 ((IList<object>)bucketOrder).Add(key);
             } else
             {
-                object candle = getValue(candles, key);
+                object candle = (candles != null && candles.ContainsKey(key) ? candles[key] : null);
                 double? pPriceOrZero = ((bool) (isEqual(pPrice, null))) ? 0 : pPrice;
                 ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), pPriceOrZero);
                 object candleLow = ((bool) (isEqual(getValue(candle, 3), null))) ? pPrice : getValue(candle, 3);
@@ -3369,7 +3369,7 @@ public partial class limitless : PredictionExchange
             {
                 throw new ExchangeError ((string)(this.id + " fetchEvents() missing m")) ;
             }
-            ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
+            ((IDictionary<string,object>)this.markets)[(string)(m != null && m.ContainsKey("market") ? m["market"] : null)] = m;
             if (((eventKey != null)) && ((eventKey != "")))
             {
                 if (!(inOp(eventGroups, eventKey)))

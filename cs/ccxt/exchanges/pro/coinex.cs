@@ -1058,7 +1058,7 @@ public partial class coinex : ccxt.coinex
         await this.authenticate(type);
         if ((symbolVar != null))
         {
-            marketList = new List<object>() {getValue(market, "id")};
+            marketList = new List<object>() {(market != null && market.ContainsKey("id") ? market["id"] : null)};
             messageHash = messageHash + (":" + (symbolVar));
         } else
         {

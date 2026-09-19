@@ -2729,7 +2729,7 @@ public partial class kraken : Exchange
         {
             throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order id ") + (id))) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "id", id },         }, getValue(result, id))));
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "id", id },         }, (result != null && result.ContainsKey(id) ? result[id] : null))));
     }
 
     /**

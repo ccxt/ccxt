@@ -1081,7 +1081,7 @@ public partial class lbank : ccxt.lbank
                 if (isLessThan(expires, now))
                 {
                     Dictionary<string, object> request = new Dictionary<string, object>() {
-                        { "subscribeKey", getValue(authenticated, "key") },
+                        { "subscribeKey", (authenticated != null && authenticated.ContainsKey("key") ? authenticated["key"] : null) },
                     };
                     Dictionary<string, object> response = await this.spotPrivatePostSubscribeRefreshKey(this.extend(request, parameters));
                     //
