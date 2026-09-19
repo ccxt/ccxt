@@ -156,7 +156,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handleIncomingPong (client: Client, pongTimestamp: Int) {
+    handleIncomingPong (client: Client, pongTimestamp: Int): void {
         client.lastPong = pongTimestamp;
     }
 
@@ -171,7 +171,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -187,7 +187,7 @@ export default class toobit extends toobitRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -217,7 +217,7 @@ export default class toobit extends toobitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         //     {
         //         symbol: "DOGEUSDT",
@@ -277,7 +277,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
@@ -295,7 +295,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -332,7 +332,7 @@ export default class toobit extends toobitRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -413,7 +413,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -432,7 +432,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -462,7 +462,7 @@ export default class toobit extends toobitRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTickers (client: Client, message: any) {
+    handleTickers (client: Client, message: Dict): void {
         //
         //    {
         //        "symbol": "DOGEUSDT",
@@ -519,7 +519,7 @@ export default class toobit extends toobitRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         return this.parseTicker (ticker, market);
     }
 
@@ -536,7 +536,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
@@ -553,7 +553,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -580,7 +580,7 @@ export default class toobit extends toobitRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -635,7 +635,7 @@ export default class toobit extends toobitRest {
         bookside.storeArray (bidAsk);
     }
 
-    handleOrderBookPartialSnapshot (client: Client, message: any) {
+    handleOrderBookPartialSnapshot (client: Client, message: Dict): void {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -661,7 +661,7 @@ export default class toobit extends toobitRest {
         this.setOrderBookSnapshot (client, message, 'depth');
     }
 
-    setOrderBookSnapshot (client: Client, message: any, channel: string) {
+    setOrderBookSnapshot (client: Client, message: Dict, channel: string): void {
         const data = this.safeList (message, 'data', []);
         const length = data.length;
         if (length === 0) {
@@ -693,7 +693,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -718,7 +718,7 @@ export default class toobit extends toobitRest {
         return await this.watch (url, messageHash, params, subscriptionHash);
     }
 
-    setBalanceCache (client: Client, marketType: any, subscriptionHash: Str = undefined, params = {}) {
+    setBalanceCache (client: Client, marketType: Str, subscriptionHash: Str = undefined, params: Dict = {}): void {
         if ((subscriptionHash === undefined) || (subscriptionHash in client.subscriptions)) {
             return;
         }
@@ -730,7 +730,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict): void {
         //
         // spot
         //
@@ -790,7 +790,7 @@ export default class toobit extends toobitRest {
         client.resolve (this.balance[type], type + ':balance');
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: any, marketType: any) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, marketType: Str): Promise<void> {
         const response = await this.fetchBalance ({ 'type': marketType });
         const type = (marketType === 'spot') ? 'spot' : 'contract';
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
@@ -815,7 +815,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -834,7 +834,7 @@ export default class toobit extends toobitRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict): void {
         //
         //    {
         //        "e": "executionReport",
@@ -938,7 +938,7 @@ export default class toobit extends toobitRest {
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -957,7 +957,7 @@ export default class toobit extends toobitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict): void {
         //
         //    {
         //        "e": "ticketInfo",
@@ -987,7 +987,7 @@ export default class toobit extends toobitRest {
         client.resolve (myTrades, messageHash);
     }
 
-    parseMyTrade (trade: any, market: Market = undefined) {
+    parseMyTrade (trade: Dict, market: Market = undefined): Trade {
         const marketId = this.safeString (trade, 's');
         const ts = this.safeString (trade, 't');
         const isMaker = (this.safeBool (trade, 'm') === true);
@@ -1020,7 +1020,7 @@ export default class toobit extends toobitRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1050,7 +1050,7 @@ export default class toobit extends toobitRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: any, symbols: Strings = undefined, isPortfolioMargin = false) {
+    setPositionsCache (client: Client, type: string, symbols: Strings = undefined, isPortfolioMargin: Bool = false): void {
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -1069,7 +1069,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any, type: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string, type: string): Promise<void> {
         const params: Dict = {
             'type': type,
         };
@@ -1088,7 +1088,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handlePositions (client: any, message: any) {
+    handlePositions (client: Client, message: any): void {
         //
         // [
         //     {
@@ -1154,7 +1154,7 @@ export default class toobit extends toobitRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         const marketId = this.safeString (position, 's');
         return this.safePosition ({
             'info': position,
@@ -1184,7 +1184,7 @@ export default class toobit extends toobitRest {
         });
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}): Promise<void> {
         const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
@@ -1233,7 +1233,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    async keepAliveListenKey (params = {}) {
+    async keepAliveListenKey (params: Dict = {}): Promise<void> {
         const options = this.safeDict (this.options, 'ws', {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {
@@ -1261,11 +1261,11 @@ export default class toobit extends toobitRest {
         this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
 
-    getUserStreamUrl () {
+    getUserStreamUrl (): string {
         return this.urls['api']['ws']['common'] + '/api/v1/ws/' + this.options['ws']['listenKey'];
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //        "code": '-100010',
