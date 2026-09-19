@@ -452,8 +452,8 @@ export default class modetrade extends modetradeRest {
             this.safeNumber (data, 'close'),
             this.safeNumber (data, 'volume'),
         ];
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -609,7 +609,7 @@ export default class modetrade extends modetradeRest {
         //     }
         //
         const messageHash = 'authenticated';
-        const success = this.safeValue (message, 'success');
+        const success = this.safeBool (message, 'success');
         if (success === true) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');
@@ -824,7 +824,7 @@ export default class modetrade extends modetradeRest {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'timestamp');
-        const fee = {
+        const fee: Dict = {
             'cost': this.safeString (order, 'totalFee'),
             'currency': this.safeString (order, 'feeAsset'),
         };

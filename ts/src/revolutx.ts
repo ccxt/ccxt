@@ -3,7 +3,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/revolutx.js';
 import { BadRequest, InvalidOrder, InvalidNonce, OrderNotFound, ExchangeError, ArgumentsRequired, PermissionDenied, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
-import type { Balances, Currencies, Currency, Dict, Int, int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Fee, Int, int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -494,7 +494,7 @@ export default class revolutx extends Exchange {
         if (last !== undefined && priceChange !== undefined) {
             open = Precise.stringSub (last, priceChange);
         }
-        let percentage = undefined;
+        let percentage: Num = undefined;
         if (open !== undefined && priceChange !== undefined) {
             const percentageString = Precise.stringDiv (priceChange, open, 8);
             percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
@@ -915,26 +915,26 @@ export default class revolutx extends Exchange {
         const timeInForce = this.safeStringUpper (order, 'time_in_force');
         const createdDate = this.safeInteger (order, 'created_date');
         const updatedDate = this.safeInteger (order, 'updated_date');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (totalFee !== undefined) {
             fee = {
                 'cost': this.parseNumber (totalFee),
                 'currency': feeCurrency,
             };
         }
-        let amountValue = undefined;
+        let amountValue: Str = undefined;
         if (quantity !== undefined) {
             amountValue = quantity;
         } else if (amount !== undefined) {
             amountValue = amount;
         }
-        let filledValue = undefined;
+        let filledValue: Str = undefined;
         if (filledQuantity !== undefined) {
             filledValue = filledQuantity;
         } else if (filledAmount !== undefined) {
             filledValue = filledAmount;
         }
-        let remainingValue = undefined;
+        let remainingValue: Str = undefined;
         if (leavesQuantity !== undefined) {
             remainingValue = leavesQuantity;
         }

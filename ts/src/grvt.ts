@@ -538,7 +538,7 @@ export default class grvt extends Exchange {
         if (expires !== undefined && expires > now + 10000) {
             return {};
         }
-        const request = {
+        const request: Dict = {
             'api_key': this.apiKey,
         };
         const response = await this.privateEdgePostAuthApiKeyLogin (this.extend (request, params));
@@ -794,7 +794,7 @@ export default class grvt extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     override async fetchCurrencies (params = {}): Promise<Currencies> {
-        const request = { '': '' }; // workaround for php [] empty arr
+        const request: Dict = { '': '' }; // workaround for php [] empty arr
         const response = await this.publicMarketPostFullV1Currency (request);
         //
         //    {
@@ -866,7 +866,7 @@ export default class grvt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument': this.marketId (symbol),
         };
         const response = await this.publicMarketPostFullV1Ticker (this.extend (request, params));
@@ -1216,7 +1216,7 @@ export default class grvt extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
         //
         //            {
         //                "open_time": "1767288240000000000",
@@ -1298,7 +1298,7 @@ export default class grvt extends Exchange {
         return this.parseFundingRateHistories (result, market);
     }
 
-    override parseFundingRateHistory (rawItem: any, market: Market = undefined) {
+    override parseFundingRateHistory (rawItem: Dict, market: Market = undefined) {
         //
         //            {
         //                "instrument": "BTC_USDT_Perp",
@@ -1342,7 +1342,7 @@ export default class grvt extends Exchange {
      */
     override async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarketsAndSignIn ();
-        const request = {
+        const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         const response = await this.privateTradingPostFullV1AccountSummary (this.extend (request, params));
@@ -2139,7 +2139,7 @@ export default class grvt extends Exchange {
         }
         params = this.omit (params, [ 'builderFee' ]);
         const signedOrderRequest = this.createSignedRequest (orderRequest, eipType);
-        const request = {
+        const request: Dict = {
             'order': signedOrderRequest,
         };
         const response = await this.privateTradingPostFullV1CreateOrder (this.extend (request, params));
@@ -2654,7 +2654,7 @@ export default class grvt extends Exchange {
         return this.parseIncomes (result, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: Dict, market: Market = undefined) {
         //
         //            {
         //                "event_time": "1765267200004987902",
@@ -2792,7 +2792,7 @@ export default class grvt extends Exchange {
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
-        const request = {
+        const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         const response = await this.privateTradingPostFullV1OpenOrders (this.extend (request, params));
