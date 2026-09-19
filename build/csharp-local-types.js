@@ -7736,6 +7736,12 @@ function csharpParameterDecision (csharp, parameter, expected) {
     if (ownerFile.includes ('/pro/') && /^handle[A-Z]/.test (name)) {
         return undefined;
     }
+    // only a real ts/src file carries the corpus proof this rule needs: an in-memory program
+    // names every source `__dummy-file.ts` (the test/example stages transpile inline), where
+    // the cross-file call-site scan is vacuous and the declaring identity is unknown
+    if (!ownerFile.includes ('/ts/src/')) {
+        return undefined;
+    }
     // the generated test harness (ts/src/test, ts/src/pro/test) is its own compile unit with
     // object-typed fixtures: only generated exchange classes are this family's surface
     if (ownerFile.includes ('/test/')) {
