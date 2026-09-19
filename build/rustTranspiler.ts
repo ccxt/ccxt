@@ -5032,6 +5032,8 @@ class RustTranspilerBuilder {
             send:                       0,
             lock_id:                    0,
             unlock_id:                  0,
+            lock_last_nonce:            0,
+            unlock_last_nonce:          0,
             extend_exchange_options:    0,
             on_error:                   0,
             on_close:                   0,
