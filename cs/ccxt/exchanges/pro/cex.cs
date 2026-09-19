@@ -1589,7 +1589,7 @@ public partial class cex : ccxt.cex
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(canceledOrders, null, null, null, parameters));
     }
 
-    public virtual void resolveData(WebSocketClient client, object message)
+    public virtual void resolveData(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    "e": "open-orders",

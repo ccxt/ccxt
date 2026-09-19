@@ -1863,7 +1863,7 @@ public partial class hyperliquid : Exchange
         return signature;
     }
 
-    public virtual object buildUsdSendSig(object message)
+    public virtual object buildUsdSendSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:UsdSend", new List<object>() {new Dictionary<string, object>() {

@@ -1558,7 +1558,7 @@ public partial class blofin : Exchange
         return this.safeBalance(result);
     }
 
-    public virtual object parseTradingFee(object fee, object market = null)
+    public virtual object parseTradingFee(IDictionary<string, object> fee, object market = null)
     {
         return new Dictionary<string, object>() {
             { "info", fee },

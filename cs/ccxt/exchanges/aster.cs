@@ -1111,7 +1111,7 @@ public partial class aster : Exchange
         });
     }
 
-    public virtual bool isInverse(object type, object subType = null)
+    public virtual bool isInverse(object type, string? subType = null)
     {
         if ((subType == null))
         {

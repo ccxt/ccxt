@@ -238,7 +238,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} outcomeId integer outcome id
      * @returns {string} the outcome
      */
-    public virtual object buildOutcomeSymbol(object desc, object side, object outcomeId)
+    public virtual object buildOutcomeSymbol(IDictionary<string, object> desc, object side, object outcomeId)
     {
         string? underlying = this.safeString(desc, "underlying", ("OUTCOME" + ((object)outcomeId).ToString()));
         string? targetPrice = this.safeString(desc, "targetPrice");

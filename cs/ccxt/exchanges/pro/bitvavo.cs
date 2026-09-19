@@ -1860,14 +1860,14 @@ public partial class bitvavo : ccxt.bitvavo
         return messageHash;
     }
 
-    public virtual object actionAndMarketMessageHash(object action, object parameters = null)
+    public virtual object actionAndMarketMessageHash(object action, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? symbol = this.safeString(parameters, "market", "");
         return add(action, symbol);
     }
 
-    public virtual object actionAndOrderIdMessageHash(object action, object parameters = null)
+    public virtual object actionAndOrderIdMessageHash(object action, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? orderId = this.safeString(parameters, "orderId");
