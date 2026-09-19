@@ -586,7 +586,7 @@ export default class digifinex extends Exchange {
         return await this.fetchMarketsV1 (params);
     }
 
-    async fetchMarketsV2 (params = {}): Promise<Market[]> {
+    async fetchMarketsV2 (params: Dict = {}): Promise<Market[]> {
         const defaultType = this.safeString (this.options, 'defaultType');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarketsV2', params);
         const promisesRaw: Promise<Dict>[] = [];
@@ -746,7 +746,7 @@ export default class digifinex extends Exchange {
         return result;
     }
 
-    async fetchMarketsV1 (params = {}): Promise<Market[]> {
+    async fetchMarketsV1 (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicSpotGetMarkets (params);
         //
         //     {
@@ -1830,7 +1830,7 @@ export default class digifinex extends Exchange {
         return this.parseOrders (result, market);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -2046,7 +2046,7 @@ export default class digifinex extends Exchange {
         }
     }
 
-    parseCancelOrders (response: any) {
+    parseCancelOrders (response: Dict): Order[] {
         const success = this.safeList (response, 'success', []);
         const error = this.safeList (response, 'error', []);
         const result: Order[] = [];
@@ -2107,7 +2107,7 @@ export default class digifinex extends Exchange {
         return this.parseCancelOrders (response) as Order[];
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             '0': 'open',
             '1': 'open', // partially filled
@@ -2671,7 +2671,7 @@ export default class digifinex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: any): Str {
         const types: Dict = {};
         return this.safeString (types, (type as string), type);
     }
@@ -2874,14 +2874,14 @@ export default class digifinex extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const addresses = this.parseDepositAddresses (data, [ currency['code'] ]);
-        const address = this.safeValue (addresses, code);
+        const address = this.safeDict (addresses, code);
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.');
         }
         return address as DepositAddress;
     }
 
-    async fetchTransactionsByType (type: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchTransactionsByType (type: Str, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2959,7 +2959,7 @@ export default class digifinex extends Exchange {
         return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         // deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
         // withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
         const statuses: Dict = {
@@ -3367,7 +3367,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    parseBorrowRates (info: any, codeKey: any) {
+    parseBorrowRates (info: any[], codeKey: Str): Dict {
         //
         //     {
         //         "valuation_rate": 1,
@@ -3477,7 +3477,7 @@ export default class digifinex extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval: any) {
+    parseFundingInterval (interval: Str): Str {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -4259,7 +4259,7 @@ export default class digifinex extends Exchange {
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             if ((code !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
-                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                const depositWithdrawFee = this.safeDict (depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee ({});
                     depositWithdrawFees[code]['info'] = [];
@@ -4333,7 +4333,7 @@ export default class digifinex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: Num, type: any, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
