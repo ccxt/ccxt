@@ -58,7 +58,7 @@ public partial class hashkey : ccxt.hashkey
             { "topic", topic },
             { "event", "sub" },
         };
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
@@ -148,7 +148,7 @@ public partial class hashkey : ccxt.hashkey
         }
         IDictionary<string, object> parameters = this.safeDict(message, "params");
         string? klineType = this.safeString(parameters, "klineType");
-        object timeframe = this.findTimeframe(klineType);
+        string? timeframe = this.findTimeframe(klineType);
         if (!isTrue((inOp(getValue(this.ohlcvs, symbol), ((string)timeframe)))))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -239,7 +239,7 @@ public partial class hashkey : ccxt.hashkey
         //     }
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        object ticker = this.parseTicker(this.safeDict(data, 0));
+        Dictionary<string, object> ticker = this.parseTicker(this.safeDict(data, 0));
         object symbol = getValue(ticker, "symbol");
         string messageHash = add("ticker:", symbol);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
@@ -307,7 +307,7 @@ public partial class hashkey : ccxt.hashkey
         //
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         if (!isTrue((inOp(this.trades, symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -321,7 +321,7 @@ public partial class hashkey : ccxt.hashkey
             for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 IDictionary<string, object> trade = this.safeDict(data, i);
-                object parsed = this.parseWsTrade(trade, market);
+                Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));
                 callDynamically(stored, "append", new object[] {parsed});
             }
         }
@@ -397,7 +397,7 @@ public partial class hashkey : ccxt.hashkey
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> dataEntry = this.safeDict(data, 0);
         Int64? timestamp = this.safeInteger(dataEntry, "t");
-        object snapshot = this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a");
+        Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a"));
         (orderbook as IOrderBook).reset(snapshot);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(message, "id");
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
@@ -480,13 +480,13 @@ public partial class hashkey : ccxt.hashkey
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        object parsed = this.parseWsOrder(message);
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(message));
         object orders = this.orders;
         callDynamically(orders, "append", new object[] {parsed});
         string messageHash = "orders";
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
         object symbol = getValue(parsed, "symbol");
-        object symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
+        string symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, symbolSpecificMessageHash});
     }
 
@@ -603,13 +603,13 @@ public partial class hashkey : ccxt.hashkey
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         object tradesArray = this.myTrades;
-        object parsed = this.parseWsTrade(message);
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(message));
         callDynamically(tradesArray, "append", new object[] {parsed});
         this.myTrades = tradesArray;
         string messageHash = "myTrades";
         callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, messageHash});
         object symbol = getValue(parsed, "symbol");
-        object symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
+        string symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, symbolSpecificMessageHash});
     }
 
@@ -747,7 +747,7 @@ public partial class hashkey : ccxt.hashkey
             this.positions = new ArrayCacheBySymbolBySide();
         }
         object positions = this.positions;
-        object parsed = this.parseWsPosition(message);
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsPosition(message));
         callDynamically(positions, "append", new object[] {parsed});
         string messageHash = "positions";
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, messageHash});
@@ -859,7 +859,7 @@ public partial class hashkey : ccxt.hashkey
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            var future = getValue(client.futures, messageHash);
             (future as Future).resolve();
             callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add("balance:", type)});
         }

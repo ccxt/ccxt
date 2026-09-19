@@ -83,7 +83,7 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 		Assert(exchange.IsDictionary(entry), Add("entry is not a dict", logText))
 		var keys []string = ObjectKeys(format)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-			var key any = GetValue(keys, i)
+			var key string = GetValue(keys, i).(string)
 			if InOp(skippedProperties, key) {
 				continue
 			}
@@ -373,7 +373,7 @@ func AssertTimestampOrder(exchange ccxt.ICoreExchange, method any, codeOrSymbol 
 			var currentTs any = GetValue(GetValue(items, Subtract(i, 1)), "timestamp")
 			var nextTs any = GetValue(GetValue(items, i), "timestamp")
 			if !IsEqual(currentTs, nil) && !IsEqual(nextTs, nil) {
-				var ascendingOrDescending any = Ternary(EvalTruthy(ascending), "ascending", "descending")
+				var ascendingOrDescending string = Ternary(EvalTruthy(ascending), "ascending", "descending").(string)
 				var comparison any = Ternary(EvalTruthy(ascending), (IsLessThanOrEqual(currentTs, nextTs)), (IsGreaterThanOrEqual(currentTs, nextTs)))
 				Assert(comparison, Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), StringValue(codeOrSymbol)), " must return a "), ascendingOrDescending), " sorted array of items by timestamp, but "), ToString(currentTs)), " is opposite with its next "), ToString(nextTs)), " "), exchange.Json(items)))
 			}
@@ -430,8 +430,8 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 	defer ReturnPanicError(ch)
 	var logText any = LogTemplate(exchange, method, map[string]any{})
 	// find out best bid/ask price
-	var bestBid any = nil
-	var bestAsk any = nil
+	var bestBid *float64 = nil
+	var bestAsk *float64 = nil
 	var usedMethod any = nil
 	if (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), false)) {
 		usedMethod = "fetchOrderBook"
@@ -595,9 +595,9 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 func GetActiveMarkets(exchange ccxt.ICoreExchange, optionalArgs ...any) any {
 	includeUnknown := GetArg(optionalArgs, 0, true)
 	_ = includeUnknown
-	var filteredActive any = exchange.FilterBy(exchange.GetMarkets(), "active", true)
+	var filteredActive []any = exchange.FilterBy(exchange.GetMarkets(), "active", true)
 	if EvalTruthy(includeUnknown) {
-		var filteredUndefined any = exchange.FilterBy(exchange.GetMarkets(), "active", nil)
+		var filteredUndefined []any = exchange.FilterBy(exchange.GetMarkets(), "active", nil)
 		return exchange.ArrayConcat(filteredActive, filteredUndefined)
 	}
 	return filteredActive
@@ -699,7 +699,7 @@ func ExchangeProp(exchange ccxt.ICoreExchange, key any, optionalArgs ...any) any
 		return value
 	}
 	// try UpperCase key also, for other langs
-	var keyUpper any = exchange.Capitalize(ToString(key))
+	var keyUpper string = exchange.Capitalize(ToString(key))
 	return exchange.GetProperty(exchange, keyUpper, defaultValue)
 }
 func TickerExceptionNeedsOhlcv(ex any, exchange ccxt.ICoreExchange, ticker any) any {

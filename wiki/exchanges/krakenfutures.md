@@ -26,6 +26,7 @@
 * [fetchCanceledOrders](#fetchcanceledorders)
 * [fetchMyTrades](#fetchmytrades)
 * [fetchLedger](#fetchledger)
+* [fetchFundingHistory](#fetchfundinghistory)
 * [fetchBalance](#fetchbalance)
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
@@ -532,6 +533,30 @@ fetch the history of changes, actions done by the user or operations that altere
 
 ```javascript
 krakenfutures.fetchLedger (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchFundingHistory" id="fetchfundinghistory"></a>
+
+### fetchFundingHistory{docsify-ignore}
+fetch the funding payments history of the account
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-history/get-account-log  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch funding payments for |
+| limit | <code>int</code> | No | the maximum number of funding payments to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding payment |
+
+
+```javascript
+krakenfutures.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 

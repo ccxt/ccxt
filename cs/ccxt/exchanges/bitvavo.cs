@@ -791,7 +791,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker
@@ -938,7 +938,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1182,7 +1182,7 @@ public partial class bitvavo : Exchange
         //         ]
         //     }
         //
-        object orderbook = this.parseOrderBook(response, getValue(market, "symbol"));
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, getValue(market, "symbol")));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "nonce");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -1204,7 +1204,7 @@ public partial class bitvavo : Exchange
 
     public virtual Dictionary<string, object> fetchOHLCVRequest(object symbol, string timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -1252,7 +1252,7 @@ public partial class bitvavo : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1634,7 +1634,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", tag },         });
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -1777,7 +1777,7 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = await this.privatePostOrder(request);
         //
         //      {
@@ -1822,7 +1822,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual object editOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -1893,12 +1893,12 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        Dictionary<string, object> request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = await this.privatePutOrder(request);
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual object cancelOrderRequest(object id, object symbol = null, object parameters = null)
+    public virtual Dictionary<string, object> cancelOrderRequest(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1946,7 +1946,7 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = this.cancelOrderRequest(id, symbol, parameters);
+        Dictionary<string, object> request = this.cancelOrderRequest(id, symbol, parameters);
         Dictionary<string, object> response = await this.privateDeleteOrder(request);
         //
         //     {
@@ -2292,7 +2292,7 @@ public partial class bitvavo : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // cancelOrder, cancelAllOrders

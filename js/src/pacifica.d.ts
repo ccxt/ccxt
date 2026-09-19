@@ -1,5 +1,5 @@
 import Exchange from './abstract/pacifica.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, List } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, List, OpenInterest } from './base/types.js';
 /**
  * @class pacifica
  * @augments Exchange
@@ -161,6 +161,7 @@ export default class pacifica extends Exchange {
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
      * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -447,8 +448,8 @@ export default class pacifica extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
+    parseOpenInterest(interest: any, market?: Market): OpenInterest;
     /**
      * @method
      * @name pacifica#fetchLedger

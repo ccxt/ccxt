@@ -715,7 +715,7 @@ export default class bingx extends Exchange {
                         'trailing': true,
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': false,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
@@ -787,6 +787,7 @@ export default class bingx extends Exchange {
                         'private': true,
                     },
                     'createOrder': {
+                        'marketBuyByCost': true,
                         'triggerPriceType': undefined,
                         'attachedStopLossTakeProfit': undefined,
                         'trailing': false,
@@ -1569,6 +1570,16 @@ export default class bingx extends Exchange {
             // safeTrade applies contractSize when calculating inverse cost.
             amount = this.safeString(trade, 'volume');
         }
+        let price = this.safeStringN(trade, ['price', 'p', 'tradePrice']);
+        if ((market !== undefined) && (market['linear'] === true) && (this.safeString(trade, 'x') === 'TRADE')) {
+            const lastAmount = this.safeString(trade, 'l');
+            const lastPrice = this.safeString(trade, 'L');
+            if ((lastAmount !== undefined) && (lastPrice !== undefined)) {
+                // Linear WS l/L describe the last fill, not the original order's q/p.
+                amount = lastAmount;
+                price = lastPrice;
+            }
+        }
         return this.safeTrade({
             'id': this.safeString2(trade, 'id', 't'),
             'info': trade,
@@ -1579,7 +1590,7 @@ export default class bingx extends Exchange {
             'type': this.safeStringLower(trade, 'o'),
             'side': this.parseOrderSide(side),
             'takerOrMaker': takeOrMaker,
-            'price': this.safeStringN(trade, ['price', 'p', 'tradePrice']),
+            'price': price,
             'amount': amount,
             'cost': cost,
             'fee': {

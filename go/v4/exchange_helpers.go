@@ -1051,8 +1051,14 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 				if value != nil {
 					// Convert value to the correct type
 					valueVal := reflect.ValueOf(value)
-					if valueVal.Type().ConvertibleTo(field.Type()) {
-						field.Set(valueVal.Convert(field.Type()))
+					fieldType := field.Type()
+					if fieldType.Kind() == reflect.Ptr && !valueVal.Type().ConvertibleTo(fieldType) && valueVal.Type().ConvertibleTo(fieldType.Elem()) {
+						// scalar into a pointer field, e.g. int64 -> OrderBook.Timestamp *int64
+						ptr := reflect.New(fieldType.Elem())
+						ptr.Elem().Set(valueVal.Convert(fieldType.Elem()))
+						field.Set(ptr)
+					} else if valueVal.Type().ConvertibleTo(fieldType) {
+						field.Set(valueVal.Convert(fieldType))
 					}
 				}
 			}
@@ -2165,6 +2171,7 @@ func ParseFloat(input any) any {
 }
 
 func ParseJSON(input any) any {
+	input = derefScalar(input) // generated callers pass *string from the typed Safe* accessors
 	jsonString, ok := input.(string)
 	if !ok {
 		return nil
@@ -2376,7 +2383,8 @@ func Capitalize(s string) string {
 	return firstLetter + s[1:]
 }
 
-func (this *BaseExchange) IsDictionary(value any) any {
+// delegates to the package-level predicate, which returns a bool
+func (this *BaseExchange) IsDictionary(value any) bool {
 	return IsDictionary(value)
 }
 

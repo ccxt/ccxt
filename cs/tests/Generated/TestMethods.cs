@@ -606,7 +606,7 @@ public partial class testMainClass
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
-        object results = await promiseAll(promises);
+        List<object> results = await promiseAll(promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
         List<object> failedMethods = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(testNames)); postFixIncrement(ref i))
@@ -2194,7 +2194,18 @@ public partial class testMainClass
     public async virtual Task<object> testResponseStatically(BaseExchange exchange, object method, object skipKeys, object data)
     {
         object expectedResult = exchange.safeValue(data, "parsedResponse");
-        var mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
+        // 'httpResponseByUrl' serves a body per url fragment for methods that call several
+        // endpoints; the typed ports narrow each body to the shape its api leaf declares,
+        // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
+        object responsesByUrl = exchange.safeDict(data, "httpResponseByUrl");
+        var mockedExchange = exchange;
+        if (isTrue(!isEqual(responsesByUrl, null)))
+        {
+            mockedExchange = setFetchResponseByUrl(exchange, responsesByUrl);
+        } else
+        {
+            mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
+        }
         if (isTrue(this.info))
         {
             dump("[INFO] STATIC RESPONSE TEST:", method, ":", getValue(data, "description"));
@@ -2356,7 +2367,7 @@ public partial class testMainClass
                 // was replayed — live structures like orderbooks keep updating
                 // after the first resolution, so serialize only at the end
                 List<object> promises = new List<object> {callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)};
-                object results = await promiseAll(promises);
+                List<object> results = await promiseAll(promises);
                 object unifiedResult = jsonParse(jsonStringify(getValue(results, 0)));
                 this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, getValue(data, "parsedResponse"));
                 this.assertWsSentMessages(exchange, url, data);
@@ -2419,6 +2430,11 @@ public partial class testMainClass
                 }
                 object isDisabledPhp = exchange.safeString(result, "disabledPHP");
                 if (isTrue(isTrue((!isEqual(isDisabledPhp, null))) && isTrue((isEqual(this.lang, "PHP")))))
+                {
+                    continue;
+                }
+                object isDisabledRust = exchange.safeString(result, "disabledRS");
+                if (isTrue(isTrue((!isEqual(isDisabledRust, null))) && isTrue((isEqual(this.lang, "RUST")))))
                 {
                     continue;
                 }
@@ -2942,7 +2958,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit()};
+        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb()};
         await promiseAll(promises);
         string successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -3114,6 +3130,50 @@ public partial class testMainClass
             reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "Referer"), id), add(add("bybit - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testBithumb()
+    {
+        Exchange exchange = ((Exchange)this.initOfflineExchange("bithumb"));
+        string id = "CCXT";
+        object reqHeaders = new Dictionary<string, object>() {};
+        try
+        {
+            // default path: generation 2, the versioned (jwt-signed) endpoints
+            await exchange.CreateOrder("BTC/KRW", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+        }
+        assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), add(add("bithumb - id: ", id), " not in headers (v2 endpoints)."));
+        reqHeaders = new Dictionary<string, object>() {};
+        try
+        {
+            // legacy path: generation 1, the hmac-signed endpoints
+            await exchange.CreateOrder("BTC/KRW", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+                { "generation", 1 },
+            });
+        } catch(Exception e)
+        {
+            reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+        }
+        assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), add(add("bithumb - id: ", id), " not in headers (legacy endpoints)."));
+        reqHeaders = new Dictionary<string, object>() {};
+        try
+        {
+            // public endpoints carry the partner header as well
+            await exchange.FetchTicker("BTC/KRW");
+        } catch(Exception e)
+        {
+            reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+        }
+        assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), add(add("bithumb - id: ", id), " not in headers (public endpoints)."));
         if (!isTrue(isSync()))
         {
             await close(exchange);

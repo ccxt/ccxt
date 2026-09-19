@@ -32,9 +32,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             now = exchange.milliseconds();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1482: bool = true;
-                while { if !__for_first_1482 { i = add(&i, &Value::Int(1)); } __for_first_1482 = false; is_less_than(&i, &get_array_length(&response)) } {
-                testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), symbol.clone(), now.clone());
+                let mut __for_first_1484: bool = true;
+                while { if !__for_first_1484 { i = add(&i, &Value::Int(1)); } __for_first_1484 = false; is_less_than(&i, &get_array_length(&response)) } {
+                testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), symbol.clone(), now.clone(), Value::Bool(false));
             }
             }
             crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), response.clone()]);
