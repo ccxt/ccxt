@@ -2902,10 +2902,10 @@ pub trait ExchangeBase:
             while { if !__for_first_90 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_90 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
-            let mut total: Value = self.safe_string_k(get_value(&balance, &code), "total", &[]);
-            let mut free: Value = self.safe_string_k(get_value(&balance, &code), "free", &[]);
-            let mut used: Value = self.safe_string_k(get_value(&balance, &code), "used", &[]);
-            let mut debt: Value = self.safe_string_k(get_value(&balance, &code), "debt", &[]);
+            let mut total: Value = self.safe_string(balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("total".to_string()), &[]);
+            let mut free: Value = self.safe_string(balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("free".to_string()), &[]);
+            let mut used: Value = self.safe_string(balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("used".to_string()), &[]);
+            let mut debt: Value = self.safe_string(balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("debt".to_string()), &[]);
             if is_true(&(total == Value::Null)) && is_true(&(free != Value::Null)) && is_true(&(used != Value::Null)) {
                 total = crate::precise::Precise::stringAdd(&free, &used);
             }
@@ -2923,7 +2923,7 @@ pub trait ExchangeBase:
             { let __be_tmp = crate::value::get_value_k(&get_value(&balance, &code), "total"); add_element_to_object(get_value_mut(&mut balance, &Value::Str("total".to_string())), &code, __be_tmp); };
             if (debt != Value::Null) {
                 add_element_to_object(get_value_mut(&mut balance, &code), &Value::Str("debt".to_string()), self.parse_number(debt.clone(), &[]));
-                add_element_to_object(&mut debtBalance, &code, crate::value::get_value_k(&get_value(&balance, &code), "debt"));
+                add_element_to_object(&mut debtBalance, &code, crate::value::get_value_k(&balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "debt"));
             }
         }
         }
@@ -3181,7 +3181,7 @@ pub trait ExchangeBase:
     m
 })]);
             { let __be_tmp = self.safe_number_k(tradeFee.clone(), "cost", &[]); add_element_to_object(&mut tradeFee, &Value::Str("cost".to_string()), __be_tmp); };
-            if (in_op(&tradeFee, &Value::Str("rate".to_string()))) {
+            if is_true(&(matches!(&tradeFee, Value::Dict(__d) if __d.contains_key("rate")))) {
                 { let __be_tmp = self.safe_number_k(tradeFee.clone(), "rate", &[]); add_element_to_object(&mut tradeFee, &Value::Str("rate".to_string()), __be_tmp); };
             }
             let mut entryFees: Value = self.safe_list_k(entry.clone(), "fees", &[Value::from(vec![])]);
@@ -6729,7 +6729,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_135 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_135 = false; i.as_f64().unwrap_or(f64::NAN) < ((fields.len() as i64) as f64) } {
             let mut field: Value = get_value(&fields, &i);
             let mut field: Value = get_value(&fields, &i);
-            let mut current: Value = self.safe_string(get_value(&result, &code), field.clone(), &[]);
+            let mut current: Value = self.safe_string(result.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), field.clone(), &[]);
             let mut incoming: Value = self.safe_string(account.clone(), field.clone(), &[]);
             if (current == Value::Null) {
                 add_element_to_object(get_value_mut(&mut result, &code), &field, incoming.clone());
@@ -8691,7 +8691,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if !is_true(&self.in_array(key.clone(), removeKeys.clone())) {
-                add_element_to_object(&mut newDict, &key, get_value(&dict, &key));
+                add_element_to_object(&mut newDict, &key, dict.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
             }
         }
         }
