@@ -2819,7 +2819,211 @@ export const CSHARP_LOCAL_CAST_CALL_TYPES = {
     'parseWsUpdatedTicker': 'Dictionary<string, object>',
 };
 
-function callResultCastType (initializer) {
+// ===== B-23: `object x = this.parse<X>(...)` — the box the callee's TS return type names =====
+//
+// A parse helper is declared per venue (or once in the base) and its C# signature stays
+// `object`, while its TS return type IS the structure / Dict / List box the callers consume.
+// The local names that box behind the exact cast back when two proofs hold:
+//   1. the checker's return type of the declaration the call binds maps to a collection —
+//      array / tuple -> List<object>, structure / index-signature object -> IDictionary<string, object>;
+//   2. EVERY declaration of that name in the program proves the same box on every return path,
+//      so no virtual dispatch (a base declaration plus venue overrides) can hand back another box.
+// A return path proves an object/array literal, an identity `as` wrapper, a conditional of two
+// proving arms, `null`, a local this module already declares that box for, or a call the
+// collection tables already name.
+const parseReturnProgramTables = new WeakMap ();
+
+function parseReturnTables (csharp) {
+    let program;
+    try {
+        program = (typeof csharp.getProgram === 'function') ? csharp.getProgram () : undefined;
+    } catch (e) {
+        program = undefined; // no transpilation context (in-memory transpiles) — keep the printer's object
+    }
+    if (program === undefined) {
+        return undefined;
+    }
+    let tables = parseReturnProgramTables.get (program);
+    if (tables === undefined) {
+        tables = { 'program': program, 'declarations': new Map (), 'boxes': new Map () };
+        parseReturnProgramTables.set (program, tables);
+    }
+    return tables;
+}
+
+// every declaration of the name in the program (the base declaration and the venue overrides),
+// collected once per (program, name)
+function parseReturnDeclarations (tables, name) {
+    if (tables.declarations.has (name)) {
+        return tables.declarations.get (name);
+    }
+    const found = [];
+    for (const sourceFile of (tables.program.getSourceFiles () ?? [])) {
+        const visit = (node) => {
+            // a bodiless declaration (an interface method, a js/src/*.d.ts twin of a ts/src
+            // definition) is not a runtime implementation and proves nothing
+            if (node.kind === ts.SyntaxKind.MethodDeclaration && node.body !== undefined && node.name !== undefined && node.name.escapedText === name) {
+                found.push (node);
+            }
+            ts.forEachChild (node, visit);
+        };
+        visit (sourceFile);
+    }
+    tables.declarations.set (name, found);
+    return found;
+}
+
+// the C# collection box a TS type names, or undefined when the type is not one (any / a scalar /
+// a union the arms of which disagree)
+function parseCollectionBox (checker, type) {
+    if (type === undefined) {
+        return undefined;
+    }
+    const flags = type.flags;
+    if ((flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.Never)) !== 0) {
+        return undefined;
+    }
+    if ((flags & ts.TypeFlags.Union) !== 0) {
+        const arms = (type.types ?? []).filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+        if (arms.length === 0) {
+            return undefined;
+        }
+        let box;
+        for (const arm of arms) {
+            const own = parseCollectionBox (checker, arm);
+            if (own === undefined || (box !== undefined && box !== own)) {
+                return undefined;
+            }
+            box = own;
+        }
+        return box;
+    }
+    if ((flags & ts.TypeFlags.Object) === 0) {
+        return undefined; // string / number / boolean / enum / ... — not this family
+    }
+    if ((typeof checker.isArrayType === 'function' && checker.isArrayType (type))
+        || (typeof checker.isTupleType === 'function' && checker.isTupleType (type))) {
+        return 'List<object>';
+    }
+    const numberIndex = (typeof type.getNumberIndexType === 'function') ? type.getNumberIndexType () : undefined;
+    if (numberIndex !== undefined) {
+        return 'List<object>'; // an array-like object (Array, a tuple alias, a numeric index signature)
+    }
+    return 'IDictionary<string, object>'; // a structure interface / Dict row — a dictionary at runtime
+}
+
+function parseBoxCompatible (mapped, other) {
+    if (other === undefined) {
+        return false;
+    }
+    const dict = (t) => t === 'Dictionary<string, object>' || t === 'IDictionary<string, object>';
+    const list = (t) => t === 'List<object>' || t === 'IList<object>';
+    if (dict (mapped)) {
+        return dict (other);
+    }
+    if (list (mapped)) {
+        return list (other);
+    }
+    return mapped === other;
+}
+
+function parseReturnExpressionProves (csharp, expression, mapped, depth) {
+    if (expression === undefined || depth > 4) {
+        return false;
+    }
+    let node = expression;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    switch (node?.kind) {
+    case ts.SyntaxKind.AsExpression:
+    case ts.SyntaxKind.TypeAssertionExpression: {
+        // `x as any` prints `((object)x)` and `x as <interface>` prints the bare operand — both
+        // identity wrappers. Any other target prints a cast of its own type, not this box.
+        const target = node.type;
+        if (target?.kind !== ts.SyntaxKind.AnyKeyword && target?.kind !== ts.SyntaxKind.TypeReference) {
+            return false;
+        }
+        return parseReturnExpressionProves (csharp, node.expression, mapped, depth + 1);
+    }
+    case ts.SyntaxKind.NullKeyword:
+        return true; // a null box unboxes to null under the reference cast
+    case ts.SyntaxKind.ObjectLiteralExpression:
+        return parseBoxCompatible (mapped, 'Dictionary<string, object>');
+    case ts.SyntaxKind.ArrayLiteralExpression:
+        return parseBoxCompatible (mapped, 'List<object>');
+    case ts.SyntaxKind.ConditionalExpression:
+        return parseReturnExpressionProves (csharp, node.whenTrue, mapped, depth + 1)
+            && parseReturnExpressionProves (csharp, node.whenFalse, mapped, depth + 1);
+    case ts.SyntaxKind.Identifier:
+        return parseBoxCompatible (mapped, identifierType (csharp, node));
+    case ts.SyntaxKind.CallExpression:
+        return parseBoxCompatible (mapped, callReturnType (csharp, node))
+            || parseBoxCompatible (mapped, callCollectionReturnType (csharp, node));
+    default:
+        return false;
+    }
+}
+
+function parseReturnDeclarationProves (csharp, declaration, mapped) {
+    let proved = true;
+    const visit = (node) => {
+        if (!proved || (node !== declaration && typeof ts.isFunctionLike === 'function' && ts.isFunctionLike (node))) {
+            return; // a return inside a nested callback belongs to that callback
+        }
+        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+            // a body with no return statement at all (a `throw new NotSupported (...)` stub, a
+            // fall-through) hands back null/undefined, which the reference cast passes through
+            if (!parseReturnExpressionProves (csharp, node.expression, mapped, 0)) {
+                proved = false;
+            }
+            return;
+        }
+        ts.forEachChild (node, visit);
+    };
+    ts.forEachChild (declaration, visit);
+    return proved;
+}
+
+// this.parse<X>(...) -> the box the callee's TS return type names, proven over every declaration
+// of the name in the program; undefined keeps the printer's `object`. Cached per (program, name).
+function parseReturnCastType (csharp, call, methodName) {
+    if (typeof methodName !== 'string' || !methodName.startsWith ('parse') || methodName.length <= 5) {
+        return undefined;
+    }
+    const tables = parseReturnTables (csharp);
+    if (tables === undefined) {
+        return undefined;
+    }
+    if (tables.boxes.has (methodName)) {
+        return tables.boxes.get (methodName);
+    }
+    let box;
+    try {
+        const checker = csharp.getChecker ();
+        const declaration = (checker.getSymbolAtLocation (call.expression.name)?.declarations ?? [])
+            .find ((d) => d.kind === ts.SyntaxKind.MethodDeclaration);
+        if (declaration !== undefined) {
+            const signature = (typeof checker.getSignatureFromDeclaration === 'function') ? checker.getSignatureFromDeclaration (declaration) : undefined;
+            const type = (declaration.type !== undefined)
+                ? checker.getTypeFromTypeNode (declaration.type)
+                : (signature !== undefined ? checker.getReturnTypeOfSignature (signature) : undefined);
+            box = parseCollectionBox (checker, type);
+            if (box !== undefined) {
+                const declarations = parseReturnDeclarations (tables, methodName);
+                if (declarations.length === 0 || !declarations.every ((d) => parseReturnDeclarationProves (csharp, d, box))) {
+                    box = undefined;
+                }
+            }
+        }
+    } catch (e) {
+        box = undefined; // an unresolved symbol / no context: keep the printer's object
+    }
+    tables.boxes.set (methodName, box);
+    return box;
+}
+
+function callResultCastType (csharp, initializer) {
     if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
         return undefined;
     }
@@ -2832,7 +3036,14 @@ function callResultCastType (initializer) {
     if (Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_CAST_CALL_TYPES, methodName)) {
         return CSHARP_LOCAL_CAST_CALL_TYPES[methodName];
     }
-    return sameFileCallCastType (initializer, methodName);
+    const sameFile = sameFileCallCastType (initializer, methodName);
+    if (sameFile !== undefined) {
+        return sameFile;
+    }
+    // `this.parse<X>(...)`: the checker's return type names the box when every declaration of
+    // the name proves it (B-23, see parseReturnCastType). Last, so a name-keyed family entry
+    // above keeps its own spelling.
+    return parseReturnCastType (csharp, initializer, methodName);
 }
 
 // `this.safeOutcome (<one key>)` / `await this.loadOutcome (...)`: every path of the two
@@ -5619,7 +5830,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
                     // non-null collection names for the ws row builders — the same spelling the
                     // CSHARP_COLLECTION_RETURN_METHODS declarations carry).
                     // Every later write is still checked by csharpLocalIsSafeToRetype.
-                    const callCastType = callResultCastType (declaration.initializer);
+                    const callCastType = callResultCastType (csharp, declaration.initializer);
                     if (callCastType !== undefined) {
                         csharpType = callCastType;
                         cast = callCastType.endsWith ('?') ? callCastType.slice (0, -1) : callCastType;

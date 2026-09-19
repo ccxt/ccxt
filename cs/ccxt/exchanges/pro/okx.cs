@@ -485,8 +485,8 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             object rawfr = data[i];
-            object fundingRate = this.parseFundingRate(rawfr);
-            object symbol = getValue(fundingRate, "symbol");
+            IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(rawfr));
+            string? symbol = ((string)getValue(fundingRate, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;

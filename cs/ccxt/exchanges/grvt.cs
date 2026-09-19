@@ -1900,7 +1900,7 @@ public partial class grvt : Exchange
         //    }
         //
         List<object> rows = this.safeList(response, "result", new List<object>() {});
-        object transfers = this.parseTransfers(rows, currency, since, limit);
+        List<object> transfers = ((List<object>)this.parseTransfers(rows, currency, since, limit));
         return transfers;
     }
 
@@ -2096,7 +2096,7 @@ public partial class grvt : Exchange
         //    }
         //
         List<object> rows = this.safeList(response, "result", new List<object>() {});
-        object transfers = this.parseTransfers(rows, currency, since, limit);
+        List<object> transfers = ((List<object>)this.parseTransfers(rows, currency, since, limit));
         List<object> filteredResults = this.filterTransfersByType(transfers, "internal", false);
         return ccxt.BaseExchange.ToTransferEntryList(getValue(filteredResults, 1));
     }

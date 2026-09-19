@@ -2454,7 +2454,7 @@ public partial class hibachi : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "settlements", new List<object>() {});
-        object settlements = this.parseSettlements(data, market);
+        List<object> settlements = ((List<object>)this.parseSettlements(data, market));
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }

@@ -1985,8 +1985,8 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object fee = this.parseTradingFee(getValue(response, i));
-            object symbol = getValue(fee, "symbol");
+            IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(getValue(response, i)));
+            string? symbol = ((string)getValue(fee, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = fee;
@@ -3238,7 +3238,7 @@ public partial class hitbtc : Exchange
             object rawFundingRate = this.safeValue(response, marketId);
             Dictionary<string, object> marketInner = this.market(marketId);
             string? symbol = ((string)getValue(marketInner, "symbol"));
-            object fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
+            IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(rawFundingRate, marketInner));
             ((IDictionary<string,object>)fundingRates)[(string)symbol] = fundingRate;
         }
         return ccxt.BaseExchange.ToFundingRates(this.filterByArray(fundingRates, "symbol", symbols));

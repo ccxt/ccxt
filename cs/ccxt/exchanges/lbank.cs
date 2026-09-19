@@ -1802,8 +1802,8 @@ public partial class lbank : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            object fee = this.parseTradingFee(fees[i]);
-            object symbol = getValue(fee, "symbol");
+            IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(fees[i]));
+            string? symbol = ((string)getValue(fee, "symbol"));
             ((IDictionary<string,object>)result)[(string)((string)symbol)] = fee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);

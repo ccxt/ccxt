@@ -1830,13 +1830,13 @@ public partial class mexc : ccxt.mexc
         //     }
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object fundingRate = this.parseFundingRate(data);
-        object symbol = getValue(fundingRate, "symbol");
+        IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(data));
+        string? symbol = ((string)getValue(fundingRate, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
         }
-        string messageHash = ("fundingRate:" + (symbol));
+        string messageHash = ("fundingRate:" + symbol);
         (client as WebSocketClient).resolve(fundingRate, messageHash);
     }
 

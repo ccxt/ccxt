@@ -1165,7 +1165,7 @@ public partial class woofipro : Exchange
         string? price = this.safeString(trade, "executed_price");
         string? amount = this.safeString(trade, "executed_quantity");
         string? order_id = this.safeString(trade, "order_id");
-        object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(trade, "fee_asset", "fee"));
         string? feeCost = this.safeString(fee, "cost");
         if (((fee != null)) && ((feeCost != null)))
         {
@@ -3252,7 +3252,7 @@ public partial class woofipro : Exchange
         string? side = this.safeString(item, "token_side");
         string direction = ((bool) ((side == "DEPOSIT"))) ? "in" : "out";
         Int64? timestamp = this.safeInteger(item, "created_time");
-        object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount"));
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "id", this.safeString(item, "id") },
             { "currency", code },
@@ -3310,7 +3310,7 @@ public partial class woofipro : Exchange
         {
             movementDirection = "withdrawal";
         }
-        object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount"));
         string? addressTo = this.safeString(transaction, "target_address");
         string? addressFrom = this.safeString(transaction, "source_address");
         Int64? timestamp = this.safeInteger(transaction, "created_time");
@@ -3741,7 +3741,7 @@ public partial class woofipro : Exchange
         //     "timestamp": 1702989203989
         // }
         //
-        object modification = this.parseMarginModification(response, market);
+        IDictionary<string, object> modification = ((IDictionary<string, object>)this.parseMarginModification(response, market));
         ((IDictionary<string,object>)modification)["type"] = ((bool) (isEqual(type, "ADD"))) ? "add" : "reduce";
         ((IDictionary<string,object>)modification)["amount"] = this.parseNumber(this.numberToString(amount));
         return modification;

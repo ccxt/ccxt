@@ -3504,7 +3504,7 @@ public partial class kucoin : Exchange
         for (int i = 0; i < tickers.Count; i++)
         {
             ((IDictionary<string,object>)tickers[i])["time"] = time;
-            object ticker = this.parseSpotOrUtaTicker(tickers[i]);
+            IDictionary<string, object> ticker = ((IDictionary<string, object>)this.parseSpotOrUtaTicker(tickers[i]));
             string? symbol = this.safeString(ticker, "symbol");
             if ((symbol != null))
             {
@@ -9854,7 +9854,7 @@ public partial class kucoin : Exchange
         //
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object transfer = this.parseTransfer(data, currency);
+        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(data, currency));
         IDictionary<string, object> transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if ((fillResponseFromRequest == true))
@@ -9956,7 +9956,7 @@ public partial class kucoin : Exchange
             response = await this.privatePostAccountsUniversalTransfer(this.extend(request, parameters));
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object transfer = this.parseTransfer(data, currency);
+        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(data, currency));
         IDictionary<string, object> transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if ((fillResponseFromRequest == true))
@@ -10918,7 +10918,7 @@ public partial class kucoin : Exchange
                 {
                     ((IDictionary<string,object>)borrowRateHistories)[(string)code] = new List<object>() {};
                 }
-                object borrowRateStructure = this.parseBorrowRate(item);
+                IDictionary<string, object> borrowRateStructure = ((IDictionary<string, object>)this.parseBorrowRate(item));
                 object borrowRateHistoriesCode = getValue(borrowRateHistories, code);
                 ((IList<object>)borrowRateHistoriesCode).Add(borrowRateStructure);
             }
@@ -11241,7 +11241,7 @@ public partial class kucoin : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object parsed = this.parseLeverage(data, market);
+        IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseLeverage(data, market));
         return ccxt.BaseExchange.ToLeverage(this.extend(parsed, new Dictionary<string, object>() {             { "marginMode", marginMode },         }));
     }
 

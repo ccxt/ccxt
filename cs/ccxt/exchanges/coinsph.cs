@@ -2147,8 +2147,8 @@ public partial class coinsph : Exchange
         IList<object> fees = this.toArray(response);
         for (int i = 0; i < (fees?.Count ?? 0); i++)
         {
-            object fee = this.parseTradingFee(fees[i]);
-            object symbol = getValue(fee, "symbol");
+            IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(fees[i]));
+            string? symbol = ((string)getValue(fee, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = fee;

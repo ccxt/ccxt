@@ -3886,7 +3886,7 @@ public partial class digifinex : Exchange
             object item = getValue(info, i);
             string? currency = this.safeString(item, codeKey);
             string? code = this.safeCurrencyCode(currency);
-            object borrowRate = this.parseBorrowRate(item);
+            IDictionary<string, object> borrowRate = ((IDictionary<string, object>)this.parseBorrowRate(item));
             if ((code != null))
             {
                 ((IDictionary<string,object>)result)[(string)code] = borrowRate;

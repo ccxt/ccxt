@@ -3867,7 +3867,7 @@ public partial class deribit : Exchange
         for (int i = 0; i < result.Count; i++)
         {
             object fr = result[i];
-            object rate = this.parseFundingRate(fr, market);
+            IDictionary<string, object> rate = ((IDictionary<string, object>)this.parseFundingRate(fr, market));
             ((IList<object>)rates).Add(rate);
         }
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(rates, symbol, sinceVar, limit));

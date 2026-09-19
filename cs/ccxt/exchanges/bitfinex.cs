@@ -1997,13 +1997,13 @@ public partial class bitfinex : Exchange
         string? type = this.safeString(this.safeDict(this.options, "exchangeTypes"), orderType);
         string? timeInForce = this.parseTimeInForce(orderType);
         string? rawFlags = this.safeString(orderList, 12);
-        object flags = this.parseOrderFlags(rawFlags);
+        List<object> flags = ((List<object>)this.parseOrderFlags(rawFlags));
         bool postOnly = false;
         if ((flags != null))
         {
-            for (int i = 0; i < getArrayLength(flags); i++)
+            for (int i = 0; i < (flags?.Count ?? 0); i++)
             {
-                if (isEqual(getValue(flags, i), "postOnly"))
+                if (isEqual(flags[i], "postOnly"))
                 {
                     postOnly = true;
                 }

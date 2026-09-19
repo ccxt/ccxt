@@ -6133,7 +6133,7 @@ public partial class mexc : Exchange
         //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
-        object transaction = this.parseTransfer(response, currency);
+        IDictionary<string, object> transaction = ((IDictionary<string, object>)this.parseTransfer(response, currency));
         return ccxt.BaseExchange.ToTransferEntry(this.extend(transaction, new Dictionary<string, object>() {             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));
     }
 

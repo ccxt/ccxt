@@ -459,7 +459,7 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object fundingRate = this.parseFundingRate(data, market);
+        IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(data, market));
         ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
         (client as WebSocketClient).resolve(fundingRate, ("fundingRate:" + symbol));
     }

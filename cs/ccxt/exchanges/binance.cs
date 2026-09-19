@@ -12882,8 +12882,8 @@ public partial class binance : Exchange
             IList<object> fees = this.toArray(response);
             for (int i = 0; i < (fees?.Count ?? 0); i++)
             {
-                object fee = this.parseTradingFee(fees[i]);
-                object symbol = getValue(fee, "symbol");
+                IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(fees[i]));
+                string? symbol = ((string)getValue(fee, "symbol"));
                 if ((symbol != null))
                 {
                     ((IDictionary<string,object>)result)[(string)symbol] = fee;
@@ -15060,7 +15060,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        object settlements = this.parseSettlements(response, market);
+        List<object> settlements = ((List<object>)this.parseSettlements(response, market));
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
@@ -15127,7 +15127,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        object settlements = this.parseSettlements(response, market);
+        List<object> settlements = ((List<object>)this.parseSettlements(response, market));
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
@@ -16833,10 +16833,10 @@ public partial class binance : Exchange
         if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
         {
             symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            object result = this.parseOpenInterestsHistory(response, market);
-            for (int i = 0; i < getArrayLength(result); i++)
+            List<object> result = ((List<object>)this.parseOpenInterestsHistory(response, market));
+            for (int i = 0; i < (result?.Count ?? 0); i++)
             {
-                object item = getValue(result, i);
+                object item = result[i];
                 if (isEqual(getValue(item, "symbol"), symbolVar))
                 {
                     return ccxt.BaseExchange.ToOpenInterest(item);

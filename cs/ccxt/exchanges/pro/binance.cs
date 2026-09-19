@@ -3948,7 +3948,7 @@ public partial class binance : ccxt.binance
         List<object> positions = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object parsed = this.parsePositionRisk(result[i]);
+            IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parsePositionRisk(result[i]));
             string? entryPrice = this.safeString(parsed, "entryPrice");
             if (((entryPrice != "0")) && ((entryPrice != "0.0")) && ((entryPrice != "0.00000000")))
             {

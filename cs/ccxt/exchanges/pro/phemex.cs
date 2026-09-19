@@ -1300,7 +1300,7 @@ public partial class phemex : ccxt.phemex
                     // order + trade info together
                     ((IList<object>)trades).Add(update);
                 }
-                object parsedOrder = this.parseWSSwapOrder(update);
+                IDictionary<string, object> parsedOrder = ((IDictionary<string, object>)this.parseWSSwapOrder(update));
                 ((IList<object>)parsedOrders).Add(parsedOrder);
             }
         }

@@ -3086,7 +3086,7 @@ public partial class bullish : Exchange
         //
         IDictionary<string, object> transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
-        object transfer = this.parseTransfer(response, currency);
+        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(response, currency));
         if ((fillResponseFromRequest == true))
         {
             ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;

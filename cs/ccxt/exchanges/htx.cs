@@ -10241,7 +10241,7 @@ public partial class htx : Exchange
             return ccxt.BaseExchange.ToOpenInterest(this.extend(this.parseOpenInterest(result, market), new Dictionary<string, object>() {                 { "timestamp", timestamp },                 { "datetime", this.iso8601(timestamp) },             }));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object openInterest = this.parseOpenInterest((data != null && 0 < data.Count ? data[0] : null), market);
+        IDictionary<string, object> openInterest = ((IDictionary<string, object>)this.parseOpenInterest((data != null && 0 < data.Count ? data[0] : null), market));
         ((IDictionary<string,object>)openInterest)["timestamp"] = timestamp;
         ((IDictionary<string,object>)openInterest)["datetime"] = this.iso8601(timestamp);
         return ccxt.BaseExchange.ToOpenInterest(openInterest);
@@ -10651,12 +10651,12 @@ public partial class htx : Exchange
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
             List<object> dataLinear = this.safeList(response, "data", new List<object>() {});
-            object settlementsLinear = this.parseSettlements(dataLinear, market);
+            List<object> settlementsLinear = ((List<object>)this.parseSettlements(dataLinear, market));
             return ccxt.BaseExchange.ToDictList(this.sortBy(settlementsLinear, "timestamp"));
         }
         IDictionary<string, object> data = this.safeDict(response, "data");
         object settlementRecord = this.safeValue(data, "settlement_record");
-        object settlements = this.parseSettlements(settlementRecord, market);
+        List<object> settlements = ((List<object>)this.parseSettlements(settlementRecord, market));
         return ccxt.BaseExchange.ToDictList(this.sortBy(settlements, "timestamp"));
     }
 

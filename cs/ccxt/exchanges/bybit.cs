@@ -9674,8 +9674,8 @@ public partial class bybit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(fees); i++)
         {
-            object fee = this.parseTradingFee(getValue(fees, i));
-            object symbol = getValue(fee, "symbol");
+            IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(getValue(fees, i)));
+            string? symbol = ((string)getValue(fee, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = fee;
@@ -9866,7 +9866,7 @@ public partial class bybit : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "list", new List<object>() {});
-        object settlements = this.parseSettlements(data, market);
+        List<object> settlements = ((List<object>)this.parseSettlements(data, market));
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
@@ -9938,7 +9938,7 @@ public partial class bybit : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "list", new List<object>() {});
-        object settlements = this.parseSettlements(data, market);
+        List<object> settlements = ((List<object>)this.parseSettlements(data, market));
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
@@ -10144,7 +10144,7 @@ public partial class bybit : Exchange
         Int64? timestamp = this.safeInteger(response, "time");
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "list", new List<object>() {});
-        object greeks = this.parseGreeks((data != null && 0 < data.Count ? data[0] : null), market);
+        IDictionary<string, object> greeks = ((IDictionary<string, object>)this.parseGreeks((data != null && 0 < data.Count ? data[0] : null), market));
         return ccxt.BaseExchange.ToGreeks(this.extend(greeks, new Dictionary<string, object>() {             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },         }));
     }
 

@@ -972,7 +972,7 @@ public partial class cex : Exchange
             {
                 market = this.safeMarket(key);
             }
-            object parsed = this.parseTradingFee(getValue(response, key), market);
+            IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseTradingFee(getValue(response, key), market));
             if (!isEqual(getValue(parsed, "symbol"), null))
             {
                 ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
