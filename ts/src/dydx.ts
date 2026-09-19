@@ -1233,7 +1233,7 @@ export default class dydx extends Exchange {
     }
 
     signOnboardingAction (): object {
-        const message = { 'action': 'dYdX Chain Onboarding' };
+        const message: Dict = { 'action': 'dYdX Chain Onboarding' };
         const chainId = this.options['chainId'];
         const domain: Dict = {
             'chainId': chainId,
@@ -1288,7 +1288,7 @@ export default class dydx extends Exchange {
         if (!this.walletAddress.startsWith ('dydx')) {
             throw new ArgumentsRequired (this.id + ' fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.');
         }
-        const request = {
+        const request: Dict = {
             'dydxAddress': this.walletAddress,
         };
         //
@@ -1424,7 +1424,7 @@ export default class dydx extends Exchange {
         const sideNumber = (orderSide === 'BUY') ? 1 : 2;
         const defaultClientOrderId = this.randNumber (9); // 2**32 - 1 is 10 digits, but it may overflow with 10
         const clientOrderId = this.safeInteger (params, 'clientOrderId', defaultClientOrderId);
-        const orderPayload = {
+        const orderPayload: Dict = {
             'order': {
                 'orderId': {
                     'subaccountId': {
@@ -1448,7 +1448,7 @@ export default class dydx extends Exchange {
                 'orderRouterAddress': this.safeString (this.options, 'routerAddress', 'dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn'),
             },
         };
-        const signingPayload = {
+        const signingPayload: Dict = {
             'typeUrl': '/dydxprotocol.clob.MsgPlaceOrder',
             'value': orderPayload,
         };
@@ -1532,7 +1532,7 @@ export default class dydx extends Exchange {
         const orderRequest = orderRequestRes[1];
         const chainName = this.options['chainName'];
         const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', chainName, account, undefined);
-        const request = {
+        const request: Dict = {
             'tx': signedTx,
         };
         // nodeRpcGetBroadcastTxAsync
@@ -1620,7 +1620,7 @@ export default class dydx extends Exchange {
         }
         const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
-        const cancelPayload = {
+        const cancelPayload: Dict = {
             'orderId': {
                 'subaccountId': {
                     'owner': this.getWalletAddress (),
@@ -1633,13 +1633,13 @@ export default class dydx extends Exchange {
             'goodTilBlock': goodTillBlock,
             'goodTilBlockTime': goodTillBlockTime,
         };
-        const signingPayload = {
+        const signingPayload: Dict = {
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
         };
         const chainName = this.options['chainName'];
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
-        const request = {
+        const request: Dict = {
             'tx': signedTx,
         };
         // nodeRpcGetBroadcastTxAsync
@@ -1693,11 +1693,11 @@ export default class dydx extends Exchange {
         params = this.omit (params, [ 'clientOrderIds', 'goodTillBlock', 'subaccountId' ]);
         const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
-        const cancelOrders = {
+        const cancelOrders: Dict = {
             'clientIds': clientOrderIds,
             'clobPairId': market['info']['clobPairId'],
         };
-        const cancelPayload = {
+        const cancelPayload: Dict = {
             'subaccountId': {
                 'owner': this.getWalletAddress (),
                 'number': subAccountId,
@@ -1705,13 +1705,13 @@ export default class dydx extends Exchange {
             'shortTermCancels': [ cancelOrders ],
             'goodTilBlock': goodTillBlock,
         };
-        const signingPayload = {
+        const signingPayload: Dict = {
             'typeUrl': '/dydxprotocol.clob.MsgBatchCancel',
             'value': cancelPayload,
         };
         const chainName = this.options['chainName'];
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
-        const request = {
+        const request: Dict = {
             'tx': signedTx,
         };
         // nodeRpcGetBroadcastTxAsync
@@ -1865,7 +1865,7 @@ export default class dydx extends Exchange {
 
     async estimateTxFee (message: any, memo: Str, account: any): Promise<any> {
         const txBytes = this.encodeDydxTxForSimulation (message, memo, account['sequence'], account['pub_key']);
-        const request = {
+        const request: Dict = {
             'txBytes': txBytes,
         };
         const response = await this.nodeRestPostCosmosTxV1beta1Simulate (request);
@@ -1905,7 +1905,7 @@ export default class dydx extends Exchange {
         if (feeAmount.indexOf ('.') >= 0) {
             feeAmount = this.numberToString (Math.ceil (this.parseToNumeric (feeAmount)));
         }
-        const feeObj = {
+        const feeObj: Dict = {
             'amount': feeAmount,
             'denom': denom,
         };
@@ -1992,7 +1992,7 @@ export default class dydx extends Exchange {
         const txFee = await this.estimateTxFee (signingPayload, '', account);
         const chainName = this.options['chainName'];
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined, txFee);
-        const request = {
+        const request: Dict = {
             'tx': signedTx,
         };
         // nodeRpcGetBroadcastTxAsync
@@ -2165,7 +2165,7 @@ export default class dydx extends Exchange {
         const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
         const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
-        const payload = {
+        const payload: Dict = {
             'sender': {
                 'owner': this.getWalletAddress (),
                 'number': subaccountId,
@@ -2174,14 +2174,14 @@ export default class dydx extends Exchange {
             'assetId': 0,
             'quantums': usd,
         };
-        const signingPayload = {
+        const signingPayload: Dict = {
             'typeUrl': '/dydxprotocol.sending.MsgWithdrawFromSubaccount',
             'value': payload,
         };
         const txFee = await this.estimateTxFee (signingPayload, tag, account);
         const chainName = this.options['chainName'];
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, tag, chainName, account, undefined, txFee);
-        const request = {
+        const request: Dict = {
             'tx': signedTx,
         };
         // nodeRpcGetBroadcastTxAsync
