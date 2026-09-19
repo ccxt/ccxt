@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { sha384 } from '@noble/hashes/sha2.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry } from './base/types.js';
+import type { Balances, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -731,8 +731,8 @@ export default class btse extends Exchange {
         const amountPrecision = this.safeString (market, 'minSizeIncrement');
         const active = this.safeBool (market, 'active');
         let type = 'spot';
-        let expiry = undefined;
-        let contractSize = undefined;
+        let expiry: Int = undefined;
+        let contractSize: Str = undefined;
         if (!isSpot) {
             symbol += ':' + quote;
             contractSize = this.safeString (market, 'contractSize');
@@ -744,9 +744,9 @@ export default class btse extends Exchange {
                 type = 'swap';
             }
         }
-        let fees = this.safeValue (this.fees, 'contract');
+        let fees: Dict = this.safeDict (this.fees, 'contract', {});
         if (isSpot) {
-            fees = this.safeValue (this.fees, 'spot');
+            fees = this.safeDict (this.fees, 'spot', {});
         }
         return this.safeMarketStructure ({
             'id': id,
@@ -1015,7 +1015,7 @@ export default class btse extends Exchange {
         return result;
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined) {
+    override parseFundingRateHistory (contract: Dict, market: Market = undefined) {
         //
         //     {
         //         "timestamp": 1786003200911,
@@ -1437,7 +1437,7 @@ export default class btse extends Exchange {
         return this.parseOpenInterests (rows, symbols) as OpenInterests;
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: Dict, market: Market = undefined) {
         //
         // ticker/24hr contract rows, see parseFundingRate for the full shape
         //
@@ -1649,7 +1649,7 @@ export default class btse extends Exchange {
             params = this.omit (params, 'paginate');
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
         }
-        let market = undefined;
+        let market: Market = undefined;
         let request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1853,7 +1853,7 @@ export default class btse extends Exchange {
         const marketId = this.safeString2 (trade, 'positionId', 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'timestamp');
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeNumber (trade, 'feeAmount');
         if (feeCost !== undefined) {
             fee = {
@@ -2369,7 +2369,7 @@ export default class btse extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2533,7 +2533,7 @@ export default class btse extends Exchange {
      */
     override async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2602,7 +2602,7 @@ export default class btse extends Exchange {
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2855,7 +2855,7 @@ export default class btse extends Exchange {
         // json encoded array in the query string, verified live
         request['historyTypes'] = this.json (typesList);
         params = this.omit (params, 'walletType');
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset'] = currency['id'];
@@ -3073,7 +3073,7 @@ export default class btse extends Exchange {
         const walletType = this.safeString (params, 'walletType', 'SPOT');
         request['walletType'] = walletType;
         params = this.omit (params, 'walletType');
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset'] = currency['id'];
@@ -3640,7 +3640,7 @@ export default class btse extends Exchange {
         };
         let longLeverage = undefined;
         let shortLeverage = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         for (let i = 0; i < safeResponse.length; i++) {
             const entrty = safeResponse[i];
             const leverageValue = this.safeInteger (entrty, 'leverage');
@@ -3696,7 +3696,7 @@ export default class btse extends Exchange {
         return response;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: Dict, requestHeaders: any, requestBody: any) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

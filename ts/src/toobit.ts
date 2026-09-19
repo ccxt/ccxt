@@ -1474,7 +1474,7 @@ export default class toobit extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined) {
+    override parseLastPrice (entry: Dict, market: Market = undefined) {
         const marketId = this.safeString (entry, 's');
         market = this.safeMarket (marketId, market);
         return {
@@ -1536,7 +1536,7 @@ export default class toobit extends Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseBidAskCustom (ticker: any) {
+    parseBidAskCustom (ticker: Dict) {
         // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
         // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
         const marketId = this.safeString (ticker, 's');
@@ -1660,7 +1660,7 @@ export default class toobit extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined) {
+    override parseFundingRateHistory (contract: Dict, market: Market = undefined) {
         const timestamp = this.safeInteger (contract, 'settleTime');
         const marketId = this.safeString (contract, 'symbol');
         return {
@@ -1764,7 +1764,7 @@ export default class toobit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request = {};
+        let request: Dict = {};
         let response: Dict = {};
         if (market['spot'] === true) {
             [ request, params ] = this.createOrderRequest (symbol, type, side, amount, price, params);
@@ -2718,7 +2718,7 @@ export default class toobit extends Exchange {
                 throw new BadRequest (this.id + ' fetchTradingFees requires a params["symbol"]');
             }
             market = this.market (symbol);
-            const request = {
+            const request: Dict = {
                 'symbol': market['id'],
             };
             response = await this.privateGetApiV1FuturesCommissionRate (this.extend (request, params));
@@ -2989,7 +2989,7 @@ export default class toobit extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         return {
@@ -3295,7 +3295,7 @@ export default class toobit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: Dict, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
