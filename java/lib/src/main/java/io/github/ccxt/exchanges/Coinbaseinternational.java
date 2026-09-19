@@ -502,7 +502,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object accounts = (this.fetchAccounts(new Object[0])).join();
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
-                Object account = Helpers.GetValue(accounts, i);
+                Object account = (accounts == null || i < 0 || i >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(i));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(account, "info", new HashMap<String, Object>() {{}});
                 if (java.util.Objects.equals(this.safeBool(info, "is_default"), true))
                 {
@@ -1179,7 +1179,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)networks).size(); i++)
         {
-            Map<String, Object> network = this.extend(this.parseNetwork((Map<String, Object>) (Helpers.GetValue(networks, i))), parameters);
+            Map<String, Object> network = this.extend(this.parseNetwork((Map<String, Object>) ((networks == null || i < 0 || i >= ((List<?>)networks).size() ? null : ((List<?>)networks).get(i)))), parameters);
             Helpers.addElementToObject(result, network.get("network"), network);
         }
         return result;

@@ -1072,7 +1072,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String makerString = this.safeString(makerFees, ((Map<String, Object>)market).get("id"));
                 String takerString = this.safeString(takerFees, ((Map<String, Object>)market).get("id"));

@@ -1193,7 +1193,7 @@ public class Hibachi extends HibachiApi
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -1325,7 +1325,7 @@ public class Hibachi extends HibachiApi
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String id = this.safeString(rawOrder, "id");
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
@@ -1427,7 +1427,7 @@ public class Hibachi extends HibachiApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object orderRequest = this.cancelOrderRequest(Helpers.GetValue(ids, i));
+                Object orderRequest = this.cancelOrderRequest((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
                 ((Map<String, Object>)orderRequest).put("action", "cancel");
                 ((List<Object>)orders).add(orderRequest);
             }
@@ -2689,7 +2689,7 @@ public class Hibachi extends HibachiApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i))), market));
         }
         return result;
     }

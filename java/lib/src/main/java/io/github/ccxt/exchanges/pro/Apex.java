@@ -136,7 +136,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String topic = Helpers.add("recentlyTrade.H.", ((Map<String, Object>)market).get("id2"));
                 ((List<Object>)topics).add(topic);
@@ -297,7 +297,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 if (java.util.Objects.equals(limit, null))
                 {
@@ -330,9 +330,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object newTopicsCount = 0;
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
-                if (!(((Map<?, ?>)client.subscriptions).containsKey(Helpers.GetValue(messageHashes, i))))
+                if (!(((Map<?, ?>)client.subscriptions).containsKey((messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)))))
                 {
-                    ((List<Object>)newTopics).add(Helpers.GetValue(topics, i));
+                    ((List<Object>)newTopics).add((topics == null || i < 0 || i >= ((List<?>)topics).size() ? null : ((List<?>)topics).get(i)));
                     newTopicsCount = Helpers.add(newTopicsCount, 1);
                 }
             }
@@ -640,7 +640,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Object symbolString = this.safeString(data, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 symbolString = ((Map<String, Object>)market).get("id2");
@@ -905,7 +905,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Object rawTrade = Helpers.GetValue(lists, i);
+            Object rawTrade = (lists == null || i < 0 || i >= ((List<?>)lists).size() ? null : ((List<?>)lists).get(i));
             Object parsed = this.parseWsTrade(rawTrade);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
@@ -962,7 +962,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(Helpers.GetValue(lists, i));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((lists == null || i < 0 || i >= ((List<?>)lists).size() ? null : ((List<?>)lists).get(i)));
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
@@ -1004,10 +1004,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object cache = this.positions;
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
-                Object positions = Helpers.GetValue(promises, i);
+                Object positions = (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i));
                 for (var ii = 0; ii < ((List<?>)positions).size(); ii++)
                 {
-                    Object position = Helpers.GetValue(positions, ii);
+                    Object position = (positions == null || ii < 0 || ii >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(ii));
                     Helpers.callDynamically(cache, "append", new Object[]{position});
                 }
             }
@@ -1055,7 +1055,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(lists, i);
+            Object rawPosition = (lists == null || i < 0 || i >= ((List<?>)lists).size() ? null : ((List<?>)lists).get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
             String side = this.safeString(position, "side");
             // hacky solution to handle closing positions
@@ -1079,7 +1079,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Object messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));

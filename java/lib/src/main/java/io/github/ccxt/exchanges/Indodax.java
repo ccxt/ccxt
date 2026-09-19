@@ -1506,13 +1506,13 @@ public class Indodax extends IndodaxApi
                 Object keys = new ArrayList<Object>(withdraw.keySet());
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
-                    Object key = Helpers.GetValue(keys, i);
+                    Object key = (keys == null || i < 0 || i >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(i));
                     transactions = this.arrayConcat(transactions, Helpers.GetValue(withdraw, key));
                 }
                 keys = new ArrayList<Object>(deposit.keySet());
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
-                    Object key = Helpers.GetValue(keys, i);
+                    Object key = (keys == null || i < 0 || i >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(i));
                     transactions = this.arrayConcat(transactions, Helpers.GetValue(deposit, key));
                 }
             } else

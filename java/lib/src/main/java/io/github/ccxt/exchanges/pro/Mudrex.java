@@ -137,7 +137,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                     ((List<Object>)messageHashes).add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
                     Object baseIdString = (((!java.util.Objects.equals(((Map<String, Object>)market).get("baseId"), null)))) ? ((Map<String, Object>)market).get("baseId") : "";
                     Object quoteIdString = (((!java.util.Objects.equals(((Map<String, Object>)market).get("quoteId"), null)))) ? ((Map<String, Object>)market).get("quoteId") : "";

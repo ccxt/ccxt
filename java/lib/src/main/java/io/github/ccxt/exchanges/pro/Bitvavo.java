@@ -140,7 +140,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 ((List<Object>)args).add(((String)((Map<String, Object>)market).get("id")));
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -404,7 +404,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 ((List<Object>)marketIds).add(((String)((Map<String, Object>)market).get("id")));
                 ((List<Object>)messageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
@@ -475,7 +475,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object subMessageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 ((List<Object>)marketIds).add(((String)((Map<String, Object>)market).get("id")));
                 ((List<Object>)subMessageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
@@ -635,7 +635,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> marketIdsByInterval = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market((symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0)));
                 Object timeframeString = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
@@ -725,7 +725,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> marketIdsByInterval = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market((symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0)));
                 Object timeframeString = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
@@ -837,7 +837,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 ((List<Object>)marketIds).add(((String)((Map<String, Object>)market).get("id")));
                 ((List<Object>)messageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
@@ -911,7 +911,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object subMessageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 ((List<Object>)marketIds).add(((String)((Map<String, Object>)market).get("id")));
                 ((List<Object>)subMessageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
@@ -1157,7 +1157,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             List<Object> unsubHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)subMessageHashes).size(); i++)
             {
-                ((List<Object>)unsubHashes).add(("unsubscribe:" + Helpers.GetValue(subMessageHashes, i)));
+                ((List<Object>)unsubHashes).add(("unsubscribe:" + (subMessageHashes == null || i < 0 || i >= ((List<?>)subMessageHashes).size() ? null : ((List<?>)subMessageHashes).get(i))));
             }
             Map<String, Object> subscription = this.extend(new HashMap<String, Object>() {{
                 put( "topic", topic );

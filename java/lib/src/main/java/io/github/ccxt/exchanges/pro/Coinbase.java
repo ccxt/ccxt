@@ -247,7 +247,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             symbols = this.marketSymbols(symbols, null, false);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object marketId = ((Map<String, Object>)market).get("id");
                 ((List<Object>)productIds).add(marketId);
@@ -303,7 +303,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             symbols = this.marketSymbols(symbols, null, false);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object marketId = ((Map<String, Object>)market).get("id");
                 ((List<Object>)productIds).add(marketId);

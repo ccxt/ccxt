@@ -2909,7 +2909,7 @@ public class Bybit extends BybitApi
             }
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                Object marketType = Helpers.GetValue(types, i);
+                Object marketType = (types == null || i < 0 || i >= ((List<?>)types).size() ? null : ((List<?>)types).get(i));
                 if (java.util.Objects.equals(marketType, "spot"))
                 {
                     ((List<Object>)promisesUnresolved).add(this.fetchSpotMarkets(parameters));
@@ -2942,7 +2942,7 @@ public class Bybit extends BybitApi
             Object result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
-                Object parsedMarket = Helpers.GetValue(promises, i);
+                Object parsedMarket = (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i));
                 result = this.arrayConcat(result, parsedMarket);
             }
             // const spotMarkets = this.safeList (promises, 0, []);
@@ -3190,7 +3190,7 @@ public class Bybit extends BybitApi
             String category = this.safeString(data, "category");
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
                 if (java.util.Objects.equals(category, null))
                 {
                     category = this.safeString(market, "category");
@@ -3401,7 +3401,7 @@ public class Bybit extends BybitApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseCoin");
                 String quoteId = this.safeString(market, "quoteCoin");
@@ -3723,7 +3723,7 @@ public class Bybit extends BybitApi
                 Object currentType = null;
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                     // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
                     Boolean isExchangeSpecificSymbol = ((((String)symbol).indexOf("/") == -1));
@@ -5931,7 +5931,7 @@ public class Bybit extends BybitApi
             List<Object> orderSymbols = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 ((List<Object>)orderSymbols).add(marketId);
                 String type = this.safeString(rawOrder, "type");
@@ -6188,7 +6188,7 @@ public class Bybit extends BybitApi
             Object orderSymbols = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String symbol = this.safeString(rawOrder, "symbol");
                 ((List<Object>)orderSymbols).add(symbol);
                 String id = this.safeString(rawOrder, "id");
@@ -6536,7 +6536,7 @@ public class Bybit extends BybitApi
             Object category = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = Helpers.GetValue(orders, i);
+                Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object currentCategory = null;
@@ -8626,7 +8626,7 @@ public class Bybit extends BybitApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object rawPosition = Helpers.GetValue(positions, i);
+                Object rawPosition = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                 if ((Helpers.inOp(rawPosition, "data")) && (Helpers.inOp(rawPosition, "is_valid")))
                 {
                     // futures only
@@ -10599,7 +10599,7 @@ public class Bybit extends BybitApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i))), market));
         }
         return result;
     }
@@ -10662,7 +10662,7 @@ public class Bybit extends BybitApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)volatility).size(); i++)
         {
-            Object entry = Helpers.GetValue(volatility, i);
+            Object entry = (volatility == null || i < 0 || i >= ((List<?>)volatility).size() ? null : ((List<?>)volatility).get(i));
             Long timestamp = this.safeInteger(entry, "time");
             ((List<Object>)result).add(new HashMap<String, Object>() {{
                 put( "info", volatility );

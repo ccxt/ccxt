@@ -131,7 +131,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 productIds = marketIds;
                 for (var i = 0; i < ((List<?>)parsedSymbols).size(); i++)
                 {
-                    ((List<Object>)messageHashes).add(((name + "::") + Helpers.GetValue(parsedSymbols, i)));
+                    ((List<Object>)messageHashes).add(((name + "::") + (parsedSymbols == null || i < 0 || i >= ((List<?>)parsedSymbols).size() ? null : ((List<?>)parsedSymbols).get(i))));
                 }
             } else if (java.util.Objects.equals(symbolsLength, 1))
             {

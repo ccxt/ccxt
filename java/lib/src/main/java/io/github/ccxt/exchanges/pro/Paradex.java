@@ -388,7 +388,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    String messageHash = ((channel + ".") + Helpers.GetValue(symbols, i));
+                    String messageHash = ((channel + ".") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                     ((List<Object>)messageHashes).add(messageHash);
                 }
             } else
@@ -626,7 +626,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 {
                     for (var i = 0; i < ((List<?>)symbols).size(); i++)
                     {
-                        String messageHash = ((channel + ".") + Helpers.GetValue(symbols, i));
+                        String messageHash = ((channel + ".") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                         ((List<Object>)messageHashes).add(messageHash);
                     }
                 } else

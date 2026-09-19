@@ -622,7 +622,7 @@ public class Hyperliquid extends HyperliquidApi
             Object result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
-                result = this.arrayConcat(result, Helpers.GetValue(promises, i));
+                result = this.arrayConcat(result, (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i)));
             }
             return result;
         });
@@ -726,9 +726,9 @@ public class Hyperliquid extends HyperliquidApi
             Object markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
-                Object dexName = Helpers.GetValue(fetchDexesList, i);
+                Object dexName = (fetchDexesList == null || i < 0 || i >= ((List<?>)fetchDexesList).size() ? null : ((List<?>)fetchDexesList).get(i));
                 Object offset = Helpers.GetValue(perpDexesOffset, dexName);
-                Object response = Helpers.GetValue(promises, i);
+                Object response = (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i));
                 Map<String, Object> meta = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 String collateralToken = this.safeString(meta, "collateralToken");
                 List<Object> universe = (List<Object>) this.safeList(meta, "universe", new ArrayList<Object>(Arrays.asList()));
@@ -1476,7 +1476,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object market = Helpers.GetValue(response, i);
+                Object market = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
                 Object info = Helpers.GetValue(market, "info");
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, market);
                 String symbol = this.safeString(ticker, "symbol");
@@ -2779,7 +2779,7 @@ public class Hyperliquid extends HyperliquidApi
         Boolean hasClientOrderId = false;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object rawOrder = Helpers.GetValue(orders, i);
+            Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
             Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -2791,7 +2791,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
                 if (java.util.Objects.equals(clientOrderId, null))
@@ -2806,7 +2806,7 @@ public class Hyperliquid extends HyperliquidApi
         String grouping = "na";
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object rawOrder = Helpers.GetValue(orders, i);
+            Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
             String marketId = this.safeString(rawOrder, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -3139,7 +3139,7 @@ final Object finalClientOrderId = clientOrderId;
             ((Map<String, Object>)cancelAction).put("type", "cancel");
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object o = this.parseToNumeric(Helpers.GetValue(ids, i));
+                Object o = this.parseToNumeric((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
                 ((List<Object>)cancelReq).add(new HashMap<String, Object>() {{
                     put( "a", baseId );
                     put( "o", o );
@@ -3199,7 +3199,7 @@ final Object finalClientOrderId = clientOrderId;
             Boolean cancelByCloid = false;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = Helpers.GetValue(orders, i);
+                Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String clientOrderId = this.safeString(order, "clientOrderId");
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
@@ -3323,7 +3323,7 @@ final Object finalClientOrderId = clientOrderId;
         Boolean hasClientOrderId = false;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object rawOrder = Helpers.GetValue(orders, i);
+            Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
             Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -3335,7 +3335,7 @@ final Object finalClientOrderId = clientOrderId;
         {
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
                 if (java.util.Objects.equals(clientOrderId, null))
@@ -3348,7 +3348,7 @@ final Object finalClientOrderId = clientOrderId;
         List<Object> modifies = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object rawOrder = Helpers.GetValue(orders, i);
+            Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
             String id = this.safeString(rawOrder, "id");
             String marketId = this.safeString(rawOrder, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(marketId);
@@ -3688,7 +3688,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             for (var i = 0; i < ((List<?>)fundings).size(); i++)
             {
-                Object entry = Helpers.GetValue(fundings, i);
+                Object entry = (fundings == null || i < 0 || i >= ((List<?>)fundings).size() ? null : ((List<?>)fundings).get(i));
                 Long timestamp = this.safeInteger(entry, "time");
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "info", entry );
@@ -3791,7 +3791,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
             {
-                Object order = Helpers.GetValue(rawOrders, i);
+                Object order = (rawOrders == null || i < 0 || i >= ((List<?>)rawOrders).size() ? null : ((List<?>)rawOrders).get(i));
                 Map<String, Object> extendOrder = new HashMap<String, Object>() {{}};
                 if (java.util.Objects.equals(this.safeString(order, "status"), null))
                 {
@@ -3972,7 +3972,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             for (var i = 0; i < ((List<?>)historicalOrders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(historicalOrders, i);
+                Object rawOrder = (historicalOrders == null || i < 0 || i >= ((List<?>)historicalOrders).size() ? null : ((List<?>)historicalOrders).get(i));
                 Object entry = this.safeDict(rawOrder, "order");
                 if (java.util.Objects.equals(entry, null))
                 {
@@ -4509,11 +4509,11 @@ final Object finalClientOrderId = clientOrderId;
         {
             if (java.util.Objects.equals(dexName, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 dexName = this.getDexFromHip3Symbol((Map<String, Object>) (market));
             } else
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 String currentDexName = this.getDexFromHip3Symbol((Map<String, Object>) (market));
                 if (!java.util.Objects.equals(currentDexName, dexName))
                 {
@@ -5621,7 +5621,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 for (var i = 0; i < ((List<?>)records).size(); i++)
                 {
-                    Object record = Helpers.GetValue(records, i);
+                    Object record = (records == null || i < 0 || i >= ((List<?>)records).size() ? null : ((List<?>)records).get(i));
                     if (java.util.Objects.equals(((Map<String, Object>)record).get("type"), "vaultDeposit"))
                     {
                         Map<String, Object> delta = (Map<String, Object>) this.safeDict(record, "delta", new HashMap<String, Object>() {{}});
@@ -5715,7 +5715,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 for (var i = 0; i < ((List<?>)records).size(); i++)
                 {
-                    Object record = Helpers.GetValue(records, i);
+                    Object record = (records == null || i < 0 || i >= ((List<?>)records).size() ? null : ((List<?>)records).get(i));
                     if (java.util.Objects.equals(((Map<String, Object>)record).get("type"), "vaultWithdraw"))
                     {
                         Map<String, Object> delta = (Map<String, Object>) this.safeDict(record, "delta", new HashMap<String, Object>() {{}});
@@ -6013,7 +6013,7 @@ final Object finalClientOrderId = clientOrderId;
         List<Object> records = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object record = Helpers.GetValue(data, i);
+            Object record = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
             ((Map<String, Object>)record).put("type", Helpers.GetValue(((Map<String, Object>)record).get("delta"), "type"));
             ((List<Object>)records).add(record);
         }

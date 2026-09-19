@@ -1191,7 +1191,7 @@ public class Btse extends BtseApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rates).size(); i++)
             {
-                Object rate = Helpers.GetValue(rates, i);
+                Object rate = (rates == null || i < 0 || i >= ((List<?>)rates).size() ? null : ((List<?>)rates).get(i));
                 Long timestamp = this.safeInteger(rate, "timestamp");
                 if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isLessThanOrEqual(timestamp, until)))
                 {
@@ -3493,7 +3493,7 @@ public class Btse extends BtseApi
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawRows).size(); i++)
             {
-                Object entry = Helpers.GetValue(rawRows, i);
+                Object entry = (rawRows == null || i < 0 || i >= ((List<?>)rawRows).size() ? null : ((List<?>)rawRows).get(i));
                 String type = this.safeString(entry, "type", "");
                 if (allowed.containsKey(type))
                 {
@@ -4521,7 +4521,7 @@ public class Btse extends BtseApi
         }
         for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Object row = Helpers.GetValue(rows, i);
+            Object row = (rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i));
             String status = this.safeString(row, "status");
             if (!java.util.Objects.equals(status, null))
             {

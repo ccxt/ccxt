@@ -449,7 +449,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var i = 0; i < ((List<?>)messages).size(); i++)
         {
-            this.handleOrderBookMessage(client, (Map<String, Object>) (Helpers.GetValue(messages, i)), orderbook);
+            this.handleOrderBookMessage(client, (Map<String, Object>) ((messages == null || i < 0 || i >= ((List<?>)messages).size() ? null : ((List<?>)messages).get(i))), orderbook);
         }
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);

@@ -1392,7 +1392,7 @@ public class Phemex extends PhemexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)products).size(); i++)
             {
-                Object market = Helpers.GetValue(products, i);
+                Object market = (products == null || i < 0 || i >= ((List<?>)products).size() ? null : ((List<?>)products).get(i));
                 String type = this.safeStringLower(market, "type");
                 if ((java.util.Objects.equals(type, "perpetual")) || (java.util.Objects.equals(type, "perpetualv2")) || (java.util.Objects.equals(type, "perpetualpilot")))
                 {

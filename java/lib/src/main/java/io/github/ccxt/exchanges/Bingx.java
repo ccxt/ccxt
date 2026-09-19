@@ -4264,7 +4264,7 @@ public class Bingx extends BingxApi
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol", "");
                 String type = this.safeString(rawOrder, "type");
                 ((List<Object>)marketIds).add(marketId);
@@ -5100,7 +5100,7 @@ public class Bingx extends BingxApi
             Object parsedIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)idsToParse).size(); i++)
             {
-                Object id = Helpers.GetValue(idsToParse, i);
+                Object id = (idsToParse == null || i < 0 || i >= ((List<?>)idsToParse).size() ? null : ((List<?>)idsToParse).get(i));
                 Object stringId = String.valueOf(id);
                 ((List<Object>)parsedIds).add(stringId);
             }
@@ -6922,7 +6922,7 @@ public class Bingx extends BingxApi
                 Object arrStr = "[";
                 for (var j = 0; j < ((List<?>)value).size(); j++)
                 {
-                    Object arrayElement = Helpers.GetValue(value, j);
+                    Object arrayElement = (value == null || j < 0 || j >= ((List<?>)value).size() ? null : ((List<?>)value).get(j));
                     if (Helpers.isGreaterThan(j, 0))
                     {
                         arrStr = (arrStr + ",");
@@ -7564,7 +7564,7 @@ public class Bingx extends BingxApi
                 Object arrStr = null;
                 for (var j = 0; j < ((List<?>)value).size(); j++)
                 {
-                    Object arrayElement = Helpers.GetValue(value, j);
+                    Object arrayElement = (value == null || j < 0 || j >= ((List<?>)value).size() ? null : ((List<?>)value).get(j));
                     Boolean isString = ((arrayElement instanceof String));
                     if (Boolean.TRUE.equals(isString))
                     {

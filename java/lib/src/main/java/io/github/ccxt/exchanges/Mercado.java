@@ -1268,7 +1268,7 @@ public class Mercado extends MercadoApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            List<Object> trades = (List<Object>) this.safeList(Helpers.GetValue(orders, i), "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var y = 0; y < ((List<?>)trades).size(); y++)
             {
                 ((List<Object>)result).add((trades == null || y < 0 || y >= trades.size() ? null : trades.get(y)));

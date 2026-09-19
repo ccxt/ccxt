@@ -1012,7 +1012,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object cache = this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = Helpers.GetValue(positions, i);
+                Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
                 if ((!java.util.Objects.equals(contracts, null)) && (Helpers.isGreaterThan(contracts, 0)))
                 {
@@ -1074,7 +1074,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Object messageHashes = this.findMessageHashes(client, "position::contract");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -1258,7 +1258,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Object messageHashes = this.findMessageHashes(client, (messageHashStart + "::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 2);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));

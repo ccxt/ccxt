@@ -294,7 +294,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    ((List<Object>)messageHashes).add(("deals::" + Helpers.GetValue(symbols, i)));
+                    ((List<Object>)messageHashes).add(("deals::" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
                 }
             }
             Object marketIds = this.marketIds(symbols);

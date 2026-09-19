@@ -1991,7 +1991,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -2403,7 +2403,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> orderRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object id = Helpers.GetValue(ids, i);
+                Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
                 Map<String, Object> order = new HashMap<String, Object>() {{
                     put( "instrument_name", ((Map<String, Object>)market).get("id") );
                     put( "order_id", String.valueOf(id) );
@@ -2443,7 +2443,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> orderRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = Helpers.GetValue(orders, i);
+                Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String id = this.safeString(order, "id");
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -3880,7 +3880,7 @@ public class Cryptocom extends CryptocomApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i))), market));
         }
         return result;
     }
@@ -4299,7 +4299,7 @@ public class Cryptocom extends CryptocomApi
             {
                 for (var j = 0; j < ((List<?>)value).size(); j++)
                 {
-                    returnString = Helpers.add(returnString, this.paramsToString(Helpers.GetValue(value, j), Helpers.add(level, 1)));
+                    returnString = Helpers.add(returnString, this.paramsToString((value == null || j < 0 || j >= ((List<?>)value).size() ? null : ((List<?>)value).get(j)), Helpers.add(level, 1)));
                 }
             } else
             {
@@ -4468,7 +4468,7 @@ public class Cryptocom extends CryptocomApi
         ((Map<String, Object>)result).put("info", response);
         for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
         {
-            Object symbol = Helpers.GetValue(this.symbols, i);
+            Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object isSwap = ((Map<String, Object>)market).get("swap");
             String takerFeeKey = (((java.util.Objects.equals(isSwap, true)))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";

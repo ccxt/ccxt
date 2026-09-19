@@ -516,9 +516,9 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 ((List<Object>)topics).add(((topic + ".") + marketId));
-                ((List<Object>)messageHashes).add(("ticker:" + Helpers.GetValue(symbols, i)));
+                ((List<Object>)messageHashes).add(("ticker:" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
             }
             Object ticker = (this.watchTopics(url, messageHashes, topics, parameters)).join();
             if (this.newUpdates)
@@ -562,8 +562,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)topics).add(((topic + ".") + marketId));
                 ((List<Object>)subMessageHashes).add(("ticker:" + symbol));
                 ((List<Object>)messageHashes).add(("unsubscribe:ticker:" + symbol));
@@ -775,10 +775,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 String topic = ("orderbook.1." + marketId);
                 ((List<Object>)topics).add(topic);
-                ((List<Object>)messageHashes).add(("bidask:" + Helpers.GetValue(symbols, i)));
+                ((List<Object>)messageHashes).add(("bidask:" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
             }
             Object ticker = (this.watchTopics(url, messageHashes, topics, parameters)).join();
             if (this.newUpdates)
@@ -871,7 +871,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)));
                 Object symbolString = ((Map<String, Object>)market).get("symbol");
                 Object unfiedTimeframe = (data == null || 1 >= ((List<?>)data).size() ? null : ((List<?>)data).get(1));
@@ -922,7 +922,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)));
                 Object symbolString = ((Map<String, Object>)market).get("symbol");
                 Object unfiedTimeframe = (data == null || 1 >= ((List<?>)data).size() ? null : ((List<?>)data).get(1));
@@ -1122,7 +1122,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Object marketId = this.marketId(symbol);
                 Object topic = ((("orderbook." + String.valueOf(limit)) + ".") + marketId);
                 ((List<Object>)topics).add(topic);
@@ -1172,7 +1172,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object marketId = ((Map<String, Object>)market).get("id");
                 Object topic = ((channel + ".") + marketId);
@@ -1358,7 +1358,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String topic = ("publicTrade." + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(topic);
@@ -1403,7 +1403,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object subMessageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String topic = ("publicTrade." + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(topic);
@@ -1807,7 +1807,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object rawTrade = Helpers.GetValue(data, i);
+            Object rawTrade = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
             Object parsed = null;
             if (Boolean.TRUE.equals(spot) && !Boolean.TRUE.equals(executionFast))
             {
@@ -1941,10 +1941,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object cache = this.positions;
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
-                Object positions = Helpers.GetValue(promises, i);
+                Object positions = (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i));
                 for (var ii = 0; ii < ((List<?>)positions).size(); ii++)
                 {
-                    Object position = Helpers.GetValue(positions, ii);
+                    Object position = (positions == null || ii < 0 || ii >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(ii));
                     Helpers.callDynamically(cache, "append", new Object[]{position});
                 }
             }
@@ -2034,7 +2034,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Object messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -2454,7 +2454,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(Helpers.GetValue(rawOrders, i));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= ((List<?>)rawOrders).size() ? null : ((List<?>)rawOrders).get(i)));
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {
@@ -2737,7 +2737,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
         for (var i = 0; i < ((List<?>)rawBalances).size(); i++)
         {
-            this.parseWsBalance((Map<String, Object>) (Helpers.GetValue(rawBalances, i)), account);
+            this.parseWsBalance((Map<String, Object>) ((rawBalances == null || i < 0 || i >= ((List<?>)rawBalances).size() ? null : ((List<?>)rawBalances).get(i))), account);
         }
         if (!java.util.Objects.equals(account, null))
         {
@@ -2846,7 +2846,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 for (var i = 0; Helpers.isLessThan(i, topicsLength); i++)
                 {
-                    Object messageHash = Helpers.GetValue(messageHashes, i);
+                    Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
                     if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                     {
                         ((List<Object>)newTopics).add(Helpers.GetValue(topics, i));

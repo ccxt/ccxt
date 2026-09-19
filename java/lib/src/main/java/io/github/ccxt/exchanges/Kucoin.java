@@ -2318,7 +2318,7 @@ public class Kucoin extends KucoinApi
             Object result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsData).size(); i++)
             {
-                Object market = Helpers.GetValue(symbolsData, i);
+                Object market = (symbolsData == null || i < 0 || i >= ((List<?>)symbolsData).size() ? null : ((List<?>)symbolsData).get(i));
                 String id = this.safeString(market, "symbol");
                 if (java.util.Objects.equals(id, null))
                 {
@@ -3055,7 +3055,7 @@ public class Kucoin extends KucoinApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object account = Helpers.GetValue(data, i);
+                Object account = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
                 String accountId = this.safeString(account, "id");
                 String currencyId = this.safeString(account, "currency");
                 String code = this.safeCurrencyCode(currencyId);
@@ -5769,7 +5769,7 @@ public class Kucoin extends KucoinApi
             String symbol = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(marketId, null))
                 {
@@ -5884,7 +5884,7 @@ public class Kucoin extends KucoinApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String symbol = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -11583,7 +11583,7 @@ public class Kucoin extends KucoinApi
         Map<String, Object> borrowRateHistories = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object item = Helpers.GetValue(response, i);
+            Object item = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             String code = this.safeCurrencyCode(this.safeString(item, "currency"));
             if ((!java.util.Objects.equals(code, null)) && (java.util.Objects.equals(codes, null) || this.inArray(code, codes)))
             {
@@ -12585,7 +12585,7 @@ public class Kucoin extends KucoinApi
             List<Object> fees = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)dataList).size(); i++)
             {
-                Object listItem = Helpers.GetValue(dataList, i);
+                Object listItem = (dataList == null || i < 0 || i >= ((List<?>)dataList).size() ? null : ((List<?>)dataList).get(i));
                 Long timestamp = (Long) this.safeInteger2(listItem, "timePoint", "settlementTime");
                 String marketId = this.safeString(listItem, "symbol");
     final Object finalMarket = market;
@@ -13185,7 +13185,7 @@ public class Kucoin extends KucoinApi
             }
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object orderId = Helpers.GetValue(ids, i);
+                Object orderId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
                 if (Helpers.isTrue(uta))
                 {
     final Object finalMarket = market;
@@ -13195,7 +13195,7 @@ public class Kucoin extends KucoinApi
                     }});
                 } else
                 {
-                    ((List<Object>)ordersRequests).add(Helpers.GetValue(ids, i));
+                    ((List<Object>)ordersRequests).add((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};

@@ -1041,7 +1041,7 @@ public class Coinbase extends CoinbaseApi
                 (this.loadAccounts()).join();
                 for (var i = 0; i < ((List<?>)this.accounts).size(); i++)
                 {
-                    Object account = Helpers.GetValue(this.accounts, i);
+                    Object account = (this.accounts == null || i < 0 || i >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(i));
                     if (java.util.Objects.equals(((Map<String, Object>)account).get("code"), code) && java.util.Objects.equals(((Map<String, Object>)account).get("type"), "wallet"))
                     {
                         accountId = ((Map<String, Object>)account).get("id");
@@ -3533,7 +3533,7 @@ public class Coinbase extends CoinbaseApi
             (this.loadAccounts((Object)(false), (Object)(parameters))).join();
             for (var i = 0; i < ((List<?>)this.accounts).size(); i++)
             {
-                Object account = Helpers.GetValue(this.accounts, i);
+                Object account = (this.accounts == null || i < 0 || i >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(i));
                 if (java.util.Objects.equals(((Map<String, Object>)account).get("code"), code))
                 {
                     return ((Map<String, Object>)account).get("id");
@@ -5646,7 +5646,7 @@ public class Coinbase extends CoinbaseApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
-            Map<String, Object> id = this.extend(this.parseDepositMethodId((Map<String, Object>) (Helpers.GetValue(ids, i))), parameters);
+            Map<String, Object> id = this.extend(this.parseDepositMethodId((Map<String, Object>) ((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)))), parameters);
             ((List<Object>)result).add(id);
         }
         return result;
@@ -6230,7 +6230,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 if ((Boolean.TRUE.equals(isSpot) && (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))) || (!Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))))
                 {

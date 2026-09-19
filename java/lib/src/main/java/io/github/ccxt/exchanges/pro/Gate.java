@@ -887,7 +887,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
         {
-            Object bidAsk = Helpers.GetValue(bidAsks, i);
+            Object bidAsk = (bidAsks == null || i < 0 || i >= ((List<?>)bidAsks).size() ? null : ((List<?>)bidAsks).get(i));
             if ((bidAsk instanceof List))
             {
                 Helpers.callDynamically(bookSide, "storeArray", new Object[]{this.parseOrderBookBidAsk(bidAsk)});
@@ -1073,7 +1073,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(Helpers.add((prefix + ":"), symbol));
             }
             Object tickerOrBidAsk = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, (String) (channel), parameters)).join();
@@ -1108,7 +1108,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Boolean isTicker = (java.util.Objects.equals(objectName, "ticker")); // whether ticker or bid-ask
         for (var i = 0; i < ((List<?>)results).size(); i++)
         {
-            Object rawTicker = Helpers.GetValue(results, i);
+            Object rawTicker = (results == null || i < 0 || i >= ((List<?>)results).size() ? null : ((List<?>)results).get(i));
             String marketId = this.safeString(rawTicker, "s");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_", marketType);
             Map<String, Object> parsedItem = (Map<String, Object>) this.parseTicker(rawTicker, market);
@@ -1192,7 +1192,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(("trades:" + symbol));
             }
             Object url = this.getUrlByMarket(market);
@@ -1235,7 +1235,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)subMessageHashes).add(("trades:" + symbol));
                 ((List<Object>)messageHashes).add(("unsubscribe:trades:" + symbol));
             }
@@ -1815,7 +1815,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object cache = Helpers.GetValue(this.positions, type);
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = Helpers.GetValue(positions, i);
+                Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
                 if ((!java.util.Objects.equals(contracts, null)) && (Helpers.isGreaterThan(contracts, 0)))
                 {
@@ -1909,7 +1909,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Object messageHashes = this.findMessageHashes(client, (type + ":positions::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));

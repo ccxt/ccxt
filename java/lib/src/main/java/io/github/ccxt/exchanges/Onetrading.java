@@ -900,7 +900,7 @@ public class Onetrading extends OnetradingApi
         List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)feeTiers).size(); i++)
         {
-            Object tier = Helpers.GetValue(feeTiers, i);
+            Object tier = (feeTiers == null || i < 0 || i >= ((List<?>)feeTiers).size() ? null : ((List<?>)feeTiers).get(i));
             Double volume = this.safeNumber(tier, "volume");
             String taker = this.safeString(tier, "taker_fee");
             String maker = this.safeString(tier, "maker_fee");

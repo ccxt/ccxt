@@ -490,10 +490,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 if (Boolean.TRUE.equals(isSpot))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                     ((List<Object>)topics).add(("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + ((Map<String, Object>)market).get("id")));
                 }
-                ((List<Object>)messageHashes).add(("bidask:" + Helpers.GetValue(symbols, i)));
+                ((List<Object>)messageHashes).add(("bidask:" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
             }
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1223,10 +1223,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object parsedTrade = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                parsedTrade = this.parseWsTrade(Helpers.GetValue(trades, j), market);
+                parsedTrade = this.parseWsTrade((trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j)), market);
             } else
             {
-                parsedTrade = this.parseTrade(Helpers.GetValue(trades, j), market);
+                parsedTrade = this.parseTrade((trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j)), market);
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
         }
@@ -2095,10 +2095,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 if (Boolean.TRUE.equals(isSpot))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                     ((List<Object>)topics).add(("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + ((Map<String, Object>)market).get("id")));
                 }
-                ((List<Object>)messageHashes).add(("unsubscribe:bidask:" + Helpers.GetValue(symbols, i)));
+                ((List<Object>)messageHashes).add(("unsubscribe:bidask:" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
             }
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2263,7 +2263,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     {
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
             if (((String)messageHash).indexOf("ticker") >= 0)

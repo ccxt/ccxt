@@ -6416,7 +6416,7 @@ final Object finalMarket = market;
         Map<String, Object> breakBySymbolSide = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)breakList).size(); i++)
         {
-            Object breakEntry = Helpers.GetValue(breakList, i);
+            Object breakEntry = (breakList == null || i < 0 || i >= ((List<?>)breakList).size() ? null : ((List<?>)breakList).get(i));
             // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which

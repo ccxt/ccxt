@@ -1108,7 +1108,7 @@ public class Coinsph extends CoinsphApi
                 List<Object> ids = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                     Object id = ((Map<String, Object>)market).get("id");
                     ((List<Object>)ids).add(id);
                 }

@@ -481,7 +481,7 @@ public class Zebpay extends ZebpayApi
             Object types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                Object type = Helpers.GetValue(types, i);
+                Object type = (types == null || i < 0 || i >= ((List<?>)types).size() ? null : ((List<?>)types).get(i));
                 if (java.util.Objects.equals(type, "spot"))
                 {
                     ((List<Object>)promisesUnresolved).add(this.fetchSpotMarkets(parameters));

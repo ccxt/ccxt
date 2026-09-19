@@ -3666,7 +3666,7 @@ public class Woo extends WooApi
         } else
         {
             List<Object> parts = (List<Object>) Helpers.split(networkizedCode, "_");
-            Object partsLength = Helpers.getArrayLength(parts);
+            Object partsLength = (parts == null ? 0 : parts.size());
             String firstPart = this.safeString(parts, 0);
             String currencyId = this.safeString(parts, 1, firstPart);
             if (Helpers.isGreaterThan(partsLength, 2))

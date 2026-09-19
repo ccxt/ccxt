@@ -94,8 +94,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Object messageHash = Helpers.add((channel + ":"), symbol);
                 ((List<Object>)messageHashes).add(messageHash);
                 if (!(Helpers.inOp(subscriptions, messageHash)))

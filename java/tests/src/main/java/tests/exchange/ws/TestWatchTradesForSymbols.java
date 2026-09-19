@@ -52,7 +52,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
                 Assert((response instanceof List), ((logText + "must return an array. ") + exchange.json(response)));
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    Object trade = Helpers.GetValue(response, i);
+                    Object trade = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
                     Object symbol = ((Map<String, Object>)trade).get("symbol");
                     Assert(!java.util.Objects.equals(symbol, null), ((logText + "returned a trade without a symbol ") + exchange.json(trade)));
                     TestTrade.testTrade(exchange, skippedProperties, method, trade, ((String)symbol), now, true);

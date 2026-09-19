@@ -46,7 +46,7 @@ public class TestFetchCurrencies extends BaseTest {
             // loop
             for (var i = 0; Helpers.isLessThan(i, currenciesLength); i++)
             {
-                Object currency = Helpers.GetValue(values, i);
+                Object currency = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
                 TestCurrency.testCurrency(exchange, skippedProperties, method, currency);
                 // detailed check for deposit/withdraw
                 Object active = exchange.safeBool(currency, "active");

@@ -91,7 +91,7 @@ public class TestSharedMethods extends BaseTest {
             for (var i = 0; i < ((List<?>)format).size(); i++)
             {
                 Boolean emptyAllowedForThisKey = (java.util.Objects.equals(emptyAllowedFor, null)) || Helpers.isTrue(exchange.inArray(i, emptyAllowedFor));
-                Object value = Helpers.GetValue(entry, i);
+                Object value = (entry == null || i < 0 || i >= ((List<?>)entry).size() ? null : ((List<?>)entry).get(i));
                 // check when:
                 // - it's not inside "allowe empty values" list
                 // - it's not undefined
@@ -436,7 +436,7 @@ public class TestSharedMethods extends BaseTest {
             if (Helpers.isGreaterThan(i, 0))
             {
                 Object currentTs = Helpers.GetValue(Helpers.GetValue(items, Helpers.subtract(i, 1)), "timestamp");
-                Object nextTs = Helpers.GetValue(Helpers.GetValue(items, i), "timestamp");
+                Object nextTs = Helpers.GetValue((items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), "timestamp");
                 if (!java.util.Objects.equals(currentTs, null) && !java.util.Objects.equals(nextTs, null))
                 {
                     String ascendingOrDescending = ((Helpers.isTrue(ascending))) ? "ascending" : "descending";
@@ -719,11 +719,11 @@ public class TestSharedMethods extends BaseTest {
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)a).size(); i++)
             {
-                ((List<Object>)result).add(Helpers.GetValue(a, i));
+                ((List<Object>)result).add((a == null || i < 0 || i >= ((List<?>)a).size() ? null : ((List<?>)a).get(i)));
             }
             for (var j = 0; j < ((List<?>)b).size(); j++)
             {
-                ((List<Object>)result).add(Helpers.GetValue(b, j));
+                ((List<Object>)result).add((b == null || j < 0 || j >= ((List<?>)b).size() ? null : ((List<?>)b).get(j)));
             }
             return result;
         }

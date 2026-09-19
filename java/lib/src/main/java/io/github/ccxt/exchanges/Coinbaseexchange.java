@@ -1538,7 +1538,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -2486,7 +2486,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 response = this.toArray(transfers);
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    String account_id = this.safeString(Helpers.GetValue(response, i), "account_id");
+                    String account_id = this.safeString((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), "account_id");
                     Map<String, Object> account = (Map<String, Object>) this.safeDict(this.accountsById, account_id);
                     String codeInner = this.safeString(account, "code");
                     Helpers.addElementToObject(Helpers.GetValue(response, i), "currency", codeInner);

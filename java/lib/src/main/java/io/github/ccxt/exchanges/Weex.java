@@ -1494,7 +1494,7 @@ public class Weex extends WeexApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object rawTicker = Helpers.GetValue(response, i);
+                Object rawTicker = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
                 // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
                 String marketId = this.safeString(rawTicker, "symbol");
                 Map<String, Object> tickerMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);

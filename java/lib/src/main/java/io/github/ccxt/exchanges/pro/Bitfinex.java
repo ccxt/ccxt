@@ -1091,7 +1091,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Map<String, Object> updatedTypes = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object rawBalance = Helpers.GetValue(data, i);
+            Object rawBalance = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
             String currencyId = this.safeString(rawBalance, 1);
             String code = this.safeCurrencyCode(currencyId);
             Object balance = this.parseWsBalance(rawBalance);

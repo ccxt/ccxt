@@ -172,7 +172,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    ((List<Object>)messageHashes).add(((messageHashPrefix + "::") + Helpers.GetValue(symbols, i)));
+                    ((List<Object>)messageHashes).add(((messageHashPrefix + "::") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
                 }
             } else
             {
@@ -446,7 +446,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object marketId = this.marketId(Helpers.GetValue(symbols, i));
+                    Object marketId = this.marketId((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                     if (!java.util.Objects.equals(marketId, null))
                     {
                         ((List<Object>)marketIds).add(marketId);
@@ -794,7 +794,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object trades = this.parseWsTrades(Helpers.GetValue(data, marketId), market);
             for (var j = 0; j < ((List<?>)trades).size(); j++)
             {
-                Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(trades, j)});
+                Helpers.callDynamically(stored, "append", new Object[]{(trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j))});
             }
             String messageHash = ("trades::" + symbol);
             client.resolve(stored, messageHash);
@@ -954,7 +954,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object ohlcvs = this.parseWsOHLCVs(Helpers.GetValue(data, marketId), market);
             for (var j = 0; j < ((List<?>)ohlcvs).size(); j++)
             {
-                Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(ohlcvs, j)});
+                Helpers.callDynamically(stored, "append", new Object[]{(ohlcvs == null || j < 0 || j >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(j))});
             }
             String messageHash = ("candles::" + symbol);
             client.resolve(stored, messageHash);
@@ -1103,7 +1103,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         {
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object order = Helpers.GetValue(data, i);
+                Object order = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
                 this.handleOrderHelper(client, (Map<String, Object>) (message), (Map<String, Object>) (order));
             }
         } else
@@ -1591,7 +1591,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(Helpers.GetValue(result, i));
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((result == null || i < 0 || i >= ((List<?>)result).size() ? null : ((List<?>)result).get(i)));
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);

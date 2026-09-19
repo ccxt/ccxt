@@ -600,7 +600,7 @@ public class Deepcoin extends DeepcoinApi
             promises = (Helpers.promiseAll(promises)).join();
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
-                result = this.arrayConcat(result, Helpers.GetValue(promises, i));
+                result = this.arrayConcat(result, (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i)));
             }
             return result;
         });
@@ -1590,7 +1590,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 for (var i = 0; Helpers.isLessThan(i, length); i++)
                 {
-                    Object entry = Helpers.GetValue(addressess, i);
+                    Object entry = (addressess == null || i < 0 || i >= ((List<?>)addressess).size() ? null : ((List<?>)addressess).get(i));
                     if (java.util.Objects.equals(((Map<String, Object>)entry).get("network"), network))
                     {
                         address = entry;

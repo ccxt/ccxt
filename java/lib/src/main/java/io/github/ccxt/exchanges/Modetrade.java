@@ -2207,7 +2207,7 @@ public class Modetrade extends ModetradeApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(marketId, null))
                 {

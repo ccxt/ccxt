@@ -3079,7 +3079,7 @@ public class Coinex extends CoinexApi
             Boolean isStopLossOrTakeProfitTrigger = false;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -3219,7 +3219,7 @@ public class Coinex extends CoinexApi
             List<Object> requestIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                ((List<Object>)requestIds).add(Helpers.parseInt(Helpers.GetValue(ids, i)));
+                ((List<Object>)requestIds).add(Helpers.parseInt((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))));
             }
             if (java.util.Objects.equals(trigger, true))
             {
@@ -3381,7 +3381,7 @@ public class Coinex extends CoinexApi
             Object orderSymbols = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 if (!java.util.Objects.equals(marketId, null))
@@ -6475,7 +6475,7 @@ final Object finalI = i;
         {
             List<Object> parts = (List<Object>) Helpers.split(path, "/");
             String firstPart = this.safeString(parts, 0, "");
-            Object numParts = Helpers.getArrayLength(parts);
+            Object numParts = (parts == null ? 0 : parts.size());
             String lastPart = this.safeString(parts, Helpers.subtract(numParts, 1), "");
             Object lastWords = new ArrayList<Object>(Arrays.asList(((String)lastPart).split(java.util.regex.Pattern.quote("_"))));
             Object numWords = ((List<?>)lastWords).size();

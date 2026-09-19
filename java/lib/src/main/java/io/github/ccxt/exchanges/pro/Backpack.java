@@ -148,7 +148,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         this.watchMultiple(url, messageHashes, message, messageHashes, null);
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
             if (((String)messageHash).indexOf("ticker") >= 0)
@@ -310,7 +310,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Object marketId = this.marketId(symbol);
                 ((List<Object>)messageHashes).add(("ticker:" + symbol));
                 ((List<Object>)topics).add(("ticker." + marketId));
@@ -346,7 +346,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Object marketId = this.marketId(symbol);
                 ((List<Object>)topics).add(("ticker." + marketId));
                 ((List<Object>)messageHashes).add(("unsubscribe:ticker:" + symbol));
@@ -458,7 +458,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Object marketId = this.marketId(symbol);
                 ((List<Object>)topics).add(("bookTicker." + marketId));
                 ((List<Object>)messageHashes).add(("bidask:" + symbol));
@@ -493,7 +493,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Object marketId = this.marketId(symbol);
                 ((List<Object>)topics).add(("bookTicker." + marketId));
                 ((List<Object>)messageHashes).add(("unsubscribe:bidask:" + symbol));
@@ -648,7 +648,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
@@ -698,7 +698,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
@@ -855,7 +855,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Object marketId = this.marketId(symbol);
                 ((List<Object>)topics).add(("trade." + marketId));
                 ((List<Object>)messageHashes).add(("trades:" + symbol));
@@ -902,7 +902,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Object marketId = this.marketId(symbol);
                 ((List<Object>)topics).add(("trade." + marketId));
                 ((List<Object>)messageHashes).add(("unsubscribe:trades:" + symbol));
@@ -1069,9 +1069,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(("orderbook:" + symbol));
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 String topic = ("depth." + marketId);
                 ((List<Object>)topics).add(topic);
             }
@@ -1125,9 +1125,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + symbol));
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 String topic = ("depth." + marketId);
                 ((List<Object>)topics).add(topic);
             }
@@ -1205,7 +1205,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
         for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
         {
-            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= ((List<?>)bidAsks).size() ? null : ((List<?>)bidAsks).get(i)));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
         }
     }
@@ -1512,7 +1512,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add((("positions" + ":") + symbol));
                     ((List<Object>)topics).add(("account.positionUpdate." + this.marketId(symbol)));
                 }
@@ -1558,7 +1558,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add((("unsubscribe:positions" + ":") + symbol));
                     ((List<Object>)topics).add(("account.positionUpdate." + this.marketId(symbol)));
                 }

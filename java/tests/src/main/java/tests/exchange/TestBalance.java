@@ -40,7 +40,7 @@ public class TestBalance extends BaseTest {
         Assert((java.util.Objects.equals(codesLength, freeLength)) || (java.util.Objects.equals(codesLength, usedLength)), ("free and total and used codes have different lengths" + logText));
         for (var i = 0; i < ((List<?>)allCodes).size(); i++)
         {
-            Object code = Helpers.GetValue(allCodes, i);
+            Object code = (allCodes == null || i < 0 || i >= ((List<?>)allCodes).size() ? null : ((List<?>)allCodes).get(i));
             // TestSharedMethods.AssertCurrencyCode (exchange, skippedProperties, method, entry, code);
             Assert(Helpers.inOp(((Map<String, Object>)entry).get("total"), code), ((Helpers.add("code ", code) + " not in total") + logText));
             Assert(Helpers.inOp(((Map<String, Object>)entry).get("free"), code), ((Helpers.add("code ", code) + " not in free") + logText));

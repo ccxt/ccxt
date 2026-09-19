@@ -1083,7 +1083,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             // algoexecutionreport
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object order = Helpers.GetValue(data, i);
+                Object order = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
                 String tradeIdStr = this.safeString(data, "tradeId");
                 Object tradeId = (((java.util.Objects.equals(tradeIdStr, null)))) ? null : this.omitZero(tradeIdStr);
                 if (!java.util.Objects.equals(tradeId, null))
@@ -1221,7 +1221,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add(("positions::" + symbol));
                 }
             } else
@@ -1280,7 +1280,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Object cache = this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = Helpers.GetValue(positions, i);
+                Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                 String contracts = this.safeString(position, "contracts", "0");
                 if (Precise.stringGt(contracts, "0"))
                 {

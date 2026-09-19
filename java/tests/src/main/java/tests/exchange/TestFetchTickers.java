@@ -57,7 +57,7 @@ public class TestFetchTickers extends BaseTest {
         for (var i = 0; i < ((List<?>)values).size(); i++)
         {
             // todo: symbol check here
-            Object ticker = Helpers.GetValue(values, i);
+            Object ticker = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
             try
             {
                 TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);

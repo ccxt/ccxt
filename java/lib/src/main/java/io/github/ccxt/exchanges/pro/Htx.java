@@ -2025,7 +2025,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Object messageHashes = this.findMessageHashes(client, Helpers.GetValue(prefixes, i));
                 for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                 {
-                    client.resolve(new ArrayList<Object>(Arrays.asList()), Helpers.GetValue(messageHashes, j));
+                    client.resolve(new ArrayList<Object>(Arrays.asList()), (messageHashes == null || j < 0 || j >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(j)));
                 }
             }
             return;
@@ -2063,7 +2063,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Object messageHashes = this.findMessageHashes(client, (marginMode + ":positions::"));
             for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
             {
-                Object messageHash = Helpers.GetValue(messageHashes, j);
+                Object messageHash = (messageHashes == null || j < 0 || j >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(j));
                 Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
                 String symbolsString = (String) Helpers.GetValue(parts, 1);
                 Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -3105,7 +3105,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     for (var i = 0; i < ((List<?>)data).size(); i++)
                     {
-                        Object parsed = this.parseWsTrade(Helpers.GetValue(data, i), market);
+                        Object parsed = this.parseWsTrade((data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i)), market);
                         String symbol = this.safeString(parsed, "symbol");
                         if (!java.util.Objects.equals(symbol, null))
                         {

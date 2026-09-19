@@ -82,7 +82,7 @@ public class TestWatchBidsAsks extends BaseTest {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
                 for (var i = 0; i < ((List<?>)values).size(); i++)
                 {
-                    Object ticker = Helpers.GetValue(values, i);
+                    Object ticker = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
                     TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                 }
                 if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))

@@ -299,7 +299,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -360,7 +360,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 ((List<Object>)messageHashes).add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
                 ((List<Object>)args).add(((Map<String, Object>)market).get("id"));
             }
@@ -1391,7 +1391,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Object values = Helpers.objectValues(subs);
         for (var i = 0; i < ((List<?>)values).size(); i++)
         {
-            Object subscription = Helpers.GetValue(values, i);
+            Object subscription = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
             if (!java.util.Objects.equals(subscription, true))
             {
                 Long subId = this.safeInteger(subscription, "id");

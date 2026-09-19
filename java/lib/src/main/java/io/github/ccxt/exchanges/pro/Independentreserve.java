@@ -277,14 +277,14 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 if (Helpers.isLessThan(i, bidsLength))
                 {
-                    payload = Helpers.add(Helpers.add(payload, this.valueToChecksum(Helpers.GetValue(Helpers.GetValue(storedBids, i), 0))), this.valueToChecksum(Helpers.GetValue(Helpers.GetValue(storedBids, i), 1)));
+                    payload = Helpers.add(Helpers.add(payload, this.valueToChecksum(Helpers.GetValue((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 0))), this.valueToChecksum(Helpers.GetValue((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 1)));
                 }
             }
             for (var i = 0; i < 10; i++)
             {
                 if (Helpers.isLessThan(i, asksLength))
                 {
-                    payload = Helpers.add(Helpers.add(payload, this.valueToChecksum(Helpers.GetValue(Helpers.GetValue(storedAsks, i), 0))), this.valueToChecksum(Helpers.GetValue(Helpers.GetValue(storedAsks, i), 1)));
+                    payload = Helpers.add(Helpers.add(payload, this.valueToChecksum(Helpers.GetValue((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 0))), this.valueToChecksum(Helpers.GetValue((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 1)));
                 }
             }
             Object calculatedChecksum = this.crc32(payload, false);
@@ -327,7 +327,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 

@@ -71,7 +71,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
                 Assert((ohlcvs instanceof List), ("Response.symbol.timeframe should be an array. " + AssertionMessage));
                 for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
                 {
-                    TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(ohlcvs, i), symbol, now);
+                    TestOHLCV.testOHLCV(exchange, skippedProperties, method, (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), symbol, now);
                 }
                 if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
                 {

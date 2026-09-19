@@ -584,7 +584,7 @@ public class Bitvavo extends BitvavoApi
         Object fees = this.fees;
         for (var i = 0; i < ((List<?>)markets).size(); i++)
         {
-            Object market = Helpers.GetValue(markets, i);
+            Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
             String id = this.safeString(market, "market");
             String baseId = this.safeString(market, "base");
             String quoteId = this.safeString(market, "quote");
@@ -1167,7 +1167,7 @@ final Object finalBase = base;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
         {
-            Object symbol = Helpers.GetValue(this.symbols, i);
+            Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
             ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
     put( "info", fees );
     put( "symbol", symbol );

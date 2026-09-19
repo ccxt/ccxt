@@ -135,7 +135,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     Object subscription = ((name + ":") + ((Map<String, Object>)market).get("id"));
                     ((List<Object>)rawSubscriptions).add(subscription);
@@ -471,7 +471,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)subscriptionHashes).add(("liquidation:" + ((Map<String, Object>)market).get("id")));
                     ((List<Object>)messageHashes).add(("liquidations::" + symbol));
@@ -1077,7 +1077,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         Object messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -1527,7 +1527,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object topic = ((table + ":") + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(topic);
@@ -1574,7 +1574,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object topic = ((table + ":") + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(topic);

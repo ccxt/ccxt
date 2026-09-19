@@ -698,7 +698,7 @@ public class Bittrade extends BittradeApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
             }
             return result;
@@ -1897,7 +1897,7 @@ public class Bittrade extends BittradeApi
                 (this.loadAccounts()).join();
                 for (var i = 0; i < ((List<?>)this.accounts).size(); i++)
                 {
-                    Object account = Helpers.GetValue(this.accounts, i);
+                    Object account = (this.accounts == null || i < 0 || i >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(i));
                     if (java.util.Objects.equals(((Map<String, Object>)account).get("type"), "spot"))
                     {
                         accountId = this.safeString(account, "id");
@@ -2345,7 +2345,7 @@ public class Bittrade extends BittradeApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)success).size(); i++)
         {
-            Object order = Helpers.GetValue(success, i);
+            Object order = (success == null || i < 0 || i >= ((List<?>)success).size() ? null : ((List<?>)success).get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );

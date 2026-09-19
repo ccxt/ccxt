@@ -852,7 +852,7 @@ public class Cryptomus extends CryptomusApi
         }};
         for (var i = 0; i < ((List<?>)balance).size(); i++)
         {
-            Object balanceEntry = Helpers.GetValue(balance, i);
+            Object balanceEntry = (balance == null || i < 0 || i >= ((List<?>)balance).size() ? null : ((List<?>)balance).get(i));
             String currencyId = this.safeString(balanceEntry, "ticker");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -1395,7 +1395,7 @@ public class Cryptomus extends CryptomusApi
         List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)feeTiers).size(); i++)
         {
-            Object tier = Helpers.GetValue(feeTiers, i);
+            Object tier = (feeTiers == null || i < 0 || i >= ((List<?>)feeTiers).size() ? null : ((List<?>)feeTiers).get(i));
             Double turnover = this.safeNumber(tier, "from_turnover");
             String taker = this.safeString(tier, "taker_percent");
             String maker = this.safeString(tier, "maker_percent");

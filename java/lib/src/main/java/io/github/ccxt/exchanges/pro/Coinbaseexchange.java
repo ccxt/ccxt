@@ -137,7 +137,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 market = this.market(symbol);
                 ((List<Object>)productIds).add(((Map<String, Object>)market).get("id"));
                 ((List<Object>)messageHashes).add(Helpers.add((messageHashStart + ":"), ((Map<String, Object>)market).get("symbol")));
@@ -486,7 +486,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, symbolsLength); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 ((List<Object>)messageHashes).add(((name + ":") + marketId));
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -1085,7 +1085,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 

@@ -23,7 +23,7 @@ public class TestFetchMarketLeverageTiers extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol);
         for (var j = 0; j < ((List<?>)tiers).size(); j++)
         {
-            TestLeverageTier.testLeverageTier(exchange, skippedProperties, method, Helpers.GetValue(tiers, j));
+            TestLeverageTier.testLeverageTier(exchange, skippedProperties, method, (tiers == null || j < 0 || j >= ((List<?>)tiers).size() ? null : ((List<?>)tiers).get(j)));
         }
         return true;
         });

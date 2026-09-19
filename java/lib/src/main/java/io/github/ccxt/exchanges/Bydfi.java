@@ -1707,7 +1707,7 @@ public class Bydfi extends BydfiApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -1802,7 +1802,7 @@ public class Bydfi extends BydfiApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String id = this.safeString(rawOrder, "id");
                 String symbol = this.safeString(rawOrder, "symbol");
                 String side = this.safeString(rawOrder, "side");
@@ -3243,7 +3243,7 @@ public class Bydfi extends BydfiApi
         }};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Object balance = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             String symbol = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(symbol);
             Object account = this.account();

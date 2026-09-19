@@ -632,7 +632,7 @@ public class Revolutx extends RevolutxApi
                 Object marketIds = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
                 }
@@ -675,7 +675,7 @@ public class Revolutx extends RevolutxApi
                 Map<String, Object> filtered = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object s = Helpers.GetValue(symbols, i);
+                    Object s = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     if (result.containsKey(s))
                     {
                         ((Map<String, Object>)filtered).put((String)s, Helpers.GetValue(result, s));

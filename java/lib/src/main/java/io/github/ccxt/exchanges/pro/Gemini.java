@@ -303,10 +303,10 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Map<String, Object> storesForSymbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
-                Object marketId = Helpers.GetValue(Helpers.GetValue(trades, i), "symbol");
+                Object marketId = Helpers.GetValue((trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i)), "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(((String)marketId).toLowerCase());
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Object trade = this.parseWsTrade(Helpers.GetValue(trades, i), market);
+                Object trade = this.parseWsTrade((trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i)), market);
                 Helpers.addElementToObject(trade, "timestamp", timestamp);
                 Helpers.addElementToObject(trade, "datetime", this.iso8601(timestamp));
                 Object stored = this.safeValue(this.trades, symbol);
@@ -606,7 +606,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         // last update always overwrites the previous state and is the latest state
         for (var i = 0; i < ((List<?>)rawBidAskChanges).size(); i++)
         {
-            Object entry = Helpers.GetValue(rawBidAskChanges, i);
+            Object entry = (rawBidAskChanges == null || i < 0 || i >= ((List<?>)rawBidAskChanges).size() ? null : ((List<?>)rawBidAskChanges).get(i));
             String rawSide = this.safeString(entry, "side");
             Double price = this.safeNumber(entry, "price");
             String sizeString = this.safeString(entry, "remaining");
@@ -659,7 +659,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Object marketIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 String messageHash = ((itemHashName + ":") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -713,7 +713,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Object asks = Helpers.GetValue(orderbook, "asks");
         for (var i = 0; i < ((List<?>)rawOrderBookChanges).size(); i++)
         {
-            Object entry = Helpers.GetValue(rawOrderBookChanges, i);
+            Object entry = (rawOrderBookChanges == null || i < 0 || i >= ((List<?>)rawOrderBookChanges).size() ? null : ((List<?>)rawOrderBookChanges).get(i));
             Double price = this.safeNumber(entry, "price");
             Double size = this.safeNumber(entry, "remaining");
             String rawSide = this.safeString(entry, "side");
@@ -887,7 +887,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Object orders = this.orders;
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(Helpers.GetValue(message, i));
+            Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i)));
             Helpers.callDynamically(orders, "append", new Object[]{order});
         }
         client.resolve(this.orders, messageHash);

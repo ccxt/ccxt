@@ -23,7 +23,7 @@ public class TestFetchOpenInterestHistory extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, openInterestHistory, symbol);
         for (var i = 0; i < ((List<?>)openInterestHistory).size(); i++)
         {
-            TestOpenInterest.testOpenInterest(exchange, skippedProperties, method, Helpers.GetValue(openInterestHistory, i));
+            TestOpenInterest.testOpenInterest(exchange, skippedProperties, method, (openInterestHistory == null || i < 0 || i >= ((List<?>)openInterestHistory).size() ? null : ((List<?>)openInterestHistory).get(i)));
         }
         return true;
         });

@@ -31,7 +31,7 @@ public class TestFetchTrades extends BaseTest {
         Boolean isPublicTrade = true;
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(trades, i), symbol, now, isPublicTrade);
+            TestTrade.testTrade(exchange, skippedProperties, method, (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i)), symbol, now, isPublicTrade);
         }
         //
         // test if both sides are being returned
@@ -84,7 +84,7 @@ public class TestFetchTrades extends BaseTest {
         Object lastTrade = null;
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            Object trade = Helpers.GetValue(trades, i);
+            Object trade = (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i));
             Object ts = Helpers.GetValue(trade, "timestamp");
             String price = exchange.safeString(trade, "price");
             Object side = Helpers.GetValue(trade, "side");

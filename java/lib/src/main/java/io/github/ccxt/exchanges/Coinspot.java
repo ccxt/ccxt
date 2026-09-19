@@ -617,7 +617,7 @@ public class Coinspot extends CoinspotApi
         {
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object currencies = Helpers.GetValue(balances, i);
+                Object currencies = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
                 List<Object> currencyIds = Helpers.objectKeys(currencies);
                 for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                 {

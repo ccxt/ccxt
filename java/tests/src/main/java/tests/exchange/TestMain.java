@@ -152,12 +152,12 @@ public class TestMain extends BaseTest
         {
             List<Object> testFileNames = Helpers.objectKeys(this.testFiles);
             List<Object> possibleMethodNames = (List<Object>) Helpers.split(methodArgv, ","); // i.e. `test.ts binance fetchBalance,fetchDeposits`
-            if (Helpers.getArrayLength(possibleMethodNames) >= 1)
+            if ((possibleMethodNames == null ? 0 : possibleMethodNames.size()) >= 1)
             {
                 for (var i = 0; i < ((List<?>)testFileNames).size(); i++)
                 {
                     Object testFileName = (testFileNames == null || i < 0 || i >= testFileNames.size() ? null : testFileNames.get(i));
-                    for (var j = 0; j < Helpers.getArrayLength(possibleMethodNames); j++)
+                    for (var j = 0; j < (possibleMethodNames == null ? 0 : possibleMethodNames.size()); j++)
                     {
                         Object methodName = Helpers.GetValue(possibleMethodNames, j);
                         methodName = Helpers.replace(((String)methodName), "()", "");
@@ -1880,7 +1880,7 @@ public class TestMain extends BaseTest
         {
             for (var i = 0; i < ((List<?>)value).size(); i++)
             {
-                if (!Boolean.TRUE.equals(this.isVacantValue(exchange, Helpers.GetValue(value, i))))
+                if (!Boolean.TRUE.equals(this.isVacantValue(exchange, (value == null || i < 0 || i >= ((List<?>)value).size() ? null : ((List<?>)value).get(i)))))
                 {
                     return false;
                 }
@@ -2000,8 +2000,8 @@ public class TestMain extends BaseTest
             this.AssertStaticError(java.util.Objects.equals(storedArrayLength, newArrayLength), "output length mismatch", storedOutput, newOutput);
             for (var i = 0; i < ((List<?>)storedOutput).size(); i++)
             {
-                Object storedItem = Helpers.GetValue(storedOutput, i);
-                Object newItem = Helpers.GetValue(newOutput, i);
+                Object storedItem = (storedOutput == null || i < 0 || i >= ((List<?>)storedOutput).size() ? null : ((List<?>)storedOutput).get(i));
+                Object newItem = (newOutput == null || i < 0 || i >= ((List<?>)newOutput).size() ? null : ((List<?>)newOutput).get(i));
                 this.AssertNewAndStoredOutputInner(exchange, skipKeys, newItem, storedItem, strictTypeCheck);
             }
         } else
@@ -2704,7 +2704,7 @@ public class TestMain extends BaseTest
             List<Object> eventMarkets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)predictionEvents).size(); i++)
             {
-                Object evMarkets = exchange.safeList(Helpers.GetValue(predictionEvents, i), "markets", new ArrayList<Object>(Arrays.asList()));
+                Object evMarkets = exchange.safeList((predictionEvents == null || i < 0 || i >= ((List<?>)predictionEvents).size() ? null : ((List<?>)predictionEvents).get(i)), "markets", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < Helpers.getArrayLength(evMarkets); j++)
                 {
                     Object evMarket = Helpers.GetValue(evMarkets, j);

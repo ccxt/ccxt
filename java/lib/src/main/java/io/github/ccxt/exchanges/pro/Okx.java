@@ -175,7 +175,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     throw new ArgumentsRequired((this.id + " subscribeMultiple() symbols is required")) ;
                 }
-                Object marketId = this.marketId(Helpers.GetValue(symbols, i));
+                Object marketId = this.marketId((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 final Object finalChannel = channel;
                 Map<String, Object> arg = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -186,7 +186,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     throw new ArgumentsRequired((this.id + " subscribeMultiple() symbols is required")) ;
                 }
-                ((List<Object>)messageHashes).add(((channel + "::") + Helpers.GetValue(symbols, i)));
+                ((List<Object>)messageHashes).add(((channel + "::") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
@@ -292,7 +292,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((channel + ":") + symbol));
                 Object marketId = this.marketId(symbol);
                 final Object finalChannel = channel;
@@ -356,7 +356,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((("unsubscribe:" + channel) + ":") + symbol));
                 Object marketId = this.marketId(symbol);
                 final Object finalChannel = channel;
@@ -511,7 +511,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((channel + ":") + symbol));
                 Object marketId = this.marketId(symbol);
                 final Object finalChannel = channel;
@@ -758,7 +758,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(("unsubscribe:ticker:" + symbol));
                 Object marketId = this.marketId(symbol);
                 final Object finalChannel = channel;
@@ -855,14 +855,14 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object marketId = this.marketId(Helpers.GetValue(symbols, i));
+                Object marketId = this.marketId((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 final Object finalChannel = channel;
                 Map<String, Object> arg = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
                     put( "instId", marketId );
                 }};
                 ((List<Object>)args).add(this.extend(arg, parameters));
-                ((List<Object>)messageHashes).add(("bidask::" + Helpers.GetValue(symbols, i)));
+                ((List<Object>)messageHashes).add(("bidask::" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
@@ -1008,7 +1008,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add(((messageHash + "::") + symbol));
                 }
             } else
@@ -1134,7 +1134,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add(((messageHash + "::") + symbol));
                 }
             } else
@@ -1403,7 +1403,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Object sym = (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
                 Object tf = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
                 Object marketId = this.marketId(sym);
@@ -1463,7 +1463,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Object sym = (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
                 Object tf = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
                 Object marketId = this.marketId(sym);
@@ -1626,7 +1626,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((depth + ":") + symbol));
                 Object marketId = this.marketId(symbol);
                 final Object finalDepth = depth;
@@ -1695,7 +1695,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)subMessageHashes).add(((depth + ":") + symbol));
                 ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + symbol));
                 Object marketId = this.marketId(symbol);

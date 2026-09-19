@@ -1472,7 +1472,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             // algoexecutionreportv2
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object order = Helpers.GetValue(data, i);
+                Object order = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
                 Object tradeId = this.omitZero(this.safeString(data, "tradeId"));
                 if (!java.util.Objects.equals(tradeId, null))
                 {
@@ -1614,7 +1614,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     {
                         throw new ArgumentsRequired((this.id + " watchPositions() symbols is required")) ;
                     }
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add(("positions::" + symbol));
                 }
             } else
@@ -1673,7 +1673,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Object cache = this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = Helpers.GetValue(positions, i);
+                Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
                 if ((!java.util.Objects.equals(contracts, null)) && (Helpers.isGreaterThan(contracts, 0)))
                 {

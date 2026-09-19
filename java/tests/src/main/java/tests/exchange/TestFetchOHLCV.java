@@ -35,7 +35,7 @@ public class TestFetchOHLCV extends BaseTest {
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
-            TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(ohlcvs, i), symbol, now);
+            TestOHLCV.testOHLCV(exchange, skippedProperties, method, (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), symbol, now);
         }
         // todo: sorted timestamps check
         return true;

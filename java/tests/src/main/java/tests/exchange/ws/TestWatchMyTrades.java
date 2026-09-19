@@ -47,7 +47,7 @@ public class TestWatchMyTrades extends BaseTest {
                 now = exchange.milliseconds();
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now, false);
+                    TestTrade.testTrade(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbol, now, false);
                 }
                 TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, response);
             }

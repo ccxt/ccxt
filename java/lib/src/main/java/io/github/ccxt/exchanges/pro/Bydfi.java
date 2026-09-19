@@ -270,7 +270,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Object marketId = this.marketId(symbol);
                     ((List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
                     ((List<Object>)channels).add((marketId + channel));
@@ -334,7 +334,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Object marketId = this.marketId(symbol);
                     ((List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
                     ((List<Object>)channels).add((marketId + channel));
@@ -467,7 +467,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
@@ -515,7 +515,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
@@ -655,7 +655,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)channels).add((Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depth) + channelSuffix));
                 ((List<Object>)messageHashes).add(("orderbook::" + symbol));
@@ -704,7 +704,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)channels).add((Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depth) + channelSuffix));
                 ((List<Object>)messageHashes).add(("unsubscribe::orderbook::" + symbol));
@@ -810,7 +810,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add(("orders::" + symbol));
                 }
             }
@@ -982,7 +982,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add(((messageHash + "::") + symbol));
                 }
             }

@@ -178,7 +178,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)marketIds).add(this.marketId(symbol));
             }
             Object length = ((List<?>)symbols).size();
@@ -491,7 +491,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Object messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -1057,7 +1057,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 // get order without symbol
                 for (var i = 0; i < ((List<?>)orders).size(); i++)
                 {
-                    Object currentOrder = Helpers.GetValue(orders, i);
+                    Object currentOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                     if (Helpers.isEqual(Helpers.GetValue(currentOrder, "id"), ((Map<String, Object>)message).get("order_id")))
                     {
                         final Object finalReason = reason;

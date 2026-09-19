@@ -1225,7 +1225,7 @@ public class Bitstamp extends BitstampApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object market = Helpers.GetValue(response, i);
+                Object market = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
                 var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
@@ -2185,7 +2185,7 @@ public class Bitstamp extends BitstampApi
         }};
         for (var i = 0; i < ((List<?>)fees).size(); i++)
         {
-            Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
+            Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= ((List<?>)fees).size() ? null : ((List<?>)fees).get(i))));
             Object symbol = ((Map<String, Object>)fee).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -3850,7 +3850,7 @@ public class Bitstamp extends BitstampApi
             String feedback = ((this.id + " ") + body);
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
-                Object value = Helpers.GetValue(errors, i);
+                Object value = (errors == null || i < 0 || i >= ((List<?>)errors).size() ? null : ((List<?>)errors).get(i));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), value, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), value, feedback);
             }

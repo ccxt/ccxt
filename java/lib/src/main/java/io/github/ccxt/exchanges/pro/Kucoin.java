@@ -393,7 +393,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Client client = this.client(url);
             for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
             {
-                Object subscriptionHash = Helpers.GetValue(subscriptionHashes, i);
+                Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= ((List<?>)subscriptionHashes).size() ? null : ((List<?>)subscriptionHashes).get(i));
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
                 {
                     ((Map)client.subscriptions).put((String)requestId, subscriptionHash);
@@ -426,7 +426,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Client client = this.client(url);
             for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
             {
-                Object subscriptionHash = Helpers.GetValue(subscriptionHashes, i);
+                Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= ((List<?>)subscriptionHashes).size() ? null : ((List<?>)subscriptionHashes).get(i));
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
                 {
                     ((Map)client.subscriptions).put((String)requestId, subscriptionHash);
@@ -616,7 +616,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add(("ticker:" + symbol));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)topics).add(((method + ":") + ((Map<String, Object>)market).get("id")));
@@ -1445,9 +1445,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object topic = Helpers.add(channelName, String.join(",", (List<String>)marketIds));
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(("trades:" + symbol));
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 ((List<Object>)subscriptionHashes).add(Helpers.add(channelName, marketId));
             }
             Object trades = (this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters)).join();
@@ -1497,7 +1497,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object topic = Helpers.add(channelName, String.join(",", (List<String>)marketIds));
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(("unsubscribe:trades:" + symbol));
                 ((List<Object>)subscriptionHashes).add(("trades:" + symbol));
             }
@@ -1887,9 +1887,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object subscriptionHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(("orderbook:" + symbol));
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 ((List<Object>)subscriptionHashes).add(((method + ":") + marketId));
             }
             Object subscription = new HashMap<String, Object>() {{}};
@@ -1962,7 +1962,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + symbol));
                 ((List<Object>)subscriptionHashes).add(("orderbook:" + symbol));
             }
@@ -2231,7 +2231,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     {
         for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
         {
-            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= ((List<?>)bidAsks).size() ? null : ((List<?>)bidAsks).get(i)));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
         }
     }
@@ -3452,7 +3452,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add(((messageHash + ":") + symbol));
                 }
             }
@@ -3526,7 +3526,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object cache = this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = Helpers.GetValue(positions, i);
+                Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                 Object contracts = this.safeNumber(position, "contracts", 0);
                 if (Helpers.isGreaterThan(contracts, 0))
                 {

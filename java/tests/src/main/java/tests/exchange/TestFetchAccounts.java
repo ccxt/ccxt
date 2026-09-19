@@ -23,7 +23,7 @@ public class TestFetchAccounts extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, accounts);
         for (var i = 0; i < ((List<?>)accounts).size(); i++)
         {
-            TestAccount.testAccount(exchange, skippedProperties, method, Helpers.GetValue(accounts, i));
+            TestAccount.testAccount(exchange, skippedProperties, method, (accounts == null || i < 0 || i >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(i)));
         }
         return true;
         });

@@ -1336,7 +1336,7 @@ public class Kraken extends KrakenApi
                 Object marketIds = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     if (java.util.Objects.equals(((Map<String, Object>)market).get("active"), true))
                     {
@@ -2140,7 +2140,7 @@ public class Kraken extends KrakenApi
             Object market = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -3705,7 +3705,7 @@ final Object finalId = id;
         {
             Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(this.extend(new HashMap<String, Object>() {{
                 put( "type", type );
-            }}, Helpers.GetValue(transactions, i)));
+            }}, (transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i))));
             ((List<Object>)result).add(transaction);
         }
         return this.filterByCurrencySinceLimit(result, code, since, limit);
@@ -4044,7 +4044,7 @@ final Object finalId = id;
                     // find best matching deposit method, or fallback to the first one
                     for (var i = 0; i < ((List<?>)depositMethods).size(); i++)
                     {
-                        String entry = this.safeString(Helpers.GetValue(depositMethods, i), "method");
+                        String entry = this.safeString((depositMethods == null || i < 0 || i >= ((List<?>)depositMethods).size() ? null : ((List<?>)depositMethods).get(i)), "method");
                         if (java.util.Objects.equals(entry, null))
                         {
                             throw new ExchangeError((this.id + " fetchDepositAddress() missing entry")) ;

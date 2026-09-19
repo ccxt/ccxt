@@ -563,7 +563,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(rawOrders, i);
+                Object rawOrder = (rawOrders == null || i < 0 || i >= ((List<?>)rawOrders).size() ? null : ((List<?>)rawOrders).get(i));
                 Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder);
                 Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
                 String symbol = this.safeString(parsedOrder, "symbol");
@@ -696,7 +696,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
             {
-                Object rawTrade = Helpers.GetValue(rawTrades, i);
+                Object rawTrade = (rawTrades == null || i < 0 || i >= ((List<?>)rawTrades).size() ? null : ((List<?>)rawTrades).get(i));
                 Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(rawTrade);
                 Helpers.callDynamically(trades, "append", new Object[]{parsedTrade});
                 String symbol = this.safeString(parsedTrade, "symbol");
@@ -897,7 +897,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
+            Object rawPosition = (rawPositions == null || i < 0 || i >= ((List<?>)rawPositions).size() ? null : ((List<?>)rawPositions).get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
             Helpers.callDynamically(positions, "append", new Object[]{position});
             ((List<Object>)newPositions).add(position);
@@ -905,7 +905,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         Object messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
