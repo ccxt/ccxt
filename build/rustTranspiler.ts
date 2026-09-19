@@ -6158,6 +6158,161 @@ export class RustTranspilerBuilder {
     }
 
     /**
+     * B-32: the liveness proof of `rustArgIsDeadAfter`, with the closure index
+     * hoisted (that version walks every block per call site). True when the
+     * local `ident` can be MOVED at `pos` instead of cloned: never read after
+     * the end of its own slot, declared inside every enclosing loop/closure
+     * body, and no earlier closure mentions it.
+     */
+    rustLocalMovesAfter(
+        content: string,
+        blocks: any[],
+        closures: any[],
+        pos: number,
+        endPos: number,
+        ident: string,
+    ): boolean {
+        const word = new RegExp(`\\b${ident}\\b`);
+        let inner = -1;
+        for (let k = blocks.length - 1; k >= 0; k--) {
+            if (blocks[k].open < pos) { inner = k; break; }
+        }
+        while (inner !== -1 && !(blocks[inner].open < pos && blocks[inner].end > pos)) {
+            inner = blocks[inner].parent;
+        }
+        if (inner === -1) return false;
+        let fnBlock = -1;
+        for (let b = inner; b !== -1; b = blocks[b].parent) {
+            if (blocks[b].kind === 'fn') { fnBlock = b; break; }
+        }
+        if (fnBlock === -1) return false;
+        if (word.test(content.slice(endPos, blocks[fnBlock].end))) return false;
+        const declIdx = this.rustArgDeclIndex(content, blocks, fnBlock, pos, ident);
+        if (declIdx < 0) return false;
+        for (let b = inner; b !== fnBlock; b = blocks[b].parent) {
+            const kind = blocks[b].kind;
+            if ((kind === 'loop' || kind === 'closure') && declIdx < blocks[b].open) {
+                return false;
+            }
+        }
+        for (const blk of closures) {
+            if (blk.open > pos) continue;
+            const stop = blk.end === -1 ? content.length : Math.min(blk.end, pos);
+            if (word.test(content.slice(blk.open, stop))) return false;
+        }
+        return true;
+    }
+
+    /**
+     * B-32: a `.clone()` whose result is consumed by a by-value slot is dead as
+     * soon as the local is never read again — the value can move instead of
+     * being copied (`Value::clone()` is a COW refcount bump). Slots: a call
+     * argument, a slice/vec element, a block tail, a `let`/assignment value or a
+     * `return` operand. A clone behind `&`/`&mut` is a borrow, and
+     * `self.<field>` can never move out of `&self`, so both keep the clone.
+     */
+    dropDeadValueSlotClones(content: string): string {
+        if (!content.includes('.clone()')) return content;
+        const masked = this.maskStrings(content);
+        const blocks = this.rustBlocksOf(masked);
+        const closures = blocks.filter(b => b.kind === 'closure');
+        let out = '';
+        let last = 0;
+        let stmtStart = 0;
+        const stack: number[] = [];
+        const n = content.length;
+        let i = 0;
+        while (i < n) {
+            const c = content[i];
+            if (c === '"') { i = RustTranspilerBuilder.skipRustStringLiteral(content, i); continue; }
+            if (c === '\'' && (content[i + 1] === '\\' || content[i + 2] === '\'')) { i += 3; continue; }
+            if (c === '/' && content[i + 1] === '/') {
+                const nl = content.indexOf('\n', i);
+                i = nl < 0 ? n : nl + 1;
+                continue;
+            }
+            if (c === '/' && content[i + 1] === '*') {
+                const cl = content.indexOf('*/', i + 2);
+                i = cl < 0 ? n : cl + 2;
+                continue;
+            }
+            if (c === '{' || c === '(' || c === '[') {
+                stack.push(i);
+                if (c === '{') stmtStart = i + 1;
+                i++;
+                continue;
+            }
+            if (c === '}' || c === ')' || c === ']') {
+                if (stack.length) stack.pop();
+                stmtStart = i + 1;
+                i++;
+                continue;
+            }
+            if (c === ';') { stmtStart = i + 1; i++; continue; }
+            if (c !== '.' || !content.startsWith('.clone()', i)) { i++; continue; }
+            const end = i + 8;
+            let rs = i;
+            while (rs > 0 && /[A-Za-z0-9_]/.test(content[rs - 1])) rs--;
+            const ident = content.slice(rs, i);
+            i = end;
+            // Only a plain local can move; a field/chain receiver or `self`
+            // stays cloned.
+            if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(ident) || ident === 'self') continue;
+            if (rs > 0 && content[rs - 1] === '.') continue;
+            // The clone must END its slot.
+            let q = end;
+            while (q < n && (content[q] === ' ' || content[q] === '\t' || content[q] === '\n' || content[q] === '\r')) q++;
+            const nxt = q < n ? content[q] : '';
+            if (nxt !== '' && ',)]};'.indexOf(nxt) < 0) continue;
+            // The clone must START its slot: an arg/element/tail boundary or a
+            // complete `let`/assignment/`return` value.
+            let p = rs - 1;
+            while (p >= 0 && (content[p] === ' ' || content[p] === '\t' || content[p] === '\n' || content[p] === '\r')) p--;
+            const prev = p >= 0 ? content[p] : '';
+            const headStart = Math.max(stmtStart, stack.length ? stack[stack.length - 1] : 0);
+            const head = masked.slice(headStart, rs);
+            const isValueHead = /^\s*(?:let\s+(?:mut\s+)?[A-Za-z_][A-Za-z0-9_]*\s*(?::[^;={}()]*)?=|(?:self\.[A-Za-z_][A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*)\s*=|return)\s*$/.test(head);
+            const slotOk = prev === '(' || prev === ',' || prev === '[' || prev === '{' ||
+                (prev === '=' && p > 0 && '=!<>'.indexOf(content[p - 1]) < 0 && isValueHead) ||
+                (prev !== '' && /[A-Za-z_]/.test(prev) && /^\s*return\s*$/.test(head));
+            if (!slotOk) continue;
+            // A move in a statement that already mentions the name is a borrow
+            // or a re-use; only a `let x = x.clone()` shadow may move.
+            const word = new RegExp(`\\b${ident}\\b`);
+            const borrow = new RegExp(`&\\s*(?:mut\\s+)?${ident}\\b`);
+            const stmtHead = masked.slice(stmtStart, rs);
+            if (word.test(stmtHead) &&
+                !new RegExp(`^\\s*let\\s+(?:mut\\s+)?${ident}\\s*(?::[^;={}()]*)?=\\s*$`).test(stmtHead)) continue;
+            // A live borrow of the name kills the move: an earlier argument of
+            // an enclosing call (`f(&x, g(x))`), or the header of an enclosing
+            // block (`if let P = &mut x { … }`, `match &x { … }`).
+            let blocked = false;
+            for (let k = stack.length - 1; k >= 0 && !blocked; k--) {
+                if (content[stack[k]] !== '(') continue;
+                const inner = k + 1 < stack.length ? stack[k + 1] : rs;
+                if (borrow.test(masked.slice(stack[k] + 1, inner))) blocked = true;
+            }
+            if (blocked) continue;
+            let inner = -1;
+            for (let k = blocks.length - 1; k >= 0; k--) {
+                if (blocks[k].open < rs) { inner = k; break; }
+            }
+            while (inner !== -1 && !(blocks[inner].open < rs && blocks[inner].end > rs)) {
+                inner = blocks[inner].parent;
+            }
+            for (let b = inner; b !== -1; b = blocks[b].parent) {
+                if (borrow.test(masked.slice(blocks[b].headerStart, blocks[b].open))) { blocked = true; break; }
+            }
+            if (blocked) continue;
+            if (!this.rustLocalMovesAfter(masked, blocks, closures, rs, end, ident)) continue;
+            out += content.slice(last, rs) + ident;
+            last = end;
+        }
+        if (last === 0) return content;
+        return out + content.slice(last);
+    }
+
+    /**
      * Paren-balanced walker. For every call whose head matches one of
      * the given patterns, clones bare-identifier args *after the first*
      * (the first arg is left alone — for `shared::*` it's a borrowed
@@ -8256,6 +8411,9 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.typeSafeListLocals(rustContent);
                 // And `instanceof <errorClass>` whose class has no subclass.
                 rustContent = this.rewriteNativeErrorClassChecks(rustContent);
+                // Last: a `.clone()` in a by-value slot whose local is dead
+                // afterwards moves instead of copying (B-32).
+                rustContent = this.dropDeadValueSlotClones(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -8961,6 +9119,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativePayloadAccessorDrops(finalFile);
         finalFile = this.typeSafeListLocals(finalFile);
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
+        // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
+        finalFile = this.dropDeadValueSlotClones(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
