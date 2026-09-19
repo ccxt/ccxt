@@ -109,16 +109,10 @@ impl crate::exchange_generated::ExchangeBase for LatokenCore {
                 "nonce" => self.nonce(),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order_type" => self.parse_order_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_transaction_type" => self.parse_transaction_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer_status" => self.parse_transfer_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -1547,7 +1541,7 @@ impl LatokenCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ORDER_STATUS_PLACED".to_string(), Value::Str("open".into()));
@@ -1555,24 +1549,20 @@ impl LatokenCore {
                 m.insert("ORDER_STATUS_CANCELLED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order_type(&self, mut status: Value) -> Value {
+    pub fn parse_order_type(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ORDER_TYPE_MARKET".to_string(), Value::Str("market".into()));
                 m.insert("ORDER_TYPE_LIMIT".to_string(), Value::Str("limit".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Value {
+    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ORDER_CONDITION_GOOD_TILL_CANCELLED".to_string(), Value::Str("GTC".into()));
@@ -1580,9 +1570,7 @@ impl LatokenCore {
                 m.insert("ORDER_CONDITION_FILL_OR_KILL".to_string(), Value::Str("FOK".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]);
-
-    Value::Null
+        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1650,12 +1638,12 @@ impl LatokenCore {
             let mut partsLength: Value = Value::Int(parts.len() as i64);
             side = self.safe_string_lower(parts, (match (&(partsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
         }
-        let mut type_var: Value = self.parse_order_type(self.safe_string_k(order.clone(), "type", &[]));
+        let mut type_var: Value = self.parse_order_type(self.safe_string_k(order.clone(), "type", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "filled", &[]);
         let mut cost: Value = self.safe_string_k(order.clone(), "cost", &[]);
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
+        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut message: Value = self.safe_string_k(order.clone(), "message", &[]);
         if (message != Value::Null) {
             if Value::Int(message.as_str().and_then(|__s| __s.find("cancel")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
@@ -1665,7 +1653,7 @@ impl LatokenCore {
             }
         }
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
-        let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(order.clone(), "condition", &[]));
+        let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(order.clone(), "condition", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -2099,7 +2087,7 @@ impl LatokenCore {
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "timestamp", &[]);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
-        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
+        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
         let mut addressFrom: Value = self.safe_string_k(transaction.clone(), "senderAddress", &[]);
         let mut addressTo: Value = self.safe_string_k(transaction.clone(), "recipientAddress", &[]);
@@ -2117,7 +2105,7 @@ impl LatokenCore {
             if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".into(), feeCost); }
             if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".into(), code.clone()); }
         }
-        let mut type_var: Value = self.parse_transaction_type(self.safe_string_k(transaction.clone(), "type", &[]));
+        let mut type_var: Value = self.parse_transaction_type(self.safe_string_k(transaction.clone(), "type", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
@@ -2146,7 +2134,7 @@ impl LatokenCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("TRANSACTION_STATUS_CONFIRMED".to_string(), Value::Str("ok".into()));
@@ -2157,21 +2145,17 @@ impl LatokenCore {
                 m.insert("TRANSACTION_STATUS_REJECTED".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transaction_type(&self, mut type_var: Value) -> Value {
+    pub fn parse_transaction_type(&self, mut type_var: Value) -> Option<String> {
         let mut types: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("TRANSACTION_TYPE_DEPOSIT".to_string(), Value::Str("deposit".into()));
                 m.insert("TRANSACTION_TYPE_WITHDRAWAL".to_string(), Value::Str("withdrawal".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]);
-
-    Value::Null
+        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2318,14 +2302,14 @@ impl LatokenCore {
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "transferringFunds", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(transfer.clone(), "fromAccount", &[]));
         m.insert("toAccount".to_string(), self.safe_string_k(transfer, "toAccount", &[]));
-        m.insert("status".to_string(), self.parse_transfer_status(status));
+        m.insert("status".to_string(), self.parse_transfer_status(status).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
     m
 });
 
     Value::Null
 }
 
-    pub fn parse_transfer_status(&self, mut status: Value) -> Value {
+    pub fn parse_transfer_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("TRANSFER_STATUS_COMPLETED".to_string(), Value::Str("ok".into()));
@@ -2335,9 +2319,7 @@ impl LatokenCore {
                 m.insert("TRANSFER_STATUS_CANCELLED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {

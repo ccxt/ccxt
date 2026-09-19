@@ -772,8 +772,8 @@ impl AlpacaCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "stream": "trade_updates",
@@ -819,7 +819,7 @@ impl AlpacaCore {
         //        }
         //      }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -841,8 +841,8 @@ impl AlpacaCore {
 }
 
     pub fn handle_my_trade(&self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "stream": "trade_updates",
@@ -888,7 +888,7 @@ impl AlpacaCore {
         //        }
         //      }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -1026,8 +1026,8 @@ impl AlpacaCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "T": "error",
@@ -1035,11 +1035,8 @@ impl AlpacaCore {
         //        "msg": "invalid syntax"
         //    }
         //
-        let mut code: Value = (match __pro_message.get("code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut msg: Value = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}), Some(__v) => __v, None => Value::Map({
+        let mut code: Value = (match message.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut msg: Value = (match message.get("msg") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });

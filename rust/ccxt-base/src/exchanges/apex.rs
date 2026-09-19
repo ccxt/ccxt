@@ -1805,7 +1805,7 @@ impl ApexCore {
                 }
             }
         }
-        return self.super_safe_market(marketId, market.clone(), delimiter, marketType);
+        return self.super_safe_market(marketId, market, delimiter, marketType);
 
     Value::Null
 }
@@ -1970,7 +1970,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(data, &[market.clone()]);
+        return self.parse_order(data, &[market]);
 
     Value::Null
 }
@@ -2231,7 +2231,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return Value::from(vec![self.parse_order(data, &[market.clone()])]);
+        return Value::from(vec![self.parse_order(data, &[market])]);
 
     Value::Null
 }
@@ -2407,7 +2407,7 @@ impl ApexCore {
     m
 })]);
         let mut orders: Value = self.safe_list_k(data, "orders", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[market.clone(), since, limit]);
+        return self.parse_orders(orders, &[market, since, limit]);
 
     Value::Null
 }
@@ -2511,7 +2511,7 @@ impl ApexCore {
     m
 })]);
         let mut orders: Value = self.safe_list_k(data, "orders", &[Value::from(vec![])]);
-        return self.parse_trades(orders, &[market.clone(), since, limit]);
+        return self.parse_trades(orders, &[market, since, limit]);
 
     Value::Null
 }
@@ -2568,7 +2568,7 @@ impl ApexCore {
     m
 })]);
         let mut fundingValues: Value = self.safe_list_k(data, "fundingValues", &[Value::from(vec![])]);
-        return self.parse_incomes(fundingValues, &[market.clone(), since, limit]);
+        return self.parse_incomes(fundingValues, &[market, since, limit]);
 
     Value::Null
 }
@@ -2596,7 +2596,7 @@ impl ApexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market]));
         m.insert("code".to_string(), code);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));

@@ -176,7 +176,6 @@ impl crate::exchange_generated::ExchangeBase for UpbitCore {
                 "authenticate" => self.authenticate(&args[..]).await,
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ws_order_status" => self.parse_ws_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "watch_balance" => self.watch_balance(&args[..]).await,
                 "watch_my_trades" => self.watch_my_trades(&args[..]).await,
@@ -213,7 +212,6 @@ impl UpbitCore {
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_ws_order_status" => self.parse_ws_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.to_vec()); crate::Value::Null },
@@ -545,6 +543,8 @@ impl UpbitCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         // { type: "orderbook",
         //   "code": "BTC-ETH",
         //   "timestamp": 1584486737444,
@@ -564,9 +564,9 @@ impl UpbitCore {
         //        "ask_size": 1.585,
         //        "bid_size": 5 }, ... ],
         //   "stream_type": "SNAPSHOT" }
-        let mut marketId: Value = self.safe_string_k(message.clone(), "code", &[]);
+        let mut marketId: Value = (match __pro_message.get("code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Str("-".into())]);
-        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "stream_type", &[]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = (match __pro_message.get("stream_type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -590,7 +590,7 @@ impl UpbitCore {
         add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
         let mut bids: Value = get_value(&orderbook, &Value::Str("bids".into()));
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".into()));
-        let mut data: Value = self.safe_list_k(message.clone(), "orderbook_units", &[Value::from(vec![])]);
+        let mut data: Value = (match __pro_message.get("orderbook_units").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_629: bool = true;
@@ -644,6 +644,8 @@ impl UpbitCore {
 }
 
     pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         // {
         //     type: 'candle.1s',
         //     code: 'KRW-USDT',
@@ -658,7 +660,7 @@ impl UpbitCore {
         //     timestamp: 1745315434125,
         //     stream_type: 'REALTIME'
         //   }
-        let mut marketId: Value = self.safe_string_k(message.clone(), "code", &[]);
+        let mut marketId: Value = (match __pro_message.get("code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("candle.1s:".into()), symbol).into());
         let mut ohlcv: Value = self.parse_ohlcv(message, &[]);
@@ -841,7 +843,7 @@ impl UpbitCore {
     Value::Null
 }
 
-    pub fn parse_ws_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("wait".to_string(), Value::Str("open".into()));
@@ -852,11 +854,9 @@ impl UpbitCore {
             m
         });
         if (status == Value::Null) {
-            return Value::Null;
+            return None;
         }
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -886,14 +886,14 @@ impl UpbitCore {
         // }
         //
         let mut id: Value = self.safe_string_k(order.clone(), "uuid", &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("ask_bid".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "ask_bid", &[]);
         if (side.as_str() == Some("bid")) {
             side = Value::Str("buy".into());
         }  else {
             side = Value::Str("sell".into());
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "order_timestamp", &[]));
-        let mut status: Value = self.parse_ws_order_status(self.safe_string_k(order.clone(), "state", &[]));
+        let mut status: Value = self.parse_ws_order_status(self.safe_string_k(order.clone(), "state", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut marketId: Value = self.safe_string_k(order.clone(), "code", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut fee: Value = Value::Null;
@@ -939,7 +939,7 @@ impl UpbitCore {
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         // see: parseWsOrder
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("ask_bid".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "ask_bid", &[]);
         if (side.as_str() == Some("bid")) {
             side = Value::Str("buy".into());
         }  else {
@@ -980,8 +980,10 @@ impl UpbitCore {
 }
 
     pub fn handle_my_order(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         // see: parseWsOrder
-        let mut tradeId: Option<String> = self.safe_string_k(message.clone(), "trade_uuid", &[]).as_str().map(str::to_owned);
+        let mut tradeId: Option<String> = (match __pro_message.get("trade_uuid").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (tradeId.is_some()) {
             self.handle_my_trade(client.clone(), message.clone());
         }
@@ -1064,6 +1066,8 @@ impl UpbitCore {
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // {
         //     "type": "myAsset",
@@ -1080,8 +1084,8 @@ impl UpbitCore {
         //     "stream_type": "REALTIME"
         // }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "assets", &[Value::from(vec![])]);
-        let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
+        let mut data: Value = (match __pro_message.get("assets").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut timestamp: Value = self.safe_integer_k(message, "timestamp", &[]);
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
@@ -1102,11 +1106,13 @@ impl UpbitCore {
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         }
         }
-        let mut messageHash: Value = self.safe_string_k(message, "type", &[]);
+        let mut messageHash: Value = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         client.resolve(&[self.balance.clone(), messageHash]);
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
@@ -1117,7 +1123,7 @@ impl UpbitCore {
                 m.insert("candle.1s".to_string(), Value::Str("handle_ohlcv".into()).clone());
             m
         });
-        let mut methodName: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut methodName: Value = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut method: Value = (if (methodName == Value::Null) { Value::Null } else { self.safe_value(methods, methodName, &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, message]);

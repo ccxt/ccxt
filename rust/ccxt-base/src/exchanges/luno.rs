@@ -120,7 +120,6 @@ impl crate::exchange_generated::ExchangeBase for LunoCore {
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1171,15 +1170,13 @@ impl LunoCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PENDING".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1202,7 +1199,7 @@ impl LunoCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "creation_timestamp", &[]);
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
+        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         status = (if (status.as_str() == Some("open")) { status.clone() } else { status.clone() });
         let mut side: Value = Value::Null;
         let mut orderType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -1248,7 +1245,7 @@ impl LunoCore {
         m.insert("type".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side.clone());
+        m.insert("side".to_string(), side);
         m.insert("price".to_string(), price);
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), amount);
@@ -1476,8 +1473,7 @@ impl LunoCore {
             let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[id.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut ticker: Value = get_value(&tickers, &id);
-            let mut ticker: Value = get_value(&tickers, &id);
+            let mut ticker: Value = tickers.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, &[market])); }
         }
         }
@@ -1596,8 +1592,8 @@ impl LunoCore {
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("order".to_string(), orderId);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side.clone());
-        m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
+        m.insert("side".to_string(), side);
+        m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_string2(trade.clone(), Value::Str("volume".into()), Value::Str("base".into()), &[]));
         m.insert("cost".to_string(), self.safe_string_k(trade, "counter", &[]));
@@ -2019,7 +2015,7 @@ impl LunoCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), id.clone());
+                m.insert("id".to_string(), id);
                 m.insert("min_row".to_string(), min_row);
                 m.insert("max_row".to_string(), max_row);
             m
@@ -2109,8 +2105,8 @@ impl LunoCore {
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry);
-        m.insert("id".to_string(), id.clone());
-        m.insert("direction".to_string(), direction.clone());
+        m.insert("id".to_string(), id);
+        m.insert("direction".to_string(), direction);
         m.insert("account".to_string(), account_id);
         m.insert("referenceId".to_string(), referenceId);
         m.insert("referenceAccount".to_string(), Value::Null);
@@ -2216,7 +2212,7 @@ impl LunoCore {
         //         "total_unconfirmed": "string"
         //     }
         //
-        let mut currencyId: Value = self.safe_string_upper(depositAddress.clone(), Value::Str("currency".into()), &[]);
+        let mut currencyId: Value = self.safe_string_upper_k(depositAddress.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2301,7 +2297,7 @@ impl LunoCore {
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("headers".to_string(), headers);
     m
 });
 

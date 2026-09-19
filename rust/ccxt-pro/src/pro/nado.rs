@@ -192,7 +192,6 @@ impl crate::exchange_generated::ExchangeBase for NadoCore {
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => self.request_id(),
-                "sign_stream_authentication" => self.sign_stream_authentication(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "un_watch_bids_asks" => self.un_watch_bids_asks(&args[..]).await,
                 "un_watch_my_trades" => self.un_watch_my_trades(&args[..]).await,
                 "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -270,7 +269,6 @@ impl NadoCore {
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "request_id" => self.request_id(),
-            "sign_stream_authentication" => self.sign_stream_authentication(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "un_watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("un_watch_bids_asks", args.to_vec()); crate::Value::Null },
             "un_watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_my_trades", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
@@ -561,10 +559,10 @@ impl NadoCore {
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         if !(in_op(&self.orderbooks, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))) {
-            let mut snapshot: Value = self.fetch_order_book(symbol.clone(), &[limit.clone()]).await;
-            { let __be_tmp = self.order_book(&[snapshot.clone(), limit.clone()]); add_element_to_object(&mut self.orderbooks, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), __be_tmp); };
+            let mut snapshot: Value = self.fetch_order_book(symbol, &[limit.clone()]).await;
+            { let __be_tmp = self.order_book(&[snapshot, limit.clone()]); add_element_to_object(&mut self.orderbooks, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), __be_tmp); };
         }
-        let mut orderbook: Value = self.watch_public(Value::Str("book_depth".into()), market.clone(), messageHash, &[params]).await;
+        let mut orderbook: Value = self.watch_public(Value::Str("book_depth".into()), market, messageHash, &[params]).await;
         return orderbook.limit();
 
     Value::Null
@@ -585,7 +583,7 @@ impl NadoCore {
     m
 }));
         self.load_markets(&[]).await;
-        return self.un_watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[params]).await;
+        return self.un_watch_order_book_for_symbols(Value::from(vec![symbol]), &[params]).await;
 
     Value::Null
 }
@@ -624,8 +622,8 @@ impl NadoCore {
             append_to_array(&mut markets, market.clone());
             append_to_array(&mut messageHashes, messageHash);
             if !(in_op(&self.orderbooks, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))) {
-                let mut snapshot: Value = self.fetch_order_book(symbol.clone(), &[limit.clone()]).await;
-                { let __be_tmp = self.order_book(&[snapshot.clone(), limit.clone()]); add_element_to_object(&mut self.orderbooks, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), __be_tmp); };
+                let mut snapshot: Value = self.fetch_order_book(symbol, &[limit.clone()]).await;
+                { let __be_tmp = self.order_book(&[snapshot, limit.clone()]); add_element_to_object(&mut self.orderbooks, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), __be_tmp); };
             }
         }
         }
@@ -692,7 +690,7 @@ impl NadoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), timeframe).into()), Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -705,7 +703,7 @@ impl NadoCore {
         if is_true(&self.newUpdates) {
             limit = stored.get_limit(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), limit.clone());
         }
-        return self.filter_by_since_limit(stored, &[since, limit.clone(), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(stored, &[since, limit, Value::Int(0), Value::Bool(true)]);
 
     Value::Null
 }
@@ -761,7 +759,7 @@ impl NadoCore {
         if is_true(&self.newUpdates) {
             limit = stored.get_limit(resultSymbol.clone(), limit.clone());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, limit.clone(), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, limit, Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(resultSymbol, resultTimeframe, filtered);
 
     Value::Null
@@ -784,7 +782,7 @@ impl NadoCore {
     m
 }));
         self.load_markets(&[]).await;
-        return self.un_watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol.clone(), timeframe])]), &[params]).await;
+        return self.un_watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol, timeframe])]), &[params]).await;
 
     Value::Null
 }
@@ -871,7 +869,7 @@ impl NadoCore {
     m
 }));
         self.load_markets(&[]).await;
-        return self.un_watch_tickers(&[Value::from(vec![symbol.clone()]), params]).await;
+        return self.un_watch_tickers(&[Value::from(vec![symbol]), params]).await;
 
     Value::Null
 }
@@ -904,7 +902,7 @@ impl NadoCore {
                 streamType = Value::Str("best_bid_offer".into());
             }
         }
-        let mut ticker: Value = self.watch_public(streamType, market.clone(), messageHash.clone(), &[params]).await;
+        let mut ticker: Value = self.watch_public(streamType, market, messageHash.clone(), &[params]).await;
         if is_true(&self.newUpdates) {
             if (messageHash.as_str() == Some("ticker")) {
                 return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &[symbols.clone()]);
@@ -949,7 +947,7 @@ impl NadoCore {
                 streamType = Value::Str("best_bid_offer".into());
             }
         }
-        return self.un_watch_public(streamType, market.clone(), messageHash, &[params]).await;
+        return self.un_watch_public(streamType, market, messageHash, &[params]).await;
 
     Value::Null
 }
@@ -982,7 +980,7 @@ impl NadoCore {
                 streamType = Value::Str("best_bid_offer".into());
             }
         }
-        let mut ticker: Value = self.watch_public(streamType, market.clone(), messageHash.clone(), &[params]).await;
+        let mut ticker: Value = self.watch_public(streamType, market, messageHash.clone(), &[params]).await;
         if is_true(&self.newUpdates) {
             if (messageHash.as_str() == Some("bidask")) {
                 return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &[symbols.clone()]);
@@ -1027,7 +1025,7 @@ impl NadoCore {
                 streamType = Value::Str("best_bid_offer".into());
             }
         }
-        return self.un_watch_public(streamType, market.clone(), messageHash, &[params]).await;
+        return self.un_watch_public(streamType, market, messageHash, &[params]).await;
 
     Value::Null
 }
@@ -1071,7 +1069,7 @@ impl NadoCore {
         }
         let mut subaccount: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrders".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]); subaccount = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]);
+        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut stream: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("order_update".into()));
@@ -1083,7 +1081,7 @@ impl NadoCore {
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol.clone(), since, limit.clone(), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1122,7 +1120,7 @@ impl NadoCore {
         }
         let mut subaccount: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("unWatchOrders".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]); subaccount = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]);
+        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut stream: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("order_update".into()));
@@ -1174,7 +1172,7 @@ impl NadoCore {
         }
         let mut subaccount: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchMyTrades".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]); subaccount = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]);
+        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut stream: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("fill".into()));
@@ -1186,7 +1184,7 @@ impl NadoCore {
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol.clone(), since, limit.clone(), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbol, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1225,7 +1223,7 @@ impl NadoCore {
         }
         let mut subaccount: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("unWatchMyTrades".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]); subaccount = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]);
+        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut stream: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("fill".into()));
@@ -1279,7 +1277,7 @@ impl NadoCore {
         }
         let mut subaccount: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchPositions".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]); subaccount = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]);
+        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut stream: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("position_change".into()));
@@ -1291,7 +1289,7 @@ impl NadoCore {
         if is_true(&self.newUpdates) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbols, since, limit.clone(), Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbols, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1332,7 +1330,7 @@ impl NadoCore {
         }
         let mut subaccount: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("unWatchPositions".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]); subaccount = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]);
+        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut stream: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("position_change".into()));
@@ -1386,7 +1384,7 @@ impl NadoCore {
         if (requestIdString == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".into()))));
         }
-        let mut request: Value = self.parent.create_order_request(symbol.clone(), type_var, side, amount, &[price, params]).await;
+        let mut request: Value = self.parent.create_order_request(symbol, type_var, side, amount, &[price, params]).await;
         let mut placeOrder: Value = self.safe_dict_k(request.clone(), "place_order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1400,7 +1398,7 @@ impl NadoCore {
         m.insert("place_order".to_string(), placeOrder);
     m
 }), &[response]);
-        return self.parse_order(__ws_arg_10, &[market.clone()]);
+        return self.parse_order(__ws_arg_10, &[market]);
 
     Value::Null
 }
@@ -1451,7 +1449,7 @@ impl NadoCore {
         if (requestIdString == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".into()))));
         }
-        let mut request: Value = self.parent.edit_order_request(id.clone(), symbol.clone(), type_var, side, &[amount, price, params]).await;
+        let mut request: Value = self.parent.edit_order_request(id, symbol, type_var, side, &[amount, price, params]).await;
         let mut response: Value = self.watch_execute_request(requestIdString, request.clone()).await;
         //
         //     {
@@ -1477,7 +1475,7 @@ impl NadoCore {
         m.insert("place_order".to_string(), placeOrder);
     m
 }), &[response]);
-        return self.parse_order(__ws_arg_12, &[market.clone()]);
+        return self.parse_order(__ws_arg_12, &[market]);
 
     Value::Null
 }
@@ -1502,7 +1500,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Value = self.cancel_orders_ws(Value::from(vec![id.clone()]), &[symbol.clone(), params]).await;
+        let mut orders: Value = self.cancel_orders_ws(Value::from(vec![id]), &[symbol, params]).await;
         return self.safe_dict(orders, Value::Int(0), &[]);
 
     Value::Null
@@ -1548,7 +1546,7 @@ impl NadoCore {
         if (requestIdString == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".into()))));
         }
-        let mut request: Value = self.parent.cancel_orders_request(ids, &[symbol.clone(), params]).await;
+        let mut request: Value = self.parent.cancel_orders_request(ids, &[symbol, params]).await;
         let mut response: Value = self.watch_execute_request(requestIdString, request).await;
         //
         //     {
@@ -1575,7 +1573,7 @@ impl NadoCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
-            }), &[get_value(&cancelledOrders, &i)]);
+            }), &[cancelledOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
             append_to_array(&mut result, self.parse_order(__ws_arg_14, &[market.clone()]));
         }
         }
@@ -1622,7 +1620,7 @@ impl NadoCore {
         if (requestIdString == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".into()))));
         }
-        let mut request: Value = self.parent.cancel_all_orders_request(&[symbol.clone(), params]).await;
+        let mut request: Value = self.parent.cancel_all_orders_request(&[symbol, params]).await;
         let mut response: Value = self.watch_execute_request(requestIdString, request).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1638,7 +1636,7 @@ impl NadoCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
-            }), &[get_value(&cancelledOrders, &i)]);
+            }), &[cancelledOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
             append_to_array(&mut result, self.parse_order(__ws_arg_16, &[market.clone()]));
         }
         }
@@ -1686,7 +1684,7 @@ impl NadoCore {
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("streamType".to_string(), streamType);
-                m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+                m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
             m
         });
         let mut client: Value = self.client(&[url.clone()]);
@@ -1730,7 +1728,7 @@ impl NadoCore {
                 m.insert("streamType".to_string(), streamType);
             m
         });
-        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("subscription:".into()), self.number_to_string(id.clone())).into()), Value::Map({
+        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("subscription:".into()), self.number_to_string(id)).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("subscribeHash".to_string(), subscribeHash.clone());
     m
@@ -1763,7 +1761,7 @@ impl NadoCore {
             m
         });
         let mut client: Value = self.client(&[url.clone()]);
-        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), self.number_to_string(id.clone())).into()), Value::Map({
+        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), self.number_to_string(id)).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("messageHash".to_string(), messageHash);
         m.insert("unsubscribeHash".to_string(), unsubscribeHash.clone());
@@ -1796,7 +1794,7 @@ impl NadoCore {
         let mut subaccount: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("authenticate".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]); subaccount = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut id: Value = self.request_id();
-        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]);
+        let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut expiration: Value = self.sum(&[self.milliseconds(), recvWindow]);
         let mut tx: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1810,7 +1808,7 @@ impl NadoCore {
         if (endpointAddress == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() requires endpoint_addr from contracts query".into()))));
         }
-        let mut signature: Value = self.sign_stream_authentication(tx.clone(), chainId, endpointAddress);
+        let mut signature: Value = self.sign_stream_authentication(tx.clone(), chainId, endpointAddress).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("authenticate".into()));
@@ -1819,14 +1817,14 @@ impl NadoCore {
                 m.insert("signature".to_string(), signature);
             m
         });
-        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("authentication:".into()), self.number_to_string(id.clone())).into()), messageHash.clone());
+        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("authentication:".into()), self.number_to_string(id)).into()), messageHash.clone());
         let __ws_arg_17 = self.extend(request, &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_17, messageHash.clone()]).await;
 
     Value::Null
 }
 
-    pub fn sign_stream_authentication(&self, mut tx: Value, mut chainId: Value, mut endpointAddress: Value) -> Value {
+    pub fn sign_stream_authentication(&self, mut tx: Value, mut chainId: Value, mut endpointAddress: Value) -> Option<String> {
         let mut domain: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("Nado".into()));
@@ -1853,8 +1851,6 @@ impl NadoCore {
         let mut encoded: Value = self.eth_encode_structured_data(domain, messageTypes, tx);
         let mut hash: Value = add(&Value::Str("0x".into()), &self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
         return self.parent.sign_hash(hash, self.privateKey.clone());
-
-    Value::Null
 }
 
     pub fn create_public_subscription_request(&self, mut method: Value, mut streamType: Value, optional_args: &[Value]) -> Value {
@@ -1876,7 +1872,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), method);
         m.insert("stream".to_string(), self.deep_extend(stream, &[params]));
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
     m
 });
 
@@ -1908,10 +1904,10 @@ impl NadoCore {
                     let mut subscription: Value = Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("streamType".to_string(), streamType.clone());
-                            m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+                            m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
                         m
                     });
-                    add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("subscription:".into()), self.number_to_string(id.clone())).into()), Value::Map({
+                    add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("subscription:".into()), self.number_to_string(id)).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("subscribeHash".to_string(), subscribeHash.clone());
     m
@@ -1933,7 +1929,7 @@ impl NadoCore {
 }));
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("subscriptions".into()));
         let mut id: Value = self.request_id();
-        let mut request: Value = self.create_public_subscription_request(Value::Str("unsubscribe".into()), streamType, &[market.clone(), id.clone(), params]);
+        let mut request: Value = self.create_public_subscription_request(Value::Str("unsubscribe".into()), streamType, &[market, id.clone(), params]);
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
@@ -1942,7 +1938,7 @@ impl NadoCore {
         });
         let mut unsubscribeHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), messageHash).into());
         let mut client: Value = self.client(&[url.clone()]);
-        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), self.number_to_string(id.clone())).into()), Value::Map({
+        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), self.number_to_string(id)).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("messageHash".to_string(), messageHash);
         m.insert("unsubscribeHash".to_string(), unsubscribeHash.clone());
@@ -1977,7 +1973,7 @@ impl NadoCore {
                     m.insert("messageHash".to_string(), messageHash.clone());
                 m
             });
-            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), self.number_to_string(id.clone())).into()), Value::Map({
+            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), self.number_to_string(id)).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("messageHash".to_string(), messageHash);
         m.insert("unsubscribeHash".to_string(), unsubscribeHash.clone());
@@ -2044,7 +2040,7 @@ impl NadoCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -2109,23 +2105,25 @@ impl NadoCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
 
     pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
-        let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let mut marketId: Value = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
         let mut trades: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (trades == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            trades = ArrayCache::new(limit.clone());
+            trades = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), trades.clone()); }
         }
-        let mut trade: Value = self.parse_ws_trade(message, &[market.clone()]);
+        let mut trade: Value = self.parse_ws_trade(message, &[market]);
         trades.append(trade);
         client.resolve(&[trades, messageHash]);
 }
@@ -2134,7 +2132,7 @@ impl NadoCore {
         let mut trade: Value = self.parse_ws_my_trade(message, &[]);
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
+            self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut trades: Value = self.myTrades.clone();
         trades.append(trade.clone());
@@ -2144,6 +2142,8 @@ impl NadoCore {
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
         //         "type": "latest_candlestick",
@@ -2157,10 +2157,10 @@ impl NadoCore {
         //         "volume": "24250000000000000"
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
+        let mut marketId: Value = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut granularity: Value = self.safe_integer_k(message.clone(), "granularity", &[]);
+        let mut granularity: Value = (match __pro_message.get("granularity").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let mut timeframe: Value = self.find_timeframe(granularity, &[]);
         if (timeframe == Value::Null) {
             return;
@@ -2174,13 +2174,13 @@ impl NadoCore {
         let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            stored = ArrayCacheByTimestamp::new(limit.clone());
+            stored = ArrayCacheByTimestamp::new(limit);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
         }
-        let mut parsed: Value = self.parse_ohlcv(message, &[market.clone()]);
+        let mut parsed: Value = self.parse_ohlcv(message, &[market]);
         stored.append(parsed);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol).into());
-        client.resolve(&[Value::from(vec![symbol.clone(), timeframe, stored]), messageHash]);
+        client.resolve(&[Value::from(vec![symbol, timeframe, stored]), messageHash]);
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2224,7 +2224,7 @@ impl NadoCore {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -2247,7 +2247,7 @@ impl NadoCore {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -2256,7 +2256,7 @@ impl NadoCore {
         let mut order: Value = self.parse_ws_order(message, &[]);
         if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
-            self.orders = ArrayCacheBySymbolById::new(limit.clone());
+            self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut orders: Value = self.orders.clone();
         orders.append(order.clone());
@@ -2310,7 +2310,7 @@ impl NadoCore {
         m.insert("hedged".to_string(), Value::Bool(false));
         m.insert("side".to_string(), side);
         m.insert("contracts".to_string(), contracts);
-        m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(market, "contractSize", &[]));
         m.insert("entryPrice".to_string(), entryPrice);
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), Value::Null);
@@ -2332,12 +2332,14 @@ impl NadoCore {
 }
 
     pub fn handle_position(&mut self, mut client: Value, mut message: Value) {
-        let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let mut marketId: Value = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut market: Value = self.safe_market(&[marketId]);
         if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             return;
         }
-        let mut position: Value = self.parse_ws_position(message, &[market.clone()]);
+        let mut position: Value = self.parse_ws_position(message, &[market]);
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
@@ -2391,7 +2393,7 @@ impl NadoCore {
         m.insert("bidVolume".to_string(), self.parent.parse_x18(self.safe_string_k(bidask.clone(), "bid_qty", &[])));
         m.insert("info".to_string(), bidask);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -2416,6 +2418,8 @@ impl NadoCore {
 }
 
     pub fn parse_ws_all_bids_asks(&self, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "type": "all_bbo",
@@ -2425,11 +2429,11 @@ impl NadoCore {
         //         }
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(message.clone(), "time", &[]);
-        let mut bbos: Value = self.safe_dict_k(message, "bbos", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut timestamp: Value = (match message.get("time") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
+        let mut bbos: Value = (match message.get("bbos") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut marketIds: Value = object_keys(&bbos);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2495,6 +2499,8 @@ impl NadoCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
         //         "type": "book_depth",
@@ -2506,7 +2512,7 @@ impl NadoCore {
         //         "asks": [["21694490000000000000000", "0"]]
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
+        let mut marketId: Value = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if !(in_op(&self.orderbooks, &symbol)) {
@@ -2515,7 +2521,7 @@ impl NadoCore {
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut maxTimestamp: Value = self.safe_string_k(orderbook.clone(), "maxTimestamp", &[]);
-        let mut lastMaxTimestamp: Value = self.safe_string_k(message.clone(), "last_max_timestamp", &[]);
+        let mut lastMaxTimestamp: Value = (match __pro_message.get("last_max_timestamp").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (maxTimestamp != Value::Null) && (lastMaxTimestamp != Value::Null) && (maxTimestamp.as_str() != lastMaxTimestamp.as_str()) {
             let mut subscriptions: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".into())));
             {
@@ -2540,19 +2546,21 @@ impl NadoCore {
             client.reject(&[Value::from(error), messageHash.clone()]);
             return;
         }
-        let mut asks: Value = self.safe_list_k(message.clone(), "asks", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(message.clone(), "bids", &[Value::from(vec![])]);
+        let mut asks: Value = (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut bids: Value = (match __pro_message.get("bids").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks);
         self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids);
-        let mut timestamp: Value = self.parse_ws_timestamp(message.clone(), Value::Str("max_timestamp".into()));
-        add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
+        let mut timestamp: Value = self.parse_ws_timestamp(message, Value::Str("max_timestamp".into()));
+        add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol);
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
-        add_element_to_object(&mut orderbook, &Value::Str("maxTimestamp".into()), self.safe_string_k(message, "max_timestamp", &[]));
+        add_element_to_object(&mut orderbook, &Value::Str("maxTimestamp".into()), (match __pro_message.get("max_timestamp").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         client.resolve(&[orderbook, messageHash]);
 }
 
     pub fn handle_execute_response(&self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
         //         "status": "success",
@@ -2564,7 +2572,7 @@ impl NadoCore {
         //         "id": 100
         //     }
         //
-        let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
+        let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (id == Value::Null) {
             return;
         }
@@ -2577,7 +2585,9 @@ impl NadoCore {
 }
 
     pub fn handle_subscription(&self, mut client: Value, mut message: Value) {
-        let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", Value::Str("subscription:".into()), id).into()), &[]);
         if (subscription != Value::Null) {
             let mut subscribeHash: Value = self.safe_string_k(subscription, "subscribeHash", &[]);
@@ -2587,7 +2597,9 @@ impl NadoCore {
 }
 
     pub fn handle_authentication(&self, mut client: Value, mut message: Value) {
-        let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut messageHash: Value = self.safe_string(get_value(&client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", Value::Str("authentication:".into()), id).into()), &[]);
         if (messageHash != Value::Null) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("authentication:".into()), id).into()));
@@ -2597,7 +2609,9 @@ impl NadoCore {
 }
 
     pub fn handle_unsubscription(&mut self, mut client: Value, mut message: Value) {
-        let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut unsubscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), id).into()), &[]);
         if (unsubscription != Value::Null) {
             let mut messageHash: Value = self.safe_string_k(unsubscription.clone(), "messageHash", &[]);
@@ -2649,7 +2663,7 @@ impl NadoCore {
         }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("ohlcv:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut parts: Value = split(&messageHash, &Value::Str(":".into()));
             let mut timeframe: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-            let mut symbol: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
+            let mut symbol: Value = self.safe_string(parts, Value::Int(2), &[]);
             if (symbol != Value::Null) && (timeframe != Value::Null) && (in_op(&self.ohlcvs, &symbol)) && (in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
                 remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
             }
@@ -2707,6 +2721,8 @@ impl NadoCore {
 }
 
     pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
         //         "result": {
@@ -2717,10 +2733,10 @@ impl NadoCore {
         //         "id": 10
         //     }
         //
-        let mut result: Value = self.safe_dict_k(message.clone(), "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let __ws_arg_18 = self.milliseconds();
         crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(result, "server_time", &[__ws_arg_18]));
         return message;
@@ -2729,13 +2745,15 @@ impl NadoCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
-        let mut error: Value = self.safe_value_k(message.clone(), "error", &[]);
-        let mut status: Option<String> = self.safe_string_k(message.clone(), "status", &[]).as_str().map(str::to_owned);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let mut error: Value = (match __pro_message.get("error").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
+        let mut status: Option<String> = (match __pro_message.get("status").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (error == Value::Null) && (status.as_deref() != Some("failure")) {
             return Value::Bool(false);
         }
         let mut feedback = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
-        let mut id: Value = self.safe_string_k(message, "id", &[]);
+        let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (id != Value::Null) {
             let mut executeHash: Value = Value::Str(format!("{}{}", Value::Str("execute:".into()), id).into());
             let mut executeSubscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), executeHash.clone(), &[]);
@@ -2759,12 +2777,14 @@ impl NadoCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             return;
         }
-        let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
+        let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut hasResult: bool = matches!(&message, Value::Dict(__d) if __d.contains_key("result"));
-        let mut result: Value = self.safe_dict_k(message.clone(), "result", &[]);
+        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut method: Option<String> = self.safe_string_k(result.clone(), "method", &[]).as_str().map(str::to_owned);
         if (method.as_deref() == Some("pong")) {
             // pong replies carry both 'id' and 'result' so they must be routed
@@ -2772,7 +2792,7 @@ impl NadoCore {
             self.handle_pong(client.clone(), message.clone());
             return;
         }
-        let mut requestType: Option<String> = self.safe_string_k(message.clone(), "request_type", &[]).as_str().map(str::to_owned);
+        let mut requestType: Option<String> = (match __pro_message.get("request_type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (requestType.is_some()) {
             // v2 gateway execute responses carry 'request_type' and the echoed request id
             self.handle_execute_response(client.clone(), message.clone());
@@ -2796,7 +2816,7 @@ impl NadoCore {
             self.handle_subscription(client.clone(), message.clone());
             return;
         }
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut type_var: Value = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("trade".to_string(), Value::Str("handle_trade".into()).clone());

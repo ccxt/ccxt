@@ -561,8 +561,8 @@ impl BittradeCore {
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "ch": "market.btcusdt.kline.1min",
@@ -579,7 +579,7 @@ impl BittradeCore {
         //         }
         //     }
         //
-        let mut ch: Value = (match __pro_message.get("ch").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut ch: Value = (match message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (ch == Value::Null) {
             return;
         }
@@ -599,7 +599,7 @@ impl BittradeCore {
             stored = ArrayCacheByTimestamp::new(limit);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
         }
-        let mut tick: Value = (match __pro_message.get("tick").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
+        let mut tick: Value = (match message.get("tick") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         let mut parsed: Value = self.parse_ohlcv(tick, &[market]);
         stored.append(parsed);
         client.resolve(&[stored, ch]);
@@ -663,8 +663,8 @@ impl BittradeCore {
 }
 
     pub fn handle_order_book_snapshot(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "id": 1583473663565,
@@ -688,9 +688,9 @@ impl BittradeCore {
         //
         let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
         let mut messageHash: Value = self.safe_string_k(subscription, "messageHash", &[]);
-        let mut timestamp: Value = (match __pro_message.get("ts").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
+        let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[]);
         add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), self.safe_integer_k(data, "seqNum", &[]));
         add_element_to_object(&mut snapshot, &Value::Str("timestamp".into()), timestamp.clone());
@@ -770,8 +770,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn handle_order_book_message(&self, mut client: Value, mut message: Value, mut orderbook: Value) -> Value {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "ch": "market.btcusdt.mbp.150",
@@ -792,7 +792,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     }
         //
-        let mut tick: Value = (match __pro_message.get("tick").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -807,7 +807,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks);
             self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids);
             add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), seqNum);
-            let mut timestamp: Value = (match __pro_message.get("ts").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
+            let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
@@ -954,12 +954,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     { ping: 1583491673714 }
         //
         client.send(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pong".to_string(), self.safe_integer_k(message, "ping", &[]));
+                m.insert("pong".to_string(), (match message.get("ping") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));
             m
         })]);
 

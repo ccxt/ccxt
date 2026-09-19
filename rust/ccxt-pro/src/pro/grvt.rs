@@ -314,6 +314,8 @@ impl GrvtCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // confirmation
         //
@@ -363,11 +365,11 @@ impl GrvtCore {
                 m.insert("v1.order".to_string(), Value::Str("handle_order".into()).clone());
             m
         });
-        let mut methodName: Option<String> = self.safe_string_k(message.clone(), "method", &[]).as_str().map(str::to_owned);
+        let mut methodName: Option<String> = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (methodName.as_deref() == Some("subscribe")) {
             return;
         }
-        let mut channel: Value = self.safe_string_k(message.clone(), "stream", &[]);
+        let mut channel: Value = (match __pro_message.get("stream").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut method: Value = self.safe_value(methods, channel, &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, message]);
@@ -491,6 +493,8 @@ impl GrvtCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // v1.ticker.s
         //
@@ -567,11 +571,11 @@ impl GrvtCore {
         //        "prev_sequence_number": "1061717"
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "feed", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut selector: Value = self.safe_string_k(message, "selector", &[Value::Str("".into())]);
+        let mut data: Value = (match message.get("feed") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut selector: Value = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut parts: Value = split(&selector, &Value::Str("@".into()));
         let mut marketId: Value = self.safe_string(parts, Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
@@ -667,6 +671,8 @@ impl GrvtCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "stream": "v1.trade",
@@ -689,11 +695,11 @@ impl GrvtCore {
         //        "prev_sequence_number": "0"
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "feed", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut selector: Value = self.safe_string_k(message, "selector", &[Value::Str("".into())]);
+        let mut data: Value = (match message.get("feed") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut selector: Value = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut parts: Value = split(&selector, &Value::Str("@".into()));
         let mut marketId: Value = self.safe_string(parts, Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
@@ -804,6 +810,8 @@ impl GrvtCore {
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "stream": "v1.candle",
@@ -824,11 +832,11 @@ impl GrvtCore {
         //        "prev_sequence_number": "0"
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "feed", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut selector: Value = self.safe_string_k(message, "selector", &[Value::Str("".into())]);
+        let mut data: Value = (match message.get("feed") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut selector: Value = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut parts: Value = split(&selector, &Value::Str("@".into()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
@@ -946,6 +954,8 @@ impl GrvtCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "stream": "v1.book.s",
@@ -972,34 +982,34 @@ impl GrvtCore {
         //        "prev_sequence_number": "0"
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "feed", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut selector: Value = self.safe_string_k(message.clone(), "selector", &[Value::Str("".into())]);
+        let mut data: Value = (match message.get("feed") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut selector: Value = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut parts: Value = split(&selector, &Value::Str("@".into()));
         let mut marketId: Value = self.safe_string(parts, Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_product(data.clone(), Value::Str("event_time".into()), Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(data.clone(), "event_time", Value::Float(0.000001), &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut sequenceNumber: Value = self.safe_integer_k(message.clone(), "sequence_number", &[Value::Int(0)]);
-        let mut stream: Option<String> = self.safe_string_k(message, "stream", &[]).as_str().map(str::to_owned);
+        let mut sequenceNumber: Value = (match message.get("sequence_number") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(0) } }, _ => Value::Int(0) });
+        let mut stream: Option<String> = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut isSnapshotChannel: bool = stream.as_deref() == Some("v1.book.s");
         let mut isSnapshotMessage: bool = sequenceNumber.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64);
         if isSnapshotChannel || isSnapshotMessage {
             let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
-            orderbook.reset(snapshot.clone());
+            orderbook.reset(snapshot);
         }  else {
             let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]);
+            let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("asks".into())), asks, &[Value::Str("price".into()), Value::Str("size".into())]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("bids".into())), bids, &[Value::Str("price".into()), Value::Str("size".into())]);
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
         // grvt defaults to the delta channel (v1.book.d); if the very first
         // message is a delta, the freshly-created orderbook has symbol=null
@@ -1012,7 +1022,7 @@ impl GrvtCore {
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), sequenceNumber);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(&[orderbook.clone(), messageHash]);
+        client.resolve(&[orderbook, messageHash]);
 }
 
     pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
@@ -1083,7 +1093,7 @@ impl GrvtCore {
             self.load_markets(&[]).await;
         }
         self.authenticate(&[]).await;
-        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone());
+        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHashes: Value = Value::from(vec![]);
         let mut rawHashes: Value = Value::from(vec![]);
         if (symbol != Value::Null) {
@@ -1103,7 +1113,7 @@ impl GrvtCore {
         let __ws_arg_7 = self.extend(request, &[params]);
         let mut trades: Value = self.subscribe_multiple(messageHashes.clone(), __ws_arg_7, messageHashes.clone(), &[Value::Bool(false)]).await;
         if is_true(&self.newUpdates) {
-            limit = trades.get_limit(symbol.clone(), limit.clone());
+            limit = trades.get_limit(symbol, limit.clone());
         }
         return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
 
@@ -1111,6 +1121,8 @@ impl GrvtCore {
 }
 
     pub fn handle_my_trade(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "stream": "v1.fill",
@@ -1146,15 +1158,15 @@ impl GrvtCore {
         //        "prev_sequence_number": "0"
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message, "feed", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("feed") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
-        let mut trade: Value = self.parse_ws_my_trade(data.clone(), &[]);
+        let mut trade: Value = self.parse_ws_my_trade(data, &[]);
         self.myTrades.append(trade.clone());
         client.resolve(&[self.myTrades.clone(), Value::Str(format!("{}{}", Value::Str("myTrades::".into()), trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())]);
         client.resolve(&[self.myTrades.clone(), Value::Str("myTrades".into())]);
@@ -1190,7 +1202,7 @@ impl GrvtCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone());
+        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut rawHashes: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
@@ -1200,7 +1212,7 @@ impl GrvtCore {
                 let mut __for_first_374: bool = true;
                 while { if !__for_first_374 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_374 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut market: Value = self.market(symbol.clone());
+                let mut market: Value = self.market(symbol);
                 append_to_array(&mut rawHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("positions::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
             }
@@ -1226,6 +1238,8 @@ impl GrvtCore {
 }
 
     pub fn handle_position(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "stream": "v1.position",
@@ -1257,8 +1271,8 @@ impl GrvtCore {
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
-        let mut data: Value = self.safe_dict_k(message, "feed", &[]);
-        let mut position: Value = self.parse_ws_position(data.clone(), &[]);
+        let mut data: Value = (match message.get("feed") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
+        let mut position: Value = self.parse_ws_position(data, &[]);
         let mut symbol: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         self.positions.append(position.clone());
         let mut newPositions: Value = Value::from(vec![]);
@@ -1297,7 +1311,7 @@ impl GrvtCore {
             self.load_markets(&[]).await;
         }
         self.authenticate(&[]).await;
-        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone());
+        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHashes: Value = Value::from(vec![]);
         let mut rawHashes: Value = Value::from(vec![]);
         if (symbol == Value::Null) {
@@ -1319,12 +1333,14 @@ impl GrvtCore {
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol.clone(), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "stream": "v1.order",
@@ -1389,12 +1405,12 @@ impl GrvtCore {
         //        "prev_sequence_number": "16"
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message, "feed", &[]);
+        let mut data: Value = (match message.get("feed") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
-        let mut order: Value = self.parse_ws_order(data.clone(), &[]);
+        let mut order: Value = self.parse_ws_order(data, &[]);
         self.orders.append(order.clone());
         client.resolve(&[self.orders.clone(), Value::Str("orders".into())]);
         client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str("order::".into()), order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())]);

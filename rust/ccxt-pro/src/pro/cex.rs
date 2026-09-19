@@ -177,18 +177,15 @@ impl crate::exchange_generated::ExchangeBase for CexCore {
                 "cancel_order_ws" => self.cancel_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_orders_ws" => self.cancel_orders_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_order_ws" => self.create_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
-                "currency_from_precision" => self.currency_from_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "edit_order_ws" => self.edit_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "fetch_balance_ws" => self.fetch_balance_ws(&args[..]).await,
                 "fetch_open_orders_ws" => self.fetch_open_orders_ws(&args[..]).await,
                 "fetch_order_ws" => self.fetch_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_ticker_ws" => self.fetch_ticker_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "from_precision" => self.from_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_connected" => self.handle_connected(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_ohlcv24" => self.handle_ohlcv24(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "pair_to_symbol" => self.pair_to_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_old_trade" => self.parse_ws_old_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_order_update" => self.parse_ws_order_update(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -219,13 +216,11 @@ impl CexCore {
             "cancel_order_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_order_ws", args.to_vec()); crate::Value::Null },
             "cancel_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_orders_ws", args.to_vec()); crate::Value::Null },
             "create_order_ws" => { crate::exchange_stubs::enqueue_spawn("create_order_ws", args.to_vec()); crate::Value::Null },
-            "currency_from_precision" => self.currency_from_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "edit_order_ws" => { crate::exchange_stubs::enqueue_spawn("edit_order_ws", args.to_vec()); crate::Value::Null },
             "fetch_balance_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_balance_ws", args.to_vec()); crate::Value::Null },
             "fetch_open_orders_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_open_orders_ws", args.to_vec()); crate::Value::Null },
             "fetch_order_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_order_ws", args.to_vec()); crate::Value::Null },
             "fetch_ticker_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_ticker_ws", args.to_vec()); crate::Value::Null },
-            "from_precision" => self.from_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_connected" => self.handle_connected(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -247,7 +242,6 @@ impl CexCore {
             "handle_trades_inner" => { self.handle_trades_inner(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades_snapshot" => { self.handle_trades_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_transaction" => { self.handle_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "pair_to_symbol" => self.pair_to_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_old_trade" => self.parse_ws_old_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_order_update" => self.parse_ws_order_update(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -382,8 +376,8 @@ impl CexCore {
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "e": "get-balance",
@@ -404,7 +398,7 @@ impl CexCore {
         //         "ok": "ok"
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -437,7 +431,7 @@ impl CexCore {
         }
         }
         { let __t = self.safe_balance(result); self.balance = __t; }
-        let mut messageHash: Value = (match __pro_message.get("oid").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut messageHash: Value = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         client.resolve(&[self.balance.clone(), messageHash]);
 }
 
@@ -569,9 +563,9 @@ impl CexCore {
 }
 
     pub fn handle_trades_inner(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut symbol: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
         if (symbol == Value::Null) {
             return;
@@ -725,8 +719,8 @@ impl CexCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "e": "tick",
@@ -739,7 +733,7 @@ impl CexCore {
         //         }
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -752,7 +746,7 @@ impl CexCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[ticker.clone(), messageHash.clone()]);
         client.resolve(&[ticker.clone(), Value::Str("tickers".into())]);
-        messageHash = (match __pro_message.get("oid").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        messageHash = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (messageHash != Value::Null) {
             client.resolve(&[ticker, messageHash]);
         }
@@ -969,8 +963,8 @@ impl CexCore {
 }
 
     pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "e": "tx",
@@ -1013,7 +1007,7 @@ impl CexCore {
         //             "id": "59091012962"
         //         }
         //     }
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -1100,8 +1094,8 @@ impl CexCore {
 }
 
     pub fn handle_order_update(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //  partialExecution
         //     {
@@ -1170,11 +1164,11 @@ impl CexCore {
         //         }
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut isTransaction: bool = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("tx");
+        let mut isTransaction: bool = (match message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("tx");
         let mut orderId: Value = self.safe_string2(data.clone(), Value::Str("id".into()), Value::Str("order".into()), &[]);
         let mut remains: Value = self.safe_string_k(data.clone(), "remains", &[]);
         let mut baseId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
@@ -1188,7 +1182,7 @@ impl CexCore {
         let mut quote: Value = self.safe_currency_code(quoteId, &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut market: Value = self.safe_market(&[symbol.clone()]);
-        remains = self.currency_from_precision(base, remains.clone());
+        remains = self.currency_from_precision(base, remains.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit);
@@ -1274,14 +1268,14 @@ impl CexCore {
             if (market == Value::Null) {
                 return Value::Null;
             }
-            remaining = self.currency_from_precision(market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), remainsPrecision);
+            remaining = self.currency_from_precision(market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), remainsPrecision).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
         if !isTransaction {
             if (market == Value::Null) {
                 return Value::Null;
             }
-            self.currency_from_precision(market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), amount.clone());
+            self.currency_from_precision(market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), amount.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         let mut baseId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut quoteId: Value = self.safe_string_k(order.clone(), "symbol2", &[]);
@@ -1349,28 +1343,24 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn from_precision(&self, mut amount: Value, mut scale: Value) -> Value {
+    pub fn from_precision(&self, mut amount: Value, mut scale: Value) -> Option<String> {
         if (amount == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let mut precise = Precise::new(amount);
         { let __sv_tmp = self.sum(&[get_value(&precise, &Value::Str("decimals".into())), scale]); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
         precise.reduce();
-        return to_string_val(&precise);
-
-    Value::Null
+        return to_string_val(&precise).as_str().map(str::to_owned);
 }
 
-    pub fn currency_from_precision(&self, mut currency: Value, mut amount: Value) -> Value {
+    pub fn currency_from_precision(&self, mut currency: Value, mut amount: Value) -> Option<String> {
         let mut scale: Value = self.safe_integer_k(get_value(&self.currencies, &currency), "precision", &[Value::Int(0)]);
         return self.from_precision(amount, scale);
-
-    Value::Null
 }
 
     pub fn handle_orders_snapshot(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "e": "open-orders",
@@ -1386,8 +1376,8 @@ impl CexCore {
         //         "ok": "ok"
         //     }
         //
-        let mut symbol: Value = (match __pro_message.get("oid").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }); // symbol is set as requestId in watchOrders
-        let mut rawOrders: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut symbol: Value = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }); // symbol is set as requestId in watchOrders
+        let mut rawOrders: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut myOrders: Value = self.orders.clone();
         if (myOrders == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -1458,8 +1448,8 @@ impl CexCore {
 }
 
     pub fn handle_order_book_snapshot(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "e": "order-book-subscribe",
@@ -1482,12 +1472,12 @@ impl CexCore {
         //         "ok": "ok"
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         let mut pair: Value = self.safe_string_k(data.clone(), "pair", &[]);
-        let mut symbol: Value = self.pair_to_symbol(pair);
+        let mut symbol: Value = self.pair_to_symbol(pair).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut timestamp: Value = self.safe_integer2(data.clone(), Value::Str("timestamp_ms".into()), Value::Str("timestamp".into()), &[]);
         let mut incrementalId: Value = self.safe_integer_k(data.clone(), "id", &[]);
@@ -1507,21 +1497,19 @@ impl CexCore {
         client.resolve(&[orderbook, messageHash]);
 }
 
-    pub fn pair_to_symbol(&self, mut pair: Value) -> Value {
+    pub fn pair_to_symbol(&self, mut pair: Value) -> Option<String> {
         let mut parts: Value = split(&pair, &Value::Str(":".into()));
         let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut quoteId: Value = self.safe_string(parts, Value::Int(1), &[]);
         let mut base: Value = self.safe_currency_code(baseId, &[]);
         let mut quote: Value = self.safe_currency_code(quoteId, &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-        return symbol;
-
-    Value::Null
+        return symbol.as_str().map(str::to_owned);
 }
 
     pub fn handle_order_book_update(&self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "e": "md_update",
@@ -1536,13 +1524,13 @@ impl CexCore {
         //         }
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         let mut incrementalId: Value = self.safe_integer_k(data.clone(), "id", &[]);
         let mut pair: Value = self.safe_string_k(data.clone(), "pair", &[Value::Str("".into())]);
-        let mut symbol: Value = self.pair_to_symbol(pair);
+        let mut symbol: Value = self.pair_to_symbol(pair).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut storedOrderBook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         if !is_equal(&incrementalId, &add(&storedOrderBook.as_map().and_then(|__m| __m.get("nonce")).cloned().unwrap_or(Value::Null), &Value::Int(1))) {
@@ -1621,8 +1609,8 @@ impl CexCore {
 }
 
     pub fn handle_init_ohlcv(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "e": "init-ohlcv-data",
@@ -1640,7 +1628,7 @@ impl CexCore {
         //         "pair": "BTC:USDT"
         //     }
         //
-        let mut pair: Value = (match __pro_message.get("pair").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut pair: Value = (match message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (pair == Value::Null) {
             return;
         }
@@ -1652,7 +1640,7 @@ impl CexCore {
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut market: Value = self.safe_market(&[symbol.clone()]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into());
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
         let mut stored = ArrayCacheByTimestamp::new(limit);
         let mut sorted: Value = self.sort_by(data, Value::Int(0), &[]);
@@ -1680,8 +1668,8 @@ impl CexCore {
 }
 
     pub fn handle_ohlcv1m(&self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "e": "ohlcv1m",
@@ -1697,12 +1685,12 @@ impl CexCore {
         //         }
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         let mut pair: Value = self.safe_string_k(data.clone(), "pair", &[]);
-        let mut symbol: Value = self.pair_to_symbol(pair);
+        let mut symbol: Value = self.pair_to_symbol(pair).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into());
         let mut ohlcv: Value = Value::from(vec![self.safe_timestamp_k(data.clone(), "time", &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
         let mut stored: Value = self.safe_value(self.ohlcvs.clone(), symbol, &[]);
@@ -1711,8 +1699,8 @@ impl CexCore {
 }
 
     pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "e": "ohlcv",
@@ -1722,9 +1710,9 @@ impl CexCore {
         //         "pair": "BTC:USD"
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut pair: Value = (match __pro_message.get("pair").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut symbol: Value = self.pair_to_symbol(pair);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut pair: Value = (match message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut symbol: Value = self.pair_to_symbol(pair).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into());
         // const stored = this.safeValue (this.ohlcvs, symbol);
         let mut stored: Value = get_value(&self.ohlcvs, &symbol).as_map().and_then(|__m| __m.get("unknown")).cloned().unwrap_or(Value::Null);
@@ -2039,6 +2027,8 @@ impl CexCore {
 }
 
     pub fn resolve_data(&self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    "e": "open-orders",
         //    "data": [
@@ -2056,8 +2046,8 @@ impl CexCore {
         //    "ok": "ok"
         //    }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
-        let mut messageHash: Value = self.safe_string_k(message, "oid", &[]);
+        let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let mut messageHash: Value = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         client.resolve(&[data, messageHash]);
 }
 

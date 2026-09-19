@@ -583,8 +583,8 @@ impl CoinbaseCore {
             if (currentToken.is_none()) || (match (&(tokenTimestamp), &(Value::Int(120))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) < seconds.as_f64().unwrap_or(f64::NAN) {
                 // we should generate new token
                 let mut token: Value = self.parent.create_auth_token(seconds.clone(), &[]);
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsToken".into(), token.clone()); }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsTokenTimestamp".into(), seconds.clone()); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsToken".into(), token); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsTokenTimestamp".into(), seconds); }
             }
             if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("jwt".into(), self.safe_string_k(self.options.clone(), "wsToken", &[])); }
         }
@@ -703,6 +703,8 @@ impl CoinbaseCore {
 }
 
     pub fn handle_tickers(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "channel": "ticker",
@@ -792,8 +794,8 @@ impl CoinbaseCore {
         //    }
         //
         //
-        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-        let mut events: Value = self.safe_list_k(message.clone(), "events", &[Value::from(vec![])]);
+        let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut events: Value = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut datetime: Value = self.safe_string_k(message, "timestamp", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
         let mut newTickers: Value = Value::from(vec![]);
@@ -1126,6 +1128,8 @@ impl CoinbaseCore {
 }
 
     pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "channel": "market_trades",
@@ -1149,7 +1153,7 @@ impl CoinbaseCore {
         //        ]
         //    }
         //
-        let mut events: Value = self.safe_list_k(message, "events", &[]);
+        let mut events: Value = (match message.get("events") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         if (events == Value::Null) {
             return;
         }
@@ -1191,6 +1195,8 @@ impl CoinbaseCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "channel": "user",
@@ -1219,7 +1225,7 @@ impl CoinbaseCore {
         //        ]
         //    }
         //
-        let mut events: Value = self.safe_list_k(message, "events", &[]);
+        let mut events: Value = (match message.get("events") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         if (events == Value::Null) {
             return;
         }
@@ -1313,7 +1319,7 @@ impl CoinbaseCore {
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "avg_price", &[]));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "cumulative_quantity", &[]));
         m.insert("remaining".to_string(), self.safe_string_k(order.clone(), "leaves_quantity", &[]));
-        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order.clone(), "status", &[])));
+        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.safe_string_k(order, "total_fees", &[]));
@@ -1418,11 +1424,13 @@ impl CoinbaseCore {
 
     pub fn try_resolve_usdc(&self, mut client: Value, mut messageHash: Value, mut result: Value) {
         if (ends_with(&messageHash, &Value::Str("/USD".into()))) || (ends_with(&messageHash, &Value::Str("-USD".into()))) {
-            client.resolve(&[result.clone(), Value::Str(format!("{}{}", messageHash, Value::Str("C".into())).into())]); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
+            client.resolve(&[result, Value::Str(format!("{}{}", messageHash, Value::Str("C".into())).into())]); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) -> Value {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
         //         "type": "subscriptions",
@@ -1443,7 +1451,7 @@ impl CoinbaseCore {
         //        events: [ { subscriptions: {} } ]
         //      }
         //
-        let mut events: Value = self.safe_list_k(message.clone(), "events", &[Value::from(vec![])]);
+        let mut events: Value = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut firstEvent: Value = self.safe_dict(events, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1464,7 +1472,7 @@ impl CoinbaseCore {
                 while { if !__for_first_264 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_264 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
                 let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut subHash: Value = subMessageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                self.clean_unsubscription(client.clone(), subHash, messageHash.clone(), &[]);
+                self.clean_unsubscription(client.clone(), subHash, messageHash, &[]);
             }
             }
             self.clean_cache(unSubObject);
@@ -1502,7 +1510,7 @@ impl CoinbaseCore {
         }
         let mut method: Value = self.safe_value(methods, channel, &[]);
         if (method != Value::Null) {
-            self.dispatch_ws_handler(&method, &[client.clone(), message]);
+            self.dispatch_ws_handler(&method, &[client, message]);
         }
 }
 }

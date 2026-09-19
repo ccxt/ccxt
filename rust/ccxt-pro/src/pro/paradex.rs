@@ -325,8 +325,8 @@ impl ParadexCore {
 }
 
     pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -334,7 +334,7 @@ impl ParadexCore {
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut result: Value = (match message.get("result") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (result != Value::Null) {
             // client.resolve (true, messageHash);
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), Value::Str("authenticated".into()), &[]);
@@ -479,8 +479,8 @@ impl ParadexCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -510,7 +510,7 @@ impl ParadexCore {
         //         }
         //     }
         //
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -709,8 +709,8 @@ impl ParadexCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -738,7 +738,7 @@ impl ParadexCore {
         //         }
         //     }
         //
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -914,8 +914,8 @@ impl ParadexCore {
 }
 
     pub fn handle_funding_rate(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -934,7 +934,7 @@ impl ParadexCore {
         //         }
         //     }
         //
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -994,8 +994,8 @@ impl ParadexCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1010,7 +1010,7 @@ impl ParadexCore {
         //         "usOut": 1718179125962495
         //     }
         //
-        let mut error: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (error == Value::Null) {
             return Value::Bool(true);
         }  else {

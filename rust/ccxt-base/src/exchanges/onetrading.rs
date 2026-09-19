@@ -112,9 +112,7 @@ impl crate::exchange_generated::ExchangeBase for OnetradingCore {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -1671,7 +1669,7 @@ impl OnetradingCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OPEN".to_string(), Value::Str("open".into()));
@@ -1687,9 +1685,7 @@ impl OnetradingCore {
                 m.insert("RISK_FAILED_OVER_MAX_POSITION".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1764,7 +1760,7 @@ impl OnetradingCore {
         let mut id: Value = self.safe_string_k(rawOrder.clone(), "order_id", &[]);
         let mut clientOrderId: Value = self.safe_string_k(rawOrder.clone(), "client_id", &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(rawOrder.clone(), "time", &[]));
-        let mut status: Value = self.parse_order_status(self.safe_string_k(rawOrder.clone(), "status", &[]));
+        let mut status: Value = self.parse_order_status(self.safe_string_k(rawOrder.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "instrument_code", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("_".into())]);
         let mut price: Value = self.safe_string_k(rawOrder.clone(), "price", &[]);
@@ -1772,12 +1768,12 @@ impl OnetradingCore {
         let mut filled: Value = self.safe_string_k(rawOrder.clone(), "filled_amount", &[]);
         let mut side: Value = self.safe_string_lower_k(rawOrder.clone(), "side", &[]);
         let mut type_var: Value = self.safe_string_lower_k(rawOrder.clone(), "type", &[]);
-        let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(rawOrder.clone(), "time_in_force", &[]));
+        let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(rawOrder.clone(), "time_in_force", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut postOnly: Value = self.safe_bool_k(rawOrder.clone(), "is_post_only", &[]);
         let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("clientOrderId".to_string(), clientOrderId);
         m.insert("info".to_string(), order);
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -1803,7 +1799,7 @@ impl OnetradingCore {
     Value::Null
 }
 
-    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Value {
+    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("GOOD_TILL_CANCELLED".to_string(), Value::Str("GTC".into()));
@@ -1813,9 +1809,7 @@ impl OnetradingCore {
                 m.insert("POST_ONLY".to_string(), Value::Str("PO".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]);
-
-    Value::Null
+        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -1918,7 +1912,7 @@ impl OnetradingCore {
             method = Value::Str("privateDeleteAccountOrdersClientClientId".into());
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_id".into(), clientOrderId); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id); }
         }
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateDeleteAccountOrdersOrderId")) {
@@ -2032,7 +2026,7 @@ impl OnetradingCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_id".to_string(), id.clone());
+                m.insert("order_id".to_string(), id);
             m
         });
         let __ws_arg_8 = self.extend(request, &[params]);
@@ -2228,7 +2222,7 @@ impl OnetradingCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_id".to_string(), id.clone());
+                m.insert("order_id".to_string(), id);
             m
         });
         if (limit != Value::Null) {

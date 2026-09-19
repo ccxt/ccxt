@@ -180,7 +180,6 @@ impl crate::exchange_generated::ExchangeBase for BydfiCore {
                 "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ws_position_side" => self.parse_ws_position_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => self.request_id(),
                 "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -230,7 +229,6 @@ impl BydfiCore {
             "load_balance_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.to_vec()); crate::Value::Null },
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_ws_position_side" => self.parse_ws_position_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "request_id" => self.request_id(),
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
@@ -1096,8 +1094,8 @@ impl BydfiCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "T": 1766588450558,
@@ -1126,7 +1124,7 @@ impl BydfiCore {
         //         }
         //     }
         //
-        let mut rawOrder: Value = (match __pro_message.get("o").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut rawOrder: Value = (match message.get("o") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -1141,7 +1139,7 @@ impl BydfiCore {
         }
         let mut orders: Value = self.orders.clone();
         let mut order: Value = self.parse_ws_order(rawOrder, &[market]);
-        let mut lastUpdateTimestamp: Value = (match __pro_message.get("T").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
+        let mut lastUpdateTimestamp: Value = (match message.get("T") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         add_element_to_object(&mut order, &Value::Str("lastUpdateTimestamp".into()), lastUpdateTimestamp);
         orders.append(order);
         client.resolve(&[orders.clone(), messageHash]);
@@ -1196,9 +1194,9 @@ impl BydfiCore {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parent.parse_order_status(rawStatus));
+        m.insert("status".to_string(), self.parent.parse_order_status(rawStatus).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), self.parent.parse_order_type(rawType));
+        m.insert("type".to_string(), self.parent.parse_order_type(rawType).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "ro", &[]));
@@ -1267,8 +1265,8 @@ impl BydfiCore {
 }
 
     pub fn handle_positions(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "a": {
@@ -1309,7 +1307,7 @@ impl BydfiCore {
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        let mut data: Value = (match __pro_message.get("a").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: Value = (match message.get("a") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -1328,7 +1326,7 @@ impl BydfiCore {
         }
         let mut cache: Value = self.positions.clone();
         let mut parsedPosition: Value = self.parse_ws_position(rawPosition, &[market]);
-        let mut timestamp: Value = (match __pro_message.get("T").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
+        let mut timestamp: Value = (match message.get("T") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         add_element_to_object(&mut parsedPosition, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut parsedPosition, &Value::Str("datetime".into()), self.iso8601(timestamp));
         cache.append(parsedPosition.clone());
@@ -1374,7 +1372,7 @@ impl BydfiCore {
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("realizedPnl".to_string(), self.parse_number(self.safe_string_k(position.clone(), "rp", &[]), &[]));
-        m.insert("side".to_string(), self.parse_ws_position_side(rawPositionSide));
+        m.insert("side".to_string(), self.parse_ws_position_side(rawPositionSide).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.parse_number(self.safe_string_k(position.clone(), "v", &[]), &[]));
         m.insert("contractSize".to_string(), self.parse_number(self.safe_string_k(position.clone(), "uq", &[]), &[]));
         m.insert("timestamp".to_string(), Value::Null);
@@ -1396,16 +1394,14 @@ impl BydfiCore {
     Value::Null
 }
 
-    pub fn parse_ws_position_side(&self, mut rawPositionSide: Value) -> Value {
+    pub fn parse_ws_position_side(&self, mut rawPositionSide: Value) -> Option<String> {
         let mut sides: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("1".to_string(), Value::Str("long".into()));
                 m.insert("2".to_string(), Value::Str("short".into()));
             m
         });
-        return self.safe_string(sides, rawPositionSide.clone(), &[rawPositionSide.clone()]);
-
-    Value::Null
+        return self.safe_string(sides, rawPositionSide.clone(), &[rawPositionSide.clone()]).as_str().map(str::to_owned);
 }
 
 /*

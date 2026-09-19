@@ -315,8 +315,8 @@ impl LunoCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "sequence": "110980825",
@@ -332,7 +332,7 @@ impl LunoCore {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut rawTrades: Value = (match __pro_message.get("trade_updates").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut rawTrades: Value = (match message.get("trade_updates") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut length: f64 = ((rawTrades.len() as i64) as f64);
         if (length == 0.0) {
             return;
@@ -556,6 +556,8 @@ impl LunoCore {
 }
 
     pub fn handle_delta(&self, mut orderbook: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //  create
         //     {
@@ -599,7 +601,7 @@ impl LunoCore {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut createUpdate: Value = self.safe_value_k(message.clone(), "create_update", &[]);
+        let mut createUpdate: Value = (match message.get("create_update") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         let mut asksOrderSide: Value = crate::value::get_value_k(&orderbook, "asks");
         let mut bidsOrderSide: Value = crate::value::get_value_k(&orderbook, "bids");
         if (createUpdate != Value::Null) {
@@ -611,7 +613,7 @@ impl LunoCore {
                 bidsOrderSide.store_array(bidAskArray);
             }
         }
-        let mut deleteUpdate: Value = self.safe_value_k(message, "delete_update", &[]);
+        let mut deleteUpdate: Value = (match message.get("delete_update") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         if (deleteUpdate != Value::Null) {
             let mut orderId: Value = self.safe_string_k(deleteUpdate, "order_id", &[]);
             asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone()]));

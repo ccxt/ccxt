@@ -182,7 +182,6 @@ impl crate::exchange_generated::ExchangeBase for WhitebitCore {
                 "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ws_order_type" => self.parse_ws_order_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "watch_balance" => self.watch_balance(&args[..]).await,
@@ -226,7 +225,6 @@ impl WhitebitCore {
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "load_balance_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.to_vec()); crate::Value::Null },
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_ws_order_type" => self.parse_ws_order_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -473,8 +471,8 @@ impl WhitebitCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // {
         //     "method":"depth_update",
@@ -512,7 +510,7 @@ impl WhitebitCore {
         //     "id":null
         //  }
         //
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut isSnapshot: Value = self.safe_value(params.clone(), Value::Int(0), &[]);
         let mut marketId: Value = self.safe_string(params.clone(), Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
@@ -725,8 +723,8 @@ impl WhitebitCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "method":"trades_update",
@@ -751,7 +749,7 @@ impl WhitebitCore {
         //        ]
         //    }
         //
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut marketId: Value = self.safe_string(params.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -815,8 +813,8 @@ impl WhitebitCore {
 
     pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value, optional_args: &[Value]) {
         let mut subscription = get_arg(optional_args, 0, Value::Null);
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //   {
         //       "method": "deals_update",
@@ -836,7 +834,7 @@ impl WhitebitCore {
         //       "id": null
         //   }
         //
-        let mut trade: Value = (match __pro_message.get("params").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
+        let mut trade: Value = (match message.get("params") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCache::new(limit);
@@ -961,8 +959,8 @@ impl WhitebitCore {
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value, optional_args: &[Value]) {
         let mut subscription = get_arg(optional_args, 0, Value::Null);
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // {
         //     "method": "ordersPending_update",
@@ -989,7 +987,7 @@ impl WhitebitCore {
         //     "id": null
         // }
         //
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut data: Value = self.safe_dict(params.clone(), Value::Int(1), &[]);
         if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -1043,7 +1041,7 @@ impl WhitebitCore {
         let mut cost: Value = self.safe_string_k(order.clone(), "deal_money", &[]);
         let mut stopPrice: Value = self.safe_string_k(order.clone(), "activation_price", &[]);
         let mut rawType: Value = self.safe_string_k(order.clone(), "type", &[]);
-        let mut type_var: Value = self.parse_ws_order_type(rawType);
+        let mut type_var: Value = self.parse_ws_order_type(rawType).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut amount: Value = Value::Null;
         let mut remaining: Value = Value::Null;
         if (type_var.as_str() == Some("market")) {
@@ -1108,7 +1106,7 @@ impl WhitebitCore {
     Value::Null
 }
 
-    pub fn parse_ws_order_type(&self, mut status: Value) -> Value {
+    pub fn parse_ws_order_type(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("1".to_string(), Value::Str("limit".into()));
@@ -1122,9 +1120,7 @@ impl WhitebitCore {
                 m.insert("10".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -1205,8 +1201,8 @@ impl WhitebitCore {
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // spot
         //
@@ -1243,12 +1239,12 @@ impl WhitebitCore {
         //       "id":null
         //   }
         //
-        let mut method: Value = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut method: Value = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (method == Value::Null) {
             return;
         }
         let mut isMargin: bool = Value::Int(method.as_str().and_then(|__s| __s.find("Margin")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        let mut data: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut data: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_661: bool = true;
