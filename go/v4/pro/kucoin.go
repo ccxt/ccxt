@@ -979,7 +979,7 @@ func (this *Kucoin) HandleContractTicker(client any, message any) {
 	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Kucoin) HandleUtaTicker(client any, message any) {
+func (this *Kucoin) HandleUtaTicker(client any, message map[string]any) {
 	//
 	// watchTicker
 	//     {
@@ -1150,7 +1150,7 @@ func (this *Kucoin) watchMultiHelperBody(ch chan any, methodName any, channelNam
 	ch <- retRes79715
 	return nil
 }
-func (this *Kucoin) HandleBidAsk(client any, message any) {
+func (this *Kucoin) HandleBidAsk(client any, message map[string]any) {
 	//
 	// arrives one symbol dict
 	//
@@ -1386,7 +1386,7 @@ func (this *Kucoin) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		return nil
 	}
 }
-func (this *Kucoin) HandleOHLCV(client any, message any) {
+func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -1456,7 +1456,7 @@ func (this *Kucoin) HandleOHLCV(client any, message any) {
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Kucoin) HandleUtaOHLCV(client any, message any) {
+func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "T": "kline.SPOT",
@@ -1739,7 +1739,7 @@ func (this *Kucoin) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- retRes126115
 	return nil
 }
-func (this *Kucoin) HandleTrade(client any, message any) {
+func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -1774,7 +1774,7 @@ func (this *Kucoin) HandleTrade(client any, message any) {
 	cache.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
-func (this *Kucoin) HandleUtaTrade(client any, message any) {
+func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "T": "trade.SPOT",
@@ -2190,7 +2190,7 @@ func (this *Kucoin) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 	ch <- retRes160515
 	return nil
 }
-func (this *Kucoin) HandleOrderBook(client any, message any) {
+func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 	//
 	// initial snapshot is fetched with ccxt's fetchOrderBook
 	// the feed does not include a snapshot, just the deltas
@@ -2280,7 +2280,7 @@ func (this *Kucoin) HandleOrderBook(client any, message any) {
 	this.HandleDelta(ccxt.GetValue(this.Orderbooks, symbol), data)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, symbol), messageHash)
 }
-func (this *Kucoin) HandleUtaOrderBook(client any, message any) {
+func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 	//
 	// snapshot
 	//     {
@@ -2409,7 +2409,7 @@ func (this *Kucoin) HandleBidAsks(bookSide any, bidAsks any) {
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
-func (this *Kucoin) HandleOrderBookSubscription(client any, message any, subscription any) {
+func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var symbols any = this.SafeList(subscription, "symbols")
 	if ccxt.IsEqual(symbols, nil) {
@@ -2486,7 +2486,7 @@ func (this *Kucoin) HandleSubscriptionStatus(client any, message any) {
 		}
 	}
 }
-func (this *Kucoin) HandleSystemStatus(client any, message any) any {
+func (this *Kucoin) HandleSystemStatus(client any, message map[string]any) any {
 	//
 	// todo: answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that
@@ -2833,7 +2833,7 @@ func (this *Kucoin) ParseWsUtaOrder(order any, optionalArgs ...any) any {
 		"postOnly":            this.SafeBool(order, "pO"),
 	}, market)
 }
-func (this *Kucoin) HandleOrder(client any, message any) {
+func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	//
 	// Trigger Orders
 	//
@@ -2924,7 +2924,7 @@ func (this *Kucoin) HandleOrder(client any, message any) {
 	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, symbolSpecificMessageHash)
 }
-func (this *Kucoin) HandleUtaOrder(client any, message any) {
+func (this *Kucoin) HandleUtaOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         "T": "orderAll.UNIFIED",
@@ -3094,7 +3094,7 @@ func (this *Kucoin) GetMyTradesMessageHashSuffix(topic any) any {
 	}
 	return suffix
 }
-func (this *Kucoin) HandleMyTrade(client any, message any) {
+func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "type": "message",
@@ -3139,7 +3139,7 @@ func (this *Kucoin) HandleMyTrade(client any, message any) {
 	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", ccxt.GetValue(parsed, "symbol"))
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolSpecificMessageHash)
 }
-func (this *Kucoin) HandleUtaMyTrade(client any, message any) {
+func (this *Kucoin) HandleUtaMyTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "T": "execution.lite.UNIFIED",
@@ -3402,7 +3402,7 @@ func (this *Kucoin) loadBalanceSnapshotBody(ch chan any, client any, messageHash
 	}
 	return nil
 }
-func (this *Kucoin) HandleBalance(client any, message any) {
+func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 	//
 	// {
 	//     "id":"6217a451294b030001e3a26a",
@@ -3508,7 +3508,7 @@ func (this *Kucoin) HandleBalance(client any, message any) {
 	var messageHash any = *uniformType + ":balance"
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, uniformType), messageHash)
 }
-func (this *Kucoin) HandleUtaBalance(client any, message any) {
+func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "T": "balance.UNIFIED",
@@ -3779,7 +3779,7 @@ func (this *Kucoin) loadPositionSnapshotBody(ch chan any, client any, messageHas
 	}
 	return nil
 }
-func (this *Kucoin) HandlePosition(client any, message any) {
+func (this *Kucoin) HandlePosition(client any, message map[string]any) {
 	//
 	// ccxt.Position Changes Caused Operations
 	//    {
@@ -3892,7 +3892,7 @@ func (this *Kucoin) HandlePosition(client any, message any) {
 	cache.(ccxt.Appender).Append(position)
 	client.(ccxt.ClientInterface).Resolve(position, messageHash)
 }
-func (this *Kucoin) HandleUtaPosition(client any, message any) {
+func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
 	//
 	//     {
 	//         "T": "positionAll.UNIFIED",
@@ -4083,7 +4083,7 @@ func (this *Kucoin) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs
 	ch <- retRes324315
 	return nil
 }
-func (this *Kucoin) HandleUtaFundingRate(client any, message any) {
+func (this *Kucoin) HandleUtaFundingRate(client any, message map[string]any) {
 	//
 	//     {
 	//         "T": "funding-fee",
@@ -4320,7 +4320,7 @@ func (this *Kucoin) Ping(client any) any {
 		"type": "ping",
 	}
 }
-func (this *Kucoin) HandlePong(client any, message any) {
+func (this *Kucoin) HandlePong(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 }
 func (this *Kucoin) HandleErrorMessage(client any, message any) any {

@@ -637,7 +637,7 @@ func (this *Bybit) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- retRes48415
 	return nil
 }
-func (this *Bybit) HandleTicker(client any, message any) {
+func (this *Bybit) HandleTicker(client any, message map[string]any) {
 	//
 	// linear
 	//     {
@@ -1045,7 +1045,7 @@ func (this *Bybit) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- retRes79315
 	return nil
 }
-func (this *Bybit) HandleOHLCV(client any, message any) {
+func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "kline.5.BTCUSDT",
@@ -1573,7 +1573,7 @@ func (this *Bybit) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- retRes117915
 	return nil
 }
-func (this *Bybit) HandleTrades(client any, message any) {
+func (this *Bybit) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "topic": "publicTrade.BTCUSDT",
@@ -1843,7 +1843,7 @@ func (this *Bybit) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes138515
 	return nil
 }
-func (this *Bybit) HandleMyTrades(client any, message any) {
+func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 	//
 	// spot
 	//    {
@@ -2115,7 +2115,7 @@ func (this *Bybit) loadPositionsSnapshotBody(ch chan any, client any, messageHas
 	}
 	return nil
 }
-func (this *Bybit) HandlePositions(client any, message any) {
+func (this *Bybit) HandlePositions(client any, message map[string]any) {
 	//
 	//    {
 	//        topic: 'position',
@@ -2301,7 +2301,7 @@ func (this *Bybit) watchLiquidationsBody(ch chan any, symbol any, optionalArgs .
 	ch <- this.FilterBySymbolsSinceLimit(this.Liquidations, []any{symbol}, since, limit, true)
 	return nil
 }
-func (this *Bybit) HandleLiquidation(client any, message any) {
+func (this *Bybit) HandleLiquidation(client any, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -2331,7 +2331,7 @@ func (this *Bybit) HandleLiquidation(client any, message any) {
 	//         ]
 	//     }
 	//
-	if ccxt.IsArray(ccxt.GetValue(message, "data")) {
+	if ccxt.IsArray(message["data"]) {
 		var rawLiquidations []any = ccxt.SafeListTyped(message, "data")
 		for i := 0; i < len(rawLiquidations); i++ {
 			var rawLiquidation any = func() any {
@@ -2518,7 +2518,7 @@ func (this *Bybit) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes191615
 	return nil
 }
-func (this *Bybit) HandleOrderWs(client any, message any) {
+func (this *Bybit) HandleOrderWs(client any, message map[string]any) {
 	//
 	//    {
 	//        "reqId":"1",
@@ -2544,7 +2544,7 @@ func (this *Bybit) HandleOrderWs(client any, message any) {
 	var order any = this.ParseOrder(data)
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
-func (this *Bybit) HandleOrder(client any, message any) {
+func (this *Bybit) HandleOrder(client any, message map[string]any) {
 	//
 	//     spot
 	//     {
@@ -2747,7 +2747,7 @@ func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes212215
 	return nil
 }
-func (this *Bybit) HandleBalance(client any, message any) {
+func (this *Bybit) HandleBalance(client any, message map[string]any) {
 	//
 	// spot
 	//    {
@@ -3434,7 +3434,7 @@ func (this *Bybit) HandleSubscriptionStatus(client any, message any) any {
 	//
 	return message
 }
-func (this *Bybit) HandleUnSubscribe(client any, message any) any {
+func (this *Bybit) HandleUnSubscribe(client any, message map[string]any) any {
 	//
 	// {"success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe"}
 	//

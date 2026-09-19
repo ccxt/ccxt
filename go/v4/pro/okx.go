@@ -415,7 +415,7 @@ func (this *Okx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- retRes30315
 	return nil
 }
-func (this *Okx) HandleTrades(client any, message any) {
+func (this *Okx) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "arg": { channel: "trades", instId: "BTC-USDT" },
@@ -565,7 +565,7 @@ func (this *Okx) watchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.FundingRates, "symbol", symbols)
 	return nil
 }
-func (this *Okx) HandleFundingRate(client any, message any) {
+func (this *Okx) HandleFundingRate(client any, message map[string]any) {
 	//
 	// "data":[
 	//     {
@@ -839,7 +839,7 @@ func (this *Okx) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes58815
 	return nil
 }
-func (this *Okx) HandleTicker(client any, message any) {
+func (this *Okx) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "arg": { channel: "tickers", instId: "BTC-USDT" },
@@ -950,7 +950,7 @@ func (this *Okx) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Bidsasks, "symbol", symbols)
 	return nil
 }
-func (this *Okx) HandleBidAsk(client any, message any) {
+func (this *Okx) HandleBidAsk(client any, message map[string]any) {
 	//
 	// tickers
 	//
@@ -1115,7 +1115,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optio
 	ch <- this.FilterBySymbolsSinceLimit(this.Liquidations, symbols, since, limit, true)
 	return nil
 }
-func (this *Okx) HandleLiquidation(client any, message any) {
+func (this *Okx) HandleLiquidation(client any, message map[string]any) {
 	//
 	//    {
 	//        "arg": {
@@ -1233,7 +1233,7 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, opt
 	ch <- this.FilterBySymbolsSinceLimit(this.Liquidations, symbols, since, limit, true)
 	return nil
 }
-func (this *Okx) HandleMyLiquidation(client any, message any) {
+func (this *Okx) HandleMyLiquidation(client any, message map[string]any) {
 	//
 	//    {
 	//        "arg": {
@@ -1910,7 +1910,7 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	return orderbook
 }
-func (this *Okx) HandleOrderBook(client any, message any) any {
+func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 	//
 	// snapshot
 	//
@@ -2141,10 +2141,10 @@ func (this *Okx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes164815
 	return nil
 }
-func (this *Okx) HandleBalanceAndPosition(client any, message any) {
+func (this *Okx) HandleBalanceAndPosition(client any, message map[string]any) {
 	this.HandleMyLiquidation(client, message)
 }
-func (this *Okx) HandleBalance(client any, message any) {
+func (this *Okx) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         arg: {
@@ -2444,7 +2444,7 @@ func (this *Okx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolsSinceLimit(this.Positions, symbols, since, limit, true)
 	return nil
 }
-func (this *Okx) HandlePositions(client any, message any) {
+func (this *Okx) HandlePositions(client any, message map[string]any) {
 	//
 	//    {
 	//        arg: {
@@ -2641,7 +2641,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Okx) HandleOrders(client any, message any) {
+func (this *Okx) HandleOrders(client any, message map[string]any) {
 	//
 	//     {
 	//         "arg":{
@@ -2729,7 +2729,7 @@ func (this *Okx) HandleOrders(client any, message any) {
 		}
 	}
 }
-func (this *Okx) HandleMyTrades(client any, message any) {
+func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "arg":{
@@ -2901,7 +2901,7 @@ func (this *Okx) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 	ch <- retRes226215
 	return nil
 }
-func (this *Okx) HandlePlaceOrders(client any, message any) {
+func (this *Okx) HandlePlaceOrders(client any, message map[string]any) {
 	//
 	//  batch-orders/order/cancel-order
 	//    {
@@ -3172,7 +3172,7 @@ func (this *Okx) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes245415
 	return nil
 }
-func (this *Okx) HandleCancelAllOrders(client any, message any) {
+func (this *Okx) HandleCancelAllOrders(client any, message map[string]any) {
 	//
 	//    {
 	//        "id": "1512",
@@ -3190,7 +3190,7 @@ func (this *Okx) HandleCancelAllOrders(client any, message any) {
 	var data any = this.SafeList(message, "data", []any{})
 	client.(ccxt.ClientInterface).Resolve(data, messageHash)
 }
-func (this *Okx) HandleSubscriptionStatus(client any, message any) any {
+func (this *Okx) HandleSubscriptionStatus(client any, message map[string]any) any {
 	//
 	//     { event: 'subscribe', arg: { channel: "tickers", instId: "BTC-USDT" } }
 	//
@@ -3198,7 +3198,7 @@ func (this *Okx) HandleSubscriptionStatus(client any, message any) any {
 	// client.(*ccxt.WSClient).Subscriptions[channel] = message
 	return message
 }
-func (this *Okx) HandleAuthenticate(client any, message any) {
+func (this *Okx) HandleAuthenticate(client any, message map[string]any) {
 	//
 	//     { event: "login", success: true }
 	//
@@ -3430,7 +3430,7 @@ func (this *Okx) HandleUnsubscriptionTicker(client any, symbol any, channel any)
 		ccxt.Remove(this.Tickers, symbol)
 	}
 }
-func (this *Okx) HandleUnsubscription(client any, message any) {
+func (this *Okx) HandleUnsubscription(client any, message map[string]any) {
 	//
 	// {
 	//     "event": "unsubscribe",
