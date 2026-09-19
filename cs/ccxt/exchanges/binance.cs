@@ -4712,12 +4712,12 @@ public partial class binance : Exchange
             {
                 throw new ExchangeError ((string)(this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
             }
-            string? code = ((string)getValue(parsed, "code"));
+            string? code = ((string)(parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null));
             if ((parsed == null))
             {
                 throw new ExchangeError ((string)(this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
             }
-            IDictionary<string, object> marginEntry = this.safeDict(marginablesById, getValue(parsed, "id"));
+            IDictionary<string, object> marginEntry = this.safeDict(marginablesById, (parsed != null && parsed.ContainsKey("id") ? parsed["id"] : null));
             if ((parsed == null))
             {
                 throw new ExchangeError ((string)(this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
