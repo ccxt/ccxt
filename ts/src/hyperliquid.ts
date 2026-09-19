@@ -1551,7 +1551,7 @@ export default class hyperliquid extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, originalSince, limit, useTail);
     }
 
-    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
         //
         //     {
         //         "T": 1704287699999,
@@ -2382,8 +2382,8 @@ export default class hyperliquid extends Exchange {
             let orderParams = this.safeDict (rawOrder, 'params', {});
             const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
             orderParams['slippage'] = slippage;
-            const stopLoss = this.safeValue (orderParams, 'stopLoss');
-            const takeProfit = this.safeValue (orderParams, 'takeProfit');
+            const stopLoss = this.safeDict (orderParams, 'stopLoss');
+            const takeProfit = this.safeDict (orderParams, 'takeProfit');
             const hasStopLoss = (stopLoss !== undefined);
             const hasTakeProfit = (takeProfit !== undefined);
             orderParams = this.omit (orderParams, [ 'stopLoss', 'takeProfit' ]);
@@ -4795,7 +4795,7 @@ export default class hyperliquid extends Exchange {
         return ois[symbol];
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: Dict, market: Market = undefined) {
         //
         //  {
         //      szDecimals: '2',
@@ -4883,7 +4883,7 @@ export default class hyperliquid extends Exchange {
         return this.parseIncomes (response, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: Dict, market: Market = undefined) {
         //
         // {
         //     "time": 1734026400057,

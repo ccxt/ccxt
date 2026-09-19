@@ -962,7 +962,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
         //
         //    {
         //        "time": 1645198500000,
@@ -1189,8 +1189,8 @@ export default class krakenfutures extends Exchange {
         let marketId = this.safeString (trade, 'symbol');
         let side = this.safeString (trade, 'side');
         let type: Str = undefined;
-        const priorEdit = this.safeValue (trade, 'orderPriorEdit');
-        const priorExecution = this.safeValue (trade, 'orderPriorExecution');
+        const priorEdit = this.safeDict (trade, 'orderPriorEdit');
+        const priorExecution = this.safeDict (trade, 'orderPriorExecution');
         if (priorExecution !== undefined) {
             order = this.safeString (priorExecution, 'orderId');
             marketId = this.safeString (priorExecution, 'symbol');
@@ -1460,7 +1460,7 @@ export default class krakenfutures extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!('order_tag' in extendedParams)) {
                 // order tag is mandatory so we will generate one if not provided
@@ -1545,7 +1545,7 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.privatePostCancelorder (this.extend ({ 'order_id': id }, params));
-        const status = this.safeString (this.safeValue (response, 'cancelStatus', {}), 'status');
+        const status = this.safeString (this.safeDict (response, 'cancelStatus', {}), 'status');
         this.verifyOrderActionSuccess (status, 'cancelOrder');
         let order: Dict = {};
         if ('cancelStatus' in response) {
@@ -2349,7 +2349,7 @@ export default class krakenfutures extends Exchange {
                         fixed = true;
                     } else if (!fixed) {
                         const executedPrice = this.safeString (item, 'price');
-                        const orderPriorExecution = this.safeValue (item, 'orderPriorExecution');
+                        const orderPriorExecution = this.safeDict (item, 'orderPriorExecution');
                         details = this.safeValue2 (item, 'orderPriorExecution', 'orderPriorEdit');
                         if (executedPrice === undefined) {
                             price = this.safeString (orderPriorExecution, 'limitPrice');
@@ -2670,7 +2670,7 @@ export default class krakenfutures extends Exchange {
         return this.parseIncomes (logs, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //    {
         //        "asset": "usd",
@@ -2912,8 +2912,8 @@ export default class krakenfutures extends Exchange {
             type = (symbol === undefined) ? 'flex' : symbol;
         }
         const accountName = this.parseAccount (type);
-        const accounts = this.safeValue (response, 'accounts');
-        const account = this.safeValue (accounts, accountName);
+        const accounts = this.safeDict (response, 'accounts');
+        const account = this.safeDict (accounts, accountName);
         if (account === undefined) {
             type = (type === undefined) ? '' : type;
             symbol = (symbol === undefined) ? '' : symbol;
@@ -2926,7 +2926,7 @@ export default class krakenfutures extends Exchange {
         return balance;
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         //
         // cashAccount
         //
@@ -3015,7 +3015,7 @@ export default class krakenfutures extends Exchange {
                 account['used'] = '0.0';
                 account['total'] = balance;
             } else {
-                const auxiliary = this.safeValue (response, 'auxiliary');
+                const auxiliary = this.safeDict (response, 'auxiliary');
                 account['free'] = this.safeString (auxiliary, 'af');
                 account['total'] = this.safeString (auxiliary, 'pv');
             }
@@ -3045,7 +3045,7 @@ export default class krakenfutures extends Exchange {
         const fundingRates: FundingRate[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
-            const entry_symbol = this.safeValue (entry, 'symbol');
+            const entry_symbol = this.safeString (entry, 'symbol');
             if (marketIds !== undefined) {
                 if (!this.inArray (entry_symbol, marketIds)) {
                     continue;
@@ -3216,7 +3216,7 @@ export default class krakenfutures extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    override parsePositions (response: any, symbols: Strings = undefined, params = {}) {
+    override parsePositions (response: Dict, symbols: Strings = undefined, params = {}) {
         const result: Position[] = [];
         // a degraded response missing openPositions must fail loudly - a flat
         // account and "could not read positions" are not interchangeable for
@@ -3354,7 +3354,7 @@ export default class krakenfutures extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: Dict, market: Market = undefined): LeverageTier[] {
         /**
          * @method
          * @ignore
@@ -3394,7 +3394,7 @@ export default class krakenfutures extends Exchange {
         //        "tags": [],
         //    }
         //
-        const marginLevels = this.safeValue (info, 'marginLevels');
+        const marginLevels = this.safeList (info, 'marginLevels');
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
         const tiers: LeverageTier[] = [];
@@ -3655,8 +3655,8 @@ export default class krakenfutures extends Exchange {
         if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
         }
-        const errors = this.safeValue (response, 'errors');
-        const firstError = this.safeValue (errors, 0);
+        const errors = this.safeList (response, 'errors');
+        const firstError = this.safeDict (errors, 0);
         const firtErrorMessage = this.safeString (firstError, 'message');
         const message = this.safeString (response, 'error', firtErrorMessage);
         if (message === undefined) {
@@ -3672,13 +3672,13 @@ export default class krakenfutures extends Exchange {
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        const apiVersions = this.safeValue (this.options['versions'], api, {});
-        const methodVersions = this.safeValue (apiVersions, method, {});
+        const apiVersions = this.safeDict (this.options['versions'], api, {});
+        const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
-        const apiAccess = this.safeValue (this.options['access'], api, {});
-        const methodAccess = this.safeValue (apiAccess, method, {});
+        const apiAccess = this.safeDict (this.options['access'], api, {});
+        const methodAccess = this.safeDict (apiAccess, method, {});
         const access = this.safeString (methodAccess, path, 'public');
         const endpoint = version + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
