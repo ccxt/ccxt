@@ -6420,7 +6420,7 @@ public Object describe()
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
                 Object code = Helpers.GetValue(codes, i);
-                Object groupedCurrenciesCode = this.safeList(groupedCurrencies, code, new ArrayList<Object>(Arrays.asList()));
+                List<Object> groupedCurrenciesCode = (List<Object>) this.safeList(groupedCurrencies, code, new ArrayList<Object>(Arrays.asList()));
                 Object highestPrecisionCurrency = this.safeValue(groupedCurrenciesCode, 0);
                 for (var j = 1; j < (groupedCurrenciesCode == null ? 0 : ((List<?>)groupedCurrenciesCode).size()); j++)
                 {
@@ -6471,7 +6471,7 @@ public Object describe()
         this.quoteCurrencies = sourceExchange.quoteCurrencies;
         this.codes = sourceExchange.codes;
         // check marketHelperProps
-        Object sourceExchangeHelpers = this.safeList(sourceExchange.options, "marketHelperProps", new ArrayList<Object>(Arrays.asList()));
+        List<Object> sourceExchangeHelpers = (List<Object>) this.safeList(sourceExchange.options, "marketHelperProps", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < (sourceExchangeHelpers == null ? 0 : ((List<?>)sourceExchangeHelpers).size()); i++)
         {
             Object helper = Helpers.GetValue(sourceExchangeHelpers, i);
@@ -6566,7 +6566,7 @@ public Object describe()
         Boolean parseSymbol = java.util.Objects.equals(symbol, null);
         Boolean parseSide = java.util.Objects.equals(side, null);
         Boolean shouldParseFees = Boolean.TRUE.equals(parseFee) || Boolean.TRUE.equals(parseFees);
-        Object fees = this.safeList(order, "fees", new ArrayList<Object>(Arrays.asList()));
+        List<Object> fees = (List<Object>) this.safeList(order, "fees", new ArrayList<Object>(Arrays.asList()));
         Object trades = new ArrayList<Object>(Arrays.asList());
         Boolean isTriggerOrSLTpOrder = ((!java.util.Objects.equals(this.safeString(order, "triggerPrice"), null) || (!java.util.Objects.equals(this.safeString(order, "stopLossPrice"), null))) || (!java.util.Objects.equals(this.safeString(order, "takeProfitPrice"), null)));
         if (Boolean.TRUE.equals(parseFilled) || Boolean.TRUE.equals(parseCost) || Boolean.TRUE.equals(shouldParseFees))
@@ -6811,7 +6811,7 @@ public Object describe()
             {
                 ((Map<String, Object>)tradeFee).put("rate", BaseExchange.this.safeNumber(tradeFee, "rate"));
             }
-            Object entryFees = this.safeList(entry, "fees", new ArrayList<Object>(Arrays.asList()));
+            List<Object> entryFees = (List<Object>) this.safeList(entry, "fees", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < (entryFees == null ? 0 : ((List<?>)entryFees).size()); j++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(entryFees, j), "cost", this.safeNumber(Helpers.GetValue(entryFees, j), "cost"));
@@ -7629,12 +7629,12 @@ public Object describe()
         Object volume = optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : "v";
         Object ms = optionalArgs != null && optionalArgs.length > 6 ? optionalArgs[6] : false;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Object timestamps = this.safeList(ohlcvs, timestamp, new ArrayList<Object>(Arrays.asList()));
-        Object opens = this.safeList(ohlcvs, open, new ArrayList<Object>(Arrays.asList()));
-        Object highs = this.safeList(ohlcvs, high, new ArrayList<Object>(Arrays.asList()));
-        Object lows = this.safeList(ohlcvs, low, new ArrayList<Object>(Arrays.asList()));
-        Object closes = this.safeList(ohlcvs, close, new ArrayList<Object>(Arrays.asList()));
-        Object volumes = this.safeList(ohlcvs, volume, new ArrayList<Object>(Arrays.asList()));
+        List<Object> timestamps = (List<Object>) this.safeList(ohlcvs, timestamp, new ArrayList<Object>(Arrays.asList()));
+        List<Object> opens = (List<Object>) this.safeList(ohlcvs, open, new ArrayList<Object>(Arrays.asList()));
+        List<Object> highs = (List<Object>) this.safeList(ohlcvs, high, new ArrayList<Object>(Arrays.asList()));
+        List<Object> lows = (List<Object>) this.safeList(ohlcvs, low, new ArrayList<Object>(Arrays.asList()));
+        List<Object> closes = (List<Object>) this.safeList(ohlcvs, close, new ArrayList<Object>(Arrays.asList()));
+        List<Object> volumes = (List<Object>) this.safeList(ohlcvs, volume, new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < (timestamps == null ? 0 : ((List<?>)timestamps).size()); i++)
         {
             ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(((Helpers.isTrue(ms))) ? this.safeInteger(timestamps, i) : this.safeTimestamp(timestamps, i), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i))));
@@ -9444,7 +9444,7 @@ public Object describe()
                 throw new NotSupported((this.id + " fetchIsolatedBorrowRate() is not supported yet")) ;
             }
             Object borrowRates = (this.fetchIsolatedBorrowRates(parameters)).join();
-            Object rate = this.safeDict(borrowRates, symbol);
+            Map<String, Object> rate = (Map<String, Object>) this.safeDict(borrowRates, symbol);
             if (java.util.Objects.equals(rate, null))
             {
                 throw new ExchangeError(((this.id + " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ") + symbol)) ;
@@ -9846,7 +9846,7 @@ public Object describe()
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 Object ranks = (this.fetchPositionsADLRank(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-                Object rank = this.safeDict(ranks, 0);
+                Map<String, Object> rank = (Map<String, Object>) this.safeDict(ranks, 0);
                 if (java.util.Objects.equals(rank, null))
                 {
                     throw new NullResponse(((this.id + " fetchPositionsADLRank() could not find a rank for ") + symbol)) ;
@@ -12773,11 +12773,11 @@ public Object describe()
     public void cleanCache(Object subscription)
     {
         String topic = this.safeString(subscription, "topic");
-        Object symbols = this.safeList(subscription, "symbols", new ArrayList<Object>(Arrays.asList()));
+        List<Object> symbols = (List<Object>) this.safeList(subscription, "symbols", new ArrayList<Object>(Arrays.asList()));
         Object symbolsLength = (symbols == null ? 0 : ((List<?>)symbols).size());
         if (java.util.Objects.equals(topic, "ohlcv"))
         {
-            Object symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(subscription, "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < (symbolsAndTimeframes == null ? 0 : ((List<?>)symbolsAndTimeframes).size()); i++)
             {
                 Object symbolAndTimeFrame = Helpers.GetValue(symbolsAndTimeframes, i);

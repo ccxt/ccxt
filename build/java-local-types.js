@@ -575,7 +575,7 @@ function safeDictLocalType (printer, initializer, name) {
     if (!resolvesToMethodNamed (printer, initializer, name)) {
         return undefined;
     }
-    return { type: JAVA_SAFE_DICT_TYPE, cast: '(' + JAVA_SAFE_DICT_TYPE + ')' };
+    return { type: JAVA_SAFE_DICT_TYPE, cast: '(' + JAVA_SAFE_DICT_TYPE + ')', noCastAssertions: true };
 }
 
 // ts sources that may hold the resolved declaration of an admitted accessor call —
@@ -1153,6 +1153,29 @@ function isThisOrSuperCall (node) {
             || node.expression.expression.kind === ts.SyntaxKind.SuperKeyword);
 }
 
+// hx3 B-15: strip an `as T` / `<T>x` assertion whose printed Java is the bare operand.
+// javaTranspiler.printAsExpression prints a cast only for `any` ((Object) x), `string`
+// ((String) x) and an array type ((java.util.List<...>)(x)); every other asserted type
+// (Dict, Market, a union, a class) falls through to the operand, so the safeDict /
+// safeList / market proofs hold for the inner call. The declaration hook's
+// `this.<name>(` prefix test still refuses every shape that would print a cast.
+function unwrapNoCastAssertion (node) {
+    if (node === undefined) {
+        return undefined;
+    }
+    if (!ts.isAsExpression (node) && !ts.isTypeAssertionExpression (node)) {
+        return node;
+    }
+    const asserted = node.type;
+    if (asserted === undefined
+        || asserted.kind === ts.SyntaxKind.AnyKeyword
+        || asserted.kind === ts.SyntaxKind.StringKeyword
+        || asserted.kind === ts.SyntaxKind.ArrayType) {
+        return node;
+    }
+    return unwrapParens (node.expression) ?? node;
+}
+
 function unwrapParens (node) {
     while (node !== undefined && ts.isParenthesizedExpression (node)) {
         node = node.expression;
@@ -1280,6 +1303,34 @@ function classifyStringHelperCall (printer, node) {
 
 // a `this.<name>(...)` call that resolves to a real method declaration of that name
 // (the signature hook retypes those); fields holding functions do not
+// hx3 B-15: the base stage transpiles a stripped copy of ts/src/base/Exchange.ts
+// (build/stripOverloads.ts -> `ts/src/base/Exchange.nooverloads.<pid>.ts`, a RELATIVE file
+// name), so an accessor call inside the base body resolves to that copy, not to
+// `ts/src/base/Exchange.ts`. Same class, same hand-written Java accessor, so the safeList
+// family accepts it too; the shared resolvesToBaseAccessor stays untouched for every other
+// family.
+const B15_STRIPPED_BASE_SOURCE_FILES = [
+    /[\\/]base[\\/]Exchange(\.nooverloads\.\d+)?\.ts$/,
+    /[\\/]base[\\/]functions[\\/]type\.ts$/,
+];
+
+function resolvesToBaseOrStrippedAccessor (printer, node, name) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    } catch (e) {
+        declaration = undefined;
+    }
+    if (declaration === undefined) {
+        return FIELD_FUNCTION_NAMES.has (name);
+    }
+    const file = declaration.getSourceFile?.().fileName;
+    if (file === undefined) {
+        return false;
+    }
+    return B15_STRIPPED_BASE_SOURCE_FILES.some ((re) => re.test (file));
+}
+
 function resolvesToMethodNamed (printer, node, name) {
     let declaration;
     try {
@@ -1609,23 +1660,28 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
             return { type: memberType };
         }
     }
-    if (!isThisCall (initializer)) {
+    // hx3 B-15: `this.safeDict (...) as Dict` — an assertion the printer drops (bare
+    // operand for every asserted type outside any/string/T[]). The safeDict / market
+    // families prove the inner call; every other family keeps the un-asserted shape.
+    const assertedCall = unwrapNoCastAssertion (initializer);
+    const asserted = assertedCall !== initializer;
+    if (!isThisCall (initializer) && !(asserted && isThisCall (assertedCall))) {
         return undefined;
     }
-    if (!isThisCall (initializer)) {
+    if (!isThisCall (assertedCall)) {
         return receiverMethodLocalType (initializer);
     }
-    const name = initializer.expression.name.escapedText;
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
+    const name = assertedCall.expression.name.escapedText;
+    if (!asserted && (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CAST.has (name))) {
         // the signature hook retypes real method declarations by name; a field of the
         // same name would print an untyped call and could not hold a String result
         return resolvesToMethodNamed (printer, initializer, name) ? { type: 'String' } : undefined;
     }
-    if (JAVA_LIST_RETURN_METHODS.has (name)) {
+    if (!asserted && JAVA_LIST_RETURN_METHODS.has (name)) {
         return resolvesToMethodNamed (printer, initializer, name) ? { type: JAVA_ARRAY_TYPE } : undefined;
     }
     const accessor = LOCAL_THIS_RETURN_TYPES[name];
-    if (accessor !== undefined && accessorResolvesToBase (printer, initializer, name, accessor)) {
+    if (!asserted && accessor !== undefined && accessorResolvesToBase (printer, initializer, name, accessor)) {
         // hx2 java-03: entries with `defaultArg` are only the named box when the call's own
         // default argument is absent or a boolean literal — the accessor hands the caller's
         // default back untouched on the not-found / wrong-type path (section-7 header)
@@ -1637,10 +1693,12 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         return { type: accessor.type, cast: accessor.cast, safeBool: accessor.safeBool === true };
     }
     const structure = STRUCTURE_THIS_RETURN_TYPES[name];
-    if (structure !== undefined && resolvesToMethodNamed (printer, initializer, name)) {
-        return { type: structure, cast: '(' + structure + ')' };
+    if (structure !== undefined && resolvesToMethodNamed (printer, assertedCall, name)) {
+        // hx3 B-15: Map/List locals tolerate the `as Dict` / `as any` / `as any[]` assertions
+        // (no cast or an upcast is printed — see assertedPrintsNoUnsatisfiableCast)
+        return { type: structure, cast: '(' + structure + ')', noCastAssertions: true };
     }
-    const dict = safeDictLocalType (printer, initializer, name);
+    const dict = safeDictLocalType (printer, assertedCall, name);
     if (dict !== undefined) {
         return dict;
     }
@@ -2281,6 +2339,38 @@ function feedsInheritedAsyncCall (printer, n, scope) {
 }
 
 // reject the refinement when a later use needs the local to stay `Object`
+
+// hx3 B-15: which asserted types may sit on a narrowed Map/List local? ast-transpiler's
+// javaTranspiler.printAsExpression prints, per asserted type node:
+//   `any`      -> ((Object) x)                      an upcast, legal on every reference box
+//   `string`   -> ((String) x)                      legal on a String local only (not here)
+//   `any[]`    -> (java.util.List<Object>)(x)       the List local's own type -> legal
+//   `string[]` -> (java.util.List<String>)(x)       inconvertible on a List<Object> local
+//   every other asserted type (Dict, Market, Order, unions, classes) -> the BARE expression:
+//              the printer drops the assertion, so the declaration's type cannot break it.
+// Each admitted shape is the identity or an upcast on the narrowed box, so the printed
+// statement is byte-identical to the Object-declaration path.
+function assertedPrintsNoUnsatisfiableCast (asserted, javaType) {
+    if (asserted === undefined) {
+        return false;
+    }
+    switch (asserted.kind) {
+    case ts.SyntaxKind.AnyKeyword:
+        return true;
+    case ts.SyntaxKind.StringKeyword:
+        return false;
+    case ts.SyntaxKind.ArrayType: {
+        const element = asserted.elementType;
+        if (element?.kind === ts.SyntaxKind.AnyKeyword) {
+            return javaType === JAVA_ARRAY_TYPE;
+        }
+        return element?.kind !== ts.SyntaxKind.StringKeyword;
+    }
+    default:
+        return true;
+    }
+}
+
 function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, info) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
@@ -2376,7 +2466,11 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             // compile error) — keep Object (the C# campaign's reject family, reused here).
             // `x as string` is the identity checkcast `((String)x)` on a String local and
             // is admitted for the opted-in families only.
-            if (!(info?.stringAsCast === true && parent.type?.kind === ts.SyntaxKind.StringKeyword)) {
+            // hx3 B-15: the Map/List families (`noCastAssertions`) additionally admit every
+            // assertion whose printed Java cannot fail on the narrowed box.
+            const admitted = (info?.stringAsCast === true && parent.type?.kind === ts.SyntaxKind.StringKeyword)
+                || (info?.noCastAssertions === true && assertedPrintsNoUnsatisfiableCast (parent.type, javaType));
+            if (!admitted) {
                 return false;
             }
         }
@@ -7556,7 +7650,7 @@ function safeListLocalTypeOf (printer, declaration, isProFile) {
         return undefined;
     }
     const name = String (initializer.expression.name.escapedText);
-    if (!JAVA_SAFE_LIST_NAMES.has (name) || !resolvesToBaseAccessor (printer, initializer, name)) {
+    if (!JAVA_SAFE_LIST_NAMES.has (name) || !resolvesToBaseOrStrippedAccessor (printer, initializer, name)) {
         return undefined;
     }
     if (!safeListInitializerIsList (printer, initializer)) {
@@ -7565,7 +7659,7 @@ function safeListLocalTypeOf (printer, declaration, isProFile) {
     if (!safeListDefaultIsList (printer, initializer, name)) {
         return undefined;
     }
-    if (!isSafeToNarrow (printer, declaration, declaration.name.escapedText, JAVA_SAFE_LIST_TYPE, isProFile, {})) {
+    if (!isSafeToNarrow (printer, declaration, declaration.name.escapedText, JAVA_SAFE_LIST_TYPE, isProFile, { noCastAssertions: true })) {
         return undefined;
     }
     return name;

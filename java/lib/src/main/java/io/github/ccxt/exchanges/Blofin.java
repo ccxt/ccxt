@@ -979,7 +979,7 @@ public class Blofin extends BlofinApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(first, "ts");
             return this.parseOrderBook(first, symbol, timestamp);
         }).thenApply(OrderBook::new);
@@ -1070,7 +1070,7 @@ public class Blofin extends BlofinApi
             }};
             Map<String, Object> response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         }).thenApply(Ticker::new);
 
@@ -1102,7 +1102,7 @@ public class Blofin extends BlofinApi
             }};
             Map<String, Object> response = (this.publicGetMarketMarkPrice(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         }).thenApply(Ticker::new);
 
@@ -2034,11 +2034,11 @@ public class Blofin extends BlofinApi
             }
             if (Boolean.TRUE.equals(isCombinedSlTp) || Boolean.TRUE.equals(isSlOrTp) || Boolean.TRUE.equals(isTriggerOrder))
             {
-                Object dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> dataDict = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseOrder(dataDict, market);
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0);
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0);
             Object order = this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
@@ -2174,17 +2174,17 @@ public class Blofin extends BlofinApi
             if (java.util.Objects.equals(isTpsl, true))
             {
                 Object tpslResponse = (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
-                Object first = this.safeDict(tpslResponse, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(tpslResponse, 0);
                 return first;
             } else if (java.util.Objects.equals(isTrigger, true))
             {
                 Map<String, Object> triggerResponse = (this.privatePostTradeCancelAlgo(this.extend(request, query))).join();
-                Object triggerData = this.safeDict(triggerResponse, "data");
+                Map<String, Object> triggerData = (Map<String, Object>) this.safeDict(triggerResponse, "data");
                 return this.parseOrder(triggerData, market);
             }
             Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object order = this.safeDict(data, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -3037,7 +3037,7 @@ public class Blofin extends BlofinApi
                 put( "toAccount", toId );
             }};
             Map<String, Object> response = (this.privatePostAssetTransfer(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransfer(data, currency);
         }).thenApply(TransferEntry::new);
 
@@ -3495,7 +3495,7 @@ public class Blofin extends BlofinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
@@ -3719,7 +3719,7 @@ public class Blofin extends BlofinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
@@ -3775,7 +3775,7 @@ public class Blofin extends BlofinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
         });
 
