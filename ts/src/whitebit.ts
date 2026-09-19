@@ -756,7 +756,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTransactionFees (codes: Strings = undefined, params: Dict = {}) {
+    override async fetchTransactionFees (codes: Strings = undefined, params: Dict = {}): Promise<{}> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -868,7 +868,7 @@ export default class whitebit extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    override parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined) {
+    override parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined): Dict {
         //
         //    {
         //        "1INCH": {
@@ -1143,7 +1143,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}
      */
-    async fetchFundingLimits (codes: Strings = undefined, params: Dict = {}) {
+    async fetchFundingLimits (codes: Strings = undefined, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1726,7 +1726,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1998,7 +1998,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}) {
+    override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}): Promise<Order> {
         const req = {
             'cost': cost,
         };
@@ -2042,7 +2042,7 @@ export default class whitebit extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2154,7 +2154,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2216,7 +2216,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2262,7 +2262,7 @@ export default class whitebit extends Exchange {
      * @param {boolean} [params.isMargin] cancel all margin orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2338,7 +2338,7 @@ export default class whitebit extends Exchange {
      * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
      * @returns {object} the api result
      */
-    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}): Promise<{}> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2559,7 +2559,7 @@ export default class whitebit extends Exchange {
         return results as Order[];
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'limit': 'limit',
             'market': 'market',
@@ -2678,7 +2678,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'CANCELED': 'canceled',
             'OPEN': 'open',
@@ -2700,7 +2700,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3052,7 +3052,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<{}> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3234,7 +3234,7 @@ export default class whitebit extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             '1': 'pending',
             '2': 'pending',
@@ -3676,7 +3676,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingHistories (data, market, since, limit);
     }
 
-    parseFundingHistory (contract: any, market: Market = undefined) {
+    parseFundingHistory (contract: Dict, market: Market = undefined): FundingHistory {
         //
         //     {
         //         "market": "BTC_PERP",
@@ -4213,7 +4213,7 @@ export default class whitebit extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -4252,7 +4252,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (info: any, market: Market = undefined) {
+    override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
         const marketId = this.safeString (info, 'market');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (info, 'fundingTime');
@@ -4269,7 +4269,7 @@ export default class whitebit extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
         const query = this.omit (params, this.extractParams (path));
         const version = this.safeValue (api, 0);
         const accessibility = this.safeValue (api, 1);

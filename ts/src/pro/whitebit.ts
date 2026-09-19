@@ -97,7 +97,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): Dict {
         //
         // {
         //     "method": "candles_update",
@@ -175,7 +175,7 @@ export default class whitebit extends whitebitRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // {
         //     "method":"depth_update",
@@ -240,13 +240,13 @@ export default class whitebit extends whitebitRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside: any, delta: any) {
+    override handleDelta (bookside: any, delta: any): void {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]): void {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -306,7 +306,7 @@ export default class whitebit extends whitebitRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): Dict {
         //
         //   {
         //       "method": "market_update",
@@ -383,7 +383,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         //    {
         //        "method":"trades_update",
@@ -457,7 +457,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: any, subscription: Dict | undefined = undefined) {
+    handleMyTrades (client: Client, message: Dict , subscription: Dict | undefined = undefined): void {
         //
         //   {
         //       "method": "deals_update",
@@ -490,7 +490,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any[] , market: Market = undefined): Trade {
         //
         //   [
         //         1894994106, // id
@@ -584,7 +584,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: any, subscription: Dict | undefined = undefined) {
+    handleOrder (client: Client, message: Dict , subscription: Dict | undefined = undefined): void {
         //
         // {
         //     "method": "ordersPending_update",
@@ -626,7 +626,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (this.orders, messageHash);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict , market: Market = undefined): Order {
         //
         //   {
         //         "id": 96433622651,
@@ -718,7 +718,7 @@ export default class whitebit extends whitebitRest {
         }, market);
     }
 
-    parseWsOrderType (status: any) {
+    parseWsOrderType (status: any): Str {
         const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
@@ -775,7 +775,7 @@ export default class whitebit extends whitebitRest {
         return await this.watchPrivate (messageHash, method, [], params);
     }
 
-    setBalanceCache (client: Client, type: any, subscriptionHash: any) {
+    setBalanceCache (client: Client, type: any, subscriptionHash: any): void {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -789,7 +789,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async loadBalanceSnapshot (client: any, messageHash: any, type: any, subscriptionHash: any) {
+    async loadBalanceSnapshot (client: any, messageHash: any, type: any, subscriptionHash: any): Promise<any> {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance = this.extend (response, this.balance);
         // don't remove the future from the .futures cache
@@ -800,7 +800,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict): void {
         //
         // spot
         //
@@ -881,7 +881,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash: any, method: any, reqParams: any[] = [], params: Dict = {}) {
+    async watchPublic (messageHash: string , method: string , reqParams: any[] = [], params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const request: Dict = {
@@ -893,7 +893,7 @@ export default class whitebit extends whitebitRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchMultipleSubscription (messageHash: any, method: any, symbol: any, isNested = false, params: Dict = {}) {
+    async watchMultipleSubscription (messageHash: string, method: string, symbol: Str, isNested: boolean = false, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -955,7 +955,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async watchPrivate (messageHash: any, method: any, reqParams: any[] = [], params: Dict = {}) {
+    async watchPrivate (messageHash: string , method: string , reqParams: any[] = [], params: Dict = {}): Promise<any> {
         this.checkRequiredCredentials ();
         await this.authenticate ();
         const url = this.urls['api']['ws'];
@@ -969,7 +969,7 @@ export default class whitebit extends whitebitRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<any> {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
@@ -1057,7 +1057,7 @@ export default class whitebit extends whitebitRest {
         return authorized;
     }
 
-    handleAuthenticate (client: Client, message: any) {
+    handleAuthenticate (client: Client, message: Dict): Dict {
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
         //
@@ -1093,7 +1093,7 @@ export default class whitebit extends whitebitRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         //
         // auth
         //    { error: null, result: { status: "success" }, id: 1656084550 }
@@ -1132,7 +1132,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: any, id: any) {
+    handleSubscriptionStatus (client: Client, message: Dict , id: Int): void {
         // not every method stores its subscription
         // as an object so we can't do indeById here
         const subs = client.subscriptions;
@@ -1152,12 +1152,12 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         return {
             'id': 0,
             'method': 'ping',
