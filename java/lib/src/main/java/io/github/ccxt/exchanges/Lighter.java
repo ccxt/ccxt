@@ -541,7 +541,7 @@ public class Lighter extends LighterApi
             {
                 // load lighter library, and create lighter client
                 signer = (this.loadLighterLibrary(libraryPath, chainId, privateKey, this.parseToInt(apiKeyIndex), this.parseToInt(accountIndex), true)).join();
-                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "signer", signer);
+                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "signer", signer);
                 return signer;
             }
             Boolean privateKeyIsSet = (!java.util.Objects.equals(this.privateKey, null)) && (!java.util.Objects.equals(this.privateKey, ""));
@@ -553,7 +553,7 @@ public class Lighter extends LighterApi
                 }
                 // load lighter library without creating lighter client
                 signer = (this.loadLighterLibrary(libraryPath, chainId, "", this.parseToInt(apiKeyIndex), this.parseToInt(accountIndex), false)).join();
-                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "signer", signer);
+                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "signer", signer);
                 Object res = (this.changeApiKey()).join();
                 (this.handleBuilderFeeApproval(this.parseToInt(accountIndex), this.parseToInt(apiKeyIndex))).join();
                 return res;
@@ -571,11 +571,11 @@ public class Lighter extends LighterApi
         }
         if (!(Helpers.inOp(((Map<String, Object>)this.options).get("auths"), strAccountIndex)))
         {
-            Helpers.addElementToObject(Helpers.GetValue(this.options, "auths"), strAccountIndex, new HashMap<String, Object>() {{}});
+            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex, new HashMap<String, Object>() {{}});
         }
         if (!(Helpers.inOp(Helpers.GetValue(((Map<String, Object>)this.options).get("auths"), strAccountIndex), strApiKeyIndex)))
         {
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), strAccountIndex), strApiKeyIndex, new HashMap<String, Object>() {{
+            Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex), strApiKeyIndex, new HashMap<String, Object>() {{
     put( "signer", null );
     put( "lighterPrivateKey", null );
     put( "deadline", null );
@@ -804,8 +804,8 @@ public class Lighter extends LighterApi
             put( "account_index", Lighter.this.parseToInt(finalAccountIndex) );
         }};
         Object token = this.lighterCreateAuthToken(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.options).get("auths"), accountIndex), apiKeyIndex), "signer"), request);
-        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "deadline", deadline);
-        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "token", token);
+        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "deadline", deadline);
+        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "token", token);
         return token;
     }
 
@@ -972,8 +972,8 @@ public class Lighter extends LighterApi
                 put( "tx_info", newTxInfo );
             }};
             (this.publicPostSendTx(request)).join();
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), strAccountIndex), strApiKeyIndex), "lighterPrivateKey", privateKey);
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), strAccountIndex), strApiKeyIndex), "signer", signer); // reassign signer in go
+            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex), strApiKeyIndex), "lighterPrivateKey", privateKey);
+            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex), strApiKeyIndex), "signer", signer); // reassign signer in go
             (this.handleBuilderFeeApproval(accountIndex, apiKeyIndex)).join();
             return signer;
         });

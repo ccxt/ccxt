@@ -2965,12 +2965,12 @@ public class Htx extends HtxApi
             if (java.util.Objects.equals(constructedId, symbolOrMarketId))
             {
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "futureMarketIdsForSymbols"), symbolOrMarketId, symbol);
+                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("futureMarketIdsForSymbols")), symbolOrMarketId, symbol);
                 return symbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        Helpers.addElementToObject(Helpers.GetValue(this.options, "futureMarketIdsForSymbols"), symbolOrMarketId, symbolOrMarketId);
+        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("futureMarketIdsForSymbols")), symbolOrMarketId, symbolOrMarketId);
         return symbolOrMarketId;
     }
 
@@ -4495,7 +4495,7 @@ public class Htx extends HtxApi
         String type = (((java.util.Objects.equals(assetType, "1")))) ? "crypto" : "fiat";
         if (!java.util.Objects.equals(code, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(this.options, "networkChainIdsByNames"), code, new HashMap<String, Object>() {{}});
+            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networkChainIdsByNames")), code, new HashMap<String, Object>() {{}});
         }
         List<Object> chains = (List<Object>) this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -4506,11 +4506,11 @@ public class Htx extends HtxApi
             String title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(title, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(this.options, "networkChainIdsByNames"), code), title, uniqueChainId);
+                Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("networkChainIdsByNames")), code), title, uniqueChainId);
             }
             if (!java.util.Objects.equals(uniqueChainId, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "networkNamesByChainIds"), uniqueChainId, title);
+                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networkNamesByChainIds")), uniqueChainId, title);
             }
             Object networkCode = this.networkIdToCode(uniqueChainId, code);
             if (!java.util.Objects.equals(networkCode, null))

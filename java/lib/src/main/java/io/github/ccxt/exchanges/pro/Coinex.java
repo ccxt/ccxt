@@ -417,10 +417,10 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 Helpers.addElementToObject(this.balance, account, new HashMap<String, Object>() {{}});
             }
-            Helpers.addElementToObject(Helpers.GetValue(this.balance, account), "info", info);
-            Helpers.addElementToObject(this.balance, account, this.safeBalance(Helpers.GetValue(this.balance, account)));
+            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "info", info);
+            Helpers.addElementToObject(this.balance, account, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account))));
             messageHash = ("balances:" + account);
-            client.resolve(Helpers.GetValue(this.balance, account), messageHash);
+            client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), messageHash);
         }
     }
 
@@ -463,7 +463,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }
             if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
+                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code, account);
             }
         } else
         {
@@ -1082,7 +1082,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(snapshot));
             } else
             {
-                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
                 Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             }
         } else
@@ -1097,7 +1097,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Helpers.addElementToObject(this.orderbooks, symbol, currentOrderBook);
         }
         // this.checkOrderBookChecksum (this.orderbooks[symbol]);
-        client.resolve(Helpers.GetValue(this.orderbooks, symbol), messageHash);
+        client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }
 
     /**

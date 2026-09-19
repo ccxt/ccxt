@@ -144,7 +144,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Long limit = this.safeInteger(subscription, "limit", defaultLimit);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(type, "SNAPSHOT"))
         {
             Object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a", "p", "q");
@@ -205,7 +205,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 this.extendExchangeOptions(defaultOptions);
                 Object originalOptions = Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "options");
                 Map<String, Object> originalHeaders = (Map<String, Object>) this.safeDict(originalOptions, "headers", new HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "options", this.extend(this.extend(new HashMap<String, Object>() {{}}, originalOptions), new HashMap<String, Object>() {{
+                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options", this.extend(this.extend(new HashMap<String, Object>() {{}}, originalOptions), new HashMap<String, Object>() {{
         put( "headers", Extended.this.extend(Extended.this.extend(new HashMap<String, Object>() {{
             put( "User-Agent", ((Map<String, Object>)Extended.this.userAgents).get("chrome") );
         }}, originalHeaders), new HashMap<String, Object>() {{
@@ -213,7 +213,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }}) );
     }}));
                 this.client(url);
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "options", originalOptions);
+                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options", originalOptions);
             }
             return (this.watch(url, messageHash, null, messageHash, subscription)).join();
         });
@@ -1011,13 +1011,13 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         Object cacheKey = (((java.util.Objects.equals(candleType, "trades")))) ? timeframe : Helpers.add(Helpers.add(timeframe, ":"), candleType);
         String messageHash = this.safeString(subscription, "messageHash");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), cacheKey);
+        Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), cacheKey);
         if (java.util.Objects.equals(stored, null))
         {
             Long defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Long limit = this.safeInteger(subscription, "limit", defaultLimit);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)cacheKey), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)cacheKey), stored);
         }
         Long previousNonce = this.safeInteger(subscription, "nonce");
         Long nonce = this.safeInteger(message, "seq");

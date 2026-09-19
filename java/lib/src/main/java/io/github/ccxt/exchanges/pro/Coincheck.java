@@ -133,7 +133,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         } else
         {
-            orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         }
         String messageHash = ("orderbook:" + symbol);

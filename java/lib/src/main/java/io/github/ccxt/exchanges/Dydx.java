@@ -3171,6 +3171,6 @@ public class Dydx extends DydxApi
         // rewrite testnet parameters
         Helpers.addElementToObject(this.options, "chainName", "dydx-testnet-4");
         Helpers.addElementToObject(this.options, "chainId", 11155111);
-        Helpers.addElementToObject(Helpers.GetValue(this.options, "feeDenom"), "CHAINTOKEN_DENOM", "adv4tnt");
+        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("feeDenom")), "CHAINTOKEN_DENOM", "adv4tnt");
     }
 }

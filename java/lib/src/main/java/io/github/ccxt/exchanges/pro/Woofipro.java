@@ -98,7 +98,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
-        Helpers.addElementToObject(Helpers.GetValue(this.options, "requestId"), url, newValue);
+        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
         return newValue;
     }
 
@@ -191,7 +191,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(message, "ts");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -545,7 +545,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(timeframe, null)))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
         }
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -1512,7 +1512,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Object account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (Helpers.inOp(this.balance, code)))
             {
-                account = Helpers.GetValue(this.balance, code);
+                account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
             }
             String total = this.safeString(value, "holding");
             String used = this.safeString(value, "frozen");

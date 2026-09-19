@@ -344,12 +344,12 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         String interval = this.safeString(parts, 3);
         Object timeframe = this.findTimeframe(interval);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
         }
         Object tick = this.safeValue(message, "tick");
         Object parsed = this.parseOHLCV(tick, market);
@@ -438,7 +438,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         String symbol = this.safeString(subscription, "symbol");
         String messageHash = this.safeString(subscription, "messageHash");
         Long timestamp = this.safeInteger(message, "ts");
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         Object snapshot = this.parseOrderBook(data, symbol);
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seqNum"));
@@ -585,7 +585,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         List<Object> parts = (List<Object>) Helpers.split(ch, ".");
         String marketId = this.safeString(parts, 1);
         String symbol = this.safeSymbol(marketId);
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(Helpers.GetValue(orderbook, "nonce"), null))
         {
             ((List<Object>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).add(message);

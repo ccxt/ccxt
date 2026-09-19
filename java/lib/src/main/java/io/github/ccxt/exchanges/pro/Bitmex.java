@@ -1724,12 +1724,12 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Object messageHash = Helpers.add(Helpers.add(table, ":"), ((Map<String, Object>)market).get("id"));
             List<Object> result = new ArrayList<Object>(Arrays.asList(Helpers.subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), Helpers.multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")));
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+            Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
+                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
             }
             Helpers.callDynamically(stored, "append", new Object[]{result});
             ((Map<String, Object>)results).put((String)messageHash, stored);
@@ -1838,7 +1838,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             {
                 Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}, 10));
             }
-            Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            Object orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
             Helpers.addElementToObject(orderbook, "symbol", symbol);
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -1872,7 +1872,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 ((Map<String, Object>)numUpdatesByMarketId).put((String)marketId, this.sum(Helpers.GetValue(numUpdatesByMarketId, marketId), 1));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+                Object orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
                 Double price = this.safeNumber(Helpers.GetValue(data, i), "price");
                 Object size = (((java.util.Objects.equals(action, "delete")))) ? 0 : this.convertFromRawQuantity(symbol, this.safeString(Helpers.GetValue(data, i), "size", "0"));
                 String id = this.safeString(Helpers.GetValue(data, i), "id");
@@ -1891,7 +1891,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 String messageHash = ((table + ":") + symbol);
-                Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+                Object orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
                 client.resolve(orderbook, messageHash);
             }
         }

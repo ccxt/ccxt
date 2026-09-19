@@ -748,7 +748,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         Object ohlcvsLength = ((List<?>)data).size();
         for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
@@ -1164,7 +1164,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Object orderbook = null;
         if (java.util.Objects.equals(type, "update"))
         {
-            orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
             Object storedAsks = Helpers.GetValue(orderbook, "asks");
             Object storedBids = Helpers.GetValue(orderbook, "bids");
             if (!java.util.Objects.equals(a, null))
@@ -1184,7 +1184,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             // snapshot
             Object depth = ((List<?>)a).size();
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, depth));
-            orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
             List<Object> keys = new ArrayList<Object>(Arrays.asList("asks", "bids"));
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1871,7 +1871,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Map<String, Object> newBalance = this.deepExtend(oldBalance, balance);
         Helpers.addElementToObject(this.balance, type, this.safeBalance(newBalance));
         String channel = this.safeString(message, "channel");
-        client.resolve(Helpers.GetValue(this.balance, type), channel);
+        client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), channel);
     }
 
     public Object getMessageHash(Object unifiedElementName, Object... optionalArgs)

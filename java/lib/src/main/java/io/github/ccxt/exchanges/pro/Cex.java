@@ -181,7 +181,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 throw new ArgumentsRequired((this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
             }
-            Helpers.addElementToObject(Helpers.GetValue(this.options, "watchTrades"), "symbol", symbol);
+            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("watchTrades")), "symbol", symbol);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1205,7 +1205,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         ((Map<String, Object>)snapshot).put("nonce", incrementalId);
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
-        Helpers.addElementToObject(Helpers.GetValue(this.options, "orderbook"), symbol, new HashMap<String, Object>() {{
+        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("orderbook")), symbol, new HashMap<String, Object>() {{
     put( "incrementalId", incrementalId );
 }});
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -1364,7 +1364,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), "unknown", stored);
+        Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), "unknown", stored);
         client.resolve(stored, messageHash);
     }
 
@@ -1423,7 +1423,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Object symbol = this.pairToSymbol(pair);
         String messageHash = ("ohlcv:" + symbol);
         // const stored = this.safeValue (this.ohlcvs, symbol);
-        Object stored = ((Map<String, Object>)Helpers.GetValue(this.ohlcvs, symbol)).get("unknown");
+        Object stored = ((Map<String, Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).get("unknown");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             List<Object> ohlcv = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(Helpers.GetValue(data, i), 0), this.safeNumber(Helpers.GetValue(data, i), 1), this.safeNumber(Helpers.GetValue(data, i), 2), this.safeNumber(Helpers.GetValue(data, i), 3), this.safeNumber(Helpers.GetValue(data, i), 4), this.safeNumber(Helpers.GetValue(data, i), 5)));

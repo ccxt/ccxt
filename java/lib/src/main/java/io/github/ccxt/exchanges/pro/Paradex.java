@@ -308,7 +308,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 ((List<Object>)((Map<String, Object>)orderbookData).get("asks")).add(new ArrayList<Object>(Arrays.asList(price, size)));
             }
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Object snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seq_no"));
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});

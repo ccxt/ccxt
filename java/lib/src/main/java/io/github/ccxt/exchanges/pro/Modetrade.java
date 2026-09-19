@@ -98,7 +98,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
-        Helpers.addElementToObject(Helpers.GetValue(this.options, "requestId"), url, newValue);
+        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
         return newValue;
     }
 
@@ -191,7 +191,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(message, "ts");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -548,9 +548,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
-        Object ohlcvCache = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object ohlcvCache = Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         Helpers.callDynamically(ohlcvCache, "append", new Object[]{parsed});
         client.resolve(ohlcvCache, topic);
     }
@@ -1509,7 +1509,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Object account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (Helpers.inOp(this.balance, code)))
             {
-                account = Helpers.GetValue(this.balance, code);
+                account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
             }
             String total = this.safeString(value, "holding");
             String used = this.safeString(value, "frozen");

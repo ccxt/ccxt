@@ -2418,11 +2418,11 @@ public class Coinbase extends CoinbaseApi
                 String name = this.safeString(currency, "name");
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(this.options, "networks"), code, name.toLowerCase());
+                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networks")), code, name.toLowerCase());
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(this.options, "networksById"), code, name.toLowerCase());
+                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networksById")), code, name.toLowerCase());
                 }
                 String type = (((!java.util.Objects.equals(assetId, null)))) ? "crypto" : "fiat";
                 if (!java.util.Objects.equals(code, null))
