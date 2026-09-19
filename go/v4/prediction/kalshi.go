@@ -2582,7 +2582,7 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	}
 	// price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
 	// legacy returned yes_price/no_price in cents
-	var labelIsNo bool = (ccxt.IsEqual(this.SafeStringUpper(mkt, "label"), "NO"))
+	var labelIsNo bool = (this.SafeStringUpper(mkt, "label") != nil && *this.SafeStringUpper(mkt, "label") == "NO")
 	var dollarsKey string = func() string {
 		if labelIsNo {
 			return "no_price_dollars"

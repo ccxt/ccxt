@@ -361,7 +361,7 @@ func (this *Hibachi) ParseMarket(market any) any {
 		"swap":           true,
 		"future":         false,
 		"option":         false,
-		"active":         IsEqual(this.SafeString(market, "status"), "LIVE"),
+		"active":         (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "LIVE"),
 		"contract":       true,
 		"linear":         true,
 		"inverse":        false,

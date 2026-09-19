@@ -818,7 +818,7 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 	var maxWithdrawal any = this.ParseNumber(Precise.StringMul(maxWithdrawalString, precisionString))
 	var minDepositString *string = this.SafeString(currency, "minDepositAmount")
 	var minDeposit any = this.ParseNumber(Precise.StringMul(minDepositString, precisionString))
-	var isCrypto bool = IsEqual(this.SafeString(currency, "currencyType"), "Crypto")
+	var isCrypto bool = (this.SafeString(currency, "currencyType") != nil && *this.SafeString(currency, "currencyType") == "Crypto")
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"code":      code,

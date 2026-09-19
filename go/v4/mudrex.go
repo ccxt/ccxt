@@ -1825,7 +1825,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < dataLength; i++ {
 			var entry any = GetValue(data, i)
 			allRows = append(allRows, entry)
-			if IsEqual(this.SafeString(entry, "fee_type"), "TRANSACTION") {
+			if this.SafeString(entry, "fee_type") != nil && *this.SafeString(entry, "fee_type") == "TRANSACTION" {
 				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
 				if (IsEqual(market, nil)) || (IsEqual(this.SafeString(entry, "symbol"), GetValue(market, "id"))) {
 					transactionsCount = this.Sum(transactionsCount, 1)

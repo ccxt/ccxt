@@ -130,8 +130,8 @@ func (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs .
 		var filtered []any = []any{}
 		for i := 0; i < GetArrayLength(result); i++ {
 			var event any = GetValue(result, i)
-			var idMatch bool = (eventId != nil) && (IsEqual(this.SafeString(event, "id"), eventId))
-			var slugMatch bool = (slug != nil) && (IsEqual(this.SafeString(event, "slug"), slug))
+			var idMatch bool = (eventId != nil) && (this.SafeString(event, "id") == eventId || (this.SafeString(event, "id") != nil && eventId != nil && *this.SafeString(event, "id") == *eventId))
+			var slugMatch bool = (slug != nil) && (this.SafeString(event, "slug") == slug || (this.SafeString(event, "slug") != nil && slug != nil && *this.SafeString(event, "slug") == *slug))
 			if idMatch || slugMatch {
 				filtered = append(filtered, event)
 			}

@@ -2215,7 +2215,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 	var marginMode *string = this.SafeStringLower(order, "mgnMode")
 	var reduceOnly *bool = this.SafeBool(order, "reduceOnly")
 	var leverage *int64 = this.SafeInteger(order, "lever")
-	var hedged bool = !IsEqual(this.SafeString(order, "posSide"), "BOTH")
+	var hedged bool = (this.SafeString(order, "posSide") == nil || *this.SafeString(order, "posSide") != "BOTH")
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,

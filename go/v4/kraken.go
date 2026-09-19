@@ -1058,7 +1058,7 @@ func (this *Kraken) ParseCurrency(rawCurrency any) any {
 		"code":   code,
 		"info":   rawCurrency,
 		"name":   this.SafeString(rawCurrency, "altname"),
-		"active": IsEqual(this.SafeString(rawCurrency, "status"), "enabled"),
+		"active": (this.SafeString(rawCurrency, "status") != nil && *this.SafeString(rawCurrency, "status") == "enabled"),
 		"type": func() string {
 			if isFiat {
 				return "fiat"

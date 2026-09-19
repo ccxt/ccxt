@@ -710,7 +710,7 @@ func (this *Blockchaincom) ParseWsOrder(order any, optionalArgs ...any) any {
 		"symbol":        this.SafeSymbol(marketId, market),
 		"type":          this.SafeString(order, "ordType"),
 		"timeInForce":   this.SafeString(order, "timeInForce"),
-		"postOnly":      ccxt.IsEqual(this.SafeString(order, "execInst"), "ALO"),
+		"postOnly":      (this.SafeString(order, "execInst") != nil && *this.SafeString(order, "execInst") == "ALO"),
 		"side":          this.SafeString(order, "side"),
 		"price":         this.SafeString(order, "price"),
 		"stopPrice":     this.SafeString(order, "stopPx"),

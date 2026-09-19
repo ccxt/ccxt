@@ -7819,7 +7819,7 @@ func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side 
 		request["cancelOrderId"] = id // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
 	}
 	// remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-	if IsEqual(this.SafeString(params, "timeInForce"), "PO") {
+	if this.SafeString(params, "timeInForce") != nil && *this.SafeString(params, "timeInForce") == "PO" {
 		params = this.Omit(params, []any{"timeInForce"})
 	}
 	params = this.Omit(params, []any{"quoteOrderQty", "cost", "stopPrice", "newClientOrderId", "clientOrderId", "postOnly"})
@@ -9521,7 +9521,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["timeInForce"] = "GTX"
 	}
 	// remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-	if IsEqual(this.SafeString(params, "timeInForce"), "PO") {
+	if this.SafeString(params, "timeInForce") != nil && *this.SafeString(params, "timeInForce") == "PO" {
 		params = this.Omit(params, "timeInForce")
 	}
 	var hedged *bool = this.SafeBool(params, "hedged", false)

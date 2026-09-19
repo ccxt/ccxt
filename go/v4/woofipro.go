@@ -1214,7 +1214,7 @@ func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString(trade, "id")
 	var takerOrMaker any = nil
 	if isFromFetchOrder {
-		var isMaker bool = IsEqual(this.SafeString(trade, "is_maker"), "1")
+		var isMaker bool = (this.SafeString(trade, "is_maker") != nil && *this.SafeString(trade, "is_maker") == "1")
 		takerOrMaker = func() string {
 			if isMaker {
 				return "maker"

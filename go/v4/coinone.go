@@ -480,8 +480,8 @@ func (this *Coinone) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 func (this *Coinone) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
 	var code *string = this.SafeCurrencyCode(id)
-	var isWithdrawEnabled bool = IsEqual(this.SafeString(rawCurrency, "withdraw_status", ""), "normal")
-	var isDepositEnabled bool = IsEqual(this.SafeString(rawCurrency, "deposit_status", ""), "normal")
+	var isWithdrawEnabled bool = (this.SafeString(rawCurrency, "withdraw_status", "") != nil && *this.SafeString(rawCurrency, "withdraw_status", "") == "normal")
+	var isDepositEnabled bool = (this.SafeString(rawCurrency, "deposit_status", "") != nil && *this.SafeString(rawCurrency, "deposit_status", "") == "normal")
 	var typeVar string = func() string {
 		if code == nil || *code != "KRW" {
 			return "crypto"

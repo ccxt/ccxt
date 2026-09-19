@@ -337,7 +337,7 @@ func (this *Bingx) HandleTicker(client any, message any) {
 	var ticker any = this.ParseWsTicker(data, market, isInverse)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
-	if ccxt.IsEqual(this.SafeString(message, "dataType"), "all@ticker") {
+	if this.SafeString(message, "dataType") != nil && *this.SafeString(message, "dataType") == "all@ticker" {
 		client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker"))
 	}
 }

@@ -2798,7 +2798,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	var postOnly any = this.SafeValue(order, "postOnly")
 	// timeInForceHandling
 	if IsEqual(timeInForce, nil) {
-		if !isTriggerOrSLTpOrder && (IsEqual(this.SafeString(order, "type"), "market")) {
+		if !isTriggerOrSLTpOrder && (this.SafeString(order, "type") != nil && *this.SafeString(order, "type") == "market") {
 			timeInForce = "IOC"
 		}
 		// allow postOnly override

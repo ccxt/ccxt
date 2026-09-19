@@ -1251,7 +1251,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"future":   false,
 			"swap":     !isSpot,
 			"option":   false,
-			"active":   (IsEqual(this.SafeString(market, "trading"), "Enabled")),
+			"active":   (this.SafeString(market, "trading") != nil && *this.SafeString(market, "trading") == "Enabled"),
 			"contract": !isSpot,
 			"linear": func() any {
 				if isSpot {

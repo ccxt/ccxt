@@ -3220,7 +3220,7 @@ func (this *Bydfi) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var hedged bool = IsEqual(this.SafeString(data, "positionType"), "HEDGE")
+	var hedged bool = (this.SafeString(data, "positionType") != nil && *this.SafeString(data, "positionType") == "HEDGE")
 
 	ch <- map[string]any{
 		"info":   response,

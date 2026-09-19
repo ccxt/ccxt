@@ -1026,7 +1026,7 @@ func (this *Coinsph) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"swap":           false,
 			"future":         false,
 			"option":         false,
-			"active":         IsEqual(this.SafeStringLower(market, "status"), "trading"),
+			"active":         (this.SafeStringLower(market, "status") != nil && *this.SafeStringLower(market, "status") == "trading"),
 			"contract":       false,
 			"linear":         nil,
 			"inverse":        nil,

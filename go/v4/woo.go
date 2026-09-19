@@ -1101,7 +1101,7 @@ func (this *Woo) ParseMarket(market any) any {
 		linear = true
 		inverse = false
 	}
-	var active bool = IsEqual(this.SafeString(market, "status"), "TRADING")
+	var active bool = (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "TRADING")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1280,7 +1280,7 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString(trade, "id")
 	var takerOrMaker any = nil
 	if isFromFetchOrder {
-		var isMaker bool = IsEqual(this.SafeString2(trade, "is_maker", "isMaker"), "1")
+		var isMaker bool = (this.SafeString2(trade, "is_maker", "isMaker") != nil && *this.SafeString2(trade, "is_maker", "isMaker") == "1")
 		takerOrMaker = func() string {
 			if isMaker {
 				return "maker"
@@ -1603,8 +1603,8 @@ func (this *Woo) ParseCurrency(rawCurrency any) any {
 				"currencyNetworkId": specialNetworkId,
 				"network":           networkCode,
 				"active":            nil,
-				"deposit":           IsEqual(this.SafeString(networkEntry, "allow_deposit"), "1"),
-				"withdraw":          IsEqual(this.SafeString(networkEntry, "allow_withdraw"), "1"),
+				"deposit":           (this.SafeString(networkEntry, "allow_deposit") != nil && *this.SafeString(networkEntry, "allow_deposit") == "1"),
+				"withdraw":          (this.SafeString(networkEntry, "allow_withdraw") != nil && *this.SafeString(networkEntry, "allow_withdraw") == "1"),
 				"fee":               this.SafeNumber(networkEntry, "withdrawal_fee"),
 				"precision":         this.ParseNumber(this.ParsePrecision(this.SafeString(tokenEntry, "decimals"))),
 				"limits": map[string]any{

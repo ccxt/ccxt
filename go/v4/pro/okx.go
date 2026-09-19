@@ -2232,7 +2232,7 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 	var info any = this.SafeDict(order, "info", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(info, "fillTime")
 	var feeMarketId *string = this.SafeString(info, "fillFeeCcy")
-	var isTaker bool = ccxt.IsEqual(this.SafeString(info, "execType", ""), "T")
+	var isTaker bool = (this.SafeString(info, "execType", "") != nil && *this.SafeString(info, "execType", "") == "T")
 	return this.SafeTrade(map[string]any{
 		"info":      info,
 		"timestamp": timestamp,

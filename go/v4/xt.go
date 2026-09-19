@@ -1392,8 +1392,8 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 				"active":    nil,
 				"fee":       nil,
 				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(entry, "maxPrecision"))),
-				"deposit":   IsEqual(this.SafeString(entry, "depositStatus"), "1"),
-				"withdraw":  IsEqual(this.SafeString(entry, "withdrawStatus"), "1"),
+				"deposit":   (this.SafeString(entry, "depositStatus") != nil && *this.SafeString(entry, "depositStatus") == "1"),
+				"withdraw":  (this.SafeString(entry, "withdrawStatus") != nil && *this.SafeString(entry, "withdrawStatus") == "1"),
 				"networks":  networks,
 				"type":      typeVar,
 				"limits": map[string]any{

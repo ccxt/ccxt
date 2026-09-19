@@ -1680,7 +1680,7 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"swap":     IsEqual(typeVar, "swap"),
 			"future":   false,
 			"option":   false,
-			"active":   IsEqual(this.SafeString(market, "status"), "active"),
+			"active":   (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "active"),
 			"contract": IsEqual(typeVar, "swap"),
 			"linear": func() any {
 				if IsEqual(typeVar, "swap") {

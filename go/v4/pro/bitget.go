@@ -1192,7 +1192,7 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
 		ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
 		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
-		var isSnapshot bool = ccxt.IsEqual(this.SafeString(message, "action"), "snapshot") // snapshot does not have a checksum
+		var isSnapshot bool = (this.SafeString(message, "action") != nil && *this.SafeString(message, "action") == "snapshot") // snapshot does not have a checksum
 		// UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
 		// so only validate the checksum when the exchange actually sends one
 		var responseChecksum *int64 = this.SafeInteger(rawOrderBook, "checksum")

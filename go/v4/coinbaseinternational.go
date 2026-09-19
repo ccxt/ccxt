@@ -1928,7 +1928,7 @@ func (this *Coinbaseinternational) ParseMarket(market any) any {
 		"swap":     !isSpot,
 		"future":   false,
 		"option":   false,
-		"active":   IsEqual(this.SafeString(market, "trading_state"), "TRADING"),
+		"active":   (this.SafeString(market, "trading_state") != nil && *this.SafeString(market, "trading_state") == "TRADING"),
 		"contract": !isSpot,
 		"linear":   isLinear,
 		"inverse":  isInverse,

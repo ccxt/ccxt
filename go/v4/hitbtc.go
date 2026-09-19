@@ -4423,7 +4423,7 @@ func (this *Hitbtc) reduceMarginBody(ch chan any, symbol any, amount any, option
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if !IsEqual(this.NumberToString(amount), "0") {
+	if this.NumberToString(amount) == nil || *this.NumberToString(amount) != "0" {
 		panic(BadRequest(this.Id + " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount"))
 	}
 

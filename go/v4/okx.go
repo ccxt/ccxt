@@ -4781,7 +4781,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		if IsEqual(side, "sell") {
 			request = this.Omit(request, "tgtCcy")
 		}
-		if IsEqual(this.SafeString(request, "tdMode"), "cash") {
+		if this.SafeString(request, "tdMode") != nil && *this.SafeString(request, "tdMode") == "cash" {
 			// for some reason tdMode = cash throws
 			// {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
 			AddElementToObject(request, "tdMode", marginMode)
