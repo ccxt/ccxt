@@ -286,7 +286,7 @@
             {
                 "description": "fetchOHLCV with until",
                 "method": "fetchOHLCV",
-                "url": "https://www.bitstamp.net/api/v2/ohlc/btcusdt/?step=3600&limit=1000&start=1735945199&end=1735948800",
+                "url": "https://www.bitstamp.net/api/v2/ohlc/btcusdt/?step=3600&limit=1000&start=1732348799&end=1735948800",
                 "input": [
                   "BTC/USDT",
                   "1h",

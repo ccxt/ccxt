@@ -1353,9 +1353,9 @@ export default class bitstamp extends Exchange {
             if (since === undefined) {
                 request['limit'] = limit;
                 if (untilIsDefined) {
-                    const start = until - (duration * limit) - 1;
-                    request['start'] = this.parseToInt (start / 1000);
-                    request['end'] = this.parseToInt (until / 1000);
+                    const end = this.parseToInt (until / 1000);
+                    request['start'] = end - (duration * limit) - 1;
+                    request['end'] = end;
                 }
             } else {
                 const start = this.parseToInt (since / 1000);
