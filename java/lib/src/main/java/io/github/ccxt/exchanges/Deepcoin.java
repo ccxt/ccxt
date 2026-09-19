@@ -1764,7 +1764,7 @@ public class Deepcoin extends DeepcoinApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "1", "trade" );

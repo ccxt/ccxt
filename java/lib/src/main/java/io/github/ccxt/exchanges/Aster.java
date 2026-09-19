@@ -2752,7 +2752,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "symbol");
@@ -4318,7 +4318,7 @@ public class Aster extends AsterApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "TRANSFER", "transfer" );
@@ -4742,7 +4742,7 @@ public class Aster extends AsterApi
                 if (balances.containsKey(code))
                 {
                     final Object finalCode = code;
-                    Object parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, new HashMap<String, Object>() {{
+                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, new HashMap<String, Object>() {{
                         put( "crossMargin", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossMargin") );
                         put( "crossWalletBalance", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossWalletBalance") );
                     }})), market);
@@ -4753,7 +4753,7 @@ public class Aster extends AsterApi
         return result;
     }
 
-    public Object parseAccountPosition(Map<String, Object> position, Object... optionalArgs)
+    public Map<String, Object> parseAccountPosition(Map<String, Object> position, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "symbol");

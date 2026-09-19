@@ -3784,7 +3784,7 @@ public class Btse extends BtseApi
         }};
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Deposit", "transaction" );
@@ -4062,7 +4062,7 @@ public class Btse extends BtseApi
         return this.safeString(marginModes, marginMode, marginMode);
     }
 
-    public Object parsePositionSide(String side)
+    public String parsePositionSide(String side)
     {
         Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "buy", "long" );

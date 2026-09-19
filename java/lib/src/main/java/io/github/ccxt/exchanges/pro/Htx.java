@@ -240,7 +240,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         // "market.btcusdt.detail"
@@ -368,7 +368,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     }
 
-    public Object handleTrades(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2555,7 +2555,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         this.cleanCache(subscription);
     }
 
-    public Object handleSystemStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSystemStatus(Client client, Map<String, Object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -2792,7 +2792,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         ((io.github.ccxt.ws.Future)promise).resolve(message);
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

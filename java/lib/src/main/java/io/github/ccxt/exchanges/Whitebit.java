@@ -4614,7 +4614,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseFundingHistory(Map<String, Object> contract, Object... optionalArgs)
+    public Map<String, Object> parseFundingHistory(Map<String, Object> contract, Object... optionalArgs)
     {
         //
         //     {

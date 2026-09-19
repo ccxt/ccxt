@@ -117,7 +117,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return "ping";
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
         return message;
@@ -1454,7 +1454,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         }});
     }
 
-    public Object parsePositionSide(String direction)
+    public String parsePositionSide(String direction)
     {
         if (java.util.Objects.equals(direction, null))
         {
@@ -1467,7 +1467,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return this.safeString(directions, direction, direction);
     }
 
-    public Object parseWsMarginMode(String marginMode)
+    public String parseWsMarginMode(String marginMode)
     {
         if (java.util.Objects.equals(marginMode, null))
         {

@@ -1350,7 +1350,7 @@ public class Woo extends WooApi
         return fee;
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "symbol");
@@ -3649,7 +3649,7 @@ public class Woo extends WooApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "BALANCE", "transaction" );
@@ -4150,7 +4150,7 @@ public class Woo extends WooApi
             //         "success": true,
             //     }
             //
-            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan(response, currency);
+            Map<String, Object> transaction = this.parseMarginLoan(response, currency);
             final Object finalSymbol = symbol;
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
@@ -4160,7 +4160,7 @@ public class Woo extends WooApi
 
     }
 
-    public Object parseMarginLoan(Object info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Object info, Object... optionalArgs)
     {
         //
         //     {

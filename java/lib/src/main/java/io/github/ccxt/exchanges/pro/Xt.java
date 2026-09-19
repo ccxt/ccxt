@@ -949,7 +949,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
 
     }
 
-    public Object handleFundingRate(Client client, Map<String, Object> message)
+    public Map<String, Object> handleFundingRate(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1087,7 +1087,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         client.resolve(new ArrayList<Object>(Arrays.asList(position)), "position::contract");
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1169,7 +1169,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return message;
     }
 
-    public Object handleTickers(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTickers(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1274,7 +1274,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return message;
     }
 
-    public Object handleOHLCV(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1338,7 +1338,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return message;
     }
 
-    public Object handleTrade(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTrade(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1663,7 +1663,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }}, market);
     }
 
-    public Object handleOrder(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOrder(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1885,7 +1885,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return "ping";
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {

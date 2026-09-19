@@ -427,7 +427,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         }}, market);
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         //
         //     {
@@ -491,7 +491,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         }};
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         //     {

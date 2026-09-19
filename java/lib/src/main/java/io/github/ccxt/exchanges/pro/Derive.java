@@ -219,7 +219,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -461,7 +461,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         client.resolve(error, ("unwatch" + topic));
     }
 
-    public Object handleUnSubscribe(Client client, Map<String, Object> message)
+    public Map<String, Object> handleUnSubscribe(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -851,7 +851,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         // {

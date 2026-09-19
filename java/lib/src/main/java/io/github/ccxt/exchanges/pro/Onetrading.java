@@ -1360,7 +1360,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return null;
     }
 
-    public Object handleSubscriptions(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptions(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1376,7 +1376,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return message;
     }
 
-    public Object handleHeartbeat(Client client, Map<String, Object> message)
+    public Map<String, Object> handleHeartbeat(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1436,7 +1436,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
     }
 
-    public Object handlePricePointUpdates(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePricePointUpdates(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1459,7 +1459,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return message;
     }
 
-    public Object handleAuthenticationMessage(Client client, Map<String, Object> message)
+    public Map<String, Object> handleAuthenticationMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

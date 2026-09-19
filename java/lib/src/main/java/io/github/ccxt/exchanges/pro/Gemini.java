@@ -375,7 +375,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     }
 
-    public Object handleOHLCV(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -823,7 +823,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     }
 
-    public Object handleHeartbeat(Client client, Map<String, Object> message)
+    public Map<String, Object> handleHeartbeat(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -838,7 +838,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         return message;
     }
 
-    public Object handleSubscription(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscription(Client client, Map<String, Object> message)
     {
         //
         //     {

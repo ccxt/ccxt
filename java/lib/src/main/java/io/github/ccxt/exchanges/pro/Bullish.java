@@ -94,7 +94,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         }};
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         //     {

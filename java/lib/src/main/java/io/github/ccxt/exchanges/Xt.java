@@ -5088,7 +5088,7 @@ public class Xt extends XtApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public String parseLedgerEntryType(Object type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "EXCHANGE", "transfer" );
@@ -6276,7 +6276,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : null;
@@ -6377,7 +6377,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseFundingHistory(Map<String, Object> contract, Object... optionalArgs)
+    public Map<String, Object> parseFundingHistory(Map<String, Object> contract, Object... optionalArgs)
     {
         //
         //     {

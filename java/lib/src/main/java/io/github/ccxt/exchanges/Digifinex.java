@@ -3310,7 +3310,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public String parseLedgerEntryType(Object type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{}};
         return this.safeString(types, ((String)type), type);
@@ -3339,7 +3339,7 @@ public class Digifinex extends DigifinexApi
         //     }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object type = this.parseLedgerEntryType(this.safeString2(item, "type", "finance_type"));
+        String type = this.parseLedgerEntryType(this.safeString2(item, "type", "finance_type"));
         String currencyId = this.safeString2(item, "currency_mark", "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
@@ -4428,7 +4428,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {

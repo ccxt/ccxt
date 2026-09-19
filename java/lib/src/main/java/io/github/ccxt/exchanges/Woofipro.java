@@ -3543,7 +3543,7 @@ public class Woofipro extends WoofiproApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "BALANCE", "transaction" );

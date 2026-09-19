@@ -1368,7 +1368,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         client.resolve(stored, messageHash);
     }
 
-    public Object handleOHLCV24(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOHLCV24(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1754,7 +1754,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         client.resolve(data, messageHash);
     }
 
-    public Object handleConnected(Client client, Map<String, Object> message)
+    public Map<String, Object> handleConnected(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1764,7 +1764,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         return message;
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         try
         {

@@ -1268,7 +1268,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1300,7 +1300,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         this.cleanCache(subscription);
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         //     {

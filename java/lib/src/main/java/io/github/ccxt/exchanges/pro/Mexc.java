@@ -2410,7 +2410,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
         return message;

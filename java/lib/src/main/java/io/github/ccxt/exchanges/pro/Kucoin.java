@@ -2313,7 +2313,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
     }
 
-    public Object handleSystemStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSystemStatus(Client client, Map<String, Object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -3895,7 +3895,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "d", new HashMap<String, Object>() {{}});
-        Object fundingRate = this.parseWsFundingRate((Map<String, Object>) (data));
+        Map<String, Object> fundingRate = this.parseWsFundingRate((Map<String, Object>) (data));
         Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -3905,7 +3905,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         client.resolve(fundingRate, messageHash);
     }
 
-    public Object parseWsFundingRate(Map<String, Object> data, Object... optionalArgs)
+    public Map<String, Object> parseWsFundingRate(Map<String, Object> data, Object... optionalArgs)
     {
         //
         //     {
@@ -4116,7 +4116,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         client.lastPong = ((Number)this.milliseconds()).longValue();
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

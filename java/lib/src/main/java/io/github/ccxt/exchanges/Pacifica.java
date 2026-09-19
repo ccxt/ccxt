@@ -1174,7 +1174,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public Object parseLeverageFromSetting(String symbol, Map<String, Object> setting)
+    public Map<String, Object> parseLeverageFromSetting(String symbol, Map<String, Object> setting)
     {
         // {
         //   "WLFI/USDC:USDC": {
@@ -1197,7 +1197,7 @@ public class Pacifica extends PacificaApi
         }};
     }
 
-    public Object parseLeverageFromMarket(Map<String, Object> market)
+    public Map<String, Object> parseLeverageFromMarket(Map<String, Object> market)
     {
         Map<String, Object> marketLimits = (Map<String, Object>) this.safeDict(market, "limits", new HashMap<String, Object>() {{}});
         Map<String, Object> leverageLimits = (Map<String, Object>) this.safeDict(marketLimits, "leverage", new HashMap<String, Object>() {{}});
@@ -1350,7 +1350,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public Object parseMarginModeFromSetting(String symbol, Map<String, Object> setting)
+    public Map<String, Object> parseMarginModeFromSetting(String symbol, Map<String, Object> setting)
     {
         // {
         //       "symbol": "WLFI",
@@ -2119,7 +2119,7 @@ public class Pacifica extends PacificaApi
         return new ArrayList<Object>(Arrays.asList(request, operationType));
     }
 
-    public Object batchOrdersRequest(Object actions)
+    public Map<String, Object> batchOrdersRequest(Object actions)
     {
         //
         // [
@@ -2169,7 +2169,7 @@ public class Pacifica extends PacificaApi
         }};
     }
 
-    public Object createOrdersRequest(Object orders, Object... optionalArgs)
+    public Map<String, Object> createOrdersRequest(Object orders, Object... optionalArgs)
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         List<Object> actions = new ArrayList<Object>(Arrays.asList());
@@ -2220,7 +2220,7 @@ public class Pacifica extends PacificaApi
                 (this.loadMarkets()).join();
             }
             (this.initializeClient()).join();
-            Object request = this.createOrdersRequest(orders);
+            Map<String, Object> request = this.createOrdersRequest(orders);
             Map<String, Object> response = (this.privatePostOrdersBatch(this.extend(request, parameters))).join();
             // {
             //   "success": true,
@@ -2297,7 +2297,7 @@ public class Pacifica extends PacificaApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a \"symbol\" argument!")) ;
             }
-            Object request = this.cancelOrdersRequest(ids, symbol, parameters);
+            Map<String, Object> request = this.cancelOrdersRequest(ids, symbol, parameters);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderIds")));
             Map<String, Object> response = (this.privatePostOrdersBatch(this.extend(request, parameters))).join();
             //
@@ -2348,7 +2348,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public Object cancelOrdersRequest(Object ids, Object... optionalArgs)
+    public Map<String, Object> cancelOrdersRequest(Object ids, Object... optionalArgs)
     {
         Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -3677,7 +3677,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //   {
@@ -3920,7 +3920,7 @@ public class Pacifica extends PacificaApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "subaccount_transfer", "transfer" );

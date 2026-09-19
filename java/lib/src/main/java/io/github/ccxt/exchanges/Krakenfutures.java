@@ -1041,7 +1041,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //    {
@@ -3246,7 +3246,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }};
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "futures trade", "trade" );

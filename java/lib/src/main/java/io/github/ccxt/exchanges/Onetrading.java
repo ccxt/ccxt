@@ -789,8 +789,8 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> futuresFees = (Map<String, Object>) this.safeDict(response, 1, new HashMap<String, Object>() {{}});
             List<Object> spotFeeTiers = (List<Object>) this.safeList(spotFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
             List<Object> futuresFeeTiers = (List<Object>) this.safeList(futuresFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
-            Object spotTiers = this.parseFeeTiers(spotFeeTiers);
-            Object futuresTiers = this.parseFeeTiers(futuresFeeTiers);
+            Map<String, Object> spotTiers = this.parseFeeTiers(spotFeeTiers);
+            Map<String, Object> futuresTiers = this.parseFeeTiers(futuresFeeTiers);
             Map<String, Object> firstSpotTier = (Map<String, Object>) this.safeDict(spotTiers, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> firstFuturesTier = (Map<String, Object>) this.safeDict(futuresTiers, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -893,7 +893,7 @@ public class Onetrading extends OnetradingApi
 
     }
 
-    public Object parseFeeTiers(Object feeTiers, Object... optionalArgs)
+    public Map<String, Object> parseFeeTiers(Object feeTiers, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> takerFees = new ArrayList<Object>(Arrays.asList());

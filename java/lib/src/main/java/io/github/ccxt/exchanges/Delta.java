@@ -2908,7 +2908,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public String parseLedgerEntryType(Object type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "pnl", "pnl" );
@@ -3766,7 +3766,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parseSettlement(Map<String, Object> settlement, Object market)
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Object market)
     {
         //
         //     {

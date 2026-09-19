@@ -1208,7 +1208,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1251,7 +1251,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         return message;
     }
 
-    public Object handleHeartbeats(Client client, Map<String, Object> message)
+    public Map<String, Object> handleHeartbeats(Client client, Map<String, Object> message)
     {
         // although the subscription takes a product_ids parameter (i.e. symbol),
         // there is no (clear) way of mapping the message back to the symbol.

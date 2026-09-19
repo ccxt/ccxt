@@ -700,7 +700,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
     }
 
-    public Object handleTrade(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTrade(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -893,7 +893,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -952,7 +952,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         client.resolve(fundingRate, Helpers.add((channel + "::"), fundingRate.get("symbol")));
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

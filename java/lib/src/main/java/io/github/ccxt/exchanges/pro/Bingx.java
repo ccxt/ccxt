@@ -2217,7 +2217,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {

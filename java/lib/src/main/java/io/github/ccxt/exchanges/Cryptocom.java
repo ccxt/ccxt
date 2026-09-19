@@ -3650,7 +3650,7 @@ public class Cryptocom extends CryptocomApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "TRADING", "trade" );
@@ -3842,7 +3842,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
     {
         //
         //     {
@@ -4486,7 +4486,7 @@ public class Cryptocom extends CryptocomApi
         return result;
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         // {

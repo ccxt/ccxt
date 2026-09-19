@@ -1214,7 +1214,7 @@ public class Hyperliquid extends HyperliquidApi
         }});
     }
 
-    public Object updateSpotCurrencyCode(String code)
+    public String updateSpotCurrencyCode(String code)
     {
         if (java.util.Objects.equals(code, null))
         {
@@ -1891,7 +1891,7 @@ public class Hyperliquid extends HyperliquidApi
         return Helpers.add("0x", this.hash(message, keccak(), "hex"));
     }
 
-    public Object signHash(Object hash, Object privateKey)
+    public Map<String, Object> signHash(Object hash, Object privateKey)
     {
         Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         return new HashMap<String, Object>() {{
@@ -1901,12 +1901,12 @@ public class Hyperliquid extends HyperliquidApi
         }};
     }
 
-    public Object signMessage(Object message, Object privateKey)
+    public Map<String, Object> signMessage(Object message, Object privateKey)
     {
         return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
 
-    public Object constructPhantomAgent(Object hash, Object... optionalArgs)
+    public Map<String, Object> constructPhantomAgent(Object hash, Object... optionalArgs)
     {
         Object isTestnet = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
         String source = ((Helpers.isTrue((isTestnet)))) ? "b" : "a";
@@ -1945,7 +1945,7 @@ public class Hyperliquid extends HyperliquidApi
         Object expiresAfter = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object hash = this.actionHash(action, vaultAdress, nonce, expiresAfter);
         Boolean isTestnet = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-        Object phantomAgent = this.constructPhantomAgent(hash, isTestnet);
+        Map<String, Object> phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         // const data: Dict = {
         //     'domain': {
         //         'chainId': 1337,
@@ -1986,7 +1986,7 @@ public class Hyperliquid extends HyperliquidApi
 }})) );
         }};
         Object msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
-        Object signature = this.signMessage(msg, this.privateKey);
+        Map<String, Object> signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
 
@@ -2001,7 +2001,7 @@ public class Hyperliquid extends HyperliquidApi
             put( "version", "1" );
         }};
         Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-        Object signature = this.signMessage(msg, this.privateKey);
+        Map<String, Object> signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
 
@@ -5373,7 +5373,7 @@ final Object finalClientOrderId = clientOrderId;
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {
@@ -5533,7 +5533,7 @@ final Object finalClientOrderId = clientOrderId;
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "internalTransfer", "transfer" );

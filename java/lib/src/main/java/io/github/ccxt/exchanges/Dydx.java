@@ -1490,7 +1490,7 @@ public class Dydx extends DydxApi
         return this.hash(message, keccak(), "hex");
     }
 
-    public Object signHash(Object hash, Object privateKey)
+    public Map<String, Object> signHash(Object hash, Object privateKey)
     {
         Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
@@ -1502,7 +1502,7 @@ public class Dydx extends DydxApi
         }};
     }
 
-    public Object signMessage(Object message, Object privateKey)
+    public Map<String, Object> signMessage(Object message, Object privateKey)
     {
         return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
     }
@@ -1528,7 +1528,7 @@ public class Dydx extends DydxApi
         {
             throw new ArgumentsRequired((this.id + " signOnboardingAction() requires a privateKey to be set.")) ;
         }
-        Object signature = this.signMessage(msg, this.privateKey);
+        Map<String, Object> signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
 
@@ -1538,7 +1538,7 @@ public class Dydx extends DydxApi
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((List<Object>) encodedTxsignDocVariable).get(0);
         var signDoc = ((List<Object>) encodedTxsignDocVariable).get(1);
-        Object signature = this.signHash(encodedTx, privateKey);
+        Map<String, Object> signature = this.signHash(encodedTx, privateKey);
         return this.encodeDydxTxRaw(signDoc, Helpers.add(((Map<String, Object>)signature).get("r"), ((Map<String, Object>)signature).get("s")));
     }
 
@@ -2241,7 +2241,7 @@ public class Dydx extends DydxApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "TRANSFER_IN", "transfer" );

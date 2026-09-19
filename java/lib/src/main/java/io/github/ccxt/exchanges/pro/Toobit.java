@@ -1557,7 +1557,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         return Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/api/v1/ws/"), Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "listenKey"));
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

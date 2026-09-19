@@ -1825,7 +1825,7 @@ public class Toobit extends ToobitApi
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(tickers); i++)
         {
-            Object parsedTicker = this.parseBidAskCustom((Map<String, Object>) (Helpers.GetValue(tickers, i)));
+            Map<String, Object> parsedTicker = this.parseBidAskCustom((Map<String, Object>) (Helpers.GetValue(tickers, i)));
             Map<String, Object> ticker = this.extend(parsedTicker, parameters);
             ((List<Object>)results).add(ticker);
         }
@@ -1833,7 +1833,7 @@ public class Toobit extends ToobitApi
         return this.filterByArray(results, "symbol", symbols);
     }
 
-    public Object parseBidAskCustom(Map<String, Object> ticker)
+    public Map<String, Object> parseBidAskCustom(Map<String, Object> ticker)
     {
         // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
         // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
@@ -3159,14 +3159,14 @@ public class Toobit extends ToobitApi
             Object entry = response;
             String marketId = this.safeString(entry, "symbol");
             market = this.safeMarket(marketId, market);
-            Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(entry, market);
+            Map<String, Object> fee = this.parseTradingFee(entry, market);
             ((Map<String, Object>)result).put((String)((Map<String, Object>)market).get("symbol"), fee);
             return result;
         }).thenApply(TradingFees::new);
 
     }
 
-    public Object parseTradingFee(Object data, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Object data, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(data, "symbol");

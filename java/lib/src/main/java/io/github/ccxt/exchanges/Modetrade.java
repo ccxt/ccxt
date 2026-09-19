@@ -3173,7 +3173,7 @@ public class Modetrade extends ModetradeApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "BALANCE", "transaction" );

@@ -6050,7 +6050,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             network = this.networkIdToCode(rawNetwork, code);
         }
-        Object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
+        String status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         String amountString = this.safeString(transaction, "amount");
         String address = this.safeString(transaction, "address");
         String txid = this.safeString2(transaction, "transHash", "txId");
@@ -6098,7 +6098,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         }};
     }
 
-    public Object parseTransactionStatusByType(String status, Object... optionalArgs)
+    public String parseTransactionStatusByType(String status, Object... optionalArgs)
     {
         Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> statusesByType = new HashMap<String, Object>() {{
@@ -6905,7 +6905,7 @@ final Object finalRiskIncrVol = riskIncrVol;
 
     }
 
-    public Object parseTransactionFees(Object response, Object... optionalArgs)
+    public Map<String, Object> parseTransactionFees(Object response, Object... optionalArgs)
     {
         Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};

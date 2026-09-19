@@ -2137,7 +2137,7 @@ public class Coinex extends CoinexApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "market");
@@ -5877,7 +5877,7 @@ final Object finalI = i;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan((Map<String, Object>) (data), currency);
+            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (data), currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -5924,7 +5924,7 @@ final Object finalI = i;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan((Map<String, Object>) (data), currency);
+            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (data), currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -5933,7 +5933,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
     {
         //
         //     {

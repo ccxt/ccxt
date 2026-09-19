@@ -856,7 +856,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }}, market);
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

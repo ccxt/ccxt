@@ -454,7 +454,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                     put( "instId", ((Map<String, Object>)market).get("id") );
                 }});
             }
-            Object request = this.getSubscriptionRequest(args);
+            Map<String, Object> request = this.getSubscriptionRequest(args);
             Object ticker = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
@@ -641,7 +641,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> sub = new HashMap<String, Object>() {{
                 put( "channel", "account" );
             }};
-            Object request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(sub)));
+            Map<String, Object> request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(sub)));
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(((Map<String, Object>)this.urls).get("api"))).get("ws"), marketType), "private");
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         }).thenApply(Balances::new);
@@ -879,7 +879,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 put( "channel", "funding-rate" );
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
-            Object request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(requestParams)));
+            Map<String, Object> request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(requestParams)));
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(((Map<String, Object>)this.urls).get("api"))).get("ws"), marketType), "public");
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         }).thenApply(FundingRate::new);
@@ -996,7 +996,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         put( "channel", channelName );
     }}));
             }
-            Object request = this.getSubscriptionRequest(rawSubscriptions);
+            Map<String, Object> request = this.getSubscriptionRequest(rawSubscriptions);
             String privateOrPublic = ((Helpers.isTrue(isPublic))) ? "public" : "private";
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(((Map<String, Object>)this.urls).get("api"))).get("ws"), marketType), privateOrPublic);
             return (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
@@ -1004,7 +1004,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     }
 
-    public Object getSubscriptionRequest(Object args)
+    public Map<String, Object> getSubscriptionRequest(Object args)
     {
         return new HashMap<String, Object>() {{
             put( "op", "subscribe" );

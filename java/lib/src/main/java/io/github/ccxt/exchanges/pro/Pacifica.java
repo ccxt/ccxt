@@ -326,7 +326,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 throw new ArgumentsRequired((this.id + "cancelOrders() requires a \"symbol\" argument!")) ;
             }
-            Object request = this.cancelOrdersRequest(ids, symbol, parameters);
+            Map<String, Object> request = this.cancelOrdersRequest(ids, symbol, parameters);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("originAddress", "agentAddress", "expiryWindow", "clientOrderIds")));
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
@@ -1517,7 +1517,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         client.resolve(stored, messageHash);
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         // 'rl' key is present only when a rate-limited API key is used
@@ -1739,7 +1739,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }};
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         //   {

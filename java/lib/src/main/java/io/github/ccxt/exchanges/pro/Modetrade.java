@@ -270,7 +270,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }}, market);
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1525,7 +1525,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         client.resolve(this.balance, "balance");
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
@@ -1659,7 +1659,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         // { event: "pong", ts: 1614667590000 }
@@ -1668,7 +1668,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         return message;
     }
 
-    public Object handleSubscribe(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscribe(Client client, Map<String, Object> message)
     {
         //
         //     {

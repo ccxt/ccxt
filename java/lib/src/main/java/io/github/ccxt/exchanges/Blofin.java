@@ -1664,7 +1664,7 @@ public class Blofin extends BlofinApi
         return this.safeBalance(result);
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
@@ -2844,7 +2844,7 @@ public class Blofin extends BlofinApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "1", "transfer" );

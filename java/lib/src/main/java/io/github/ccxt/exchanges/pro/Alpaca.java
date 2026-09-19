@@ -785,7 +785,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         throw new ExchangeError((String)Helpers.add((((this.id + " code: ") + code) + " message: "), msg)) ;
     }
 
-    public Object handleConnected(Client client, Map<String, Object> message)
+    public Map<String, Object> handleConnected(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -897,7 +897,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         throw new AuthenticationError((this.id + " failed to authenticate.")) ;
     }
 
-    public Object handleSubscription(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscription(Client client, Map<String, Object> message)
     {
         //
         // crypto

@@ -2154,7 +2154,7 @@ public class Foxbit extends FoxbitApi
         }});
     }
 
-    public Object parseTradingFee(Map<String, Object> entry, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> entry, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
@@ -2420,7 +2420,7 @@ public class Foxbit extends FoxbitApi
         }};
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "DEPOSITING", "transaction" );
@@ -2450,7 +2450,7 @@ public class Foxbit extends FoxbitApi
         String createdAt = this.safeString(item, "created_at");
         Long timestamp = this.parse8601(createdAt);
         String reasonType = this.safeString(item, "reason_type");
-        Object type = this.parseLedgerEntryType(reasonType);
+        String type = this.parseLedgerEntryType(reasonType);
         String exchangeSymbol = this.safeString(item, "currency_symbol");
         String currencySymbol = this.safeCurrencyCode(exchangeSymbol);
         String direction = "in";

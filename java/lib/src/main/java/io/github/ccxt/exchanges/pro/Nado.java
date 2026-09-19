@@ -1527,7 +1527,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return this.signHash(hash, (String) (this.privateKey));
     }
 
-    public Object createPublicSubscriptionRequest(Object method, String streamType, Object... optionalArgs)
+    public Map<String, Object> createPublicSubscriptionRequest(Object method, String streamType, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object id = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -1564,7 +1564,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     Object market = Helpers.GetValue(markets, i);
                     Object id = this.requestId();
                     Object requestParams = (((java.util.Objects.equals(subscriptionParams, null)))) ? parameters : Helpers.GetValue(subscriptionParams, i);
-                    Object request = this.createPublicSubscriptionRequest("subscribe", (String) (streamType), market, id, requestParams);
+                    Map<String, Object> request = this.createPublicSubscriptionRequest("subscribe", (String) (streamType), market, id, requestParams);
                     String subscribeHash = ("subscribe:" + this.json(((Map<String, Object>)request).get("stream")));
                     Object streamSubscription = this.safeValue(client.subscriptions, subscribeHash);
                     if (java.util.Objects.equals(streamSubscription, null))
@@ -1593,7 +1593,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "subscriptions");
             Object id = this.requestId();
-            Object request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), market, id, parameters);
+            Map<String, Object> request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), market, id, parameters);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "messageHash", messageHash );
@@ -1625,7 +1625,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 Object id = this.requestId();
                 String unsubscribeHash = ("unsubscribe:" + messageHash);
                 Object requestParams = (((java.util.Objects.equals(subscriptionParams, null)))) ? parameters : Helpers.GetValue(subscriptionParams, i);
-                Object request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), Helpers.GetValue(markets, i), id, requestParams);
+                Map<String, Object> request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), Helpers.GetValue(markets, i), id, requestParams);
                 Map<String, Object> subscription = new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "messageHash", messageHash );
@@ -2381,7 +2381,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }};
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2398,7 +2398,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return message;
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         Object error = this.safeValue(message, "error");
         String status = this.safeString(message, "status");

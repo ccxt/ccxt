@@ -2050,7 +2050,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {
@@ -2165,7 +2165,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(response, i)));
+                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(response, i)));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

@@ -1138,7 +1138,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         return account;
     }
 
-    public Object handleSystemStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSystemStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1177,7 +1177,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         return true;
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {

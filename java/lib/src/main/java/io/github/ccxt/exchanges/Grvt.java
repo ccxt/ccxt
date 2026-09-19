@@ -578,7 +578,7 @@ public class Grvt extends GrvtApi
         }});
     }
 
-    public Object eipDefinitions()
+    public Map<String, Object> eipDefinitions()
     {
         return new HashMap<String, Object>() {{
             put( "EIP712_ORDER_TYPE", new HashMap<String, Object>() {{
@@ -3914,7 +3914,7 @@ public class Grvt extends GrvtApi
 
     }
 
-    public Object eipDomainData()
+    public Map<String, Object> eipDomainData()
     {
         //     GrvtEnv.DEV.value: 327,
         //     GrvtEnv.STAGING.value: 327,
@@ -3994,8 +3994,8 @@ public class Grvt extends GrvtApi
                 put( "expiration", Helpers.GetValue(Helpers.GetValue(request, "signature"), "expiration") );
             }};
         }
-        Object domainData = this.eipDomainData();
-        Object definitions = this.eipDefinitions();
+        Map<String, Object> domainData = this.eipDomainData();
+        Map<String, Object> definitions = this.eipDefinitions();
         Object ethEncodedMessage = this.ethEncodeStructuredData(domainData, Helpers.GetValue(definitions, structureType), messageData);
         String ethEncodedMessageHashed = Helpers.add("0x", this.hash(ethEncodedMessage, keccak(), "hex"));
         Object usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
@@ -4021,7 +4021,7 @@ public class Grvt extends GrvtApi
         }
     }
 
-    public Object defaultSignature()
+    public Map<String, Object> defaultSignature()
     {
         Object expiration = Helpers.add(Helpers.multiply(this.milliseconds(), 1000000), Helpers.multiply(Helpers.multiply(1000000, this.safeInteger(this.options, "expirationSeconds", 30)), 1000));
         return new HashMap<String, Object>() {{

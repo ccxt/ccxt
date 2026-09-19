@@ -736,7 +736,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 
     }
 
-    public Object handleTrades(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTrades(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -893,7 +893,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 
     }
 
-    public Object handleOHLCV(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1030,7 +1030,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 
     }
 
-    public Object handleOrder(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOrder(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1547,7 +1547,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         client.resolve(this.balance, messageHash);
     }
 
-    public Object handleNotification(Client client, Map<String, Object> message)
+    public Map<String, Object> handleNotification(Client client, Map<String, Object> message)
     {
         //
         //     { jsonrpc: "2.0", result: true, id: null }
@@ -1555,7 +1555,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return message;
     }
 
-    public Object handleOrderRequest(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOrderRequest(Client client, Map<String, Object> message)
     {
         //
         // createOrderWs, cancelOrderWs
@@ -1667,7 +1667,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         }
     }
 
-    public Object handleAuthenticate(Client client, Map<String, Object> message)
+    public Map<String, Object> handleAuthenticate(Client client, Map<String, Object> message)
     {
         //
         //    {

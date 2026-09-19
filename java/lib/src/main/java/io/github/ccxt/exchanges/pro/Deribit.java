@@ -815,7 +815,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public Object cleanOrderBook(Map<String, Object> data)
+    public Map<String, Object> cleanOrderBook(Map<String, Object> data)
     {
         List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
         List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
@@ -1270,7 +1270,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         }
     }
 
-    public Object handleAuthenticationMessage(Client client, Map<String, Object> message)
+    public Map<String, Object> handleAuthenticationMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

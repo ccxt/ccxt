@@ -1730,7 +1730,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         }
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

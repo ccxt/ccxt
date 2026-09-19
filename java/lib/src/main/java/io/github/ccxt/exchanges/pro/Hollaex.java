@@ -610,7 +610,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         //
         //     { error: "Bearer or HMAC authentication required" }
@@ -754,7 +754,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }};
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
         return message;

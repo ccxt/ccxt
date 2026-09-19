@@ -886,7 +886,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }}, market);
     }
 
-    public Object handleOrder(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOrder(Client client, Map<String, Object> message)
     {
         //
         //  update (verbose)
@@ -1931,7 +1931,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         return messageHash;
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -2003,7 +2003,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
     }
 
-    public Object handleAuthenticate(Client client, Map<String, Object> message)
+    public Map<String, Object> handleAuthenticate(Client client, Map<String, Object> message)
     {
         /**
          * @ignore

@@ -1816,7 +1816,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         return orderbook;
     }
 
-    public Object handleOrderBook(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // snapshot
@@ -3029,7 +3029,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         client.resolve(data, messageHash);
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     { event: 'subscribe', arg: { channel: "tickers", instId: "BTC-USDT" } }
@@ -3061,7 +3061,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         return message;
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         //
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }

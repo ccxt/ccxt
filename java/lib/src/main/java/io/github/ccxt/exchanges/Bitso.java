@@ -452,7 +452,7 @@ public class Bitso extends BitsoApi
 
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "funding", "transaction" );
@@ -521,7 +521,7 @@ public class Bitso extends BitsoApi
         //     }
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String operation = this.safeString(item, "operation");
-        Object type = this.parseLedgerEntryType(operation);
+        String type = this.parseLedgerEntryType(operation);
         List<Object> balanceUpdates = (List<Object>) this.safeList(item, "balance_updates", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> firstBalance = (Map<String, Object>) this.safeDict(balanceUpdates, 0, new HashMap<String, Object>() {{}});
         String direction = null;

@@ -163,7 +163,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1897,7 +1897,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         }
     }
 
-    public Object handleSystemStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSystemStatus(Client client, Map<String, Object> message)
     {
         //
         // todo answer the question whether handleSystemStatus should be renamed
@@ -1915,7 +1915,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         return message;
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1927,7 +1927,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         return message;
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         //
         // generic error format

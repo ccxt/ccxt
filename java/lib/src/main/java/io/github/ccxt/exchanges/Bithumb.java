@@ -3336,7 +3336,7 @@ public class Bithumb extends BithumbApi
         }};
     }
 
-    public Object parseTransactionStatusByType(String status, Object... optionalArgs)
+    public String parseTransactionStatusByType(String status, Object... optionalArgs)
     {
         Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (java.util.Objects.equals(type, null))

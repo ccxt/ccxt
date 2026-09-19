@@ -10717,7 +10717,7 @@ public class Kucoin extends KucoinApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Assets Transferred in After Upgrading", "transfer" );
@@ -10839,7 +10839,7 @@ public class Kucoin extends KucoinApi
         String amount = this.safeString(item, "amount");
         Object balanceAfter = this.safeNumberOmitZero(item, "balance");
         String bizType = this.safeStringN(item, new ArrayList<Object>(Arrays.asList("bizType", "businessType", "type")));
-        Object type = this.parseLedgerEntryType(bizType);
+        String type = this.parseLedgerEntryType(bizType);
         String direction = this.safeString2(item, "direction", "type");
         String account = this.safeString(item, "accountType"); // MAIN, TRADE, MARGIN, or CONTRACT
         Long timestamp = this.safeInteger(item, "createdAt");
@@ -11836,7 +11836,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object parseMarginLoan(Object info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Object info, Object... optionalArgs)
     {
         //
         //     {
