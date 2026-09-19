@@ -448,7 +448,7 @@ public partial class bitbns : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
@@ -790,7 +790,7 @@ public partial class bitbns : Exchange
             { "symbol", (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null) },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             ((IDictionary<string,object>)request)["rate"] = this.priceToPrecision(symbol, price);
         } else
@@ -810,7 +810,7 @@ public partial class bitbns : Exchange
             ((IDictionary<string,object>)request)["trail_rate"] = this.priceToPrecision(symbol, trailRate);
         }
         Dictionary<string, object> response = null;
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             response = await this.v2PostOrders(this.extend(request, parameters));
         } else
@@ -1104,7 +1104,7 @@ public partial class bitbns : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "page", 0 },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = this.iso8601(since);
         }

@@ -559,11 +559,11 @@ public partial class bit2c : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["date"] = this.parseToInt(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // max 100000
         }
@@ -677,9 +677,9 @@ public partial class bit2c : Exchange
             { "Pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 response = await this.privatePostOrderAddOrderMarketPriceBuy(this.extend(request, parameters));
             } else
@@ -692,7 +692,7 @@ public partial class bit2c : Exchange
             string? amountString = this.numberToString(amount);
             string? priceString = this.numberToString(price);
             ((IDictionary<string,object>)request)["Total"] = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-            ((IDictionary<string,object>)request)["IsBid"] = (isEqual(side, "buy"));
+            ((IDictionary<string,object>)request)["IsBid"] = ((side == "buy"));
             response = await this.privatePostOrderAddOrder(this.extend(request, parameters));
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
@@ -939,12 +939,12 @@ public partial class bit2c : Exchange
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["take"] = limit;
         }
         ((IDictionary<string,object>)request)["take"] = limit;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["toTime"] = this.yyyymmdd(this.milliseconds(), ".");
             ((IDictionary<string,object>)request)["fromTime"] = this.yyyymmdd(since, ".");

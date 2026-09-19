@@ -1422,18 +1422,18 @@ public partial class okx : ccxt.okx
         IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
         depth = ((IList<object>)depthparametersVariable)[0];
         parameters = ((IList<object>)depthparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
-            if (isEqual(limit, 1))
+            if ((limit == 1))
             {
                 depth = "bbo-tbt";
             } else if (isGreaterThan(limit, 1) && isLessThanOrEqual(limit, 5))
             {
                 depth = "books5";
-            } else if (isEqual(limit, 50))
+            } else if ((limit == 50))
             {
                 depth = "books50-l2-tbt"; // Make sure you have VIP4 and above
-            } else if (isEqual(limit, 400))
+            } else if ((limit == 400))
             {
                 depth = "books";
             }
@@ -2518,7 +2518,7 @@ public partial class okx : ccxt.okx
             ((IDictionary<string,object>)args)["instIdCode"] = instIdCode;
         }
         string? ordType = this.safeString(args, "ordType");
-        if (((ordType == "trigger")) || ((ordType == "conditional")) || (isEqual(type, "oco")) || (isEqual(type, "move_order_stop")) || (isEqual(type, "iceberg")) || (isEqual(type, "twap")))
+        if (((ordType == "trigger")) || ((ordType == "conditional")) || ((type == "oco")) || ((type == "move_order_stop")) || ((type == "iceberg")) || ((type == "twap")))
         {
             throw new BadRequest ((string)(this.id + " createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or batch-order")) ;
         }

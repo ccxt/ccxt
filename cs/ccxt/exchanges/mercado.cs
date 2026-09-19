@@ -576,16 +576,16 @@ public partial class mercado : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", (market.ContainsKey("base") ? market["base"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
         }
         Int64? to = this.safeInteger(parameters, "to");
         List<object> response = null;
-        if ((!isEqual(since, null)) && (!isEqual(to, null)))
+        if (((since != null)) && (!isEqual(to, null)))
         {
             response = await this.publicGetCoinTradesFromTo(this.extend(request, parameters));
-        } else if (!isEqual(since, null))
+        } else if ((since != null))
         {
             response = await this.publicGetCoinTradesFrom(this.extend(request, parameters));
         } else
@@ -664,11 +664,11 @@ public partial class mercado : Exchange
             { "coin_pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 response = await this.privatePostPlaceBuyOrder(this.extend(request, parameters));
             } else
@@ -677,9 +677,9 @@ public partial class mercado : Exchange
             }
         } else
         {
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
-                if (isEqual(price, null))
+                if ((price == null))
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")) ;
                 }
@@ -897,21 +897,21 @@ public partial class mercado : Exchange
             { "quantity", toFixed(amount, 10) },
             { "address", address },
         };
-        if (isEqual(code, "BRL"))
+        if ((code == "BRL"))
         {
             bool account_ref = (((IDictionary<string, object>)parameters).ContainsKey("account_ref"));
             if (!account_ref)
             {
                 throw new ArgumentsRequired ((string)((this.id + " withdraw() requires account_ref parameter to withdraw ") + (code))) ;
             }
-        } else if (!isEqual(code, "LTC"))
+        } else if ((code != "LTC"))
         {
             bool tx_fee = (((IDictionary<string, object>)parameters).ContainsKey("tx_fee"));
             if (!tx_fee)
             {
                 throw new ArgumentsRequired ((string)((this.id + " withdraw() requires tx_fee parameter to withdraw ") + (code))) ;
             }
-            if (isEqual(code, "XRP"))
+            if ((code == "XRP"))
             {
                 if ((tagVar == null))
                 {
@@ -1021,11 +1021,11 @@ public partial class mercado : Exchange
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "symbol", add(add((market.ContainsKey("base") ? market["base"] : null), "-"), (market.ContainsKey("quote") ? market["quote"] : null)) },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100; // set some default limitVar, as it's required if user doesn't provide it
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
             ((IDictionary<string,object>)request)["to"] = this.sum(getValue(request, "from"), multiply(limitVar, this.parseTimeframe(timeframeVar)));

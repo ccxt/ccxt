@@ -250,7 +250,7 @@ public partial class apex : ccxt.apex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = 25;
             }

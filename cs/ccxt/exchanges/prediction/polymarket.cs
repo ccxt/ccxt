@@ -1657,17 +1657,17 @@ public partial class polymarket : PredictionExchange
         Int64 nowS = this.seconds();
         object startS = null;
         object endS = nowS;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             startS = this.parseToInt(divide(since, 1000));
-            if (!isEqual(limitVar, null))
+            if ((limitVar != null))
             {
                 object endBound = this.sum(startS, multiply(multiply(limitVar, fidelityMin), 60));
                 endS = ((bool) (isLessThan(endBound, nowS))) ? endBound : nowS;
             }
         } else
         {
-            object barCount = ((bool) (!isEqual(limitVar, null))) ? limitVar : 100;
+            object barCount = ((bool) ((limitVar != null))) ? limitVar : 100;
             startS = subtract(nowS, (multiply(multiply(barCount, fidelityMin), 60)));
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
@@ -1677,7 +1677,7 @@ public partial class polymarket : PredictionExchange
         Int64? maxWindow = this.safeInteger(this.options, "maxPricesHistoryWindow", 1296000);
         if (isGreaterThan((subtract(endS, startS)), maxWindow))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 endS = this.sum(startS, maxWindow);
             } else
@@ -1748,7 +1748,7 @@ public partial class polymarket : PredictionExchange
         }
         List<object> candles = this.sortBy(unsortedCandles, 0);
         int candlesLength = (candles?.Count ?? 0);
-        if ((!isEqual(limitVar, null)) && (isGreaterThan(candlesLength, limitVar)))
+        if (((limitVar != null)) && (isGreaterThan(candlesLength, limitVar)))
         {
             return ccxt.BaseExchange.ToOHLCVList(this.arraySlice(candles, prefixUnaryNeg(ref limitVar)));
         }
@@ -1982,11 +1982,11 @@ public partial class polymarket : PredictionExchange
         {
             object trade = getValue(trades, i);
             IDictionary<string, object> info = this.safeDict(trade, "info", new Dictionary<string, object>() {});
-            bool belongs = (isEqual(this.safeString(trade, "order"), id)) || (isEqual(this.safeString(info, "taker_order_id"), id));
+            bool belongs = ((this.safeString(trade, "order") == id)) || ((this.safeString(info, "taker_order_id") == id));
             List<object> makerOrders = this.safeList(info, "maker_orders", new List<object>() {});
             for (int j = 0; j < makerOrders.Count; j++)
             {
-                if (isEqual(this.safeString(makerOrders[j], "order_id"), id))
+                if ((this.safeString(makerOrders[j], "order_id") == id))
                 {
                     belongs = true;
                 }

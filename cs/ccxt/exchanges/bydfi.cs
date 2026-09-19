@@ -701,7 +701,7 @@ public partial class bydfi : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = this.getClosestLimit(limit);
         }
@@ -781,7 +781,7 @@ public partial class bydfi : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
@@ -854,7 +854,7 @@ public partial class bydfi : Exchange
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         parameters = this.handleSinceAndUntil("fetchMyTrades", since, parameters);
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1006,7 +1006,7 @@ public partial class bydfi : Exchange
             { "interval", interval },
         };
         object startTime = since;
-        object numberOfCandles = ((bool) (!isEqual(limit, null) && !isEqual(limit, null) && !isEqual(limit, 0))) ? limit : maxLimit;
+        object numberOfCandles = ((bool) ((limit != null) && (limit != null) && (limit != 0))) ? limit : maxLimit;
         object until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
         until = ((IList<object>)untilparametersVariable)[0];
@@ -1035,7 +1035,7 @@ public partial class bydfi : Exchange
         }
         ((IDictionary<string,object>)request)["startTime"] = startTime;
         ((IDictionary<string,object>)request)["endTime"] = until;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1289,11 +1289,11 @@ public partial class bydfi : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1977,7 +1977,7 @@ public partial class bydfi : Exchange
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         parameters = this.handleSinceAndUntil("fetchCanceledAndClosedOrders", since, parameters);
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2560,7 +2560,7 @@ public partial class bydfi : Exchange
             { "contractType", contractType },
         };
         parameters = this.handleSinceAndUntil("fetchPositionsHistory", since, parameters);
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2601,7 +2601,7 @@ public partial class bydfi : Exchange
             { "contractType", contractType },
         };
         parameters = this.handleSinceAndUntil("fetchPositionsHistory", since, parameters);
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2733,7 +2733,7 @@ public partial class bydfi : Exchange
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = ((string)marginModeVar).ToLower();
-        if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
+        if ((marginModeVar != "isolated") && (marginModeVar != "cross"))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
@@ -3090,13 +3090,13 @@ public partial class bydfi : Exchange
         {
             until = this.milliseconds(); // exchange requires endTime
         }
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             sinceVar = 1; // exchange requires startTime but allows any value
         }
         ((IDictionary<string,object>)request)["startTime"] = sinceVar;
         ((IDictionary<string,object>)request)["endTime"] = until;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["rows"] = limit;
         }

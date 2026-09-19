@@ -1187,7 +1187,7 @@ public partial class gemini : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit_bids"] = limit;
             ((IDictionary<string,object>)request)["limit_asks"] = limit;
@@ -1510,11 +1510,11 @@ public partial class gemini : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit_trades"] = mathMin(limit, 500);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["timestamp"] = since;
         }
@@ -1937,7 +1937,7 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        if (!isEqual(typeVar, "limit"))
+        if ((typeVar != "limit"))
         {
             throw new ExchangeError ((string)(this.id + " createOrder() allows limit orders only")) ;
         }
@@ -1962,7 +1962,7 @@ public partial class gemini : Exchange
         parameters = this.omit(parameters, "type");
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice"});
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice", "type"});
-        if (isEqual(typeVar, "stopLimit"))
+        if ((typeVar == "stopLimit"))
         {
             throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for ") + (typeVar)) + " orders")) ;
         }
@@ -2102,11 +2102,11 @@ public partial class gemini : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit_trades"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["timestamp"] = this.parseToInt(divide(since, 1000));
         }
@@ -2205,11 +2205,11 @@ public partial class gemini : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit_transfers"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["timestamp"] = since;
         }

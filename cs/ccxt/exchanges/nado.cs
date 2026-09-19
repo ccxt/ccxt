@@ -1034,7 +1034,7 @@ public partial class nado : Exchange
             { "type", "list_trigger_orders" },
             { "product_ids", productIds },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 500);
         }
@@ -1205,7 +1205,7 @@ public partial class nado : Exchange
         IList<object> ordersRequestparametersVariable = (IList<object>)this.handleUntilOption("max_time", ordersRequest, parameters, 0.001);
         ordersRequest = (Dictionary<string, object>)((IList<object>)ordersRequestparametersVariable)[0];
         parameters = ((IList<object>)ordersRequestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)ordersRequest)["limit"] = mathMin(limit, 500);
         }
@@ -1327,7 +1327,7 @@ public partial class nado : Exchange
         IList<object> matchesRequestparametersVariable = (IList<object>)this.handleUntilOption("max_time", matchesRequest, parameters, 0.001);
         matchesRequest = (Dictionary<string, object>)((IList<object>)matchesRequestparametersVariable)[0];
         parameters = ((IList<object>)matchesRequestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)matchesRequest)["limit"] = mathMin(limit, 500);
         }
@@ -2045,7 +2045,7 @@ public partial class nado : Exchange
             { "interest_and_funding", new Dictionary<string, object>() {
                 { "subaccount", this.createSubaccount(this.walletAddress, subaccount) },
                 { "product_ids", new List<object> {this.parseToInt((market.ContainsKey("id") ? market["id"] : null))} },
-                { "limit", ((bool) (isEqual(limit, null))) ? 100 : mathMin(limit, 100) },
+                { "limit", ((bool) ((limit == null))) ? 100 : mathMin(limit, 100) },
             } },
         };
         Dictionary<string, object> response = await this.archivePost(this.deepExtend(request, parameters));
@@ -2240,7 +2240,7 @@ public partial class nado : Exchange
         string? tickerId = this.safeString((market.ContainsKey("info") ? market["info"] : null), "ticker_id");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker_id", tickerId },
-            { "depth", ((bool) (isEqual(limit, null))) ? 100 : limit },
+            { "depth", ((bool) ((limit == null))) ? 100 : limit },
         };
         Dictionary<string, object> response = await this.gatewayV2PublicGetOrderbook(this.extend(request, parameters));
         //
@@ -2283,7 +2283,7 @@ public partial class nado : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker_id", tickerId },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 500);
         }
@@ -2333,7 +2333,7 @@ public partial class nado : Exchange
                 { "granularity", this.safeInteger(this.timeframes, timeframeVar, this.parseTimeframe(timeframeVar)) },
             } },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["candlesticks"])["limit"] = mathMin(limit, 500);
         }

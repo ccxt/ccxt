@@ -983,7 +983,7 @@ public partial class bybit : ccxt.bybit
         object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchOrderBook", parameters);
         parameters = this.cleanParams(parameters);
         Dictionary<string, object> market = this.market(getValue(symbols, 0));
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 50;
             if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))

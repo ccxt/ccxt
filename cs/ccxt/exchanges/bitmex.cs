@@ -1394,7 +1394,7 @@ public partial class bitmex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["depth"] = limit;
         }
@@ -1489,11 +1489,11 @@ public partial class bitmex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -1590,11 +1590,11 @@ public partial class bitmex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(500, limit);
         }
@@ -1813,7 +1813,7 @@ public partial class bitmex : Exchange
         //         // date-based pagination not supported
         //     }
         //
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -1879,7 +1879,7 @@ public partial class bitmex : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -2142,7 +2142,7 @@ public partial class bitmex : Exchange
             { "binSize", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "partial", true },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit; // default 100, max 500
         }
@@ -2158,7 +2158,7 @@ public partial class bitmex : Exchange
         useOpenTimestamp = ((IList<object>)useOpenTimestampparametersVariable)[0];
         parameters = ((IList<object>)useOpenTimestampparametersVariable)[1];
         // if since is not set, they will return candles starting from 2017-01-01
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             object timestamp = since;
             if (isTrue(useOpenTimestamp))
@@ -2478,7 +2478,7 @@ public partial class bitmex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = this.iso8601(since);
         } else
@@ -2486,7 +2486,7 @@ public partial class bitmex : Exchange
             // by default reverse=false, i.e. trades are fetched since the time of market inception (year 2015 for XBTUSD)
             ((IDictionary<string,object>)request)["reverse"] = true;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 1000); // api maximum 1000
         }
@@ -2596,22 +2596,22 @@ public partial class bitmex : Exchange
         {
             string? triggerDirection = this.safeString(parameters, "triggerDirection");
             bool triggerAbove = (((triggerDirection == "ascending")) || ((triggerDirection == "above")));
-            if ((isEqual(type, "limit")) || (isEqual(type, "market")))
+            if (((type == "limit")) || ((type == "market")))
             {
                 this.checkRequiredArgument("createOrder", triggerDirection, "triggerDirection", new List<object>() {"above", "below"});
             }
-            if (isEqual(type, "limit"))
+            if ((type == "limit"))
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     orderType = ((bool) triggerAbove) ? "StopLimit" : "LimitIfTouched";
                 } else
                 {
                     orderType = ((bool) triggerAbove) ? "LimitIfTouched" : "StopLimit";
                 }
-            } else if (isEqual(type, "market"))
+            } else if ((type == "market"))
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     orderType = ((bool) triggerAbove) ? "Stop" : "MarketIfTouched";
                 } else
@@ -2621,8 +2621,8 @@ public partial class bitmex : Exchange
             }
             if (isTrailingAmountOrder)
             {
-                bool isStopSellOrder = (isEqual(side, "sell")) && (((orderType == "Stop")) || ((orderType == "StopLimit")));
-                bool isBuyIfTouchedOrder = (isEqual(side, "buy")) && (((orderType == "MarketIfTouched")) || ((orderType == "LimitIfTouched")));
+                bool isStopSellOrder = ((side == "sell")) && (((orderType == "Stop")) || ((orderType == "StopLimit")));
+                bool isBuyIfTouchedOrder = ((side == "buy")) && (((orderType == "MarketIfTouched")) || ((orderType == "LimitIfTouched")));
                 if (isStopSellOrder || isBuyIfTouchedOrder)
                 {
                     trailingAmount = ("-" + trailingAmount);
@@ -2668,23 +2668,23 @@ public partial class bitmex : Exchange
         {
             string? triggerDirection = this.safeString(parameters, "triggerDirection");
             bool triggerAbove = (((triggerDirection == "ascending")) || ((triggerDirection == "above")));
-            if ((isEqual(type, "limit")) || (isEqual(type, "market")))
+            if (((type == "limit")) || ((type == "market")))
             {
                 this.checkRequiredArgument("editOrder", triggerDirection, "triggerDirection", new List<object>() {"above", "below"});
             }
             string? orderType = null;
-            if (isEqual(type, "limit"))
+            if ((type == "limit"))
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     orderType = ((bool) triggerAbove) ? "StopLimit" : "LimitIfTouched";
                 } else
                 {
                     orderType = ((bool) triggerAbove) ? "LimitIfTouched" : "StopLimit";
                 }
-            } else if (isEqual(type, "market"))
+            } else if ((type == "market"))
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     orderType = ((bool) triggerAbove) ? "Stop" : "MarketIfTouched";
                 } else
@@ -2692,8 +2692,8 @@ public partial class bitmex : Exchange
                     orderType = ((bool) triggerAbove) ? "MarketIfTouched" : "Stop";
                 }
             }
-            bool isStopSellOrder = (isEqual(side, "sell")) && (((orderType == "Stop")) || ((orderType == "StopLimit")));
-            bool isBuyIfTouchedOrder = (isEqual(side, "buy")) && (((orderType == "MarketIfTouched")) || ((orderType == "LimitIfTouched")));
+            bool isStopSellOrder = ((side == "sell")) && (((orderType == "Stop")) || ((orderType == "StopLimit")));
+            bool isBuyIfTouchedOrder = ((side == "buy")) && (((orderType == "MarketIfTouched")) || ((orderType == "LimitIfTouched")));
             if (isStopSellOrder || isBuyIfTouchedOrder)
             {
                 trailingAmount = ("-" + trailingAmount);
@@ -2715,12 +2715,12 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["orderID"] = id;
         }
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             Int64? qty = this.parseToInt(this.amountToPrecision(symbol, amount));
             ((IDictionary<string,object>)request)["orderQty"] = qty;
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = price;
         }
@@ -3379,11 +3379,11 @@ public partial class bitmex : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -3393,7 +3393,7 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
-        if ((isEqual(since, null)) && (isEqual(until, null)))
+        if (((since == null)) && (isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["reverse"] = true;
         }
@@ -3490,7 +3490,7 @@ public partial class bitmex : Exchange
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = ((string)marginModeVar).ToLower();
-        if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
+        if ((marginModeVar != "isolated") && (marginModeVar != "cross"))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
@@ -3503,7 +3503,7 @@ public partial class bitmex : Exchange
         {
             throw new BadSymbol ((string)(this.id + " setMarginMode() supports swap and future contracts only")) ;
         }
-        bool enabled = ((bool) (isEqual(marginModeVar, "cross"))) ? false : true;
+        bool enabled = ((bool) ((marginModeVar == "cross"))) ? false : true;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "enabled", enabled },
@@ -3799,11 +3799,11 @@ public partial class bitmex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -4151,11 +4151,11 @@ public partial class bitmex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }

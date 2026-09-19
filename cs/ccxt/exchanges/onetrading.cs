@@ -1022,7 +1022,7 @@ public partial class onetrading : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["depth"] = limit;
         }
@@ -1164,7 +1164,7 @@ public partial class onetrading : Exchange
         var unit = ((IList<object>) periodunitVariable)[1];
         int durationInSeconds = this.parseTimeframe(timeframeVar);
         Int64 duration = multiply(durationInSeconds, 1000);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 1500;
         }
@@ -1173,7 +1173,7 @@ public partial class onetrading : Exchange
             { "period", period },
             { "unit", unit },
         };
-        if (isEqual(since, null))
+        if ((since == null))
         {
             Int64 now = this.milliseconds();
             ((IDictionary<string,object>)request)["to"] = this.iso8601(now);
@@ -1756,7 +1756,7 @@ public partial class onetrading : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument_code"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
@@ -1766,7 +1766,7 @@ public partial class onetrading : Exchange
             parameters = this.omit(parameters, "until");
             ((IDictionary<string,object>)request)["to"] = this.iso8601(until);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["max_page_size"] = limit;
         }
@@ -1897,7 +1897,7 @@ public partial class onetrading : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["max_page_size"] = limit;
         }
@@ -1967,7 +1967,7 @@ public partial class onetrading : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument_code"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
@@ -1977,7 +1977,7 @@ public partial class onetrading : Exchange
             parameters = this.omit(parameters, "until");
             ((IDictionary<string,object>)request)["to"] = this.iso8601(until);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["max_page_size"] = limit;
         }

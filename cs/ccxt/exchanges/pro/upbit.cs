@@ -201,7 +201,7 @@ public partial class upbit : ccxt.upbit
         object timeframeVar = timeframe;
         timeframeVar ??= "1s";
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(timeframeVar, "1s"))
+        if ((timeframeVar != "1s"))
         {
             throw new NotSupported ((string)(((this.id + " watchOHLCV does not support") + (timeframeVar)) + " candle.")) ;
         }

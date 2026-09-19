@@ -620,7 +620,7 @@ public partial class p2b : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -684,7 +684,7 @@ public partial class p2b : Exchange
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "lastId", lastId },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -810,7 +810,7 @@ public partial class p2b : Exchange
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", timeframeVar },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -949,7 +949,7 @@ public partial class p2b : Exchange
         {
             await this.loadMarkets();
         }
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
             throw new BadRequest ((string)(this.id + " createOrder () can only accept orders with type \"limit\"")) ;
         }
@@ -1069,7 +1069,7 @@ public partial class p2b : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1129,7 +1129,7 @@ public partial class p2b : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1193,7 +1193,7 @@ public partial class p2b : Exchange
         parameters = this.omit(parameters, "until");
         if (isEqual(until, null))
         {
-            if (isEqual(sinceVar, null))
+            if ((sinceVar == null))
             {
                 until = this.milliseconds();
             } else
@@ -1201,7 +1201,7 @@ public partial class p2b : Exchange
                 until = add(sinceVar, 86400000);
             }
         }
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             sinceVar = subtract(until, 86400000);
         }
@@ -1217,7 +1217,7 @@ public partial class p2b : Exchange
             { "startTime", sinceSec },
             { "endTime", untilSec },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1285,7 +1285,7 @@ public partial class p2b : Exchange
         }
         if (isEqual(until, null))
         {
-            if (isEqual(sinceVar, null))
+            if ((sinceVar == null))
             {
                 until = this.milliseconds();
             } else
@@ -1293,7 +1293,7 @@ public partial class p2b : Exchange
                 until = add(sinceVar, 86400000);
             }
         }
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             sinceVar = subtract(until, 86400000);
         }
@@ -1311,7 +1311,7 @@ public partial class p2b : Exchange
         {
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

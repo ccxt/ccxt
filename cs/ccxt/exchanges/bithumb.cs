@@ -915,7 +915,7 @@ public partial class bithumb : Exchange
         {
             ((IDictionary<string,object>)request)["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             ((IDictionary<string,object>)request)["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["count"] = limit; // default 30, max 30
             }
@@ -1471,17 +1471,17 @@ public partial class bithumb : Exchange
         if (isEqual(generation, 2))
         {
             ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["count"] = limit;
             }
-            if (isEqual(timeframeVar, "1d"))
+            if ((timeframeVar == "1d"))
             {
                 response = await this.publicGetV1CandlesDays(this.extend(request, parameters));
-            } else if (isEqual(timeframeVar, "1w"))
+            } else if ((timeframeVar == "1w"))
             {
                 response = await this.publicGetV1CandlesWeeks(this.extend(request, parameters));
-            } else if (isEqual(timeframeVar, "1M"))
+            } else if ((timeframeVar == "1M"))
             {
                 response = await this.publicGetV1CandlesMonths(this.extend(request, parameters));
             } else
@@ -1719,7 +1719,7 @@ public partial class bithumb : Exchange
         parameters = ((IList<object>)generationparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -2004,11 +2004,11 @@ public partial class bithumb : Exchange
             ((IDictionary<string,object>)request)["order_currency"] = (market.ContainsKey("base") ? market["base"] : null);
             ((IDictionary<string,object>)request)["payment_currency"] = (market.ContainsKey("quote") ? market["quote"] : null);
             ((IDictionary<string,object>)request)["units"] = this.amountToPrecision(symbol, amount);
-            if (isEqual(type, "limit"))
+            if ((type == "limit"))
             {
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
                 string? typeRequest = null;
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     typeRequest = "bid";
                 } else
@@ -2017,7 +2017,7 @@ public partial class bithumb : Exchange
                 }
                 ((IDictionary<string,object>)request)["type"] = typeRequest;
                 response = await this.privatePostTradePlace(this.extend(request, parameters));
-            } else if (isEqual(side, "buy"))
+            } else if ((side == "buy"))
             {
                 response = await this.privatePostTradeMarketBuy(this.extend(request, parameters));
             } else
@@ -2105,7 +2105,7 @@ public partial class bithumb : Exchange
             ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount); // required for sale
         }
         string? sideRequest = null;
-        if (isEqual(side, "buy"))
+        if ((side == "buy"))
         {
             sideRequest = "bid";
         } else
@@ -2590,11 +2590,11 @@ public partial class bithumb : Exchange
                 throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders() requires a symbol argument")) ;
             }
             market = this.market(symbol);
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["after"] = since;
             }
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = 100;
             }
@@ -2656,7 +2656,7 @@ public partial class bithumb : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2977,7 +2977,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
         object destinationRequest = null;
-        if (isEqual(code, "XRP") || isEqual(code, "XMR") || isEqual(code, "EOS") || isEqual(code, "STEEM") || isEqual(code, "TON"))
+        if ((code == "XRP") || (code == "XMR") || (code == "EOS") || (code == "STEEM") || (code == "TON"))
         {
             string? destination = this.safeString2(parameters, "destination", "secondary_address");
             parameters = this.omit(parameters, new List<object>() {"destination", "secondary_address"});
@@ -2996,7 +2996,7 @@ public partial class bithumb : Exchange
         parameters = this.omit(parameters, new List<object>() {"receiver_type", "cust_type_cd"});
         if (isEqual(generation, 2))
         {
-            if (isEqual(code, "KRW"))
+            if ((code == "KRW"))
             {
                 string? twoFactorType = this.safeString(parameters, "two_factor_type");
                 if ((twoFactorType == null))
@@ -3286,13 +3286,13 @@ public partial class bithumb : Exchange
             throw new BadRequest ((string)(this.id + " fetchWithdrawals() is only supported for the generation 2 API")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         List<object> response = null;
         IDictionary<string, object> currency = null;
-        if (isEqual(code, "KRW"))
+        if ((code == "KRW"))
         {
             currency = this.currency(((string)code));
             response = await this.privateGetV1WithdrawsKrw(this.extend(request, parameters));
@@ -3417,13 +3417,13 @@ public partial class bithumb : Exchange
             throw new BadRequest ((string)(this.id + " fetchDeposits() is only supported for the generation 2 API")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         List<object> response = null;
         IDictionary<string, object> currency = null;
-        if (isEqual(code, "KRW"))
+        if ((code == "KRW"))
         {
             currency = this.currency(((string)code));
             response = await this.privateGetV1DepositsKrw(this.extend(request, parameters));

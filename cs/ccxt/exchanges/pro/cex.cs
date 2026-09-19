@@ -141,7 +141,7 @@ public partial class cex : ccxt.cex
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         string? currentSymbol = this.safeString((this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol");
-        if ((currentSymbol != null) && !isEqual(currentSymbol, symbolVar))
+        if ((currentSymbol != null) && (currentSymbol != symbolVar))
         {
             throw new ArgumentsRequired ((string)(this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
         }
@@ -1061,7 +1061,7 @@ public partial class cex : ccxt.cex
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("orderbook:" + (symbolVar));
-        object depth = ((bool) (isEqual(limit, null))) ? 0 : limit;
+        object depth = ((bool) ((limit == null))) ? 0 : limit;
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "e", "order-book-subscribe" },
             { "data", new Dictionary<string, object>() {

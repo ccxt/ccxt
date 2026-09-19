@@ -3125,18 +3125,18 @@ public partial class okx : Exchange
         IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        if (isEqual(method, "publicGetMarketBooksFull") && isEqual(limitVar, null))
+        if (isEqual(method, "publicGetMarketBooksFull") && (limitVar == null))
         {
             limitVar = 5000;
         }
-        limitVar = ((bool) (isEqual(limitVar, null))) ? 100 : limitVar;
+        limitVar = ((bool) ((limitVar == null))) ? 100 : limitVar;
         if (isTrue(rpi) && (isGreaterThan(limitVar, 400)))
         {
             // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
             // including the 5000 that publicGetMarketBooksFull defaults to
             limitVar = 400;
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["sz"] = limitVar; // max 400
         }
@@ -3596,7 +3596,7 @@ public partial class okx : Exchange
             response = await this.publicGetPublicOptionTrades(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit; // default 100
             }
@@ -3717,8 +3717,8 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "price");
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         string? timezone = this.safeString(options, "timezone", "UTC");
-        bool limitIsUndefined = (isEqual(limitVar, null));
-        if (isEqual(limitVar, null))
+        bool limitIsUndefined = ((limitVar == null));
+        if ((limitVar == null))
         {
             limitVar = 100; // default 100, max 300
         } else
@@ -3738,7 +3738,7 @@ public partial class okx : Exchange
             { "limit", limitVar },
         };
         string? defaultType = "Candles";
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             Int64 now = this.milliseconds();
             Int64 durationInMilliseconds = multiply(duration, 1000);
@@ -3788,7 +3788,7 @@ public partial class okx : Exchange
         {
             if (isHistoryCandles)
             {
-                if (limitIsUndefined && (isEqual(limitVar, 100)))
+                if (limitIsUndefined && ((limitVar == 100)))
                 {
                     limitVar = 300;
                     ((IDictionary<string,object>)request)["limit"] = 300; // reassign to 300, but this whole logic needs to be simplified...
@@ -3849,11 +3849,11 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4653,7 +4653,7 @@ public partial class okx : Exchange
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         string? method = this.safeString(this.options, "createOrder", "privatePostTradeBatchOrders");
         string? requestOrdType = this.safeString(request, "ordType");
-        if (((requestOrdType == "trigger")) || ((requestOrdType == "conditional")) || ((requestOrdType == "move_order_stop")) || (isEqual(type, "move_order_stop")) || (isEqual(type, "oco")) || (isEqual(type, "iceberg")) || (isEqual(type, "twap")))
+        if (((requestOrdType == "trigger")) || ((requestOrdType == "conditional")) || ((requestOrdType == "move_order_stop")) || ((type == "move_order_stop")) || ((type == "oco")) || ((type == "iceberg")) || ((type == "twap")))
         {
             method = "privatePostTradeOrderAlgo";
         }
@@ -4906,7 +4906,7 @@ public partial class okx : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         bool? isAlgoOrder = null;
-        if ((isEqual(type, "trigger")) || (isEqual(type, "conditional")) || (isEqual(type, "move_order_stop")) || (isEqual(type, "oco")) || (isEqual(type, "iceberg")) || (isEqual(type, "twap")))
+        if (((type == "trigger")) || ((type == "conditional")) || ((type == "move_order_stop")) || ((type == "oco")) || ((type == "iceberg")) || ((type == "twap")))
         {
             isAlgoOrder = true;
         }
@@ -5798,7 +5798,7 @@ public partial class okx : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit); // default 100, max 100
         }
@@ -5966,7 +5966,7 @@ public partial class okx : Exchange
         type = (string)((IList<object>)typequeryVariable)[0];
         query = ((IList<object>)typequeryVariable)[1];
         ((IDictionary<string,object>)request)["instType"] = this.convertToInstrumentType(type);
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
@@ -6001,7 +6001,7 @@ public partial class okx : Exchange
             }
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["begin"] = since;
             }
@@ -6173,7 +6173,7 @@ public partial class okx : Exchange
         type = (string)((IList<object>)typequeryVariable)[0];
         query = ((IList<object>)typequeryVariable)[1];
         ((IDictionary<string,object>)request)["instType"] = this.convertToInstrumentType(type);
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit); // default 100, max 100
         }
@@ -6200,7 +6200,7 @@ public partial class okx : Exchange
             }
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["begin"] = since;
             }
@@ -6358,7 +6358,7 @@ public partial class okx : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["begin"] = since;
         }
@@ -6369,7 +6369,7 @@ public partial class okx : Exchange
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
         ((IDictionary<string,object>)request)["instType"] = this.convertToInstrumentType(type);
-        if ((!isEqual(limit, null)) && (isEqual(since, null)))
+        if (((limit != null)) && ((since == null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
@@ -6482,7 +6482,7 @@ public partial class okx : Exchange
         {
             ((IDictionary<string,object>)request)["instType"] = this.convertToInstrumentType(type);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -6954,11 +6954,11 @@ public partial class okx : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["ccy"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
@@ -7075,11 +7075,11 @@ public partial class okx : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["ccy"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
@@ -8044,11 +8044,11 @@ public partial class okx : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["ccy"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["begin"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -8385,7 +8385,7 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "8" },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = ((object)limit).ToString(); // default 100, max 100
         }
@@ -8647,7 +8647,7 @@ public partial class okx : Exchange
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         marginModeVar = ((string)marginModeVar).ToLower();
-        if ((!isEqual(marginModeVar, "cross")) && (!isEqual(marginModeVar, "isolated")))
+        if (((marginModeVar != "cross")) && ((marginModeVar != "isolated")))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
         }
@@ -8848,11 +8848,11 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["before"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -8897,11 +8897,11 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ccy", getValue(currency, "id") },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["before"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -9227,11 +9227,11 @@ public partial class okx : Exchange
             Dictionary<string, object> currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["ccy"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["before"] = subtract(since, 1);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -9551,7 +9551,7 @@ public partial class okx : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOpenInterestHistory", new Dictionary<string, object>() {});
         IDictionary<string, object> timeframes = this.safeDict(options, "timeframes", new Dictionary<string, object>() {});
         timeframeVar = this.safeString(timeframes, timeframeVar, timeframeVar);
-        if (!isEqual(timeframeVar, "5m") && !isEqual(timeframeVar, "1H") && !isEqual(timeframeVar, "1D"))
+        if ((timeframeVar != "5m") && (timeframeVar != "1H") && (timeframeVar != "1D"))
         {
             throw new BadRequest ((string)(this.id + " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")) ;
         }
@@ -9585,7 +9585,7 @@ public partial class okx : Exchange
             response = await this.publicGetRubikStatOptionOpenInterestVolume(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["begin"] = since;
             }
@@ -9870,11 +9870,11 @@ public partial class okx : Exchange
             { "instType", this.convertToInstrumentType(type) },
             { "uly", add(add((market.ContainsKey("baseId") ? market["baseId"] : null), "-"), (market.ContainsKey("quoteId") ? market["quoteId"] : null)) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["before"] = subtract(since, 1);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -10247,10 +10247,10 @@ public partial class okx : Exchange
         };
         if ((side != null))
         {
-            if ((isEqual(side, "buy")))
+            if (((side == "buy")))
             {
                 ((IDictionary<string,object>)request)["posSide"] = "long";
-            } else if (isEqual(side, "sell"))
+            } else if ((side == "sell"))
             {
                 ((IDictionary<string,object>)request)["posSide"] = "short";
             } else
@@ -10640,11 +10640,11 @@ public partial class okx : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("after", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["before"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -10889,7 +10889,7 @@ public partial class okx : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchMarginAdjustmentHistory () requires a type argument")) ;
         }
-        bool isAdd = isEqual(type, "add");
+        bool isAdd = (type == "add");
         string subType = ((bool) isAdd) ? "160" : "161";
         if ((auto == true))
         {
@@ -11010,7 +11010,7 @@ public partial class okx : Exchange
         string? marginMode = this.safeString(parameters, "marginMode");
         string? instType = this.safeStringUpper(parameters, "instType");
         parameters = this.omit(parameters, new List<object>() {"until", "marginMode", "instType"});
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100;
         }
@@ -11111,11 +11111,11 @@ public partial class okx : Exchange
         {
             ((IDictionary<string,object>)request)["period"] = this.safeString(this.timeframes, timeframe, timeframe);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["begin"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

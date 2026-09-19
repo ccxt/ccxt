@@ -1164,7 +1164,7 @@ public partial class digifinex : Exchange
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1733,7 +1733,7 @@ public partial class digifinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = ((bool) ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))) ? mathMin(limit, 100) : limit;
         }
@@ -1843,7 +1843,7 @@ public partial class digifinex : Exchange
         {
             ((IDictionary<string,object>)request)["instrument_id"] = (market.ContainsKey("id") ? market["id"] : null);
             ((IDictionary<string,object>)request)["granularity"] = timeframeVar;
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
             }
@@ -1857,10 +1857,10 @@ public partial class digifinex : Exchange
             int duration = this.parseTimeframe(timeframeVar);
             if (isEqual(startTime, null))
             {
-                if ((!isEqual(limit, null)) || (!isEqual(until, null)))
+                if (((limit != null)) || (!isEqual(until, null)))
                 {
                     Int64? endTime = ((bool) (!isEqual(until, null))) ? until : this.milliseconds();
-                    object startLimit = ((bool) (!isEqual(limit, null))) ? limit : 200;
+                    object startLimit = ((bool) ((limit != null))) ? limit : 200;
                     startTime = subtract(endTime, (multiply(multiply(startLimit, duration), 1000)));
                 }
             }
@@ -1868,12 +1868,12 @@ public partial class digifinex : Exchange
             {
                 startTime = this.parseToInt(divide(startTime, 1000));
                 ((IDictionary<string,object>)request)["start_time"] = startTime;
-                if ((!isEqual(limit, null)) || (!isEqual(until, null)))
+                if (((limit != null)) || (!isEqual(until, null)))
                 {
                     if (!isEqual(until, null))
                     {
                         Int64? endByUntil = this.parseToInt((until / 1000));
-                        if (!isEqual(limit, null))
+                        if ((limit != null))
                         {
                             object endByLimit = this.sum(startTime, multiply(limit, duration));
                             ((IDictionary<string,object>)request)["end_time"] = mathMin(endByLimit, endByUntil);
@@ -1883,7 +1883,7 @@ public partial class digifinex : Exchange
                         }
                     } else
                     {
-                        if (isEqual(limit, null))
+                        if ((limit == null))
                         {
                             throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV() requires a limit argument")) ;
                         }
@@ -2657,11 +2657,11 @@ public partial class digifinex : Exchange
         bool swap = ((marketType == "swap"));
         if (swap)
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_timestamp"] = since;
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -2778,14 +2778,14 @@ public partial class digifinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((marketType == "swap"))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_timestamp"] = since;
             }
         } else
         {
             ((IDictionary<string,object>)request)["market"] = marketType;
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_time"] = this.parseToInt(divide(since, 1000)); // default 3 days from now, max 30 days
             }
@@ -2795,7 +2795,7 @@ public partial class digifinex : Exchange
             string marketIdRequest = ((bool) ((marketType == "swap"))) ? "instrument_id" : "symbol";
             ((IDictionary<string,object>)request)[(string)marketIdRequest] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3018,14 +3018,14 @@ public partial class digifinex : Exchange
         var query = ((IList<object>) marginModequeryVariable)[1];
         if ((marketType == "swap"))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_timestamp"] = since;
             }
         } else
         {
             ((IDictionary<string,object>)request)["market"] = marketType;
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_time"] = this.parseToInt(divide(since, 1000)); // default 3 days from now, max 30 days
             }
@@ -3035,7 +3035,7 @@ public partial class digifinex : Exchange
         {
             ((IDictionary<string,object>)request)[(string)marketIdRequest] = this.safeString(market, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3191,14 +3191,14 @@ public partial class digifinex : Exchange
         var query = ((IList<object>) marginModequeryVariable)[1];
         if ((marketType == "swap"))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_timestamp"] = since;
             }
         } else
         {
             ((IDictionary<string,object>)request)["market"] = marketType;
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_time"] = this.parseToInt(divide(since, 1000)); // default 3 days from now, max 30 days
             }
@@ -3210,7 +3210,7 @@ public partial class digifinex : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)[(string)currencyIdRequest] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3355,7 +3355,7 @@ public partial class digifinex : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = mathMin(500, limit);
         }
@@ -3599,8 +3599,8 @@ public partial class digifinex : Exchange
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, toAccount);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        bool fromSwap = (isEqual(fromAccount, "swap"));
-        bool toSwap = (isEqual(toAccount, "swap"));
+        bool fromSwap = ((fromAccount == "swap"));
+        bool toSwap = ((toAccount == "swap"));
         Dictionary<string, object> response = null;
         string? amountString = this.currencyToPrecision(((string)code), amount);
         if (fromSwap || toSwap)
@@ -3802,7 +3802,7 @@ public partial class digifinex : Exchange
         for (int i = 0; i < data.Count; i++)
         {
             object entry = data[i];
-            if (isEqual(this.safeString(entry, "currency"), code))
+            if ((this.safeString(entry, "currency") == code))
             {
                 result = entry;
             }
@@ -4032,11 +4032,11 @@ public partial class digifinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_id", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_timestamp"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4549,11 +4549,11 @@ public partial class digifinex : Exchange
             }
             ((IDictionary<string,object>)request)["currency"] = this.safeString(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_timestamp"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 20 max 100
         }
@@ -5023,11 +5023,11 @@ public partial class digifinex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument_id"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_timestamp"] = since;
         }
@@ -5097,7 +5097,7 @@ public partial class digifinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         marginModeVar = ((string)marginModeVar).ToLower();
-        if (isEqual(marginModeVar, "cross"))
+        if ((marginModeVar == "cross"))
         {
             marginModeVar = "crossed";
         }

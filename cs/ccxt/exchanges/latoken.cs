@@ -777,7 +777,7 @@ public partial class latoken : Exchange
             { "currency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
             { "quote", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // max 1000
         }
@@ -1088,7 +1088,7 @@ public partial class latoken : Exchange
             { "currency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
             { "quote", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // default 100, limit 100
         }
@@ -1201,7 +1201,7 @@ public partial class latoken : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }
@@ -1469,7 +1469,7 @@ public partial class latoken : Exchange
         IDictionary<string, object> market = null;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }

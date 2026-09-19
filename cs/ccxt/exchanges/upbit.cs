@@ -743,7 +743,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "markets", ids },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -1112,7 +1112,7 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 200;
         }
@@ -1291,7 +1291,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         int timeframePeriod = this.parseTimeframe(timeframeVar);
         string? timeframeValue = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 200;
         }
@@ -1301,7 +1301,7 @@ public partial class upbit : Exchange
             { "count", limitVar },
         };
         object response = null;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             // convert `since` to `to` value
             ((IDictionary<string,object>)request)["to"] = this.iso8601(this.sum(since, multiply(multiply(timeframePeriod, limitVar), 1000)));
@@ -1414,7 +1414,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         string? customType = this.safeString2(parameters, "ordType", "ord_type");
-        bool postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
+        bool postOnly = this.isPostOnly((type == "market"), false, parameters);
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         string? selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
         bool? test = this.safeBool(parameters, "test", false);
@@ -1423,10 +1423,10 @@ public partial class upbit : Exchange
             throw new ExchangeError ((string)(this.id + " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
         }
         string? orderSide = null;
-        if (isEqual(side, "buy"))
+        if ((side == "buy"))
         {
             orderSide = "bid";
-        } else if (isEqual(side, "sell"))
+        } else if ((side == "sell"))
         {
             orderSide = "ask";
         } else
@@ -1437,18 +1437,18 @@ public partial class upbit : Exchange
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", orderSide },
         };
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
-            if (isEqual(price, null) || isEqual(amount, null))
+            if ((price == null) || isEqual(amount, null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " the limit type order in createOrder() is required price and amount.")) ;
             }
             ((IDictionary<string,object>)request)["ord_type"] = "limit";
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
-        } else if (isEqual(type, "market"))
+        } else if ((type == "market"))
         {
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 ((IDictionary<string,object>)request)["ord_type"] = "price";
                 string? orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
@@ -1470,7 +1470,7 @@ public partial class upbit : Exchange
         {
             parameters = this.omit(parameters, new List<object>() {"ordType", "ord_type"});
             ((IDictionary<string,object>)request)["ord_type"] = "best";
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 string? orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
                 ((IDictionary<string,object>)request)["price"] = orderPrice;
@@ -1614,7 +1614,7 @@ public partial class upbit : Exchange
         string? prevClientOrderId = this.safeString(parameters, "clientOrderId");
         string? customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
         string? clientOrderId = this.safeString(parameters, "newClientOrderId");
-        bool postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
+        bool postOnly = this.isPostOnly((type == "market"), false, parameters);
         string? timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
         string? selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
         if (postOnly && ((selfTradePrevention != null)))
@@ -1632,25 +1632,25 @@ public partial class upbit : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() is required id or clientOrderId.")) ;
         }
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
-            if (isEqual(price, null) || isEqual(amount, null))
+            if ((price == null) || (amount == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " editOrder() is required price and amount to create limit type order.")) ;
             }
             ((IDictionary<string,object>)request)["new_ord_type"] = "limit";
             ((IDictionary<string,object>)request)["new_price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request)["new_volume"] = this.amountToPrecision(symbol, amount);
-        } else if (isEqual(type, "market"))
+        } else if ((type == "market"))
         {
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 ((IDictionary<string,object>)request)["new_ord_type"] = "price";
                 string? orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
                 ((IDictionary<string,object>)request)["new_price"] = orderPrice;
             } else
             {
-                if (isEqual(amount, null))
+                if ((amount == null))
                 {
                     throw new ArgumentsRequired ((string)(this.id + " editOrder() is required amount to create market sell type order.")) ;
                 }
@@ -1665,13 +1665,13 @@ public partial class upbit : Exchange
         {
             parameters = this.omit(parameters, new List<object>() {"newOrdType", "new_ord_type"});
             ((IDictionary<string,object>)request)["new_ord_type"] = "best";
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 string? orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
                 ((IDictionary<string,object>)request)["new_price"] = orderPrice;
             } else
             {
-                if (isEqual(amount, null))
+                if ((amount == null))
                 {
                     throw new ArgumentsRequired ((string)(this.id + " editOrder() is required amount to create best sell order.")) ;
                 }
@@ -1762,7 +1762,7 @@ public partial class upbit : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default is 100
         }
@@ -1859,7 +1859,7 @@ public partial class upbit : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default is 100
         }
@@ -2223,7 +2223,7 @@ public partial class upbit : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2282,11 +2282,11 @@ public partial class upbit : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2349,11 +2349,11 @@ public partial class upbit : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2637,7 +2637,7 @@ public partial class upbit : Exchange
             { "amount", amount },
         };
         object response = null;
-        if (!isEqual(code, "KRW"))
+        if ((code != "KRW"))
         {
             this.checkAddress(address);
             // 2023-05-23 Change to required parameters for digital assets

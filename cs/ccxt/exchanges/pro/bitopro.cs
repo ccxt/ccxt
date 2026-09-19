@@ -65,9 +65,9 @@ public partial class bitopro : ccxt.bitopro
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
-            if ((!isEqual(limit, 5)) && (!isEqual(limit, 10)) && (!isEqual(limit, 20)) && (!isEqual(limit, 50)) && (!isEqual(limit, 100)) && (!isEqual(limit, 500)) && (!isEqual(limit, 1000)))
+            if (((limit != 5)) && ((limit != 10)) && ((limit != 20)) && ((limit != 50)) && ((limit != 100)) && ((limit != 500)) && ((limit != 1000)))
             {
                 throw new ExchangeError ((string)(this.id + " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")) ;
             }
@@ -80,7 +80,7 @@ public partial class bitopro : ccxt.bitopro
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = (("ORDER_BOOK" + ":") + (symbolVar));
         object endPart = null;
-        if (isEqual(limit, null))
+        if ((limit == null))
         {
             endPart = (market.ContainsKey("id") ? market["id"] : null);
         } else

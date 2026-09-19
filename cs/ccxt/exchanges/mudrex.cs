@@ -384,7 +384,7 @@ public partial class mudrex : Exchange
         }
         Int64 now = this.seconds();
         object startTime = null;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             startTime = this.parseToInt(divide(since, 1000));
         } else
@@ -884,7 +884,7 @@ public partial class mudrex : Exchange
             return ccxt.BaseExchange.ToOrder(this.parseOrder(riskData, market));
         }
         Int64? lev = this.safeInteger(parameters, "leverage", 1);
-        if ((isEqual(type, "market")) && (isEqual(price, null)))
+        if (((type == "market")) && ((price == null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument for market orders")) ;
         }
@@ -894,8 +894,8 @@ public partial class mudrex : Exchange
             { "leverage", this.numberToString(lev) },
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "order_price", this.priceToPrecision(symbol, price) },
-            { "order_type", ((bool) (isEqual(side, "buy"))) ? "LONG" : "SHORT" },
-            { "trigger_type", ((bool) (isEqual(type, "market"))) ? "MARKET" : "LIMIT" },
+            { "order_type", ((bool) ((side == "buy"))) ? "LONG" : "SHORT" },
+            { "trigger_type", ((bool) ((type == "market"))) ? "MARKET" : "LIMIT" },
             { "reduce_only", this.safeBool(parameters, "reduceOnly", false) },
         };
         // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
@@ -953,11 +953,11 @@ public partial class mudrex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["order_price"] = this.priceToPrecision(symbol, price);
         }
@@ -1139,7 +1139,7 @@ public partial class mudrex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> q = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)q)["limit"] = limit;
         }
@@ -1276,7 +1276,7 @@ public partial class mudrex : Exchange
         }
         symbols = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1521,7 +1521,7 @@ public partial class mudrex : Exchange
         maxCalls = ((IList<object>)maxCallsparametersVariable)[0];
         parameters = ((IList<object>)maxCallsparametersVariable)[1];
         object pageSize = 0;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
             pageSize = multiply(limit, 2);
@@ -1558,7 +1558,7 @@ public partial class mudrex : Exchange
             calls = this.sum(calls, 1);
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-            if ((!isEqual(limit, null)) && (isEqual(dataLength, pageSize)) && (isLessThan(transactionsCount, limit)) && (isLessThan(calls, maxCalls)))
+            if (((limit != null)) && (isEqual(dataLength, pageSize)) && (isLessThan(transactionsCount, limit)) && (isLessThan(calls, maxCalls)))
             {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 offset = this.sum(offset, pageSize);
@@ -1712,7 +1712,7 @@ public partial class mudrex : Exchange
             { "amount", this.numberToString(amount) },
         };
         bool useInr = false;
-        if (isEqual(code, "INR"))
+        if ((code == "INR"))
         {
             useInr = true;
         } else

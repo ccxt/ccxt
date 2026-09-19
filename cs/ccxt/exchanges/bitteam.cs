@@ -958,7 +958,7 @@ public partial class bitteam : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1216,9 +1216,9 @@ public partial class bitteam : Exchange
             { "side", side },
             { "amount", this.amountToPrecision(symbol, amount) },
         };
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             } else
@@ -1984,7 +1984,7 @@ public partial class bitteam : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pairId"] = (market.ContainsKey("numericId") ? market["numericId"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2356,7 +2356,7 @@ public partial class bitteam : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "numericId");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

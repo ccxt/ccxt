@@ -554,7 +554,7 @@ public partial class paymium : Exchange
             { "direction", side },
             { "amount", amount },
         };
-        if (!isEqual(type, "market"))
+        if ((type != "market"))
         {
             ((IDictionary<string,object>)request)["price"] = price;
         }
@@ -606,7 +606,7 @@ public partial class paymium : Exchange
         {
             throw new ExchangeError ((string)(this.id + " transfer() only allows transfers to an email address")) ;
         }
-        if (!isEqual(code, "BTC") && !isEqual(code, "EUR"))
+        if ((code != "BTC") && (code != "EUR"))
         {
             throw new ExchangeError ((string)(this.id + " transfer() only allows BTC or EUR")) ;
         }

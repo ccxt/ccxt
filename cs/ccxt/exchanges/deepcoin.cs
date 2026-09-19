@@ -770,7 +770,7 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 400;
         }
@@ -845,7 +845,7 @@ public partial class deepcoin : Exchange
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
             { "bar", bar },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -859,12 +859,12 @@ public partial class deepcoin : Exchange
         if ((calculateUntil == true))
         {
             parameters = this.omit(parameters, "calculateUntil");
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
                 int duration = this.parseTimeframe(timeframeVar);
-                object numberOfCandles = ((bool) (isEqual(limit, null))) ? maxLimit : limit;
+                object numberOfCandles = ((bool) ((limit == null))) ? maxLimit : limit;
                 object endTime = add(since, multiply((multiply(duration, numberOfCandles)), 1000));
                 if (!isEqual(until, null))
                 {
@@ -1031,7 +1031,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 500);
         }
@@ -1231,11 +1231,11 @@ public partial class deepcoin : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
@@ -1289,11 +1289,11 @@ public partial class deepcoin : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
@@ -1543,11 +1543,11 @@ public partial class deepcoin : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["ccy"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["after"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2302,7 +2302,7 @@ public partial class deepcoin : Exchange
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         ((IDictionary<string,object>)request)["instType"] = this.convertToInstrumentType(marketType);
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }
@@ -2482,7 +2482,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2718,23 +2718,23 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> response = null;
         if (isTPSL)
         {
-            if ((!isEqual(price, null)) || (!isEqual(amount, null)))
+            if (((price != null)) || ((amount != null)))
             {
                 throw new BadRequest ((string)(this.id + " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.")) ;
             }
             if (!isEqual(stopLossPrice, null))
             {
-                ((IDictionary<string,object>)request)["slTriggerPx"] = ((bool) (!isEqual(symbolVar, ""))) ? this.priceToPrecision(symbolVar, stopLossPrice) : this.numberToString(stopLossPrice);
+                ((IDictionary<string,object>)request)["slTriggerPx"] = ((bool) ((symbolVar != ""))) ? this.priceToPrecision(symbolVar, stopLossPrice) : this.numberToString(stopLossPrice);
             }
             if (!isEqual(takeProfitPrice, null))
             {
-                ((IDictionary<string,object>)request)["tpTriggerPx"] = ((bool) (!isEqual(symbolVar, ""))) ? this.priceToPrecision(symbolVar, takeProfitPrice) : this.numberToString(takeProfitPrice);
+                ((IDictionary<string,object>)request)["tpTriggerPx"] = ((bool) ((symbolVar != ""))) ? this.priceToPrecision(symbolVar, takeProfitPrice) : this.numberToString(takeProfitPrice);
             }
             parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
             response = await this.privatePostDeepcoinTradeReplaceOrderSltp(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 if ((symbolVar != null))
                 {
@@ -2744,7 +2744,7 @@ public partial class deepcoin : Exchange
                     ((IDictionary<string,object>)request)["price"] = this.numberToString(price);
                 }
             }
-            if (!isEqual(amount, null))
+            if ((amount != null))
             {
                 if ((symbolVar != null))
                 {
@@ -3330,7 +3330,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit; // default 20, max 100
         }
@@ -3429,11 +3429,11 @@ public partial class deepcoin : Exchange
         {
             ((IDictionary<string,object>)request)["instId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["begin"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }

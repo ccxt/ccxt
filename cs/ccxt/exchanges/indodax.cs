@@ -793,11 +793,11 @@ public partial class indodax : Exchange
             { "tf", selectedTimeframe },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 1000;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
         } else
@@ -1084,9 +1084,9 @@ public partial class indodax : Exchange
         };
         bool priceIsRequired = false;
         bool quantityIsRequired = false;
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 string? quoteAmount = null;
                 double? cost = this.safeNumber(parameters, "cost");
@@ -1096,7 +1096,7 @@ public partial class indodax : Exchange
                     quoteAmount = this.costToPrecision(symbol, cost);
                 } else
                 {
-                    if (isEqual(price, null))
+                    if ((price == null))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")) ;
                     }
@@ -1110,18 +1110,18 @@ public partial class indodax : Exchange
             {
                 quantityIsRequired = true;
             }
-        } else if (isEqual(type, "limit"))
+        } else if ((type == "limit"))
         {
             priceIsRequired = true;
             quantityIsRequired = true;
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 ((IDictionary<string,object>)request)[(string)((string)(market.ContainsKey("quoteId") ? market["quoteId"] : null))] = this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
             }
         }
         if (priceIsRequired)
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
@@ -1285,7 +1285,7 @@ public partial class indodax : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             string startTime = this.yyyymmdd(since);
             ((IDictionary<string,object>)request)["start"] = startTime;
@@ -1416,7 +1416,7 @@ public partial class indodax : Exchange
             { "withdraw_address", address },
             { "request_id", ((object)requestId).ToString() },
         };
-        if (((tagVar != null)) && (!isEqual(tagVar, "")))
+        if (((tagVar != null)) && ((tagVar != "")))
         {
             ((IDictionary<string,object>)request)["withdraw_memo"] = tagVar;
         }

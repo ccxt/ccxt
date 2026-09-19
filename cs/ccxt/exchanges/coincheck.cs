@@ -597,7 +597,7 @@ public partial class coincheck : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(symbol, "BTC/JPY"))
+        if ((symbol != "BTC/JPY"))
         {
             throw new BadSymbol ((string)(this.id + " fetchTicker() supports BTC/JPY only")) ;
         }
@@ -730,7 +730,7 @@ public partial class coincheck : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -783,7 +783,7 @@ public partial class coincheck : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -885,10 +885,10 @@ public partial class coincheck : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
             ((IDictionary<string,object>)request)["order_type"] = add(add(type, "_"), side);
-            if (isEqual(side, "sell"))
+            if ((side == "sell"))
             {
                 ((IDictionary<string,object>)request)["amount"] = amount;
             } else
@@ -963,7 +963,7 @@ public partial class coincheck : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1019,7 +1019,7 @@ public partial class coincheck : Exchange
             currency = this.currency(((string)code));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

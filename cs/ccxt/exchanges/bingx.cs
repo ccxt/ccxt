@@ -1648,12 +1648,12 @@ public partial class bingx : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object requestLimit = ((bool) (isEqual(limit, null))) ? 500 : mathMin(limit, maxLimit);
-        if (!isEqual(since, null))
+        object requestLimit = ((bool) ((limit == null))) ? 500 : mathMin(limit, maxLimit);
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = mathMax(subtract(since, 1), 0);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = requestLimit;
         }
@@ -1662,7 +1662,7 @@ public partial class bingx : Exchange
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["endTime"] = until;
-        } else if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && (!isEqual(since, null)))
+        } else if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && ((since != null)))
         {
             Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
             ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(duration, requestLimit));
@@ -1816,7 +1816,7 @@ public partial class bingx : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTrades", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             int maxLimit = ((bool) ((marketType == "spot"))) ? 500 : 1000;
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit);
@@ -2083,7 +2083,7 @@ public partial class bingx : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if ((marketType == "spot"))
             {
@@ -2365,11 +2365,11 @@ public partial class bingx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // api maximum 1000
         }
@@ -2463,11 +2463,11 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3212,11 +3212,11 @@ public partial class bingx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTs"] = since;
         }
@@ -3897,7 +3897,7 @@ public partial class bingx : Exchange
             } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
             {
                 response = await this.cswapV1PrivatePostTradeOrder(request);
-            } else if (isEqual(type, "twap"))
+            } else if ((type == "twap"))
             {
                 response = await this.swapV1PrivatePostTwapOrder(request);
             } else
@@ -5036,11 +5036,11 @@ public partial class bingx : Exchange
         {
             throw new NotSupported ((string)(this.id + " fetchOrders() is only supported for swap markets")) ;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -5409,7 +5409,7 @@ public partial class bingx : Exchange
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, parameters));
         } else if ((type == "spot"))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["pageSize"] = limit;
             }
@@ -5421,8 +5421,8 @@ public partial class bingx : Exchange
             if ((isTwapOrder == true))
             {
                 ((IDictionary<string,object>)request)["pageIndex"] = 1;
-                ((IDictionary<string,object>)request)["pageSize"] = ((bool) (isEqual(limit, null))) ? 100 : limit;
-                ((IDictionary<string,object>)request)["startTime"] = ((bool) (isEqual(since, null))) ? 1 : since;
+                ((IDictionary<string,object>)request)["pageSize"] = ((bool) ((limit == null))) ? 100 : limit;
+                ((IDictionary<string,object>)request)["startTime"] = ((bool) ((since == null))) ? 1 : since;
                 Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
                 parameters = this.omit(parameters, "until");
                 ((IDictionary<string,object>)request)["endTime"] = until;
@@ -5566,11 +5566,11 @@ public partial class bingx : Exchange
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit));
         }
         parameters = this.omit(parameters, new List<object>() {"fromAccount", "toAccount"});
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = mathMin(limit, maxLimit);
         }
@@ -5780,11 +5780,11 @@ public partial class bingx : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // api maximum 1000
         }
@@ -5838,11 +5838,11 @@ public partial class bingx : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // api maximum 1000
         }
@@ -6023,11 +6023,11 @@ public partial class bingx : Exchange
             throw new BadSymbol ((string)(this.id + " setMarginMode() supports swap contracts only")) ;
         }
         marginModeVar = ((string)marginModeVar).ToUpper();
-        if (isEqual(marginModeVar, "CROSS"))
+        if ((marginModeVar == "CROSS"))
         {
             marginModeVar = "CROSSED";
         }
-        if (!isEqual(marginModeVar, "ISOLATED") && !isEqual(marginModeVar, "CROSSED"))
+        if ((marginModeVar != "ISOLATED") && (marginModeVar != "CROSSED"))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
@@ -6297,7 +6297,7 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             Int64 now = this.milliseconds();
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 string startTimeReq = ((bool) ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? "startTime" : "startTs";
                 ((IDictionary<string,object>)request)[(string)startTimeReq] = since;
@@ -6317,7 +6317,7 @@ public partial class bingx : Exchange
             }
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
-                if (!isEqual(limit, null))
+                if ((limit != null))
                 {
                     ((IDictionary<string,object>)request)["limit"] = limit; // default 500, maximum 1000
                 }
@@ -6542,11 +6542,11 @@ public partial class bingx : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // api maximum 100
         }

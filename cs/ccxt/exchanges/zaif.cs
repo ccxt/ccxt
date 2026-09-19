@@ -652,14 +652,14 @@ public partial class zaif : Exchange
         {
             await this.loadMarkets();
         }
-        if (!isEqual(type, "limit"))
+        if ((type != "limit"))
         {
             throw new ExchangeError ((string)(this.id + " createOrder() allows limit orders only")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency_pair", (market.ContainsKey("id") ? market["id"] : null) },
-            { "action", ((bool) (isEqual(side, "buy"))) ? "bid" : "ask" },
+            { "action", ((bool) ((side == "buy"))) ? "bid" : "ask" },
             { "amount", amount },
             { "price", price },
         };
@@ -845,7 +845,7 @@ public partial class zaif : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        if (isEqual(code, "JPY"))
+        if ((code == "JPY"))
         {
             throw new ExchangeError ((string)(((this.id + " withdraw() does not allow ") + (code)) + " withdrawals")) ;
         }

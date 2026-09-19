@@ -762,7 +762,7 @@ public partial class foxbit : Exchange
         int defaultLimit = 20;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
-            { "depth", ((bool) (isEqual(limit, null))) ? defaultLimit : limit },
+            { "depth", ((bool) ((limit == null))) ? defaultLimit : limit },
         };
         Dictionary<string, object> response = await this.v3PublicGetMarketsMarketOrderbook(this.extend(request, parameters));
         //  {
@@ -815,7 +815,7 @@ public partial class foxbit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
             if (isGreaterThan(limit, 200))
@@ -864,11 +864,11 @@ public partial class foxbit : Exchange
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
             if (isGreaterThan(limit, 500))
@@ -1002,11 +1002,11 @@ public partial class foxbit : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market_symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
             if (isGreaterThan(limit, 100))
@@ -1046,7 +1046,7 @@ public partial class foxbit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         typeVar = ((string)typeVar).ToUpper();
-        if (!isEqual(typeVar, "LIMIT") && !isEqual(typeVar, "MARKET") && !isEqual(typeVar, "STOP_MARKET") && !isEqual(typeVar, "STOP_LIMIT") && !isEqual(typeVar, "INSTANT"))
+        if ((typeVar != "LIMIT") && (typeVar != "MARKET") && (typeVar != "STOP_MARKET") && (typeVar != "STOP_LIMIT") && (typeVar != "INSTANT"))
         {
             throw new InvalidOrder ((string)(("Invalid order type: " + (typeVar)) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
         }
@@ -1062,7 +1062,7 @@ public partial class foxbit : Exchange
             { "side", ((string)side).ToUpper() },
             { "type", typeVar },
         };
-        if (isEqual(typeVar, "STOP_MARKET") || isEqual(typeVar, "STOP_LIMIT"))
+        if ((typeVar == "STOP_MARKET") || (typeVar == "STOP_LIMIT"))
         {
             if (isEqual(triggerPrice, null))
             {
@@ -1087,14 +1087,14 @@ public partial class foxbit : Exchange
         {
             ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        if (isEqual(typeVar, "INSTANT"))
+        if ((typeVar == "INSTANT"))
         {
             ((IDictionary<string,object>)request)["amount"] = this.priceToPrecision(symbol, amount);
         } else
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if (isEqual(typeVar, "LIMIT") || isEqual(typeVar, "STOP_LIMIT"))
+        if ((typeVar == "LIMIT") || (typeVar == "STOP_LIMIT"))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -1355,11 +1355,11 @@ public partial class foxbit : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market_symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
             if (isGreaterThan(limit, 100))
@@ -1421,11 +1421,11 @@ public partial class foxbit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
             if (isGreaterThan(limit, 100))
@@ -1518,7 +1518,7 @@ public partial class foxbit : Exchange
         {
             currency = this.currency(((string)code));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
             if (isGreaterThan(limit, 100))
@@ -1526,7 +1526,7 @@ public partial class foxbit : Exchange
                 ((IDictionary<string,object>)request)["page_size"] = 100;
             }
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(since);
         }
@@ -1575,7 +1575,7 @@ public partial class foxbit : Exchange
         {
             currency = this.currency(((string)code));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
             if (isGreaterThan(limit, 100))
@@ -1583,7 +1583,7 @@ public partial class foxbit : Exchange
                 ((IDictionary<string,object>)request)["page_size"] = 100;
             }
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(since);
         }
@@ -1704,7 +1704,7 @@ public partial class foxbit : Exchange
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a symbol argument")) ;
         }
         typeVar = ((string)typeVar).ToUpper();
-        if (!isEqual(typeVar, "LIMIT") && !isEqual(typeVar, "MARKET") && !isEqual(typeVar, "STOP_MARKET") && !isEqual(typeVar, "INSTANT"))
+        if ((typeVar != "LIMIT") && (typeVar != "MARKET") && (typeVar != "STOP_MARKET") && (typeVar != "INSTANT"))
         {
             throw new InvalidOrder ((string)(("Invalid order type: " + (typeVar)) + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;
         }
@@ -1729,20 +1729,20 @@ public partial class foxbit : Exchange
                 { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
-        if (isEqual(typeVar, "LIMIT") || isEqual(typeVar, "MARKET"))
+        if ((typeVar == "LIMIT") || (typeVar == "MARKET"))
         {
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["quantity"] = this.amountToPrecision(symbol, amount);
-            if (isEqual(typeVar, "LIMIT"))
+            if ((typeVar == "LIMIT"))
             {
                 ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["price"] = this.priceToPrecision(symbol, price);
             }
         }
-        if (isEqual(typeVar, "STOP_MARKET"))
+        if ((typeVar == "STOP_MARKET"))
         {
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["stop_price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if (isEqual(typeVar, "INSTANT"))
+        if ((typeVar == "INSTANT"))
         {
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["amount"] = this.priceToPrecision(symbol, amount);
         }
@@ -1835,7 +1835,7 @@ public partial class foxbit : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchLedger() requires a code argument")) ;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
             if (isGreaterThan(limit, 100))
@@ -1843,7 +1843,7 @@ public partial class foxbit : Exchange
                 ((IDictionary<string,object>)request)["page_size"] = 100;
             }
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(since);
         }

@@ -1911,9 +1911,9 @@ public partial class bitstamp : Exchange
             { "step", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         int duration = this.parseTimeframe(timeframeVar);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
-            if (isEqual(since, null))
+            if ((since == null))
             {
                 ((IDictionary<string,object>)request)["limit"] = 1000; // we need to specify an allowed amount of `limitVar` if no `since` is set and there is no default limitVar by exchange
             } else
@@ -1926,7 +1926,7 @@ public partial class bitstamp : Exchange
             }
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 Int64? start = this.parseToInt(divide(since, 1000));
                 ((IDictionary<string,object>)request)["start"] = start;
@@ -2276,7 +2276,7 @@ public partial class bitstamp : Exchange
         }
         Dictionary<string, object> response = null;
         string capitalizedSide = this.capitalize(side);
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
             if ((capitalizedSide == "Buy"))
             {
@@ -2285,7 +2285,7 @@ public partial class bitstamp : Exchange
             {
                 response = await this.privatePostSellMarketPair(this.extend(request, parameters));
             }
-        } else if (isEqual(type, "instant"))
+        } else if ((type == "instant"))
         {
             if ((capitalizedSide == "Buy"))
             {
@@ -2549,7 +2549,7 @@ public partial class bitstamp : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2601,14 +2601,14 @@ public partial class bitstamp : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since_timestamp"] = Math.Round(Convert.ToDouble(divide(since, 1000)));
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("until_timestamp", request, parameters, 0.001);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2665,7 +2665,7 @@ public partial class bitstamp : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2724,7 +2724,7 @@ public partial class bitstamp : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["timedelta"] = subtract(this.milliseconds(), since);
         } else
@@ -3147,7 +3147,7 @@ public partial class bitstamp : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3347,13 +3347,13 @@ public partial class bitstamp : Exchange
         if (!this.isFiat(code))
         {
             object name = this.getCurrencyName(code);
-            if (isEqual(code, "XRP"))
+            if ((code == "XRP"))
             {
                 if ((tagVar != null))
                 {
                     ((IDictionary<string,object>)request)["destination_tag"] = tagVar;
                 }
-            } else if (isEqual(code, "XLM") || isEqual(code, "HBAR"))
+            } else if ((code == "XLM") || (code == "HBAR"))
             {
                 if ((tagVar != null))
                 {
@@ -3400,11 +3400,11 @@ public partial class bitstamp : Exchange
             { "currency", ((string)getValue(currency, "id")).ToUpper() },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(fromAccount, "main"))
+        if ((fromAccount == "main"))
         {
             ((IDictionary<string,object>)request)["subAccount"] = toAccount;
             response = await this.privatePostTransferFromMain(this.extend(request, parameters));
-        } else if (isEqual(toAccount, "main"))
+        } else if ((toAccount == "main"))
         {
             ((IDictionary<string,object>)request)["subAccount"] = fromAccount;
             response = await this.privatePostTransferToMain(this.extend(request, parameters));
