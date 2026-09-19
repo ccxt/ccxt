@@ -1184,11 +1184,11 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes105012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes105012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var response any = nil
 	if GetValue(market, "contract") == true {
 		var request map[string]any = map[string]any{
-			"symbol": GetValue(market, "id"),
+			"symbol": market["id"],
 		}
 
 		response = (<-this.ContractPublicGetDepthSymbolSnapshot(this.Extend(request, params)))
@@ -1221,11 +1221,11 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		//        from: '0'
 		//    }
 		//
-		ch <- this.ParseContractOrderBook(response, GetValue(market, "symbol"), limit)
+		ch <- this.ParseContractOrderBook(response, market["symbol"], limit)
 		return nil
 	} else {
 		var request map[string]any = map[string]any{
-			"asset_pair_name": GetValue(market, "id"),
+			"asset_pair_name": market["id"],
 		}
 		if limit != nil {
 			request["limit"] = limit // default 50, max 200
@@ -1249,7 +1249,7 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		//
 		var orderbook any = this.SafeDict(response, "data", map[string]any{})
 
-		ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), nil, "bids", "asks", "price", "quantity")
+		ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "quantity")
 		return nil
 	}
 }
@@ -1468,12 +1468,12 @@ func (this *Bigone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes129112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes129112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") == true {
 		panic(NotSupported(this.Id + " fetchTrades () can only fetch trades for spot markets"))
 	}
 	var request map[string]any = map[string]any{
-		"asset_pair_name": GetValue(market, "id"),
+		"asset_pair_name": market["id"],
 	}
 
 	response := (<-this.PublicGetAssetPairsAssetPairNameTrades(this.Extend(request, params)))
@@ -1554,7 +1554,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes136212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes136212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") == true {
 		panic(NotSupported(this.Id + " fetchOHLCV () can only fetch ohlcvs for spot markets"))
 	}
@@ -1570,7 +1570,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		}() // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
 	}
 	var request map[string]any = map[string]any{
-		"asset_pair_name": GetValue(market, "id"),
+		"asset_pair_name": market["id"],
 		"period":          this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":           limit,
 	}
@@ -1805,7 +1805,7 @@ func (this *Bigone) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 		retRes157212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes157212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -2443,7 +2443,7 @@ func (this *Bigone) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes201212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes201212)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"asset_symbol": currency["id"],
 	}
@@ -2765,7 +2765,7 @@ func (this *Bigone) transferBody(ch chan any, code any, amount any, fromAccount 
 		retRes228112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes228112)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -2860,7 +2860,7 @@ func (this *Bigone) withdrawBody(ch chan any, code any, amount any, address any,
 		retRes235912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes235912)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"symbol":         currency["id"],
 		"target_address": address,

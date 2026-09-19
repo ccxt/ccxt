@@ -2377,7 +2377,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code any, amount any, address any
 		retRes191912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes191912)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	if tag != nil {
 		address = Add(address, Add(":", tag))
 	}

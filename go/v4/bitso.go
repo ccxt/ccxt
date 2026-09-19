@@ -1999,7 +1999,7 @@ func (this *Bitso) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes155512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes155512)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"fund_currency": currency["id"],
 	}
@@ -2356,7 +2356,7 @@ func (this *Bitso) withdrawBody(ch chan any, code any, amount any, address any, 
 		"BCH": "Bcash",
 		"LTC": "Litecoin",
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var method any = func() any {
 		if InOp(methods, code) {
 			return GetValue(methods, code)

@@ -2828,7 +2828,7 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any,
 		retRes209812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes209812)
 	}
-	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.SafeCurrency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -4000,12 +4000,12 @@ func (this *Cryptocom) fetchFundingRateBody(ch chan any, symbol any, optionalArg
 		retRes310512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes310512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"valuation_type":  "estimated_funding_rate",
 		"count":           1,
 	}
@@ -4119,12 +4119,12 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		ch <- retRes319619
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"valuation_type":  "funding_hist",
 	}
 	if since != nil {
@@ -4179,7 +4179,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
 	return nil
 }
 

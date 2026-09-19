@@ -1372,7 +1372,7 @@ func (this *Bitfinex) transferBody(ch chan any, code any, amount any, fromAccoun
 		var keys []string = ObjectKeys(accountsByType)
 		panic(ArgumentsRequired(this.Id + " transfer() toAccount must be one of " + strings.Join(keys, ", ")))
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var fromCurrencyId any = this.ConvertDerivativesId(currency, fromAccount)
 	var toCurrencyId any = this.ConvertDerivativesId(currency, toAccount)
 	var requestedAmount any = this.CurrencyToPrecision(code, amount)
@@ -2236,7 +2236,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	 * @param {string} [params.price_oco_stop] OCO stop price
 	 * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
 	 */
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var amountString any = this.AmountToPrecision(symbol, amount)
 	amountString = func() any {
 		if IsEqual(side, "buy") {
@@ -2245,7 +2245,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		return Precise.StringNeg(amountString)
 	}()
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"amount": amountString,
 	}
 	var triggerPrice *string = this.SafeString2(params, "stopPrice", "triggerPrice")
@@ -3196,7 +3196,7 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 		retRes245912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes245912)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	// if not provided explicitly we will try to match using the currency name
 	var network *string = this.SafeString(params, "network", code)
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
@@ -3666,7 +3666,7 @@ func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address an
 		retRes286412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes286412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	// if not provided explicitly we will try to match using the currency name
 	var network *string = this.SafeString(params, "network", code)
 	params = this.Omit(params, "network")
@@ -4939,12 +4939,12 @@ func (this *Bitfinex) setMarginBody(ch chan any, symbol any, amount any, optiona
 		retRes385912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes385912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(NotSupported(this.Id + " setMargin() only support swap markets"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 		"collateral": this.ParseToNumeric(amount),
 	}
 

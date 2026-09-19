@@ -890,9 +890,9 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		ch <- retRes69219
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var keyStart string = func() string {
@@ -1654,13 +1654,13 @@ func (this *Poloniex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 	retRes13198 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes13198)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if GetValue(market, "contract") == true {
 
-		tickers := (<-this.FetchTickersAsync([]any{GetValue(market, "symbol")}, params))
+		tickers := (<-this.FetchTickersAsync([]any{market["symbol"]}, params))
 		PanicOnError(tickers)
 
 		ch <- this.SafeDict(tickers, symbol)
@@ -1860,9 +1860,9 @@ func (this *Poloniex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	retRes15018 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes15018)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["limit"] = limit // max 1000, for spot & swap
@@ -2546,9 +2546,9 @@ func (this *Poloniex) createOrderBody(ch chan any, symbol any, typeVar any, side
 
 	retRes20628 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes20628)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"side":   ToUpper(side),
 	}
 	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
@@ -2589,7 +2589,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") == true {
 		var marginMode any = nil
 		var marginModeparamsVariable []any = this.HandleParamString(params, "marginMode")
@@ -2618,7 +2618,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 	params = this.Omit(params, []any{"postOnly", "triggerPrice", "stopPrice"})
 	if triggerPrice != nil {
 		if GetValue(market, "spot") != true {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support trigger orders for ", GetValue(market, "type")), " markets")))
+			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support trigger orders for ", market["type"]), " markets")))
 		}
 		upperCaseType = func() string {
 			if price == nil {
@@ -2736,9 +2736,9 @@ func (this *Poloniex) editOrderBody(ch chan any, id any, symbol any, typeVar any
 
 	retRes21918 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes21918)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
-		panic(NotSupported(Add(Add(this.Id+" editOrder() does not support ", GetValue(market, "type")), " orders, only spot orders are accepted")))
+		panic(NotSupported(Add(Add(this.Id+" editOrder() does not support ", market["type"]), " orders, only spot orders are accepted")))
 	}
 	var request any = map[string]any{
 		"id": id,
@@ -2801,10 +2801,10 @@ func (this *Poloniex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	if GetValue(market, "spot") != true {
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 		request["ordId"] = id
 
 		raw := (<-this.SwapPrivateDeleteV3TradeOrder(this.Extend(request, params)))
@@ -3348,9 +3348,9 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 	retRes26368 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes26368)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["limit"] = limit // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
@@ -3413,7 +3413,7 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 
 	ch <- map[string]any{
-		"symbol":    GetValue(market, "symbol"),
+		"symbol":    market["symbol"],
 		"bids":      this.SortBy(bidsResult, 0, true),
 		"asks":      this.SortBy(asksResult, 0),
 		"timestamp": timestamp,
@@ -3589,7 +3589,7 @@ func (this *Poloniex) transferBody(ch chan any, code any, amount any, fromAccoun
 
 	retRes28148 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes28148)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, fromAccount)
@@ -3660,7 +3660,7 @@ func (this *Poloniex) withdrawBody(ch chan any, code any, amount any, address an
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"coin":    currency["id"],
 		"amount":  this.CurrencyToPrecision(code, amount),
@@ -3990,7 +3990,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var feeInfo any = GetValue(response, currencyId)
 		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
-			var currency map[string]any = this.Currency(code).(map[string]any)
+			var currency map[string]any = MapTyped(this.Currency(code))
 			AddElementToObject(depositWithdrawFees, code, this.ParseDepositWithdrawFee(feeInfo, currency))
 			var childChains any = this.SafeValue(feeInfo, "childChains")
 			var chainsLength int = GetArrayLength(childChains)

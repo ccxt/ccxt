@@ -946,12 +946,12 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		retRes75812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes75812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var request map[string]any = map[string]any{
 		"entry_id": id,
-		"symbol":   GetValue(market, "uppercaseId"),
+		"symbol":   market["uppercaseId"],
 	}
 	var response any = nil
 	var tail string = func() string {
@@ -1093,7 +1093,7 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes85212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes85212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var quoteSide string = func() string {
@@ -1103,7 +1103,7 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		return "listOpen"
 	}()
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "uppercaseId"),
+		"symbol": market["uppercaseId"],
 		"page":   0,
 		"side": func() any {
 			if isTrigger != nil && *isTrigger == true {
@@ -1401,7 +1401,7 @@ func (this *Bitbns) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		retRes108812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes108812)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"symbol": currency["id"],
 		"page":   0,
@@ -1472,7 +1472,7 @@ func (this *Bitbns) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		retRes113812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes113812)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"symbol": currency["id"],
 		"page":   0,
@@ -1610,7 +1610,7 @@ func (this *Bitbns) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes125112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes125112)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"symbol": currency["id"],
 	}

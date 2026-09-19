@@ -421,7 +421,7 @@ func (this *Upbit) fetchCurrencyBody(ch chan any, code any, optionalArgs ...any)
 		retRes29612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes29612)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 
 	retRes29915 := (<-this.FetchCurrencyByIdAsync(currency["id"], params))
 	PanicOnError(retRes29915)
@@ -2872,7 +2872,7 @@ func (this *Upbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes230312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes230312)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -2924,7 +2924,7 @@ func (this *Upbit) createDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes233812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes233812)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -2989,7 +2989,7 @@ func (this *Upbit) withdrawBody(ch chan any, code any, amount any, address any, 
 		retRes238412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes238412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"amount": amount,
 	}

@@ -2460,7 +2460,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		retRes194712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes194712)
 	}
-	var currency map[string]any = this.Currency("USDT").(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency("USDT"))
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}

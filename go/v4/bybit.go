@@ -3888,9 +3888,9 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		ch <- retRes282819
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit == nil {
 		limit = 200 // default is 200 when requested with `since`
@@ -4672,9 +4672,9 @@ func (this *Bybit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		retRes347812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes347812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var defaultLimit int = 25
 	if GetValue(market, "spot") == true {
@@ -5405,7 +5405,7 @@ func (this *Bybit) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cos
 		retRes414912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes414912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -5451,7 +5451,7 @@ func (this *Bybit) createMarketSellOrderWithCostBody(ch chan any, symbol any, co
 	if enableUnifiedAccount != true {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports UTA accounts only"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
@@ -5518,7 +5518,7 @@ func (this *Bybit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		retRes422812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes422812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 
 	parts := (<-this.IsUnifiedEnabledAsync())
 	PanicOnError(parts)
@@ -5578,11 +5578,11 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
-	symbol = GetValue(market, "symbol")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var lowerCaseType string = ToLower(typeVar)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var hedged *bool = this.SafeBool(params, "hedged", false)
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
@@ -6297,9 +6297,9 @@ func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if GetValue(market, "spot") == true {
 		// only works for spot market
@@ -6796,7 +6796,7 @@ func (this *Bybit) fetchOrderClassicBody(ch chan any, id any, optionalArgs ...an
 		retRes525512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes525512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
 		panic(NotSupported(this.Id + " fetchOrder() is not supported for spot markets"))
 	}
@@ -7823,7 +7823,7 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan any, code any, opt
 		retRes600412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes600412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"coin": currency["id"],
 	}
@@ -7859,7 +7859,7 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan any, code any, opt
 	var result map[string]any = SafeMapTyped(response, "result")
 	var chains any = this.SafeList(result, "chains", []any{})
 	var coin *string = this.SafeString(result, "coin")
-	var currencyFromResponse map[string]any = this.Currency(coin).(map[string]any)
+	var currencyFromResponse map[string]any = MapTyped(this.Currency(coin))
 	var parsed any = this.ParseDepositAddresses(chains, []any{currencyFromResponse["code"]}, false, map[string]any{
 		"currency": currencyFromResponse["code"],
 	})
@@ -7892,7 +7892,7 @@ func (this *Bybit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes605612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes605612)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
 	paramsOmited := GetValue(networkCodeparamsOmitedVariable, 1)
@@ -8578,7 +8578,7 @@ func (this *Bybit) withdrawBody(ch chan any, code any, amount any, address any, 
 		PanicOnError(retRes663212)
 	}
 	this.CheckAddress(address)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"coin":        currency["id"],
 		"amount":      this.NumberToString(amount),
@@ -9315,14 +9315,14 @@ func (this *Bybit) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 		retRes724712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes724712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
 	// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
 	// engage in leverage setting
 	// we reuse the code here instead of having two methods
 	var leverageString *string = this.NumberToString(leverage)
 	var request map[string]any = map[string]any{
-		"symbol":       GetValue(market, "id"),
+		"symbol":       market["id"],
 		"buyLeverage":  leverageString,
 		"sellLeverage": leverageString,
 	}
@@ -9441,7 +9441,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol a
 		retRes732912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes732912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var subType string = func() string {
 		if GetValue(market, "linear") == true {
 			return "linear"
@@ -9455,7 +9455,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol a
 		panic(BadRequest(Add(Add(this.Id+" fetchOpenInterestHistory() cannot use the ", timeframe), " timeframe")))
 	}
 	var request map[string]any = map[string]any{
-		"symbol":       GetValue(market, "id"),
+		"symbol":       market["id"],
 		"intervalTime": interval,
 		"category":     category,
 	}
@@ -9541,7 +9541,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 		retRes740412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes740412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
@@ -9559,7 +9559,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 	}()
 	var category *string = this.SafeString(params, "category", subType)
 	var request map[string]any = map[string]any{
-		"symbol":       GetValue(market, "id"),
+		"symbol":       market["id"],
 		"intervalTime": interval,
 		"category":     category,
 	}
@@ -9646,12 +9646,12 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan any, symbol any, optiona
 		ch <- retRes747919
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if (GetValue(market, "spot") == true) || (GetValue(market, "option") == true) {
 		panic(BadRequest(Add(this.Id+" fetchOpenInterestHistory() symbol does not support market ", symbol)))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -9723,7 +9723,7 @@ func (this *Bybit) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs 
 		retRes753012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes753012)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"vipLevel": "No VIP",
@@ -9914,7 +9914,7 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArg
 		retRes767312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes767312)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -10013,7 +10013,7 @@ func (this *Bybit) transferBody(ch chan any, code any, amount any, fromAccount a
 	var accountTypes map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountTypes, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountTypes, toAccount, toAccount)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"transferId":      transferId,
@@ -10168,7 +10168,7 @@ func (this *Bybit) borrowCrossMarginBody(ch chan any, code any, amount any, opti
 		retRes786712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes786712)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"coin":   currency["id"],
 		"amount": this.CurrencyToPrecision(code, amount),
@@ -10219,7 +10219,7 @@ func (this *Bybit) repayCrossMarginBody(ch chan any, code any, amount any, optio
 		retRes790312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes790312)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"coin":   currency["id"],
 		"amount": this.NumberToString(amount),
@@ -10338,9 +10338,9 @@ func (this *Bybit) fetchDerivativesMarketLeverageTiersBody(ch chan any, symbol a
 		retRes800712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes800712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if GetValue(market, "linear") == true {
 		request["category"] = "linear"
@@ -10967,7 +10967,7 @@ func (this *Bybit) fetchVolatilityHistoryBody(ch chan any, code any, optionalArg
 		retRes849312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes849312)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"category": "option",
 		"baseCoin": currency["id"],
@@ -11843,7 +11843,7 @@ func (this *Bybit) fetchOptionChainBody(ch chan any, code any, optionalArgs ...a
 		retRes918512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes918512)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"category": "option",
 		"baseCoin": currency["id"],
@@ -12268,9 +12268,9 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, 
 	//
 	var data any = this.SafeDict(response, "result", map[string]any{})
 	var fromCurrencyId *string = this.SafeString(data, "fromCoin", fromCode)
-	var fromCurrency map[string]any = this.Currency(fromCurrencyId).(map[string]any)
+	var fromCurrency map[string]any = MapTyped(this.Currency(fromCurrencyId))
 	var toCurrencyId *string = this.SafeString(data, "toCoin", toCode)
-	var toCurrency map[string]any = this.Currency(toCurrencyId).(map[string]any)
+	var toCurrency map[string]any = MapTyped(this.Currency(toCurrencyId))
 
 	ch <- this.ParseConversion(data, fromCurrency, toCurrency)
 	return nil

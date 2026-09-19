@@ -1009,7 +1009,7 @@ func (this *Mercado) withdrawBody(ch chan any, code any, amount any, address any
 		retRes80012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes80012)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"coin":     currency["id"],
 		"quantity": ToFixed(amount, 10),

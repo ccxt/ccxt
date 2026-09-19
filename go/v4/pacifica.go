@@ -4312,7 +4312,7 @@ func (this *Pacifica) transferBody(ch chan any, code any, amount any, fromAccoun
 		retRes327112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes327112)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var operationType string = "transfer_funds"
 	var sigPayload map[string]any = map[string]any{
 		"to_account": toAccount,

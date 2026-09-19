@@ -2187,7 +2187,7 @@ func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
 		retRes156012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes156012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}

@@ -1689,7 +1689,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...an
 		retRes141212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes141212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {
 		panic(NotSupported(this.Id + " fetchMarkPrice() supports contract markets only"))
 	}
@@ -1698,7 +1698,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...an
 	priceType = GetValue(priceTypeparamsVariable, 0)
 	params = GetValue(priceTypeparamsVariable, 1) // the endpoint defaults to INDEX
 	var request map[string]any = map[string]any{
-		"symbol":    GetValue(market, "id"),
+		"symbol":    market["id"],
 		"priceType": priceType,
 	}
 
@@ -1801,9 +1801,9 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		retRes148812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes148812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if (limit != nil) && (IsGreaterThan(limit, 15)) {
 		request["limit"] = 200 // default is 15, max is 200
@@ -1880,7 +1880,7 @@ func (this *Weex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes154412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes154412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
 
 		retRes154819 := (<-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params))
@@ -2108,9 +2108,9 @@ func (this *Weex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes169212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes169212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -2364,7 +2364,7 @@ func (this *Weex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if symbolsLength == 1 {
-		var market any = this.GetMarketFromSymbols(symbols)
+		var market map[string]any = MapTyped(this.GetMarketFromSymbols(symbols))
 		request["symbol"] = this.SafeString(market, "id")
 	}
 
@@ -2758,7 +2758,7 @@ func (this *Weex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		retRes219712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes219712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") == true {
 
 		retRes220119 := (<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))
@@ -3768,7 +3768,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes296212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes296212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " fetchOrders() supports spot markets only"))
 	}
@@ -3785,7 +3785,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if since != nil {
 		AddElementToObject(request, "startTime", since)
@@ -5012,12 +5012,12 @@ func (this *Weex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		retRes393512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes393512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
 		panic(NotSupported(this.Id + " fetchTradingFee() is not supported for spot markets"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.ContractPrivateGetCapiV3AccountCommissionRate(this.Extend(request, params)))

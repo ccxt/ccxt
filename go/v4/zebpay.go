@@ -684,11 +684,11 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		retRes48312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes48312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var response any = nil
 	var data any = nil
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if GetValue(market, "spot") == true {
 
@@ -827,9 +827,9 @@ func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes58512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes58512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	if GetValue(market, "spot") == true {
@@ -857,7 +857,7 @@ func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError(response)
 	}
 	var bookData any = this.SafeDict(response, "data", map[string]any{})
-	var orderbook any = this.ParseOrderBook(bookData, GetValue(market, "symbol"), nil, "bids", "asks", 0, 1)
+	var orderbook any = this.ParseOrderBook(bookData, market["symbol"], nil, "bids", "asks", 0, 1)
 	AddElementToObject(orderbook, "nonce", this.SafeInteger(bookData, "nonce"))
 
 	ch <- orderbook
@@ -889,9 +889,9 @@ func (this *Zebpay) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes63012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes63012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	if GetValue(market, "spot") == true {
@@ -1005,12 +1005,12 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes72212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes72212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if limit == nil {
 		limit = 100 // default is 200
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if GetValue(market, "spot") == true {
 		request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1113,9 +1113,9 @@ func (this *Zebpay) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes80912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes80912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if (GetValue(market, "spot") == true) && (limit != nil) {
 		request["limit"] = limit
@@ -1431,7 +1431,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes104212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes104212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var upperCaseType string = ToUpper(typeVar)
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
@@ -1440,7 +1440,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"side":   ToUpper(side),
 	}
 	var response any = nil
@@ -1455,7 +1455,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		var marginAsset *string = this.SafeString(params, "marginAsset", "INR")
 		var formType *string = this.SafeStringUpper(params, "formType", "ORDER_FORM")
 		AddElementToObject(request, "formType", formType)
-		AddElementToObject(request, "amount", this.ParseToNumeric(this.AmountToPrecision(GetValue(market, "id"), amount)))
+		AddElementToObject(request, "amount", this.ParseToNumeric(this.AmountToPrecision(market["id"], amount)))
 		AddElementToObject(request, "marginAsset", marginAsset)
 		var hasTP bool = (takeProfitPrice != nil)
 		var hasSL bool = (stopLossPrice != nil)
@@ -1552,7 +1552,7 @@ func (this *Zebpay) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		retRes113712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes113712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var response any = nil
 	var request map[string]any = map[string]any{}
 	if GetValue(market, "spot") == true {
@@ -1566,7 +1566,7 @@ func (this *Zebpay) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a clientOrderId parameter for swap orders"))
 		}
 		request["clientOrderId"] = clientOrderId
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 
 		response = (<-this.PrivateSwapDeleteV1TradeOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1669,9 +1669,9 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes121212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes121212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	var orders any = []any{}
@@ -1758,7 +1758,7 @@ func (this *Zebpay) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		retRes128212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes128212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if GetValue(market, "spot") == true {

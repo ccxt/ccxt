@@ -1360,7 +1360,7 @@ func (this *Bitflyer) withdrawBody(ch chan any, code any, amount any, address an
 	if (!IsEqual(code, "JPY")) && (!IsEqual(code, "USD")) && (!IsEqual(code, "EUR")) {
 		panic(ExchangeError(Add(Add(this.Id+" allows withdrawing JPY, USD, EUR only, ", code), " is not supported")))
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency_code": currency["id"],
 		"amount":        amount,

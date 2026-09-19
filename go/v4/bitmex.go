@@ -858,7 +858,7 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 	})
 }
 func (this *Bitmex) ConvertFromRealAmount(code any, amount any) any {
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var precision *string = this.SafeString(currency, "precision")
 	var amountString *string = this.NumberToString(amount)
 	var finalAmount *string = Precise.StringDiv(amountString, precision)
@@ -870,16 +870,16 @@ func (this *Bitmex) ConvertToRealAmount(code any, amount any) any {
 	} else if amount == nil {
 		return nil
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var precision *string = this.SafeString(currency, "precision")
 	return Precise.StringMul(amount, precision)
 }
 func (this *Bitmex) AmountToPrecision(symbol any, amount any) any {
 	symbol = DerefScalar(this.SafeSymbol(symbol))
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var oldPrecision *bool = this.SafeBool(this.Options, "oldPrecision")
 	if (GetValue(market, "spot") == true) && (oldPrecision == nil || *oldPrecision != true) {
-		amount = this.ConvertFromRealAmount(GetValue(market, "base"), amount)
+		amount = this.ConvertFromRealAmount(market["base"], amount)
 	}
 	return this.Exchange.AmountToPrecision(symbol, amount)
 }
@@ -894,7 +894,7 @@ func (this *Bitmex) ConvertFromRawQuantity(symbol any, rawQuantity any, optional
 	if !marketExists {
 		return this.ParseNumber(rawQuantity)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
 		return this.ParseNumber(this.ConvertToRealAmount(this.SafeString(market, currencySide), rawQuantity))
 	}
@@ -2772,13 +2772,13 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes218012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes218012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderType string = this.Capitalize(typeVar)
 	var capitalizeOrderType string = orderType
 	var reduceOnly any = this.SafeValue(params, "reduceOnly")
 	if !IsEqual(reduceOnly, nil) {
 		if (GetValue(market, "swap") != true) && (GetValue(market, "future") != true) {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduceOnly for ", GetValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")))
+			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduceOnly for ", market["type"]), " orders, reduceOnly orders are supported for swap and future markets only")))
 		}
 	}
 	var postOnly *bool = this.SafeBool(params, "postOnly")
@@ -2786,7 +2786,7 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT")
 	var qty int64 = this.ParseToInt(this.AmountToPrecision(symbol, amount))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"side":     this.Capitalize(side),
 		"orderQty": qty,
 		"ordType":  capitalizeOrderType,
@@ -3570,7 +3570,7 @@ func (this *Bitmex) withdrawBody(ch chan any, code any, amount any, address any,
 		retRes278512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes278512)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var qty any = this.ConvertFromRealAmount(code, amount)
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -3832,12 +3832,12 @@ func (this *Bitmex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		retRes299012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes299012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if (GetValue(market, "type") != "swap") && (GetValue(market, "type") != "future") {
 		panic(BadSymbol(this.Id + " setLeverage() supports future and swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"leverage": leverage,
 	}
 
@@ -3881,7 +3881,7 @@ func (this *Bitmex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		retRes302212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes302212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if (GetValue(market, "type") != "swap") && (GetValue(market, "type") != "future") {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap and future contracts only"))
 	}
@@ -3892,7 +3892,7 @@ func (this *Bitmex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		return true
 	}()
 	var request map[string]any = map[string]any{
-		"symbol":  GetValue(market, "id"),
+		"symbol":  market["id"],
 		"enabled": enabled,
 	}
 
@@ -3934,7 +3934,7 @@ func (this *Bitmex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires params[\"network\"]"))
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	params = this.Omit(params, "network")
 	var parsedNetwork any = this.NetworkCodeToId(networkCode, currency["code"])
 	var request map[string]any = map[string]any{

@@ -879,8 +879,8 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 		}
 		return "spot"
 	}()
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol any = market["symbol"]
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		// const limit = [ 5, 10, 20, 50, 100 ]

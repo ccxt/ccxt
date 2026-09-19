@@ -1370,14 +1370,14 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		retRes122812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes122812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"type": "l2Book",
 		"coin": func() any {
 			if GetValue(market, "swap") == true {
 				return this.SafeString(market, "baseName")
 			}
-			return GetValue(market, "id")
+			return market["id"]
 		}(),
 	}
 
@@ -1412,7 +1412,7 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	}
 	var timestamp *int64 = this.SafeInteger(response, "time")
 
-	ch <- this.ParseOrderBook(result, GetValue(market, "symbol"), timestamp, "bids", "asks", "px", "sz")
+	ch <- this.ParseOrderBook(result, market["symbol"], timestamp, "bids", "asks", "px", "sz")
 	return nil
 }
 
@@ -1722,7 +1722,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		retRes150012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes150012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var useTail bool = (since == nil)
 	var originalSince any = since
@@ -1747,7 +1747,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 				if GetValue(market, "swap") == true {
 					return this.SafeString(market, "baseName")
 				}
-				return GetValue(market, "id")
+				return market["id"]
 			}(),
 			"interval":  this.SafeString(this.Timeframes, timeframe, timeframe),
 			"startTime": since,
@@ -1901,7 +1901,7 @@ func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) any {
 	return result
 }
 func (this *Hyperliquid) PriceToPrecision(symbol any, price any) any {
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var priceStr *string = this.NumberToString(price)
 	var integerPart any = GetValue(Split(priceStr, "."), 0)
 	var significantDigits any = mathMax(5, GetLength(integerPart))
@@ -1912,7 +1912,7 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) any {
 		}
 		return 6
 	}()
-	var subtractedValue int64 = Subtract(maxDecimals, this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "amount"))).(int64)
+	var subtractedValue int64 = Subtract(maxDecimals, this.PrecisionFromString(this.SafeString(market["precision"], "amount"))).(int64)
 	return this.DecimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.PaddingMode)
 }
 func (this *Hyperliquid) HashMessage(message any) any {

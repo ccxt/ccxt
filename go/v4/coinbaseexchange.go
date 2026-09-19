@@ -2302,7 +2302,7 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code any, amount any, ad
 		retRes173812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes173812)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   amount,
@@ -2457,7 +2457,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 
 	retRes18678 := (<-this.LoadAccountsAsync())
 	PanicOnError(retRes18678)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 	var account any = this.SafeDict(accountsByCurrencyCode, code)
 	if IsEqual(account, nil) {
@@ -2821,7 +2821,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 		retRes215412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes215412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var accounts any = this.SafeValue(this.Options, "coinbaseAccounts")
 	if IsEqual(accounts, nil) {
 

@@ -280,8 +280,8 @@ func (this *Weex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes19912)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
-	var isContract any = ccxt.GetValue(firstMarket, "contract")
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
+	var isContract any = firstMarket["contract"]
 	var topic string = "ticker"
 	var messageHashes []any = []any{}
 	var channels []any = []any{}
@@ -363,8 +363,8 @@ func (this *Weex) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes25012)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
-	var isContract any = ccxt.GetValue(firstMarket, "contract")
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
+	var isContract any = firstMarket["contract"]
 	var topic string = "ticker"
 	var subHashes []any = []any{}
 	var channels []any = []any{}
@@ -550,8 +550,8 @@ func (this *Weex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 		ccxt.PanicOnError(retRes39612)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
-	var isContract any = ccxt.GetValue(firstMarket, "contract")
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
+	var isContract any = firstMarket["contract"]
 	var topic string = "trade"
 	var messageHashes []any = []any{}
 	var channels []any = []any{}
@@ -629,8 +629,8 @@ func (this *Weex) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 		ccxt.PanicOnError(retRes44712)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
-	var isContract any = ccxt.GetValue(firstMarket, "contract")
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
+	var isContract any = firstMarket["contract"]
 	var topic string = "trade"
 	var subHashes []any = []any{}
 	var channels []any = []any{}
@@ -840,7 +840,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		var data any = this.SafeList(symbolsAndTimeframes, i)
 		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		var market any = this.Market(symbolString)
-		if ccxt.GetValue(market, "type") != firstMarket["type"] {
+		if ccxt.GetValue(market, "type") != ccxt.GetValue(firstMarket, "type") {
 			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
 		}
 		symbolString = ccxt.GetValue(market, "symbol")
@@ -939,7 +939,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 		var data any = this.SafeList(symbolsAndTimeframes, i)
 		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		var market any = this.Market(symbolString)
-		if ccxt.GetValue(market, "type") != firstMarket["type"] {
+		if ccxt.GetValue(market, "type") != ccxt.GetValue(firstMarket, "type") {
 			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
 		}
 		symbolString = ccxt.GetValue(market, "symbol")
@@ -1105,8 +1105,8 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		ccxt.PanicOnError(retRes81512)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
-	var isContract any = ccxt.GetValue(firstMarket, "contract")
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
+	var isContract any = firstMarket["contract"]
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "watchOrderBookForSymbols")
 	params = this.Omit(params, "callerMethodName")
 	var depth any = "200"
@@ -1190,8 +1190,8 @@ func (this *Weex) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		ccxt.PanicOnError(retRes87012)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
-	var isContract any = ccxt.GetValue(firstMarket, "contract")
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
+	var isContract any = firstMarket["contract"]
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "unWatchOrderBookForSymbols")
 	params = this.Omit(params, "callerMethodName")
 	var depth any = "200"
@@ -1304,7 +1304,7 @@ func (this *Weex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes96712)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	if ccxt.GetValue(firstMarket, "contract") == true {
 		panic(ccxt.NotSupported(this.Id + " watchBidsAsks is supported for spot markets only"))
 	}
@@ -1360,7 +1360,7 @@ func (this *Weex) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes100412)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	if ccxt.GetValue(firstMarket, "contract") == true {
 		panic(ccxt.NotSupported(this.Id + " unWatchBidsAsks is supported for spot markets only"))
 	}
@@ -1620,7 +1620,7 @@ func (this *Weex) HandleMyTrades(client any, message any) {
 	}
 	var messageHash string = "myTrades"
 	var symbolKeys []string = ccxt.ObjectKeys(symbols)
-	var market any = this.GetMarketFromSymbols(symbolKeys)
+	var market map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolKeys))
 	if ccxt.GetValue(market, "contract") == true {
 		messageHash = "myContractTrades"
 	}
@@ -1878,7 +1878,7 @@ func (this *Weex) HandleOrders(client any, message any) {
 	}
 	var messageHash string = "orders"
 	var symbolKeys []string = ccxt.ObjectKeys(symbols)
-	var market any = this.GetMarketFromSymbols(symbolKeys)
+	var market map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolKeys))
 	if ccxt.GetValue(market, "contract") == true {
 		messageHash = "contractOrders"
 	}

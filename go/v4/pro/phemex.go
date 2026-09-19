@@ -572,9 +572,9 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes52712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes52712)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var isSwap any = ccxt.GetValue(market, "swap")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var isSwap any = market["swap"]
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var name string = "spot_market24h"
 	if isSwap == true {
@@ -633,8 +633,8 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var first any = ccxt.GetValue(symbols, 0)
-	var market any = this.Market(first)
-	var isSwap any = ccxt.GetValue(market, "swap")
+	var market map[string]any = ccxt.MapTyped(this.Market(first))
+	var isSwap any = market["swap"]
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var name string = "spot_market24h"
 	if isSwap == true {
@@ -705,11 +705,11 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes61212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes61212)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
-	var isSwap any = ccxt.GetValue(market, "swap")
+	var isSwap any = market["swap"]
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
 	var name string = func() string {
@@ -723,7 +723,7 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
-		"params": []any{ccxt.GetValue(market, "id")},
+		"params": []any{market["id"]},
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
@@ -767,11 +767,11 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes65412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes65412)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
-	var isSwap any = ccxt.GetValue(market, "swap")
+	var isSwap any = market["swap"]
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
 	var name string = func() string {
@@ -785,7 +785,7 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
-		"params": []any{ccxt.GetValue(market, "id")},
+		"params": []any{market["id"]},
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
@@ -831,11 +831,11 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes69412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes69412)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
-	var isSwap any = ccxt.GetValue(market, "swap")
+	var isSwap any = market["swap"]
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
 	var name string = func() string {
@@ -849,7 +849,7 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
-		"params": []any{ccxt.GetValue(market, "id"), this.SafeInteger(this.Timeframes, timeframe)},
+		"params": []any{market["id"], this.SafeInteger(this.Timeframes, timeframe)},
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
@@ -1421,14 +1421,14 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		var parsed any = ccxt.GetValue(parsedOrders, i)
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
-		var market any = this.Market(symbol)
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		if typeVar == nil {
 			var isUsdt bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 			typeVar = func() any {
 				if isUsdt {
 					return "perpetual"
 				}
-				return ccxt.GetValue(market, "type")
+				return market["type"]
 			}()
 		}
 		ccxt.AddElementToObject(marketIds, symbol, true)

@@ -1386,7 +1386,7 @@ func (this *Indodax) fetchTransactionFeeBody(ch chan any, code any, optionalArgs
 		retRes111212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes111212)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -1436,7 +1436,7 @@ func (this *Indodax) fetchDepositWithdrawFeeBody(ch chan any, code any, optional
 
 	retRes11488 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes11488)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -1622,7 +1622,7 @@ func (this *Indodax) withdrawBody(ch chan any, code any, amount any, address any
 		retRes129312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes129312)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	// Custom string you need to provide to identify each withdrawal.
 	// Will be passed to callback URL (assigned via website to the API key)
 	// so your system can identify the request and confirm it.

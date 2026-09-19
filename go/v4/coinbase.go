@@ -3816,7 +3816,7 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
 		retRes305012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes305012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -3874,11 +3874,11 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 		retRes309112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes309112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var id *string = this.SafeString(this.Options, "brokerId", "ccxt")
 	var request any = map[string]any{
 		"client_order_id": *id + "-" + this.Uuid(),
-		"product_id":      GetValue(market, "id"),
+		"product_id":      market["id"],
 		"side":            ToUpper(side),
 	}
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
@@ -5395,7 +5395,7 @@ func (this *Coinbase) withdrawBody(ch chan any, code any, amount any, address an
 		retRes425012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes425012)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"type":     "send",
 		"to":       address,
@@ -5506,7 +5506,7 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code any, 
 		retRes434412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes434412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request any = nil
 	requestparamsVariable := (<-this.PrepareAccountRequestWithCurrencyCodeAsync(currency["code"], nil, params))
 	request = GetValue(requestparamsVariable, 0)
@@ -6151,7 +6151,7 @@ func (this *Coinbase) transferBody(ch chan any, code any, amount any, fromAccoun
 
 	retRes48528 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes48528)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"funds": map[string]any{
 			"value":    this.CurrencyToPrecision(code, amount),
@@ -6337,7 +6337,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 		retRes498112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes498112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var response any = nil
 	if GetValue(market, "future") == true {
 		var productId *string = this.SafeString(market, "product_id")
@@ -6359,7 +6359,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 			panic(ArgumentsRequired(this.Id + " fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()"))
 		}
 		var request map[string]any = map[string]any{
-			"symbol":         GetValue(market, "id"),
+			"symbol":         market["id"],
 			"portfolio_uuid": portfolio,
 		}
 
@@ -6590,7 +6590,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
-		var market any = this.Market(symbol)
+		var market map[string]any = MapTyped(this.Market(symbol))
 		if (isSpot && (GetValue(market, "spot") == true)) || (!isSpot && (GetValue(market, "spot") != true)) {
 			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,

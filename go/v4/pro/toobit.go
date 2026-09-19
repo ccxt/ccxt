@@ -1070,7 +1070,7 @@ func (this *Toobit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes8218 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes8218)
-	var market any = this.MarketOrNull(symbol)
+	var market map[string]any = ccxt.MapTyped(this.MarketOrNull(symbol))
 	symbol = ccxt.DerefScalar(this.SafeString(market, "symbol", symbol))
 	var messageHash any = "orders"
 	if symbol != nil {
@@ -1216,7 +1216,7 @@ func (this *Toobit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	retRes9448 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes9448)
-	var market any = this.MarketOrNull(symbol)
+	var market map[string]any = ccxt.MapTyped(this.MarketOrNull(symbol))
 	symbol = ccxt.DerefScalar(this.SafeString(market, "symbol", symbol))
 	var messageHash any = "myTrades"
 	if symbol != nil {

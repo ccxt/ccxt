@@ -4035,7 +4035,7 @@ func (this *Woofipro) withdrawBody(ch chan any, code any, amount any, address an
 			panic(NotSupported(this.Id + " withdraw() only support USDC"))
 		}
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var verifyingContractAddress *string = this.SafeString(this.Options, "verifyingContractAddress")
 	var chainId *string = this.SafeString(params, "chainId")
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")

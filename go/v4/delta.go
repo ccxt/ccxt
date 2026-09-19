@@ -3147,7 +3147,7 @@ func (this *Delta) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 
 	retRes26128 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes26128)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"asset_symbol": currency["id"],
 	}
@@ -3234,12 +3234,12 @@ func (this *Delta) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
 
 	retRes26838 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes26838)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
@@ -3616,12 +3616,12 @@ func (this *Delta) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 
 	retRes29918 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes29918)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))

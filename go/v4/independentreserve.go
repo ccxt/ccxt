@@ -1326,7 +1326,7 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan any, code any, o
 		retRes100412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes100412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode": currency["id"],
 	}
@@ -1402,7 +1402,7 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 		retRes106012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes106012)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode": currency["id"],
 		"withdrawalAddress":   address,

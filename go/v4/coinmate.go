@@ -881,7 +881,7 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 		request["timestampFrom"] = since
 	}
 	if code != nil {
-		var currency map[string]any = this.Currency(code).(map[string]any)
+		var currency map[string]any = MapTyped(this.Currency(code))
 		request["currency"] = currency["id"]
 	}
 
@@ -1016,7 +1016,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 		retRes77112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes77112)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var methods map[string]any = SafeMapTyped(withdrawOptions, "methods")
 	var method *string = this.SafeString(methods, code)

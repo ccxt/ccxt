@@ -3152,7 +3152,7 @@ func (this *Okx) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 
 	retRes24398 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes24398)
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	if ccxt.GetValue(market, "type") != "option" {
 		panic(ccxt.BadRequest(this.Id + " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required."))
 	}
@@ -3163,7 +3163,7 @@ func (this *Okx) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 		"op": "mass-cancel",
 		"args": []any{this.Extend(map[string]any{
 			"instType":   "OPTION",
-			"instFamily": ccxt.GetValue(market, "id"),
+			"instFamily": market["id"],
 		}, params)},
 	}
 

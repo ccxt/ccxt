@@ -1567,7 +1567,7 @@ func (this *Bitvavo) transferBody(ch chan any, code any, amount any, fromAccount
 		retRes127912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes127912)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var subaccountId any = DerefScalar(this.SafeString(params, "subaccountId"))
 	params = this.Omit(params, "subaccountId")
 	var direction string
@@ -1814,7 +1814,7 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes147112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes147112)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"symbol": currency["id"],
 	}
@@ -2945,7 +2945,7 @@ func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optional
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"symbol":  currency["id"],
 		"amount":  this.CurrencyToPrecision(code, amount),
@@ -2990,7 +2990,7 @@ func (this *Bitvavo) withdrawBody(ch chan any, code any, amount any, address any
 		retRes238312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes238312)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request any = this.WithdrawRequest(code, amount, address, tag, params)
 
 	response := (<-this.PrivatePostWithdrawal(request))

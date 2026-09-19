@@ -990,17 +990,17 @@ func (this *Lbank) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes80712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes80712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") == true {
 
-		responseForSwap := (<-this.FetchTickersAsync([]any{GetValue(market, "symbol")}, params))
+		responseForSwap := (<-this.FetchTickersAsync([]any{market["symbol"]}, params))
 		PanicOnError(responseForSwap)
 
-		ch <- this.SafeValue(responseForSwap, GetValue(market, "symbol"))
+		ch <- this.SafeValue(responseForSwap, market["symbol"])
 		return nil
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.SpotPublicGetTicker24hr(this.Extend(request, params)))
@@ -1164,12 +1164,12 @@ func (this *Lbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		retRes93912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes93912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if limit == nil {
 		limit = 60
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
@@ -1239,11 +1239,11 @@ func (this *Lbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var timestamp int64 = this.Milliseconds()
 	if GetValue(market, "swap") == true {
 
-		ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume")
+		ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "volume")
 		return nil
 	}
 
-	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks")
+	ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks")
 	return nil
 }
 func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) any {
@@ -2022,7 +2022,7 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cos
 		retRes164212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes164212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -2909,7 +2909,7 @@ func (this *Lbank) fetchDepositAddressDefaultBody(ch chan any, code any, optiona
 		retRes233612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes233612)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"assetCode": currency["id"],
 	}
@@ -2963,7 +2963,7 @@ func (this *Lbank) fetchDepositAddressSupplementBody(ch chan any, code any, opti
 		retRes237612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes237612)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"coin": currency["id"],
 	}
@@ -3040,7 +3040,7 @@ func (this *Lbank) withdrawBody(ch chan any, code any, amount any, address any, 
 	params = this.Omit(params, "fee")
 	// The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
 	this.CheckRequiredArgument("withdraw", fee, "fee")
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"address": address,
 		"coin":    currency["id"],
@@ -3497,7 +3497,7 @@ func (this *Lbank) fetchPublicTransactionFeesBody(ch chan any, optionalArgs ...a
 	params = this.Omit(params, []any{"coin", "assetCode"})
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		var currency map[string]any = this.Currency(code).(map[string]any)
+		var currency map[string]any = MapTyped(this.Currency(code))
 		request["assetCode"] = currency["id"]
 	}
 
