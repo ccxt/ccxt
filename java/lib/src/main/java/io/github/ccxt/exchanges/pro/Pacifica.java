@@ -158,7 +158,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 throw new NotSupported((this.id + " createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!")) ;
             }
-            Object response = (this.watch((String) (url), (String) (requestId), wsRequest, requestId, null)).join();
+            Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             //
             // market order
             // {
@@ -246,7 +246,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.editOrderRequest(id, (String) (symbol), type, (String) (side), amount, price, (Map<String, Object>) (market), parameters);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("originAddress", "agentAddress", "expiryWindow", "clientOrderId")));
             Object isTestnet = this.isSandboxModeEnabled;
@@ -254,7 +254,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
             Object wsRequest = this.wrapAsPostAction(batchOperationType, (Map<String, Object>) (request));
             String requestId = this.safeString(wsRequest, "id");
-            Object response = (this.watch((String) (url), (String) (requestId), wsRequest, requestId, null)).join();
+            Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             // {
             //   "code": 200,
             //   "data": {
@@ -333,7 +333,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
             Object wsRequest = this.wrapAsPostAction(batchOperationType, (Map<String, Object>) (request));
             String requestId = this.safeString(wsRequest, "id");
-            Object response = (this.watch((String) (url), (String) (requestId), wsRequest, requestId, null)).join();
+            Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             //
             // {
             //   "code": 200,
@@ -429,7 +429,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
             Object wsRequest = this.wrapAsPostAction(operationType, (Map<String, Object>) (request));
             String requestId = this.safeString(wsRequest, "id");
-            Object response = (this.watch((String) (url), (String) (requestId), wsRequest, requestId, null)).join();
+            Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             //
             //  {
             //   "code": 200,
@@ -505,7 +505,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
             Object wsRequest = this.wrapAsPostAction(operationType, (Map<String, Object>) (request));
             String requestId = this.safeString(wsRequest, "id");
-            Object response = (this.watch((String) (url), (String) (requestId), wsRequest, requestId, null)).join();
+            Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             //  {
             //   "code": 200,
             //   "data": {
@@ -546,7 +546,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object aggLevel = null;
             List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
             aggLevel = ((List<Object>) aggLevelparametersVariable).get(0);
@@ -565,7 +565,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object orderbook = (this.watch((String) (url), messageHash, message, messageHash, null)).join();
+            Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -591,7 +591,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object aggLevel = null;
             List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
             aggLevel = ((List<Object>) aggLevelparametersVariable).get(0);
@@ -611,7 +611,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watch((String) (url), messageHash, message, messageHash, null)).join();
+            return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
     }
@@ -661,7 +661,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             put( "asks", Pacifica.this.safeList(levels, 1, new ArrayList<Object>(Arrays.asList())) );
         }};
         Long timestamp = this.safeInteger(entry, "t");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(result, (String) (symbol), timestamp, "bids", "asks", "p", "a");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a");
         Long nonce = this.safeInteger(entry, "li");
         if ((!java.util.Objects.equals(nonce, null)) && ((nonce == null || nonce != 0)))
         {
@@ -720,7 +720,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, (String) (null), true);
+            symbols = this.marketSymbols(symbols, null, true);
             String messageHash = "tickers";
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
@@ -731,7 +731,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                     put( "source", "prices" );
                 }} );
             }};
-            Object tickers = (this.watch((String) (url), messageHash, this.extend(request, parameters), messageHash, null)).join();
+            Object tickers = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
                 return this.filterByArrayTickers(tickers, "symbol", symbols);
@@ -761,7 +761,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, (String) (null), true);
+            symbols = this.marketSymbols(symbols, null, true);
             String subMessageHash = "tickers";
             String messageHash = ("unsubscribe:" + subMessageHash);
             Object isTestnet = this.isSandboxModeEnabled;
@@ -773,7 +773,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                     put( "source", "prices" );
                 }} );
             }};
-            return (this.watch((String) (url), messageHash, this.extend(request, parameters), messageHash, null)).join();
+            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
         });
 
     }
@@ -810,7 +810,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbol = this.symbol((String) (symbol));
+                symbol = this.symbol(symbol);
                 messageHash = (messageHash + (":" + symbol));
             }
             Object isTestnet = this.isSandboxModeEnabled;
@@ -825,7 +825,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object trades = (this.watch((String) (url), messageHash, message, messageHash, null)).join();
+            Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -877,7 +877,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watch((String) (url), messageHash, message, messageHash, null)).join();
+            return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
     }
@@ -1011,7 +1011,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trade:" + symbol);
             Object isTestnet = this.isSandboxModeEnabled;
@@ -1025,7 +1025,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object trades = (this.watch((String) (url), messageHash, message, messageHash, null)).join();
+            Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -1054,7 +1054,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String subMessageHash = ("trade:" + symbol);
             String messageHash = ("unsubscribe:" + subMessageHash);
@@ -1069,7 +1069,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watch((String) (url), messageHash, message, messageHash, null)).join();
+            return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
     }
@@ -1233,7 +1233,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object isTestnet = this.isSandboxModeEnabled;
             String parsedTf = this.safeString(this.timeframes, timeframe, timeframe);
@@ -1249,7 +1249,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             }};
             String messageHash = ((("candles:" + parsedTf) + ":") + symbol);
             Map<String, Object> message = this.extend(request, parameters);
-            Object ohlcv = (this.watch((String) (url), messageHash, message, messageHash, null)).join();
+            Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -1280,7 +1280,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
@@ -1296,7 +1296,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
             String messagehash = ("unsubscribe:" + subMessageHash);
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watch((String) (url), messagehash, message, messagehash, null)).join();
+            return (this.watch(url, messagehash, message, messagehash, null)).join();
         });
 
     }
@@ -1380,7 +1380,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object messageHash = "order";
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = ((messageHash + ":") + symbol);
             }
@@ -1396,7 +1396,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object orders = (this.watch((String) (url), (String) (messageHash), message, messageHash, null)).join();
+            Object orders = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -1448,7 +1448,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watch((String) (url), messageHash, message, messageHash, null)).join();
+            return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
     }
@@ -1499,7 +1499,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawOrder = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (rawOrder));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder);
             Helpers.callDynamically(stored, "append", new Object[]{order});
             String symbol = this.safeString(order, "symbol");
             if (!java.util.Objects.equals(symbol, null))

@@ -122,7 +122,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }} );
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
-            return (this.watch((String) (url), messageHash, request, messageHash, null)).join();
+            return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(Balances::new);
 
     }
@@ -227,7 +227,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }
             }
         }
-        this.balance = this.safeBalance((Map<String, Object>) (this.balance));
+        this.balance = this.safeBalance(this.balance);
     }
 
     /**
@@ -256,7 +256,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
             }
             Object url = (this.authenticate()).join();
@@ -268,7 +268,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }} );
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
-            Object orders = (this.watch((String) (url), messageHash, request, messageHash, null)).join();
+            Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -357,7 +357,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             put( "timestamp", timestamp );
             put( "datetime", Bitrue.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", Bitrue.this.safeInteger(order, "T") );
-            put( "symbol", Bitrue.this.safeSymbol((String) (marketId), market) );
+            put( "symbol", Bitrue.this.safeSymbol(marketId, market) );
             put( "type", Bitrue.this.parseWsOrderType((String) (typeId)) );
             put( "timeInForce", null );
             put( "postOnly", null );
@@ -388,7 +388,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orderbook:" + symbol);
             Object url = null;
@@ -419,7 +419,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }} );
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
-            return (this.watch((String) (((String)url)), messageHash, request, messageHash, null)).join();
+            return (this.watch(((String)url), messageHash, request, messageHash, null)).join();
         }).thenApply(OrderBook::new);
 
     }
@@ -491,7 +491,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(parseable, (String) (symbol), timestamp, "buys", "asks");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         String messageHash = Helpers.add("orderbook:", symbol);
         client.resolve(orderbook, messageHash);
@@ -542,7 +542,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return null;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
         {
             return rawQuantity;
@@ -574,7 +574,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -594,7 +594,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }} );
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
-            Object trades = (this.watch((String) (url), messageHash, request, messageHash, null)).join();
+            Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -709,7 +709,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -735,7 +735,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }} );
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
-            Object ohlcv = (this.watch((String) (url), messageHash, request, messageHash, null)).join();
+            Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -832,7 +832,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -852,7 +852,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }} );
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
-            return (this.watch((String) (url), messageHash, request, messageHash, null)).join();
+            return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -907,7 +907,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Double close = this.safeNumber(tick, "close");
         Double rose = this.safeNumber(tick, "rose");
         Object percentage = (((java.util.Objects.equals(rose, null)))) ? null : Helpers.multiply(rose, 100);
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "info", tick );
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -928,7 +928,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-        }}), market);
+        }}, market);
     }
 
     public String parseWsOrderType(String typeId)

@@ -518,7 +518,7 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -527,7 +527,7 @@ public class Blockchaincom extends BlockchaincomApi
                 ((Map<String, Object>)request).put("depth", limit);
             }
             Map<String, Object> response = (this.publicGetL3Symbol(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, (String) (((Map<String, Object>)market).get("symbol")), null, "bids", "asks", "px", "qty");
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "px", "qty");
         }).thenApply(OrderBook::new);
 
     }
@@ -543,7 +543,7 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -552,7 +552,7 @@ public class Blockchaincom extends BlockchaincomApi
                 ((Map<String, Object>)request).put("depth", limit);
             }
             Map<String, Object> response = (this.publicGetL2Symbol(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, (String) (((Map<String, Object>)market).get("symbol")), null, "bids", "asks", "px", "qty");
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "px", "qty");
         }).thenApply(OrderBook::new);
 
     }
@@ -573,7 +573,7 @@ public class Blockchaincom extends BlockchaincomApi
         String last = this.safeString(ticker, "last_trade_price");
         String baseVolume = this.safeString(ticker, "volume_24h");
         String open = this.safeString(ticker, "price_24h");
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -594,7 +594,7 @@ public class Blockchaincom extends BlockchaincomApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -616,7 +616,7 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -665,7 +665,7 @@ public class Blockchaincom extends BlockchaincomApi
         return this.safeString(states, state, state);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -749,7 +749,7 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String orderType = this.safeString(parameters, "ordType", type);
             Object uppercaseOrderType = orderType.toUpperCase();
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
@@ -764,7 +764,7 @@ public class Blockchaincom extends BlockchaincomApi
                 put( "ordType", finalUppercaseOrderType );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "side", ((String)finalSide).toUpperCase() );
-                put( "orderQty", Blockchaincom.this.amountToPrecision((String) (symbol), amount) );
+                put( "orderQty", Blockchaincom.this.amountToPrecision(symbol, amount) );
                 put( "clOrdId", clientOrderId );
             }};
             Object triggerPrice = this.safeValueN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
@@ -798,14 +798,14 @@ public class Blockchaincom extends BlockchaincomApi
             }
             if (Boolean.TRUE.equals(priceRequired))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             if (Boolean.TRUE.equals(stopPriceRequired))
             {
-                ((Map<String, Object>)request).put("stopPx", this.priceToPrecision((String) (symbol), triggerPrice));
+                ((Map<String, Object>)request).put("stopPx", this.priceToPrecision(symbol, triggerPrice));
             }
             Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1021,7 +1021,7 @@ public class Blockchaincom extends BlockchaincomApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
@@ -1030,7 +1030,7 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -1118,7 +1118,7 @@ public class Blockchaincom extends BlockchaincomApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 ((Map<String, Object>)request).put("symbol", this.marketId((String) (symbol)));
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             List<Object> trades = (this.privateGetFills(this.extend(request, parameters))).join();
             return this.parseTrades(trades, market, since, limit, parameters);  // need to define
@@ -1513,7 +1513,7 @@ public class Blockchaincom extends BlockchaincomApi
                 ((Map<String, Object>)account).put("total", this.safeString(entry, "balance"));
                 ((Map<String, Object>)result).put((String)((String)code), account);
             }
-            return this.safeBalance((Map<String, Object>) (result));
+            return this.safeBalance(result);
         }).thenApply(Balances::new);
 
     }
@@ -1563,7 +1563,7 @@ public class Blockchaincom extends BlockchaincomApi
             //         "timestamp": 1592830770594
             //     }
             //
-            return this.parseOrder((Map<String, Object>) (response));
+            return this.parseOrder(response);
         }).thenApply(Order::new);
 
     }

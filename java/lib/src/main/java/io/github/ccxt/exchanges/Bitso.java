@@ -943,7 +943,7 @@ public class Bitso extends BitsoApi
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = Precise.stringMul(baseVolume, vwap);
         String last = this.safeString(ticker, "last");
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Bitso.this.iso8601(timestamp) );
@@ -964,7 +964,7 @@ public class Bitso extends BitsoApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**

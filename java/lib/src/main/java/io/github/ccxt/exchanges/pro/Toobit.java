@@ -241,13 +241,13 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, (String) (null), false);
+            symbols = this.marketSymbols(symbols, null, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)messageHashes).add(("trade::" + symbol));
                 Object rawHash = ((Map<String, Object>)market).get("id");
                 ((List<Object>)subParams).add(rawHash);
@@ -320,7 +320,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return this.parseTrade((Map<String, Object>) (trade), market);
+        return this.parseTrade(trade, market);
     }
 
     /**
@@ -385,7 +385,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
                 String symbolStr = this.safeString(data, 0);
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbolStr));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbolStr);
                 Object marketId = ((Map<String, Object>)market).get("id");
                 String unfiedTimeframe = this.safeString(data, 1, "1m");
                 String rawTimeframe = this.safeString(timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -447,7 +447,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //     }
         //
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (marketId));
+        Map<String, Object> market = (Map<String, Object>) this.market(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String timeframeId = this.safeString(parameters, "klineType");
@@ -517,7 +517,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 (this.loadMarkets()).join();
             }
-            symbol = this.symbol((String) (symbol));
+            symbol = this.symbol(symbol);
             Object tickers = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
         }).thenApply(Ticker::new);
@@ -545,13 +545,13 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, (String) (null), false);
+            symbols = this.marketSymbols(symbols, null, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)messageHashes).add(("ticker::" + symbol));
                 Object rawHash = ((Map<String, Object>)market).get("id");
                 ((List<Object>)subParams).add(rawHash);
@@ -692,7 +692,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, (String) (null), false);
+            symbols = this.marketSymbols(symbols, null, false);
             Object channel = null;
             List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
             channel = ((List<Object>) channelparametersVariable).get(0);
@@ -702,7 +702,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)messageHashes).add(((("orderBook::" + symbol) + "::") + channel));
                 Object rawHash = ((Map<String, Object>)market).get("id");
                 ((List<Object>)subParams).add(rawHash);
@@ -820,7 +820,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(entry, "s");
-            String symbol = this.safeSymbol((String) (marketId));
+            String symbol = this.safeSymbol(marketId);
             String messageHash = ((("orderBook::" + symbol) + "::") + channel);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
@@ -829,7 +829,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long timestamp = this.safeInteger(entry, "t");
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(entry, (String) (symbol), timestamp, "b", "a");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(entry, symbol, timestamp, "b", "a");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             client.resolve(orderbook, messageHash);
         }
@@ -872,10 +872,10 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 throw new ArgumentsRequired((this.id + " watchBalance() requires a subscription hash")) ;
             }
             Object url = this.getUserStreamUrl();
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             this.setBalanceCache(client, (String) (marketType), subscriptionHash, parameters);
             client.future((type + ":fetchBalanceSnapshot"));
-            return (this.watch((String) (url), messageHash, parameters, subscriptionHash, null)).join();
+            return (this.watch(url, messageHash, parameters, subscriptionHash, null)).join();
         }).thenApply(Balances::new);
 
     }
@@ -957,7 +957,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
             }
         }
-        Helpers.addElementToObject(this.balance, type, this.safeBalance((Map<String, Object>) ((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)))));
+        Helpers.addElementToObject(this.balance, type, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type))));
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
     }
 
@@ -1021,7 +1021,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 messageHash = ((messageHash + ":") + symbol);
             }
             Object url = this.getUserStreamUrl();
-            Object orders = (this.watch((String) (url), (String) (messageHash), parameters, messageHash, null)).join();
+            Object orders = (this.watch(url, messageHash, parameters, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -1083,7 +1083,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(order, "O");
         String marketId = this.safeString(order, "s");
-        String symbol = this.safeSymbol((String) (marketId), market);
+        String symbol = this.safeSymbol(marketId, market);
         String priceType = this.safeStringLower(order, "pt");
         String rawOrderType = this.safeStringLower(order, "o");
         Object orderType = null;
@@ -1167,7 +1167,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 messageHash = ((messageHash + ":") + symbol);
             }
             Object url = this.getUserStreamUrl();
-            Object trades = (this.watch((String) (url), (String) (messageHash), parameters, messageHash, null)).join();
+            Object trades = (this.watch(url, messageHash, parameters, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -1221,7 +1221,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             put( "id", Toobit.this.safeString(trade, "T") );
             put( "timestamp", ts );
             put( "datetime", Toobit.this.iso8601(ts) );
-            put( "symbol", Toobit.this.safeSymbol((String) (marketId), market) );
+            put( "symbol", Toobit.this.safeSymbol(marketId, market) );
             put( "order", Toobit.this.safeString(trade, "o") );
             put( "type", null );
             put( "side", Toobit.this.safeStringLower(trade, "S") );
@@ -1271,7 +1271,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             messageHash = ((type + ":positions") + messageHash);
             Object url = this.getUserStreamUrl();
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             this.setPositionsCache(client, type, symbols);
             Object cache = this.safeValue(this.positions, type);
             if (java.util.Objects.equals(cache, null))
@@ -1279,7 +1279,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 Object snapshot = client.future((type + ":fetchPositionsSnapshot")).getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
-            Object newPositions = (this.watch((String) (url), (String) (messageHash), null, messageHash, null)).join();
+            Object newPositions = (this.watch(url, messageHash, null, messageHash, null)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -1427,7 +1427,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", Toobit.this.safeSymbol((String) (marketId)) );
+            put( "symbol", Toobit.this.safeSymbol(marketId) );
             put( "notional", Toobit.this.omitZero(Toobit.this.safeString(position, "pv")) );
             put( "marginMode", Toobit.this.safeStringLower(position, "mt") );
             put( "liquidationPrice", Toobit.this.safeString(position, "f") );
@@ -1533,7 +1533,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             } catch(Exception error)
             {
                 Object url = this.getUserStreamUrl();
-                Client client = this.client((String) (url));
+                Client client = this.client(url);
                 List<Object> messageHashes = Helpers.objectKeys(client.futures);
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
                 {

@@ -80,10 +80,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marketId = ((Map<String, Object>)market).get("id");
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             Object messageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
             final Object finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -91,7 +91,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 put( "channel", finalChannel );
                 put( "symbol", marketId );
             }};
-            Object result = (this.watch((String) (url), (String) (messageHash), this.deepExtend(request, parameters), messageHash, new HashMap<String, Object>() {{
+            Object result = (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, new HashMap<String, Object>() {{
                 put( "checksum", false );
             }})).join();
             Boolean checksum = (Boolean) this.safeBool(this.options, "checksum", true);
@@ -122,10 +122,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marketId = ((Map<String, Object>)market).get("id");
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             Object subMessageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
             String messageHash = ((Helpers.add("unsubscribe:", channel) + ":") + marketId);
             Object unSubTopic = Helpers.add((Helpers.add(("unsubscribe" + ":"), topic) + ":"), symbol);
@@ -143,7 +143,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 put( "unsubscribe", true );
                 put( "symbols", new ArrayList<Object>(Arrays.asList(symbol)) );
             }};
-            return (this.watch((String) (url), messageHash, this.deepExtend(request, parameters), messageHash, subscription)).join();
+            return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription)).join();
         });
 
     }
@@ -159,7 +159,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
-            return (this.watch((String) (url), (String) (messageHash), null, 1, null)).join();
+            return (this.watch(url, messageHash, null, 1, null)).join();
         });
 
     }
@@ -188,7 +188,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String channel = "candles";
@@ -202,7 +202,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             // not using subscribe here because this message has a different format
-            Object ohlcv = (this.watch((String) (url), (String) (messageHash), this.deepExtend(request, parameters), messageHash, null)).join();
+            Object ohlcv = (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -232,14 +232,14 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String channel = "candles";
             Object subMessageHash = ((((channel + ":") + interval) + ":") + ((Map<String, Object>)market).get("id"));
             String messageHash = ("unsubscribe:" + subMessageHash);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             Object subId = ((("unsubscribe:trade:" + interval) + ":") + ((Map<String, Object>)market).get("id")); // trade here because we use the key
             String channelId = this.safeString(client.subscriptions, subId);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -256,7 +256,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 put( "unsubscribe", true );
                 put( "symbols", new ArrayList<Object>(Arrays.asList(finalSymbol)) );
             }};
-            return (this.watch((String) (url), messageHash, this.deepExtend(request, parameters), messageHash, subscription)).join();
+            return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription)).join();
         });
 
     }
@@ -422,7 +422,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String messageHash = "myTrade";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("id")));
             }
             Object trades = (this.subscribePrivate(messageHash)).join();
@@ -501,7 +501,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Object data = this.safeValue(message, 2);
         Object trade = this.parseWsTrade((Map<String, Object>) (data));
         Object symbol = ((Map<String, Object>)trade).get("symbol");
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
         if (java.util.Objects.equals(this.myTrades, null))
         {
@@ -666,7 +666,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             side = ((Precise.stringGt(amountString, "0"))) ? "buy" : "sell";
         }
-        String symbol = this.safeSymbol((String) (marketId), market);
+        String symbol = this.safeSymbol(marketId, market);
         String feeValue = this.safeString(trade, 9);
         Object fee = null;
         if (!java.util.Objects.equals(feeValue, null))
@@ -729,7 +729,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Object ticker = this.safeValue(message, 1);
         String marketId = this.safeString(subscription, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        String symbol = this.safeSymbol((String) (marketId));
+        String symbol = this.safeSymbol(marketId);
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (ticker), market);
         String channel = "ticker";
         Object messageHash = ((channel + ":") + marketId);
@@ -758,7 +758,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String last = this.safeString(ticker, 6);
         String change = this.safeString(ticker, 4);
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -779,7 +779,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             put( "baseVolume", Bitfinex.this.safeString(ticker, 7) );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -851,7 +851,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //     ]
         //
         String marketId = this.safeString(subscription, "symbol");
-        String symbol = this.safeSymbol((String) (marketId));
+        String symbol = this.safeSymbol(marketId);
         String channel = "book";
         Object messageHash = ((channel + ":") + marketId);
         String prec = this.safeString(subscription, "prec", "P0");
@@ -941,7 +941,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         // [ 173904, "cs", -890884919 ]
         //
         String marketId = this.safeString(subscription, "symbol");
-        String symbol = this.safeSymbol((String) (marketId));
+        String symbol = this.safeSymbol(marketId);
         String channel = "book";
         Object messageHash = ((channel + ":") + marketId);
         Map<String, Object> book = (Map<String, Object>) this.safeDict(this.orderbooks, symbol);
@@ -1102,7 +1102,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 ((Map<String, Object>)oldBalance).put((String)code, balance);
             }
             ((Map<String, Object>)oldBalance).put("info", message);
-            Helpers.addElementToObject(this.balance, balanceType, this.safeBalance((Map<String, Object>) (oldBalance)));
+            Helpers.addElementToObject(this.balance, balanceType, this.safeBalance(oldBalance));
             ((Map<String, Object>)updatedTypes).put((String)balanceType, true);
         }
         List<Object> updatesKeys = new ArrayList<Object>(updatedTypes.keySet());
@@ -1217,7 +1217,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         } else
         {
             String marketId = this.safeString(message, "symbol");
-            String symbol = this.safeSymbol((String) (marketId));
+            String symbol = this.safeSymbol(marketId);
             if (!java.util.Objects.equals(unifiedChannel, null))
             {
                 String subId = ((("unsubscribe:" + unifiedChannel) + ":") + symbol);
@@ -1234,7 +1234,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -1252,7 +1252,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                     put( "event", eventVar );
                 }};
                 Map<String, Object> message = this.extend(request, parameters);
-                this.watch((String) (url), messageHash, message, messageHash, null);
+                this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
@@ -1306,7 +1306,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String messageHash = "orders";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("id")));
             }
             Object orders = (this.subscribePrivate(messageHash)).join();
@@ -1398,7 +1398,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             client.resolve(this.orders, messageHash);
         }
@@ -1457,7 +1457,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String id = this.safeString(order, 0);
         String clientOrderId = this.safeString(order, 1);
         String marketId = this.safeString(order, 3);
-        String symbol = this.safeSymbol((String) (marketId));
+        String symbol = this.safeSymbol(marketId);
         market = this.safeMarket(symbol);
         String amount = this.safeString(order, 7);
         String side = "buy";

@@ -396,7 +396,7 @@ public class Bitbank extends BitbankApi
 
     }
 
-    public Object parseMarket(Map<String, Object> entry)
+    public Object parseMarket(Object entry)
     {
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "base_asset");
@@ -460,10 +460,10 @@ public class Bitbank extends BitbankApi
     public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String symbol = this.safeSymbol((String) (null), market);
+        String symbol = this.safeSymbol(null, market);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Bitbank.this.iso8601(timestamp) );
@@ -484,7 +484,7 @@ public class Bitbank extends BitbankApi
             put( "baseVolume", Bitbank.this.safeString(ticker, "vol") );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -506,7 +506,7 @@ public class Bitbank extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -538,19 +538,19 @@ public class Bitbank extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetPairDepth(this.extend(request, parameters))).join();
             Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(orderbook, "timestamp");
-            return this.parseOrderBook(orderbook, (String) (((Map<String, Object>)market).get("symbol")), timestamp);
+            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp);
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -626,7 +626,7 @@ public class Bitbank extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -758,7 +758,7 @@ public class Bitbank extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalSince = since;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -816,7 +816,7 @@ public class Bitbank extends BitbankApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -888,7 +888,7 @@ public class Bitbank extends BitbankApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(order, "order_id");
@@ -953,21 +953,21 @@ public class Bitbank extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
-                put( "amount", Bitbank.this.amountToPrecision((String) (symbol), amount) );
+                put( "amount", Bitbank.this.amountToPrecision(symbol, amount) );
                 put( "side", side );
                 put( "type", finalType );
             }};
             if (java.util.Objects.equals(type, "limit"))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             Map<String, Object> response = (this.privatePostUserSpotOrder(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
-            return this.parseOrder((Map<String, Object>) (data), market);
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -993,7 +993,7 @@ public class Bitbank extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1023,7 +1023,7 @@ public class Bitbank extends BitbankApi
             //    }
             //
             Object data = this.safeValue(response, "data");
-            return this.parseOrder((Map<String, Object>) (data));
+            return this.parseOrder(data);
         }).thenApply(Order::new);
 
     }
@@ -1049,7 +1049,7 @@ public class Bitbank extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1078,7 +1078,7 @@ public class Bitbank extends BitbankApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
-            return this.parseOrder((Map<String, Object>) (data), market);
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -1107,7 +1107,7 @@ public class Bitbank extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1155,7 +1155,7 @@ public class Bitbank extends BitbankApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))

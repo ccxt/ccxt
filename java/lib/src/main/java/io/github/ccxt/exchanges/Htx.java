@@ -2361,7 +2361,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbols", ((Map<String, Object>)market).get("id") );
             }};
@@ -2491,9 +2491,9 @@ public class Htx extends HtxApi
         }};
     }
 
-    public String costToPrecision(String symbol, Object cost)
+    public String costToPrecision(Object symbol, Object cost)
     {
-        return this.decimalToPrecision(cost, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)this.market((String) (symbol))).get("precision")).get("cost"), this.precisionMode);
+        return this.decimalToPrecision(cost, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)this.market(symbol)).get("precision")).get("cost"), this.precisionMode);
     }
 
     /**
@@ -3063,7 +3063,7 @@ public class Htx extends HtxApi
         final Object finalBidVolume = bidVolume;
         final Object finalAsk = ask;
         final Object finalAskVolume = askVolume;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
             put( "timestamp", timestamp );
             put( "datetime", Htx.this.iso8601(timestamp) );
@@ -3084,7 +3084,7 @@ public class Htx extends HtxApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -3109,7 +3109,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -3421,7 +3421,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "step0" );
             }};
@@ -3499,7 +3499,7 @@ public class Htx extends HtxApi
                 }
                 Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick");
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
-                Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, (String) (symbol), timestamp);
+                Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp);
                 ((Map<String, Object>)result).put("nonce", this.safeInteger(tick, "version"));
                 return result;
             }
@@ -3508,7 +3508,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // spot fetchTrades (public)
@@ -3721,7 +3721,7 @@ public class Htx extends HtxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
@@ -3810,7 +3810,7 @@ public class Htx extends HtxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
@@ -3822,7 +3822,7 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    market = this.market((String) (symbol));
+                    market = this.market(symbol);
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
                 if (!java.util.Objects.equals(limit, null))
@@ -4014,7 +4014,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -4078,7 +4078,7 @@ public class Htx extends HtxApi
                 List<Object> trades = (List<Object>) this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "data", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)trades).size(); j++)
                 {
-                    Map<String, Object> trade = (Map<String, Object>) this.parseTrade((Map<String, Object>) ((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j))), market);
+                    Map<String, Object> trade = (Map<String, Object>) this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
                     ((List<Object>)result).add(trade);
                 }
             }
@@ -4144,7 +4144,7 @@ public class Htx extends HtxApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "period", Htx.this.safeString(Htx.this.timeframes, timeframe, timeframe) );
             }};
@@ -4336,7 +4336,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseAccount(Map<String, Object> account)
+    public Object parseAccount(Object account)
     {
         //
         //     {
@@ -4868,7 +4868,7 @@ public class Htx extends HtxApi
                         ((Map<String, Object>)result).put((String)code, account);
                     }
                 }
-                result = this.safeBalance((Map<String, Object>) (result));
+                result = this.safeBalance(result);
             } else if (Boolean.TRUE.equals(spot) || Boolean.TRUE.equals(margin))
             {
                 if (Boolean.TRUE.equals(isolated))
@@ -4895,7 +4895,7 @@ public class Htx extends HtxApi
                             result = this.mergeBalanceAccount((Map<String, Object>) (result), subCode, (Map<String, Object>) (Helpers.GetValue(subResult, subCode)));
                         }
                     }
-                    result = this.safeBalance((Map<String, Object>) (result));
+                    result = this.safeBalance(result);
                 } else
                 {
                     List<Object> balances = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
@@ -4909,7 +4909,7 @@ public class Htx extends HtxApi
                             ((Map<String, Object>)result).put((String)code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, (Map<String, Object>) (result)));
                         }
                     }
-                    result = this.safeBalance((Map<String, Object>) (result));
+                    result = this.safeBalance(result);
                 }
             } else if (Boolean.TRUE.equals(inverse))
             {
@@ -4926,7 +4926,7 @@ public class Htx extends HtxApi
                         ((Map<String, Object>)result).put((String)code, account);
                     }
                 }
-                result = this.safeBalance((Map<String, Object>) (result));
+                result = this.safeBalance(result);
             }
             return result;
         }).thenApply(Balances::new);
@@ -4966,7 +4966,7 @@ public class Htx extends HtxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
@@ -5174,7 +5174,7 @@ public class Htx extends HtxApi
             {
                 order = this.safeValue(order, 0);
             }
-            return this.parseOrder((Map<String, Object>) (order), market);
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -5235,7 +5235,7 @@ public class Htx extends HtxApi
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -5335,7 +5335,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
@@ -5455,7 +5455,7 @@ public class Htx extends HtxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 Object trigger = this.safeBool2(parameters, "stop", "trigger");
@@ -5518,7 +5518,7 @@ public class Htx extends HtxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
@@ -5582,7 +5582,7 @@ public class Htx extends HtxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
@@ -5665,7 +5665,7 @@ public class Htx extends HtxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
@@ -5716,7 +5716,7 @@ public class Htx extends HtxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object marketType = null;
@@ -6140,7 +6140,7 @@ public class Htx extends HtxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // spot
@@ -6492,7 +6492,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -6578,7 +6578,7 @@ public class Htx extends HtxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -6603,7 +6603,7 @@ public class Htx extends HtxApi
             {
                 String defaultOperator = (((java.util.Objects.equals(side, "sell")))) ? "lte" : "gte";
                 String stopOperator = this.safeString(parameters, "operator", defaultOperator);
-                ((Map<String, Object>)request).put("stop-price", this.priceToPrecision((String) (symbol), triggerPrice));
+                ((Map<String, Object>)request).put("stop-price", this.priceToPrecision(symbol, triggerPrice));
                 ((Map<String, Object>)request).put("operator", stopOperator);
                 if ((java.util.Objects.equals(orderType, "limit")) || (java.util.Objects.equals(orderType, "limit-fok")))
                 {
@@ -6661,7 +6661,7 @@ public class Htx extends HtxApi
                 parameters = this.omit(parameters, "cost");
                 if (!java.util.Objects.equals(cost, null))
                 {
-                    quoteAmount = this.amountToPrecision((String) (symbol), cost);
+                    quoteAmount = this.amountToPrecision(symbol, cost);
                 } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if (java.util.Objects.equals(price, null))
@@ -6677,21 +6677,21 @@ public class Htx extends HtxApi
                         // we use amountToPrecision here because the exchange requires cost in base precision
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
-                        quoteAmount = this.amountToPrecision((String) (symbol), Precise.stringMul(amountString, priceString));
+                        quoteAmount = this.amountToPrecision(symbol, Precise.stringMul(amountString, priceString));
                     }
                 } else
                 {
-                    quoteAmount = this.amountToPrecision((String) (symbol), amount);
+                    quoteAmount = this.amountToPrecision(symbol, amount);
                 }
                 ((Map<String, Object>)request).put("amount", quoteAmount);
             } else
             {
-                ((Map<String, Object>)request).put("amount", this.amountToPrecision((String) (symbol), amount));
+                ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
             }
             Map<String, Object> limitOrderTypes = (Map<String, Object>) this.safeDict(options, "limitOrderTypes", new HashMap<String, Object>() {{}});
             if (limitOrderTypes.containsKey(orderType))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce")));
             return this.extend(request, parameters);
@@ -6735,10 +6735,10 @@ public class Htx extends HtxApi
          * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
          * @returns {object} request to be sent to the exchange
          */
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "contract_code", ((Map<String, Object>)market).get("id") );
-            put( "volume", Htx.this.amountToPrecision((String) (symbol), amount) );
+            put( "volume", Htx.this.amountToPrecision(symbol, amount) );
         }};
         Boolean postOnly = false;
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
@@ -6781,11 +6781,11 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(stopLossTriggerPriceAttached, null))
                 {
-                    ((Map<String, Object>)request).put("sl_trigger_price", this.priceToPrecision((String) (symbol), stopLossTriggerPriceAttached));
+                    ((Map<String, Object>)request).put("sl_trigger_price", this.priceToPrecision(symbol, stopLossTriggerPriceAttached));
                 }
                 if (!java.util.Objects.equals(stopLossOrderPrice, null))
                 {
-                    ((Map<String, Object>)request).put("sl_order_price", this.priceToPrecision((String) (symbol), stopLossOrderPrice));
+                    ((Map<String, Object>)request).put("sl_order_price", this.priceToPrecision(symbol, stopLossOrderPrice));
                 }
                 if (!java.util.Objects.equals(stopLossType, null))
                 {
@@ -6797,11 +6797,11 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(takeProfitTriggerPriceAttached, null))
                 {
-                    ((Map<String, Object>)request).put("tp_trigger_price", this.priceToPrecision((String) (symbol), takeProfitTriggerPriceAttached));
+                    ((Map<String, Object>)request).put("tp_trigger_price", this.priceToPrecision(symbol, takeProfitTriggerPriceAttached));
                 }
                 if (!java.util.Objects.equals(takeProfitOrderPrice, null))
                 {
-                    ((Map<String, Object>)request).put("tp_order_price", this.priceToPrecision((String) (symbol), takeProfitOrderPrice));
+                    ((Map<String, Object>)request).put("tp_order_price", this.priceToPrecision(symbol, takeProfitOrderPrice));
                 }
                 if (!java.util.Objects.equals(takeProfitType, null))
                 {
@@ -6850,13 +6850,13 @@ public class Htx extends HtxApi
         }
         if (Boolean.TRUE.equals(isTrigger))
         {
-            ((Map<String, Object>)request).put("trigger_price", this.priceToPrecision((String) (symbol), triggerPrice));
+            ((Map<String, Object>)request).put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
             if (Boolean.TRUE.equals(isLinear))
             {
                 ((Map<String, Object>)request).put("type", "trigger");
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
                 }
             } else
             {
@@ -6864,7 +6864,7 @@ public class Htx extends HtxApi
                 ((Map<String, Object>)request).put("trigger_type", triggerType);
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("order_price", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("order_price", this.priceToPrecision(symbol, price));
                 }
             }
         } else if (Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
@@ -6878,10 +6878,10 @@ public class Htx extends HtxApi
                 {
                     ((Map<String, Object>)request).put("type", "sl");
                 }
-                ((Map<String, Object>)request).put("sl_trigger_price", this.priceToPrecision((String) (symbol), stopLossTriggerPrice));
+                ((Map<String, Object>)request).put("sl_trigger_price", this.priceToPrecision(symbol, stopLossTriggerPrice));
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("sl_order_price", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("sl_order_price", this.priceToPrecision(symbol, price));
                 }
             } else
             {
@@ -6892,10 +6892,10 @@ public class Htx extends HtxApi
                 {
                     ((Map<String, Object>)request).put("type", "tp");
                 }
-                ((Map<String, Object>)request).put("tp_trigger_price", this.priceToPrecision((String) (symbol), takeProfitTriggerPrice));
+                ((Map<String, Object>)request).put("tp_trigger_price", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("tp_order_price", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("tp_order_price", this.priceToPrecision(symbol, price));
                 }
             }
         } else if (Boolean.TRUE.equals(isTrailingPercentOrder))
@@ -6919,7 +6919,7 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
                 }
             }
         }
@@ -7006,7 +7006,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "trigger_price")));
             Double stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
             Double takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
@@ -7171,7 +7171,7 @@ public class Htx extends HtxApi
                 {
                     throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
                 }
-                return this.extend(this.parseOrder((Map<String, Object>) (result), market), new HashMap<String, Object>() {{
+                return this.extend(this.parseOrder(result, market), new HashMap<String, Object>() {{
                     put( "type", type );
                     put( "side", side );
                     put( "price", price );
@@ -7193,7 +7193,7 @@ public class Htx extends HtxApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder((Map<String, Object>) (result), market);
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
     }
@@ -7409,7 +7409,7 @@ public class Htx extends HtxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
@@ -7591,7 +7591,7 @@ public class Htx extends HtxApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.extend(this.parseOrder((Map<String, Object>) (result), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseOrder(result, market), new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", "canceled" );
             }});
@@ -7625,7 +7625,7 @@ public class Htx extends HtxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
@@ -7940,7 +7940,7 @@ public class Htx extends HtxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
@@ -9031,7 +9031,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contract_code", ((Map<String, Object>)market).get("id") );
             }};
@@ -9199,7 +9199,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contract_code", ((Map<String, Object>)market).get("id") );
             }};
@@ -9344,7 +9344,7 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    market = this.market((String) (symbol));
+                    market = this.market(symbol);
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
                 response = (this.privateGetMarginLoanOrders(this.extend(request, parameters))).join();
@@ -9727,7 +9727,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -9829,7 +9829,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("setLeverage", market, parameters);
             var marketType = ((List<Object>) marketTypequeryVariable).get(0);
             var query = ((List<Object>) marketTypequeryVariable).get(1);
@@ -10177,7 +10177,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchPosition", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -10538,7 +10538,7 @@ public class Htx extends HtxApi
                 put( "12h", "12hour" );
                 put( "1d", "1day" );
             }};
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long amountType = (Long) this.safeInteger2(parameters, "amount_type", "amountType", 2);
             final Object finalTimeframe = timeframe;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -10715,7 +10715,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
@@ -10870,7 +10870,7 @@ public class Htx extends HtxApi
         Double amount = this.safeNumber(interest, "volume");
         Double value = this.safeNumber(interest, "value");
         String marketId = this.safeString(interest, "contract_code");
-        return this.safeOpenInterest((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Htx.this.safeSymbol(marketId, market) );
             put( "baseVolume", amount );
             put( "quoteVolume", value );
@@ -10879,7 +10879,7 @@ public class Htx extends HtxApi
             put( "timestamp", timestamp );
             put( "datetime", Htx.this.iso8601(timestamp) );
             put( "info", interest );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -10905,7 +10905,7 @@ public class Htx extends HtxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Htx.this.currencyToPrecision((String) (code), amount) );
@@ -11136,7 +11136,7 @@ public class Htx extends HtxApi
             {
                 throw new ArgumentsRequired((this.id + " fetchSettlementHistory() requires a symbol argument")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
             {
@@ -11553,7 +11553,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long tradeType = (Long) this.safeInteger2(parameters, "trade_type", "tradeType", 0);
             Object request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -11700,7 +11700,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
@@ -11731,7 +11731,7 @@ public class Htx extends HtxApi
                 {
                     throw new ArgumentsRequired((this.id + " closePosition () requires an extra argument params[\"amount\"] for inverse markets")) ;
                 }
-                ((Map<String, Object>)request).put("volume", this.amountToPrecision((String) (symbol), amount));
+                ((Map<String, Object>)request).put("volume", this.amountToPrecision(symbol, amount));
                 ((Map<String, Object>)request).put("direction", side);
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("volume", "amount")));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -11745,13 +11745,13 @@ public class Htx extends HtxApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseOrder((Map<String, Object>) (data), market);
+                return this.parseOrder(data, market);
             }
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -11782,7 +11782,7 @@ public class Htx extends HtxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "position_mode", posMode );
@@ -11829,7 +11829,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
+            symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
             if (!java.util.Objects.equals(symbols, null))
             {

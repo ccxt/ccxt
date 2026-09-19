@@ -647,7 +647,7 @@ public class Coinspot extends CoinspotApi
                 }
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -719,12 +719,12 @@ public class Coinspot extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "cointype", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
-            return this.parseOrderBook(orderbook, (String) (((Map<String, Object>)market).get("symbol")), null, "buyorders", "sellorders", "rate", "amount");
+            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), null, "buyorders", "sellorders", "rate", "amount");
         }).thenApply(OrderBook::new);
 
     }
@@ -741,9 +741,9 @@ public class Coinspot extends CoinspotApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String symbol = this.safeSymbol((String) (null), market);
+        String symbol = this.safeSymbol(null, market);
         String last = this.safeString(ticker, "last");
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -764,7 +764,7 @@ public class Coinspot extends CoinspotApi
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -786,7 +786,7 @@ public class Coinspot extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             String id = this.safeString(market, "id", "");
             id = id.toLowerCase();
@@ -889,7 +889,7 @@ public class Coinspot extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "cointype", ((Map<String, Object>)market).get("id") );
             }};
@@ -936,7 +936,7 @@ public class Coinspot extends CoinspotApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -985,7 +985,7 @@ public class Coinspot extends CoinspotApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public fetchTrades
@@ -1097,7 +1097,7 @@ public class Coinspot extends CoinspotApi
             {
                 throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "cointype", ((Map<String, Object>)market).get("id") );
                 put( "amount", amount );

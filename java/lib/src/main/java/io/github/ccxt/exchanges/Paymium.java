@@ -253,7 +253,7 @@ public class Paymium extends PaymiumApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -301,12 +301,12 @@ public class Paymium extends PaymiumApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetDataCurrencyDepth(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, (String) (((Map<String, Object>)market).get("symbol")), null, "bids", "asks", "price", "amount");
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "amount");
         }).thenApply(OrderBook::new);
 
     }
@@ -332,13 +332,13 @@ public class Paymium extends PaymiumApi
         // }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String symbol = this.safeSymbol((String) (null), market);
+        String symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "at");
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = Precise.stringMul(baseVolume, vwap);
         String last = this.safeString(ticker, "price");
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Paymium.this.iso8601(timestamp) );
@@ -359,7 +359,7 @@ public class Paymium extends PaymiumApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -381,7 +381,7 @@ public class Paymium extends PaymiumApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)market).get("id") );
             }};
@@ -409,7 +409,7 @@ public class Paymium extends PaymiumApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object timestamp = this.safeTimestamp(trade, "created_at_int");
@@ -460,7 +460,7 @@ public class Paymium extends PaymiumApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)market).get("id") );
             }};
@@ -621,7 +621,7 @@ public class Paymium extends PaymiumApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", (Paymium.this.capitalize(finalType) + "Order") );

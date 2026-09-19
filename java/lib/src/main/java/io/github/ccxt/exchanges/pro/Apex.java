@@ -137,7 +137,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String topic = Helpers.add("recentlyTrade.H.", ((Map<String, Object>)market).get("id2"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("trade:" + symbol);
@@ -298,7 +298,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 if (java.util.Objects.equals(limit, null))
                 {
                     limit = 25;
@@ -325,7 +325,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             // topics whose messageHash isn't yet tracked on this client; if all
             // are already subscribed, skip the subscribe entirely.
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
             Object newTopicsCount = 0;
             for (var i = 0; i < ((List<?>)topics).size(); i++)
@@ -427,7 +427,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (Boolean.TRUE.equals(isSnapshot))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, (String) (symbol), timestamp, "b", "a");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
@@ -476,7 +476,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object url = this.getWsPublicUrl();
             String messageHash = ("ticker:" + symbol);
@@ -507,14 +507,14 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, (String) (null), false);
+            symbols = this.marketSymbols(symbols, null, false);
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             Object url = this.getWsPublicUrl();
             Object topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
             {
                 Object symbol = Helpers.GetValue((List<String>)(symbols), i);
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object topic = Helpers.add(("instrumentInfo" + ".H."), ((Map<String, Object>)market).get("id2"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("ticker:" + symbol);
@@ -642,7 +642,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbolString));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 symbolString = ((Map<String, Object>)market).get("id2");
                 String unfiedTimeframe = this.safeString(data, 1, "1");
                 String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -767,7 +767,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbol = this.symbol((String) (symbol));
+                symbol = this.symbol(symbol);
                 messageHash = (messageHash + (":" + symbol));
             }
             Object url = this.getWsPrivateUrl();
@@ -814,7 +814,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             }
             Object url = this.getWsPrivateUrl();
             messageHash = ("positions" + messageHash);
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             (this.authenticate(url)).join();
             this.setPositionsCache(client, symbols);
             Object cache = this.positions;
@@ -861,7 +861,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String messageHash = "orders";
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbol = this.symbol((String) (symbol));
+                symbol = this.symbol(symbol);
                 messageHash = (messageHash + (":" + symbol));
             }
             Object url = this.getWsPrivateUrl();
@@ -962,7 +962,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((Map<String, Object>) (Helpers.GetValue(lists, i)));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(Helpers.GetValue(lists, i));
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
@@ -1105,7 +1105,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String messageString = (((timestamp + http_method) + request_path));
             Object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
             String messageHash = "authenticated";
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
@@ -1126,7 +1126,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                     put( "op", "login" );
                     put( "args", new ArrayList<Object>(Arrays.asList(Helpers.json(request))) );
                 }};
-                this.watch((String) (url), messageHash, message, messageHash, null);
+                this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });

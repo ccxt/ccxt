@@ -509,7 +509,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object parseMarket(Map<String, Object> market)
+    public Object parseMarket(Object market)
     {
         Boolean active = (!java.util.Objects.equals(this.safeBool(market, "maintain"), true));
         String id = this.safeString(market, "pair");
@@ -595,7 +595,7 @@ public class Bitopro extends BitoproApi
         String marketId = this.safeString(ticker, "pair");
         market = this.safeMarket(marketId, market);
         String symbol = this.safeString(market, "symbol");
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -616,7 +616,7 @@ public class Bitopro extends BitoproApi
             put( "baseVolume", Bitopro.this.safeString(ticker, "volume24hr") );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -638,7 +638,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -725,7 +725,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -754,12 +754,12 @@ public class Bitopro extends BitoproApi
             //         ]
             //     }
             //
-            return this.parseOrderBook(response, (String) (((Map<String, Object>)market).get("symbol")), null, "bids", "asks", "price", "amount");
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "amount");
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -888,7 +888,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1045,7 +1045,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String resolution = this.safeString(this.timeframes, timeframe, timeframe);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1171,7 +1171,7 @@ public class Bitopro extends BitoproApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -1226,7 +1226,7 @@ public class Bitopro extends BitoproApi
         return (((java.util.Objects.equals(status, null)))) ? null : this.safeString(statuses, status);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -1352,22 +1352,22 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", type );
                 put( "pair", ((Map<String, Object>)market).get("id") );
                 put( "action", side );
-                put( "amount", Bitopro.this.amountToPrecision((String) (symbol), amount) );
+                put( "amount", Bitopro.this.amountToPrecision(symbol, amount) );
                 put( "timestamp", Bitopro.this.milliseconds() );
             }};
             Object orderType = ((String)type).toUpperCase();
             if (java.util.Objects.equals(orderType, "LIMIT"))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             if (java.util.Objects.equals(orderType, "STOP_LIMIT"))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
                 String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")));
                 if (java.util.Objects.equals(triggerPrice, null))
@@ -1375,7 +1375,7 @@ public class Bitopro extends BitoproApi
                     throw new InvalidOrder((((this.id + " createOrder() requires a triggerPrice parameter for ") + orderType) + " orders")) ;
                 } else
                 {
-                    ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision((String) (symbol), triggerPrice));
+                    ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 }
                 String condition = this.safeString(parameters, "condition");
                 if (java.util.Objects.equals(condition, null))
@@ -1402,7 +1402,7 @@ public class Bitopro extends BitoproApi
             //         "timeInForce": "GTC"
             //     }
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1432,7 +1432,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1447,7 +1447,7 @@ public class Bitopro extends BitoproApi
             //         "amount":"0.01"
             //     }
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1466,7 +1466,7 @@ final Object finalJ = j;
                                 ((List<Object>)orders).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", Helpers.GetValue(orderIds, finalJ) );
                     put( "id", Helpers.GetValue(orderIds, finalJ) );
-                    put( "symbol", Bitopro.this.safeSymbol((String) (marketId)) );
+                    put( "symbol", Bitopro.this.safeSymbol(marketId) );
                 }})));
             }
         }
@@ -1498,7 +1498,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object id = ((Map<String, Object>)market).get("uppercaseId");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(id, null))
@@ -1546,7 +1546,7 @@ final Object finalJ = j;
             Object response = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
                 response = (this.privateDeleteOrdersPair(this.extend(request, parameters))).join();
             } else
@@ -1594,7 +1594,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1623,7 +1623,7 @@ final Object finalJ = j;
             //         "updatedTimestamp":1644899002598
             //     }
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1656,7 +1656,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1733,7 +1733,7 @@ final Object finalJ = j;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
@@ -1799,7 +1799,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};

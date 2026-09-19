@@ -362,7 +362,7 @@ public class Hibachi extends HibachiApi
         return id;
     }
 
-    public Object parseMarket(Map<String, Object> market)
+    public Object parseMarket(Object market)
     {
         String marketId = this.safeString(market, "symbol");
         Double numericId = this.safeNumber(market, "id");
@@ -544,7 +544,7 @@ public class Hibachi extends HibachiApi
         {
             ((Map<String, Object>)result).put((String)code, account);
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -597,8 +597,8 @@ public class Hibachi extends HibachiApi
         Double high = this.safeNumber(stats, "high24h");
         Double low = this.safeNumber(stats, "low24h");
         Double volume = this.safeNumber(stats, "volume24h");
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "symbol", Hibachi.this.safeSymbol((String) (null), market) );
+        return this.safeTicker(new HashMap<String, Object>() {{
+            put( "symbol", Hibachi.this.safeSymbol(null, market) );
             put( "timestamp", null );
             put( "datetime", null );
             put( "bid", bid );
@@ -618,10 +618,10 @@ public class Hibachi extends HibachiApi
             put( "baseVolume", null );
             put( "quoteVolume", volume );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         // public fetchTrades:
         //      {
@@ -729,7 +729,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -777,7 +777,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -829,7 +829,7 @@ public class Hibachi extends HibachiApi
         return this.safeString(statuses, uppercaseStatus, status);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(order, "symbol");
@@ -940,14 +940,14 @@ public class Hibachi extends HibachiApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
                 put( "accountId", Hibachi.this.getAccountId() );
             }};
             Map<String, Object> response = (this.privateGetTradeOrder(this.extend(request, parameters))).join();
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1073,7 +1073,7 @@ public class Hibachi extends HibachiApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object takerFee = this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045));
         Object makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
         Object takerFeeValue = (((java.util.Objects.equals(takerFee, null)))) ? 0 : takerFee;
@@ -1090,7 +1090,7 @@ public class Hibachi extends HibachiApi
         Object priceInternal = "";
         if ((!java.util.Objects.equals(price, null)) && (!Helpers.isEqual(price, 0)))
         {
-            priceInternal = this.priceToPrecision((String) (symbol), price);
+            priceInternal = this.priceToPrecision(symbol, price);
         }
         Object message = this.orderMessage((Map<String, Object>) (market), nonce, feeRate, (String) (type), (String) (side), amount, price);
         Object signature = this.signMessage(message, this.privateKey);
@@ -1102,7 +1102,7 @@ public class Hibachi extends HibachiApi
             put( "nonce", nonce );
             put( "side", finalSideInternal );
             put( "orderType", ((String)finalType).toUpperCase() );
-            put( "quantity", Hibachi.this.amountToPrecision((String) (symbol), amount) );
+            put( "quantity", Hibachi.this.amountToPrecision(symbol, amount) );
             put( "price", finalPriceInternal );
             put( "signature", signature );
             put( "maxFeesPercent", Hibachi.this.numberToString(feeRate) );
@@ -1241,7 +1241,7 @@ public class Hibachi extends HibachiApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object takerFee = this.safeNumber(market, "taker", 0);
         Object makerFee = this.safeNumber(market, "maker", 0);
         Object takerFeeValue = (((java.util.Objects.equals(takerFee, null)))) ? 0 : takerFee;
@@ -1252,8 +1252,8 @@ public class Hibachi extends HibachiApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "orderId", id );
             put( "nonce", nonce );
-            put( "updatedQuantity", Hibachi.this.amountToPrecision((String) (symbol), amount) );
-            put( "updatedPrice", Hibachi.this.priceToPrecision((String) (symbol), price) );
+            put( "updatedQuantity", Hibachi.this.amountToPrecision(symbol, amount) );
+            put( "updatedPrice", Hibachi.this.priceToPrecision(symbol, price) );
             put( "maxFeesPercent", Hibachi.this.numberToString(feeRate) );
             put( "signature", signature );
         }};
@@ -1487,7 +1487,7 @@ public class Hibachi extends HibachiApi
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("contractId", this.safeInteger(market, "numericId"));
             }
             Map<String, Object> response = (this.privateDeleteTradeOrders(this.extend(request, parameters))).join();
@@ -1654,7 +1654,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1700,7 +1700,7 @@ public class Hibachi extends HibachiApi
             //         "startPrice": "3515.39"
             //     }
             // }
-            return this.parseOrderBook(formattedResponse, (String) (symbol), this.milliseconds(), "bid", "ask", "price", "quantity");
+            return this.parseOrderBook(formattedResponse, symbol, this.milliseconds(), "bid", "ask", "price", "quantity");
         }).thenApply(OrderBook::new);
 
     }
@@ -1732,7 +1732,7 @@ public class Hibachi extends HibachiApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountId", Hibachi.this.getAccountId() );
@@ -1816,7 +1816,7 @@ public class Hibachi extends HibachiApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountId", Hibachi.this.getAccountId() );
@@ -1889,7 +1889,7 @@ public class Hibachi extends HibachiApi
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             if (!java.util.Objects.equals(status, null))
             {
@@ -2025,7 +2025,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             timeframe = this.safeString(this.timeframes, timeframe, timeframe);
             final Object finalTimeframe = timeframe;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2722,7 +2722,7 @@ public class Hibachi extends HibachiApi
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("contractId", ((Map<String, Object>)market).get("numericId"));
                 symbol = ((Map<String, Object>)market).get("symbol");
             }
@@ -2808,7 +2808,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2817,14 +2817,14 @@ public class Hibachi extends HibachiApi
             //   { "totalQuantity" : "2.3299770166" }
             //
             Long timestamp = this.milliseconds();
-            return this.safeOpenInterest((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOpenInterest(new HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "openInterestAmount", Hibachi.this.safeString(response, "totalQuantity") );
                 put( "openInterestValue", null );
                 put( "timestamp", timestamp );
                 put( "datetime", Hibachi.this.iso8601(timestamp) );
                 put( "info", response );
-            }}), market);
+            }}, market);
         }).thenApply(OpenInterest::new);
 
     }
@@ -2848,7 +2848,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2918,7 +2918,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};

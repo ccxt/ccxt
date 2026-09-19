@@ -94,7 +94,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "id", requestId );
                 put( "method", "subscribe" );
             }}));
-            return (this.watch((String) (url), (String) (messageHash), request, messageHash, subscription)).join();
+            return (this.watch(url, messageHash, request, messageHash, subscription)).join();
         });
 
     }
@@ -124,7 +124,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 limit = 10;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String topic = ((("orderbook." + ((Map<String, Object>)market).get("id")) + ".10.") + this.numberToString(limit));
             Object request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
@@ -177,7 +177,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(data, "timestamp");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, (String) (symbol), timestamp, "bids", "asks");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, topic);
     }
@@ -201,7 +201,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String topic = (("ticker_slim." + ((Map<String, Object>)market).get("id")) + ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
             Object request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
@@ -298,7 +298,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             String marketId = this.safeString(parts, 1);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Map<String, Object> stats = (Map<String, Object>) this.safeDict(data, "stats", new HashMap<String, Object>() {{}});
-            ticker = this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+            ticker = this.safeTicker(new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("symbol") );
                 put( "timestamp", Derive.this.safeInteger(data, "t") );
                 put( "datetime", Derive.this.iso8601(Derive.this.safeInteger(data, "t")) );
@@ -314,7 +314,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "markPrice", Derive.this.safeString(data, "M") );
                 put( "indexPrice", Derive.this.safeString(data, "I") );
                 put( "info", rawData );
-            }}), market);
+            }}, market);
         } else
         {
             ticker = this.parseTicker((Map<String, Object>) (data));
@@ -352,7 +352,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 limit = 10;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String topic = ((("orderbook." + ((Map<String, Object>)market).get("id")) + ".10.") + this.numberToString(limit));
             String messageHash = ("unwatch" + topic);
             Object request = new HashMap<String, Object>() {{
@@ -387,7 +387,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String topic = ("trades." + ((Map<String, Object>)market).get("id"));
             String messageHah = ("unwatch" + topic);
             Object request = new HashMap<String, Object>() {{
@@ -418,7 +418,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "id", requestId );
                 put( "method", "unsubscribe" );
             }}));
-            return (this.watch((String) (url), (String) (messageHash), request, messageHash, subscription)).join();
+            return (this.watch(url, messageHash, request, messageHash, subscription)).join();
         });
 
     }
@@ -515,7 +515,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object topic = ("trades." + ((Map<String, Object>)market).get("id"));
             Object request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
@@ -557,7 +557,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((Map<String, Object>) (Helpers.GetValue(data, i)));
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(data, i));
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
         }
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
@@ -572,7 +572,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -597,7 +597,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 //     'params': params,
                 // };
                 Map<String, Object> message = this.extend(request, parameters);
-                this.watch((String) (url), messageHash, message, messageHash, message);
+                this.watch(url, messageHash, message, messageHash, message);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
@@ -619,7 +619,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "id", requestId );
                 put( "method", "subscribe" );
             }}));
-            return (this.watch((String) (url), (String) (messageHash), request, messageHash, subscription)).join();
+            return (this.watch(url, messageHash, request, messageHash, subscription)).join();
         });
 
     }
@@ -657,7 +657,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Object messageHash = topic;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
@@ -732,7 +732,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
             Object data = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
-            Object parsed = this.parseOrder((Map<String, Object>) (data));
+            Object parsed = this.parseOrder(data);
             String symbol = this.safeString(parsed, "symbol");
             String orderId = this.safeString(parsed, "id");
             if (!java.util.Objects.equals(symbol, null))
@@ -802,7 +802,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Object messageHash = topic;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
@@ -843,7 +843,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         List<Object> rawTrades = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((Map<String, Object>) (message));
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message);
             Helpers.callDynamically(myTrades, "append", new Object[]{trade});
             client.resolve(myTrades, topic);
             Object messageHash = (topic + this.safeString(trade, "symbol", ""));

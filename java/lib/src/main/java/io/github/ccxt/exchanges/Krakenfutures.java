@@ -936,7 +936,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Krakenfutures.this.iso8601(timestamp) );
@@ -959,7 +959,7 @@ public class Krakenfutures extends KrakenfuturesApi
             put( "markPrice", Krakenfutures.this.safeString(ticker, "markPrice") );
             put( "indexPrice", Krakenfutures.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
-        }}));
+        }});
     }
 
     /**

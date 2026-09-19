@@ -79,7 +79,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
             final Object finalSymbol = symbol;
@@ -93,7 +93,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 put( "api_key_secret", Luno.this.secret );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            Object trades = (this.watch((String) (url), messageHash, request, subscriptionHash, subscription)).join();
+            Object trades = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -127,7 +127,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             return;
         }
         Object symbol = ((Map<String, Object>)subscription).get("symbol");
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         String messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -139,14 +139,14 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
             Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((Map<String, Object>) (rawTrade), market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, market);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // watchTrades (public)
@@ -201,7 +201,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
             final Object finalSymbol = symbol;
@@ -215,7 +215,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 put( "api_key_secret", Luno.this.secret );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            Object orderbook = (this.watch((String) (url), messageHash, request, subscriptionHash, subscription)).join();
+            Object orderbook = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 

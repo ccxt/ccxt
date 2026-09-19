@@ -1022,7 +1022,7 @@ public class Lighter extends LighterApi
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
         Object orderType = ((String)type).toUpperCase();
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object orderSide = ((String)((String)side)).toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "market_index", Lighter.this.parseToInt(((Map<String, Object>)market).get("id")) );
@@ -1099,7 +1099,7 @@ public class Lighter extends LighterApi
         }
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         Object amountStr = null;
-        Object priceStr = this.priceToPrecision((String) (symbol), price);
+        Object priceStr = this.priceToPrecision(symbol, price);
         String amountScale = this.pow("10", ((Map<String, Object>)marketInfo).get("size_decimals"));
         String priceScale = this.pow("10", ((Map<String, Object>)marketInfo).get("price_decimals"));
         Object triggerPriceStr = "0"; // default is 0
@@ -1118,7 +1118,7 @@ public class Lighter extends LighterApi
                 {
                     orderTypeNum = 3;
                 }
-                triggerPriceStr = this.priceToPrecision((String) (symbol), stopLossPrice);
+                triggerPriceStr = this.priceToPrecision(symbol, stopLossPrice);
             } else if (!java.util.Objects.equals(takeProfitPrice, null))
             {
                 if (Boolean.TRUE.equals(isMarketOrder))
@@ -1128,11 +1128,11 @@ public class Lighter extends LighterApi
                 {
                     orderTypeNum = 5;
                 }
-                triggerPriceStr = this.priceToPrecision((String) (symbol), takeProfitPrice);
+                triggerPriceStr = this.priceToPrecision(symbol, takeProfitPrice);
             }
         } else
         {
-            amountStr = this.amountToPrecision((String) (symbol), amount);
+            amountStr = this.amountToPrecision(symbol, amount);
         }
         ((Map<String, Object>)request).put("order_expiry", orderExpiry);
         ((Map<String, Object>)request).put("order_type", orderTypeNum);
@@ -1248,7 +1248,7 @@ public class Lighter extends LighterApi
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((List<Object>) accountIndexparametersVariable).get(1);
             ((Map<String, Object>)parameters).put("accountIndex", accountIndex);
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object groupingType = null;
             List<Object> groupingTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "groupingType", 3);
             groupingType = ((List<Object>) groupingTypeparametersVariable).get(0);
@@ -1350,7 +1350,7 @@ public class Lighter extends LighterApi
             //     "predicted_execution_time_ms": 1766088500120
             // }
             //
-            return this.parseOrder((Map<String, Object>) (this.deepExtend(response, order)), market);
+            return this.parseOrder(this.deepExtend(response, order), market);
         }).thenApply(Order::new);
 
     }
@@ -1393,22 +1393,22 @@ public class Lighter extends LighterApi
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             String amountScale = this.pow("10", ((Map<String, Object>)marketInfo).get("size_decimals"));
             String priceScale = this.pow("10", ((Map<String, Object>)marketInfo).get("price_decimals"));
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
             Object amountStr = null;
-            Object priceStr = this.priceToPrecision((String) (symbol), price);
+            Object priceStr = this.priceToPrecision(symbol, price);
             Object triggerPriceStr = "0"; // default is 0
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 amountStr = this.numberToString(amount);
-                triggerPriceStr = this.priceToPrecision((String) (symbol), triggerPrice);
+                triggerPriceStr = this.priceToPrecision(symbol, triggerPrice);
             } else
             {
-                amountStr = this.amountToPrecision((String) (symbol), amount);
+                amountStr = this.amountToPrecision(symbol, amount);
             }
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalAmountStr = amountStr;
@@ -1439,7 +1439,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1802,7 +1802,7 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_id", ((Map<String, Object>)market).get("id") );
                 put( "limit", 100 );
@@ -1841,7 +1841,7 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(response, (String) (((Map<String, Object>)market).get("symbol")), null, "bids", "asks", "price", "remaining_base_amount");
+            Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "remaining_base_amount");
             return result;
         }).thenApply(OrderBook::new);
 
@@ -1920,7 +1920,7 @@ public class Lighter extends LighterApi
         String quoteVolume = this.safeString(ticker, "daily_quote_token_volume");
         String change = this.safeString(ticker, "daily_price_change");
         String openInterest = this.safeString(ticker, "open_interest");
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1944,7 +1944,7 @@ public class Lighter extends LighterApi
             put( "indexPrice", Lighter.this.safeString(ticker, "index_price") );
             put( "openInterest", openInterest );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -1970,7 +1970,7 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_id", ((Map<String, Object>)market).get("id") );
             }};
@@ -2110,7 +2110,7 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             Object now = this.milliseconds();
@@ -2376,7 +2376,7 @@ public class Lighter extends LighterApi
                     ((Map<String, Object>)result).put("USDC", perpBalance);
                 }
             }
-            return this.safeBalance((Map<String, Object>) (result));
+            return this.safeBalance(result);
         }).thenApply(Balances::new);
 
     }
@@ -2647,7 +2647,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseAccount(Map<String, Object> account)
+    public Object parseAccount(Object account)
     {
         //
         //     {
@@ -2724,7 +2724,7 @@ public class Lighter extends LighterApi
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_id", ((Map<String, Object>)market).get("id") );
@@ -2819,7 +2819,7 @@ public class Lighter extends LighterApi
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_id", ((Map<String, Object>)market).get("id") );
@@ -2879,7 +2879,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -3700,7 +3700,7 @@ public class Lighter extends LighterApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("market_id", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetTrades(this.extend(request, parameters))).join();
@@ -3751,7 +3751,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -3930,7 +3930,7 @@ public class Lighter extends LighterApi
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalMarginMode = marginMode;
             final Object finalApiKeyIndex = apiKeyIndex;
@@ -3978,7 +3978,7 @@ public class Lighter extends LighterApi
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, method, "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((List<Object>) accountIndexparametersVariable).get(1);
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "client_order_index", "clientOrderId");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_index", "clientOrderId")));
             Object strAccountIndex = this.numberToString(accountIndex);
@@ -4038,7 +4038,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -4260,7 +4260,7 @@ public class Lighter extends LighterApi
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalDirection = direction;
             final Object finalApiKeyIndex = apiKeyIndex;

@@ -79,7 +79,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String name = "SubscribeLevel1";
             Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -96,7 +96,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "o", Ndax.this.json(payload) );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watch((String) (url), (String) (messageHash), message, messageHash, null)).join();
+            return (this.watch(url, messageHash, message, messageHash, null)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -131,7 +131,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (payload));
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (!java.util.Objects.equals(symbol, null))
         {
             Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -165,7 +165,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String name = "SubscribeTrades";
             Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
@@ -184,7 +184,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "o", Ndax.this.json(payload) );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object trades = (this.watch((String) (url), (String) (messageHash), message, messageHash, null)).join();
+            Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -220,7 +220,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Map<String, Object> updates = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)payload).size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((Map<String, Object>) ((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i))));
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)));
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             Object tradesArray = (((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(tradesArray, null))
@@ -242,7 +242,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             Object tradesArray = this.safeValue(this.trades, symbol);
             client.resolve(tradesArray, messageHash);
@@ -275,7 +275,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String name = "SubscribeTicker";
             Object messageHash = ((((name + ":") + timeframe) + ":") + ((Map<String, Object>)market).get("id"));
@@ -295,7 +295,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "o", Ndax.this.json(payload) );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object ohlcv = (this.watch((String) (url), (String) (messageHash), message, messageHash, null)).join();
+            Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -444,7 +444,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String name = "SubscribeLevel2";
             Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
@@ -476,7 +476,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "params", parameters );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object orderbook = (this.watch((String) (url), (String) (messageHash), message, messageHash, subscription)).join();
+            Object orderbook = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -601,7 +601,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //     ]
         //
         String symbol = this.safeString(subscription, "symbol");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(payload, (String) (symbol));
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(payload, symbol);
         Long limit = this.safeInteger(subscription, "limit");
         io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot, limit);
         if (!java.util.Objects.equals(symbol, null))

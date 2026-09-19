@@ -1478,7 +1478,7 @@ public class Gemini extends GeminiApi
         String baseVolume = this.safeString(volume, baseId);
         String quoteVolume = this.safeString(volume, quoteId);
         final Object finalSymbol = symbol;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
             put( "timestamp", timestamp );
             put( "datetime", Gemini.this.iso8601(timestamp) );
@@ -1499,7 +1499,7 @@ public class Gemini extends GeminiApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**

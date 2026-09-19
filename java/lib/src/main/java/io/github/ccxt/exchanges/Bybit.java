@@ -2608,12 +2608,12 @@ public class Bybit extends BybitApi
     {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Boolean emptyPrecisionAmount = (java.util.Objects.equals(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), null));
         Object amountString = this.numberToString(amount);
         if (!Boolean.TRUE.equals(emptyPrecisionAmount) && (!java.util.Objects.equals(amountString, "0")))
         {
-            return this.amountToPrecision((String) (symbol), amount);
+            return this.amountToPrecision(symbol, amount);
         }
         return amountString;
     }
@@ -2624,22 +2624,22 @@ public class Bybit extends BybitApi
         {
             return price;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Boolean emptyPrecisionPrice = (java.util.Objects.equals(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), null));
         if (!Boolean.TRUE.equals(emptyPrecisionPrice))
         {
-            return this.priceToPrecision((String) (symbol), price);
+            return this.priceToPrecision(symbol, price);
         }
         return price;
     }
 
     public Object getCost(String symbol, String cost)
     {
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Boolean emptyPrecisionPrice = (java.util.Objects.equals(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), null));
         if (!Boolean.TRUE.equals(emptyPrecisionPrice))
         {
-            return this.costToPrecision((String) (symbol), cost);
+            return this.costToPrecision(symbol, cost);
         }
         return cost;
     }
@@ -3584,7 +3584,7 @@ public class Bybit extends BybitApi
         String high = this.safeString(ticker, "highPrice24h");
         String low = this.safeString(ticker, "lowPrice24h");
         final Object finalPercentage = percentage;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Bybit.this.iso8601(timestamp) );
@@ -3607,7 +3607,7 @@ public class Bybit extends BybitApi
             put( "markPrice", Bybit.this.safeString(ticker, "markPrice") );
             put( "indexPrice", Bybit.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -3633,7 +3633,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3732,7 +3732,7 @@ public class Bybit extends BybitApi
                         market = this.safeMarket(symbol, null, null, defaultType);
                     } else
                     {
-                        market = this.market((String) (symbol));
+                        market = this.market(symbol);
                     }
                     if (java.util.Objects.equals(currentType, null))
                     {
@@ -3901,7 +3901,7 @@ public class Bybit extends BybitApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4103,7 +4103,7 @@ public class Bybit extends BybitApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 symbols = this.marketSymbols(symbols);
-                market = this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
@@ -4220,7 +4220,7 @@ public class Bybit extends BybitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "limit", finalLimit );
             }};
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long fundingTimeFrameMins = this.safeInteger(((Map<String, Object>)market).get("info"), "fundingInterval");
             symbol = ((Map<String, Object>)market).get("symbol");
             ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
@@ -4296,7 +4296,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public https://bybit-exchange.github.io/docs/v5/market/recent-trade
@@ -4448,7 +4448,7 @@ public class Bybit extends BybitApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("execId", "id", "tradeId")));
         String marketId = this.safeString(trade, "symbol");
-        Object marketType = (((trade.containsKey("createType")))) ? "contract" : "spot";
+        Object marketType = (((((Map<?, ?>)trade).containsKey("createType")))) ? "contract" : "spot";
         String category = this.safeString(trade, "category");
         if (!java.util.Objects.equals(category, null))
         {
@@ -4590,7 +4590,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4660,7 +4660,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4715,7 +4715,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "ts");
-            return this.parseOrderBook(result, (String) (symbol), timestamp, "b", "a");
+            return this.parseOrderBook(result, symbol, timestamp, "b", "a");
         }).thenApply(OrderBook::new);
 
     }
@@ -4902,7 +4902,7 @@ public class Bybit extends BybitApi
                 }
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -5139,7 +5139,7 @@ public class Bybit extends BybitApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // v1 for usdc normal account
@@ -5260,7 +5260,7 @@ public class Bybit extends BybitApi
             }
         }
         String marketId = this.safeString(order, "symbol");
-        Boolean isContract = (order.containsKey("tpslMode"));
+        Boolean isContract = (((Map<?, ?>)order).containsKey("tpslMode"));
         Object marketType = null;
         if (!java.util.Objects.equals(market, null))
         {
@@ -5409,7 +5409,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -5448,7 +5448,7 @@ public class Bybit extends BybitApi
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports UTA accounts only")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
@@ -5508,7 +5508,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object parts = (this.isUnifiedEnabled()).join();
             Object enableUnifiedAccount = (parts == null || 1 >= ((List<?>)parts).size() ? null : ((List<?>)parts).get(1));
             Boolean isTrailingOrder = !java.util.Objects.equals(this.safeString2(parameters, "trailingAmount", "trailingStop"), null);
@@ -5549,7 +5549,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (order), market);
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -5567,7 +5567,7 @@ public class Bybit extends BybitApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         symbol = (String) (((Map<String, Object>)market).get("symbol"));
         Object lowerCaseType = ((String)type).toLowerCase();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5943,8 +5943,8 @@ public class Bybit extends BybitApi
                 ((Map<String,Object>)orderRequest).remove("category");
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            Object symbols = this.marketSymbols(orderSymbols, (String) (null), false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
+            Object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
+            Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
             Object category = null;
             var categoryparametersVariable = this.getBybitType("createOrders", market, parameters);
@@ -6029,7 +6029,7 @@ public class Bybit extends BybitApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
         }};
@@ -6140,7 +6140,7 @@ public class Bybit extends BybitApi
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires a symbol argument")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostV5OrderAmend(this.extend(request, parameters))).join();
             //
@@ -6201,8 +6201,8 @@ public class Bybit extends BybitApi
                 ((Map<String,Object>)orderRequest).remove("category");
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            orderSymbols = this.marketSymbols(orderSymbols, (String) (null), false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market((String) ((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0))));
+            orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
+            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
             Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
             Object category = null;
             var categoryparametersVariable = this.getBybitType("editOrders", market, parameters);
@@ -6276,7 +6276,7 @@ public class Bybit extends BybitApi
     {
         Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
         }};
@@ -6327,7 +6327,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object requestExtended = this.cancelOrderRequest(id, symbol, parameters);
             Map<String, Object> response = (this.privatePostV5OrderCancel(requestExtended)).join();
             //
@@ -6343,7 +6343,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (result), market);
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
     }
@@ -6374,7 +6374,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object types = (this.isUnifiedEnabled()).join();
             Object enableUnifiedAccount = (types == null || 1 >= ((List<?>)types).size() ? null : ((List<?>)types).get(1));
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
@@ -6647,7 +6647,7 @@ public class Bybit extends BybitApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object type = null;
@@ -6741,7 +6741,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " fetchOrder() is not supported for spot markets")) ;
@@ -6804,7 +6804,7 @@ public class Bybit extends BybitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marketType = null;
             var marketTypeparametersVariable = this.getBybitType("fetchOrder", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -6884,7 +6884,7 @@ public class Bybit extends BybitApi
                 throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             Map<String, Object> order = (Map<String, Object>) this.safeDict(innerList, 0, new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (order), market);
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -6932,7 +6932,7 @@ public class Bybit extends BybitApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object type = null;
@@ -7159,7 +7159,7 @@ public class Bybit extends BybitApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object type = null;
@@ -7381,7 +7381,7 @@ public class Bybit extends BybitApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object type = null;
@@ -7557,7 +7557,7 @@ public class Bybit extends BybitApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object type = null;
@@ -8435,7 +8435,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -8546,13 +8546,13 @@ public class Bybit extends BybitApi
             } else if (!java.util.Objects.equals(symbols, null))
             {
                 symbol = symbols;
-                symbols = new ArrayList<Object>(Arrays.asList(this.symbol((String) (symbol))));
+                symbols = new ArrayList<Object>(Arrays.asList(this.symbol(symbol)));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
@@ -8933,7 +8933,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object position = (this.fetchPosition((Object)(symbol), (Object)(parameters))).join();
             return this.parseLeverage((Map<String, Object>) (position), market);
         }).thenApply(Leverage::new);
@@ -9009,7 +9009,7 @@ public class Bybit extends BybitApi
                 {
                     throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol parameter for non unified account")) ;
                 }
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 Boolean isUsdcSettled = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC");
                 if (Boolean.TRUE.equals(isUsdcSettled))
                 {
@@ -9118,7 +9118,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             // engage in leverage setting
@@ -9171,7 +9171,7 @@ public class Bybit extends BybitApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object mode = null;
             if (Helpers.isTrue(hedged))
@@ -9233,7 +9233,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String subType = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? "linear" : "inverse";
             String category = this.safeString(parameters, "category", subType);
             Map<String, Object> intervals = (Map<String, Object>) this.safeDict(this.options, "intervals");
@@ -9322,7 +9322,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
@@ -9413,7 +9413,7 @@ public class Bybit extends BybitApi
                 ((Map<String, Object>)parameters).put("timeframe", timeframe);
                 return (this.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 200)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
             {
                 throw new BadRequest(((this.id + " fetchOpenInterestHistory() symbol does not support market ") + symbol)) ;
@@ -9446,14 +9446,14 @@ public class Bybit extends BybitApi
         Boolean isInverse = (java.util.Objects.equals(this.safeBool(market, "inverse"), true));
         Object amount = ((Boolean.TRUE.equals(isLinear))) ? openInterest : null;
         Object value = ((Boolean.TRUE.equals(isInverse))) ? openInterest : null;
-        return this.safeOpenInterest((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Bybit.this.safeString(market, "symbol") );
             put( "openInterestAmount", amount );
             put( "openInterestValue", value );
             put( "timestamp", timestamp );
             put( "datetime", Bybit.this.iso8601(timestamp) );
             put( "info", interest );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -10038,7 +10038,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -10101,7 +10101,7 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
-            market = this.market((String) (symbol));
+            market = this.market(symbol);
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
             {
                 throw new BadRequest(((this.id + " fetchMarketLeverageTiers() symbol does not support market ") + symbol)) ;
@@ -10154,7 +10154,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -10408,7 +10408,7 @@ public class Bybit extends BybitApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object type = null;
@@ -10483,7 +10483,7 @@ public class Bybit extends BybitApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object type = null;
@@ -10693,7 +10693,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "category", "option" );
@@ -10772,7 +10772,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
+            symbols = this.marketSymbols(symbols, null, true, true, true);
             String baseCoin = this.safeString(parameters, "baseCoin", "BTC");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", "option" );
@@ -10784,7 +10784,7 @@ public class Bybit extends BybitApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    market = this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -10934,7 +10934,7 @@ public class Bybit extends BybitApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object type = null;
@@ -11065,7 +11065,7 @@ public class Bybit extends BybitApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "getLeverageTiersPaginated", "paginate");
@@ -11125,7 +11125,7 @@ public class Bybit extends BybitApi
             Object symbol = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                market = this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
                     throw new NotSupported((this.id + " fetchLeverageTiers() is not supported for spot market")) ;
@@ -11263,7 +11263,7 @@ final Object finalMarket = market;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object type = null;
@@ -11374,7 +11374,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", "option" );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -11591,7 +11591,7 @@ final Object finalMarket = market;
                 symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
-                    market = this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
             }
             Long until = this.safeInteger(parameters, "until");
@@ -12133,7 +12133,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object type = null;
             var typeparametersVariable = this.getBybitType("fetchLongShortRatioHistory", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -12232,7 +12232,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
+            symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
@@ -12379,7 +12379,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> response = (this.privateGetV5AccountInfo(parameters)).join();
             //
             //     {
@@ -12409,7 +12409,7 @@ final Object finalMarket = market;
         String marginType = this.safeString(marginMode, "marginMode");
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", Bybit.this.safeSymbol((String) (null), market) );
+            put( "symbol", Bybit.this.safeSymbol(null, market) );
             put( "marginMode", Bybit.this.parseMarginModeType(marginType) );
         }};
     }

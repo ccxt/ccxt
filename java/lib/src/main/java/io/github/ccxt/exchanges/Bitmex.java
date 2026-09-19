@@ -904,16 +904,16 @@ public class Bitmex extends BitmexApi
         return Precise.stringMul(amount, precision);
     }
 
-    public Object amountToPrecision(String symbol, Object amount)
+    public Object amountToPrecision(Object symbol, Object amount)
     {
-        symbol = (String) (this.safeSymbol((String) (symbol)));
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        symbol = this.safeSymbol(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Boolean oldPrecision = (Boolean) this.safeBool(this.options, "oldPrecision");
         if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (!java.util.Objects.equals(oldPrecision, true)))
         {
             amount = this.convertFromRealAmount((String) (((Map<String, Object>)market).get("base")), amount);
         }
-        return super.amountToPrecision((String) (symbol), amount);
+        return super.amountToPrecision(symbol, amount);
     }
 
     public Object convertFromRawQuantity(String symbol, String rawQuantity, Object... optionalArgs)
@@ -923,13 +923,13 @@ public class Bitmex extends BitmexApi
         {
             return this.parseNumber(rawQuantity);
         }
-        symbol = (String) (this.safeSymbol((String) (symbol)));
+        symbol = (String) (this.safeSymbol(symbol));
         boolean marketExists = this.inArray(symbol, this.symbols);
         if (!marketExists)
         {
             return this.parseNumber(rawQuantity);
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
         {
             return this.parseNumber(this.convertToRealAmount(this.safeString(market, currencySide), (String) (rawQuantity)));
@@ -1141,7 +1141,7 @@ public class Bitmex extends BitmexApi
 
     }
 
-    public Object parseMarket(Map<String, Object> market)
+    public Object parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "underlying");
@@ -1368,7 +1368,7 @@ public class Bitmex extends BitmexApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -1466,7 +1466,7 @@ public class Bitmex extends BitmexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1576,7 +1576,7 @@ public class Bitmex extends BitmexApi
             Object request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1701,7 +1701,7 @@ public class Bitmex extends BitmexApi
             Object request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2145,7 +2145,7 @@ public class Bitmex extends BitmexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2208,7 +2208,7 @@ public class Bitmex extends BitmexApi
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String open = this.safeString(ticker, "prevPrice24h");
         String last = this.safeString(ticker, "lastPrice");
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Bitmex.this.iso8601(timestamp) );
@@ -2230,7 +2230,7 @@ public class Bitmex extends BitmexApi
             put( "quoteVolume", Bitmex.this.safeString(ticker, "foreignNotional24h") );
             put( "markPrice", Bitmex.this.safeString(ticker, "markPrice") );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
@@ -2299,7 +2299,7 @@ public class Bitmex extends BitmexApi
             // send a bare series (e.g. XBU) to nearest expiring contract in that series
             // you can also send a timeframe, e.g. XBU:monthly
             // timeframes: daily, weekly, monthly, quarterly, and biquarterly
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "binSize", Bitmex.this.safeString(Bitmex.this.timeframes, timeframe, timeframe) );
@@ -2358,7 +2358,7 @@ public class Bitmex extends BitmexApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -2508,7 +2508,7 @@ public class Bitmex extends BitmexApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -2654,7 +2654,7 @@ public class Bitmex extends BitmexApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2739,7 +2739,7 @@ public class Bitmex extends BitmexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderType = this.capitalize(type);
             Object capitalizeOrderType = orderType;
             Object reduceOnly = this.safeValue(parameters, "reduceOnly");
@@ -2753,7 +2753,7 @@ public class Bitmex extends BitmexApi
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly")));
             String brokerId = this.safeString(this.options, "brokerId", "CCXT");
-            Long qty = this.parseToInt(this.amountToPrecision((String) (symbol), amount));
+            Long qty = this.parseToInt(this.amountToPrecision(symbol, amount));
             final Object finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2824,14 +2824,14 @@ public class Bitmex extends BitmexApi
                     {
                         throw new ArgumentsRequired((((this.id + " createOrder() requires a triggerPrice parameter for the ") + orderType) + " order type")) ;
                     }
-                    ((Map<String, Object>)request).put("stopPx", this.parseToNumeric(this.priceToPrecision((String) (symbol), triggerPrice)));
+                    ((Map<String, Object>)request).put("stopPx", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)));
                 }
                 ((Map<String, Object>)request).put("ordType", orderType);
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stopPx", "triggerDirection", "trailingAmount")));
             }
             if ((java.util.Objects.equals(orderType, "Limit")) || (java.util.Objects.equals(orderType, "StopLimit")) || (java.util.Objects.equals(orderType, "LimitIfTouched")))
             {
-                ((Map<String, Object>)request).put("price", this.parseToNumeric(this.priceToPrecision((String) (symbol), price)));
+                ((Map<String, Object>)request).put("price", this.parseToNumeric(this.priceToPrecision(symbol, price)));
             }
             String clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -2840,7 +2840,7 @@ public class Bitmex extends BitmexApi
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId")));
             }
             Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2915,7 +2915,7 @@ public class Bitmex extends BitmexApi
             }
             if (!java.util.Objects.equals(amount, null))
             {
-                Long qty = this.parseToInt(this.amountToPrecision((String) (symbol), amount));
+                Long qty = this.parseToInt(this.amountToPrecision(symbol, amount));
                 ((Map<String, Object>)request).put("orderQty", qty);
             }
             if (!java.util.Objects.equals(price, null))
@@ -2925,7 +2925,7 @@ public class Bitmex extends BitmexApi
             String brokerId = this.safeString(this.options, "brokerId", "CCXT");
             ((Map<String, Object>)request).put("text", brokerId);
             Map<String, Object> response = (this.privatePutOrder(this.extend(request, parameters))).join();
-            return this.parseOrder((Map<String, Object>) (response));
+            return this.parseOrder(response);
         }).thenApply(Order::new);
 
     }
@@ -2972,7 +2972,7 @@ public class Bitmex extends BitmexApi
                     throw new OrderNotFound(((this.id + " cancelOrder() failed: ") + error)) ;
                 }
             }
-            return this.parseOrder((Map<String, Object>) (order));
+            return this.parseOrder(order);
         }).thenApply(Order::new);
 
     }
@@ -3040,7 +3040,7 @@ public class Bitmex extends BitmexApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateDeleteOrderAll(this.extend(request, parameters))).join();
@@ -3632,7 +3632,7 @@ public class Bitmex extends BitmexApi
                     ((Map<String, Object>)request).put("symbol", symbol);
                 } else
                 {
-                    market = this.market((String) (symbol));
+                    market = this.market(symbol);
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -3723,7 +3723,7 @@ public class Bitmex extends BitmexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), "swap") && !java.util.Objects.equals(((Map<String, Object>)market).get("type"), "future"))
             {
                 throw new BadSymbol((this.id + " setLeverage() supports future and swap contracts only")) ;
@@ -3768,7 +3768,7 @@ public class Bitmex extends BitmexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if ((!java.util.Objects.equals(((Map<String, Object>)market).get("type"), "swap")) && (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), "future")))
             {
                 throw new BadSymbol((this.id + " setMarginMode() supports swap and future contracts only")) ;
@@ -4036,7 +4036,7 @@ public class Bitmex extends BitmexApi
         Double openInterest = this.safeNumber(interest, "openInterest");
         Double openValue = this.safeNumber(interest, "openValue");
         final Object finalSymbol = symbol;
-        return this.safeOpenInterest((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "info", interest );
             put( "symbol", finalSymbol );
             put( "baseVolume", openInterest );
@@ -4045,7 +4045,7 @@ public class Bitmex extends BitmexApi
             put( "openInterestValue", openValue );
             put( "timestamp", null );
             put( "datetime", null );
-        }}), market);
+        }}, market);
     }
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
@@ -4099,7 +4099,7 @@ public class Bitmex extends BitmexApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchLiquidations", symbol, since, limit, parameters)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4178,7 +4178,7 @@ public class Bitmex extends BitmexApi
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
+            symbols = this.marketSymbols(symbols, null, true, true, true);
             List<Object> response = (this.privateGetPosition(parameters)).join();
             //
             //     [
@@ -4468,7 +4468,7 @@ public class Bitmex extends BitmexApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -4560,7 +4560,7 @@ public class Bitmex extends BitmexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "side", Bitmex.this.capitalize(side) );
@@ -4591,7 +4591,7 @@ public class Bitmex extends BitmexApi
             //         "workingIndicator": false
             //     }
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }

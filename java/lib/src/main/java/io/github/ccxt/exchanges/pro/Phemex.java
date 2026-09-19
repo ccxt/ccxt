@@ -164,7 +164,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final Object finalChange = change;
         final Object finalPercentage = percentage;
         final Object finalAverage = average;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Phemex.this.iso8601(timestamp) );
@@ -187,7 +187,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             put( "markPrice", Phemex.this.parseNumber(Phemex.this.fromEp(Phemex.this.safeString(ticker, "markPrice"), finalMarket)) );
             put( "indexPrice", Phemex.this.parseNumber(Phemex.this.fromEp(Phemex.this.safeString(ticker, "indexPrice"), finalMarket)) );
             put( "info", ticker );
-        }}));
+        }});
     }
 
     public Object parsePerpetualTicker(Object ticker, Object... optionalArgs)
@@ -232,7 +232,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final Object finalChange = change;
         final Object finalPercentage = percentage;
         final Object finalAverage = average;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -253,7 +253,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}));
+        }});
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -473,7 +473,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 Helpers.addElementToObject(this.balance, code, account);
             }
-            this.balance = this.safeBalance((Map<String, Object>) (this.balance));
+            this.balance = this.safeBalance(this.balance);
         }
         String messageHash = (type + ":balance");
         client.resolve(this.balance, messageHash);
@@ -610,7 +610,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object isSwap = ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
@@ -629,7 +629,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 put( "params", new ArrayList<Object>(Arrays.asList()) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            return (this.watch((String) (url), messageHash, request, subscriptionHash, null)).join();
+            return (this.watch(url, messageHash, request, subscriptionHash, null)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -657,9 +657,9 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, (String) (null), false);
+            symbols = this.marketSymbols(symbols, null, false);
             Object first = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (first));
+            Map<String, Object> market = (Map<String, Object>) this.market(first);
             Object isSwap = ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
             String name = "spot_market24h";
@@ -718,7 +718,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
@@ -734,7 +734,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 put( "params", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            Object trades = (this.watch((String) (url), messageHash, request, messageHash, null)).join();
+            Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -768,7 +768,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
@@ -784,7 +784,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 put( "params", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            Object orderbook = (this.watch((String) (url), messageHash, request, messageHash, null)).join();
+            Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -817,7 +817,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
@@ -833,7 +833,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 put( "params", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), Phemex.this.safeInteger(Phemex.this.timeframes, timeframe))) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            Object ohlcv = (this.watch((String) (url), messageHash, request, messageHash, null)).join();
+            Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -968,7 +968,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object messageHash = "trades:";
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = Helpers.add(messageHash, ((Map<String, Object>)market).get("symbol"));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT"))
@@ -1109,7 +1109,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object rawTrade = Helpers.GetValue(message, i);
             String marketId = this.safeString(rawTrade, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade((Map<String, Object>) (rawTrade));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(rawTrade);
             Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (java.util.Objects.equals(type, null))
@@ -1161,7 +1161,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object type = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = Helpers.add(messageHash, ((Map<String, Object>)market).get("symbol"));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT"))
@@ -1364,7 +1364,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object rawOrder = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder((Map<String, Object>) (rawOrder));
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder);
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
         } else
@@ -1401,7 +1401,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object parsed = (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(parsed, "symbol");
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(type, null))
             {
                 Boolean isUsdt = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
@@ -1803,7 +1803,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 put( "params", new ArrayList<Object>(Arrays.asList()) );
             }};
             request = this.extend(request, parameters);
-            return (this.watch((String) (url), (String) (messageHash), request, channel, null)).join();
+            return (this.watch(url, messageHash, request, channel, null)).join();
         });
 
     }
@@ -1816,7 +1816,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             Object requestId = this.requestId();
             String messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
@@ -1838,7 +1838,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 {
                     ((Map)client.subscriptions).put((String)subscriptionHash, "handleAuthenticate");
                 }
-                future = (this.watch((String) (url), messageHash, message, messageHash, null)).join();
+                future = (this.watch(url, messageHash, message, messageHash, null)).join();
                 ((Map)client.subscriptions).put((String)messageHash, future);
             }
             return future;

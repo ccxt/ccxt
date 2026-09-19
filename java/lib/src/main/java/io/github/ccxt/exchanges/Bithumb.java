@@ -561,9 +561,9 @@ public class Bithumb extends BithumbApi
         return super.safeMarket(marketId, market, delimiter, "spot");
     }
 
-    public Object amountToPrecision(String symbol, Object amount)
+    public Object amountToPrecision(Object symbol, Object amount)
     {
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         return this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), DECIMAL_PLACES);
     }
 
@@ -850,7 +850,7 @@ public class Bithumb extends BithumbApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -920,7 +920,7 @@ public class Bithumb extends BithumbApi
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
             parameters = ((List<Object>) generationparametersVariable).get(1);
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object data = null;
@@ -1000,7 +1000,7 @@ public class Bithumb extends BithumbApi
                 data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(data, "timestamp");
             }
-            return this.parseOrderBook(data, (String) (symbol), timestamp, "bids", "asks", "price", "quantity");
+            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         }).thenApply(OrderBook::new);
 
     }
@@ -1129,7 +1129,7 @@ public class Bithumb extends BithumbApi
         final Object finalClose = close;
         final Object finalChange = change;
         final Object finalPercentage = percentage;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Bithumb.this.iso8601(timestamp) );
@@ -1150,7 +1150,7 @@ public class Bithumb extends BithumbApi
             put( "baseVolume", Bithumb.this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h") );
             put( "quoteVolume", Bithumb.this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h") );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -1190,7 +1190,7 @@ public class Bithumb extends BithumbApi
                 Object symbolsForMarketIdsLength = ((List<?>)symbolsForMarketIds).size();
                 for (var i = 0; Helpers.isLessThan(i, symbolsForMarketIdsLength); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((String) (Helpers.GetValue(symbolsForMarketIds, i)));
+                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbolsForMarketIds, i));
                     ((List<Object>)marketIds).add(this.getGen2MarketId((Map<String, Object>) (market)));
                 }
                 Object marketIdsLength = ((List<?>)marketIds).size();
@@ -1326,7 +1326,7 @@ public class Bithumb extends BithumbApi
                     for (var i = 0; i < ((List<?>)symbols).size(); i++)
                     {
                         Object symbol = Helpers.GetValue(symbols, i);
-                        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                         String quoteId = this.safeString(market, "quoteId");
                         if ((!java.util.Objects.equals(quoteId, null)) && (quoteCurrencies.containsKey(quoteId)))
                         {
@@ -1397,7 +1397,7 @@ public class Bithumb extends BithumbApi
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTicker", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
             parameters = ((List<Object>) generationparametersVariable).get(1);
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object data = new HashMap<String, Object>() {{}};
@@ -1545,7 +1545,7 @@ public class Bithumb extends BithumbApi
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
             parameters = ((List<Object>) generationparametersVariable).get(1);
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object data = new ArrayList<Object>(Arrays.asList());
@@ -1642,7 +1642,7 @@ public class Bithumb extends BithumbApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // generation 1: fetchTrades (public)
@@ -1812,7 +1812,7 @@ public class Bithumb extends BithumbApi
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
             parameters = ((List<Object>) generationparametersVariable).get(1);
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1930,8 +1930,8 @@ public class Bithumb extends BithumbApi
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            orderSymbols = this.marketSymbols(orderSymbols, (String) (null), false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market((String) ((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0))));
+            orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
+            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "batch_orders", ordersRequests );
             }};
@@ -1973,7 +1973,7 @@ public class Bithumb extends BithumbApi
         */
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "market", Bithumb.this.getGen2MarketId((Map<String, Object>) (market)) );
         }};
@@ -2014,8 +2014,8 @@ public class Bithumb extends BithumbApi
         }
         if (java.util.Objects.equals(type, "limit"))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
-            ((Map<String, Object>)request).put("volume", this.amountToPrecision((String) (symbol), amount));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put("volume", this.amountToPrecision(symbol, amount));
             ((Map<String, Object>)request).put("order_type", "limit");
         } else
         {
@@ -2045,10 +2045,10 @@ public class Bithumb extends BithumbApi
                 {
                     cost = (((java.util.Objects.equals(cost, null)))) ? this.numberToString(amount) : cost;
                 }
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), cost));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, cost));
             } else
             {
-                ((Map<String, Object>)request).put("volume", this.amountToPrecision((String) (symbol), amount));
+                ((Map<String, Object>)request).put("volume", this.amountToPrecision(symbol, amount));
                 typeRequest = "market";
             }
             ((Map<String, Object>)request).put("order_type", typeRequest);
@@ -2102,7 +2102,7 @@ public class Bithumb extends BithumbApi
             generation = ((List<Object>) generationparametersVariable).get(0);
             parameters = ((List<Object>) generationparametersVariable).get(1);
             Object request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object response = null;
             if (Helpers.isEqual(generation, 2))
             {
@@ -2112,10 +2112,10 @@ public class Bithumb extends BithumbApi
             {
                 ((Map<String, Object>)request).put("order_currency", ((Map<String, Object>)market).get("base"));
                 ((Map<String, Object>)request).put("payment_currency", ((Map<String, Object>)market).get("quote"));
-                ((Map<String, Object>)request).put("units", this.amountToPrecision((String) (symbol), amount));
+                ((Map<String, Object>)request).put("units", this.amountToPrecision(symbol, amount));
                 if (java.util.Objects.equals(type, "limit"))
                 {
-                    ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
                     String typeRequest = null;
                     if (java.util.Objects.equals(side, "buy"))
                     {
@@ -2143,7 +2143,7 @@ public class Bithumb extends BithumbApi
             final Object finalType = type;
             final Object finalSide = side;
             final Object finalId = id;
-            return this.extend(this.parseOrder((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseOrder(response, market), new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "symbol", symbol );
                 put( "type", finalType );
@@ -2224,7 +2224,7 @@ public class Bithumb extends BithumbApi
             {
                 throw new BadRequest((this.id + " createTwapOrder() is only supported for the generation 2 API")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object durationString = this.numberToString(duration);
             String durationSeconds = Precise.stringDiv(durationString, "1000");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2233,7 +2233,7 @@ public class Bithumb extends BithumbApi
             }};
             if (!java.util.Objects.equals(amount, null))
             {
-                ((Map<String, Object>)request).put("volume", this.amountToPrecision((String) (symbol), amount)); // required for sale
+                ((Map<String, Object>)request).put("volume", this.amountToPrecision(symbol, amount)); // required for sale
             }
             String sideRequest = null;
             if (java.util.Objects.equals(side, "buy"))
@@ -2250,7 +2250,7 @@ public class Bithumb extends BithumbApi
             //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
             //     }
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2289,7 +2289,7 @@ public class Bithumb extends BithumbApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Boolean twap = (Boolean) this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
@@ -2418,7 +2418,7 @@ public class Bithumb extends BithumbApi
                 put( "order_id", id );
             }};
             Map<String, Object> parsedOrder = this.extend(data, orderData);
-            return this.parseOrder((Map<String, Object>) (parsedOrder), market);
+            return this.parseOrder(parsedOrder, market);
         }).thenApply(Order::new);
 
     }
@@ -2438,7 +2438,7 @@ public class Bithumb extends BithumbApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         //
@@ -2747,7 +2747,7 @@ public class Bithumb extends BithumbApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
                 }
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 if (!java.util.Objects.equals(since, null))
                 {
                     ((Map<String, Object>)request).put("after", since);
@@ -2819,7 +2819,7 @@ public class Bithumb extends BithumbApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("market", this.getGen2MarketId((Map<String, Object>) (market)));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2984,7 +2984,7 @@ public class Bithumb extends BithumbApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
@@ -3047,7 +3047,7 @@ public class Bithumb extends BithumbApi
                 ((Map<String, Object>)request).put("payment_currency", quote);
                 response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
             }
-            return this.extend(this.parseOrder((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseOrder(response, market), new HashMap<String, Object>() {{
                 put( "id", id );
             }});
         }).thenApply(Order::new);
@@ -3088,7 +3088,7 @@ public class Bithumb extends BithumbApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> clientOrderIds = (List<Object>) this.safeList2(parameters, "client_order_ids", "clientOrderIds");

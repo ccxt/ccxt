@@ -551,7 +551,7 @@ public class Bitflyer extends BitflyerApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -618,12 +618,12 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> orderbook = (this.publicGetGetboard(this.extend(request, parameters))).join();
-            return this.parseOrderBook(orderbook, (String) (((Map<String, Object>)market).get("symbol")), null, "bids", "asks", "price", "size");
+            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "size");
         }).thenApply(OrderBook::new);
 
     }
@@ -631,10 +631,10 @@ public class Bitflyer extends BitflyerApi
     public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String symbol = this.safeSymbol((String) (null), market);
+        String symbol = this.safeSymbol(null, market);
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String last = this.safeString(ticker, "ltp");
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Bitflyer.this.iso8601(timestamp) );
@@ -655,7 +655,7 @@ public class Bitflyer extends BitflyerApi
             put( "baseVolume", Bitflyer.this.safeString(ticker, "volume_by_product") );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -677,7 +677,7 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", ((Map<String, Object>)market).get("id") );
             }};
@@ -687,7 +687,7 @@ public class Bitflyer extends BitflyerApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public) v1
@@ -728,7 +728,7 @@ public class Bitflyer extends BitflyerApi
         if (!java.util.Objects.equals(side, null))
         {
             String idInner = (side + "_child_order_acceptance_id");
-            if (trade.containsKey(idInner))
+            if (((Map<?, ?>)trade).containsKey(idInner))
             {
                 order = Helpers.GetValue(trade, idInner);
             }
@@ -785,7 +785,7 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", ((Map<String, Object>)market).get("id") );
             }};
@@ -831,7 +831,7 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", ((Map<String, Object>)market).get("id") );
             }};
@@ -949,7 +949,7 @@ public class Bitflyer extends BitflyerApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.parse8601(this.safeString(order, "child_order_date"));
@@ -1028,7 +1028,7 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", ((Map<String, Object>)market).get("id") );
                 put( "count", limit );
@@ -1160,7 +1160,7 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", ((Map<String, Object>)market).get("id") );
             }};
@@ -1522,7 +1522,7 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", ((Map<String, Object>)market).get("id") );
             }};

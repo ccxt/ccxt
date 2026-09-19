@@ -92,7 +92,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
             String messageHash = (("market." + ((Map<String, Object>)market).get("id")) + ".detail");
@@ -113,7 +113,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "symbol", finalSymbol );
                 put( "params", parameters );
             }};
-            return (this.watch((String) (url), messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -178,7 +178,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
             String messageHash = (("market." + ((Map<String, Object>)market).get("id")) + ".trade.detail");
@@ -199,7 +199,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "symbol", finalSymbol );
                 put( "params", parameters );
             }};
-            Object trades = (this.watch((String) (url), messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+            Object trades = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -251,7 +251,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             Helpers.callDynamically(tradesCache, "append", new Object[]{trade});
         }
         client.resolve(tradesCache, ch);
@@ -282,7 +282,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String messageHash = ((("market." + ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
@@ -304,7 +304,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "timeframe", timeframe );
                 put( "params", parameters );
             }};
-            Object ohlcv = (this.watch((String) (url), messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+            Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -381,7 +381,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
             limit = (((java.util.Objects.equals(limit, null)))) ? 150 : limit;
@@ -406,7 +406,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "params", parameters );
                 put( "method", "handleOrderBookSubscription");
             }};
-            Object orderbook = (this.watch((String) (url), messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+            Object orderbook = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -440,7 +440,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         Long timestamp = this.safeInteger(message, "ts");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, (String) (symbol));
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol);
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seqNum"));
         ((Map<String, Object>)snapshot).put("timestamp", timestamp);
         ((Map<String, Object>)snapshot).put("datetime", this.iso8601(timestamp));
@@ -486,7 +486,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                     put( "params", parameters );
                     put( "method", "handleOrderBookSnapshot");
                 }};
-                Object orderbook = (this.watch((String) (url), (String) (requestId), request, requestId, snapshotSubscription)).join();
+                Object orderbook = (this.watch(url, requestId, request, requestId, snapshotSubscription)).join();
                 return Helpers.callDynamically(orderbook, "limit", new Object[]{});
             } catch(Exception e)
             {
@@ -584,7 +584,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         Object ch = this.safeValue(message, "ch");
         List<Object> parts = (List<Object>) Helpers.split(ch, ".");
         String marketId = this.safeString(parts, 1);
-        String symbol = this.safeSymbol((String) (marketId));
+        String symbol = this.safeSymbol(marketId);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(Helpers.GetValue(orderbook, "nonce"), null))
         {

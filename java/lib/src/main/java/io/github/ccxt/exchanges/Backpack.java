@@ -823,7 +823,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseMarket(Map<String, Object> market)
+    public Object parseMarket(Object market)
     {
         //
         //     [
@@ -1067,7 +1067,7 @@ public class Backpack extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1114,7 +1114,7 @@ public class Backpack extends BackpackApi
         }
         String change = this.safeString(ticker, "priceChange");
         final Object finalPercentage = percentage;
-        Object parsedTicker = this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        Object parsedTicker = this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1137,7 +1137,7 @@ public class Backpack extends BackpackApi
             put( "markPrice", null );
             put( "indexPrice", null );
             put( "info", ticker );
-        }}), market);
+        }}, market);
         return parsedTicker;
     }
 
@@ -1162,7 +1162,7 @@ public class Backpack extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1187,7 +1187,7 @@ public class Backpack extends BackpackApi
                 throw new ExchangeError((this.id + " fetchOrderBook() missing microseconds")) ;
             }
             Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, (String) (symbol), timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1219,7 +1219,7 @@ public class Backpack extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -1302,7 +1302,7 @@ public class Backpack extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new BadRequest(((this.id + " fetchFundingRate() symbol does not support market ") + symbol)) ;
@@ -1374,7 +1374,7 @@ public class Backpack extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new BadRequest(((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
@@ -1403,14 +1403,14 @@ public class Backpack extends BackpackApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(interest, "timestamp");
         Double openInterest = this.safeNumber(interest, "openInterest");
-        return this.safeOpenInterest((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Backpack.this.safeString(market, "symbol") );
             put( "openInterestAmount", null );
             put( "openInterestValue", openInterest );
             put( "timestamp", timestamp );
             put( "datetime", Backpack.this.iso8601(timestamp) );
             put( "info", interest );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -1441,7 +1441,7 @@ public class Backpack extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1505,7 +1505,7 @@ public class Backpack extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1558,7 +1558,7 @@ public class Backpack extends BackpackApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1587,7 +1587,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1790,7 +1790,7 @@ public class Backpack extends BackpackApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -2187,10 +2187,10 @@ public class Backpack extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostApiV1Order(orderRequest)).join();
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2246,7 +2246,7 @@ public class Backpack extends BackpackApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         final Object finalSide = side;
         final Object finalType = type;
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2260,24 +2260,24 @@ public class Backpack extends BackpackApi
         // handle basic limit/market order types
         if (java.util.Objects.equals(type, "limit"))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
-            ((Map<String, Object>)request).put((String)quantityKey, this.amountToPrecision((String) (symbol), amount));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put((String)quantityKey, this.amountToPrecision(symbol, amount));
         } else if (java.util.Objects.equals(type, "market"))
         {
             String cost = this.safeString2(parameters, "cost", "quoteQuantity");
             if (!java.util.Objects.equals(cost, null))
             {
-                ((Map<String, Object>)request).put("quoteQuantity", this.costToPrecision((String) (symbol), cost));
+                ((Map<String, Object>)request).put("quoteQuantity", this.costToPrecision(symbol, cost));
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quoteQuantity")));
             } else
             {
-                ((Map<String, Object>)request).put((String)quantityKey, this.amountToPrecision((String) (symbol), amount));
+                ((Map<String, Object>)request).put((String)quantityKey, this.amountToPrecision(symbol, amount));
             }
         }
         // trigger orders
         if (Boolean.TRUE.equals(isTriggerOrder))
         {
-            ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision((String) (symbol), triggerPrice));
+            ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             parameters = this.omit(parameters, "triggerPrice");
         }
         Long clientOrderId = this.safeInteger(parameters, "clientOrderId"); // the exchange requires uint
@@ -2300,12 +2300,12 @@ public class Backpack extends BackpackApi
             String takeProfitTriggerPrice = this.safeString(takeProfit, "triggerPrice");
             if (!java.util.Objects.equals(takeProfitTriggerPrice, null))
             {
-                ((Map<String, Object>)request).put("takeProfitTriggerPrice", this.priceToPrecision((String) (symbol), takeProfitTriggerPrice));
+                ((Map<String, Object>)request).put("takeProfitTriggerPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
             }
             String takeProfitPrice = this.safeString(takeProfit, "price");
             if (!java.util.Objects.equals(takeProfitPrice, null))
             {
-                ((Map<String, Object>)request).put("takeProfitLimitPrice", this.priceToPrecision((String) (symbol), takeProfitPrice));
+                ((Map<String, Object>)request).put("takeProfitLimitPrice", this.priceToPrecision(symbol, takeProfitPrice));
             }
             parameters = this.omit(parameters, "takeProfit");
         }
@@ -2315,12 +2315,12 @@ public class Backpack extends BackpackApi
             String stopLossTriggerPrice = this.safeString(stopLoss, "triggerPrice");
             if (!java.util.Objects.equals(stopLossTriggerPrice, null))
             {
-                ((Map<String, Object>)request).put("stopLossTriggerPrice", this.priceToPrecision((String) (symbol), stopLossTriggerPrice));
+                ((Map<String, Object>)request).put("stopLossTriggerPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
             }
             String stopLossPrice = this.safeString(stopLoss, "price");
             if (!java.util.Objects.equals(stopLossPrice, null))
             {
-                ((Map<String, Object>)request).put("stopLossLimitPrice", this.priceToPrecision((String) (symbol), stopLossPrice));
+                ((Map<String, Object>)request).put("stopLossLimitPrice", this.priceToPrecision(symbol, stopLossPrice));
             }
             parameters = this.omit(parameters, "stopLoss");
         }
@@ -2381,7 +2381,7 @@ public class Backpack extends BackpackApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetApiV1Orders(this.extend(request, parameters))).join();
@@ -2415,13 +2415,13 @@ public class Backpack extends BackpackApi
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrder() requires a symbol argument")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "orderId", id );
             }};
             Map<String, Object> response = (this.privateGetApiV1Order(this.extend(request, parameters))).join();
-            return this.parseOrder((Map<String, Object>) (response));
+            return this.parseOrder(response);
         });
 
     }
@@ -2451,13 +2451,13 @@ public class Backpack extends BackpackApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privateDeleteApiV1Order(this.extend(request, parameters))).join();
-            return this.parseOrder((Map<String, Object>) (response));
+            return this.parseOrder(response);
         }).thenApply(Order::new);
 
     }
@@ -2486,7 +2486,7 @@ public class Backpack extends BackpackApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2524,7 +2524,7 @@ public class Backpack extends BackpackApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2537,7 +2537,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -2860,7 +2860,7 @@ public class Backpack extends BackpackApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))

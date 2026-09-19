@@ -80,7 +80,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String url = ((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "?subscribe=ticker-"), ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
             String messageHash = ("trades:" + symbol);
@@ -112,7 +112,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "Pair");
-        String symbol = this.safeSymbol((String) (marketId), null, "-");
+        String symbol = this.safeSymbol(marketId, null, "-");
         String messageHash = ("trades:" + symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -148,7 +148,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             put( "info", trade );
             put( "id", Independentreserve.this.safeString(trade, "TradeGuid") );
             put( "order", Independentreserve.this.safeString(trade, "orderNo") );
-            put( "symbol", Independentreserve.this.safeSymbol((String) (marketId), market, "-") );
+            put( "symbol", Independentreserve.this.safeSymbol(marketId, market, "-") );
             put( "side", Independentreserve.this.safeStringLower(trade, "Side") );
             put( "type", null );
             put( "takerOrMaker", null );
@@ -181,7 +181,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             if (java.util.Objects.equals(limit, null))
             {
@@ -249,7 +249,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(eventVar, "OrderBookSnapshot"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, (String) (symbol), timestamp, "Bids", "Offers", "Price", "Volume");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag

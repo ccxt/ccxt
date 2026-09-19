@@ -86,7 +86,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -94,7 +94,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
                 put( "channel", (((Map<String, Object>)market).get("id") + "-orderbook") );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object orderbook = (this.watch((String) (url), messageHash, message, messageHash, null)).join();
+            Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -125,7 +125,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         String symbol = this.symbol(this.safeString(message, 0));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, 1, new HashMap<String, Object>() {{}});
         Object timestamp = this.safeTimestamp(data, "last_update_at");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, (String) (symbol), timestamp);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
@@ -163,7 +163,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trade:" + ((Map<String, Object>)market).get("symbol"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -172,7 +172,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
                 put( "channel", (((Map<String, Object>)market).get("id") + "-trades") );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object trades = (this.watch((String) (url), messageHash, message, messageHash, null)).join();
+            Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});

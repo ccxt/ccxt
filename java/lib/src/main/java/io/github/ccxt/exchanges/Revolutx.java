@@ -320,7 +320,7 @@ public class Revolutx extends RevolutxApi
      * @param {object} market the raw market data from the exchange
      * @returns {object} a [market structure]{@link https://docs.ccxt.com/?id=market-structure}
      */
-    public Object parseMarket(Map<String, Object> market)
+    public Object parseMarket(Object market)
     {
         String id = this.safeString(market, "id");
         String base = this.safeString(market, "base", "");
@@ -438,7 +438,7 @@ public class Revolutx extends RevolutxApi
                 Map<String, Object> marketData = this.extend(market, new HashMap<String, Object>() {{
                     put( "id", marketId );
                 }});
-                ((List<Object>)result).add(this.parseMarket((Map<String, Object>) (marketData)));
+                ((List<Object>)result).add(this.parseMarket(marketData));
             }
             return result;
         });
@@ -581,7 +581,7 @@ public class Revolutx extends RevolutxApi
         final Object finalLast = last;
         final Object finalPriceChange = priceChange;
         final Object finalPercentage = percentage;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Revolutx.this.iso8601(timestamp) );
@@ -602,7 +602,7 @@ public class Revolutx extends RevolutxApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -633,7 +633,7 @@ public class Revolutx extends RevolutxApi
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                    Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
                 }
                 ((Map<String, Object>)request).put("symbols", String.join(",", (List<String>)marketIds));
@@ -741,7 +741,7 @@ public class Revolutx extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -767,7 +767,7 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> metadata = (Map<String, Object>) this.safeDict(response, "metadata", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(metadata, "timestamp");
-            return this.parseOrderBook(data, (String) (symbol), timestamp, "bids", "asks", "price", "quantity");
+            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         }).thenApply(OrderBook::new);
 
     }
@@ -820,7 +820,7 @@ public class Revolutx extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "interval", Revolutx.this.safeInteger(Revolutx.this.timeframes, timeframe, 5) );
@@ -867,7 +867,7 @@ public class Revolutx extends RevolutxApi
      * @param {object} [market] the market the trade was executed in
      * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(trade, "id");
@@ -931,7 +931,7 @@ public class Revolutx extends RevolutxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
@@ -974,7 +974,7 @@ public class Revolutx extends RevolutxApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(this.parseTrade((Map<String, Object>) (trade), market));
+                ((List<Object>)result).add(this.parseTrade(trade, market));
             }
             return this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1032,7 +1032,7 @@ public class Revolutx extends RevolutxApi
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "total"));
                 ((Map<String, Object>)result).put((String)code, account);
             }
-            return this.safeBalance((Map<String, Object>) (result));
+            return this.safeBalance(result);
         }).thenApply(Balances::new);
 
     }
@@ -1069,7 +1069,7 @@ public class Revolutx extends RevolutxApi
      * @param {object} [market] the market the order was placed in
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String orderId = this.safeString2(order, "id", "venue_order_id");
@@ -1174,7 +1174,7 @@ public class Revolutx extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
@@ -1185,12 +1185,12 @@ public class Revolutx extends RevolutxApi
                 Map<String, Object> limitConfig = new HashMap<String, Object>() {{}};
                 if (!java.util.Objects.equals(cost, null))
                 {
-                    ((Map<String, Object>)limitConfig).put("quote_size", this.costToPrecision((String) (symbol), cost));
+                    ((Map<String, Object>)limitConfig).put("quote_size", this.costToPrecision(symbol, cost));
                 } else
                 {
-                    ((Map<String, Object>)limitConfig).put("base_size", this.amountToPrecision((String) (symbol), amount));
+                    ((Map<String, Object>)limitConfig).put("base_size", this.amountToPrecision(symbol, amount));
                 }
-                ((Map<String, Object>)limitConfig).put("price", this.priceToPrecision((String) (symbol), price));
+                ((Map<String, Object>)limitConfig).put("price", this.priceToPrecision(symbol, price));
                 if (!java.util.Objects.equals(timeInForce, null))
                 {
                     ((Map<String, Object>)limitConfig).put("time_in_force", timeInForce);
@@ -1213,10 +1213,10 @@ public class Revolutx extends RevolutxApi
                 Map<String, Object> marketConfig = new HashMap<String, Object>() {{}};
                 if (!java.util.Objects.equals(cost, null))
                 {
-                    ((Map<String, Object>)marketConfig).put("quote_size", this.costToPrecision((String) (symbol), cost));
+                    ((Map<String, Object>)marketConfig).put("quote_size", this.costToPrecision(symbol, cost));
                 } else
                 {
-                    ((Map<String, Object>)marketConfig).put("base_size", this.amountToPrecision((String) (symbol), amount));
+                    ((Map<String, Object>)marketConfig).put("base_size", this.amountToPrecision(symbol, amount));
                 }
                 ((Map<String, Object>)orderConfiguration).put("market", marketConfig);
             } else
@@ -1242,13 +1242,13 @@ public class Revolutx extends RevolutxApi
             String venueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
             final Object finalType = type;
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (this.extend(orderData, new HashMap<String, Object>() {{
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, new HashMap<String, Object>() {{
                 put( "id", venueOrderId );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "status", state );
                 put( "side", side );
                 put( "type", finalType );
-            }})), market);
+            }}), market);
             return order;
         }).thenApply(Order::new);
 
@@ -1356,9 +1356,9 @@ public class Revolutx extends RevolutxApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
-            return this.parseOrder((Map<String, Object>) (data), market);
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -1394,7 +1394,7 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("symbols", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1433,7 +1433,7 @@ public class Revolutx extends RevolutxApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> order = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(this.parseOrder((Map<String, Object>) (order)));
+                ((List<Object>)result).add(this.parseOrder(order));
             }
             return this.filterBySymbolSinceLimit(result, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1471,7 +1471,7 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("symbols", ((Map<String, Object>)market).get("id"));
             }
             Long thirtyDays = 2592000000L;
@@ -1517,7 +1517,7 @@ public class Revolutx extends RevolutxApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> order = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(this.parseOrder((Map<String, Object>) (order)));
+                ((List<Object>)result).add(this.parseOrder(order));
             }
             return this.filterBySymbolSinceLimit(result, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1578,7 +1578,7 @@ public class Revolutx extends RevolutxApi
         {
             cost = Helpers.multiply(price, amount);
         }
-        String symbol = this.safeSymbol((String) (null), market);
+        String symbol = this.safeSymbol(null, market);
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalCost = cost;
@@ -1630,7 +1630,7 @@ public class Revolutx extends RevolutxApi
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol parameter")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1715,7 +1715,7 @@ public class Revolutx extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
@@ -1726,14 +1726,14 @@ public class Revolutx extends RevolutxApi
             }};
             if (!java.util.Objects.equals(cost, null))
             {
-                ((Map<String, Object>)request).put("quote_size", this.costToPrecision((String) (symbol), cost));
+                ((Map<String, Object>)request).put("quote_size", this.costToPrecision(symbol, cost));
             } else if (!java.util.Objects.equals(amount, null))
             {
-                ((Map<String, Object>)request).put("base_size", this.amountToPrecision((String) (symbol), amount));
+                ((Map<String, Object>)request).put("base_size", this.amountToPrecision(symbol, amount));
             }
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             if (!java.util.Objects.equals(timeInForce, null))
             {
@@ -1755,13 +1755,13 @@ public class Revolutx extends RevolutxApi
             Object orderData = (((data instanceof List))) ? this.safeDict(data, 0, new HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String newVenueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (this.extend(orderData, new HashMap<String, Object>() {{
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, new HashMap<String, Object>() {{
                 put( "id", newVenueOrderId );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "status", state );
                 put( "side", side );
                 put( "type", type );
-            }})), market);
+            }}), market);
             return order;
         }).thenApply(Order::new);
 

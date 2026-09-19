@@ -2683,7 +2683,7 @@ public class Mexc extends MexcApi
         final Object finalChangePcnt = changePcnt;
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", finalTimestamp );
             put( "datetime", Mexc.this.iso8601(finalTimestamp) );
@@ -2703,7 +2703,7 @@ public class Mexc extends MexcApi
             put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", finalQuoteVolume );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**

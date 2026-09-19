@@ -370,7 +370,7 @@ public class Btcbox extends BtcboxApi
 
     }
 
-    public Object parseMarket(Map<String, Object> market)
+    public Object parseMarket(Object market)
     {
         String baseId = this.safeString(market, "base");
         String base = this.safeCurrencyCode(baseId);
@@ -451,7 +451,7 @@ public class Btcbox extends BtcboxApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -499,7 +499,7 @@ public class Btcbox extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object numSymbols = ((List<?>)this.symbols).size();
             if (Helpers.isGreaterThan(numSymbols, 1))
@@ -507,7 +507,7 @@ public class Btcbox extends BtcboxApi
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)market).get("baseId"));
             }
             Map<String, Object> response = (this.publicGetDepth(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, (String) (((Map<String, Object>)market).get("symbol")));
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"));
         }).thenApply(OrderBook::new);
 
     }
@@ -515,9 +515,9 @@ public class Btcbox extends BtcboxApi
     public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String symbol = this.safeSymbol((String) (null), market);
+        String symbol = this.safeSymbol(null, market);
         String last = this.safeString(ticker, "last");
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -538,7 +538,7 @@ public class Btcbox extends BtcboxApi
             put( "baseVolume", Btcbox.this.safeString(ticker, "vol") );
             put( "quoteVolume", Btcbox.this.safeString(ticker, "volume") );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -560,7 +560,7 @@ public class Btcbox extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object numSymbols = ((List<?>)this.symbols).size();
             if (Helpers.isGreaterThan(numSymbols, 1))
@@ -598,7 +598,7 @@ public class Btcbox extends BtcboxApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -660,7 +660,7 @@ public class Btcbox extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object numSymbols = ((List<?>)this.symbols).size();
             if (Helpers.isGreaterThan(numSymbols, 1))
@@ -708,7 +708,7 @@ public class Btcbox extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "price", price );
@@ -722,7 +722,7 @@ public class Btcbox extends BtcboxApi
             //         "id":"12"
             //     }
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -753,7 +753,7 @@ public class Btcbox extends BtcboxApi
             {
                 symbol = "BTC/JPY";
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "coin", ((Map<String, Object>)market).get("baseId") );
@@ -762,7 +762,7 @@ public class Btcbox extends BtcboxApi
             //
             //     {"result":true, "id":"11"}
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -783,7 +783,7 @@ public class Btcbox extends BtcboxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -875,7 +875,7 @@ public class Btcbox extends BtcboxApi
             {
                 symbol = "BTC/JPY";
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "coin", ((Map<String, Object>)market).get("baseId") );
@@ -893,7 +893,7 @@ public class Btcbox extends BtcboxApi
             //          "trades":[]
             //      }
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -916,7 +916,7 @@ public class Btcbox extends BtcboxApi
             {
                 symbol = "BTC/JPY";
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", finalType );

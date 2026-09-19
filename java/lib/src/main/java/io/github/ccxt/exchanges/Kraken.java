@@ -1285,7 +1285,7 @@ public class Kraken extends KrakenApi
         List<Object> low = (List<Object>) this.safeList(ticker, "l", new ArrayList<Object>(Arrays.asList()));
         List<Object> bid = (List<Object>) this.safeList(ticker, "b", new ArrayList<Object>(Arrays.asList()));
         List<Object> ask = (List<Object>) this.safeList(ticker, "a", new ArrayList<Object>(Arrays.asList()));
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1306,7 +1306,7 @@ public class Kraken extends KrakenApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**

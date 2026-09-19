@@ -1131,7 +1131,7 @@ public class Digifinex extends DigifinexApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -1241,7 +1241,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
             var marketType = ((List<Object>) marketTypequeryVariable).get(0);
             var query = ((List<Object>) marketTypequeryVariable).get(1);
@@ -1309,7 +1309,7 @@ public class Digifinex extends DigifinexApi
                 orderBook = response;
                 timestamp = this.safeTimestamp(response, "date");
             }
-            return this.parseOrderBook(orderBook, (String) (((Map<String, Object>)market).get("symbol")), timestamp);
+            return this.parseOrderBook(orderBook, ((Map<String, Object>)market).get("symbol"), timestamp);
         }).thenApply(OrderBook::new);
 
     }
@@ -1443,7 +1443,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -1585,7 +1585,7 @@ public class Digifinex extends DigifinexApi
         final Object finalTimestamp = timestamp;
         final Object finalPercentage = percentage;
         final Object finalIndexPrice = indexPrice;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
             put( "datetime", Digifinex.this.iso8601(finalTimestamp) );
@@ -1608,10 +1608,10 @@ public class Digifinex extends DigifinexApi
             put( "markPrice", Digifinex.this.safeString(ticker, "mark_price") );
             put( "indexPrice", finalIndexPrice );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // spot: fetchTrades
@@ -1859,7 +1859,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1971,7 +1971,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -2100,7 +2100,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marginResult = this.handleMarginModeAndParams("createOrder", parameters);
             Object marginMode = ((List<Object>)marginResult).get(0);
             Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
@@ -2137,7 +2137,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new NullResponse((this.id + " createOrder() returned empty response")) ;
             }
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (response), market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             Helpers.addElementToObject(order, "symbol", ((Map<String, Object>)market).get("symbol"));
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
@@ -2291,7 +2291,7 @@ public class Digifinex extends DigifinexApi
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object marketType = null;
         Object marginMode = null;
         List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrderRequest", market, parameters);
@@ -2345,7 +2345,7 @@ public class Digifinex extends DigifinexApi
             }
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             ((Map<String, Object>)request).put("order_type", orderType);
             ((Map<String, Object>)request).put("size", amount); // swap orders require the amount to be the number of contracts
@@ -2360,7 +2360,7 @@ public class Digifinex extends DigifinexApi
                 suffix = "_market";
             } else
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             ((Map<String, Object>)request).put("type", (side + suffix));
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
@@ -2375,7 +2375,7 @@ public class Digifinex extends DigifinexApi
                 parameters = this.omit(parameters, "cost");
                 if (!java.util.Objects.equals(cost, null))
                 {
-                    quantity = this.costToPrecision((String) (symbol), cost);
+                    quantity = this.costToPrecision(symbol, cost);
                 } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if (java.util.Objects.equals(price, null))
@@ -2386,15 +2386,15 @@ public class Digifinex extends DigifinexApi
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
                         Object costRequest = this.parseNumber(Precise.stringMul(amountString, priceString));
-                        quantity = this.costToPrecision((String) (symbol), costRequest);
+                        quantity = this.costToPrecision(symbol, costRequest);
                     }
                 } else
                 {
-                    quantity = this.costToPrecision((String) (symbol), amount);
+                    quantity = this.costToPrecision(symbol, amount);
                 }
             } else
             {
-                quantity = this.amountToPrecision((String) (symbol), amount);
+                quantity = this.amountToPrecision(symbol, amount);
             }
             ((Map<String, Object>)request).put("amount", quantity);
         }
@@ -2432,7 +2432,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -2468,7 +2468,7 @@ public class Digifinex extends DigifinexApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             id = String.valueOf(id);
             Object marketType = null;
@@ -2636,7 +2636,7 @@ public class Digifinex extends DigifinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // spot: createOrder
@@ -2826,7 +2826,7 @@ public class Digifinex extends DigifinexApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
@@ -2956,7 +2956,7 @@ public class Digifinex extends DigifinexApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
@@ -3086,7 +3086,7 @@ public class Digifinex extends DigifinexApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
@@ -3177,7 +3177,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new OrderNotFound((((this.id + " fetchOrder() order ") + String.valueOf(id)) + " not found")) ;
             }
-            return this.parseOrder((Map<String, Object>) (order), market);
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -3211,7 +3211,7 @@ public class Digifinex extends DigifinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
@@ -3971,7 +3971,7 @@ public class Digifinex extends DigifinexApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateSpotGetMarginPositions(this.extend(request, parameters))).join();
@@ -4202,7 +4202,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
@@ -4329,7 +4329,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
@@ -4403,7 +4403,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadRequest((this.id + " fetchTradingFee() supports swap markets only")) ;
@@ -4490,7 +4490,7 @@ public class Digifinex extends DigifinexApi
                 {
                     symbol = symbols;
                 }
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -4603,7 +4603,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", market, parameters);
@@ -4816,7 +4816,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), "swap"))
             {
                 throw new BadSymbol((this.id + " setLeverage() supports swap contracts only")) ;
@@ -4996,7 +4996,7 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadRequest((this.id + " fetchMarketLeverageTiers() supports swap markets only")) ;
@@ -5321,7 +5321,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             String side = this.safeString(parameters, "side");
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_id", ((Map<String, Object>)market).get("id") );
                 put( "amount", Digifinex.this.numberToString(amount) );
@@ -5410,7 +5410,7 @@ final Object finalI = i;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("instrument_id", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -5491,7 +5491,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             marginMode = ((String)marginMode).toLowerCase();
             if (java.util.Objects.equals(marginMode, "cross"))
             {

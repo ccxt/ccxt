@@ -3066,7 +3066,7 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
@@ -3454,7 +3454,7 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency_pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -3523,7 +3523,7 @@ public class Gate extends GateApi
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee((Map<String, Object>) (response), market));
         }
         return result;
@@ -3778,7 +3778,7 @@ public class Gate extends GateApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
             }
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
@@ -3889,7 +3889,7 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             //
             //     const request: Dict = {
             //         'currency_pair': market['id'],
@@ -4006,7 +4006,7 @@ public class Gate extends GateApi
             Object priceKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? 0 : "p";
             Object amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? 1 : "s";
             Long nonce = this.safeInteger(response, "id");
-            Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(response, (String) (symbol), timestamp, "bids", "asks", priceKey, amountKey);
+            Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey);
             ((Map<String, Object>)result).put("nonce", nonce);
             return result;
         }).thenApply(OrderBook::new);
@@ -4035,7 +4035,7 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             var requestqueryVariable = this.prepareRequest(market, null, parameters);
             var request = ((List<Object>) requestqueryVariable).get(0);
             var query = ((List<Object>) requestqueryVariable).get(1);
@@ -4179,7 +4179,7 @@ public class Gate extends GateApi
         String percentage = this.safeString(ticker, "change_percentage");
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Gate.this.iso8601(timestamp) );
@@ -4202,7 +4202,7 @@ public class Gate extends GateApi
             put( "markPrice", Gate.this.safeString(ticker, "mark_price") );
             put( "indexPrice", Gate.this.safeString(ticker, "index_price") );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -4601,7 +4601,7 @@ public class Gate extends GateApi
                     ((Map<String, Object>)result).put((String)((String)code), this.parseBalanceHelper((Map<String, Object>) (entry)));
                 }
             }
-            return this.safeBalance((Map<String, Object>) (result));
+            return this.safeBalance(result);
         }).thenApply(Balances::new);
 
     }
@@ -4637,7 +4637,7 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
@@ -4727,7 +4727,7 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{}};
             var requestparametersVariable = this.prepareRequest(market, null, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -4777,7 +4777,7 @@ public class Gate extends GateApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
@@ -4900,7 +4900,7 @@ public class Gate extends GateApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             //
             // spot
             //
@@ -5110,7 +5110,7 @@ public class Gate extends GateApi
             Object type = null;
             Object marginMode = null;
             Object request = new HashMap<String, Object>() {{}};
-            Object market = (((!java.util.Objects.equals(symbol, null)))) ? this.market((String) (symbol)) : null;
+            Object market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
             Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
@@ -5235,7 +5235,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public
@@ -5352,7 +5352,7 @@ public class Gate extends GateApi
             timestamp = this.safeTimestamp2(trade, "time", "create_time");
         }
         String marketId = this.safeString2(trade, "currency_pair", "contract");
-        String marketType = (((trade.containsKey("contract")))) ? "contract" : "spot";
+        String marketType = (((((Map<?, ?>)trade).containsKey("contract")))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, "_", marketType);
         String amountString = this.safeString2(trade, "amount", "size");
         String priceString = this.safeString(trade, "price");
@@ -5796,7 +5796,7 @@ final Object finalPointFee = pointFee;
                 (this.loadMarkets()).join();
             }
             (this.loadUnifiedStatus()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object trigger = this.safeValue(parameters, "trigger");
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
             Object stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice);
@@ -5902,7 +5902,7 @@ final Object finalPointFee = pointFee;
             //
             //     {"id": 7615567}
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -5941,8 +5941,8 @@ final Object finalPointFee = pointFee;
             Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((List<Object>)ordersRequests).add(orderRequest);
         }
-        Object symbols = this.marketSymbols(orderSymbols, (String) (null), false, true, true);
-        Map<String, Object> market = (Map<String, Object>) this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
+        Object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
+        Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
         if ((java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
         {
             throw new NotSupported((this.id + " createOrders() does not support futures or options markets")) ;
@@ -5973,7 +5973,7 @@ final Object finalPointFee = pointFee;
             (this.loadUnifiedStatus()).join();
             Object ordersRequests = this.createOrdersRequest(orders, parameters);
             Object firstOrder = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (((Map<String, Object>)firstOrder).get("symbol")));
+            Map<String, Object> market = (Map<String, Object>) this.market(((Map<String, Object>)firstOrder).get("symbol"));
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
@@ -5999,7 +5999,7 @@ final Object finalPointFee = pointFee;
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object contract = ((Map<String, Object>)market).get("contract");
         Object trigger = this.safeValue(parameters, "trigger");
         Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
@@ -6060,7 +6060,7 @@ final Object finalPointFee = pointFee;
                 amount = 0;
             } else
             {
-                Object amountToPrecision = this.amountToPrecision((String) (symbol), amount);
+                Object amountToPrecision = this.amountToPrecision(symbol, amount);
                 Object signedAmount = (((java.util.Objects.equals(side, "sell")))) ? Precise.stringNeg(amountToPrecision) : amountToPrecision;
                 amount = Helpers.parseInt(((String)signedAmount));
             }
@@ -6086,7 +6086,7 @@ final Object finalPointFee = pointFee;
                     ((Map<String, Object>)request).put("price", "0"); // set to 0 for market orders
                 } else
                 {
-                    ((Map<String, Object>)request).put("price", (((Helpers.isEqual(price, 0)))) ? "0" : this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("price", (((Helpers.isEqual(price, 0)))) ? "0" : this.priceToPrecision(symbol, price));
                 }
                 if (!java.util.Objects.equals(reduceOnly, null))
                 {
@@ -6123,7 +6123,7 @@ final Object finalPointFee = pointFee;
                     parameters = this.omit(parameters, "cost");
                     if (!java.util.Objects.equals(cost, null))
                     {
-                        quoteAmount = this.costToPrecision((String) (symbol), cost);
+                        quoteAmount = this.costToPrecision(symbol, cost);
                     } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if (java.util.Objects.equals(price, null))
@@ -6134,20 +6134,20 @@ final Object finalPointFee = pointFee;
                             Object amountString = this.numberToString(amount);
                             Object priceString = this.numberToString(price);
                             String costRequest = Precise.stringMul(amountString, priceString);
-                            quoteAmount = this.costToPrecision((String) (symbol), costRequest);
+                            quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
                     } else
                     {
-                        quoteAmount = this.costToPrecision((String) (symbol), amount);
+                        quoteAmount = this.costToPrecision(symbol, amount);
                     }
                     ((Map<String, Object>)request).put("amount", quoteAmount);
                 } else
                 {
-                    ((Map<String, Object>)request).put("amount", this.amountToPrecision((String) (symbol), amount));
+                    ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
                 }
                 if (Boolean.TRUE.equals(isLimitOrder))
                 {
-                    ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
                 }
                 if (!java.util.Objects.equals(timeInForce, null))
                 {
@@ -6201,7 +6201,7 @@ final Object finalPointFee = pointFee;
                     Helpers.addElementToObject(Helpers.GetValue(request, "initial"), "price", "0");
                 } else
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(request, "initial"), "price", (((Helpers.isEqual(price, 0)))) ? "0" : this.priceToPrecision((String) (symbol), price));
+                    Helpers.addElementToObject(Helpers.GetValue(request, "initial"), "price", (((Helpers.isEqual(price, 0)))) ? "0" : this.priceToPrecision(symbol, price));
                 }
                 if (java.util.Objects.equals(trigger, null))
                 {
@@ -6212,11 +6212,11 @@ final Object finalPointFee = pointFee;
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = (((java.util.Objects.equals(side, "buy")))) ? 1 : 2;
-                        triggerOrderPrice = this.priceToPrecision((String) (symbol), stopLossPrice);
+                        triggerOrderPrice = this.priceToPrecision(symbol, stopLossPrice);
                     } else if (Boolean.TRUE.equals(isTakeProfitOrder))
                     {
                         rule = (((java.util.Objects.equals(side, "buy")))) ? 2 : 1;
-                        triggerOrderPrice = this.priceToPrecision((String) (symbol), takeProfitPrice);
+                        triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
                     Long priceType = this.safeInteger(parameters, "price_type", 0);
                     if (Helpers.isLessThan(priceType, 0) || Helpers.isGreaterThan(priceType, 2))
@@ -6229,7 +6229,7 @@ final Object finalPointFee = pointFee;
                     final Object finalRule = rule;
                     ((Map<String, Object>)request).put("trigger", new HashMap<String, Object>() {{
     put( "price_type", finalPriceType );
-    put( "price", Gate.this.priceToPrecision((String) (symbol), finalTriggerOrderPrice) );
+    put( "price", Gate.this.priceToPrecision(symbol, finalTriggerOrderPrice) );
     put( "rule", finalRule );
 }});
                 }
@@ -6267,8 +6267,8 @@ final Object finalPointFee = pointFee;
                     put( "put", new HashMap<String, Object>() {{
                         put( "type", finalType_2 );
                         put( "side", finalSide_2 );
-                        put( "price", Gate.this.priceToPrecision((String) (symbol), finalPrice) );
-                        put( "amount", Gate.this.amountToPrecision((String) (symbol), finalAmount_3) );
+                        put( "price", Gate.this.priceToPrecision(symbol, finalPrice) );
+                        put( "amount", Gate.this.amountToPrecision(symbol, finalAmount_3) );
                         put( "account", finalMarginMode );
                         put( "time_in_force", finalTimeInForce );
                     }} );
@@ -6285,16 +6285,16 @@ final Object finalPointFee = pointFee;
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = (((java.util.Objects.equals(side, "buy")))) ? ">=" : "<=";
-                        triggerOrderPrice = this.priceToPrecision((String) (symbol), stopLossPrice);
+                        triggerOrderPrice = this.priceToPrecision(symbol, stopLossPrice);
                     } else if (Boolean.TRUE.equals(isTakeProfitOrder))
                     {
                         rule = (((java.util.Objects.equals(side, "buy")))) ? "<=" : ">=";
-                        triggerOrderPrice = this.priceToPrecision((String) (symbol), takeProfitPrice);
+                        triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
                     final Object finalTriggerOrderPrice = triggerOrderPrice;
                     final Object finalRule = rule;
                     ((Map<String, Object>)request).put("trigger", new HashMap<String, Object>() {{
-    put( "price", Gate.this.priceToPrecision((String) (symbol), finalTriggerOrderPrice) );
+    put( "price", Gate.this.priceToPrecision(symbol, finalTriggerOrderPrice) );
     put( "rule", finalRule );
     put( "expiration", expiration );
 }});
@@ -6330,7 +6330,7 @@ final Object finalPointFee = pointFee;
                 (this.loadMarkets()).join();
             }
             (this.loadUnifiedStatus()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -6348,7 +6348,7 @@ final Object finalPointFee = pointFee;
         Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object marketType = null;
         List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("editOrder", market, parameters);
         marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -6380,21 +6380,21 @@ final Object finalPointFee = pointFee;
         {
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                ((Map<String, Object>)request).put("amount", this.amountToPrecision((String) (symbol), amount));
+                ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
             } else
             {
                 if (java.util.Objects.equals(side, "sell"))
                 {
-                    ((Map<String, Object>)request).put("size", this.parseToNumeric(Precise.stringNeg(this.amountToPrecision((String) (symbol), amount))));
+                    ((Map<String, Object>)request).put("size", this.parseToNumeric(Precise.stringNeg(this.amountToPrecision(symbol, amount))));
                 } else
                 {
-                    ((Map<String, Object>)request).put("size", this.parseToNumeric(this.amountToPrecision((String) (symbol), amount)));
+                    ((Map<String, Object>)request).put("size", this.parseToNumeric(this.amountToPrecision(symbol, amount)));
                 }
             }
         }
         if (!java.util.Objects.equals(price, null))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
         if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
         {
@@ -6432,7 +6432,7 @@ final Object finalPointFee = pointFee;
                 (this.loadMarkets()).join();
             }
             (this.loadUnifiedStatus()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object extendedRequest = this.editOrderRequest(id, (String) (symbol), type, side, amount, price, parameters);
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -6473,7 +6473,7 @@ final Object finalPointFee = pointFee;
             //         "rebated_fee_currency": "ADA"
             //     }
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -6496,7 +6496,7 @@ final Object finalPointFee = pointFee;
         return this.safeString(statuses, status, ((String)status));
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // SPOT
@@ -6777,7 +6777,7 @@ final Object finalPointFee = pointFee;
             }
         }
         String marketType = "contract";
-        if ((order.containsKey("currency_pair")) || (order.containsKey("market")))
+        if ((((Map<?, ?>)order).containsKey("currency_pair")) || (((Map<?, ?>)order).containsKey("market")))
         {
             marketType = "spot";
         }
@@ -6845,10 +6845,10 @@ final Object finalRebate = rebate;
         String clientOrderId = this.safeString(order, "text");
         if (java.util.Objects.equals(clientOrderId, null))
         {
-            if (order.containsKey("initial"))
+            if (((Map<?, ?>)order).containsKey("initial"))
             {
                 clientOrderId = this.safeString(((Map<String, Object>)order).get("initial"), "text");
-            } else if (order.containsKey("trigger"))
+            } else if (((Map<?, ?>)order).containsKey("trigger"))
             {
                 clientOrderId = this.safeString(((Map<String, Object>)order).get("trigger"), "text");
             }
@@ -6896,7 +6896,7 @@ final Object finalRebate = rebate;
     {
         Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market((String) (symbol));
+        Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
         Object trigger = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("trigger", "is_stop_order", "stop")), false);
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
         String clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
@@ -6954,7 +6954,7 @@ final Object finalRebate = rebate;
                 (this.loadMarkets()).join();
             }
             (this.loadUnifiedStatus()).join();
-            Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market((String) (symbol));
+            Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
             Object result = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
             String type = this.safeString(result, 0);
             Object trigger = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("trigger", "is_stop_order", "stop")), false);
@@ -6996,7 +6996,7 @@ final Object finalRebate = rebate;
             {
                 throw new NotSupported((this.id + " fetchOrder() not support this market type")) ;
             }
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -7081,7 +7081,7 @@ final Object finalRebate = rebate;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
             }
             Object res = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
@@ -7127,7 +7127,7 @@ final Object finalRebate = rebate;
         Object market = null;
         if (!java.util.Objects.equals(symbol, null))
         {
-            market = this.market((String) (symbol));
+            market = this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
         }
         Boolean trigger = null;
@@ -7196,7 +7196,7 @@ final Object finalRebate = rebate;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
             }
             // don't omit here, omits done in prepareOrdersByStatusRequest
@@ -7444,7 +7444,7 @@ final Object finalRebate = rebate;
                 (this.loadMarkets()).join();
             }
             (this.loadUnifiedStatus()).join();
-            Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market((String) (symbol));
+            Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
             Object trigger = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
@@ -7570,7 +7570,7 @@ final Object finalRebate = rebate;
             //         "iceberg": "0",
             //     }
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -7602,7 +7602,7 @@ final Object finalRebate = rebate;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object type = null;
             Object defaultSettle = (((java.util.Objects.equals(market, null)))) ? "usdt" : ((Map<String, Object>)market).get("settle");
@@ -7725,7 +7725,7 @@ final Object finalRebate = rebate;
                 (this.loadMarkets()).join();
             }
             (this.loadUnifiedStatus()).join();
-            Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market((String) (symbol));
+            Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
@@ -7938,7 +7938,7 @@ final Object finalRebate = rebate;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             var requestqueryVariable = this.prepareRequest(market, null, parameters);
             var request = ((List<Object>) requestqueryVariable).get(0);
             var query = ((List<Object>) requestqueryVariable).get(1);
@@ -8184,7 +8184,7 @@ final Object finalRebate = rebate;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 throw new BadRequest((this.id + " fetchPosition() supports contract markets only")) ;
@@ -8295,13 +8295,13 @@ final Object finalRebate = rebate;
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
+            symbols = this.marketSymbols(symbols, null, true, true, true);
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
-                    market = this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
             }
             Object type = null;
@@ -8567,7 +8567,7 @@ final Object finalRebate = rebate;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarketLeverageTiers", market, parameters);
             var type = ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
@@ -8707,7 +8707,7 @@ final Object finalI = i;
                 put( "currency", ((String)((Map<String, Object>)currency).get("id")).toUpperCase() );
                 put( "amount", Gate.this.currencyToPrecision((String) (code), amount) );
             }};
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id"));
             ((Map<String, Object>)request).put("type", "repay");
             Map<String, Object> response = (this.privateMarginPostUniLoans(this.extend(request, parameters))).join();
@@ -8795,7 +8795,7 @@ final Object finalI = i;
                 put( "currency", ((String)((Map<String, Object>)currency).get("id")).toUpperCase() );
                 put( "amount", Gate.this.currencyToPrecision((String) (code), amount) );
             }};
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id"));
             ((Map<String, Object>)request).put("type", "borrow");
             Map<String, Object> response = (this.privateMarginPostUniLoans(this.extend(request, parameters))).join();
@@ -8976,7 +8976,7 @@ final Object finalI = i;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -9173,7 +9173,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             var requestqueryVariable = this.prepareRequest(market, null, parameters);
             var request = ((List<Object>) requestqueryVariable).get(0);
             var query = ((List<Object>) requestqueryVariable).get(1);
@@ -9320,7 +9320,7 @@ final Object finalI = i;
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, parameters, 100)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports swap markets only")) ;
@@ -9425,7 +9425,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -9495,7 +9495,7 @@ final Object finalI = i;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
             }
             Object type = null;
@@ -9975,7 +9975,7 @@ final Object finalI = i;
 
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object market = (((!java.util.Objects.equals(symbol, null)))) ? this.market((String) (symbol)) : null;
+            Object market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
             var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
             var request = ((List<Object>) requestqueryVariable).get(0);
             var query = ((List<Object>) requestqueryVariable).get(1);
@@ -10065,7 +10065,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new NotSupported((this.id + " fetchLiquidations() supports swap markets only")) ;
@@ -10133,7 +10133,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contract", ((Map<String, Object>)market).get("id") );
             }};
@@ -10316,7 +10316,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "underlying", Helpers.GetValue(((Map<String, Object>)market).get("info"), "underlying") );
             }};
@@ -10468,7 +10468,7 @@ final Object finalI = i;
             if (!java.util.Objects.equals(symbol, null))
             {
                 // unified account does not require a symbol
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
@@ -10568,7 +10568,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contract", ((Map<String, Object>)market).get("id") );
             }};
@@ -10797,7 +10797,7 @@ final Object finalI = i;
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    market = this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
             }
             Object marketType = null;

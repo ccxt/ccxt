@@ -1035,7 +1035,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseMarket(Map<String, Object> market)
+    public Object parseMarket(Object market)
     {
         // spot
         //     {
@@ -1460,7 +1460,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1485,7 +1485,7 @@ public class Hashkey extends HashkeyApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "t");
-            return this.parseOrderBook(response, (String) (symbol), timestamp, "b", "a");
+            return this.parseOrderBook(response, symbol, timestamp, "b", "a");
         }).thenApply(OrderBook::new);
 
     }
@@ -1513,7 +1513,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1575,7 +1575,7 @@ public class Hashkey extends HashkeyApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
@@ -1637,7 +1637,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1794,7 +1794,7 @@ public class Hashkey extends HashkeyApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             timeframe = this.safeString(this.timeframes, timeframe, timeframe);
             final Object finalTimeframe = timeframe;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1878,7 +1878,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1961,7 +1961,7 @@ public class Hashkey extends HashkeyApi
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(((Map<String, Object>)market).get("contractSize")));
         }
         final Object finalBaseVolume = baseVolume;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Hashkey.this.iso8601(timestamp) );
@@ -1982,7 +1982,7 @@ public class Hashkey extends HashkeyApi
             put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", Hashkey.this.safeString(ticker, "qv") );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -2146,7 +2146,7 @@ public class Hashkey extends HashkeyApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     public Object parseSwapBalance(Map<String, Object> balance)
@@ -2175,7 +2175,7 @@ public class Hashkey extends HashkeyApi
         {
             ((Map<String, Object>)result).put((String)code, account);
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -2700,7 +2700,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseAccount(Map<String, Object> account)
+    public Object parseAccount(Object account)
     {
         String accountLabel = this.safeString(account, "accountLabel");
         String label = "";
@@ -2942,7 +2942,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 return (this.createSpotOrder(symbol, type, side, amount, price, parameters)).join();
@@ -2976,7 +2976,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() is supported for spot markets only")) ;
@@ -3026,7 +3026,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean isMarketBuy = (java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy"));
             String cost = this.safeString(parameters, "cost");
             if (Helpers.isTrue((!Boolean.TRUE.equals(isMarketBuy))) && (!java.util.Objects.equals(cost, null)))
@@ -3047,7 +3047,7 @@ public class Hashkey extends HashkeyApi
             {
                 response = (this.privatePostApiV1SpotOrder(request)).join(); // the endpoint for market buy orders by cost and other orders
             }
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         });
 
     }
@@ -3064,7 +3064,7 @@ public class Hashkey extends HashkeyApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
         {
             return this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
@@ -3106,7 +3106,7 @@ public class Hashkey extends HashkeyApi
          * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} request to be sent to the exchange
          */
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         type = (String) (((String)type).toUpperCase());
         final Object finalSide = side;
         final Object finalType = type;
@@ -3117,7 +3117,7 @@ public class Hashkey extends HashkeyApi
         }};
         if (!java.util.Objects.equals(amount, null))
         {
-            ((Map<String, Object>)request).put("quantity", this.amountToPrecision((String) (symbol), amount));
+            ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
         }
         String cost = null;
         List<Object> costparametersVariable = (List<Object>) this.handleParamString(parameters, "cost");
@@ -3125,11 +3125,11 @@ public class Hashkey extends HashkeyApi
         parameters = ((List<Object>) costparametersVariable).get(1);
         if (!java.util.Objects.equals(cost, null))
         {
-            ((Map<String, Object>)request).put("quantity", this.costToPrecision((String) (symbol), cost));
+            ((Map<String, Object>)request).put("quantity", this.costToPrecision(symbol, cost));
         }
         if (!java.util.Objects.equals(price, null))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
         Boolean isMarketOrder = java.util.Objects.equals(type, "MARKET");
         Boolean postOnly = false;
@@ -3173,11 +3173,11 @@ public class Hashkey extends HashkeyApi
         */
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
             put( "type", "LIMIT" );
-            put( "quantity", Hashkey.this.amountToPrecision((String) (symbol), amount) );
+            put( "quantity", Hashkey.this.amountToPrecision(symbol, amount) );
         }};
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
         if (Boolean.TRUE.equals(isMarketOrder))
@@ -3186,7 +3186,7 @@ public class Hashkey extends HashkeyApi
         }
         if (!java.util.Objects.equals(price, null))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             ((Map<String, Object>)request).put("priceType", "INPUT");
         }
         Object reduceOnly = false;
@@ -3223,7 +3223,7 @@ public class Hashkey extends HashkeyApi
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         if (!java.util.Objects.equals(triggerPrice, null))
         {
-            ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision((String) (symbol), triggerPrice));
+            ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
             ((Map<String, Object>)request).put("type", "STOP");
             parameters = this.omit(parameters, "triggerPrice");
         }
@@ -3259,7 +3259,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.createSwapOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostApiV1FuturesOrder(this.extend(request, parameters))).join();
             //
@@ -3283,7 +3283,7 @@ public class Hashkey extends HashkeyApi
             //         "contractMultiplier": "0.00100000"
             //     }
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         });
 
     }
@@ -3393,7 +3393,7 @@ public class Hashkey extends HashkeyApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
@@ -3425,7 +3425,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
             }
-            return this.parseOrder((Map<String, Object>) (response));
+            return this.parseOrder(response);
         }).thenApply(Order::new);
 
     }
@@ -3458,7 +3458,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3515,7 +3515,7 @@ public class Hashkey extends HashkeyApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
@@ -3580,7 +3580,7 @@ public class Hashkey extends HashkeyApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
@@ -3609,7 +3609,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
             }
-            return this.parseOrder((Map<String, Object>) (response));
+            return this.parseOrder(response);
         }).thenApply(Order::new);
 
     }
@@ -3653,7 +3653,7 @@ public class Hashkey extends HashkeyApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
@@ -3724,7 +3724,7 @@ public class Hashkey extends HashkeyApi
             {
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    market = this.market((String) (symbol));
+                    market = this.market(symbol);
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
                 if (!java.util.Objects.equals(limit, null))
@@ -3772,7 +3772,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a symbol argument for swap market orders")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3869,7 +3869,7 @@ public class Hashkey extends HashkeyApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
@@ -3944,7 +3944,7 @@ public class Hashkey extends HashkeyApi
         return new ArrayList<Object>(Arrays.asList(isTrigger, parameters));
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder spot
@@ -4218,7 +4218,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "timestamp", Hashkey.this.milliseconds() );
@@ -4338,7 +4338,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4440,7 +4440,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String methodName = "fetchPosition";
             List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "methodName", methodName);
             methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
@@ -4536,7 +4536,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4598,7 +4598,7 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "leverage", leverage );
             }};
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             Map<String, Object> response = (this.privatePostApiV1FuturesLeverage(this.extend(request, parameters))).join();
             //
@@ -4647,7 +4647,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " setMarginMode() supports swap markets only")) ;
@@ -4716,7 +4716,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " modifyMarginHelper() supports swap markets only")) ;
@@ -4940,7 +4940,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String methodName = "fetchTradingFee";
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))

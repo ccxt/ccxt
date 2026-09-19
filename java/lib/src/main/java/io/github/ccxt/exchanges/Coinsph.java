@@ -1108,7 +1108,7 @@ public class Coinsph extends CoinsphApi
                 List<Object> ids = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((String) (Helpers.GetValue(symbols, i)));
+                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                     Object id = ((Map<String, Object>)market).get("id");
                     ((List<Object>)ids).add(id);
                 }
@@ -1154,7 +1154,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1237,7 +1237,7 @@ public class Coinsph extends CoinsphApi
         changePcnt = Precise.stringMul(changePcnt, "100");
         final Object finalMarket = market;
         final Object finalChangePcnt = changePcnt;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Coinsph.this.iso8601(timestamp) );
@@ -1257,7 +1257,7 @@ public class Coinsph extends CoinsphApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -1281,7 +1281,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1303,7 +1303,7 @@ public class Coinsph extends CoinsphApi
             //         ]
             //     }
             //
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, (String) (symbol));
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1336,7 +1336,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe);
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1423,7 +1423,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1485,7 +1485,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1537,7 +1537,7 @@ public class Coinsph extends CoinsphApi
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1702,7 +1702,7 @@ public class Coinsph extends CoinsphApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     /**
@@ -1732,7 +1732,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             String orderType = this.safeString(parameters, "type", type);
@@ -1756,8 +1756,8 @@ public class Coinsph extends CoinsphApi
                     throw new ArgumentsRequired((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
                 }
                 newOrderRespType = this.safeString(newOrderRespType, "limit", "FULL");
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision((String) (symbol), amount));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
                 if (!java.util.Objects.equals(orderType, "LIMIT_MAKER"))
                 {
                     ((Map<String, Object>)request).put("timeInForce", this.safeString(options, "timeInForce", "GTC"));
@@ -1767,7 +1767,7 @@ public class Coinsph extends CoinsphApi
                 newOrderRespType = this.safeString(newOrderRespType, "market", "FULL");
                 if (java.util.Objects.equals(orderSide, "SELL"))
                 {
-                    ((Map<String, Object>)request).put("quantity", this.amountToPrecision((String) (symbol), amount));
+                    ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
                 } else if (java.util.Objects.equals(orderSide, "BUY"))
                 {
                     String quoteAmount = null;
@@ -1779,7 +1779,7 @@ public class Coinsph extends CoinsphApi
                     parameters = this.omit(parameters, "cost");
                     if (!java.util.Objects.equals(cost, null))
                     {
-                        quoteAmount = this.costToPrecision((String) (symbol), cost);
+                        quoteAmount = this.costToPrecision(symbol, cost);
                     } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if (java.util.Objects.equals(price, null))
@@ -1790,11 +1790,11 @@ public class Coinsph extends CoinsphApi
                             Object amountString = this.numberToString(amount);
                             Object priceString = this.numberToString(price);
                             String costRequest = Precise.stringMul(amountString, priceString);
-                            quoteAmount = this.costToPrecision((String) (symbol), costRequest);
+                            quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
                     } else
                     {
-                        quoteAmount = this.costToPrecision((String) (symbol), amount);
+                        quoteAmount = this.costToPrecision(symbol, amount);
                     }
                     ((Map<String, Object>)request).put("quoteOrderQty", quoteAmount);
                 }
@@ -1806,7 +1806,7 @@ public class Coinsph extends CoinsphApi
                 {
                     throw new InvalidOrder((this.id + " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")) ;
                 }
-                ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision((String) (symbol), triggerPrice));
+                ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             ((Map<String, Object>)request).put("newOrderRespType", newOrderRespType);
             parameters = this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
@@ -1845,7 +1845,7 @@ public class Coinsph extends CoinsphApi
             //         ]
             //     },
             //
-            return this.parseOrder((Map<String, Object>) (response), market);
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1882,7 +1882,7 @@ public class Coinsph extends CoinsphApi
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId")));
             Map<String, Object> response = (this.privateGetOpenapiV1Order(this.extend(request, parameters))).join();
-            return this.parseOrder((Map<String, Object>) (response));
+            return this.parseOrder(response);
         }).thenApply(Order::new);
 
     }
@@ -1915,7 +1915,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetOpenapiV1OpenOrders(this.extend(request, parameters))).join();
@@ -1952,7 +1952,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2003,7 +2003,7 @@ public class Coinsph extends CoinsphApi
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId")));
             Map<String, Object> response = (this.privateDeleteOpenapiV1Order(this.extend(request, parameters))).join();
-            return this.parseOrder((Map<String, Object>) (response));
+            return this.parseOrder(response);
         }).thenApply(Order::new);
 
     }
@@ -2036,7 +2036,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateDeleteOpenapiV1OpenOrders(this.extend(request, parameters))).join();
@@ -2045,7 +2045,7 @@ public class Coinsph extends CoinsphApi
 
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder POST /openapi/v1/order
@@ -2265,7 +2265,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};

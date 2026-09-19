@@ -939,7 +939,7 @@ public class Lbank extends LbankApi
         market = this.safeMarket(marketId, market);
         Object data = (((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)))) ? ticker : tickerData;
         final Object finalTimestamp = timestamp;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
             put( "datetime", Lbank.this.iso8601(finalTimestamp) );
@@ -960,7 +960,7 @@ public class Lbank extends LbankApi
             put( "baseVolume", Lbank.this.safeString2(data, "vol", "volume") );
             put( "quoteVolume", Lbank.this.safeString(data, "turnover") );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -982,7 +982,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 Object responseForSwap = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), (Object)(parameters))).join();
@@ -1048,7 +1048,7 @@ public class Lbank extends LbankApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
-                    market = this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1139,7 +1139,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(limit, null))
             {
                 limit = 60;
@@ -1213,14 +1213,14 @@ public class Lbank extends LbankApi
             Long timestamp = this.milliseconds();
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                return this.parseOrderBook(orderbook, (String) (((Map<String, Object>)market).get("symbol")), timestamp, "bids", "asks", "price", "volume");
+                return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "volume");
             }
-            return this.parseOrderBook(orderbook, (String) (((Map<String, Object>)market).get("symbol")), timestamp, "bids", "asks");
+            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks");
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (old) spotPublicGetTrades
@@ -1307,7 +1307,7 @@ public class Lbank extends LbankApi
             id = this.safeString(trade, "txUuid");
         }
         String order = this.safeString(trade, "orderUuid");
-        String symbol = this.safeSymbol((String) (null), market);
+        String symbol = this.safeSymbol(null, market);
         Object fee = null;
         String feeCost = this.safeString(trade, "tradeFee");
         if (!java.util.Objects.equals(feeCost, null))
@@ -1370,7 +1370,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1461,7 +1461,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(limit, null))
             {
                 limit = 100;
@@ -1615,7 +1615,7 @@ public class Lbank extends LbankApi
                     ((Map<String, Object>)result).put((String)code, account);
                 }
             }
-            return this.safeBalance((Map<String, Object>) (result));
+            return this.safeBalance(result);
         }
         // from spotPrivatePostSupplementUserInfoAccount
         List<Object> balances = (List<Object>) this.safeList(data, "balances");
@@ -1634,7 +1634,7 @@ public class Lbank extends LbankApi
                     ((Map<String, Object>)result).put((String)codeInner, account);
                 }
             }
-            return this.safeBalance((Map<String, Object>) (result));
+            return this.safeBalance(result);
         }
         // from spotPrivatePostSupplementUserInfo
         Object isArray = (data instanceof List);
@@ -1653,9 +1653,9 @@ public class Lbank extends LbankApi
                     ((Map<String, Object>)result).put((String)codeInner, account);
                 }
             }
-            return this.safeBalance((Map<String, Object>) (result));
+            return this.safeBalance(result);
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     public Object parseFundingRate(Object ticker, Object... optionalArgs)
@@ -1729,7 +1729,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object responseForSwap = (this.fetchFundingRates((Object)(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), (Object)(parameters))).join();
             return this.safeValue(responseForSwap, ((Map<String, Object>)market).get("symbol"));
         }).thenApply(FundingRate::new);
@@ -1902,7 +1902,7 @@ public class Lbank extends LbankApi
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object result = (this.fetchTradingFees((Object)(this.extend(parameters, new HashMap<String, Object>() {{
                 put( "category", ((Map<String, Object>)market).get("id") );
             }})))).join();
@@ -1965,7 +1965,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -2003,7 +2003,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
@@ -2021,8 +2021,8 @@ public class Lbank extends LbankApi
             if (java.util.Objects.equals(type, "limit"))
             {
                 ((Map<String, Object>)request).put("type", side);
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
-                ((Map<String, Object>)request).put("amount", this.amountToPrecision((String) (symbol), amount));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
                 if (Boolean.TRUE.equals(ioc))
                 {
                     ((Map<String, Object>)request).put("type", ((side + "_") + "ioc"));
@@ -2038,7 +2038,7 @@ public class Lbank extends LbankApi
                 if (java.util.Objects.equals(side, "sell"))
                 {
                     ((Map<String, Object>)request).put("type", ((side + "_") + "market"));
-                    ((Map<String, Object>)request).put("amount", this.amountToPrecision((String) (symbol), amount));
+                    ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
                 } else if (java.util.Objects.equals(side, "buy"))
                 {
                     ((Map<String, Object>)request).put("type", ((side + "_") + "market"));
@@ -2051,7 +2051,7 @@ public class Lbank extends LbankApi
                     parameters = this.omit(parameters, "cost");
                     if (!java.util.Objects.equals(cost, null))
                     {
-                        quoteAmount = this.costToPrecision((String) (symbol), cost);
+                        quoteAmount = this.costToPrecision(symbol, cost);
                     } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if (java.util.Objects.equals(price, null))
@@ -2062,11 +2062,11 @@ public class Lbank extends LbankApi
                             Object amountString = this.numberToString(amount);
                             Object priceString = this.numberToString(price);
                             String costRequest = Precise.stringMul(amountString, priceString);
-                            quoteAmount = this.costToPrecision((String) (symbol), costRequest);
+                            quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
                     } else
                     {
-                        quoteAmount = this.costToPrecision((String) (symbol), amount);
+                        quoteAmount = this.costToPrecision(symbol, amount);
                     }
                     // market buys require filling the price param instead of the amount param, for market buys the price is treated as the cost by lbank
                     ((Map<String, Object>)request).put("price", quoteAmount);
@@ -2121,7 +2121,7 @@ public class Lbank extends LbankApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOrderSupplement (private)
@@ -2331,7 +2331,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "orderId", id );
@@ -2359,7 +2359,7 @@ public class Lbank extends LbankApi
             //      }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (result));
+            return this.parseOrder(result);
         });
 
     }
@@ -2380,7 +2380,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "order_id", id );
@@ -2410,7 +2410,7 @@ public class Lbank extends LbankApi
             Object numOrders = ((List<?>)result).size();
             if (java.util.Objects.equals(numOrders, 1))
             {
-                return this.parseOrder((Map<String, Object>) ((result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0))));
+                return this.parseOrder((result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0)));
             } else
             {
                 throw new BadRequest((this.id + " fetchOrder() can only fetch one order at a time")) ;
@@ -2447,7 +2447,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             since = this.safeValue(parameters, "start_date", since);
             parameters = this.omit(parameters, "start_date");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2519,7 +2519,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(limit, null))
             {
                 limit = 100;
@@ -2593,7 +2593,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(limit, null))
             {
                 limit = 100;
@@ -2666,7 +2666,7 @@ public class Lbank extends LbankApi
             }
             String clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "orderId", id );
@@ -2690,7 +2690,7 @@ public class Lbank extends LbankApi
             //      "ts":1648501286196
             //  }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (data));
+            return this.parseOrder(data);
         }).thenApply(Order::new);
 
     }
@@ -2719,7 +2719,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};

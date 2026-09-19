@@ -1032,7 +1032,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Tokocrypto.this.getMarketIdByType((Map<String, Object>) (market)) );
             }};
@@ -1079,14 +1079,14 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             Object data = this.safeDict(response, "data", response);
             Long timestamp = (Long) this.safeInteger2(response, "T", "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, (String) (symbol), timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(data, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // aggregate trades
@@ -1198,29 +1198,29 @@ public class Tokocrypto extends TokocryptoApi
         {
             side = (((java.util.Objects.equals(buyerMaker, true)))) ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
-        } else if (trade.containsKey("side"))
+        } else if (((Map<?, ?>)trade).containsKey("side"))
         {
             side = this.safeStringLower(trade, "side");
         } else
         {
-            if (trade.containsKey("isBuyer"))
+            if (((Map<?, ?>)trade).containsKey("isBuyer"))
             {
                 side = (((java.util.Objects.equals(((Map<String, Object>)trade).get("isBuyer"), true)))) ? "buy" : "sell"; // this is a true side
             }
         }
         Object fee = null;
-        if (trade.containsKey("commission"))
+        if (((Map<?, ?>)trade).containsKey("commission"))
         {
             fee = new HashMap<String, Object>() {{
                 put( "cost", Tokocrypto.this.safeString(trade, "commission") );
                 put( "currency", Tokocrypto.this.safeCurrencyCode(Tokocrypto.this.safeString(trade, "commissionAsset")) );
             }};
         }
-        if (trade.containsKey("isMaker"))
+        if (((Map<?, ?>)trade).containsKey("isMaker"))
         {
             takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("isMaker"), true)))) ? "maker" : "taker";
         }
-        if (trade.containsKey("maker"))
+        if (((Map<?, ?>)trade).containsKey("maker"))
         {
             takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("maker"), true)))) ? "maker" : "taker";
         }
@@ -1269,7 +1269,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             // the venue routes market data by the symbol type reported by fetchMarkets,
             // not by the quote currency: type 1 markets are served by the binance host
@@ -1437,7 +1437,7 @@ public class Tokocrypto extends TokocryptoApi
         }
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Tokocrypto.this.iso8601(timestamp) );
@@ -1458,7 +1458,7 @@ public class Tokocrypto extends TokocryptoApi
             put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", finalQuoteVolume );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -1552,7 +1552,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
             {
                 throw new NotSupported((((this.id + " fetchTicker() does not support ") + symbol) + " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
@@ -1664,7 +1664,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
             // the reality is that the time range wider than 500 candles won't work right
             Object defaultLimit = 500;
@@ -1837,7 +1837,7 @@ public class Tokocrypto extends TokocryptoApi
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     public String parseOrderStatus(String status)
@@ -1862,7 +1862,7 @@ public class Tokocrypto extends TokocryptoApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // spot
@@ -2061,7 +2061,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             // only supported for spot/margin api
@@ -2205,7 +2205,7 @@ public class Tokocrypto extends TokocryptoApi
             }
             if (Boolean.TRUE.equals(quantityIsRequired))
             {
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision((String) (symbol), amount));
+                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
             }
             if (Boolean.TRUE.equals(priceIsRequired))
             {
@@ -2213,7 +2213,7 @@ public class Tokocrypto extends TokocryptoApi
                 {
                     throw new InvalidOrder((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
                 }
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             if (Boolean.TRUE.equals(triggerPriceIsRequired))
             {
@@ -2222,7 +2222,7 @@ public class Tokocrypto extends TokocryptoApi
                     throw new InvalidOrder((((this.id + " createOrder() requires a triggerPrice extra param for a ") + type) + " order")) ;
                 } else
                 {
-                    ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision((String) (symbol), triggerPrice));
+                    ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 }
             }
             Map<String, Object> response = (this.privatePostOpenV1Orders(this.extend(request, parameters))).join();
@@ -2255,7 +2255,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (rawOrder), market);
+            return this.parseOrder(rawOrder, market);
         }).thenApply(Order::new);
 
     }
@@ -2314,7 +2314,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(list, 0, new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (rawOrder));
+            return this.parseOrder(rawOrder);
         }).thenApply(Order::new);
 
     }
@@ -2347,7 +2347,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2505,7 +2505,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (rawOrder));
+            return this.parseOrder(rawOrder);
         }).thenApply(Order::new);
 
     }
@@ -2538,7 +2538,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};

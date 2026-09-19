@@ -84,7 +84,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Object url = this.implodeParams(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), new HashMap<String, Object>() {{
                 put( "hostname", Upbit.this.hostname );
             }});
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             String subscriptionsKey = "upbitPublicSubscriptions";
             if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionsKey)))
             {
@@ -349,7 +349,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //        "bid_size": 5 }, ... ],
         //   "stream_type": "SNAPSHOT" }
         String marketId = this.safeString(message, "code");
-        String symbol = this.safeSymbol((String) (marketId), null, "-");
+        String symbol = this.safeSymbol(marketId, null, "-");
         String type = this.safeString(message, "stream_type");
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(options, "limit", 15);
@@ -401,7 +401,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //   "change_price": 27000,
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
-        Map<String, Object> trade = (Map<String, Object>) this.parseTrade((Map<String, Object>) (message));
+        Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message);
         Object symbol = ((Map<String, Object>)trade).get("symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -436,7 +436,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //     stream_type: 'REALTIME'
         //   }
         String marketId = this.safeString(message, "code");
-        String symbol = this.safeSymbol((String) (marketId));
+        String symbol = this.safeSymbol(marketId);
         String messageHash = ("candle.1s:" + symbol);
         List<Object> ohlcv = (List<Object>) this.parseOHLCV(message);
         client.resolve(ohlcv, messageHash);
@@ -467,7 +467,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 Helpers.addElementToObject(this.options, "ws", wsOptions);
             }
             Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/private");
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             return client;
         });
 
@@ -491,7 +491,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             if (!java.util.Objects.equals(symbol, null))
             {
                 (this.loadMarkets()).join();
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) (((Map<String, Object>)market).get("symbol"));
                 List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbol));
                 Object marketIds = this.marketIds(symbols);
@@ -502,7 +502,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 put( "hostname", Upbit.this.hostname );
             }});
             url = (url + "/private");
-            Client client = this.client((String) (url));
+            Client client = this.client(url);
             // Track private channel subscriptions to support multiple concurrent watches
             String subscriptionsKey = "upbitPrivateSubscriptions";
             if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionsKey)))
@@ -535,7 +535,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 ((List<Object>)message).add((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)));
             }
-            return (this.watch((String) (url), (String) (messageHash), message, messageHash, null)).join();
+            return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
     }
@@ -879,7 +879,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 Helpers.addElementToObject(this.balance, code, account);
             }
-            this.balance = this.safeBalance((Map<String, Object>) (this.balance));
+            this.balance = this.safeBalance(this.balance);
         }
         String messageHash = this.safeString(message, "type");
         client.resolve(this.balance, messageHash);

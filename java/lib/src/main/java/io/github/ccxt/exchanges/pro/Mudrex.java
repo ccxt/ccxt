@@ -99,7 +99,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("ticker:" + symbol);
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -114,7 +114,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 put( "assets", new ArrayList<Object>(Arrays.asList(assetId)) );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
-            return (this.watch((String) (url), messageHash, request, messageHash, null)).join();
+            return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -137,7 +137,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((String) (Helpers.GetValue(symbols, i)));
+                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                     ((List<Object>)messageHashes).add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
                     Object baseIdString = (((!java.util.Objects.equals(((Map<String, Object>)market).get("baseId"), null)))) ? ((Map<String, Object>)market).get("baseId") : "";
                     Object quoteIdString = (((!java.util.Objects.equals(((Map<String, Object>)market).get("quoteId"), null)))) ? ((Map<String, Object>)market).get("quoteId") : "";
@@ -178,7 +178,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String priceType = this.safeString(parameters, "price");
             parameters = this.omit(parameters, "price");
@@ -204,7 +204,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 put( "params", new ArrayList<Object>(Arrays.asList(stream)) );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
-            Object ohlcv = (this.watch((String) (url), (String) (messageHash), request, messageHash, null)).join();
+            Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -302,14 +302,14 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             Object symbol = ((Map<String, Object>)market).get("symbol");
             Long timestamp = this.milliseconds();
             Double last = this.safeNumber(t, "p");
-            Object result = this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+            Object result = this.safeTicker(new HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "timestamp", timestamp );
                 put( "datetime", Mudrex.this.iso8601(timestamp) );
                 put( "last", last );
                 put( "close", last );
                 put( "info", t );
-            }}));
+            }});
             Helpers.addElementToObject(this.tickers, symbol, result);
             String messageHash = ("ticker:" + symbol);
             client.resolve(result, messageHash);
