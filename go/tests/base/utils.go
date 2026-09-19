@@ -502,6 +502,10 @@ func ExitScript(code any) {
 // getExchangeProp function to retrieve a property from exchange
 func GetExchangeProp(exchange2 any, prop2 any, defaultValue ...any) any {
 	exchange := exchange2.(ccxt.ICoreExchange)
+	// Match SetExchangeProp: Go exposes exported field names.
+	if propName, ok := prop2.(string); ok && propName != "" {
+		prop2 = strings.ToUpper(propName[:1]) + propName[1:]
+	}
 	res := exchange.GetProperty(exchange, prop2)
 	if res != nil {
 		return res
