@@ -1295,15 +1295,15 @@ public partial class bingx : ccxt.bingx
         object url = add(add(baseUrl, "?listenKey="), (this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null));
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type, subType, subscriptionHash, parameters);
-        object fetchBalanceSnapshot = null;
-        object awaitBalanceSnapshot = null;
+        bool? fetchBalanceSnapshot = null;
+        bool? awaitBalanceSnapshot = null;
         IList<object> fetchBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
-        fetchBalanceSnapshot = ((IList<object>)fetchBalanceSnapshotparametersVariable)[0];
+        fetchBalanceSnapshot = isTrue(((IList<object>)fetchBalanceSnapshotparametersVariable)[0]);
         parameters = ((IList<object>)fetchBalanceSnapshotparametersVariable)[1];
         IList<object> awaitBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", false);
-        awaitBalanceSnapshot = ((IList<object>)awaitBalanceSnapshotparametersVariable)[0];
+        awaitBalanceSnapshot = isTrue(((IList<object>)awaitBalanceSnapshotparametersVariable)[0]);
         parameters = ((IList<object>)awaitBalanceSnapshotparametersVariable)[1];
-        if (isTrue(fetchBalanceSnapshot) && isTrue(awaitBalanceSnapshot))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
         }
@@ -1320,11 +1320,11 @@ public partial class bingx : ccxt.bingx
         {
             return;
         }
-        object fetchBalanceSnapshot = false;
+        bool fetchBalanceSnapshot = false;
         IList<object> fetchBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
-        fetchBalanceSnapshot = ((IList<object>)fetchBalanceSnapshotparametersVariable)[0];
+        fetchBalanceSnapshot = isTrue(((IList<object>)fetchBalanceSnapshotparametersVariable)[0]);
         parameters = ((IList<object>)fetchBalanceSnapshotparametersVariable)[1];
-        if (isTrue(fetchBalanceSnapshot))
+        if (fetchBalanceSnapshot)
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
             if (!(inOp(client.futures, messageHash)))
@@ -1400,20 +1400,20 @@ public partial class bingx : ccxt.bingx
         object url = add(add(baseUrl, "?listenKey="), (this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null));
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, type, symbols);
-        object fetchPositionsSnapshot = null;
-        object awaitPositionsSnapshot = null;
+        bool? fetchPositionsSnapshot = null;
+        bool? awaitPositionsSnapshot = null;
         IList<object> fetchPositionsSnapshotparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
-        fetchPositionsSnapshot = ((IList<object>)fetchPositionsSnapshotparametersVariable)[0];
+        fetchPositionsSnapshot = isTrue(((IList<object>)fetchPositionsSnapshotparametersVariable)[0]);
         parameters = ((IList<object>)fetchPositionsSnapshotparametersVariable)[1];
         IList<object> awaitPositionsSnapshotparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchPositions", "awaitPositionsSnapshot", false);
-        awaitPositionsSnapshot = ((IList<object>)awaitPositionsSnapshotparametersVariable)[0];
+        awaitPositionsSnapshot = isTrue(((IList<object>)awaitPositionsSnapshotparametersVariable)[0]);
         parameters = ((IList<object>)awaitPositionsSnapshotparametersVariable)[1];
         string uuid = this.uuid();
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", false },
             { "id", uuid },
         };
-        if (isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot) && (this.positions == null))
+        if ((fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.positions == null))
         {
             object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));

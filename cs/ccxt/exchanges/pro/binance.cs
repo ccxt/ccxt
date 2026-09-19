@@ -828,11 +828,11 @@ public partial class binance : ccxt.binance
         IList<object> watchOrderBookRateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "watchOrderBookRate", "100");
         watchOrderBookRate = ((IList<object>)watchOrderBookRateparametersVariable)[0];
         parameters = ((IList<object>)watchOrderBookRateparametersVariable)[1];
-        object rpi = null;
+        bool? rpi = null;
         IList<object> rpiparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "rpi", false);
-        rpi = ((IList<object>)rpiparametersVariable)[0];
+        rpi = isTrue(((IList<object>)rpiparametersVariable)[0]);
         parameters = ((IList<object>)rpiparametersVariable)[1];
-        if (isTrue(rpi) && (type == "future"))
+        if ((rpi == true) && (type == "future"))
         {
             name = "rpiDepth";
             watchOrderBookRate = "500";
@@ -1857,11 +1857,11 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        object stock = false;
+        bool stock = false;
         IList<object> stockparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
-        stock = ((IList<object>)stockparametersVariable)[0];
+        stock = isTrue(((IList<object>)stockparametersVariable)[0]);
         parameters = ((IList<object>)stockparametersVariable)[1];
-        if (isTrue(stock))
+        if (stock)
         {
             List<object> stockStreams = new List<object>() {};
             List<object> stockMessageHashes = new List<object>() {};
@@ -2410,11 +2410,11 @@ public partial class binance : ccxt.binance
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object stock = false;
+        bool stock = false;
         IList<object> stockparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "stock", false);
-        stock = ((IList<object>)stockparametersVariable)[0];
+        stock = isTrue(((IList<object>)stockparametersVariable)[0]);
         parameters = ((IList<object>)stockparametersVariable)[1];
-        if (isTrue(stock))
+        if (stock)
         {
             if ((symbols == null))
             {
@@ -2566,11 +2566,11 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        object stock = false;
+        bool stock = false;
         IList<object> stockparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBidsAsks", "stock", false);
-        stock = ((IList<object>)stockparametersVariable)[0];
+        stock = isTrue(((IList<object>)stockparametersVariable)[0]);
         parameters = ((IList<object>)stockparametersVariable)[1];
-        if (isTrue(stock))
+        if (stock)
         {
             if ((symbols == null))
             {
@@ -3398,9 +3398,9 @@ public partial class binance : ccxt.binance
         List<object> resolvedAuth = this.resolveAuthType("authenticate", null, parameters);
         object type = getValue(resolvedAuth, 0);
         parameters = getValue(resolvedAuth, 2);
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "authenticate", "papi", "portfolioMargin", false);
-        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        isPortfolioMargin = isTrue(((IList<object>)isPortfolioMarginparametersVariable)[0]);
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         // For spot use WebSocket API signature subscription
         if (isEqual(type, "spot"))
@@ -3465,7 +3465,7 @@ public partial class binance : ccxt.binance
                 {
                     object requestParams = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
                     response = await this.sapiPostEquityListenKey(requestParams);
-                } else if (isTrue(isPortfolioMargin))
+                } else if ((isPortfolioMargin == true))
                 {
                     response = await this.papiPostListenKey(parameters);
                     parameters = this.extend(parameters, new Dictionary<string, object>() {
@@ -3524,9 +3524,9 @@ public partial class binance : ccxt.binance
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString2(this.options, "defaultType", "authenticate", "spot");
         type = this.safeString(parameters, "type", type);
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
-        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        isPortfolioMargin = isTrue(((IList<object>)isPortfolioMarginparametersVariable)[0]);
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         List<object> subTypeInfo = this.handleSubTypeAndParams("keepAliveListenKey", null, parameters);
         object subType = getValue(subTypeInfo, 0);
@@ -3574,7 +3574,7 @@ public partial class binance : ccxt.binance
                 // POST extends the validity of that same key
                 object requestParams = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "subType", "timeframe"});
                 await this.sapiPostEquityListenKey(requestParams);
-            } else if (isTrue(isPortfolioMargin))
+            } else if ((isPortfolioMargin == true))
             {
                 await this.papiPutListenKey(this.extend(request, parameters));
                 parameters = this.extend(parameters, new Dictionary<string, object>() {
@@ -3605,7 +3605,7 @@ public partial class binance : ccxt.binance
             } else
             {
                 string? urlType = type;
-                if (isTrue(isPortfolioMargin))
+                if ((isPortfolioMargin == true))
                 {
                     urlType = "papi";
                 }
@@ -4925,11 +4925,11 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        object stock = false;
+        bool stock = false;
         IList<object> stockparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrders", "stock", false);
-        stock = ((IList<object>)stockparametersVariable)[0];
+        stock = isTrue(((IList<object>)stockparametersVariable)[0]);
         parameters = ((IList<object>)stockparametersVariable)[1];
-        if (isTrue(stock))
+        if (stock)
         {
             // literal on top: a stray type in the caller params must not override
             // the forced stock, the removed authenticateStock ignored it entirely

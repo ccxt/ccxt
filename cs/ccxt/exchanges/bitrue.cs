@@ -2199,11 +2199,11 @@ public partial class bitrue : Exchange
                 ((IDictionary<string,object>)request)["type"] = "IOC";
             }
             ((IDictionary<string,object>)request)["contractName"] = (market.ContainsKey("id") ? market["id"] : null);
-            object createMarketBuyOrderRequiresPrice = true;
+            bool createMarketBuyOrderRequiresPrice = true;
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
+            createMarketBuyOrderRequiresPrice = isTrue(((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0]);
             parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
-            if (isMarket && (isEqual(side, "buy")) && isTrue(createMarketBuyOrderRequiresPrice))
+            if (isMarket && (isEqual(side, "buy")) && createMarketBuyOrderRequiresPrice)
             {
                 string? cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");

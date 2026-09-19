@@ -817,15 +817,15 @@ public partial class hashkey : ccxt.hashkey
         object url = this.getPrivateUrl(listenKey);
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type, messageHash);
-        object fetchBalanceSnapshot = null;
-        object awaitBalanceSnapshot = null;
+        bool? fetchBalanceSnapshot = null;
+        bool? awaitBalanceSnapshot = null;
         IList<object> fetchBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true);
-        fetchBalanceSnapshot = ((IList<object>)fetchBalanceSnapshotparametersVariable)[0];
+        fetchBalanceSnapshot = isTrue(((IList<object>)fetchBalanceSnapshotparametersVariable)[0]);
         parameters = ((IList<object>)fetchBalanceSnapshotparametersVariable)[1];
         IList<object> awaitBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false);
-        awaitBalanceSnapshot = ((IList<object>)awaitBalanceSnapshotparametersVariable)[0];
+        awaitBalanceSnapshot = isTrue(((IList<object>)awaitBalanceSnapshotparametersVariable)[0]);
         parameters = ((IList<object>)awaitBalanceSnapshotparametersVariable)[1];
-        if (isTrue(fetchBalanceSnapshot) && isTrue(awaitBalanceSnapshot))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
         }

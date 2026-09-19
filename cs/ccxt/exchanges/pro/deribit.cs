@@ -624,11 +624,11 @@ public partial class deribit : ccxt.deribit
             await this.authenticate();
         }
         object descriptor = "";
-        object useDepthEndpoint = null; // for more info, see comment in .options
+        bool? useDepthEndpoint = null; // for more info, see comment in .options
         IList<object> useDepthEndpointparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "useDepthEndpoint", false);
-        useDepthEndpoint = ((IList<object>)useDepthEndpointparametersVariable)[0];
+        useDepthEndpoint = isTrue(((IList<object>)useDepthEndpointparametersVariable)[0]);
         parameters = ((IList<object>)useDepthEndpointparametersVariable)[1];
-        if (isTrue(useDepthEndpoint))
+        if ((useDepthEndpoint == true))
         {
             object depth = null;
             IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", "20");

@@ -2708,11 +2708,11 @@ public partial class whitebit : Exchange
         List<object> requestType = new List<object>() {};
         if ((type == "spot"))
         {
-            object isMargin = null;
+            bool? isMargin = null;
             IList<object> isMarginparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
-            isMargin = ((IList<object>)isMarginparametersVariable)[0];
+            isMargin = isTrue(((IList<object>)isMarginparametersVariable)[0]);
             parameters = ((IList<object>)isMarginparametersVariable)[1];
-            if (isTrue(isMargin))
+            if ((isMargin == true))
             {
                 ((IList<object>)requestType).Add("margin");
             } else
@@ -4824,11 +4824,11 @@ public partial class whitebit : Exchange
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         int maxLimit = 100;
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, maxLimit));
         }

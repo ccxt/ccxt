@@ -3617,11 +3617,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters));
         }
@@ -3943,11 +3943,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,((string)timeframeVar), parameters, 1000));
         }
@@ -4062,11 +4062,11 @@ public partial class htx : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
-            object useHistorical = null;
+            bool? useHistorical = null;
             IList<object> useHistoricalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
-            useHistorical = ((IList<object>)useHistoricalparametersVariable)[0];
+            useHistorical = isTrue(((IList<object>)useHistoricalparametersVariable)[0]);
             parameters = ((IList<object>)useHistoricalparametersVariable)[1];
-            if (!isTrue(useHistorical))
+            if (!(useHistorical == true))
             {
                 if (!isEqual(limitVar, null))
                 {
@@ -4416,11 +4416,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        object isUnifiedAccount = null;
+        bool? isUnifiedAccount = null;
         IList<object> isUnifiedAccountparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
-        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        isUnifiedAccount = isTrue(((IList<object>)isUnifiedAccountparametersVariable)[0]);
         parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
-        if (isTrue(isUnifiedAccount))
+        if ((isUnifiedAccount == true))
         {
             throw new NotSupported ((string)(this.id + " fetchBalance() unified account has been deprecated on htx")) ;
         }
@@ -4429,7 +4429,7 @@ public partial class htx : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
-        object isMultiAssetMode = null;
+        bool? isMultiAssetMode = null;
         IList<object> subTypeparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
@@ -4438,7 +4438,7 @@ public partial class htx : Exchange
             subType = "linear";
         }
         IList<object> isMultiAssetModeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalance", "multiAssetMode", false);
-        isMultiAssetMode = ((IList<object>)isMultiAssetModeparametersVariable)[0];
+        isMultiAssetMode = isTrue(((IList<object>)isMultiAssetModeparametersVariable)[0]);
         parameters = ((IList<object>)isMultiAssetModeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool spot = ((type == "spot"));
@@ -4454,7 +4454,7 @@ public partial class htx : Exchange
         bool cross = (isEqual(marginMode, "cross"));
         bool margin = ((type == "margin")) || (spot && (cross || isolated));
         Dictionary<string, object> response = null;
-        if (isTrue(isMultiAssetMode) || (linear && (swap || future)))
+        if ((isMultiAssetMode == true) || (linear && (swap || future)))
         {
             response = await this.contractPrivateGetV5AccountBalance(this.extend(request, parameters));
         } else if (spot || margin)
@@ -4631,7 +4631,7 @@ public partial class htx : Exchange
             { "info", finalResponse },
         };
         object data = this.safeValue(response, "data");
-        if (isTrue(isMultiAssetMode) || (linear && (swap || future)))
+        if ((isMultiAssetMode == true) || (linear && (swap || future)))
         {
             List<object> details = this.safeList(data, "details", new List<object>() {});
             for (int i = 0; i < details.Count; i++)
@@ -5288,11 +5288,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchCanceledOrders", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, parameters, 100));
         }
@@ -5363,11 +5363,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters, 100));
         }
@@ -6322,16 +6322,16 @@ public partial class htx : Exchange
         if (((orderType == "market")) && (isEqual(side, "buy")))
         {
             string? quoteAmount = null;
-            object createMarketBuyOrderRequiresPrice = true;
+            bool createMarketBuyOrderRequiresPrice = true;
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
+            createMarketBuyOrderRequiresPrice = isTrue(((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0]);
             parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
             double? cost = this.safeNumber(parameters, "cost");
             parameters = this.omit(parameters, "cost");
             if (!isEqual(cost, null))
             {
                 quoteAmount = this.amountToPrecision(symbol, cost);
-            } else if (isTrue(createMarketBuyOrderRequiresPrice))
+            } else if (createMarketBuyOrderRequiresPrice)
             {
                 if (isEqual(price, null))
                 {
@@ -8550,11 +8550,11 @@ public partial class htx : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "current_page", "page_index", 1, 50));
         }
@@ -9806,11 +9806,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, 500));
         }
