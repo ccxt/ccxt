@@ -1404,7 +1404,11 @@ class bitstamp extends Exchange {
             if ($since !== null) {
                 $start = $this->parse_to_int($since / 1000);
                 $request['start'] = $start;
-                $request['end'] = $this->sum($start, $duration * $limit - 1);
+                $end = $this->sum($start, $duration * $limit - 1);
+                if ($untilIsDefined) {
+                    $end = min($end, $this->parse_to_int($until / 1000));
+                }
+                $request['end'] = $end;
             } elseif ($untilIsDefined) {
                 $end = $this->parse_to_int($until / 1000);
                 $request['end'] = $end;

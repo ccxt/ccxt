@@ -1323,7 +1323,10 @@ class bitstamp(Exchange, ImplicitAPI):
             if since is not None:
                 start = self.parse_to_int(since / 1000)
                 request['start'] = start
-                request['end'] = self.sum(start, duration * limit - 1)
+                end = self.sum(start, duration * limit - 1)
+                if untilIsDefined:
+                    end = min(end, self.parse_to_int(until / 1000))
+                request['end'] = end
             elif untilIsDefined:
                 end = self.parse_to_int(until / 1000)
                 request['end'] = end

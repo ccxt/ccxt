@@ -338,6 +338,20 @@
                     "until": 1735948800000
                   }
                 ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and an earlier until",
+                "method": "fetchOHLCV",
+                "url": "https://www.bitstamp.net/api/v2/ohlc/btcusdt/?step=3600&start=1735862400&end=1735869600&limit=4",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  4,
+                  {
+                    "until": 1735869600000
+                  }
+                ]
             }
         ],
         "transfer": [
