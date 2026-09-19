@@ -2367,7 +2367,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)

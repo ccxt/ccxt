@@ -1009,7 +1009,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
         {
-            this.spawn(() -> { try { this.watchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.spawn(() -> { try { this.watchOrderBookSnapshot(client, (Map<String, Object>) (message), (Map<String, Object>) (subscription)); } catch(Exception _e) { throw new RuntimeException(_e); } });
         }
     }
 
@@ -2763,7 +2763,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public void handleAuthenticate(Client client, Map<String, Object> message)

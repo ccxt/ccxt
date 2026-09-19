@@ -893,7 +893,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
         {
             client.future((String)messageHash);
-            this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, marketType); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (marketType)); } catch(Exception _e) { throw new RuntimeException(_e); } });
         }
     }
 

@@ -349,7 +349,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             ((Map<String,Object>)this.orderbooks).remove((String)symbol);
         }
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
-        this.spawn(() -> { try { this.fetchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.fetchOrderBookSnapshot(client, (Map<String, Object>) (message), (Map<String, Object>) (subscription)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public CompletableFuture<Object> fetchOrderBookSnapshot(Client client, Map<String, Object> message, Map<String, Object> subscription)
@@ -2047,7 +2047,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public Object handlePong(Client client, Map<String, Object> message)

@@ -1340,7 +1340,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
     public void handlePing(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public void handleAccount(Client client, Map<String, Object> message)

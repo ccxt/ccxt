@@ -610,7 +610,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         // watch the snapshot in a separate async call
-        this.spawn(() -> { try { this.watchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.watchOrderBookSnapshot(client, (Map<String, Object>) (message), (Map<String, Object>) (subscription)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
@@ -721,7 +721,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public Boolean handleErrorMessage(Client client, Map<String, Object> message)
