@@ -474,6 +474,28 @@ public class ArrayCache extends ArrayList<Object> {
      */
     public static class ArrayCacheBySymbolBySide extends ArrayCacheBySymbolById {
 
+        public synchronized void remove(String symbol) {
+            if (!this.hashmap.containsKey(symbol)) {
+                return;
+            }
+            int retained = 0;
+            for (int i = 0; i < this.size(); i++) {
+                Object item = this.get(i);
+                if (!symbol.equals(fieldOf(item, "symbol"))) {
+                    this.set(retained++, item);
+                }
+            }
+            this.removeRange(retained, this.size());
+            this.hashmap.remove(symbol);
+            Set<String> seen = this.seenUpdatesAll.remove(symbol);
+            if (seen != null) {
+                this.allNewUpdates -= seen.size();
+            }
+            this.seenUpdatesBySymbol.remove(symbol);
+            this.clearUpdatesBySymbol.remove(symbol);
+            this.newUpdatesBySymbol.put(symbol, 0);
+        }
+
         public ArrayCacheBySymbolBySide(int maxSize) { super(maxSize); }
         public ArrayCacheBySymbolBySide() { super(); }
 
