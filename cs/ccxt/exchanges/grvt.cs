@@ -1243,7 +1243,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument", this.marketId(symbol) },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100;
         }

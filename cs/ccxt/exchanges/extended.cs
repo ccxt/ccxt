@@ -1537,14 +1537,14 @@ public partial class extended : Exchange
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100;
         }
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
         Int64? endTime = this.safeInteger(parameters, "endTime", until);
         parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             sinceVar = subtract(endTime, (multiply(multiply(multiply(limitVar, 60), 60), 1000)));
         }
@@ -1639,14 +1639,14 @@ public partial class extended : Exchange
         {
             throw new BadRequest ((string)(this.id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only")) ;
         }
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100;
         }
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
         Int64? endTime = this.safeInteger(parameters, "endTime", until);
         parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             sinceVar = subtract(endTime, (multiply(multiply(limitVar, this.parseTimeframe(timeframeVar)), 1000)));
         }
@@ -3254,17 +3254,17 @@ public partial class extended : Exchange
         bool? postOnly = this.safeBool(parameters, "postOnly");
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? cancelId = this.safeString2(parameters, "cancelId", "previousOrderId");
-        if ((isEqual(amountVar, null)) || (isEqual(priceVar, null)) || (isEqual(expiryEpochMillis, null)) || (isEqual(postOnly, null)) || (isEqual(reduceOnly, null)) || ((cancelId == null)))
+        if (((amountVar == null)) || ((priceVar == null)) || (isEqual(expiryEpochMillis, null)) || (isEqual(postOnly, null)) || (isEqual(reduceOnly, null)) || ((cancelId == null)))
         {
             Dictionary<string, object> response = await this.v1PrivateGetUserOrdersId(new Dictionary<string, object>() {
                 { "id", id },
             });
             IDictionary<string, object> order = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            if (isEqual(amountVar, null))
+            if ((amountVar == null))
             {
                 amountVar = this.safeNumber(order, "qty");
             }
-            if (isEqual(priceVar, null))
+            if ((priceVar == null))
             {
                 priceVar = this.safeNumber(order, "price");
             }
@@ -3285,11 +3285,11 @@ public partial class extended : Exchange
                 cancelId = this.safeString(order, "externalId");
             }
         }
-        if (isEqual(amountVar, null))
+        if ((amountVar == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an amount argument or an existing order with qty")) ;
         }
-        if (isEqual(priceVar, null))
+        if ((priceVar == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a price argument or an existing order with price")) ;
         }

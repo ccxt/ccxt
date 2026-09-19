@@ -884,7 +884,7 @@ public partial class mudrex : Exchange
             return ccxt.BaseExchange.ToOrder(this.parseOrder(riskData, market));
         }
         Int64? lev = this.safeInteger(parameters, "leverage", 1);
-        if (((type == "market")) && ((price == null)))
+        if ((isEqual(type, "market")) && ((price == null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument for market orders")) ;
         }
@@ -894,8 +894,8 @@ public partial class mudrex : Exchange
             { "leverage", this.numberToString(lev) },
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "order_price", this.priceToPrecision(symbol, price) },
-            { "order_type", ((bool) ((side == "buy"))) ? "LONG" : "SHORT" },
-            { "trigger_type", ((bool) ((type == "market"))) ? "MARKET" : "LIMIT" },
+            { "order_type", ((bool) (isEqual(side, "buy"))) ? "LONG" : "SHORT" },
+            { "trigger_type", ((bool) (isEqual(type, "market"))) ? "MARKET" : "LIMIT" },
             { "reduce_only", this.safeBool(parameters, "reduceOnly", false) },
         };
         // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
@@ -1712,7 +1712,7 @@ public partial class mudrex : Exchange
             { "amount", this.numberToString(amount) },
         };
         bool useInr = false;
-        if ((code == "INR"))
+        if (isEqual(code, "INR"))
         {
             useInr = true;
         } else

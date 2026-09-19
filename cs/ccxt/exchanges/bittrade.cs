@@ -2208,7 +2208,7 @@ public partial class bittrade : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
@@ -2229,7 +2229,7 @@ public partial class bittrade : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }
@@ -2253,7 +2253,7 @@ public partial class bittrade : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
@@ -2274,7 +2274,7 @@ public partial class bittrade : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }

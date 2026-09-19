@@ -1570,9 +1570,9 @@ public partial class hyperliquid : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
-        bool useTail = isEqual(sinceVar, null);
+        bool useTail = (sinceVar == null);
         object originalSince = sinceVar;
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             if ((limit != null))
             {
@@ -1791,7 +1791,7 @@ public partial class hyperliquid : Exchange
             data = add(data, "01");
             data = add(data, vaultAddress);
         }
-        if (!isEqual(expiresAfter, null))
+        if ((expiresAfter != null))
         {
             data = add(data, "00");
             data = add(data, ("00000" + this.intToBase16(expiresAfter)));

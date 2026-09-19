@@ -106,11 +106,11 @@ public partial class lbank : ccxt.lbank
             { "kbar", timeframeId },
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)message)["start"] = this.parseToInt((Math.Floor(Double.Parse((divide(since, 1000)).ToString()))));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)message)["size"] = limit;
         }
@@ -425,7 +425,7 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "fetchTradesWs");
         string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("fetchTrades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        if (isEqual(limit, null))
+        if ((limit == null))
         {
             limit = 10;
         }
@@ -841,7 +841,7 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "fetchOrderBookWs");
         string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("fetchOrderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        if (isEqual(limit, null))
+        if ((limit == null))
         {
             limit = 100;
         }
@@ -879,7 +879,7 @@ public partial class lbank : ccxt.lbank
         string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         parameters = this.omit(parameters, "aggregation");
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100;
         }

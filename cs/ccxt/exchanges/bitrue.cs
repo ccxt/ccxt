@@ -1277,7 +1277,7 @@ public partial class bitrue : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "contractName", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            if (!isEqual(limitVar, null))
+            if ((limitVar != null))
             {
                 if (isGreaterThan(limitVar, 100))
                 {
@@ -1297,7 +1297,7 @@ public partial class bitrue : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            if (!isEqual(limitVar, null))
+            if ((limitVar != null))
             {
                 if (isGreaterThan(limitVar, 1000))
                 {
@@ -2724,7 +2724,7 @@ public partial class bitrue : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             if (isGreaterThan(limitVar, 1000))
             {
@@ -3307,7 +3307,7 @@ public partial class bitrue : Exchange
         {
             ((IDictionary<string,object>)request)["beginTime"] = since;
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             if (isGreaterThan(limitVar, 200))
             {

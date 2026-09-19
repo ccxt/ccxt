@@ -925,7 +925,7 @@ public partial class apex : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "symbol", this.safeString(market, "id2") },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 200; // default is 200 when requested with `since`
         }
@@ -983,7 +983,7 @@ public partial class apex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id2") },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100; // default is 200 when requested with `since`
         }
@@ -1047,7 +1047,7 @@ public partial class apex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id2") },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 500; // default is 50
         }

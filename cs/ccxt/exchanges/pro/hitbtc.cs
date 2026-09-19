@@ -644,7 +644,7 @@ public partial class hitbtc : ccxt.hitbtc
                 { "symbols", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
             } },
         };
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
@@ -793,7 +793,7 @@ public partial class hitbtc : ccxt.hitbtc
                 { "symbols", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
             } },
         };
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["params"])["limit"] = limitVar;
         }

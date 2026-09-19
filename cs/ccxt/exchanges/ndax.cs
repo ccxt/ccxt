@@ -901,7 +901,7 @@ public partial class ndax : Exchange
         for (int i = 0; i < getArrayLength(orderbook); i++)
         {
             object level = getValue(orderbook, i);
-            if (isEqual(timestamp, null))
+            if ((timestamp == null))
             {
                 timestamp = this.safeInteger(level, 2);
             } else
@@ -956,7 +956,7 @@ public partial class ndax : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        limitVar = ((bool) (isEqual(limitVar, null))) ? 100 : limitVar; // default 100
+        limitVar = ((bool) ((limitVar == null))) ? 100 : limitVar; // default 100
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "InstrumentId", (market.ContainsKey("id") ? market["id"] : null) },

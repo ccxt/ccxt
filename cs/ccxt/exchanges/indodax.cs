@@ -793,7 +793,7 @@ public partial class indodax : Exchange
             { "tf", selectedTimeframe },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 1000;
         }

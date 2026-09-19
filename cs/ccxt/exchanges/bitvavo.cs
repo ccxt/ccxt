@@ -1212,12 +1212,12 @@ public partial class bitvavo : Exchange
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             // https://github.com/ccxt/ccxt/issues/9227
             int duration = this.parseTimeframe(timeframeVar);
             ((IDictionary<string,object>)request)["start"] = since;
-            if (isEqual(limit, null))
+            if ((limit == null))
             {
                 limit = 1440;
             } else
@@ -1229,7 +1229,7 @@ public partial class bitvavo : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 1440, max 1440
         }
@@ -1662,7 +1662,7 @@ public partial class bitvavo : Exchange
         if (isMarketOrder)
         {
             double? cost = null;
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 string? priceString = this.numberToString(price);
                 string? amountString = this.numberToString(amount);
@@ -1830,11 +1830,11 @@ public partial class bitvavo : Exchange
         double? amountRemaining = this.safeNumber(parameters, "amountRemaining");
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
         parameters = this.omit(parameters, new List<object>() {"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"});
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
         }
@@ -2119,11 +2119,11 @@ public partial class bitvavo : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 500, max 1000
         }
@@ -2405,11 +2405,11 @@ public partial class bitvavo : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 500, max 1000
         }
@@ -2662,11 +2662,11 @@ public partial class bitvavo : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["symbol"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 500, max 1000
         }
@@ -2725,11 +2725,11 @@ public partial class bitvavo : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["symbol"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 500, max 1000
         }

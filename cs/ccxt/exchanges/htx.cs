@@ -3964,7 +3964,7 @@ public partial class htx : Exchange
         Int64? untilSeconds = ((bool) (!isEqual(until, null))) ? this.parseToInt((until / 1000)) : null;
         if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
-            if (!isEqual(limitVar, null))
+            if ((limitVar != null))
             {
                 ((IDictionary<string,object>)request)["size"] = mathMin(limitVar, 2000); // when using limitVar: from & to are ignored
             } else
@@ -4068,7 +4068,7 @@ public partial class htx : Exchange
             parameters = ((IList<object>)useHistoricalparametersVariable)[1];
             if (!isTrue(useHistorical))
             {
-                if (!isEqual(limitVar, null))
+                if ((limitVar != null))
                 {
                     ((IDictionary<string,object>)request)["size"] = mathMin(limitVar, 2000); // max 2000
                 }
@@ -4084,7 +4084,7 @@ public partial class htx : Exchange
                 {
                     ((IDictionary<string,object>)request)["to"] = untilSeconds;
                 }
-                if (!isEqual(limitVar, null))
+                if ((limitVar != null))
                 {
                     ((IDictionary<string,object>)request)["size"] = mathMin(1000, limitVar); // max 1000, otherwise default returns 150
                 }
@@ -6203,11 +6203,11 @@ public partial class htx : Exchange
     public async override Task<ccxt.Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(trailingPercent, null))
+        if ((trailingPercent == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTrailingPercentOrder() requires a trailingPercent argument")) ;
         }
-        if (isEqual(trailingTriggerPrice, null))
+        if ((trailingTriggerPrice == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTrailingPercentOrder() requires a trailingTriggerPrice argument")) ;
         }
@@ -6333,7 +6333,7 @@ public partial class htx : Exchange
                 quoteAmount = this.amountToPrecision(symbol, cost);
             } else if (isTrue(createMarketBuyOrderRequiresPrice))
             {
-                if (isEqual(price, null))
+                if ((price == null))
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
@@ -6520,7 +6520,7 @@ public partial class htx : Exchange
             if (isLinear)
             {
                 ((IDictionary<string,object>)request)["type"] = "trigger";
-                if (!isEqual(price, null))
+                if ((price != null))
                 {
                     ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
                 }
@@ -6528,7 +6528,7 @@ public partial class htx : Exchange
             {
                 string? triggerType = this.safeString2(parameters, "triggerType", "trigger_type", "le");
                 ((IDictionary<string,object>)request)["trigger_type"] = triggerType;
-                if (!isEqual(price, null))
+                if ((price != null))
                 {
                     ((IDictionary<string,object>)request)["order_price"] = this.priceToPrecision(symbol, price);
                 }
@@ -6545,7 +6545,7 @@ public partial class htx : Exchange
                     ((IDictionary<string,object>)request)["type"] = "sl";
                 }
                 ((IDictionary<string,object>)request)["sl_trigger_price"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                if (!isEqual(price, null))
+                if ((price != null))
                 {
                     ((IDictionary<string,object>)request)["sl_order_price"] = this.priceToPrecision(symbol, price);
                 }
@@ -6559,7 +6559,7 @@ public partial class htx : Exchange
                     ((IDictionary<string,object>)request)["type"] = "tp";
                 }
                 ((IDictionary<string,object>)request)["tp_trigger_price"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                if (!isEqual(price, null))
+                if ((price != null))
                 {
                     ((IDictionary<string,object>)request)["tp_order_price"] = this.priceToPrecision(symbol, price);
                 }
@@ -6583,7 +6583,7 @@ public partial class htx : Exchange
             }
             if (isEqual(type, "limit") || isEqual(type, "ioc") || isEqual(type, "fok") || isEqual(type, "post_only"))
             {
-                if (!isEqual(price, null))
+                if ((price != null))
                 {
                     ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
                 }
@@ -7837,7 +7837,7 @@ public partial class htx : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
@@ -7859,7 +7859,7 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }
@@ -7909,7 +7909,7 @@ public partial class htx : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
@@ -7931,7 +7931,7 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }

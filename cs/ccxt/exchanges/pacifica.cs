@@ -1882,7 +1882,7 @@ public partial class pacifica : Exchange
             object defaultSlippage = this.handleOption("createOrder", "defaultSlippage", "0.5");
             string? slippage = this.safeString2(parameters, "slippage", "slippage_percent", defaultSlippage);
             ((IDictionary<string,object>)sigPayload)["slippage_percent"] = slippage;
-        } else if ((isTakeProfitOrder || isStopLossOrder) && (isEqual(price, null)))
+        } else if ((isTakeProfitOrder || isStopLossOrder) && ((price == null)))
         {
             operationType = "set_position_tpsl";
         } else if (isStopOrder)
@@ -1899,7 +1899,7 @@ public partial class pacifica : Exchange
             {
                 ((IDictionary<string,object>)stopPayload)["client_order_id"] = stopClientOrderId;
             }
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 ((IDictionary<string,object>)stopPayload)["limit_price"] = this.priceToPrecision(symbol, price);
             }
@@ -1921,7 +1921,7 @@ public partial class pacifica : Exchange
             Dictionary<string, object> tpPayload = new Dictionary<string, object>() {
                 { "stop_price", this.priceToPrecision(symbol, takeProfitPrice) },
             };
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 ((IDictionary<string,object>)tpPayload)["limit_price"] = this.priceToPrecision(symbol, price);
             }
@@ -1932,13 +1932,13 @@ public partial class pacifica : Exchange
             Dictionary<string, object> slPayload = new Dictionary<string, object>() {
                 { "stop_price", this.priceToPrecision(symbol, stopLossPrice) },
             };
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 ((IDictionary<string,object>)slPayload)["limit_price"] = this.priceToPrecision(symbol, price);
             }
             ((IDictionary<string,object>)sigPayload)["stop_loss"] = slPayload;
         }
-        if (!isEqual(price, null) && (operationType == "create_order"))
+        if ((price != null) && (operationType == "create_order"))
         {
             ((IDictionary<string,object>)sigPayload)["price"] = this.priceToPrecision(symbol, price);
         }

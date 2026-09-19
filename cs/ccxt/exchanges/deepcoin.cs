@@ -770,7 +770,7 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 400;
         }
@@ -1899,7 +1899,7 @@ public partial class deepcoin : Exchange
             ((IDictionary<string,object>)request)["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitPrice);
         }
         bool isMarketOrder = (isEqual(type, "market"));
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             if (isMarketOrder)
             {
@@ -2014,7 +2014,7 @@ public partial class deepcoin : Exchange
         // } else {
         ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         // }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         } else if (isEqual(type, "limit"))

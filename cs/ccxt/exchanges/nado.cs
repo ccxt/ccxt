@@ -426,7 +426,7 @@ public partial class nado : Exchange
         {
             throw new InvalidOrder ((string)(this.id + " createOrder() supports limit orders only")) ;
         }
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument")) ;
         }
@@ -610,11 +610,11 @@ public partial class nado : Exchange
         {
             throw new NotSupported ((string)(this.id + " editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead")) ;
         }
-        if (isEqual(amount, null))
+        if ((amount == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an amount argument")) ;
         }
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a price argument")) ;
         }
@@ -1485,7 +1485,7 @@ public partial class nado : Exchange
             { "subaccounts", new List<object> {this.createSubaccount(this.walletAddress, subaccount)} },
             { "event_types", new List<object>() {eventType} },
             { "limit", new Dictionary<string, object>() {
-                { "raw", ((bool) (isEqual(limit, null))) ? 100 : mathMin(limit, 500) },
+                { "raw", ((bool) ((limit == null))) ? 100 : mathMin(limit, 500) },
             } },
         };
         if ((currency != null))

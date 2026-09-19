@@ -1193,7 +1193,7 @@ public partial class p2b : Exchange
         parameters = this.omit(parameters, "until");
         if (isEqual(until, null))
         {
-            if (isEqual(sinceVar, null))
+            if ((sinceVar == null))
             {
                 until = this.milliseconds();
             } else
@@ -1201,7 +1201,7 @@ public partial class p2b : Exchange
                 until = add(sinceVar, 86400000);
             }
         }
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             sinceVar = subtract(until, 86400000);
         }
@@ -1285,7 +1285,7 @@ public partial class p2b : Exchange
         }
         if (isEqual(until, null))
         {
-            if (isEqual(sinceVar, null))
+            if ((sinceVar == null))
             {
                 until = this.milliseconds();
             } else
@@ -1293,7 +1293,7 @@ public partial class p2b : Exchange
                 until = add(sinceVar, 86400000);
             }
         }
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             sinceVar = subtract(until, 86400000);
         }

@@ -1259,7 +1259,7 @@ public partial class coinsph : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 1000;
         }

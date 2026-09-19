@@ -1465,7 +1465,7 @@ public partial class bigone : Exchange
         Int64? until = this.safeInteger(parameters, "until");
         bool untilIsDefined = (!isEqual(until, null));
         bool sinceIsDefined = ((since != null));
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = ((bool) (sinceIsDefined && untilIsDefined)) ? 500 : 100; // default 100, max 500, if since and limitVar defined then fetch all the candles between them unless it exceeds the max of 500
         }
@@ -1730,7 +1730,7 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        bool isBuy = ((side == "buy"));
+        bool isBuy = (isEqual(side, "buy"));
         string requestSide = ((bool) isBuy) ? "BID" : "ASK";
         string uppercaseType = ((string)type).ToUpper();
         bool isLimit = (uppercaseType == "LIMIT");
@@ -2169,7 +2169,7 @@ public partial class bigone : Exchange
                 body = this.json(query);
             }
         }
-        ((IDictionary<string,object>)headers)["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
+        ((IDictionary<string,object>)headers)["User-Agent"] = ((("ccxt/" + this.id) + "-") + (this.version));
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -2483,7 +2483,7 @@ public partial class bigone : Exchange
         //         "data": null
         //     }
         //
-        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(response, currency));
+        object transfer = this.parseTransfer(response, currency);
         IDictionary<string, object> transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if ((fillResponseFromRequest == true))

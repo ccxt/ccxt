@@ -3708,7 +3708,7 @@ public partial class gate : Exchange
         var requestqueryVariable = this.prepareRequest(market, (market.ContainsKey("type") ? market["type"] : null), parameters);
         var request = ((IList<object>) requestqueryVariable)[0];
         var query = ((IList<object>) requestqueryVariable)[1];
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
@@ -4439,7 +4439,7 @@ public partial class gate : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         int maxLimit = ((bool) ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))) ? 1999 : 1000;
-        limitVar = ((bool) (isEqual(limitVar, null))) ? maxLimit : mathMin(limitVar, maxLimit);
+        limitVar = ((bool) ((limitVar == null))) ? maxLimit : mathMin(limitVar, maxLimit);
         Int64? until = this.safeInteger(parameters, "until");
         if (!isEqual(until, null))
         {
@@ -5723,7 +5723,7 @@ public partial class gate : Exchange
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId"});
         bool isLimitOrder = (isEqual(type, "limit"));
         bool isMarketOrder = (isEqual(type, "market"));
-        if (isLimitOrder && isEqual(price, null))
+        if (isLimitOrder && (price == null))
         {
             throw new ArgumentsRequired ((string)(((this.id + " createOrder () requires a price argument for ") + (type)) + " orders")) ;
         }
@@ -5816,7 +5816,7 @@ public partial class gate : Exchange
                         quoteAmount = this.costToPrecision(symbol, cost);
                     } else if (isTrue(createMarketBuyOrderRequiresPrice))
                     {
-                        if (isEqual(price, null))
+                        if ((price == null))
                         {
                             throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                         } else
@@ -6046,7 +6046,7 @@ public partial class gate : Exchange
             { "currency_pair", (market.ContainsKey("id") ? market["id"] : null) },
             { "account", account },
         };
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
@@ -6062,7 +6062,7 @@ public partial class gate : Exchange
                 }
             }
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -6774,13 +6774,13 @@ public partial class gate : Exchange
             status = "finished";
         }
         ((IDictionary<string,object>)request)["status"] = status;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         if (spot)
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
             }

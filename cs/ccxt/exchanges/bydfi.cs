@@ -1006,7 +1006,7 @@ public partial class bydfi : Exchange
             { "interval", interval },
         };
         object startTime = since;
-        object numberOfCandles = ((bool) ((limit != null) && (limit != null) && (limit != 0))) ? limit : maxLimit;
+        object numberOfCandles = ((bool) ((limit != null) && (limit != null) && !isEqual(limit, 0))) ? limit : maxLimit;
         object until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
         until = ((IList<object>)untilparametersVariable)[0];
@@ -1487,7 +1487,7 @@ public partial class bydfi : Exchange
             }
         } else
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
@@ -1711,11 +1711,11 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["side"] = ((string)side).ToUpper();
         }
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -3027,7 +3027,7 @@ public partial class bydfi : Exchange
         //         "success": true
         //     }
         //
-        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(response, currency));
+        object transfer = this.parseTransfer(response, currency);
         IDictionary<string, object> transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if ((fillResponseFromRequest == true))
@@ -3090,7 +3090,7 @@ public partial class bydfi : Exchange
         {
             until = this.milliseconds(); // exchange requires endTime
         }
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             sinceVar = 1; // exchange requires startTime but allows any value
         }
@@ -3401,7 +3401,7 @@ public partial class bydfi : Exchange
             string timestamp = ((object)this.milliseconds()).ToString();
             if (isEqual(method, "GET"))
             {
-                string payload = ((this.apiKey + timestamp) + query);
+                object payload = add(add(this.apiKey, timestamp), query);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "X-API-KEY", this.apiKey },
@@ -3411,7 +3411,7 @@ public partial class bydfi : Exchange
             } else
             {
                 body = this.json(sortedParams);
-                string payload = ((this.apiKey + timestamp) + (body));
+                object payload = add(add(this.apiKey, timestamp), body);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },

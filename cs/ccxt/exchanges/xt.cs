@@ -1878,7 +1878,7 @@ public partial class xt : Exchange
             Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
             ((IDictionary<string,object>)request)["startTime"] = multiply(Math.Ceiling(Convert.ToDouble(divide(since, duration))), duration);
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
@@ -3131,7 +3131,7 @@ public partial class xt : Exchange
                 bool? createMarketBuyOrderRequiresPrice = this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", true);
                 if ((createMarketBuyOrderRequiresPrice == true))
                 {
-                    if (isEqual(price, null) && ((cost == null)))
+                    if ((price == null) && ((cost == null)))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")) ;
                     } else
@@ -3139,7 +3139,7 @@ public partial class xt : Exchange
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
                         string? costCalculated = null;
-                        if (!isEqual(price, null))
+                        if ((price != null))
                         {
                             costCalculated = Precise.stringMul(amountString, priceString);
                         } else

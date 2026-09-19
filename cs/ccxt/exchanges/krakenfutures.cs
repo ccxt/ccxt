@@ -1056,7 +1056,7 @@ public partial class krakenfutures : Exchange
         {
             int duration = this.parseTimeframe(timeframeVar);
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = 2000;
             }
@@ -1064,7 +1064,7 @@ public partial class krakenfutures : Exchange
             object toTimestamp = this.sum(getValue(request, "from"), subtract(multiply(limitVar, duration), 1));
             Int64 currentTimestamp = this.seconds();
             ((IDictionary<string,object>)request)["to"] = mathMin(toTimestamp, currentTimestamp);
-        } else if (!isEqual(limitVar, null))
+        } else if ((limitVar != null))
         {
             limitVar = mathMin(limitVar, 2000);
             int duration = this.parseTimeframe(timeframeVar);
@@ -1502,12 +1502,12 @@ public partial class krakenfutures : Exchange
         price = this.parseNumber(price); // some callers pass null instead of undefined, normalize it
         bool isLimitOrder = (isEqual(type, "lmt")) || (isEqual(type, "post")) || (isEqual(type, "ioc"));
         string? limitPriceParam = this.safeString(parameters, "limitPrice"); // the venue's own field name, forwarded as-is by this.extend below
-        if (isLimitOrder && (isEqual(price, null)) && ((limitPriceParam == null)))
+        if (isLimitOrder && ((price == null)) && ((limitPriceParam == null)))
         {
             throw new ArgumentsRequired ((string)(((this.id + " createOrder () requires a price argument for ") + (type)) + " orders")) ;
         }
         bool isMarketOrder = (isEqual(type, "mkt"));
-        if ((!isEqual(price, null)) && !isMarketOrder)
+        if (((price != null)) && !isMarketOrder)
         {
             ((IDictionary<string,object>)request)["limitPrice"] = this.priceToPrecision(symbol, price);
         }

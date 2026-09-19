@@ -2203,7 +2203,7 @@ public partial class mexc : Exchange
         if ((!isEqual(until, null)) && ((since == null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
-            object usedLimit = ((bool) ((limit != null) && (limit != null) && (limit != 0))) ? limit : maxLimit;
+            object usedLimit = ((bool) ((limit != null) && (limit != null) && !isEqual(limit, 0))) ? limit : maxLimit;
             start = subtract(until, (multiply(usedLimit, duration)));
         }
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
@@ -2727,7 +2727,7 @@ public partial class mexc : Exchange
                 ((IDictionary<string,object>)request)["quoteOrderQty"] = this.costToPrecision(symbol, amount);
             } else
             {
-                if (isEqual(price, null))
+                if ((price == null))
                 {
                     ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
                 } else
@@ -2743,7 +2743,7 @@ public partial class mexc : Exchange
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -6133,7 +6133,7 @@ public partial class mexc : Exchange
         //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
-        IDictionary<string, object> transaction = ((IDictionary<string, object>)this.parseTransfer(response, currency));
+        object transaction = this.parseTransfer(response, currency);
         return ccxt.BaseExchange.ToTransferEntry(this.extend(transaction, new Dictionary<string, object>() {             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));
     }
 
@@ -6916,7 +6916,7 @@ public partial class mexc : Exchange
                         url = add(url, ("?" + (auth)));
                     }
                 }
-                auth = ((this.apiKey + timestamp) + (auth));
+                auth = add(add(this.apiKey, timestamp), auth);
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 ((IDictionary<string,object>)headers)["Signature"] = signature;
             }

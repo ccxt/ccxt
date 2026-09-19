@@ -1685,13 +1685,13 @@ public partial class phemex : Exchange
         Int64? until = this.safeInteger2(parameters, "until", "to");
         parameters = this.omit(parameters, new List<object>() {"until"});
         bool isStableSettled = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) || ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"));
-        bool usesSpecialFromToEndpoint = ((((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) || isStableSettled)) && ((!isEqual(sinceVar, null)) || (!isEqual(until, null)));
+        bool usesSpecialFromToEndpoint = ((((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) || isStableSettled)) && (((sinceVar != null)) || (!isEqual(until, null)));
         int maxLimit = 1000;
         if (usesSpecialFromToEndpoint)
         {
             maxLimit = 2000;
         }
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = maxLimit;
         }
@@ -1699,10 +1699,10 @@ public partial class phemex : Exchange
         object response = null;
         if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) || isStableSettled)
         {
-            if ((!isEqual(until, null)) || (!isEqual(sinceVar, null)))
+            if ((!isEqual(until, null)) || ((sinceVar != null)))
             {
                 int candleDuration = this.parseTimeframe(timeframeVar);
-                if (!isEqual(sinceVar, null))
+                if ((sinceVar != null))
                 {
                     sinceVar = Math.Round(Convert.ToDouble(divide(sinceVar, 1000)));
                     ((IDictionary<string,object>)request)["from"] = sinceVar;
@@ -1733,7 +1733,7 @@ public partial class phemex : Exchange
             }
         } else
         {
-            if (!isEqual(sinceVar, null))
+            if ((sinceVar != null))
             {
                 // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
                 // we do not send sinceVar param to the exchange, instead we calculate appropriate limitVar param
@@ -3912,7 +3912,7 @@ public partial class phemex : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             limitVar = mathMin(200, limitVar);
             ((IDictionary<string,object>)request)["limit"] = limitVar;
@@ -3922,7 +3922,7 @@ public partial class phemex : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = "USDT";
             ((IDictionary<string,object>)request)["offset"] = 0;
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 ((IDictionary<string,object>)request)["limit"] = 200;
             }

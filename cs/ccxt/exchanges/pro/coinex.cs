@@ -871,7 +871,7 @@ public partial class coinex : ccxt.coinex
         parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         List<object> limits = this.safeList(options, "limits", new List<object>() {});
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = this.safeInteger(options, "defaultLimit", 50);
         }

@@ -2274,7 +2274,7 @@ public partial class whitebit : Exchange
         if ((since != null))
         {
             int maxLimit = 1440;
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = maxLimit;
             }
@@ -2282,7 +2282,7 @@ public partial class whitebit : Exchange
             Int64? start = this.parseToInt(divide(since, 1000));
             ((IDictionary<string,object>)request)["start"] = start;
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limitVar, 1440);
         }
@@ -3262,11 +3262,11 @@ public partial class whitebit : Exchange
         {
             ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
         }
-        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
@@ -3325,11 +3325,11 @@ public partial class whitebit : Exchange
         {
             ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
         }
-        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }

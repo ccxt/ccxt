@@ -1509,7 +1509,7 @@ public partial class coinbaseexchange : Exchange
         if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 // https://docs.pro.coinbase.com/#get-historic-rates
                 limitVar = 300; // max = 300

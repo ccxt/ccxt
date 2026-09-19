@@ -1429,7 +1429,7 @@ public partial class cex : ccxt.cex
     public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new BadRequest ((string)(this.id + " createOrderWs requires a price argument")) ;
         }
@@ -1473,11 +1473,11 @@ public partial class cex : ccxt.cex
     public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(amount, null))
+        if ((amount == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a amount argument")) ;
         }
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a price argument")) ;
         }

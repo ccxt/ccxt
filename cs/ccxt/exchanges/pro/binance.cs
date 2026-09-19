@@ -986,7 +986,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)payload)["limit"] = limit;
         }
@@ -2247,11 +2247,11 @@ public partial class binance : ccxt.binance
         };
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)payload)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)payload)["limit"] = limit;
         }
@@ -5975,16 +5975,16 @@ public partial class binance : ccxt.binance
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)payload)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)payload)["limit"] = limit;
         }
         Int64? fromId = this.safeInteger(parameters, "fromId");
-        if (!isEqual(fromId, null) && !isEqual(since, null))
+        if (!isEqual(fromId, null) && (since != null))
         {
             throw new BadRequest ((string)(this.id + " fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time")) ;
         }
@@ -6038,7 +6038,7 @@ public partial class binance : ccxt.binance
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)payload)["limit"] = limit;
         }

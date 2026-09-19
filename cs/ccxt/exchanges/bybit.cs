@@ -3750,7 +3750,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 200; // default is 200 when requested with `since`
         }
@@ -3766,7 +3766,7 @@ public partial class bybit : Exchange
             object rounded = (this.parseToInt(divide(since, duration)) * duration);
             ((IDictionary<string,object>)request)["start"] = ((bool) (isEqual(rounded, since))) ? since : this.sum(rounded, duration);
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar; // max 1000, default 1000
         }
@@ -4042,7 +4042,7 @@ public partial class bybit : Exchange
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbolVar, since, limitVar, parameters, 200));
         }
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 200;
         }
@@ -5379,7 +5379,7 @@ public partial class bybit : Exchange
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         bool endpointIsTradingStop = isEqual(method, "privatePostV5PositionTradingStop");
-        if ((isEqual(price, null)) && ((lowerCaseType == "limit")) && !endpointIsTradingStop)
+        if (((price == null)) && ((lowerCaseType == "limit")) && !endpointIsTradingStop)
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder requires a price argument for limit orders")) ;
         }
@@ -5389,7 +5389,7 @@ public partial class bybit : Exchange
             amount = null;
         }
         string? amountString = ((bool) (!isEqual(amount, null))) ? this.getAmount(symbol, amount) : null;
-        object priceString = ((bool) (!isEqual(price, null))) ? this.getPrice(symbol, this.numberToString(price)) : null;
+        object priceString = ((bool) ((price != null))) ? this.getPrice(symbol, this.numberToString(price)) : null;
         if (endpointIsTradingStop)
         {
             if (hasStopLoss || hasTakeProfit || isTriggerOrder || ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)))
@@ -5514,12 +5514,12 @@ public partial class bybit : Exchange
         string? cost = this.safeString(parameters, "cost");
         parameters = this.omit(parameters, "cost");
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
-        bool isMarketBuyAndCostInferable = ((lowerCaseType == "market")) && (isEqual(side, "buy")) && ((!isEqual(price, null)) || ((cost != null)));
+        bool isMarketBuyAndCostInferable = ((lowerCaseType == "market")) && (isEqual(side, "buy")) && (((price != null)) || ((cost != null)));
         bool isMarketOrder = (lowerCaseType == "market");
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && isMarketOrder && isTrue(isUTA) && !isMarketBuyAndCostInferable)
         {
             // UTA account can specify the cost of the order on both sides
-            if (((cost != null)) || (!isEqual(price, null)))
+            if (((cost != null)) || ((price != null)))
             {
                 ((IDictionary<string,object>)request)["marketUnit"] = "quoteCoin";
                 string? orderCost = null;
@@ -5547,7 +5547,7 @@ public partial class bybit : Exchange
             parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
             if (isTrue(createMarketBuyOrderRequiresPrice))
             {
-                if ((isEqual(price, null)) && ((cost == null)))
+                if (((price == null)) && ((cost == null)))
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
@@ -5561,7 +5561,7 @@ public partial class bybit : Exchange
                 if ((cost != null))
                 {
                     ((IDictionary<string,object>)request)["qty"] = this.getCost(symbol, this.numberToString(cost));
-                } else if (!isEqual(price, null))
+                } else if ((price != null))
                 {
                     ((IDictionary<string,object>)request)["qty"] = this.getCost(symbol, Precise.stringMul(amountString, priceString));
                 } else
@@ -5812,11 +5812,11 @@ public partial class bybit : Exchange
         category = ((IList<object>)categoryparametersVariable)[0];
         parameters = ((IList<object>)categoryparametersVariable)[1];
         ((IDictionary<string,object>)request)["category"] = category;
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["qty"] = this.getAmount(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.getPrice(symbol, this.numberToString(price));
         }
@@ -9137,7 +9137,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             sinceVar = (this.milliseconds() - multiply(86400000, 30)); // last 30 days
         }

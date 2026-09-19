@@ -854,7 +854,7 @@ public partial class zebpay : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100; // default is 200
         }
@@ -868,7 +868,7 @@ public partial class zebpay : Exchange
         {
             ((IDictionary<string,object>)request)["interval"] = timeframeVar;
         }
-        if (((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && (!isEqual(limitVar, null)))
+        if (((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((limitVar != null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }

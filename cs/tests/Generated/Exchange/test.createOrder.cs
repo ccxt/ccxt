@@ -252,7 +252,7 @@ public partial class testMainClass : BaseTest
                 finalAmount = divide(minimumCost, price);
             }
         }
-        if (!isEqual(predefinedAmount, null))
+        if ((predefinedAmount != null))
         {
             finalAmount = mathMax(finalAmount, predefinedAmount);
         }

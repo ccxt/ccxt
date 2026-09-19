@@ -1112,7 +1112,7 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 200;
         }
@@ -1291,7 +1291,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         int timeframePeriod = this.parseTimeframe(timeframeVar);
         string? timeframeValue = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 200;
         }
@@ -1360,7 +1360,7 @@ public partial class upbit : Exchange
             quoteAmount = this.costToPrecision(symbol, cost);
         } else if ((createMarketBuyOrderRequiresPrice == true))
         {
-            if (isEqual(price, null) || isEqual(amount, null))
+            if ((price == null) || isEqual(amount, null))
             {
                 throw new InvalidOrder ((string)(this.id + " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
             }

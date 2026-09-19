@@ -898,8 +898,8 @@ public partial class blofin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        limitVar = ((bool) (isEqual(limitVar, null))) ? 50 : limitVar;
-        if (!isEqual(limitVar, null))
+        limitVar = ((bool) ((limitVar == null))) ? 50 : limitVar;
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }
@@ -1280,7 +1280,7 @@ public partial class blofin : Exchange
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,((string)timeframeVar), parameters, 100));
         }
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100; // default 100, max 100
         }
@@ -1935,7 +1935,7 @@ public partial class blofin : Exchange
             { "brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b") },
             { "reduceOnly", this.safeBool(parameters, "reduceOnly", true) },
         };
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
         }

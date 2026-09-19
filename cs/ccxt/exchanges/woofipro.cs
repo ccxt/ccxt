@@ -1956,7 +1956,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             limitVar = mathMin(limitVar, 1000);
             ((IDictionary<string,object>)request)["max_level"] = limitVar;
@@ -2272,7 +2272,7 @@ public partial class woofipro : Exchange
         {
             ((IDictionary<string,object>)request)["reduce_only"] = reduceOnly;
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
         }
@@ -3199,11 +3199,11 @@ public partial class woofipro : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["balance_token"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }

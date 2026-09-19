@@ -1419,7 +1419,7 @@ public partial class cryptocom : Exchange
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeframe", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             if (isGreaterThan(limitVar, 300))
             {
@@ -1434,7 +1434,7 @@ public partial class cryptocom : Exchange
         if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_ts"] = subtract(since, multiply(duration, 1000));
-            if (!isEqual(limitVar, null))
+            if ((limitVar != null))
             {
                 ((IDictionary<string,object>)request)["end_ts"] = this.sum(since, multiply(multiply(duration, limitVar), 1000));
             } else
@@ -1493,7 +1493,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (((limit != null)) && ((limit != 0)))
+        if (((limit != null)) && (!isEqual(limit, 0)))
         {
             ((IDictionary<string,object>)request)["depth"] = mathMin(limit, 50); // max 50
         }
@@ -2086,7 +2086,7 @@ public partial class cryptocom : Exchange
                 quoteAmount = this.costToPrecision(symbol, cost);
             } else if (isTrue(createMarketBuyOrderRequiresPrice))
             {
-                if (isEqual(price, null))
+                if ((price == null))
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                 } else
@@ -2156,7 +2156,7 @@ public partial class cryptocom : Exchange
                 parameters = this.omit(parameters, new List<object>() {"orig_client_oid", "clientOrderId"});
             }
         }
-        if ((isEqual(amount, null)) || (isEqual(price, null)))
+        if ((isEqual(amount, null)) || ((price == null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
         }
@@ -3594,7 +3594,7 @@ public partial class cryptocom : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "data", new List<object>() {});
-        List<object> settlements = ((List<object>)this.parseSettlements(data, market));
+        object settlements = this.parseSettlements(data, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }

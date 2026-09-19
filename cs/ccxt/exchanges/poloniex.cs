@@ -2406,7 +2406,7 @@ public partial class poloniex : Exchange
             {
                 throw new InvalidOrder ((string)(((this.id + " createOrder() does not support trigger orders for ") + ((market.ContainsKey("type") ? market["type"] : null))) + " markets")) ;
             }
-            upperCaseType = ((bool) (isEqual(price, null))) ? "STOP" : "STOP_LIMIT";
+            upperCaseType = ((bool) ((price == null))) ? "STOP" : "STOP_LIMIT";
             ((IDictionary<string,object>)request)["stopPrice"] = triggerPrice;
         } else if (isPostOnly)
         {
@@ -2429,7 +2429,7 @@ public partial class poloniex : Exchange
                     quoteAmount = this.costToPrecision(symbol, cost);
                 } else if (isTrue(createMarketBuyOrderRequiresPrice) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)))
                 {
-                    if (isEqual(price, null))
+                    if ((price == null))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                     } else
@@ -3281,7 +3281,7 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         int year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         Int64 now = this.seconds();
-        Int64? start = ((bool) (!isEqual(since, null))) ? this.parseToInt(divide(since, 1000)) : subtract(now, multiply(10, year));
+        Int64? start = ((bool) ((since != null))) ? this.parseToInt(divide(since, 1000)) : subtract(now, multiply(10, year));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "start", start },
             { "end", now },

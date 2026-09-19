@@ -2901,7 +2901,7 @@ public partial class hashkey : Exchange
         {
             ((IDictionary<string,object>)request)["quantity"] = this.costToPrecision(symbol, cost);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2957,7 +2957,7 @@ public partial class hashkey : Exchange
         {
             ((IDictionary<string,object>)request)["priceType"] = "MARKET";
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request)["priceType"] = "INPUT";

@@ -1845,9 +1845,9 @@ public partial class deribit : Exchange
         };
         int duration = this.parseTimeframe(timeframeVar);
         Int64 now = this.milliseconds();
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = 1000; // at max, it provides 5000 bars, but we set generous default here
             }
@@ -1857,7 +1857,7 @@ public partial class deribit : Exchange
         {
             sinceVar = mathMax(subtract(sinceVar, 1), 0);
             ((IDictionary<string,object>)request)["start_timestamp"] = sinceVar;
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 ((IDictionary<string,object>)request)["end_timestamp"] = now;
             } else
@@ -3816,7 +3816,7 @@ public partial class deribit : Exchange
         Int64 duration = multiply(this.parseTimeframe(eachItemDuration), 1000);
         object time = this.milliseconds();
         Int64 month = (((multiply(30, 24) * 60) * 60) * 1000);
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             sinceVar = subtract(time, month);
         } else

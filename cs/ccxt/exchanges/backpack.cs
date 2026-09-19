@@ -1156,7 +1156,7 @@ public partial class backpack : Exchange
         int defaultLimit = 100;
         if ((since == null))
         {
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = defaultLimit;
             }

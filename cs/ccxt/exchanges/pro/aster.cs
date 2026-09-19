@@ -1069,7 +1069,7 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        if (isEqual(limitVar, null) || (!isEqual(limitVar, 5) && !isEqual(limitVar, 10) && !isEqual(limitVar, 20)))
+        if ((limitVar == null) || (!isEqual(limitVar, 5) && !isEqual(limitVar, 10) && !isEqual(limitVar, 20)))
         {
             limitVar = 20;
         }

@@ -2180,7 +2180,7 @@ public partial class btse : Exchange
         bool isAlgoOrder = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
         if (isLimitOrder || (isEqual(type, "PEG")) || (isEqual(type, "OCO")))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for ") + (type)) + " orders")) ;
             }
@@ -2203,7 +2203,7 @@ public partial class btse : Exchange
                 quoteAmount = this.costToPrecision(symbol, cost);
             } else if (isTrue(createMarketBuyOrderRequiresPrice))
             {
-                if (isEqual(price, null))
+                if ((price == null))
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
@@ -3194,11 +3194,11 @@ public partial class btse : Exchange
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires a code argument for the spot wallet history")) ;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }

@@ -331,7 +331,7 @@ public partial class bingx : ccxt.bingx
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        object inverse = ((bool) (isEqual(isInverse, null))) ? (isEqual(getValue(market, "inverse"), true)) : isInverse;
+        object inverse = ((bool) ((isInverse == null))) ? (isEqual(getValue(market, "inverse"), true)) : isInverse;
         string baseVolumeKey = ((bool) isTrue(inverse)) ? "m" : "v";
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
@@ -359,7 +359,7 @@ public partial class bingx : ccxt.bingx
 
     public virtual object getOrderBookLimitByMarketType(object marketType, object limit = null)
     {
-        if (isEqual(limit, null))
+        if ((limit == null))
         {
             limit = 100;
         } else

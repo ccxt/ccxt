@@ -2777,7 +2777,7 @@ public partial class coinex : Exchange
                 parameters = this.omit(parameters, "cost");
                 if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if ((isEqual(price, null)) && (isEqual(cost, null)))
+                    if (((price == null)) && (isEqual(cost, null)))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
@@ -6192,11 +6192,11 @@ public partial class coinex : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end_time", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

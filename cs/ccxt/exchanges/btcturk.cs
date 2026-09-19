@@ -785,11 +785,11 @@ public partial class btcturk : Exchange
         if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
-        } else if (isEqual(limitVar, null))
+        } else if ((limitVar == null))
         {
             limitVar = 100; // default value
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             limitVar = mathMin(limitVar, 11000); // max 11000 candles diapason can be covered
             if (isEqual(timeframeVar, "1y"))

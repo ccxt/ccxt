@@ -2121,7 +2121,7 @@ public partial class bitfinex : Exchange
         bool ioc = ((timeInForce == "IOC"));
         bool fok = ((timeInForce == "FOK"));
         bool postOnly = (((postOnlyParam == true)) || ((timeInForce == "PO")));
-        if ((ioc || fok) && (isEqual(price, null)))
+        if ((ioc || fok) && ((price == null)))
         {
             throw new InvalidOrder ((string)(this.id + " createOrder() requires a price argument with IOC and FOK orders")) ;
         }

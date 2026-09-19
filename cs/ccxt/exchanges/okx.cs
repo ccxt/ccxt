@@ -3125,18 +3125,18 @@ public partial class okx : Exchange
         IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        if (isEqual(method, "publicGetMarketBooksFull") && isEqual(limitVar, null))
+        if (isEqual(method, "publicGetMarketBooksFull") && (limitVar == null))
         {
             limitVar = 5000;
         }
-        limitVar = ((bool) (isEqual(limitVar, null))) ? 100 : limitVar;
+        limitVar = ((bool) ((limitVar == null))) ? 100 : limitVar;
         if (isTrue(rpi) && (isGreaterThan(limitVar, 400)))
         {
             // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
             // including the 5000 that publicGetMarketBooksFull defaults to
             limitVar = 400;
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["sz"] = limitVar; // max 400
         }
@@ -3717,8 +3717,8 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "price");
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         string? timezone = this.safeString(options, "timezone", "UTC");
-        bool limitIsUndefined = (isEqual(limitVar, null));
-        if (isEqual(limitVar, null))
+        bool limitIsUndefined = ((limitVar == null));
+        if ((limitVar == null))
         {
             limitVar = 100; // default 100, max 300
         } else
@@ -4383,7 +4383,7 @@ public partial class okx : Exchange
                     parameters = this.omit(parameters, new List<object>() {"cost", "sz"});
                     if (isTrue(createMarketBuyOrderRequiresPrice))
                     {
-                        if (!isEqual(price, null))
+                        if ((price != null))
                         {
                             if (isEqual(notional, null))
                             {
@@ -4850,13 +4850,13 @@ public partial class okx : Exchange
                 ((IDictionary<string,object>)request)["newTpTriggerPxType"] = takeProfitTriggerPriceType;
             }
         }
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["newSz"] = this.amountToPrecision(symbol, amount);
         }
         if (!(isAlgoOrder == true))
         {
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 ((IDictionary<string,object>)request)["newPx"] = this.priceToPrecision(symbol, price);
             }
@@ -10907,11 +10907,11 @@ public partial class okx : Exchange
         };
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -10923,7 +10923,7 @@ public partial class okx : Exchange
         Int64 now = this.milliseconds();
         Int64 oneWeekAgo = (now - 604800000);
         Int64 threeMonthsAgo = (now - 7776000000);
-        if ((isEqual(since, null)) || (isGreaterThan(since, oneWeekAgo)))
+        if (((since == null)) || (isGreaterThan(since, oneWeekAgo)))
         {
             response = await this.privateGetAccountBills(this.extend(request, parameters));
         } else if (isGreaterThan(since, threeMonthsAgo))
@@ -11010,7 +11010,7 @@ public partial class okx : Exchange
         string? marginMode = this.safeString(parameters, "marginMode");
         string? instType = this.safeStringUpper(parameters, "instType");
         parameters = this.omit(parameters, new List<object>() {"until", "marginMode", "instType"});
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100;
         }

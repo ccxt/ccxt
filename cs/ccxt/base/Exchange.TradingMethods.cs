@@ -341,7 +341,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(stopLossPrice, null))
+        if ((stopLossPrice == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createStopLossOrderWs() requires a stopLossPrice argument")) ;
         }
@@ -375,7 +375,7 @@ public partial class Exchange
         {
             throw new NotSupported ((string)(this.id + " createStopOrderWs() is not supported yet")) ;
         }
-        if (isEqual(triggerPrice, null))
+        if ((triggerPrice == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createStopOrderWs() requires a stopPrice argument")) ;
         }
@@ -401,7 +401,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(takeProfitPrice, null))
+        if ((takeProfitPrice == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
         }
@@ -432,12 +432,12 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(trailingAmount, null))
+        if ((trailingAmount == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTrailingAmountOrderWs() requires a trailingAmount argument")) ;
         }
         ((IDictionary<string,object>)parameters)["trailingAmount"] = trailingAmount;
-        if (!isEqual(trailingTriggerPrice, null))
+        if ((trailingTriggerPrice != null))
         {
             ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
         }
@@ -465,12 +465,12 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(trailingPercent, null))
+        if ((trailingPercent == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTrailingPercentOrderWs() requires a trailingPercent argument")) ;
         }
         ((IDictionary<string,object>)parameters)["trailingPercent"] = trailingPercent;
-        if (!isEqual(trailingTriggerPrice, null))
+        if ((trailingTriggerPrice != null))
         {
             ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
         }
@@ -497,7 +497,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(triggerPrice, null))
+        if ((triggerPrice == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTriggerOrderWs() requires a triggerPrice argument")) ;
         }
@@ -840,12 +840,12 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(trailingAmount, null))
+        if ((trailingAmount == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTrailingAmountOrder() requires a trailingAmount argument")) ;
         }
         ((IDictionary<string,object>)parameters)["trailingAmount"] = trailingAmount;
-        if (!isEqual(trailingTriggerPrice, null))
+        if ((trailingTriggerPrice != null))
         {
             ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
         }
@@ -873,12 +873,12 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(trailingPercent, null))
+        if ((trailingPercent == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTrailingPercentOrder() requires a trailingPercent argument")) ;
         }
         ((IDictionary<string,object>)parameters)["trailingPercent"] = trailingPercent;
-        if (!isEqual(trailingTriggerPrice, null))
+        if ((trailingTriggerPrice != null))
         {
             ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
         }
@@ -963,7 +963,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(triggerPrice, null))
+        if ((triggerPrice == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTriggerOrder() requires a triggerPrice argument")) ;
         }
@@ -993,7 +993,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(stopLossPrice, null))
+        if ((stopLossPrice == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createStopLossOrder() requires a stopLossPrice argument")) ;
         }
@@ -1023,7 +1023,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(takeProfitPrice, null))
+        if ((takeProfitPrice == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
         }
@@ -1267,7 +1267,7 @@ public partial class Exchange
         {
             throw new NotSupported ((string)(this.id + " createStopOrder() is not supported yet")) ;
         }
-        if (isEqual(triggerPrice, null))
+        if ((triggerPrice == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " create_stop_order() requires a stopPrice argument")) ;
         }

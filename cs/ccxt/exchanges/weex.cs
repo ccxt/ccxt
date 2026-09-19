@@ -1834,7 +1834,7 @@ public partial class weex : Exchange
         string? priceType = this.safeStringUpper(parameters, "price");
         parameters = this.omit(parameters, new List<object>() {"historical", "until", "price"});
         List<object> response = null;
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             limitVar = mathMin(limitVar, 1000); // hardcap threshold
         }
@@ -1850,7 +1850,7 @@ public partial class weex : Exchange
             {
                 Int64 now = this.milliseconds();
                 Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
-                object numberOfCandles = ((bool) (!isEqual(limitVar, null) && !isEqual(limitVar, null) && !isEqual(limitVar, 0))) ? limitVar : maxHistoricalLimit;
+                object numberOfCandles = ((bool) ((limitVar != null) && (limitVar != null) && !isEqual(limitVar, 0))) ? limitVar : maxHistoricalLimit;
                 object timeDelta = multiply(numberOfCandles, duration);
                 if (((since == null)) && (isEqual(until, null)))
                 {
@@ -1873,7 +1873,7 @@ public partial class weex : Exchange
             response = await this.contractGetCapiV3MarketHistoryKlines(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(limitVar, null))
+            if ((limitVar != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limitVar;
             }

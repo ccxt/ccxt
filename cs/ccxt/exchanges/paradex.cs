@@ -2075,7 +2075,7 @@ public partial class paradex : Exchange
                 ((IDictionary<string,object>)request)["instruction"] = "IOC";
             }
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }

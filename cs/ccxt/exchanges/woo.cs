@@ -1631,11 +1631,11 @@ public partial class woo : Exchange
     public async override Task<ccxt.Order> CreateTrailingAmountOrder(string symbol, string type, string side, double amount, double? price = null, object trailingAmount = null, object trailingTriggerPrice = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(trailingAmount, null))
+        if ((trailingAmount == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTrailingAmountOrder() requires a trailingAmount argument")) ;
         }
-        if (isEqual(trailingTriggerPrice, null))
+        if ((trailingTriggerPrice == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTrailingAmountOrder() requires a trailingTriggerPrice argument")) ;
         }
@@ -1662,11 +1662,11 @@ public partial class woo : Exchange
     public async override Task<ccxt.Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(trailingPercent, null))
+        if ((trailingPercent == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTrailingPercentOrder() requires a trailingPercent argument")) ;
         }
-        if (isEqual(trailingTriggerPrice, null))
+        if ((trailingTriggerPrice == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createTrailingPercentOrder() requires a trailingTriggerPrice argument")) ;
         }
@@ -3244,11 +3244,11 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = mathMin(limit, 1000);
         }

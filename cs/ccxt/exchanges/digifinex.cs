@@ -2194,7 +2194,7 @@ public partial class digifinex : Exchange
             {
                 postOnly = true;
             }
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             }
@@ -2229,7 +2229,7 @@ public partial class digifinex : Exchange
                     quantity = this.costToPrecision(symbol, cost);
                 } else if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if (isEqual(price, null))
+                    if ((price == null))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else

@@ -3304,7 +3304,7 @@ public partial class aster : Exchange
                     if ((quoteOrderQtyNew != null))
                     {
                         ((IDictionary<string,object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
-                    } else if (!isEqual(price, null))
+                    } else if ((price != null))
                     {
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
@@ -3361,7 +3361,7 @@ public partial class aster : Exchange
         }
         if (priceIsRequired)
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
@@ -3757,11 +3757,11 @@ public partial class aster : Exchange
         {
             ((IDictionary<string,object>)request)["type"] = ((bool) ((type == "add"))) ? 1 : 2;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }

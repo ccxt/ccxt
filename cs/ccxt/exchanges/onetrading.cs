@@ -1164,7 +1164,7 @@ public partial class onetrading : Exchange
         var unit = ((IList<object>) periodunitVariable)[1];
         int durationInSeconds = this.parseTimeframe(timeframeVar);
         Int64 duration = multiply(durationInSeconds, 1000);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 1500;
         }

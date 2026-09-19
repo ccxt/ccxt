@@ -1802,7 +1802,7 @@ public partial class bullish : Exchange
         Int64 ninetyDays = (((multiply(90, 24) * 60) * 60) * 1000);
         Int64 now = this.milliseconds();
         Int64 allowedSince = (now - ninetyDays);
-        if ((!isEqual(since, null)) && (isLessThan(since, allowedSince)))
+        if (((since != null)) && (isLessThan(since, allowedSince)))
         {
             throw new BadRequest ((string)(((this.id + " ") + (method)) + "() only allows fetching entries up to 90 days in the past")) ;
         }
@@ -1826,10 +1826,10 @@ public partial class bullish : Exchange
         sinceKey ??= "createdAtDatetime[gte]";
         untilKey ??= "createdAtDatetime[lte]";
         object until = this.safeInteger(parameters, "until");
-        if ((!isEqual(since, null)) || (!isEqual(until, null)))
+        if (((since != null)) || (!isEqual(until, null)))
         {
             Int64 timeDelta = (((multiply(7, 24) * 60) * 60) * 1000); // 7 days
-            if (isEqual(since, null))
+            if ((since == null))
             {
                 since = subtract(until, timeDelta);
                 parameters = this.omit(parameters, "until");

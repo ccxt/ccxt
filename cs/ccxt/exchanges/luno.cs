@@ -1513,7 +1513,7 @@ public partial class luno : Exchange
         {
             entry = -1;
         }
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 1;
         }

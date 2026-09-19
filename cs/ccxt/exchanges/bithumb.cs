@@ -1929,7 +1929,7 @@ public partial class bithumb : Exchange
                 parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
                 if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if ((isEqual(price, null)) && ((cost == null)))
+                    if (((price == null)) && ((cost == null)))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
@@ -2594,7 +2594,7 @@ public partial class bithumb : Exchange
             {
                 ((IDictionary<string,object>)request)["after"] = since;
             }
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = 100;
             }

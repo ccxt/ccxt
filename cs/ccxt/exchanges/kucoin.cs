@@ -3889,17 +3889,17 @@ public partial class kucoin : Exchange
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         object endAt = this.milliseconds(); // required param
         int denominator = 1000;
-        if (!isEqual(sinceVar, null))
+        if ((sinceVar != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 // For each query, the system would return at most 1500 pieces of data.
                 // To obtain more data, please page the data by time.
                 limitVar = this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit);
             }
             endAt = this.sum(sinceVar, multiply(limitVar, duration));
-        } else if (!isEqual(limitVar, null))
+        } else if ((limitVar != null))
         {
             sinceVar = subtract(endAt, multiply(limitVar, duration));
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
@@ -3995,17 +3995,17 @@ public partial class kucoin : Exchange
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         object endAt = this.milliseconds(); // required param
         int denominator = 1000;
-        if (!isEqual(sinceVar, null))
+        if ((sinceVar != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 // For each query, the system would return at most 1500 pieces of data.
                 // To obtain more data, please page the data by time.
                 limitVar = this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit);
             }
             endAt = this.sum(sinceVar, multiply(limitVar, duration));
-        } else if (!isEqual(limitVar, null))
+        } else if ((limitVar != null))
         {
             sinceVar = subtract(endAt, multiply(limitVar, duration));
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
@@ -4075,17 +4075,17 @@ public partial class kucoin : Exchange
         }
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         object endAt = this.milliseconds(); // required param
-        if (!isEqual(sinceVar, null))
+        if ((sinceVar != null))
         {
             ((IDictionary<string,object>)request)["from"] = sinceVar;
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 // For each query, the system would return at most 200 pieces of data.
                 // To obtain more data, please page the data by time.
                 limitVar = this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit);
             }
             endAt = this.sum(sinceVar, multiply(limitVar, duration));
-        } else if (!isEqual(limitVar, null))
+        } else if ((limitVar != null))
         {
             sinceVar = subtract(endAt, multiply(limitVar, duration));
             ((IDictionary<string,object>)request)["from"] = sinceVar;
@@ -5032,7 +5032,7 @@ public partial class kucoin : Exchange
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if ((uppercaseType == "LIMIT"))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument for limit orders")) ;
             } else
@@ -12043,7 +12043,7 @@ public partial class kucoin : Exchange
             {
                 ((IDictionary<string,object>)request)["startAt"] = since;
             }
-            if (!isEqual(limitVar, null))
+            if ((limitVar != null))
             {
                 ((IDictionary<string,object>)request)["pageSize"] = limitVar;
             }
@@ -12080,7 +12080,7 @@ public partial class kucoin : Exchange
             response = await this.utaPrivateGetPositionHistory(this.extend(request, parameters));
         } else
         {
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = 200;
             }

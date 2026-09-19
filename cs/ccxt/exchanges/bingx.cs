@@ -3615,7 +3615,7 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)request)["quoteOrderQty"] = this.parseToNumeric(this.costToPrecision(symbol, cost));
             } else
             {
-                if (isMarketOrder && (!isEqual(price, null)))
+                if (isMarketOrder && ((price != null)))
                 {
                     // keep the legacy behavior, to avoid  breaking the old spot-market-buying code
                     string? calculatedCost = Precise.stringMul(this.numberToString(amount), this.numberToString(price));

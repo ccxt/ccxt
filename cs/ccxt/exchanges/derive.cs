@@ -1269,7 +1269,7 @@ public partial class derive : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             if (isGreaterThan(limitVar, 1000))
             {

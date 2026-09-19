@@ -852,7 +852,7 @@ public partial class independentreserve : Exchange
             ((IDictionary<string,object>)request)["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             ((IDictionary<string,object>)request)["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 50;
         }
@@ -889,7 +889,7 @@ public partial class independentreserve : Exchange
             ((IDictionary<string,object>)request)["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             ((IDictionary<string,object>)request)["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 50;
         }

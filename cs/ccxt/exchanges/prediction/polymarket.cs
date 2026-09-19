@@ -2519,7 +2519,7 @@ public partial class polymarket : PredictionExchange
         {
             orderTypeStr = ((bool) isMarket) ? "FOK" : "GTC";
         }
-        if (isEqual(price, null))
+        if ((price == null))
         {
             if (!isMarket)
             {
@@ -2527,7 +2527,7 @@ public partial class polymarket : PredictionExchange
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
             price = this.safeNumber(outcomeObj, "price");
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " createOrder() could not determine a price from the outcome, pass an explicit price")) ;
             }
@@ -2704,7 +2704,7 @@ public partial class polymarket : PredictionExchange
         string rawPrice = this.decimalToPrecision(priceStr, ROUND, priceDecimals, DECIMAL_PLACES);
         string? makerRaw = null;
         string? takerRaw = null;
-        if ((!isEqual(cost, null)) && (isEqual(side, "BUY")))
+        if (((cost != null)) && (isEqual(side, "BUY")))
         {
             // cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
             // truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise

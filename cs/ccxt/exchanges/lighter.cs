@@ -929,7 +929,7 @@ public partial class lighter : Exchange
          * @param {int} [params.orderExpiry] orderExpiry
          * @returns {any[]} request to be sent to the exchange
          */
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument")) ;
         }

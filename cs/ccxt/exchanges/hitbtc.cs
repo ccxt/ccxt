@@ -2778,7 +2778,7 @@ public partial class hitbtc : Exchange
         }
         if (isLimit || (isEqual(type, "stopLimit")) || (isEqual(type, "takeProfitLimit")))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ExchangeError ((string)(this.id + " createOrder() requires a price argument for limit orders")) ;
             }

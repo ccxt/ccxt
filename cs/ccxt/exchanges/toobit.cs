@@ -2005,7 +2005,7 @@ public partial class toobit : Exchange
             { "symbol", id },
             { "side", ((string)side).ToUpper() },
         };
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2066,7 +2066,7 @@ public partial class toobit : Exchange
             side = ((bool) (isEqual(reduceOnly, true))) ? "SELL_CLOSE" : "SELL_OPEN";
         }
         ((IDictionary<string,object>)request)["side"] = side;
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
