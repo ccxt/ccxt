@@ -50,7 +50,7 @@ impl crate::exchange::DerivedExchange for LunoCore {
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LunoCore.
-        LunoCore::parse_trade(self, trade, &[market.clone()])
+        LunoCore::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_order(&self.parent, order, market)
@@ -192,7 +192,7 @@ impl LunoCore {
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
         match __n {
             "custom_parse_bid_ask" => self.custom_parse_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "custom_parse_order_book" => self.custom_parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
@@ -239,7 +239,7 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://ws.luno.com/api/1".into()));
+        m.insert("ws".to_string(), Value::Str("wss://ws.luno.com/api/1".to_string()));
     m
 }));
     m
@@ -290,26 +290,26 @@ impl LunoCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("/stream/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
+        let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("/stream/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
             m
         });
         let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &subscriptionHash);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".to_string()), symbol));
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("api_key_id".to_string(), self.apiKey.clone());
                 m.insert("api_key_secret".to_string(), self.secret.clone());
             m
         });
-        let mut request: Value = self.deep_extend(subscribe.clone(), &[params.clone()]);
-        let mut trades: Value = self.watch(url.clone(), messageHash.clone(), &[request.clone(), subscriptionHash.clone(), subscription.clone()]).await;
+        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut trades: Value = self.watch(url, messageHash, &[request, subscriptionHash, subscription]).await;
         if is_true(&self.newUpdates) {
-            limit = trades.get_limit(symbol.clone(), limit.clone());
+            limit = trades.get_limit(symbol, limit.clone());
         }
-        return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".to_string()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -337,24 +337,25 @@ impl LunoCore {
         }
         let mut symbol: Value = crate::value::get_value_k(&subscription, "symbol");
         let mut market: Value = self.market(symbol.clone());
-        let mut messageHash: Value = add(&Value::Str("trades:".into()), &symbol);
+        let mut messageHash: Value = add(&Value::Str("trades:".to_string()), &symbol);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            stored = ArrayCache::new(limit.clone());
+            stored = ArrayCache::new(limit);
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_487: bool = true;
             while { if !__for_first_487 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_487 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
-            let mut rawTrade: Value = rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut trade: Value = self.parse_trade(rawTrade.clone(), &[market.clone()]);
-            stored.append(trade.clone());
+            let mut rawTrade: Value = get_value(&rawTrades, &i);
+            let mut rawTrade: Value = get_value(&rawTrades, &i);
+            let mut trade: Value = self.parse_trade(rawTrade, &[market.clone()]);
+            stored.append(trade);
         }
         }
-        add_element_to_object(&mut self.trades, &symbol, stored.clone());
-        client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
+        add_element_to_object(&mut self.trades, &symbol, stored);
+        client.resolve(&[get_value(&self.trades, &symbol), messageHash]);
 }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -370,24 +371,24 @@ impl LunoCore {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = (if is_true(&(market == Value::Null)) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "base", &[]));
-        m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "counter", &[]));
+        m.insert("cost".to_string(), self.safe_string_k(trade, "counter", &[]));
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -415,22 +416,22 @@ impl LunoCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("/stream/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
+        let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("/stream/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
             m
         });
         let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &subscriptionHash);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol));
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("api_key_id".to_string(), self.apiKey.clone());
                 m.insert("api_key_secret".to_string(), self.secret.clone());
             m
         });
-        let mut request: Value = self.deep_extend(subscribe.clone(), &[params.clone()]);
-        let mut orderbook: Value = self.watch(url.clone(), messageHash.clone(), &[request.clone(), subscriptionHash.clone(), subscription.clone()]).await;
+        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut orderbook: Value = self.watch(url, messageHash, &[request, subscriptionHash, subscription]).await;
         return orderbook.limit();
 
     Value::Null
@@ -470,7 +471,7 @@ impl LunoCore {
         //     }
         //
         let mut symbol: Value = crate::value::get_value_k(&subscription, "symbol");
-        let mut messageHash: Value = add(&Value::Str("orderbook:".into()), &symbol);
+        let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.indexed_order_book(&[Value::Map({
@@ -480,36 +481,36 @@ impl LunoCore {
         }
         let mut asks: Value = self.safe_value_k(message.clone(), "asks", &[]);
         if (asks != Value::Null) {
-            let mut snapshot: Value = self.custom_parse_order_book(message.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into()), Value::Str("id".into())]);
-            { let __be_tmp = self.indexed_order_book(&[snapshot.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            let mut snapshot: Value = self.custom_parse_order_book(message.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("volume".to_string()), Value::Str("id".to_string())]);
+            { let __be_tmp = self.indexed_order_book(&[snapshot]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }  else {
             let mut ob: Value = get_value(&self.orderbooks, &symbol);
             self.handle_delta(ob.clone(), message.clone());
-            add_element_to_object(&mut ob, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut ob, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+            add_element_to_object(&mut ob, &Value::Str("timestamp".to_string()), timestamp.clone());
+            add_element_to_object(&mut ob, &Value::Str("datetime".to_string()), self.iso8601(timestamp));
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut nonce: Value = self.safe_integer_k(message.clone(), "sequence", &[]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce.clone());
-        client.resolve(&[orderbook.clone(), messageHash.clone()]);
+        let mut nonce: Value = self.safe_integer_k(message, "sequence", &[]);
+        add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), nonce);
+        client.resolve(&[orderbook, messageHash]);
 }
 
     pub fn custom_parse_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timestamp = get_arg(optional_args, 0, Value::Null);
-        let mut bidsKey = get_arg(optional_args, 1, Value::Str("bids".into()));
-        let mut asksKey = get_arg(optional_args, 2, Value::Str("asks".into()));
-        let mut priceKey = get_arg(optional_args, 3, Value::Str("price".into()));
-        let mut amountKey = get_arg(optional_args, 4, Value::Str("volume".into()));
+        let mut bidsKey = get_arg(optional_args, 1, Value::Str("bids".to_string()));
+        let mut asksKey = get_arg(optional_args, 2, Value::Str("asks".to_string()));
+        let mut priceKey = get_arg(optional_args, 3, Value::Str("price".to_string()));
+        let mut amountKey = get_arg(optional_args, 4, Value::Str("volume".to_string()));
         let mut countOrIdKey = get_arg(optional_args, 5, Value::Int(2));
-        let mut bids: Value = self.parse_order_book_bids_asks(self.safe_list(orderbook.clone(), bidsKey.clone(), &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
-        let mut asks: Value = self.parse_order_book_bids_asks(self.safe_list(orderbook.clone(), asksKey.clone(), &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
+        let mut bids: Value = self.parse_order_book_bids_asks(self.safe_list(orderbook.clone(), bidsKey, &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
+        let mut asks: Value = self.parse_order_book_bids_asks(self.safe_list(orderbook, asksKey, &[Value::from(vec![])]), &[priceKey, amountKey, countOrIdKey]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.clone());
-        m.insert("bids".to_string(), self.sort_by(bids.clone(), Value::Int(0), &[Value::Bool(true)]));
-        m.insert("asks".to_string(), self.sort_by(asks.clone(), Value::Int(0), &[]));
+        m.insert("symbol".to_string(), symbol);
+        m.insert("bids".to_string(), self.sort_by(bids, Value::Int(0), &[Value::Bool(true)]));
+        m.insert("asks".to_string(), self.sort_by(asks, Value::Int(0), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("nonce".to_string(), Value::Null);
     m
 });
@@ -518,8 +519,8 @@ impl LunoCore {
 }
 
     pub fn parse_order_book_bids_asks(&self, mut bidasks: Value, optional_args: &[Value]) -> Value {
-        let mut priceKey = get_arg(optional_args, 0, Value::Str("price".into()));
-        let mut amountKey = get_arg(optional_args, 1, Value::Str("volume".into()));
+        let mut priceKey = get_arg(optional_args, 0, Value::Str("price".to_string()));
+        let mut amountKey = get_arg(optional_args, 1, Value::Str("volume".to_string()));
         let mut thirdKey = get_arg(optional_args, 2, Value::Int(2));
         bidasks = self.to_array(bidasks.clone());
         let mut result: Value = Value::from(vec![]);
@@ -536,15 +537,15 @@ impl LunoCore {
 }
 
     pub fn custom_parse_bid_ask(&self, mut bidask: Value, optional_args: &[Value]) -> Value {
-        let mut priceKey = get_arg(optional_args, 0, Value::Str("price".into()));
-        let mut amountKey = get_arg(optional_args, 1, Value::Str("volume".into()));
+        let mut priceKey = get_arg(optional_args, 0, Value::Str("price".to_string()));
+        let mut amountKey = get_arg(optional_args, 1, Value::Str("volume".to_string()));
         let mut thirdKey = get_arg(optional_args, 2, Value::Int(2));
-        let mut price: Value = self.safe_number(bidask.clone(), priceKey.clone(), &[]);
-        let mut amount: Value = self.safe_number(bidask.clone(), amountKey.clone(), &[]);
-        let mut result: Value = Value::from(vec![price.clone(), amount.clone()]);
+        let mut price: Value = self.safe_number(bidask.clone(), priceKey, &[]);
+        let mut amount: Value = self.safe_number(bidask.clone(), amountKey, &[]);
+        let mut result: Value = Value::from(vec![price, amount]);
         if (thirdKey != Value::Null) {
-            let mut thirdValue: Value = self.safe_string(bidask.clone(), thirdKey.clone(), &[]);
-            append_to_array(&mut result, thirdValue.clone());
+            let mut thirdValue: Value = self.safe_string(bidask, thirdKey, &[]);
+            append_to_array(&mut result, thirdValue);
         }
         return result;
 
@@ -599,19 +600,19 @@ impl LunoCore {
         let mut asksOrderSide: Value = crate::value::get_value_k(&orderbook, "asks");
         let mut bidsOrderSide: Value = crate::value::get_value_k(&orderbook, "bids");
         if (createUpdate != Value::Null) {
-            let mut bidAskArray: Value = self.custom_parse_bid_ask(createUpdate.clone(), &[Value::Str("price".into()), Value::Str("volume".into()), Value::Str("order_id".into())]);
-            let mut type_var: Option<String> = self.safe_string_k(createUpdate.clone(), "type", &[]).as_str().map(str::to_owned);
+            let mut bidAskArray: Value = self.custom_parse_bid_ask(createUpdate.clone(), &[Value::Str("price".to_string()), Value::Str("volume".to_string()), Value::Str("order_id".to_string())]);
+            let mut type_var: Option<String> = self.safe_string_k(createUpdate, "type", &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("ASK")) {
                 asksOrderSide.store_array(bidAskArray.clone());
             }  else if (type_var.as_deref() == Some("BID")) {
-                bidsOrderSide.store_array(bidAskArray.clone());
+                bidsOrderSide.store_array(bidAskArray);
             }
         }
         let mut deleteUpdate: Value = self.safe_value_k(message, "delete_update", &[]);
         if (deleteUpdate != Value::Null) {
-            let mut orderId: Value = self.safe_string_k(deleteUpdate.clone(), "order_id", &[]);
+            let mut orderId: Value = self.safe_string_k(deleteUpdate, "order_id", &[]);
             asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone()]));
-            bidsOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone()]));
+            bidsOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId]));
         }
 }
 
@@ -619,13 +620,14 @@ impl LunoCore {
         if (message.as_str() == Some("")) {
             return;
         }
-        let mut subscriptions: Value = object_values(&get_value(&client, &Value::Str("subscriptions".into())));
-        let mut handlers: Value = Value::from(vec![Value::Str("handle_order_book".into()).clone(), Value::Str("handle_trades".into()).clone()]);
+        let mut subscriptions: Value = object_values(&get_value(&client, &Value::Str("subscriptions".to_string())));
+        let mut handlers: Value = Value::from(vec![Value::Str("handle_order_book".to_string()).clone(), Value::Str("handle_trades".to_string()).clone()]);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_489: bool = true;
             while { if !__for_first_489 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_489 = false; j.as_f64().unwrap_or(f64::NAN) < ((handlers.len() as i64) as f64) } {
-            let mut handler: Value = handlers.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut handler: Value = get_value(&handlers, &j);
+            let mut handler: Value = get_value(&handlers, &j);
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone(), subscriptions.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)]);
         }
         }

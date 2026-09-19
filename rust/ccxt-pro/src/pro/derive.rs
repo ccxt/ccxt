@@ -200,7 +200,7 @@ impl DeriveCore {
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_auth" => { self.handle_auth(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -263,12 +263,12 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://api.lyra.finance/ws".into()));
+        m.insert("ws".to_string(), Value::Str("wss://api.lyra.finance/ws".to_string()));
     m
 }));
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://api-demo.lyra.finance/ws".into()));
+        m.insert("ws".to_string(), Value::Str("wss://api-demo.lyra.finance/ws".to_string()));
     m
 }));
     m
@@ -312,8 +312,8 @@ impl DeriveCore {
             m
         })]);
         let mut previousValue: Value = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]);
-        let mut newValue: Value = self.sum(&[previousValue.clone(), Value::Int(1)]);
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".into())), &url, newValue.clone());
+        let mut newValue: Value = self.sum(&[previousValue, Value::Int(1)]);
+        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".to_string())), &url, newValue.clone());
         return newValue;
 
     Value::Null
@@ -322,18 +322,18 @@ impl DeriveCore {
     pub async fn watch_public(&mut self, mut messageHash: Value, mut message: Value, mut subscription: Value) -> Value {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id(url.clone());
-        let mut request: Value = self.extend(message.clone(), &[Value::Map({
+        let mut request: Value = self.extend(message, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
             m
         })]);
         subscription = self.extend(subscription.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
-                m.insert("method".to_string(), Value::Str("subscribe".into()));
+                m.insert("id".to_string(), requestId);
+                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
             m
         })]);
-        return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone(), subscription.clone()]).await;
+        return self.watch(url, messageHash.clone(), &[request, messageHash.clone(), subscription]).await;
 
     Value::Null
 }
@@ -361,10 +361,10 @@ impl DeriveCore {
             limit = Value::Int(10);
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".10.".into())).into()), self.number_to_string(limit.clone())).into());
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".10.".to_string()))), self.number_to_string(limit.clone())));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("subscribe".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
@@ -375,12 +375,12 @@ impl DeriveCore {
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic.clone());
-                m.insert("symbol".to_string(), symbol.clone());
+                m.insert("symbol".to_string(), symbol);
                 m.insert("limit".to_string(), limit.clone());
-                m.insert("params".to_string(), params.clone());
+                m.insert("params".to_string(), params);
             m
         });
-        let mut orderbook: Value = self.watch_public(topic.clone(), request.clone(), subscription.clone()).await;
+        let mut orderbook: Value = self.watch_public(topic, request, subscription).await;
         return orderbook.limit();
 
     Value::Null
@@ -408,23 +408,23 @@ impl DeriveCore {
             m
         })]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "instrument_name", &[]);
-        let mut market: Value = self.safe_market(&[marketId.clone()]);
+        let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
+        let mut topic: Value = self.safe_string_k(params, "channel", &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
-            let mut subscription: Value = (if is_true(&(topic == Value::Null)) { Value::Null } else { get_value(&get_value(&client, &Value::Str("subscriptions".into())), &topic) });
-            let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit.clone()]);
+            let mut subscription: Value = (if is_true(&(topic == Value::Null)) { Value::Null } else { get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic) });
+            let mut limit: Value = self.safe_integer_k(subscription, "limit", &[defaultLimit]);
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), limit]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
-        let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into())]);
-        orderbook.reset(snapshot.clone());
-        client.resolve(&[orderbook.clone(), topic.clone()]);
+        let mut snapshot: Value = self.parse_order_book(data, symbol, &[timestamp, Value::Str("bids".to_string()), Value::Str("asks".to_string())]);
+        orderbook.reset(snapshot);
+        client.resolve(&[orderbook, topic]);
 }
 
 /*
@@ -445,10 +445,10 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker_slim.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".100".into())).into()); // the venue deprecated the fat ticker channel in favor of ticker_slim
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker_slim.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".100".to_string()))); // the venue deprecated the fat ticker channel in favor of ticker_slim
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("subscribe".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
@@ -459,11 +459,11 @@ impl DeriveCore {
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic.clone());
-                m.insert("symbol".to_string(), symbol.clone());
-                m.insert("params".to_string(), params.clone());
+                m.insert("symbol".to_string(), symbol);
+                m.insert("params".to_string(), params);
             m
         });
-        return self.watch_public(topic.clone(), request.clone(), subscription.clone()).await;
+        return self.watch_public(topic, request, subscription).await;
 
     Value::Null
 }
@@ -539,14 +539,14 @@ impl DeriveCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
+        let mut topic: Value = self.safe_string_k(params, "channel", &[]);
         let mut ticker: Value = Value::Null;
-        if (topic != Value::Null) && (starts_with(&topic, &Value::Str("ticker_slim".into()))) {
+        if (topic != Value::Null) && (starts_with(&topic, &Value::Str("ticker_slim".to_string()))) {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-            let mut parts: Value = split(&topic, &Value::Str(".".into()));
-            let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-            let mut market: Value = self.safe_market(&[marketId.clone()]);
+            let mut parts: Value = split(&topic, &Value::Str(".".to_string()));
+            let mut marketId: Value = self.safe_string(parts, Value::Int(1), &[]);
+            let mut market: Value = self.safe_market(&[marketId]);
             let mut stats: Value = self.safe_dict_k(data.clone(), "stats", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -564,20 +564,20 @@ impl DeriveCore {
                     m.insert("low".to_string(), self.safe_string_k(stats.clone(), "l", &[]));
                     m.insert("baseVolume".to_string(), self.safe_string_k(stats.clone(), "c", &[]));
                     m.insert("quoteVolume".to_string(), self.safe_string_k(stats.clone(), "v", &[]));
-                    m.insert("percentage".to_string(), self.safe_string_k(stats.clone(), "p", &[]));
+                    m.insert("percentage".to_string(), self.safe_string_k(stats, "p", &[]));
                     m.insert("markPrice".to_string(), self.safe_string_k(data.clone(), "M", &[]));
                     m.insert("indexPrice".to_string(), self.safe_string_k(data.clone(), "I", &[]));
-                    m.insert("info".to_string(), rawData.clone());
+                    m.insert("info".to_string(), rawData);
                 m
-            }), &[market.clone()]);
+            }), &[market]);
         }  else {
-            ticker = self.parse_ticker(data.clone(), &[]);
+            ticker = self.parse_ticker(data, &[]);
         }
         let mut tickerSymbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (tickerSymbol != Value::Null) {
             add_element_to_object(&mut self.tickers, &tickerSymbol, ticker.clone());
         }
-        client.resolve(&[ticker.clone(), topic.clone()]);
+        client.resolve(&[ticker, topic]);
         return message;
 
     Value::Null
@@ -600,16 +600,16 @@ impl DeriveCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut limit: Value = self.safe_integer_k(params.clone(), "limit", &[]);
+        let mut limit: Value = self.safe_integer_k(params, "limit", &[]);
         if (limit == Value::Null) {
             limit = Value::Int(10);
         }
-        let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".10.".into())).into()), self.number_to_string(limit.clone())).into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into());
+        let mut market: Value = self.market(symbol);
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".10.".to_string()))), self.number_to_string(limit)));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unwatch".to_string()), topic));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("method".to_string(), Value::Str("unsubscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
@@ -619,10 +619,10 @@ impl DeriveCore {
         });
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), topic.clone());
+                m.insert("name".to_string(), topic);
             m
         });
-        return self.un_watch_public(messageHash.clone(), request.clone(), subscription.clone()).await;
+        return self.un_watch_public(messageHash, request, subscription).await;
 
     Value::Null
 }
@@ -643,12 +643,12 @@ impl DeriveCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = Value::Str(format!("{}{}", Value::Str("trades.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
-        let mut messageHah: Value = Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into());
+        let mut market: Value = self.market(symbol);
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str("trades.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+        let mut messageHah: Value = Value::Str(format!("{}{}", Value::Str("unwatch".to_string()), topic));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("method".to_string(), Value::Str("unsubscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
@@ -658,10 +658,10 @@ impl DeriveCore {
         });
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), topic.clone());
+                m.insert("name".to_string(), topic);
             m
         });
-        return self.un_watch_public(messageHah.clone(), request.clone(), subscription.clone()).await;
+        return self.un_watch_public(messageHah, request, subscription).await;
 
     Value::Null
 }
@@ -669,52 +669,52 @@ impl DeriveCore {
     pub async fn un_watch_public(&mut self, mut messageHash: Value, mut message: Value, mut subscription: Value) -> Value {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id(url.clone());
-        let mut request: Value = self.extend(message.clone(), &[Value::Map({
+        let mut request: Value = self.extend(message, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
             m
         })]);
         subscription = self.extend(subscription.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
-                m.insert("method".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("id".to_string(), requestId);
+                m.insert("method".to_string(), Value::Str("unsubscribe".to_string()));
             m
         })]);
-        return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone(), subscription.clone()]).await;
+        return self.watch(url, messageHash.clone(), &[request, messageHash.clone(), subscription]).await;
 
     Value::Null
 }
 
     pub fn handle_order_book_un_subscription(&mut self, mut client: Value, mut topic: Value) {
-        let mut parsedTopic: Value = split(&topic, &Value::Str(".".into()));
-        let mut marketId: Value = self.safe_string(parsedTopic.clone(), Value::Int(1), &[]);
-        let mut market: Value = self.safe_market(&[marketId.clone()]);
+        let mut parsedTopic: Value = split(&topic, &Value::Str(".".to_string()));
+        let mut marketId: Value = self.safe_string(parsedTopic, Value::Int(1), &[]);
+        let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (in_op(&self.orderbooks, &symbol)) {
             remove(&mut self.orderbooks, &symbol);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &topic)) {
-            remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &topic);
+        if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic)) {
+            remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
         }
-        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".into())).into()), symbol)));
+        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".to_string()))), symbol)));
         client.reject(&[Value::from(error.clone()), topic.clone()]);
-        client.resolve(&[error.clone(), add(&Value::Str("unwatch".into()), &topic)]);
+        client.resolve(&[error, add(&Value::Str("unwatch".to_string()), &topic)]);
 }
 
     pub fn handle_trades_un_subscription(&mut self, mut client: Value, mut topic: Value) {
-        let mut parsedTopic: Value = split(&topic, &Value::Str(".".into()));
-        let mut marketId: Value = self.safe_string(parsedTopic.clone(), Value::Int(1), &[]);
-        let mut market: Value = self.safe_market(&[marketId.clone()]);
+        let mut parsedTopic: Value = split(&topic, &Value::Str(".".to_string()));
+        let mut marketId: Value = self.safe_string(parsedTopic, Value::Int(1), &[]);
+        let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (in_op(&self.orderbooks, &symbol)) {
             remove(&mut self.trades, &symbol);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &topic)) {
-            remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &topic);
+        if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic)) {
+            remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
         }
-        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trades ".into())).into()), symbol)));
+        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trades ".to_string()))), symbol)));
         client.reject(&[Value::from(error.clone()), topic.clone()]);
-        client.resolve(&[error.clone(), add(&Value::Str("unwatch".into()), &topic)]);
+        client.resolve(&[error, add(&Value::Str("unwatch".to_string()), &topic)]);
 }
 
     pub fn handle_un_subscribe(&mut self, mut client: Value, mut message: Value) -> Value {
@@ -772,10 +772,10 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = Value::Str(format!("{}{}", Value::Str("trades.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str("trades.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("subscribe".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
@@ -787,14 +787,14 @@ impl DeriveCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic.clone());
                 m.insert("symbol".to_string(), symbol.clone());
-                m.insert("params".to_string(), params.clone());
+                m.insert("params".to_string(), params);
             m
         });
-        let mut trades: Value = self.watch_public(topic.clone(), request.clone(), subscription.clone()).await;
+        let mut trades: Value = self.watch_public(topic.clone(), request, subscription).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(trades.clone(), &[symbol.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbol, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -807,26 +807,26 @@ impl DeriveCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut topic: Value = self.safe_value_k(params.clone(), "channel", &[]);
-        let mut parsedTopic: Value = split(&topic, &Value::Str(".".into()));
-        let mut marketId: Value = self.safe_string(parsedTopic.clone(), Value::Int(1), &[]);
-        let mut market: Value = self.safe_market(&[marketId.clone()]);
+        let mut topic: Value = self.safe_value_k(params, "channel", &[]);
+        let mut parsedTopic: Value = split(&topic, &Value::Str(".".to_string()));
+        let mut marketId: Value = self.safe_string(parsedTopic, Value::Int(1), &[]);
+        let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (tradesArray == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            tradesArray = ArrayCache::new(limit.clone());
+            tradesArray = ArrayCache::new(limit);
         }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_321: bool = true;
             while { if !__for_first_321 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_321 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut trade: Value = self.parse_trade(get_value(&data, &i), &[]);
-            tradesArray.append(trade.clone());
+            tradesArray.append(trade);
         }
         }
         add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
-        client.resolve(&[tradesArray.clone(), topic.clone()]);
+        client.resolve(&[tradesArray, topic.clone()]);
 }
 
     pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
@@ -837,9 +837,9 @@ impl DeriveCore {
         self.check_required_credentials(&[]);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: Value = Value::Str("authenticated".to_string());
         let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
+        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
         if (authenticated == Value::Null) {
             let mut requestId: Value = self.request_id(url.clone());
             let mut now: Value = to_string_val(&self.milliseconds());
@@ -847,13 +847,13 @@ impl DeriveCore {
             let mut deriveWalletAddress: Value = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), requestId.clone());
-                    m.insert("method".to_string(), Value::Str("public/login".into()));
+                    m.insert("id".to_string(), requestId);
+                    m.insert("method".to_string(), Value::Str("public/login".to_string()));
                     m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("wallet".to_string(), deriveWalletAddress.clone());
-        m.insert("timestamp".to_string(), now.clone());
-        m.insert("signature".to_string(), signature.clone());
+        m.insert("wallet".to_string(), deriveWalletAddress);
+        m.insert("timestamp".to_string(), now);
+        m.insert("signature".to_string(), signature);
     m
 }));
                 m
@@ -863,8 +863,8 @@ impl DeriveCore {
             //     'symbol': symbol,
             //     'params': params,
             // }
-            let mut message: Value = self.extend(request, &[params.clone()]);
-            self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone(), message.clone()]).await;
+            let mut message: Value = self.extend(request, &[params]);
+            self.watch(url, messageHash.clone(), &[message.clone(), messageHash.clone(), message.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -882,11 +882,11 @@ impl DeriveCore {
         })]);
         subscription = self.extend(subscription.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
-                m.insert("method".to_string(), Value::Str("subscribe".into()));
+                m.insert("id".to_string(), requestId);
+                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
             m
         })]);
-        return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone(), subscription.clone()]).await;
+        return self.watch(url, messageHash.clone(), &[request, messageHash.clone(), subscription]).await;
 
     Value::Null
 }
@@ -915,17 +915,17 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.parent.handle_derive_subaccount_id(Value::Str("watchOrders".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut topic: Value = Value::Str(format!("{}{}", self.number_to_string(subaccountId.clone()), Value::Str(".orders".into())).into());
+        { let __destr_tmp = self.parent.handle_derive_subaccount_id(Value::Str("watchOrders".to_string()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut topic: Value = Value::Str(format!("{}{}", self.number_to_string(subaccountId), Value::Str(".orders".to_string())));
         let mut messageHash: Value = topic.clone();
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), symbol))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("subscribe".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
@@ -939,12 +939,12 @@ impl DeriveCore {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params.clone()]);
-        let mut orders: Value = self.watch_private(messageHash.clone(), message.clone(), subscription.clone()).await;
+        let mut message: Value = self.extend(request, &[params]);
+        let mut orders: Value = self.watch_private(messageHash, message, subscription).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(orders.clone(), &[symbol.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -993,43 +993,43 @@ impl DeriveCore {
         //
         let mut params: Value = self.safe_dict_k(message, "params", &[]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut rawOrders: Value = self.safe_list_k(params.clone(), "data", &[Value::from(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_322: bool = true;
             while { if !__for_first_322 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_322 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
             let mut data: Value = get_value(&rawOrders, &i);
             let mut data: Value = get_value(&rawOrders, &i);
-            let mut parsed: Value = self.parse_order(data.clone(), &[]);
+            let mut parsed: Value = self.parse_order(data, &[]);
             let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
             let mut orderId: Value = self.safe_string_k(parsed.clone(), "id", &[]);
             if (symbol != Value::Null) {
                 if (self.orders.clone() == Value::Null) {
                     let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
-                    self.orders = ArrayCacheBySymbolById::new(limit.clone());
+                    self.orders = ArrayCacheBySymbolById::new(limit);
                 }
                 let mut cachedOrders: Value = self.orders.clone();
                 let mut orders: Value = self.safe_dict(cachedOrders.hashmap(), symbol.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut order: Value = (if is_true(&(orderId == Value::Null)) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone(), &[]) });
+                let mut order: Value = (if is_true(&(orderId == Value::Null)) { Value::Null } else { self.safe_dict(orders.clone(), orderId, &[]) });
                 if (order != Value::Null) {
                     let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                     if (fee != Value::Null) {
-                        add_element_to_object(&mut parsed, &Value::Str("fee".into()), fee.clone());
+                        add_element_to_object(&mut parsed, &Value::Str("fee".to_string()), fee);
                     }
                     let mut fees: Value = self.safe_value_k(order.clone(), "fees", &[]);
                     if (fees != Value::Null) {
-                        add_element_to_object(&mut parsed, &Value::Str("fees".into()), fees.clone());
+                        add_element_to_object(&mut parsed, &Value::Str("fees".to_string()), fees);
                     }
-                    add_element_to_object(&mut parsed, &Value::Str("trades".into()), self.safe_value_k(order.clone(), "trades", &[]));
-                    add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), self.safe_integer_k(order.clone(), "timestamp", &[]));
-                    add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.safe_string_k(order.clone(), "datetime", &[]));
+                    add_element_to_object(&mut parsed, &Value::Str("trades".to_string()), self.safe_value_k(order.clone(), "trades", &[]));
+                    add_element_to_object(&mut parsed, &Value::Str("timestamp".to_string()), self.safe_integer_k(order.clone(), "timestamp", &[]));
+                    add_element_to_object(&mut parsed, &Value::Str("datetime".to_string()), self.safe_string_k(order, "datetime", &[]));
                 }
-                cachedOrders.append(parsed.clone());
-                let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), symbol).into());
-                client.resolve(&[self.orders.clone(), messageHashSymbol.clone()]);
+                cachedOrders.append(parsed);
+                let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".to_string()))), symbol));
+                client.resolve(&[self.orders.clone(), messageHashSymbol]);
             }
         }
         }
@@ -1060,17 +1060,17 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.parent.handle_derive_subaccount_id(Value::Str("watchMyTrades".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut topic: Value = Value::Str(format!("{}{}", self.number_to_string(subaccountId.clone()), Value::Str(".trades".into())).into());
+        { let __destr_tmp = self.parent.handle_derive_subaccount_id(Value::Str("watchMyTrades".to_string()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut topic: Value = Value::Str(format!("{}{}", self.number_to_string(subaccountId), Value::Str(".trades".to_string())));
         let mut messageHash: Value = topic.clone();
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), symbol))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("subscribe".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
@@ -1084,12 +1084,12 @@ impl DeriveCore {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params.clone()]);
-        let mut trades: Value = self.watch_private(messageHash.clone(), message.clone(), subscription.clone()).await;
+        let mut message: Value = self.extend(request, &[params]);
+        let mut trades: Value = self.watch_private(messageHash, message, subscription).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(trades.clone(), &[symbol.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbol, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1100,11 +1100,11 @@ impl DeriveCore {
         let mut myTrades: Value = self.myTrades.clone();
         if (myTrades == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            myTrades = ArrayCacheBySymbolById::new(limit.clone());
+            myTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut rawTrades: Value = self.safe_list_k(params.clone(), "data", &[Value::from(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_323: bool = true;
@@ -1112,8 +1112,8 @@ impl DeriveCore {
             let mut trade: Value = self.parse_trade(message.clone(), &[]);
             myTrades.append(trade.clone());
             client.resolve(&[myTrades.clone(), topic.clone()]);
-            let mut messageHash: Value = Value::Str(format!("{}{}", topic, self.safe_string_k(trade.clone(), "symbol", &[Value::Str("".into())])).into());
-            client.resolve(&[myTrades.clone(), messageHash.clone()]);
+            let mut messageHash: Value = Value::Str(format!("{}{}", topic, self.safe_string_k(trade, "symbol", &[Value::Str("".to_string())])));
+            client.resolve(&[myTrades.clone(), messageHash]);
         }
         }
 }
@@ -1129,24 +1129,24 @@ impl DeriveCore {
             return Value::Bool(false);
         }
         let mut errorMessage: Value = self.safe_dict_k(message.clone(), "error", &[]);
-        let mut errorCode: Value = self.safe_string_k(errorMessage.clone(), "code", &[]);
+        let mut errorCode: Value = self.safe_string_k(errorMessage, "code", &[]);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (errorCode != Value::Null) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message)).into());
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             return Value::Bool(false);
          #[allow(unreachable_code)] { Value::Null }}));
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
-            if is_instance(&error, &Value::Str("AuthenticationError".into())) {
-                let mut messageHash: Value = Value::Str("authenticated".into());
+            if is_instance(&error, &Value::Str("AuthenticationError".to_string())) {
+                let mut messageHash: Value = Value::Str("authenticated".to_string());
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-                if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
-                    remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
+                if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
+                    remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
                 }
             }  else {
-                client.reject(&[Value::from(error.clone())]);
+                client.reject(&[Value::from(error)]);
             }
             return Value::Bool(true);
          } }
@@ -1160,43 +1160,43 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderbook".to_string(), Value::Str("handle_order_book".into()).clone());
-                m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
-                m.insert("ticker_slim".to_string(), Value::Str("handle_ticker".into()).clone());
-                m.insert("trades".to_string(), Value::Str("handle_trade".into()).clone());
-                m.insert("orders".to_string(), Value::Str("handle_order".into()).clone());
-                m.insert("mytrades".to_string(), Value::Str("handle_my_trade".into()).clone());
+                m.insert("orderbook".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("ticker_slim".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("trades".to_string(), Value::Str("handle_trade".to_string()).clone());
+                m.insert("orders".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("mytrades".to_string(), Value::Str("handle_my_trade".to_string()).clone());
             m
         });
         let mut event: Value = Value::Null;
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         if (params != Value::Null) {
-            let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
+            let mut channel: Value = self.safe_string_k(params, "channel", &[]);
             if (channel != Value::Null) {
-                let mut parsedChannel: Value = split(&channel, &Value::Str(".".into()));
+                let mut parsedChannel: Value = split(&channel, &Value::Str(".".to_string()));
                 if is_true(&(Value::Int(channel.as_str().and_then(|__s| __s.find("orders")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) || Value::Int(channel.as_str().and_then(|__s| __s.find("trades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                     event = self.safe_string(parsedChannel.clone(), Value::Int(1), &[]);
                     // {subaccounr_id}.trades
                     if (event.as_str() == Some("trades")) {
-                        event = Value::Str("mytrades".into());
+                        event = Value::Str("mytrades".to_string());
                     }
                 }  else {
                     event = self.safe_string(parsedChannel.clone(), Value::Int(0), &[]);
                 }
             }
         }
-        let mut method: Value = (if is_true(&(event == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), event.clone(), &[]) });
+        let mut method: Value = (if is_true(&(event == Value::Null)) { Value::Null } else { self.safe_value(methods, event.clone(), &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
         }
         if is_true(&(matches!(&message, Value::Dict(__d) if __d.contains_key("id")))) {
             let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
-            let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("id".into()));
+            let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
             let mut subscription: Value = (if is_true(&(id == Value::Null)) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { self.safe_dict(subscriptionsById.clone(), id.clone(), &[Value::Map({
+}) } else { self.safe_dict(subscriptionsById, id.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
@@ -1217,18 +1217,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     result: [ 130837 ]
         // }
         //
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: Value = Value::Str("authenticated".to_string());
         let mut ids: Value = self.safe_list_k(message.clone(), "result", &[Value::from(vec![])]);
         if ((ids.len() as i64) as f64) > ((0i64) as f64) {
             // client.resolve (message, messageHash);
-            let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), Value::Str("authenticated".into()), &[]);
+            let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticated".to_string()), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
-            client.reject(&[Value::from(error.clone()), messageHash.clone()]);
+            client.reject(&[Value::from(error), messageHash.clone()]);
             // allows further authentication attempts
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
-                remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str("authenticated".into()));
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
+                remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string()));
             }
         }
 }

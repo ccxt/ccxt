@@ -196,8 +196,8 @@ impl BinanceusCore {
         let mut restInstance = crate::exchanges::binanceus::BinanceusCore::new(None);
         let mut restDescribe: Value = restInstance.describe();
         let mut parentWsDescribe: Value = self.parent.describe_data();
-        let mut extended: Value = self.deep_extend(restDescribe.clone(), &[parentWsDescribe.clone()]);
-        return self.deep_extend(extended.clone(), &[Value::Map({
+        let mut extended: Value = self.deep_extend(restDescribe, &[parentWsDescribe]);
+        return self.deep_extend(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("binanceus".into()));
         m.insert("name".to_string(), Value::Str("Binance US".into()));

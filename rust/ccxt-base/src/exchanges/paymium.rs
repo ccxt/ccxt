@@ -43,11 +43,11 @@ impl PaymiumCore {
 impl crate::exchange::DerivedExchange for PaymiumCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_ticker(self, ticker, &[market.clone()])
+        PaymiumCore::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_trade(self, trade, &[market.clone()])
+        PaymiumCore::parse_trade(self, trade, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
@@ -55,15 +55,15 @@ impl crate::exchange::DerivedExchange for PaymiumCore {
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        PaymiumCore::parse_deposit_address(self, depositAddress, &[currency])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_transfer(self, transfer, &[currency.clone()])
+        PaymiumCore::parse_transfer(self, transfer, &[currency])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        PaymiumCore::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
@@ -115,11 +115,11 @@ impl PaymiumCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("paymium".into()));
-        m.insert("name".to_string(), Value::Str("Paymium".into()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("FR".into()), Value::Str("EU".into())]));
+        m.insert("id".to_string(), Value::Str("paymium".to_string()));
+        m.insert("name".to_string(), Value::Str("Paymium".to_string()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("FR".to_string()), Value::Str("EU".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(2000));
-        m.insert("version".to_string(), Value::Str("v1".into()));
+        m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Bool(true));
@@ -153,16 +153,16 @@ impl PaymiumCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg".into()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rest".to_string(), Value::Str("https://paymium.com/api".into()));
+        m.insert("rest".to_string(), Value::Str("https://paymium.com/api".to_string()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://www.paymium.com".into()));
-        m.insert("fees".to_string(), Value::Str("https://www.paymium.com/page/help/fees".into()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://github.com/Paymium/api-documentation".into()), Value::Str("https://www.paymium.com/page/developers".into()), Value::Str("https://paymium.github.io/api-documentation/".into())]));
-        m.insert("referral".to_string(), Value::Str("https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj".into()));
+        m.insert("www".to_string(), Value::Str("https://www.paymium.com".to_string()));
+        m.insert("fees".to_string(), Value::Str("https://www.paymium.com/page/help/fees".to_string()));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://github.com/Paymium/api-documentation".to_string()), Value::Str("https://www.paymium.com/page/developers".to_string()), Value::Str("https://paymium.github.io/api-documentation/".to_string())]));
+        m.insert("referral".to_string(), Value::Str("https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj".to_string()));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -322,13 +322,13 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC/EUR".to_string(), self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("eur".into()));
-        m.insert("symbol".to_string(), Value::Str("BTC/EUR".into()));
-        m.insert("base".to_string(), Value::Str("BTC".into()));
-        m.insert("quote".to_string(), Value::Str("EUR".into()));
-        m.insert("baseId".to_string(), Value::Str("btc".into()));
-        m.insert("quoteId".to_string(), Value::Str("eur".into()));
-        m.insert("type".to_string(), Value::Str("spot".into()));
+        m.insert("id".to_string(), Value::Str("eur".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/EUR".to_string()));
+        m.insert("base".to_string(), Value::Str("BTC".to_string()));
+        m.insert("quote".to_string(), Value::Str("EUR".to_string()));
+        m.insert("baseId".to_string(), Value::Str("btc".to_string()));
+        m.insert("quoteId".to_string(), Value::Str("eur".to_string()));
+        m.insert("type".to_string(), Value::Str("spot".to_string()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
 })]));
@@ -338,8 +338,8 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("maker".to_string(), self.parse_number(Value::Str("-0.001".into()), &[]));
-        m.insert("taker".to_string(), self.parse_number(Value::Str("0.005".into()), &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("-0.001".to_string()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.005".to_string()), &[]));
     m
 }));
     m
@@ -416,20 +416,21 @@ impl PaymiumCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1053: bool = true;
             while { if !__for_first_1053 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1053 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
-            let mut code: Value = currencies.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut code: Value = get_value(&currencies, &i);
+            let mut code: Value = get_value(&currencies, &i);
             let mut currency: Value = self.currency(code.clone());
             let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-            let mut free: Value = Value::Str(format!("{}{}", Value::Str("balance_".into()), currencyId).into());
+            let mut free: Value = Value::Str(format!("{}{}", Value::Str("balance_".to_string()), currencyId));
             if (in_op(&response, &free)) {
                 let mut account: Value = self.account();
-                let mut used: Value = Value::Str(format!("{}{}", Value::Str("locked_".into()), currencyId).into());
+                let mut used: Value = Value::Str(format!("{}{}", Value::Str("locked_".to_string()), currencyId));
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), free.clone(), &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(response.clone(), used.clone(), &[])); }
-                add_element_to_object(&mut result, &code, account.clone());
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(response.clone(), used, &[])); }
+                add_element_to_object(&mut result, &code, account);
             }
         }
         }
-        return self.safe_balance(result.clone());
+        return self.safe_balance(result);
 
     Value::Null
 }
@@ -450,8 +451,8 @@ impl PaymiumCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut response: Value = self.private_get_user(&[params.clone()]).await;
-        return self.parse_balance(response.clone());
+        let mut response: Value = self.private_get_user(&[params]).await;
+        return self.parse_balance(response);
 
     Value::Null
 }
@@ -475,15 +476,15 @@ impl PaymiumCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_data_currency_depth(&[__ws_arg_0]).await;
-        return self.parse_order_book(response.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
+        return self.parse_order_book(response, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("amount".to_string())]);
 
     Value::Null
 }
@@ -509,35 +510,35 @@ impl PaymiumCore {
         // }
         //
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("at".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("at".to_string()), &[]);
         let mut vwap: Value = self.safe_string_k(ticker.clone(), "vwap", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "volume", &[]);
         let mut quoteVolume: Value = crate::precise::Precise::stringMul(&baseVolume, &vwap);
         let mut last: Value = self.safe_string_k(ticker.clone(), "price", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
         m.insert("bidVolume".to_string(), Value::Null);
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "ask", &[]));
         m.insert("askVolume".to_string(), Value::Null);
-        m.insert("vwap".to_string(), vwap.clone());
+        m.insert("vwap".to_string(), vwap);
         m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "open", &[]));
         m.insert("close".to_string(), last.clone());
-        m.insert("last".to_string(), last.clone());
+        m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "variation", &[]));
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), baseVolume.clone());
-        m.insert("quoteVolume".to_string(), quoteVolume.clone());
-        m.insert("info".to_string(), ticker.clone());
+        m.insert("baseVolume".to_string(), baseVolume);
+        m.insert("quoteVolume".to_string(), quoteVolume);
+        m.insert("info".to_string(), ticker);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -559,45 +560,45 @@ impl PaymiumCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params]);
         let mut ticker: Value = self.public_get_data_currency_ticker(&[__ws_arg_1]).await;
-        return self.parse_ticker(ticker.clone(), &[market.clone()]);
+        return self.parse_ticker(ticker, &[market]);
 
     Value::Null
 }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("created_at_int".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("created_at_int".to_string()), &[]);
         let mut id: Value = self.safe_string_k(trade.clone(), "uuid", &[]);
         market = self.safe_market(&[Value::Null, market.clone()]);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut amountField: Value = Value::Str(format!("{}{}", Value::Str("traded_".into()), to_lower(&get_value(&market, &Value::Str("base".into())))).into());
-        let mut amount: Value = self.safe_string(trade.clone(), amountField.clone(), &[]);
+        let mut amountField: Value = Value::Str(format!("{}{}", Value::Str("traded_".to_string()), to_lower(&get_value(&market, &Value::Str("base".to_string())))));
+        let mut amount: Value = self.safe_string(trade.clone(), amountField, &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade.clone());
-        m.insert("id".to_string(), id.clone());
+        m.insert("info".to_string(), trade);
+        m.insert("id".to_string(), id);
         m.insert("order".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side.clone());
+        m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), price.clone());
-        m.insert("amount".to_string(), amount.clone());
+        m.insert("price".to_string(), price);
+        m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -623,15 +624,15 @@ impl PaymiumCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_data_currency_trades(&[__ws_arg_2]).await;
-        return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        return self.parse_trades(response, &[market, since, limit]);
 
     Value::Null
 }
@@ -653,8 +654,8 @@ impl PaymiumCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut response: Value = self.private_post_user_addresses(&[params.clone()]).await;
-        return self.parse_deposit_address(response.clone(), &[]);
+        let mut response: Value = self.private_post_user_addresses(&[params]).await;
+        return self.parse_deposit_address(response, &[]);
 
     Value::Null
 }
@@ -678,12 +679,12 @@ impl PaymiumCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("address".to_string(), code.clone());
+                m.insert("address".to_string(), code);
             m
         });
-        let __ws_arg_3 = self.extend(request, &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_user_addresses_address(&[__ws_arg_3]).await;
-        return self.parse_deposit_address(response.clone(), &[]);
+        return self.parse_deposit_address(response, &[]);
 
     Value::Null
 }
@@ -706,8 +707,8 @@ impl PaymiumCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut response: Value = self.private_get_user_addresses(&[params.clone()]).await;
-        return self.parse_deposit_addresses(response.clone(), &[codes.clone(), Value::Bool(false)]);
+        let mut response: Value = self.private_get_user_addresses(&[params]).await;
+        return self.parse_deposit_addresses(response, &[codes, Value::Bool(false)]);
 
     Value::Null
 }
@@ -726,10 +727,10 @@ impl PaymiumCore {
         let mut currencyId: Value = self.safe_string_k(depositAddress.clone(), "currency", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), depositAddress.clone());
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
+        m.insert("info".to_string(), depositAddress);
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId, &[currency]));
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), address.clone());
+        m.insert("address".to_string(), address);
         m.insert("tag".to_string(), Value::Null);
     m
 });
@@ -759,26 +760,26 @@ impl PaymiumCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), Value::Str(format!("{}{}", self.capitalize(type_var.clone()), Value::Str("Order".into())).into()));
+                m.insert("type".to_string(), Value::Str(format!("{}{}", self.capitalize(type_var.clone()), Value::Str("Order".to_string()))));
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("direction".to_string(), side.clone());
-                m.insert("amount".to_string(), amount.clone());
+                m.insert("direction".to_string(), side);
+                m.insert("amount".to_string(), amount);
             m
         });
         if (type_var.as_str() != Some("market")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), price.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), price); }
         }
-        let __ws_arg_4 = self.extend(request, &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_user_orders(&[__ws_arg_4]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("id".to_string(), self.safe_string_k(response.clone(), "uuid", &[]));
+        m.insert("id".to_string(), self.safe_string_k(response, "uuid", &[]));
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -801,14 +802,14 @@ impl PaymiumCore {
 }));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("uuid".to_string(), id.clone());
+                m.insert("uuid".to_string(), id);
             m
         });
-        let __ws_arg_5 = self.extend(request, &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: Value = self.private_delete_user_orders_uuid_cancel(&[__ws_arg_5]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), response);
     m
 }), &[]);
 
@@ -837,21 +838,21 @@ impl PaymiumCore {
         }
         let mut currency: Value = self.currency(code.clone());
         if Value::Int(toAccount.as_str().and_then(|__s| __s.find("@")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows transfers to an email address".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows transfers to an email address".to_string()))));
         }
         if (code.as_str() != Some("BTC")) && (code.as_str() != Some("EUR")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows BTC or EUR".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows BTC or EUR".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
-                m.insert("email".to_string(), toAccount.clone());
+                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("email".to_string(), toAccount);
             m
         });
-        let __ws_arg_6 = self.extend(request, &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_user_email_transfers(&[__ws_arg_6]).await;
-        return self.parse_transfer(response.clone(), &[currency.clone()]);
+        return self.parse_transfer(response, &[currency]);
 
     Value::Null
 }
@@ -892,9 +893,9 @@ impl PaymiumCore {
         //
         let mut currencyId: Value = self.safe_string_k(transfer.clone(), "currency", &[]);
         let mut updatedAt: Value = self.safe_string_k(transfer.clone(), "updated_at", &[]);
-        let mut timetstamp: Value = self.parse_date(updatedAt.clone(), &[]);
+        let mut timetstamp: Value = self.parse_date(updatedAt, &[]);
         let mut accountOperations: Value = self.safe_list_k(transfer.clone(), "account_operations", &[]);
-        let mut firstOperation: Value = self.safe_dict(accountOperations.clone(), Value::Int(0), &[Value::Map({
+        let mut firstOperation: Value = self.safe_dict(accountOperations, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -904,12 +905,12 @@ impl PaymiumCore {
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "uuid", &[]));
         m.insert("timestamp".to_string(), timetstamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timetstamp.clone()));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
-        m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
+        m.insert("datetime".to_string(), self.iso8601(timetstamp));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId, &[currency]));
+        m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), Value::Null);
-        m.insert("toAccount".to_string(), self.safe_string_k(firstOperation.clone(), "address", &[]));
-        m.insert("status".to_string(), self.parse_transfer_status(status.clone()));
+        m.insert("toAccount".to_string(), self.safe_string_k(firstOperation, "address", &[]));
+        m.insert("status".to_string(), self.parse_transfer_status(status));
     m
 });
 
@@ -919,60 +920,60 @@ impl PaymiumCore {
     pub fn parse_transfer_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("executed".to_string(), Value::Str("ok".into()));
+                m.insert("executed".to_string(), Value::Str("ok".to_string()));
             m
         });
-        return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+        return self.safe_string(statuses, status.clone(), &[status.clone()]);
 
     Value::Null
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &Value::Str("/".into())), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
-        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &Value::Str("/".to_string())), self.version.clone())), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
+        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (api.as_str() == Some("public")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
             }
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Value = to_string_val(&self.nonce());
-            let mut auth: Value = Value::Str(format!("{}{}", nonce, url).into());
+            let mut auth: Value = Value::Str(format!("{}{}", nonce, url));
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Api-Key".to_string(), self.apiKey.clone());
-                    m.insert("Api-Nonce".to_string(), nonce.clone());
+                    m.insert("Api-Nonce".to_string(), nonce);
                 m
             });
             if (method.as_str() == Some("POST")) {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     body = json_stringify(&query);
-                    auth = Value::Str(format!("{}{}", auth, body).into());
-                    add_element_to_object(&mut headers, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+                    auth = Value::Str(format!("{}{}", auth, body));
+                    add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
                 }
             }  else {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     let mut queryString: Value = self.urlencode(query.clone(), &[]);
-                    auth = Value::Str(format!("{}{}", auth, queryString).into());
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+                    auth = Value::Str(format!("{}{}", auth, queryString));
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), queryString))));
                 }
             }
-            add_element_to_object(&mut headers, &Value::Str("Api-Signature".into()), self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+            add_element_to_object(&mut headers, &Value::Str("Api-Signature".to_string()), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
-        m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), body.clone());
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("url".to_string(), url);
+        m.insert("method".to_string(), method);
+        m.insert("body".to_string(), body);
+        m.insert("headers".to_string(), headers);
     m
 });
 
@@ -985,7 +986,7 @@ impl PaymiumCore {
         }
         let mut errors: Value = self.safe_value_k(response.clone(), "errors", &[]);
         if (errors != Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response))));
         }
         return Value::Null;
 

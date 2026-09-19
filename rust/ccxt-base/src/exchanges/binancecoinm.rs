@@ -235,7 +235,7 @@ impl BinancecoinmCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.futures_transfer(code.clone(), amount.clone(), Value::Int(3), &[params.clone()]).await;
+        return self.futures_transfer(code, amount, Value::Int(3), &[params]).await;
 
     Value::Null
 }
@@ -245,7 +245,7 @@ impl BinancecoinmCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.futures_transfer(code.clone(), amount.clone(), Value::Int(4), &[params.clone()]).await;
+        return self.futures_transfer(code, amount, Value::Int(4), &[params]).await;
 
     Value::Null
 }

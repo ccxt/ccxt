@@ -191,7 +191,7 @@ impl IndependentreserveCore {
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
         match __n {
             "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -240,7 +240,7 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://websockets.independentreserve.com".into()));
+        m.insert("ws".to_string(), Value::Str("wss://websockets.independentreserve.com".to_string()));
     m
 }));
     m
@@ -290,10 +290,10 @@ impl IndependentreserveCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("?subscribe=ticker-".into())), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
-        let mut trades: Value = self.watch(url.clone(), messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
-        return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("?subscribe=ticker-".to_string())), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null))), Value::Str("-".to_string()))), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".to_string()), symbol));
+        let mut trades: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
+        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".to_string()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -322,18 +322,18 @@ impl IndependentreserveCore {
             m
         })]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "Pair", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
+        let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Str("-".to_string())]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".to_string()), symbol));
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            stored = ArrayCache::new(limit.clone());
+            stored = ArrayCache::new(limit);
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut trade: Value = self.parse_ws_trade(data.clone(), &[]);
-        stored.append(trade.clone());
-        add_element_to_object(&mut self.trades, &symbol, stored.clone());
-        client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
+        let mut trade: Value = self.parse_ws_trade(data, &[]);
+        stored.append(trade);
+        add_element_to_object(&mut self.trades, &symbol, stored);
+        client.resolve(&[get_value(&self.trades, &symbol), messageHash]);
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -357,18 +357,18 @@ impl IndependentreserveCore {
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "TradeGuid", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderNo", &[]));
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("-".into())]));
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("Side".into()), &[]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone(), Value::Str("-".to_string())]));
+        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("Side".to_string()), &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "Price", &[]));
-        m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "Volume", &[]));
+        m.insert("amount".to_string(), self.safe_string_k(trade, "Volume", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
-        m.insert("datetime".to_string(), datetime.clone());
+        m.insert("datetime".to_string(), datetime);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -397,14 +397,14 @@ impl IndependentreserveCore {
             limit = Value::Int(100);
         }
         let mut limitString: Value = self.number_to_string(limit.clone());
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/orderbook/".into())), limitString).into()), Value::Str("?subscribe=".into())).into()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()), Value::Str(":".into())).into()), limitString).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/orderbook/".to_string())), limitString)), Value::Str("?subscribe=".to_string()))), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null))), Value::Str("-".to_string()))), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol)), Value::Str(":".to_string()))), limitString));
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("receivedSnapshot".to_string(), Value::Bool(false));
             m
         });
-        let mut orderbook: Value = self.watch(url.clone(), messageHash.clone(), &[Value::Null, messageHash.clone(), subscription.clone()]).await;
+        let mut orderbook: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone(), subscription]).await;
         return orderbook.limit();
 
     Value::Null
@@ -438,24 +438,24 @@ impl IndependentreserveCore {
         if (channel == Value::Null) {
             return;
         }
-        let mut parts: Value = split(&channel, &Value::Str("/".into()));
+        let mut parts: Value = split(&channel, &Value::Str("/".to_string()));
         let mut depth: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
-        let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(3), &[]);
-        let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-        let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+        let mut quoteId: Value = self.safe_string(parts, Value::Int(3), &[]);
+        let mut base: Value = self.safe_currency_code(baseId, &[]);
+        let mut quote: Value = self.safe_currency_code(quoteId, &[]);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut orderBook: Value = self.safe_dict_k(message.clone(), "Data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()), Value::Str(":".into())).into()), depth).into());
-        let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[Value::Map({
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol)), Value::Str(":".to_string()))), depth));
+        let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut receivedSnapshot: Value = self.safe_bool_k(subscription.clone(), "receivedSnapshot", &[Value::Bool(false)]);
-        let mut timestamp: Value = self.safe_integer_k(message.clone(), "Time", &[]);
+        let mut timestamp: Value = self.safe_integer_k(message, "Time", &[]);
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[Value::Map({
@@ -465,11 +465,11 @@ impl IndependentreserveCore {
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if (event.as_deref() == Some("OrderBookSnapshot")) {
-            let mut snapshot: Value = self.parse_order_book(orderBook.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("Bids".into()), Value::Str("Offers".into()), Value::Str("Price".into()), Value::Str("Volume".into())]);
-            orderbook.reset(snapshot.clone());
+            let mut snapshot: Value = self.parse_order_book(orderBook.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("Bids".to_string()), Value::Str("Offers".to_string()), Value::Str("Price".to_string()), Value::Str("Volume".to_string())]);
+            orderbook.reset(snapshot);
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
-            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash, self.extend(subscription, &[Value::Map({
+            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash, self.extend(subscription, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("receivedSnapshot".to_string(), Value::Bool(true));
     m
@@ -477,18 +477,18 @@ impl IndependentreserveCore {
         }  else {
             let mut asks: Value = self.safe_list_k(orderBook.clone(), "Offers", &[Value::from(vec![])]);
             let mut bids: Value = self.safe_list_k(orderBook.clone(), "Bids", &[Value::from(vec![])]);
-            self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks.clone());
-            self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+            self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks);
+            self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids);
+            add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
+            add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp));
         }
-        let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
+        let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("checksum".to_string()), &[Value::Bool(true)]);
         if (is_equal(&checksum, &Value::Bool(true))) && is_true(&(receivedSnapshot.as_bool() == Some(true))) {
-            let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));
-            let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
+            let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
+            let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
             let mut asksLength: Value = get_array_length(&storedAsks);
             let mut bidsLength: Value = get_array_length(&storedBids);
-            let mut payload: Value = Value::Str("".into());
+            let mut payload: Value = Value::Str("".to_string());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_423: bool = true;
@@ -507,18 +507,18 @@ impl IndependentreserveCore {
                 }
             }
             }
-            let mut calculatedChecksum: Value = self.crc32(&[payload.clone(), Value::Bool(false)]);
-            let mut responseChecksum: Value = self.safe_integer_k(orderBook.clone(), "Crc32", &[]);
+            let mut calculatedChecksum: Value = self.crc32(&[payload, Value::Bool(false)]);
+            let mut responseChecksum: Value = self.safe_integer_k(orderBook, "Crc32", &[]);
             if (calculatedChecksum.as_f64() != responseChecksum.as_f64()) {
-                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol.clone()))));
-                remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
+                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.orderbook_checksum_message(symbol.clone()))));
+                remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
                 remove(&mut self.orderbooks, &symbol);
-                client.reject(&[Value::from(error.clone()), messageHash.clone()]);
+                client.reject(&[Value::from(error), messageHash.clone()]);
                 return;
             }
         }
         if (receivedSnapshot.as_bool() == Some(true)) {
-            client.resolve(&[orderbook.clone(), messageHash.clone()]);
+            client.resolve(&[orderbook, messageHash]);
         }
 }
 
@@ -526,8 +526,8 @@ impl IndependentreserveCore {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // Value::Int(crate::runtime::PAD_WITH_ZERO) is string-typed everywhere and emits the same digits.
-        let mut result: Value = self.decimal_to_precision(value.clone(), Value::Int(crate::runtime::ROUND), Value::Int(8), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::PAD_WITH_ZERO)]);
-        result = replace_str(&result, &Value::Str(".".into()), &Value::Str("".into()));
+        let mut result: Value = self.decimal_to_precision(value, Value::Int(crate::runtime::ROUND), Value::Int(8), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::PAD_WITH_ZERO)]);
+        result = replace_str(&result, &Value::Str(".".to_string()), &Value::Str("".to_string()));
         // remove leading zeros
         result = self.parse_number(result.clone(), &[]);
         result = self.number_to_string(result.clone());
@@ -537,8 +537,8 @@ impl IndependentreserveCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Str("Price".into()), Value::Str("Volume".into())]);
-        bookside.store_array(bidAsk.clone());
+        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta, &[Value::Str("Price".to_string()), Value::Str("Volume".to_string())]);
+        bookside.store_array(bidAsk);
 }
 
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
@@ -567,18 +567,18 @@ impl IndependentreserveCore {
         let mut event: Value = self.safe_string_k(message.clone(), "Event", &[]);
         let mut handlers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("Subscriptions".to_string(), Value::Str("handle_subscriptions".into()).clone());
-                m.insert("Heartbeat".to_string(), Value::Str("handle_heartbeat".into()).clone());
-                m.insert("Trade".to_string(), Value::Str("handle_trades".into()).clone());
-                m.insert("OrderBookSnapshot".to_string(), Value::Str("handle_order_book".into()).clone());
-                m.insert("OrderBookChange".to_string(), Value::Str("handle_order_book".into()).clone());
+                m.insert("Subscriptions".to_string(), Value::Str("handle_subscriptions".to_string()).clone());
+                m.insert("Heartbeat".to_string(), Value::Str("handle_heartbeat".to_string()).clone());
+                m.insert("Trade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("OrderBookSnapshot".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("OrderBookChange".to_string(), Value::Str("handle_order_book".to_string()).clone());
             m
         });
-        let mut handler: Value = (if is_true(&(event == Value::Null)) { Value::Null } else { self.safe_value(handlers.clone(), event.clone(), &[]) });
+        let mut handler: Value = (if is_true(&(event == Value::Null)) { Value::Null } else { self.safe_value(handlers, event, &[]) });
         if (handler != Value::Null) {
-            self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&handler, &[client, message.clone()]);
             return;
         }
-        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an unsupported message: ".into())).into()), json_stringify(&message))));
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an unsupported message: ".to_string()))), json_stringify(&message))));
 }
 }

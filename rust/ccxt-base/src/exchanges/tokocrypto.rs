@@ -47,27 +47,27 @@ impl crate::exchange::DerivedExchange for TokocryptoCore {
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::parse_ticker(self, ticker, &[market.clone()])
+        TokocryptoCore::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::parse_trade(self, trade, &[market.clone()])
+        TokocryptoCore::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::parse_order(self, order, &[market.clone()])
+        TokocryptoCore::parse_order(self, order, &[market])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        TokocryptoCore::parse_ohlcv(self, ohlcv, &[market])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::parse_transaction(self, transaction, &[currency.clone()])
+        TokocryptoCore::parse_transaction(self, transaction, &[currency])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        TokocryptoCore::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
@@ -136,12 +136,12 @@ impl TokocryptoCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("tokocrypto".into()));
-        m.insert("name".to_string(), Value::Str("Tokocrypto".into()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("ID".into())]));
+        m.insert("id".to_string(), Value::Str("tokocrypto".to_string()));
+        m.insert("name".to_string(), Value::Str("Tokocrypto".to_string()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("ID".to_string())]));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(false));
-        m.insert("version".to_string(), Value::Str("v1".into()));
+        m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
@@ -177,7 +177,7 @@ impl TokocryptoCore {
         m.insert("fetchBorrowRateHistory".to_string(), Value::Null);
         m.insert("fetchCanceledOrders".to_string(), Value::Bool(false));
         m.insert("fetchClosedOrder".to_string(), Value::Bool(false));
-        m.insert("fetchClosedOrders".to_string(), Value::Str("emulated".into()));
+        m.insert("fetchClosedOrders".to_string(), Value::Str("emulated".to_string()));
         m.insert("fetchCrossBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchCrossBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchCurrencies".to_string(), Value::Bool(false));
@@ -203,7 +203,7 @@ impl TokocryptoCore {
         m.insert("fetchLeverageTiers".to_string(), Value::Bool(false));
         m.insert("fetchLongShortRatio".to_string(), Value::Bool(false));
         m.insert("fetchLongShortRatioHistory".to_string(), Value::Bool(false));
-        m.insert("fetchMarketLeverageTiers".to_string(), Value::Str("emulated".into()));
+        m.insert("fetchMarketLeverageTiers".to_string(), Value::Str("emulated".to_string()));
         m.insert("fetchMarkets".to_string(), Value::Bool(true));
         m.insert("fetchMarkOHLCV".to_string(), Value::Bool(false));
         m.insert("fetchMarkPrice".to_string(), Value::Bool(false));
@@ -262,40 +262,40 @@ impl TokocryptoCore {
 }));
         m.insert("timeframes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("1m".to_string(), Value::Str("1m".into()));
-        m.insert("3m".to_string(), Value::Str("3m".into()));
-        m.insert("5m".to_string(), Value::Str("5m".into()));
-        m.insert("15m".to_string(), Value::Str("15m".into()));
-        m.insert("30m".to_string(), Value::Str("30m".into()));
-        m.insert("1h".to_string(), Value::Str("1h".into()));
-        m.insert("2h".to_string(), Value::Str("2h".into()));
-        m.insert("4h".to_string(), Value::Str("4h".into()));
-        m.insert("6h".to_string(), Value::Str("6h".into()));
-        m.insert("8h".to_string(), Value::Str("8h".into()));
-        m.insert("12h".to_string(), Value::Str("12h".into()));
-        m.insert("1d".to_string(), Value::Str("1d".into()));
-        m.insert("3d".to_string(), Value::Str("3d".into()));
-        m.insert("1w".to_string(), Value::Str("1w".into()));
-        m.insert("1M".to_string(), Value::Str("1M".into()));
+        m.insert("1m".to_string(), Value::Str("1m".to_string()));
+        m.insert("3m".to_string(), Value::Str("3m".to_string()));
+        m.insert("5m".to_string(), Value::Str("5m".to_string()));
+        m.insert("15m".to_string(), Value::Str("15m".to_string()));
+        m.insert("30m".to_string(), Value::Str("30m".to_string()));
+        m.insert("1h".to_string(), Value::Str("1h".to_string()));
+        m.insert("2h".to_string(), Value::Str("2h".to_string()));
+        m.insert("4h".to_string(), Value::Str("4h".to_string()));
+        m.insert("6h".to_string(), Value::Str("6h".to_string()));
+        m.insert("8h".to_string(), Value::Str("8h".to_string()));
+        m.insert("12h".to_string(), Value::Str("12h".to_string()));
+        m.insert("1d".to_string(), Value::Str("1d".to_string()));
+        m.insert("3d".to_string(), Value::Str("3d".to_string()));
+        m.insert("1w".to_string(), Value::Str("1w".to_string()));
+        m.insert("1M".to_string(), Value::Str("1M".to_string()));
     m
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg".into()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rest".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("https://www.tokocrypto.com".into()));
-        m.insert("binance".to_string(), Value::Str("https://api.binance.com/api/v3".into()));
-        m.insert("private".to_string(), Value::Str("https://www.tokocrypto.com".into()));
+        m.insert("public".to_string(), Value::Str("https://www.tokocrypto.com".to_string()));
+        m.insert("binance".to_string(), Value::Str("https://api.binance.com/api/v3".to_string()));
+        m.insert("private".to_string(), Value::Str("https://www.tokocrypto.com".to_string()));
     m
 }));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://tokocrypto.com".into()));
-        m.insert("doc".to_string(), Value::Str("https://www.tokocrypto.com/apidocs/".into()));
-        m.insert("fees".to_string(), Value::Str("https://www.tokocrypto.com/fees/newschedule".into()));
+        m.insert("www".to_string(), Value::Str("https://tokocrypto.com".to_string()));
+        m.insert("doc".to_string(), Value::Str("https://www.tokocrypto.com/apidocs/".to_string()));
+        m.insert("fees".to_string(), Value::Str("https://www.tokocrypto.com/fees/newschedule".to_string()));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -528,8 +528,8 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("percentage".to_string(), Value::Bool(true));
-        m.insert("taker".to_string(), self.parse_number(Value::Str("0.0075".into()), &[]));
-        m.insert("maker".to_string(), self.parse_number(Value::Str("0.0075".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.0075".to_string()), &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0.0075".to_string()), &[]));
     m
 }));
     m
@@ -538,7 +538,7 @@ impl TokocryptoCore {
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(true));
-        m.insert("defaultTimeInForce".to_string(), Value::Str("GTC".into()));
+        m.insert("defaultTimeInForce".to_string(), Value::Str("GTC".to_string()));
         m.insert("hasAlreadyAuthenticatedSuccessfully".to_string(), Value::Bool(false));
         m.insert("warnOnFetchOpenOrdersWithoutSymbol".to_string(), Value::Bool(true));
         m.insert("recvWindow".to_string(), (match (&(Value::Int(5)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
@@ -546,128 +546,128 @@ impl TokocryptoCore {
         m.insert("adjustForTimeDifference".to_string(), Value::Bool(false));
         m.insert("newOrderRespType".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("market".to_string(), Value::Str("FULL".into()));
-        m.insert("limit".to_string(), Value::Str("FULL".into()));
+        m.insert("market".to_string(), Value::Str("FULL".to_string()));
+        m.insert("limit".to_string(), Value::Str("FULL".to_string()));
     m
 }));
         m.insert("quoteOrderQty".to_string(), Value::Bool(false));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ERC20".to_string(), Value::Str("ETH".into()));
-        m.insert("TRC20".to_string(), Value::Str("TRX".into()));
-        m.insert("BEP2".to_string(), Value::Str("BNB".into()));
-        m.insert("BEP20".to_string(), Value::Str("BSC".into()));
-        m.insert("OMNI".to_string(), Value::Str("OMNI".into()));
-        m.insert("EOS".to_string(), Value::Str("EOS".into()));
-        m.insert("SOL".to_string(), Value::Str("SOL".into()));
+        m.insert("ERC20".to_string(), Value::Str("ETH".to_string()));
+        m.insert("TRC20".to_string(), Value::Str("TRX".to_string()));
+        m.insert("BEP2".to_string(), Value::Str("BNB".to_string()));
+        m.insert("BEP20".to_string(), Value::Str("BSC".to_string()));
+        m.insert("OMNI".to_string(), Value::Str("OMNI".to_string()));
+        m.insert("EOS".to_string(), Value::Str("EOS".to_string()));
+        m.insert("SOL".to_string(), Value::Str("SOL".to_string()));
     m
 }));
         m.insert("reverseNetworks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("tronscan.org".to_string(), Value::Str("TRC20".into()));
-        m.insert("etherscan.io".to_string(), Value::Str("ERC20".into()));
-        m.insert("bscscan.com".to_string(), Value::Str("BSC".into()));
-        m.insert("explorer.binance.org".to_string(), Value::Str("BEP2".into()));
-        m.insert("bithomp.com".to_string(), Value::Str("XRP".into()));
-        m.insert("bloks.io".to_string(), Value::Str("EOS".into()));
-        m.insert("stellar.expert".to_string(), Value::Str("XLM".into()));
-        m.insert("blockchair.com/bitcoin".to_string(), Value::Str("BTC".into()));
-        m.insert("blockchair.com/bitcoin-cash".to_string(), Value::Str("BCH".into()));
-        m.insert("blockchair.com/ecash".to_string(), Value::Str("XEC".into()));
-        m.insert("explorer.litecoin.net".to_string(), Value::Str("LTC".into()));
-        m.insert("explorer.avax.network".to_string(), Value::Str("AVAX".into()));
-        m.insert("solscan.io".to_string(), Value::Str("SOL".into()));
-        m.insert("polkadot.subscan.io".to_string(), Value::Str("DOT".into()));
-        m.insert("dashboard.internetcomputer.org".to_string(), Value::Str("ICP".into()));
-        m.insert("explorer.chiliz.com".to_string(), Value::Str("CHZ".into()));
-        m.insert("cardanoscan.io".to_string(), Value::Str("ADA".into()));
-        m.insert("mainnet.theoan.com".to_string(), Value::Str("AION".into()));
-        m.insert("algoexplorer.io".to_string(), Value::Str("ALGO".into()));
-        m.insert("explorer.ambrosus.com".to_string(), Value::Str("AMB".into()));
-        m.insert("viewblock.io/zilliqa".to_string(), Value::Str("ZIL".into()));
-        m.insert("viewblock.io/arweave".to_string(), Value::Str("AR".into()));
-        m.insert("explorer.ark.io".to_string(), Value::Str("ARK".into()));
-        m.insert("atomscan.com".to_string(), Value::Str("ATOM".into()));
-        m.insert("www.mintscan.io".to_string(), Value::Str("CTK".into()));
-        m.insert("explorer.bitcoindiamond.org".to_string(), Value::Str("BCD".into()));
-        m.insert("btgexplorer.com".to_string(), Value::Str("BTG".into()));
-        m.insert("bts.ai".to_string(), Value::Str("BTS".into()));
-        m.insert("explorer.celo.org".to_string(), Value::Str("CELO".into()));
-        m.insert("explorer.nervos.org".to_string(), Value::Str("CKB".into()));
-        m.insert("cerebro.cortexlabs.ai".to_string(), Value::Str("CTXC".into()));
-        m.insert("chainz.cryptoid.info".to_string(), Value::Str("VIA".into()));
-        m.insert("explorer.dcrdata.org".to_string(), Value::Str("DCR".into()));
-        m.insert("digiexplorer.info".to_string(), Value::Str("DGB".into()));
-        m.insert("dock.subscan.io".to_string(), Value::Str("DOCK".into()));
-        m.insert("dogechain.info".to_string(), Value::Str("DOGE".into()));
-        m.insert("explorer.elrond.com".to_string(), Value::Str("EGLD".into()));
-        m.insert("blockscout.com".to_string(), Value::Str("ETC".into()));
-        m.insert("explore-fetchhub.fetch.ai".to_string(), Value::Str("FET".into()));
-        m.insert("filfox.info".to_string(), Value::Str("FIL".into()));
-        m.insert("fio.bloks.io".to_string(), Value::Str("FIO".into()));
-        m.insert("explorer.firo.org".to_string(), Value::Str("FIRO".into()));
-        m.insert("neoscan.io".to_string(), Value::Str("NEO".into()));
-        m.insert("ftmscan.com".to_string(), Value::Str("FTM".into()));
-        m.insert("explorer.gochain.io".to_string(), Value::Str("GO".into()));
-        m.insert("block.gxb.io".to_string(), Value::Str("GXS".into()));
-        m.insert("hash-hash.info".to_string(), Value::Str("HBAR".into()));
-        m.insert("www.hiveblockexplorer.com".to_string(), Value::Str("HIVE".into()));
-        m.insert("explorer.helium.com".to_string(), Value::Str("HNT".into()));
-        m.insert("tracker.icon.foundation".to_string(), Value::Str("ICX".into()));
-        m.insert("www.iostabc.com".to_string(), Value::Str("IOST".into()));
-        m.insert("explorer.iota.org".to_string(), Value::Str("IOTA".into()));
-        m.insert("iotexscan.io".to_string(), Value::Str("IOTX".into()));
-        m.insert("irishub.iobscan.io".to_string(), Value::Str("IRIS".into()));
-        m.insert("kava.mintscan.io".to_string(), Value::Str("KAVA".into()));
-        m.insert("scope.klaytn.com".to_string(), Value::Str("KLAY".into()));
-        m.insert("kmdexplorer.io".to_string(), Value::Str("KMD".into()));
-        m.insert("kusama.subscan.io".to_string(), Value::Str("KSM".into()));
-        m.insert("explorer.lto.network".to_string(), Value::Str("LTO".into()));
-        m.insert("polygonscan.com".to_string(), Value::Str("POLYGON".into()));
-        m.insert("explorer.ont.io".to_string(), Value::Str("ONT".into()));
-        m.insert("minaexplorer.com".to_string(), Value::Str("MINA".into()));
-        m.insert("nanolooker.com".to_string(), Value::Str("NANO".into()));
-        m.insert("explorer.nebulas.io".to_string(), Value::Str("NAS".into()));
-        m.insert("explorer.nbs.plus".to_string(), Value::Str("NBS".into()));
-        m.insert("explorer.nebl.io".to_string(), Value::Str("NEBL".into()));
-        m.insert("nulscan.io".to_string(), Value::Str("NULS".into()));
-        m.insert("nxscan.com".to_string(), Value::Str("NXS".into()));
-        m.insert("explorer.harmony.one".to_string(), Value::Str("ONE".into()));
-        m.insert("explorer.poa.network".to_string(), Value::Str("POA".into()));
-        m.insert("qtum.info".to_string(), Value::Str("QTUM".into()));
-        m.insert("explorer.rsk.co".to_string(), Value::Str("RSK".into()));
-        m.insert("www.oasisscan.com".to_string(), Value::Str("ROSE".into()));
-        m.insert("ravencoin.network".to_string(), Value::Str("RVN".into()));
-        m.insert("sc.tokenview.com".to_string(), Value::Str("SC".into()));
-        m.insert("secretnodes.com".to_string(), Value::Str("SCRT".into()));
-        m.insert("explorer.skycoin.com".to_string(), Value::Str("SKY".into()));
-        m.insert("steemscan.com".to_string(), Value::Str("STEEM".into()));
-        m.insert("explorer.stacks.co".to_string(), Value::Str("STX".into()));
-        m.insert("www.thetascan.io".to_string(), Value::Str("THETA".into()));
-        m.insert("scan.tomochain.com".to_string(), Value::Str("TOMO".into()));
-        m.insert("explore.vechain.org".to_string(), Value::Str("VET".into()));
-        m.insert("explorer.vite.net".to_string(), Value::Str("VITE".into()));
-        m.insert("www.wanscan.org".to_string(), Value::Str("WAN".into()));
-        m.insert("wavesexplorer.com".to_string(), Value::Str("WAVES".into()));
-        m.insert("wax.eosx.io".to_string(), Value::Str("WAXP".into()));
-        m.insert("waltonchain.pro".to_string(), Value::Str("WTC".into()));
-        m.insert("chain.nem.ninja".to_string(), Value::Str("XEM".into()));
-        m.insert("verge-blockchain.info".to_string(), Value::Str("XVG".into()));
-        m.insert("explorer.yoyow.org".to_string(), Value::Str("YOYOW".into()));
-        m.insert("explorer.zcha.in".to_string(), Value::Str("ZEC".into()));
-        m.insert("explorer.zensystem.io".to_string(), Value::Str("ZEN".into()));
+        m.insert("tronscan.org".to_string(), Value::Str("TRC20".to_string()));
+        m.insert("etherscan.io".to_string(), Value::Str("ERC20".to_string()));
+        m.insert("bscscan.com".to_string(), Value::Str("BSC".to_string()));
+        m.insert("explorer.binance.org".to_string(), Value::Str("BEP2".to_string()));
+        m.insert("bithomp.com".to_string(), Value::Str("XRP".to_string()));
+        m.insert("bloks.io".to_string(), Value::Str("EOS".to_string()));
+        m.insert("stellar.expert".to_string(), Value::Str("XLM".to_string()));
+        m.insert("blockchair.com/bitcoin".to_string(), Value::Str("BTC".to_string()));
+        m.insert("blockchair.com/bitcoin-cash".to_string(), Value::Str("BCH".to_string()));
+        m.insert("blockchair.com/ecash".to_string(), Value::Str("XEC".to_string()));
+        m.insert("explorer.litecoin.net".to_string(), Value::Str("LTC".to_string()));
+        m.insert("explorer.avax.network".to_string(), Value::Str("AVAX".to_string()));
+        m.insert("solscan.io".to_string(), Value::Str("SOL".to_string()));
+        m.insert("polkadot.subscan.io".to_string(), Value::Str("DOT".to_string()));
+        m.insert("dashboard.internetcomputer.org".to_string(), Value::Str("ICP".to_string()));
+        m.insert("explorer.chiliz.com".to_string(), Value::Str("CHZ".to_string()));
+        m.insert("cardanoscan.io".to_string(), Value::Str("ADA".to_string()));
+        m.insert("mainnet.theoan.com".to_string(), Value::Str("AION".to_string()));
+        m.insert("algoexplorer.io".to_string(), Value::Str("ALGO".to_string()));
+        m.insert("explorer.ambrosus.com".to_string(), Value::Str("AMB".to_string()));
+        m.insert("viewblock.io/zilliqa".to_string(), Value::Str("ZIL".to_string()));
+        m.insert("viewblock.io/arweave".to_string(), Value::Str("AR".to_string()));
+        m.insert("explorer.ark.io".to_string(), Value::Str("ARK".to_string()));
+        m.insert("atomscan.com".to_string(), Value::Str("ATOM".to_string()));
+        m.insert("www.mintscan.io".to_string(), Value::Str("CTK".to_string()));
+        m.insert("explorer.bitcoindiamond.org".to_string(), Value::Str("BCD".to_string()));
+        m.insert("btgexplorer.com".to_string(), Value::Str("BTG".to_string()));
+        m.insert("bts.ai".to_string(), Value::Str("BTS".to_string()));
+        m.insert("explorer.celo.org".to_string(), Value::Str("CELO".to_string()));
+        m.insert("explorer.nervos.org".to_string(), Value::Str("CKB".to_string()));
+        m.insert("cerebro.cortexlabs.ai".to_string(), Value::Str("CTXC".to_string()));
+        m.insert("chainz.cryptoid.info".to_string(), Value::Str("VIA".to_string()));
+        m.insert("explorer.dcrdata.org".to_string(), Value::Str("DCR".to_string()));
+        m.insert("digiexplorer.info".to_string(), Value::Str("DGB".to_string()));
+        m.insert("dock.subscan.io".to_string(), Value::Str("DOCK".to_string()));
+        m.insert("dogechain.info".to_string(), Value::Str("DOGE".to_string()));
+        m.insert("explorer.elrond.com".to_string(), Value::Str("EGLD".to_string()));
+        m.insert("blockscout.com".to_string(), Value::Str("ETC".to_string()));
+        m.insert("explore-fetchhub.fetch.ai".to_string(), Value::Str("FET".to_string()));
+        m.insert("filfox.info".to_string(), Value::Str("FIL".to_string()));
+        m.insert("fio.bloks.io".to_string(), Value::Str("FIO".to_string()));
+        m.insert("explorer.firo.org".to_string(), Value::Str("FIRO".to_string()));
+        m.insert("neoscan.io".to_string(), Value::Str("NEO".to_string()));
+        m.insert("ftmscan.com".to_string(), Value::Str("FTM".to_string()));
+        m.insert("explorer.gochain.io".to_string(), Value::Str("GO".to_string()));
+        m.insert("block.gxb.io".to_string(), Value::Str("GXS".to_string()));
+        m.insert("hash-hash.info".to_string(), Value::Str("HBAR".to_string()));
+        m.insert("www.hiveblockexplorer.com".to_string(), Value::Str("HIVE".to_string()));
+        m.insert("explorer.helium.com".to_string(), Value::Str("HNT".to_string()));
+        m.insert("tracker.icon.foundation".to_string(), Value::Str("ICX".to_string()));
+        m.insert("www.iostabc.com".to_string(), Value::Str("IOST".to_string()));
+        m.insert("explorer.iota.org".to_string(), Value::Str("IOTA".to_string()));
+        m.insert("iotexscan.io".to_string(), Value::Str("IOTX".to_string()));
+        m.insert("irishub.iobscan.io".to_string(), Value::Str("IRIS".to_string()));
+        m.insert("kava.mintscan.io".to_string(), Value::Str("KAVA".to_string()));
+        m.insert("scope.klaytn.com".to_string(), Value::Str("KLAY".to_string()));
+        m.insert("kmdexplorer.io".to_string(), Value::Str("KMD".to_string()));
+        m.insert("kusama.subscan.io".to_string(), Value::Str("KSM".to_string()));
+        m.insert("explorer.lto.network".to_string(), Value::Str("LTO".to_string()));
+        m.insert("polygonscan.com".to_string(), Value::Str("POLYGON".to_string()));
+        m.insert("explorer.ont.io".to_string(), Value::Str("ONT".to_string()));
+        m.insert("minaexplorer.com".to_string(), Value::Str("MINA".to_string()));
+        m.insert("nanolooker.com".to_string(), Value::Str("NANO".to_string()));
+        m.insert("explorer.nebulas.io".to_string(), Value::Str("NAS".to_string()));
+        m.insert("explorer.nbs.plus".to_string(), Value::Str("NBS".to_string()));
+        m.insert("explorer.nebl.io".to_string(), Value::Str("NEBL".to_string()));
+        m.insert("nulscan.io".to_string(), Value::Str("NULS".to_string()));
+        m.insert("nxscan.com".to_string(), Value::Str("NXS".to_string()));
+        m.insert("explorer.harmony.one".to_string(), Value::Str("ONE".to_string()));
+        m.insert("explorer.poa.network".to_string(), Value::Str("POA".to_string()));
+        m.insert("qtum.info".to_string(), Value::Str("QTUM".to_string()));
+        m.insert("explorer.rsk.co".to_string(), Value::Str("RSK".to_string()));
+        m.insert("www.oasisscan.com".to_string(), Value::Str("ROSE".to_string()));
+        m.insert("ravencoin.network".to_string(), Value::Str("RVN".to_string()));
+        m.insert("sc.tokenview.com".to_string(), Value::Str("SC".to_string()));
+        m.insert("secretnodes.com".to_string(), Value::Str("SCRT".to_string()));
+        m.insert("explorer.skycoin.com".to_string(), Value::Str("SKY".to_string()));
+        m.insert("steemscan.com".to_string(), Value::Str("STEEM".to_string()));
+        m.insert("explorer.stacks.co".to_string(), Value::Str("STX".to_string()));
+        m.insert("www.thetascan.io".to_string(), Value::Str("THETA".to_string()));
+        m.insert("scan.tomochain.com".to_string(), Value::Str("TOMO".to_string()));
+        m.insert("explore.vechain.org".to_string(), Value::Str("VET".to_string()));
+        m.insert("explorer.vite.net".to_string(), Value::Str("VITE".to_string()));
+        m.insert("www.wanscan.org".to_string(), Value::Str("WAN".to_string()));
+        m.insert("wavesexplorer.com".to_string(), Value::Str("WAVES".to_string()));
+        m.insert("wax.eosx.io".to_string(), Value::Str("WAXP".to_string()));
+        m.insert("waltonchain.pro".to_string(), Value::Str("WTC".to_string()));
+        m.insert("chain.nem.ninja".to_string(), Value::Str("XEM".to_string()));
+        m.insert("verge-blockchain.info".to_string(), Value::Str("XVG".to_string()));
+        m.insert("explorer.yoyow.org".to_string(), Value::Str("YOYOW".to_string()));
+        m.insert("explorer.zcha.in".to_string(), Value::Str("ZEC".to_string()));
+        m.insert("explorer.zensystem.io".to_string(), Value::Str("ZEN".to_string()));
     m
 }));
         m.insert("impliedNetworks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ETH".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ERC20".to_string(), Value::Str("ETH".into()));
+        m.insert("ERC20".to_string(), Value::Str("ETH".to_string()));
     m
 }));
         m.insert("TRX".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("TRC20".to_string(), Value::Str("TRX".into()));
+        m.insert("TRC20".to_string(), Value::Str("TRX".to_string()));
     m
 }));
     m
@@ -714,230 +714,230 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("System is under maintenance.".to_string(), Value::Str("OnMaintenance".into()).clone());
-        m.insert("System abnormality".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("You are not authorized to execute this request.".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("API key does not exist".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Order would trigger immediately.".to_string(), Value::Str("OrderImmediatelyFillable".into()).clone());
-        m.insert("Stop price would trigger immediately.".to_string(), Value::Str("OrderImmediatelyFillable".into()).clone());
-        m.insert("Order would immediately match and take.".to_string(), Value::Str("OrderImmediatelyFillable".into()).clone());
-        m.insert("Account has insufficient balance for requested action.".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Rest API trading is not enabled.".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("You don't have permission.".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("Market is closed.".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("Too many requests. Please try again later.".to_string(), Value::Str("DDoSProtection".into()).clone());
-        m.insert("This action disabled is on this account.".to_string(), Value::Str("AccountSuspended".into()).clone());
-        m.insert("-1000".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("-1001".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("-1002".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-1003".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("-1004".to_string(), Value::Str("DDoSProtection".into()).clone());
-        m.insert("-1005".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("-1006".to_string(), Value::Str("BadResponse".into()).clone());
-        m.insert("-1007".to_string(), Value::Str("RequestTimeout".into()).clone());
-        m.insert("-1010".to_string(), Value::Str("BadResponse".into()).clone());
-        m.insert("-1011".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("-1013".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("-1014".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("-1015".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("-1016".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("-1020".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1021".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("-1022".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-1023".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1099".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-1100".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1101".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1102".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1103".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1104".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1105".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1106".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1108".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1109".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-1110".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1111".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1112".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("-1113".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1114".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1115".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1116".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1117".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1118".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1119".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1120".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1121".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("-1125".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-1127".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1128".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1130".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1131".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1136".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-2008".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-2010".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-2011".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("-2013".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("-2014".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-2015".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-2016".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-2018".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-2019".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-2020".to_string(), Value::Str("OrderNotFillable".into()).clone());
-        m.insert("-2021".to_string(), Value::Str("OrderImmediatelyFillable".into()).clone());
-        m.insert("-2022".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("-2023".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-2024".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-2025".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("-2026".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("-2027".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("-2028".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-3000".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-3001".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-3002".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("-3003".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3004".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-3005".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-3006".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-3007".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-3008".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-3009".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3010".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-3011".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3012".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-3013".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3014".to_string(), Value::Str("AccountSuspended".into()).clone());
-        m.insert("-3015".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-3016".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3017".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-3018".to_string(), Value::Str("AccountSuspended".into()).clone());
-        m.insert("-3019".to_string(), Value::Str("AccountSuspended".into()).clone());
-        m.insert("-3020".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-3021".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3022".to_string(), Value::Str("AccountSuspended".into()).clone());
-        m.insert("-3023".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3024".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-3025".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3026".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3027".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("-3028".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("-3029".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-3036".to_string(), Value::Str("AccountSuspended".into()).clone());
-        m.insert("-3037".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-3038".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3041".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-3042".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3043".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-3044".to_string(), Value::Str("DDoSProtection".into()).clone());
-        m.insert("-3045".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-3999".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4001".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4002".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4003".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4004".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-4005".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("-4006".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4007".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4008".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4010".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4011".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4012".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4013".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-4014".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("-4015".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4016".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("-4017".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("-4018".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("-4019".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("-4021".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4022".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4023".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4024".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-4025".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-4026".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-4027".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4028".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4029".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4030".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4031".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4032".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4033".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4034".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4035".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("-4036".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4037".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4038".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4039".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4040".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4041".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4042".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4043".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4044".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-4045".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-4046".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-4047".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-5001".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-5002".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-5003".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-5004".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-5005".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-5006".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-5007".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-5008".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-5009".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-5010".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-5011".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-5012".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-5013".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-5021".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6001".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6003".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6004".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-6005".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("-6006".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6007".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6008".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6009".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("-6011".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6012".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-6013".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("-6014".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6015".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6016".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6017".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6018".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-6019".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-6020".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-7001".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-7002".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-9000".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-10017".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-11008".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("-12014".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("-13000".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-13001".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-13002".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-13003".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-13004".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-13005".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-13006".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("-13007".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-21001".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-21002".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-21003".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("100001003".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("2202".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("3210".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("3203".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("3211".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("3207".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("3218".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("1106".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("System is under maintenance.".to_string(), Value::Str("OnMaintenance".to_string()).clone());
+        m.insert("System abnormality".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("You are not authorized to execute this request.".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("API key does not exist".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("Order would trigger immediately.".to_string(), Value::Str("OrderImmediatelyFillable".to_string()).clone());
+        m.insert("Stop price would trigger immediately.".to_string(), Value::Str("OrderImmediatelyFillable".to_string()).clone());
+        m.insert("Order would immediately match and take.".to_string(), Value::Str("OrderImmediatelyFillable".to_string()).clone());
+        m.insert("Account has insufficient balance for requested action.".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("Rest API trading is not enabled.".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("You don't have permission.".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("Market is closed.".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("Too many requests. Please try again later.".to_string(), Value::Str("DDoSProtection".to_string()).clone());
+        m.insert("This action disabled is on this account.".to_string(), Value::Str("AccountSuspended".to_string()).clone());
+        m.insert("-1000".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("-1001".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("-1002".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-1003".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("-1004".to_string(), Value::Str("DDoSProtection".to_string()).clone());
+        m.insert("-1005".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-1006".to_string(), Value::Str("BadResponse".to_string()).clone());
+        m.insert("-1007".to_string(), Value::Str("RequestTimeout".to_string()).clone());
+        m.insert("-1010".to_string(), Value::Str("BadResponse".to_string()).clone());
+        m.insert("-1011".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-1013".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1014".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1015".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("-1016".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("-1020".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1021".to_string(), Value::Str("InvalidNonce".to_string()).clone());
+        m.insert("-1022".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-1023".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1099".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-1100".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1101".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1102".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1103".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1104".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1105".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1106".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1108".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1109".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-1110".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1111".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1112".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-1113".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1114".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1115".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1116".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1117".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1118".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1119".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1120".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1121".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("-1125".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-1127".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1128".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1130".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1131".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-1136".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-2008".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-2010".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-2011".to_string(), Value::Str("OrderNotFound".to_string()).clone());
+        m.insert("-2013".to_string(), Value::Str("OrderNotFound".to_string()).clone());
+        m.insert("-2014".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-2015".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-2016".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-2018".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-2019".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-2020".to_string(), Value::Str("OrderNotFillable".to_string()).clone());
+        m.insert("-2021".to_string(), Value::Str("OrderImmediatelyFillable".to_string()).clone());
+        m.insert("-2022".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-2023".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-2024".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-2025".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-2026".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-2027".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-2028".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-3000".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3001".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-3002".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("-3003".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3004".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3005".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-3006".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-3007".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3008".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-3009".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3010".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3011".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3012".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3013".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3014".to_string(), Value::Str("AccountSuspended".to_string()).clone());
+        m.insert("-3015".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3016".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3017".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3018".to_string(), Value::Str("AccountSuspended".to_string()).clone());
+        m.insert("-3019".to_string(), Value::Str("AccountSuspended".to_string()).clone());
+        m.insert("-3020".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-3021".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3022".to_string(), Value::Str("AccountSuspended".to_string()).clone());
+        m.insert("-3023".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3024".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3025".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3026".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3027".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("-3028".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("-3029".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3036".to_string(), Value::Str("AccountSuspended".to_string()).clone());
+        m.insert("-3037".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3038".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3041".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-3042".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3043".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-3044".to_string(), Value::Str("DDoSProtection".to_string()).clone());
+        m.insert("-3045".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-3999".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4001".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4002".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4003".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4004".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-4005".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("-4006".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4007".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4008".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4010".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4011".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4012".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4013".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-4014".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-4015".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4016".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-4017".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-4018".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("-4019".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("-4021".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4022".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4023".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4024".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-4025".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-4026".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-4027".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4028".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4029".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4030".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4031".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4032".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4033".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4034".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4035".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("-4036".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4037".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4038".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4039".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4040".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4041".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4042".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4043".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4044".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-4045".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-4046".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-4047".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-5001".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-5002".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-5003".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-5004".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-5005".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-5006".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-5007".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-5008".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-5009".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-5010".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-5011".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-5012".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-5013".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-5021".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6001".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6003".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6004".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-6005".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-6006".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6007".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6008".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6009".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("-6011".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6012".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-6013".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("-6014".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6015".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6016".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6017".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6018".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-6019".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-6020".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-7001".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-7002".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-9000".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-10017".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-11008".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("-12014".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("-13000".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-13001".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-13002".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-13003".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-13004".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-13005".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-13006".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-13007".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("-21001".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-21002".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-21003".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("100001003".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("2202".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("3210".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("3203".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("3211".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("3207".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("3218".to_string(), Value::Str("OrderNotFound".to_string()).clone());
+        m.insert("1106".to_string(), Value::Str("BadRequest".to_string()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("has no operation privilege".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("MAX_POSITION".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("has no operation privilege".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("MAX_POSITION".to_string(), Value::Str("InvalidOrder".to_string()).clone());
     m
 }));
     m
@@ -1069,8 +1069,8 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_open_v1_common_time(&[params.clone()]).await;
-        return self.safe_integer_k(response.clone(), "timestamp", &[]);
+        let mut response: Value = self.public_get_open_v1_common_time(&[params]).await;
+        return self.safe_integer_k(response, "timestamp", &[]);
 
     Value::Null
 }
@@ -1088,7 +1088,7 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_open_v1_common_symbols(&[params.clone()]).await;
+        let mut response: Value = self.public_get_open_v1_common_symbols(&[params]).await;
         //
         //     {
         //         "code":0,
@@ -1143,14 +1143,14 @@ impl TokocryptoCore {
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-            let mut lowercaseId: Value = self.safe_string_lower(market.clone(), Value::Str("symbol".into()), &[]);
+            let mut lowercaseId: Value = self.safe_string_lower(market.clone(), Value::Str("symbol".to_string()), &[]);
             let mut settleId: Value = self.safe_string_k(market.clone(), "marginAsset", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]);
-            let mut filtersByType: Value = self.index_by(filters.clone(), Value::Str("filterType".into()));
+            let mut filtersByType: Value = self.index_by(filters, Value::Str("filterType".to_string()));
             let mut status: Option<String> = self.safe_string_k(market.clone(), "spotTradingEnable", &[]).as_str().map(str::to_owned);
             let mut active: Value = (Value::Bool(status.as_deref() == Some("1")));
             let mut permissions: Value = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]);
@@ -1167,22 +1167,22 @@ impl TokocryptoCore {
             let mut marginTradingEnable: Option<String> = self.safe_string_k(market.clone(), "marginTradingEnable", &[]).as_str().map(str::to_owned);
             let mut entry: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id.clone());
-                    m.insert("lowercaseId".to_string(), lowercaseId.clone());
-                    m.insert("symbol".to_string(), symbol.clone());
-                    m.insert("base".to_string(), base.clone());
-                    m.insert("quote".to_string(), quote.clone());
-                    m.insert("settle".to_string(), settle.clone());
-                    m.insert("baseId".to_string(), baseId.clone());
-                    m.insert("quoteId".to_string(), quoteId.clone());
-                    m.insert("settleId".to_string(), settleId.clone());
-                    m.insert("type".to_string(), Value::Str("spot".into()));
+                    m.insert("id".to_string(), id);
+                    m.insert("lowercaseId".to_string(), lowercaseId);
+                    m.insert("symbol".to_string(), symbol);
+                    m.insert("base".to_string(), base);
+                    m.insert("quote".to_string(), quote);
+                    m.insert("settle".to_string(), settle);
+                    m.insert("baseId".to_string(), baseId);
+                    m.insert("quoteId".to_string(), quoteId);
+                    m.insert("settleId".to_string(), settleId);
+                    m.insert("type".to_string(), Value::Str("spot".to_string()));
                     m.insert("spot".to_string(), Value::Bool(true));
                     m.insert("margin".to_string(), (Value::Bool(marginTradingEnable.as_deref() == Some("1"))));
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), active.clone());
+                    m.insert("active".to_string(), active);
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
@@ -1228,7 +1228,7 @@ impl TokocryptoCore {
     m
 }));
                     m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), market.clone());
+                    m.insert("info".to_string(), market);
                 m
             });
             if is_true(&(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("PRICE_FILTER")))) {
@@ -1236,26 +1236,26 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".into())), &Value::Str("price".into()), self.safe_number_k(filter.clone(), "tickSize", &[]));
+                add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("price".to_string()), self.safe_number_k(filter.clone(), "tickSize", &[]));
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
                 // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".into())), &Value::Str("price".into()), Value::Map({
+                add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("price".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minPrice", &[]));
         m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxPrice", &[]));
     m
 }));
-                add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".into())), &Value::Str("price".into()), filter.as_map().and_then(|__m| __m.get("tickSize")).cloned().unwrap_or(Value::Null));
+                add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("price".to_string()), filter.as_map().and_then(|__m| __m.get("tickSize")).cloned().unwrap_or(Value::Null));
             }
             if is_true(&(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("LOT_SIZE")))) {
                 let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".into())), &Value::Str("amount".into()), self.safe_number_k(filter.clone(), "stepSize", &[]));
-                add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".into())), &Value::Str("amount".into()), Value::Map({
+                add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("amount".to_string()), self.safe_number_k(filter.clone(), "stepSize", &[]));
+                add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("amount".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minQty", &[]));
         m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxQty", &[]));
@@ -1267,7 +1267,7 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".into())), &Value::Str("market".into()), Value::Map({
+                add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("market".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minQty", &[]));
         m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxQty", &[]));
@@ -1279,9 +1279,9 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                add_element_to_object(get_value_mut(get_value_mut(&mut entry, &Value::Str("limits".into())), &Value::Str("cost".into())), &Value::Str("min".into()), self.safe_number2(filter.clone(), Value::Str("minNotional".into()), Value::Str("notional".into()), &[]));
+                add_element_to_object(get_value_mut(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("cost".to_string())), &Value::Str("min".to_string()), self.safe_number2(filter, Value::Str("minNotional".to_string()), Value::Str("notional".to_string()), &[]));
             }
-            append_to_array(&mut result, entry.clone());
+            append_to_array(&mut result, entry);
         }
         }
         return result;
@@ -1315,14 +1315,14 @@ impl TokocryptoCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit); } // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let mut response: Value = Value::Null;
-        if is_true(&self.is_native_market(market.clone())) {
+        if is_true(&self.is_native_market(market)) {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_open_v1_market_depth(&[__ws_arg_0]).await;
         }  else {
-            let __ws_arg_1 = self.extend(request, &[params.clone()]);
+            let __ws_arg_1 = self.extend(request, &[params]);
             response = self.binance_get_depth(&[__ws_arg_1]).await;
         }
         //
@@ -1355,9 +1355,9 @@ impl TokocryptoCore {
         //         "timestamp":1692262634599
         //     }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
-        let mut timestamp: Value = self.safe_integer2(response.clone(), Value::Str("T".into()), Value::Str("timestamp".into()), &[]);
-        let mut orderbook: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone()]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(data.clone(), "lastUpdateId", &[]));
+        let mut timestamp: Value = self.safe_integer2(response, Value::Str("T".to_string()), Value::Str("timestamp".to_string()), &[]);
+        let mut orderbook: Value = self.parse_order_book(data.clone(), symbol, &[timestamp]);
+        add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(data, "lastUpdateId", &[]));
         return orderbook;
 
     Value::Null
@@ -1458,26 +1458,26 @@ impl TokocryptoCore {
         //       "tradeId": "1234",
         //     }
         //
-        let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("T".into()), Value::Str("time".into()), &[]);
-        let mut price: Value = self.safe_string2(trade.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]);
-        let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("q".into()), Value::Str("qty".into()), &[]);
-        let mut cost: Value = self.safe_string2(trade.clone(), Value::Str("quoteQty".into()), Value::Str("baseQty".into()), &[]); // inverse futures
+        let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("T".to_string()), Value::Str("time".to_string()), &[]);
+        let mut price: Value = self.safe_string2(trade.clone(), Value::Str("p".to_string()), Value::Str("price".to_string()), &[]);
+        let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("q".to_string()), Value::Str("qty".to_string()), &[]);
+        let mut cost: Value = self.safe_string2(trade.clone(), Value::Str("quoteQty".to_string()), Value::Str("baseQty".to_string()), &[]); // inverse futures
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("t".into()), Value::Str("a".into()), &[]);
-        id = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[id.clone()]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
+        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("t".to_string()), Value::Str("a".to_string()), &[]);
+        id = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("tradeId".to_string()), &[id.clone()]);
         let mut side: Value = Value::Null;
         let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
-        let mut buyerMaker: Value = self.safe_bool2(trade.clone(), Value::Str("m".into()), Value::Str("isBuyerMaker".into()), &[]);
+        let mut buyerMaker: Value = self.safe_bool2(trade.clone(), Value::Str("m".to_string()), Value::Str("isBuyerMaker".to_string()), &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (buyerMaker != Value::Null) {
-            side = (if is_true(&(buyerMaker.as_bool() == Some(true))) { Value::Str("sell".into()) } else { Value::Str("buy".into()) }); // this is reversed intentionally
-            takerOrMaker = Value::Str("taker".into());
+            side = (if is_true(&(buyerMaker.as_bool() == Some(true))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) }); // this is reversed intentionally
+            takerOrMaker = Value::Str("taker".to_string());
         }  else if is_true(&(matches!(&trade, Value::Dict(__d) if __d.contains_key("side")))) {
-            side = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+            side = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
         }  else {
             if is_true(&(matches!(&trade, Value::Dict(__d) if __d.contains_key("isBuyer")))) {
-                side = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("isBuyer")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("buy".into()) } else { Value::Str("sell".into()) }); // this is a true side
+                side = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("isBuyer")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }); // this is a true side
             }
         }
         let mut fee: Value = Value::Null;
@@ -1490,28 +1490,28 @@ impl TokocryptoCore {
             });
         }
         if is_true(&(matches!(&trade, Value::Dict(__d) if __d.contains_key("isMaker")))) {
-            takerOrMaker = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("isMaker")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("isMaker")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         if is_true(&(matches!(&trade, Value::Dict(__d) if __d.contains_key("maker")))) {
-            takerOrMaker = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade.clone());
+        m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("symbol".to_string(), symbol.clone());
-        m.insert("id".to_string(), id.clone());
-        m.insert("order".to_string(), orderId.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("symbol".to_string(), symbol);
+        m.insert("id".to_string(), id);
+        m.insert("order".to_string(), orderId);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side.clone());
-        m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
-        m.insert("price".to_string(), price.clone());
-        m.insert("amount".to_string(), amount.clone());
-        m.insert("cost".to_string(), cost.clone());
-        m.insert("fee".to_string(), fee.clone());
+        m.insert("side".to_string(), side);
+        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("price".to_string(), price);
+        m.insert("amount".to_string(), amount);
+        m.insert("cost".to_string(), cost);
+        m.insert("fee".to_string(), fee);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1538,7 +1538,7 @@ impl TokocryptoCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1580,13 +1580,13 @@ impl TokocryptoCore {
     m
 })]);
             let mut list: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
-            return self.parse_trades(list.clone(), &[market.clone(), since.clone(), limit.clone()]);
+            return self.parse_trades(list, &[market.clone(), since.clone(), limit.clone()]);
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default = 500, maximum = 1000
         }
-        let mut defaultMethod: Value = Value::Str("binanceGetTrades".into());
-        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[defaultMethod.clone()]).as_str().map(str::to_owned);
+        let mut defaultMethod: Value = Value::Str("binanceGetTrades".to_string());
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[defaultMethod]).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
         if is_true(&(method.as_deref() == Some("binanceGetAggTrades"))) && is_true(&(since != Value::Null)) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), since.clone()); }
@@ -1596,7 +1596,7 @@ impl TokocryptoCore {
             let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
             response = self.binance_get_agg_trades(&[__ws_arg_3]).await;
         }  else {
-            let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_4 = self.extend(request, &[params]);
             response = self.binance_get_trades(&[__ws_arg_4]).await;
         }
         //
@@ -1637,8 +1637,8 @@ impl TokocryptoCore {
         //         }
         //     ]
         //
-        let mut responseList: Value = self.to_array(response.clone());
-        return self.parse_trades(responseList.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        let mut responseList: Value = self.to_array(response);
+        return self.parse_trades(responseList, &[market, since, limit]);
 
     Value::Null
 }
@@ -1693,7 +1693,7 @@ impl TokocryptoCore {
         //
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "closeTime", &[]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut last: Value = self.safe_string_k(ticker.clone(), "lastPrice", &[]);
         let mut isCoinm: bool = matches!(&ticker, Value::Dict(__d) if __d.contains_key("baseVolume"));
         let mut baseVolume: Value = Value::Null;
@@ -1707,9 +1707,9 @@ impl TokocryptoCore {
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "highPrice", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "lowPrice", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bidPrice", &[]));
@@ -1719,16 +1719,16 @@ impl TokocryptoCore {
         m.insert("vwap".to_string(), self.safe_string_k(ticker.clone(), "weightedAvgPrice", &[]));
         m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "openPrice", &[]));
         m.insert("close".to_string(), last.clone());
-        m.insert("last".to_string(), last.clone());
+        m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), self.safe_string_k(ticker.clone(), "prevClosePrice", &[]));
         m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "priceChange", &[]));
         m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "priceChangePercent", &[]));
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), baseVolume.clone());
-        m.insert("quoteVolume".to_string(), quoteVolume.clone());
-        m.insert("info".to_string(), ticker.clone());
+        m.insert("baseVolume".to_string(), baseVolume);
+        m.insert("quoteVolume".to_string(), quoteVolume);
+        m.insert("info".to_string(), ticker);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1754,11 +1754,11 @@ impl TokocryptoCore {
         // the binance backed host is the only source of 24hr statistics, so the
         // result omits the native markets instead of raising for them, unlike
         // the single symbol fetchTicker
-        let mut response: Value = self.binance_get_ticker24hr(&[params.clone()]).await;
+        let mut response: Value = self.binance_get_ticker24hr(&[params]).await;
         if !is_true(&(matches!(&response, Value::Arr(_)))) {
             return self.parse_tickers(Value::from(vec![response.clone()]), &[symbols.clone()]);
         }
-        return self.parse_tickers(response.clone(), &[symbols.clone()]);
+        return self.parse_tickers(response, &[symbols]);
 
     Value::Null
 }
@@ -1776,7 +1776,7 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut symbolType: Option<String> = self.safe_string_k(marketInfo.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut symbolType: Option<String> = self.safe_string_k(marketInfo, "type", &[]).as_str().map(str::to_owned);
         return Value::Bool(is_true(&(symbolType.is_some())) && is_true(&(symbolType.as_deref() != Some("1"))));
 
     Value::Null
@@ -1794,7 +1794,7 @@ impl TokocryptoCore {
         if is_true(&self.is_native_market(market.clone())) {
             return self.safe_string_k(market.clone(), "id", &[]);
         }
-        return Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market.clone(), "quoteId", &[Value::Str("".into())])).into());
+        return Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".to_string())]), self.safe_string_k(market, "quoteId", &[Value::Str("".to_string())])));
 
     Value::Null
 }
@@ -1818,23 +1818,23 @@ impl TokocryptoCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if is_true(&self.is_native_market(market.clone())) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() does not support ".into())).into()), symbol).into()), Value::Str(" yet, the venue serves 24hr ticker statistics only for its binance backed markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() does not support ".to_string()))), symbol)), Value::Str(" yet, the venue serves 24hr ticker statistics only for its binance backed markets".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.get_market_id_by_type(market.clone()));
             m
         });
-        let __ws_arg_5 = self.extend(request, &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: Value = self.binance_get_ticker24hr(&[__ws_arg_5]).await;
         if is_true(&(matches!(&response, Value::Arr(_)))) {
             let mut firstTicker: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            return self.parse_ticker(firstTicker.clone(), &[market.clone()]);
+            return self.parse_ticker(firstTicker, &[market.clone()]);
         }
-        return self.parse_ticker(response.clone(), &[market.clone()]);
+        return self.parse_ticker(response, &[market]);
 
     Value::Null
 }
@@ -1857,15 +1857,15 @@ impl TokocryptoCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut response: Value = self.binance_get_ticker_book_ticker(&[params.clone()]).await;
-        return self.parse_tickers(response.clone(), &[symbols.clone()]);
+        let mut response: Value = self.binance_get_ticker_book_ticker(&[params]).await;
+        return self.parse_tickers(response, &[symbols]);
 
     Value::Null
 }
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
+        return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv, Value::Int(5), &[])]);
 
     Value::Null
 }
@@ -1885,7 +1885,7 @@ impl TokocryptoCore {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
@@ -1895,15 +1895,15 @@ impl TokocryptoCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
         let mut defaultLimit: Value = Value::Int(500);
         let mut maxLimit: Value = Value::Int(1500);
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]);
-        limit = (if is_true(&(limit == Value::Null)) { defaultLimit.clone() } else { crate::runtime::Math::min(&limit, &maxLimit) });
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("price".to_string()), Value::Str("until".to_string())]), &[]);
+        limit = (if is_true(&(limit == Value::Null)) { defaultLimit } else { crate::runtime::Math::min(&limit, &maxLimit) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
@@ -1920,14 +1920,14 @@ impl TokocryptoCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), since.clone()); }
         }
         if (until != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), until.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), until); }
         }
         let mut response: Value = Value::Null;
         if is_true(&self.is_native_market(market.clone())) {
             let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_open_v1_market_klines(&[__ws_arg_6]).await;
         }  else {
-            let __ws_arg_7 = self.extend(request, &[params.clone()]);
+            let __ws_arg_7 = self.extend(request, &[params]);
             response = self.binance_get_klines(&[__ws_arg_7]).await;
         }
         //
@@ -1969,7 +1969,7 @@ impl TokocryptoCore {
         }  else {
             let mut dataList: Value = self.safe_list_k(response.clone(), "data", &[]);
             if (dataList != Value::Null) {
-                data = dataList.clone();
+                data = dataList;
             }  else {
                 let mut dataDict: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1978,7 +1978,7 @@ impl TokocryptoCore {
                 data = self.safe_list_k(dataDict, "list", &[Value::from(vec![])]);
             }
         }
-        return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+        return self.parse_ohlc_vs(data, &[market, timeframe, since, limit]);
 
     Value::Null
 }
@@ -2002,17 +2002,17 @@ impl TokocryptoCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]);
-        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
-        let mut defaultMarginMode: Value = self.safe_string2(self.options.clone(), Value::Str("marginMode".into()), Value::Str("defaultMarginMode".into()), &[]);
-        let mut marginMode: Value = self.safe_string_lower(params.clone(), Value::Str("marginMode".into()), &[defaultMarginMode.clone()]);
+        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType]);
+        let mut defaultMarginMode: Value = self.safe_string2(self.options.clone(), Value::Str("marginMode".to_string()), Value::Str("defaultMarginMode".to_string()), &[]);
+        let mut marginMode: Value = self.safe_string_lower(params.clone(), Value::Str("marginMode".to_string()), &[defaultMarginMode]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_8 = self.extend(request, &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_open_v1_account_spot(&[__ws_arg_8]).await;
-        return self.parse_balance_custom(response.clone(), &[type_var.clone(), marginMode.clone()]);
+        return self.parse_balance_custom(response, &[type_var, marginMode]);
 
     Value::Null
 }
@@ -2025,7 +2025,7 @@ impl TokocryptoCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("timestamp".to_string(), timestamp.clone());
-                m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
@@ -2040,16 +2040,16 @@ impl TokocryptoCore {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+            let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "free", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "locked", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance, "locked", &[])); }
             if (code != Value::Null) {
-                add_element_to_object(&mut result, &code, account.clone());
+                add_element_to_object(&mut result, &code, account);
             }
         }
         }
-        return self.safe_balance(result.clone());
+        return self.safe_balance(result);
 
     Value::Null
 }
@@ -2057,24 +2057,24 @@ impl TokocryptoCore {
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("-2".to_string(), Value::Str("open".into()));
-                m.insert("0".to_string(), Value::Str("open".into()));
-                m.insert("1".to_string(), Value::Str("open".into()));
-                m.insert("2".to_string(), Value::Str("closed".into()));
-                m.insert("3".to_string(), Value::Str("canceled".into()));
-                m.insert("4".to_string(), Value::Str("canceling".into()));
-                m.insert("5".to_string(), Value::Str("rejected".into()));
-                m.insert("6".to_string(), Value::Str("expired".into()));
-                m.insert("NEW".to_string(), Value::Str("open".into()));
-                m.insert("PARTIALLY_FILLED".to_string(), Value::Str("open".into()));
-                m.insert("FILLED".to_string(), Value::Str("closed".into()));
-                m.insert("CANCELED".to_string(), Value::Str("canceled".into()));
-                m.insert("PENDING_CANCEL".to_string(), Value::Str("canceling".into()));
-                m.insert("REJECTED".to_string(), Value::Str("rejected".into()));
-                m.insert("EXPIRED".to_string(), Value::Str("expired".into()));
+                m.insert("-2".to_string(), Value::Str("open".to_string()));
+                m.insert("0".to_string(), Value::Str("open".to_string()));
+                m.insert("1".to_string(), Value::Str("open".to_string()));
+                m.insert("2".to_string(), Value::Str("closed".to_string()));
+                m.insert("3".to_string(), Value::Str("canceled".to_string()));
+                m.insert("4".to_string(), Value::Str("canceling".to_string()));
+                m.insert("5".to_string(), Value::Str("rejected".to_string()));
+                m.insert("6".to_string(), Value::Str("expired".to_string()));
+                m.insert("NEW".to_string(), Value::Str("open".to_string()));
+                m.insert("PARTIALLY_FILLED".to_string(), Value::Str("open".to_string()));
+                m.insert("FILLED".to_string(), Value::Str("closed".to_string()));
+                m.insert("CANCELED".to_string(), Value::Str("canceled".to_string()));
+                m.insert("PENDING_CANCEL".to_string(), Value::Str("canceling".to_string()));
+                m.insert("REJECTED".to_string(), Value::Str("rejected".to_string()));
+                m.insert("EXPIRED".to_string(), Value::Str("expired".to_string()));
             m
         });
-        return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+        return self.safe_string(statuses, status.clone(), &[status.clone()]);
 
     Value::Null
 }
@@ -2181,57 +2181,57 @@ impl TokocryptoCore {
         //
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut filled: Value = self.safe_string_k(order.clone(), "executedQty", &[Value::Str("0".into())]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
+        let mut filled: Value = self.safe_string_k(order.clone(), "executedQty", &[Value::Str("0".to_string())]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "createTime", &[]);
         let mut average: Value = self.safe_string_k(order.clone(), "avgPrice", &[]);
-        let mut price: Value = self.safe_string2(order.clone(), Value::Str("price".into()), Value::Str("executedPrice".into()), &[]);
+        let mut price: Value = self.safe_string2(order.clone(), Value::Str("price".to_string()), Value::Str("executedPrice".to_string()), &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "origQty", &[]);
         // - Spot/Margin market: cummulativeQuoteQty
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        let mut cost: Value = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("cummulativeQuoteQty".into()), Value::Str("cumQuote".into()), Value::Str("executedQuoteQty".into()), Value::Str("cumBase".into())]), &[]);
+        let mut cost: Value = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("cummulativeQuoteQty".to_string()), Value::Str("cumQuote".to_string()), Value::Str("executedQuoteQty".to_string()), Value::Str("cumBase".to_string())]), &[]);
         let mut id: Value = self.safe_string_k(order.clone(), "orderId", &[]);
-        let mut type_var: Value = self.parse_order_type(self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]));
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut type_var: Value = self.parse_order_type(self.safe_string_lower(order.clone(), Value::Str("type".to_string()), &[]));
+        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
         if (side.as_str() == Some("0")) {
-            side = Value::Str("buy".into());
+            side = Value::Str("buy".to_string());
         }  else if (side.as_str() == Some("1")) {
-            side = Value::Str("sell".into());
+            side = Value::Str("sell".to_string());
         }
         let mut fills: Value = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]);
-        let mut clientOrderId: Value = self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[]);
+        let mut clientOrderId: Value = self.safe_string2(order.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientId".to_string()), &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         if (timeInForce.as_str() == Some("GTX")) {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-            timeInForce = Value::Str("PO".into());
+            timeInForce = Value::Str("PO".to_string());
         }
         let mut postOnly: Value = Value::Bool(is_true(&(type_var.as_str() == Some("limit_maker"))) || is_true(&(timeInForce.as_str() == Some("PO"))));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), id.clone());
-        m.insert("clientOrderId".to_string(), clientOrderId.clone());
+        m.insert("id".to_string(), id);
+        m.insert("clientOrderId".to_string(), clientOrderId);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("symbol".to_string(), symbol.clone());
-        m.insert("type".to_string(), type_var.clone());
-        m.insert("timeInForce".to_string(), timeInForce.clone());
-        m.insert("postOnly".to_string(), postOnly.clone());
+        m.insert("symbol".to_string(), symbol);
+        m.insert("type".to_string(), type_var);
+        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("postOnly".to_string(), postOnly);
         m.insert("reduceOnly".to_string(), self.safe_value_k(order.clone(), "reduceOnly", &[]));
-        m.insert("side".to_string(), side.clone());
-        m.insert("price".to_string(), price.clone());
-        m.insert("triggerPrice".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[])), &[]));
-        m.insert("amount".to_string(), amount.clone());
-        m.insert("cost".to_string(), cost.clone());
-        m.insert("average".to_string(), average.clone());
-        m.insert("filled".to_string(), filled.clone());
+        m.insert("side".to_string(), side);
+        m.insert("price".to_string(), price);
+        m.insert("triggerPrice".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(order, "stopPrice", &[])), &[]));
+        m.insert("amount".to_string(), amount);
+        m.insert("cost".to_string(), cost);
+        m.insert("average".to_string(), average);
+        m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), status.clone());
+        m.insert("status".to_string(), status);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("trades".to_string(), fills.clone());
+        m.insert("trades".to_string(), fills);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -2239,13 +2239,13 @@ impl TokocryptoCore {
     pub fn parse_order_type(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("2".to_string(), Value::Str("market".into()));
-                m.insert("1".to_string(), Value::Str("limit".into()));
-                m.insert("4".to_string(), Value::Str("limit".into()));
-                m.insert("7".to_string(), Value::Str("limit".into()));
+                m.insert("2".to_string(), Value::Str("market".to_string()));
+                m.insert("1".to_string(), Value::Str("limit".to_string()));
+                m.insert("4".to_string(), Value::Str("limit".to_string()));
+                m.insert("7".to_string(), Value::Str("limit".to_string()));
             m
         });
-        return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+        return self.safe_string(statuses, status.clone(), &[status.clone()]);
 
     Value::Null
 }
@@ -2275,30 +2275,30 @@ impl TokocryptoCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[]);
+        let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientId".to_string()), &[]);
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         // only supported for spot/margin api
         if (postOnly.as_bool() == Some(true)) {
-            type_var = Value::Str("LIMIT_MAKER".into());
+            type_var = Value::Str("LIMIT_MAKER".to_string());
         }
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         let mut initialUppercaseType: Value = to_upper(&type_var);
         let mut uppercaseType: Value = initialUppercaseType.clone();
-        let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+        let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
         if (triggerPrice != Value::Null) {
-            params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
             if (uppercaseType.as_str() == Some("MARKET")) {
-                uppercaseType = Value::Str("STOP_LOSS".into());
+                uppercaseType = Value::Str("STOP_LOSS".to_string());
             }  else if (uppercaseType.as_str() == Some("LIMIT")) {
-                uppercaseType = Value::Str("STOP_LOSS_LIMIT".into());
+                uppercaseType = Value::Str("STOP_LOSS_LIMIT".to_string());
             }
         }
-        let mut validOrderTypes: Value = self.safe_value(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".into()), &[]);
-        if !is_true(&self.in_array(uppercaseType.clone(), validOrderTypes.clone())) {
+        let mut validOrderTypes: Value = self.safe_value(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".to_string()), &[]);
+        if !is_true(&self.in_array(uppercaseType.clone(), validOrderTypes)) {
             if (initialUppercaseType.as_str() != uppercaseType.as_str()) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".to_string()))), symbol)), Value::Str(" ".to_string()))), type_var)), Value::Str(" orders".to_string()))));
             }  else {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" is not a valid order type for the ".into())).into()), symbol).into()), Value::Str(" market".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), type_var)), Value::Str(" is not a valid order type for the ".to_string()))), symbol)), Value::Str(" market".to_string()))));
             }
         }
         let mut reverseOrderTypeMapping: Value = Value::Map({
@@ -2314,8 +2314,8 @@ impl TokocryptoCore {
         });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), Value::Str("_".into())).into()), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)).into()));
-                m.insert("type".to_string(), self.safe_string(reverseOrderTypeMapping.clone(), uppercaseType.clone(), &[]));
+                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), Value::Str("_".to_string()))), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null))));
+                m.insert("type".to_string(), self.safe_string(reverseOrderTypeMapping, uppercaseType.clone(), &[]));
             m
         });
         if (side.as_str() == Some("buy")) {
@@ -2326,13 +2326,13 @@ impl TokocryptoCore {
         if (clientOrderId == Value::Null) {
             let mut broker: Value = self.safe_dict_k(self.options.clone(), "broker", &[]);
             if (broker != Value::Null) {
-                let mut brokerId: Value = self.safe_string_k(broker.clone(), "marketType", &[]);
+                let mut brokerId: Value = self.safe_string_k(broker, "marketType", &[]);
                 if (brokerId != Value::Null) {
-                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientId".to_string(), Value::Str(format!("{}{}", brokerId, self.uuid22(&[])).into())); }
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientId".to_string(), Value::Str(format!("{}{}", brokerId, self.uuid22(&[])))); }
                 }
             }
         }  else {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientId".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientId".to_string(), clientOrderId); }
         }
         // additional required fields depending on the order type
         let mut priceIsRequired: bool = false;
@@ -2354,14 +2354,14 @@ impl TokocryptoCore {
                 let mut precision: Value = market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null);
                 let mut quoteAmount: Value = Value::Null;
                 let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
-                { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-                let mut cost: Value = self.safe_number2(params.clone(), Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), &[]);
-                params = self.omit(params.clone(), Value::from(vec![Value::Str("cost".into()), Value::Str("quoteOrderQty".into())]), &[]);
+                { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+                let mut cost: Value = self.safe_number2(params.clone(), Value::Str("cost".to_string()), Value::Str("quoteOrderQty".to_string()), &[]);
+                params = self.omit(params.clone(), Value::from(vec![Value::Str("cost".to_string()), Value::Str("quoteOrderQty".to_string())]), &[]);
                 if (cost != Value::Null) {
-                    quoteAmount = cost.clone();
+                    quoteAmount = cost;
                 }  else if is_true(&createMarketBuyOrderRequiresPrice) {
                     if (price == Value::Null) {
-                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".to_string()))));
                     }  else {
                         let mut amountString: Value = self.number_to_string(amount.clone());
                         let mut priceString: Value = self.number_to_string(price.clone());
@@ -2370,7 +2370,7 @@ impl TokocryptoCore {
                 }  else {
                     quoteAmount = amount.clone();
                 }
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quoteOrderQty".to_string(), self.decimal_to_precision(quoteAmount.clone(), Value::Int(crate::runtime::TRUNCATE), precision.clone(), &[self.precisionMode.clone()])); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quoteOrderQty".to_string(), self.decimal_to_precision(quoteAmount, Value::Int(crate::runtime::TRUNCATE), precision, &[self.precisionMode.clone()])); }
             }  else {
                 quantityIsRequired = true;
             }
@@ -2392,22 +2392,22 @@ impl TokocryptoCore {
             quantityIsRequired = true;
         }
         if quantityIsRequired {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount)); }
         }
         if priceIsRequired {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".to_string()))), type_var)), Value::Str(" order".to_string()))));
             }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price)); }
         }
         if triggerPriceIsRequired {
             if (triggerPrice == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice extra param for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice extra param for a ".to_string()))), type_var)), Value::Str(" order".to_string()))));
             }  else {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopPrice".to_string(), self.price_to_precision(symbol, triggerPrice)); }
             }
         }
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_open_v1_orders(&[__ws_arg_9]).await;
         //
         //     {
@@ -2441,7 +2441,7 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(rawOrder.clone(), &[market.clone()]);
+        return self.parse_order(rawOrder, &[market.clone()]);
 
     Value::Null
 }
@@ -2464,10 +2464,10 @@ impl TokocryptoCore {
 }));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), id.clone());
+                m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_10 = self.extend(request, &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_open_v1_orders(&[__ws_arg_10]).await;
         //
         //     {
@@ -2504,11 +2504,11 @@ impl TokocryptoCore {
     m
 })]);
         let mut list: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
-        let mut rawOrder: Value = self.safe_dict(list.clone(), Value::Int(0), &[Value::Map({
+        let mut rawOrder: Value = self.safe_dict(list, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(rawOrder.clone(), &[]);
+        return self.parse_order(rawOrder, &[]);
 
     Value::Null
 }
@@ -2533,12 +2533,12 @@ impl TokocryptoCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -2550,7 +2550,7 @@ impl TokocryptoCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
-        let __ws_arg_11 = self.extend(request, &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_open_v1_orders(&[__ws_arg_11]).await;
         //
         //     {
@@ -2590,7 +2590,7 @@ impl TokocryptoCore {
     m
 })]);
         let mut orders: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
-        return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        return self.parse_orders(orders, &[market.clone(), since, limit]);
 
     Value::Null
 }
@@ -2619,8 +2619,8 @@ impl TokocryptoCore {
                 m.insert("type".to_string(), Value::Int(1));
             m
         }); // -1 = all, 1 = open, 2 = closed
-        let __ws_arg_12 = self.extend(request, &[params.clone()]);
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_12]).await;
+        let __ws_arg_12 = self.extend(request, &[params]);
+        return self.fetch_orders(&[symbol, since, limit, __ws_arg_12]).await;
 
     Value::Null
 }
@@ -2649,8 +2649,8 @@ impl TokocryptoCore {
                 m.insert("type".to_string(), Value::Int(2));
             m
         }); // -1 = all, 1 = open, 2 = closed
-        let __ws_arg_13 = self.extend(request, &[params.clone()]);
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_13]).await;
+        let __ws_arg_13 = self.extend(request, &[params]);
+        return self.fetch_orders(&[symbol, since, limit, __ws_arg_13]).await;
 
     Value::Null
 }
@@ -2673,10 +2673,10 @@ impl TokocryptoCore {
 }));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), id.clone());
+                m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_14 = self.extend(request, &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_open_v1_orders_cancel(&[__ws_arg_14]).await;
         //
         //     {
@@ -2709,7 +2709,7 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(rawOrder.clone(), &[]);
+        return self.parse_order(rawOrder, &[]);
 
     Value::Null
 }
@@ -2734,29 +2734,29 @@ impl TokocryptoCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut endTime: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("endTime".into()), &[]);
+        let mut endTime: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("endTime".to_string()), &[]);
         if (since != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), since.clone()); }
         }
         if (endTime != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), endTime.clone()); }
-            params = self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]);
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), endTime); }
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("until".to_string())]), &[]);
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
-        let __ws_arg_15 = self.extend(request, &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_open_v1_orders_trades(&[__ws_arg_15]).await;
         //
         //     {
@@ -2788,7 +2788,7 @@ impl TokocryptoCore {
     m
 })]);
         let mut trades: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
-        return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        return self.parse_trades(trades, &[market.clone(), since, limit]);
 
     Value::Null
 }
@@ -2820,15 +2820,15 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]); // this line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks.clone(), network.clone(), &[network.clone()]); // handle ERC20>ETH alias
+        let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]); // this line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network.clone(), &[network.clone()]); // handle ERC20>ETH alias
         if (network != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("network".to_string(), network.clone()); }
-            params = self.omit(params.clone(), Value::Str("network".into()), &[]);
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("network".to_string(), network); }
+            params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_16 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_open_v1_deposits_address(&[__ws_arg_16]).await;
         //
         //     {
@@ -2850,18 +2850,18 @@ impl TokocryptoCore {
     m
 })]);
         let mut address: Value = self.safe_string_k(data.clone(), "address", &[]);
-        let mut tag: Value = self.safe_string_k(data.clone(), "addressTag", &[Value::Str("".into())]);
+        let mut tag: Value = self.safe_string_k(data.clone(), "addressTag", &[Value::Str("".to_string())]);
         if (Value::Int(tag.len() as i64).as_f64() == Some(0.0)) {
             tag = Value::Null;
         }
         self.check_address(&[address.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
-        m.insert("currency".to_string(), code.clone());
-        m.insert("network".to_string(), self.safe_string_k(data.clone(), "network", &[]));
-        m.insert("address".to_string(), address.clone());
-        m.insert("tag".to_string(), tag.clone());
+        m.insert("info".to_string(), response);
+        m.insert("currency".to_string(), code);
+        m.insert("network".to_string(), self.safe_string_k(data, "network", &[]));
+        m.insert("address".to_string(), address);
+        m.insert("tag".to_string(), tag);
     m
 });
 
@@ -2898,7 +2898,7 @@ impl TokocryptoCore {
         });
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = self.currency(code);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
@@ -2908,12 +2908,12 @@ impl TokocryptoCore {
             if (until != Value::Null) {
                 endTime = crate::runtime::Math::min(&endTime, &until);
             }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), endTime.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), endTime); }
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
-        let __ws_arg_17 = self.extend(request, &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_open_v1_deposits(&[__ws_arg_17]).await;
         //
         //     {
@@ -2943,7 +2943,7 @@ impl TokocryptoCore {
     m
 })]);
         let mut deposits: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
-        return self.parse_transactions(deposits.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+        return self.parse_transactions(deposits, &[currency, since, limit]);
 
     Value::Null
 }
@@ -2976,7 +2976,7 @@ impl TokocryptoCore {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = self.currency(code);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
@@ -2987,7 +2987,7 @@ impl TokocryptoCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
-        let __ws_arg_18 = self.extend(request, &[params.clone()]);
+        let __ws_arg_18 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_open_v1_withdraws(&[__ws_arg_18]).await;
         //
         //     {
@@ -3019,7 +3019,7 @@ impl TokocryptoCore {
     m
 })]);
         let mut withdrawals: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
-        return self.parse_transactions(withdrawals.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+        return self.parse_transactions(withdrawals, &[currency, since, limit]);
 
     Value::Null
 }
@@ -3030,28 +3030,28 @@ impl TokocryptoCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("0".to_string(), Value::Str("pending".into()));
-        m.insert("1".to_string(), Value::Str("ok".into()));
+        m.insert("0".to_string(), Value::Str("pending".to_string()));
+        m.insert("1".to_string(), Value::Str("ok".to_string()));
     m
 }));
                 m.insert("withdrawal".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("0".to_string(), Value::Str("pending".into()));
-        m.insert("1".to_string(), Value::Str("canceled".into()));
-        m.insert("2".to_string(), Value::Str("pending".into()));
-        m.insert("3".to_string(), Value::Str("failed".into()));
-        m.insert("4".to_string(), Value::Str("pending".into()));
-        m.insert("5".to_string(), Value::Str("failed".into()));
-        m.insert("10".to_string(), Value::Str("ok".into()));
+        m.insert("0".to_string(), Value::Str("pending".to_string()));
+        m.insert("1".to_string(), Value::Str("canceled".to_string()));
+        m.insert("2".to_string(), Value::Str("pending".to_string()));
+        m.insert("3".to_string(), Value::Str("failed".to_string()));
+        m.insert("4".to_string(), Value::Str("pending".to_string()));
+        m.insert("5".to_string(), Value::Str("failed".to_string()));
+        m.insert("10".to_string(), Value::Str("ok".to_string()));
     m
 }));
             m
         });
-        let mut statuses: Value = self.safe_dict(statusesByType.clone(), type_var.clone(), &[Value::Map({
+        let mut statuses: Value = self.safe_dict(statusesByType, type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+        return self.safe_string(statuses, status.clone(), &[status.clone()]);
 
     Value::Null
 }
@@ -3111,24 +3111,24 @@ impl TokocryptoCore {
         }
         let mut txid: Value = self.safe_string_k(transaction.clone(), "txId", &[]);
         if is_true(&(txid != Value::Null)) && is_true(&(Value::Int(txid.as_str().and_then(|__s| __s.find("Internal transfer ")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) {
-            txid = txid.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(18); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            txid = txid.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(18); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         }
-        let mut currencyId: Value = self.safe_string2(transaction.clone(), Value::Str("coin".into()), Value::Str("fiatCurrency".into()), &[]);
-        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
+        let mut currencyId: Value = self.safe_string2(transaction.clone(), Value::Str("coin".to_string()), Value::Str("fiatCurrency".to_string()), &[]);
+        let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
         let mut timestamp: Value = Value::Null;
         let mut insertTime: Value = self.safe_integer_k(transaction.clone(), "insertTime", &[]);
-        let mut createTime: Value = self.safe_integer2(transaction.clone(), Value::Str("createTime".into()), Value::Str("timestamp".into()), &[]);
+        let mut createTime: Value = self.safe_integer2(transaction.clone(), Value::Str("createTime".to_string()), Value::Str("timestamp".to_string()), &[]);
         let mut type_var: Value = self.safe_string_k(transaction.clone(), "type", &[]);
         if (type_var == Value::Null) {
             if is_true(&(insertTime != Value::Null)) && is_true(&(createTime == Value::Null)) {
-                type_var = Value::Str("deposit".into());
+                type_var = Value::Str("deposit".to_string());
                 timestamp = insertTime.clone();
             }  else if is_true(&(insertTime == Value::Null)) && is_true(&(createTime != Value::Null)) {
-                type_var = Value::Str("withdrawal".into());
-                timestamp = createTime.clone();
+                type_var = Value::Str("withdrawal".to_string());
+                timestamp = createTime;
             }
         }
-        let mut feeCost: Value = self.safe_number2(transaction.clone(), Value::Str("transactionFee".into()), Value::Str("totalFee".into()), &[]);
+        let mut feeCost: Value = self.safe_number2(transaction.clone(), Value::Str("transactionFee".to_string()), Value::Str("totalFee".to_string()), &[]);
         let mut fee: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), Value::Null);
@@ -3138,7 +3138,7 @@ impl TokocryptoCore {
         });
         if (feeCost != Value::Null) {
             if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".to_string(), code.clone()); }
-            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".to_string(), feeCost.clone()); }
+            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".to_string(), feeCost); }
         }
         let mut internalRaw: Option<i64> = self.safe_integer_k(transaction.clone(), "transferType", &[]).as_i64();
         let mut internal: Value = Value::Bool(false);
@@ -3151,31 +3151,31 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            id = self.safe_string_k(data.clone(), "withdrawId", &[]);
-            type_var = Value::Str("withdrawal".into());
+            id = self.safe_string_k(data, "withdrawId", &[]);
+            type_var = Value::Str("withdrawal".to_string());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("txid".to_string(), txid.clone());
         m.insert("type".to_string(), type_var.clone());
-        m.insert("currency".to_string(), code.clone());
+        m.insert("currency".to_string(), code);
         m.insert("network".to_string(), self.safe_string_k(transaction.clone(), "network", &[]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
-        m.insert("status".to_string(), self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var.clone()]));
+        m.insert("status".to_string(), self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var]));
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), address.clone());
         m.insert("addressFrom".to_string(), Value::Null);
-        m.insert("addressTo".to_string(), address.clone());
+        m.insert("addressTo".to_string(), address);
         m.insert("tag".to_string(), tag.clone());
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("tagTo".to_string(), tag.clone());
-        m.insert("updated".to_string(), self.safe_integer2(transaction.clone(), Value::Str("successTime".into()), Value::Str("updateTime".into()), &[]));
+        m.insert("tagTo".to_string(), tag);
+        m.insert("updated".to_string(), self.safe_integer2(transaction, Value::Str("successTime".to_string()), Value::Str("updateTime".to_string()), &[]));
         m.insert("comment".to_string(), Value::Null);
-        m.insert("internal".to_string(), internal.clone());
-        m.insert("fee".to_string(), fee.clone());
+        m.insert("internal".to_string(), internal);
+        m.insert("fee".to_string(), fee);
     m
 });
 
@@ -3209,30 +3209,30 @@ impl TokocryptoCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("address".to_string(), address.clone());
-                m.insert("amount".to_string(), self.number_to_string(amount.clone()));
+                m.insert("address".to_string(), address);
+                m.insert("amount".to_string(), self.number_to_string(amount));
             m
         });
         if (tag != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("addressTag".to_string(), tag.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("addressTag".to_string(), tag); }
         }
-        let mut networkCodequeryVariable = self.handle_network_code_and_params(params.clone());
+        let mut networkCodequeryVariable = self.handle_network_code_and_params(params);
         let mut networkCode: Value = networkCodequeryVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut query: Value = networkCodequeryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[code.clone()]);
+        let mut networkId: Value = self.network_code_to_id(networkCode, &[code]);
         if (networkId != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("network".to_string(), to_upper(&networkId)); }
         }
-        let __ws_arg_19 = self.extend(request, &[query.clone()]);
+        let __ws_arg_19 = self.extend(request, &[query]);
         let mut response: Value = self.private_post_open_v1_withdraws(&[__ws_arg_19]).await;
-        return self.parse_transaction(response.clone(), &[currency.clone()]);
+        return self.parse_transaction(response, &[currency]);
 
     Value::Null
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3240,12 +3240,12 @@ impl TokocryptoCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         if !(in_op(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &api)) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet/sandbox URL for ".into())).into()), &api), Value::Str(" endpoints".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet/sandbox URL for ".to_string()))), &api), Value::Str(" endpoints".to_string()))));
         }
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &api);
-        url = add(&url, &add(&Value::Str("/".into()), &path));
+        url = add(&url, &add(&Value::Str("/".to_string()), &path));
         if (api.as_str() == Some("wapi")) {
-            url = add(&url, &Value::Str(".html".into()));
+            url = add(&url, &Value::Str(".html".to_string()));
         }
         let mut userDataStream: bool = is_true(&(path.as_str() == Some("userDataStream"))) || is_true(&(path.as_str() == Some("listenKey")));
         if userDataStream {
@@ -3254,14 +3254,14 @@ impl TokocryptoCore {
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
-                        m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
+                        m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".to_string()));
                     m
                 });
                 if (method.as_str() != Some("GET")) {
                     body = self.urlencode(params.clone(), &[]);
                 }
             }  else {
-                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" userDataStream endpoint requires `apiKey` credential".into()))));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" userDataStream endpoint requires `apiKey` credential".to_string()))));
             }
         }  else if is_true(&(api.as_str() == Some("private"))) || is_true(&((api.as_str() == Some("sapi")) && (path.as_str() != Some("system/status")))) || is_true(&(api.as_str() == Some("sapiV3"))) || is_true(&((api.as_str() == Some("wapi")) && (path.as_str() != Some("systemStatus")))) || is_true(&(api.as_str() == Some("dapiPrivate"))) || is_true(&(api.as_str() == Some("dapiPrivateV2"))) || is_true(&(api.as_str() == Some("fapiPrivate"))) || is_true(&(api.as_str() == Some("fapiPrivateV2"))) {
             self.check_required_credentials(&[]);
@@ -3274,35 +3274,35 @@ impl TokocryptoCore {
                 m
             }), &[params.clone()]);
             if (defaultRecvWindow != Value::Null) {
-                add_element_to_object(&mut extendedParams, &Value::Str("recvWindow".into()), defaultRecvWindow.clone());
+                add_element_to_object(&mut extendedParams, &Value::Str("recvWindow".to_string()), defaultRecvWindow.clone());
             }
             let mut recvWindow: Value = self.safe_integer_k(params.clone(), "recvWindow", &[]);
             if (recvWindow != Value::Null) {
-                add_element_to_object(&mut extendedParams, &Value::Str("recvWindow".into()), recvWindow.clone());
+                add_element_to_object(&mut extendedParams, &Value::Str("recvWindow".to_string()), recvWindow.clone());
             }
             if is_true(&(api.as_str() == Some("sapi"))) && is_true(&(path.as_str() == Some("asset/dust"))) {
                 query = self.urlencode_with_array_repeat(extendedParams.clone());
-            }  else if is_true(&(path.as_str() == Some("batchOrders"))) || is_true(&(get_index_of(&path, &Value::Str("sub-account".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) || is_true(&(path.as_str() == Some("capital/withdraw/apply"))) || is_true(&(get_index_of(&path, &Value::Str("staking".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) {
+            }  else if is_true(&(path.as_str() == Some("batchOrders"))) || is_true(&(get_index_of(&path, &Value::Str("sub-account".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) || is_true(&(path.as_str() == Some("capital/withdraw/apply"))) || is_true(&(get_index_of(&path, &Value::Str("staking".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) {
                 query = self.rawencode(extendedParams.clone(), &[]);
             }  else {
                 query = self.urlencode(extendedParams.clone(), &[]);
             }
-            let mut signature: Value = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            query = Value::Str(format!("{}{}", query, add(&Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), &signature)).into());
+            let mut signature: Value = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]);
+            query = Value::Str(format!("{}{}", query, add(&Value::Str(format!("{}{}", Value::Str("&".to_string()), Value::Str("signature=".to_string()))), &signature)));
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
                 m
             });
             if is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE"))) || is_true(&(api.as_str() == Some("wapi"))) {
-                url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".into()), query).into()));
+                url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), query)));
             }  else {
                 body = query.clone();
-                add_element_to_object(&mut headers, &Value::Str("Content-Type".into()), Value::Str("application/x-www-form-urlencoded".into()));
+                add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/x-www-form-urlencoded".to_string()));
             }
         }  else {
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
-                url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])).into()));
+                url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[]))));
             }
         }
         return Value::Map({
@@ -3319,20 +3319,20 @@ impl TokocryptoCore {
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if is_true(&(code.as_f64() == Some(418.0))) || is_true(&(code.as_f64() == Some(429.0))) {
-            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), to_string_val(&code)).into()), Value::Str(" ".into())).into()), reason).into()), Value::Str(" ".into())).into()), body)));
+            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), to_string_val(&code))), Value::Str(" ".to_string()))), reason)), Value::Str(" ".to_string()))), body)));
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
             if Value::Int(body.as_str().and_then(|__s| __s.find("Price * QTY is zero or less")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order cost = amount * price is zero or less ".into())).into()), body)));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order cost = amount * price is zero or less ".to_string()))), body)));
             }
             if Value::Int(body.as_str().and_then(|__s| __s.find("LOT_SIZE")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order amount should be evenly divisible by lot size ".into())).into()), body)));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order amount should be evenly divisible by lot size ".to_string()))), body)));
             }
             if Value::Int(body.as_str().and_then(|__s| __s.find("PRICE_FILTER")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ".into())).into()), body)));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ".to_string()))), body)));
             }
         }
         if (response == Value::Null) {
@@ -3359,32 +3359,32 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut message: Value = self.safe_string_k(response.clone(), "msg", &[]);
         if (message != Value::Null) {
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message).into()));
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message).into()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message)));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message)));
         }
         // checks against error codes
-        let mut error: Value = self.safe_string_k(response.clone(), "code", &[]);
+        let mut error: Value = self.safe_string_k(response, "code", &[]);
         if (error != Value::Null) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if is_true(&(error.as_str() == Some("200"))) || is_true(&crate::precise::Precise::stringEquals(&error, &Value::Str("0".into()))) {
+            if is_true(&(error.as_str() == Some("200"))) || is_true(&crate::precise::Precise::stringEquals(&error, &Value::Str("0".to_string()))) {
                 return Value::Null;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
             if is_true(&(error.as_str() == Some("-2015"))) && (is_equal(&self.options.as_map().and_then(|__m| __m.get("hasAlreadyAuthenticatedSuccessfully")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) {
-                panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
+                panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body)));
             }
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             if (message.as_str() == Some("No need to change margin type.")) {
                 panic!("{}", crate::exchange_errors::margin_mode_already_set(feedback));
             }
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error, feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         if (success.as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body)));
         }
         return Value::Null;
 
@@ -3396,13 +3396,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noCoin")))) && !(in_op(&params, &Value::Str("coin".into()))) {
+        if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noCoin")))) && !(in_op(&params, &Value::Str("coin".to_string()))) {
             return config.as_map().and_then(|__m| __m.get("noCoin")).cloned().unwrap_or(Value::Null);
-        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol")))) && !(in_op(&params, &Value::Str("symbol".into()))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol")))) && !(in_op(&params, &Value::Str("symbol".to_string()))) {
             return config.as_map().and_then(|__m| __m.get("noSymbol")).cloned().unwrap_or(Value::Null);
-        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noPoolId")))) && !(in_op(&params, &Value::Str("poolId".into()))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noPoolId")))) && !(in_op(&params, &Value::Str("poolId".to_string()))) {
             return config.as_map().and_then(|__m| __m.get("noPoolId")).cloned().unwrap_or(Value::Null);
-        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit")))) && (in_op(&params, &Value::Str("limit".into()))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit")))) && (in_op(&params, &Value::Str("limit".to_string()))) {
             let mut limit: Value = crate::value::get_value_k(&params, "limit");
             let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::from(vec![])]);
             {
@@ -3417,7 +3417,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        return self.safe_integer_k(config.clone(), "cost", &[Value::Int(1)]);
+        return self.safe_integer_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }

@@ -253,8 +253,8 @@ impl KucoinfuturesCore {
                 m.insert("method".to_string(), Value::Str("futuresPublicGetAllTickers".into()));
             m
         });
-        let mut extendedRequest: Value = self.extend(request, &[params.clone()]);
-        return self.fetch_tickers(&[symbols.clone(), extendedRequest.clone()]).await;
+        let mut extendedRequest: Value = self.extend(request, &[params]);
+        return self.fetch_tickers(&[symbols, extendedRequest]).await;
 
     Value::Null
 }
@@ -279,7 +279,7 @@ impl KucoinfuturesCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut amountToPrecision: Value = self.currency_to_precision(code.clone(), amount.clone(), &[]);
+        let mut amountToPrecision: Value = self.currency_to_precision(code, amount, &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), self.safe_string_k(currency.clone(), "id", &[]));
@@ -303,13 +303,13 @@ impl KucoinfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let __ws_arg_2 = self.parse_transfer(data.clone(), &[currency.clone()]);
+        let __ws_arg_2 = self.parse_transfer(data, &[currency]);
         let __ws_arg_3 = self.parse_number(amountToPrecision, &[]);
         return self.extend(__ws_arg_2, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), __ws_arg_3);
         m.insert("fromAccount".to_string(), fromAccount.clone());
-        m.insert("toAccount".to_string(), toAccount.clone());
+        m.insert("toAccount".to_string(), toAccount);
     m
 })]);
 
@@ -323,7 +323,7 @@ impl KucoinfuturesCore {
                 m.insert("funding".to_string(), Value::Str("MAIN".into()));
             m
         });
-        return self.safe_string_upper(transferTypes.clone(), transferType.clone(), &[transferType.clone()]);
+        return self.safe_string_upper(transferTypes, transferType.clone(), &[transferType.clone()]);
 
     Value::Null
 }

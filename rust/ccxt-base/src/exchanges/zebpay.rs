@@ -43,15 +43,15 @@ impl ZebpayCore {
 impl crate::exchange::DerivedExchange for ZebpayCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZebpayCore.
-        ZebpayCore::parse_ticker(self, ticker, &[market.clone()])
+        ZebpayCore::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZebpayCore.
-        ZebpayCore::parse_trade(self, trade, &[market.clone()])
+        ZebpayCore::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZebpayCore.
-        ZebpayCore::parse_order(self, order, &[market.clone()])
+        ZebpayCore::parse_order(self, order, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZebpayCore.
@@ -59,7 +59,7 @@ impl crate::exchange::DerivedExchange for ZebpayCore {
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZebpayCore.
-        ZebpayCore::parse_position(self, position, &[market.clone()])
+        ZebpayCore::parse_position(self, position, &[market])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZebpayCore.
@@ -67,15 +67,15 @@ impl crate::exchange::DerivedExchange for ZebpayCore {
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZebpayCore.
-        ZebpayCore::parse_margin_modification(self, data, &[market.clone()])
+        ZebpayCore::parse_margin_modification(self, data, &[market])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZebpayCore.
-        ZebpayCore::parse_leverage(self, leverage, &[market.clone()])
+        ZebpayCore::parse_leverage(self, leverage, &[market])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZebpayCore.
-        ZebpayCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        ZebpayCore::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZebpayCore.
@@ -149,11 +149,11 @@ impl ZebpayCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("zebpay".into()));
-        m.insert("name".to_string(), Value::Str("Zebpay".into()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("IN".into())]));
+        m.insert("id".to_string(), Value::Str("zebpay".to_string()));
+        m.insert("name".to_string(), Value::Str("Zebpay".to_string()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("IN".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(50));
-        m.insert("version".to_string(), Value::Str("v1".into()));
+        m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(false));
         m.insert("has".to_string(), Value::Map({
@@ -224,22 +224,22 @@ impl ZebpayCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/0e88d86a-a1cd-49df-a826-054cd8caafa6".into()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/0e88d86a-a1cd-49df-a826-054cd8caafa6".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Str("https://sapi.zebpay.com".into()));
-        m.insert("swap".to_string(), Value::Str("https://futuresbe.zebpay.com".into()));
+        m.insert("spot".to_string(), Value::Str("https://sapi.zebpay.com".to_string()));
+        m.insert("swap".to_string(), Value::Str("https://futuresbe.zebpay.com".to_string()));
     m
 }));
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Str("https://www.zebstage.com".into()));
-        m.insert("swap".to_string(), Value::Str("https://dev-futuresbe.zebstage.com".into()));
+        m.insert("spot".to_string(), Value::Str("https://www.zebstage.com".to_string()));
+        m.insert("swap".to_string(), Value::Str("https://dev-futuresbe.zebstage.com".to_string()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://www.zebpay.com".into()));
-        m.insert("doc".to_string(), Value::Str("https://github.com/zebpay/zebpay-api-references".into()));
-        m.insert("fees".to_string(), Value::Str("https://zebpay.com/in/features/pricing".into()));
+        m.insert("www".to_string(), Value::Str("https://www.zebpay.com".to_string()));
+        m.insert("doc".to_string(), Value::Str("https://github.com/zebpay/zebpay-api-references".to_string()));
+        m.insert("fees".to_string(), Value::Str("https://zebpay.com/in/features/pricing".to_string()));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -584,10 +584,10 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string())]));
     m
 }));
-        m.insert("defaultType".to_string(), Value::Str("spot".into()));
+        m.insert("defaultType".to_string(), Value::Str("spot".to_string()));
     m
 }));
         m.insert("features".to_string(), Value::Map({
@@ -607,26 +607,26 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("77".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("400".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("401".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("403".to_string(), Value::Str("NotSupported".into()).clone());
-        m.insert("404".to_string(), Value::Str("NotSupported".into()).clone());
-        m.insert("429".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("500".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("503".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("3013".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("Order quantity is out of range".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Invalid trade order type".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Insufficient margin".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("insufficient balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("leverage must be in [1,8]".to_string(), Value::Str("BadRequest".into()));
-        m.insert("the request you sent is invalid".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("77".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("400".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("401".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("403".to_string(), Value::Str("NotSupported".to_string()).clone());
+        m.insert("404".to_string(), Value::Str("NotSupported".to_string()).clone());
+        m.insert("429".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("500".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("503".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("3013".to_string(), Value::Str("OrderNotFound".to_string()).clone());
+        m.insert("Order quantity is out of range".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("Invalid trade order type".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("Insufficient margin".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("insufficient balance".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("leverage must be in [1,8]".to_string(), Value::Str("BadRequest".to_string()));
+        m.insert("the request you sent is invalid".to_string(), Value::Str("BadRequest".to_string()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("InvalidOrder".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("InvalidOrder".to_string(), Value::Str("InvalidOrder".to_string()).clone());
     m
 }));
     m
@@ -652,7 +652,7 @@ impl ZebpayCore {
     m
 }));
         let mut type_var: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchStatus".into()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchStatus".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isSpot: bool = type_var.as_str() == Some("spot");
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Map({
@@ -663,7 +663,7 @@ impl ZebpayCore {
             response = self.public_spot_get_v2_system_status(&[params.clone()]).await;
             data = response.clone();
         }  else {
-            response = self.public_swap_get_v1_system_status(&[params.clone()]).await;
+            response = self.public_swap_get_v1_system_status(&[params]).await;
             data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -680,14 +680,14 @@ impl ZebpayCore {
         //     "customMessage": ["OK"]
         // }
         //
-        let mut status: Value = self.safe_string2(data.clone(), Value::Str("systemStatus".into()), Value::Str("status".into()), &[]);
+        let mut status: Value = self.safe_string2(data, Value::Str("systemStatus".to_string()), Value::Str("status".to_string()), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), status.clone());
+        m.insert("status".to_string(), status);
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), response);
     m
 });
 
@@ -709,7 +709,7 @@ impl ZebpayCore {
     m
 }));
         let mut type_var: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTime".into()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTime".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isSpot: bool = type_var.as_str() == Some("spot");
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Map({
@@ -720,7 +720,7 @@ impl ZebpayCore {
             response = self.public_spot_get_v2_system_time(&[params.clone()]).await;
             data = response.clone();
         }  else {
-            response = self.public_swap_get_v1_system_time(&[params.clone()]).await;
+            response = self.public_swap_get_v1_system_time(&[params]).await;
             data = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -737,7 +737,7 @@ impl ZebpayCore {
         //     "customMessage": ["OK"]
         // }
         //
-        let mut time: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
+        let mut time: Value = self.safe_integer_k(data, "timestamp", &[]);
         return time;
 
     Value::Null
@@ -759,8 +759,8 @@ impl ZebpayCore {
 }));
         let mut promisesUnresolved: Value = Value::from(vec![]);
         let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
-        let mut defaultMarkets: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into())]);
-        let mut types: Value = self.safe_list_k(fetchMarketsOptions, "types", &[defaultMarkets.clone()]);
+        let mut defaultMarkets: Value = Value::from(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string())]);
+        let mut types: Value = self.safe_list_k(fetchMarketsOptions, "types", &[defaultMarkets]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1160: bool = true;
@@ -772,14 +772,14 @@ impl ZebpayCore {
             }  else if (type_var.as_str() == Some("swap")) {
                 append_to_array(&mut promisesUnresolved, self.fetch_swap_markets(&[params.clone()]).await);
             }  else {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() this.options fetchMarkets \"".into())).into()), &type_var), Value::Str("\" is not a supported market type".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() this.options fetchMarkets \"".to_string()))), &type_var), Value::Str("\" is not a supported market type".to_string()))));
             }
         }
         }
         let mut promises: Value = promise_all(&promisesUnresolved).await;
         let mut spotMarkets: Value = self.safe_list(promises.clone(), Value::Int(0), &[Value::from(vec![])]);
-        let mut futureMarkets: Value = self.safe_list(promises.clone(), Value::Int(1), &[Value::from(vec![])]);
-        return self.array_concat(spotMarkets.clone(), futureMarkets.clone());
+        let mut futureMarkets: Value = self.safe_list(promises, Value::Int(1), &[Value::from(vec![])]);
+        return self.array_concat(spotMarkets, futureMarkets);
 
     Value::Null
 }
@@ -797,7 +797,7 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_spot_get_v2_ex_currencies(&[params.clone()]).await;
+        let mut response: Value = self.public_spot_get_v2_ex_currencies(&[params]).await;
         //
         //     {
         //             "data": [
@@ -830,7 +830,7 @@ impl ZebpayCore {
         //     }
         //
         let mut rows: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_currencies(rows.clone());
+        return self.parse_currencies(rows);
 
     Value::Null
 }
@@ -877,12 +877,12 @@ impl ZebpayCore {
             if (networkCode != Value::Null) {
                 add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), chain.clone());
-        m.insert("id".to_string(), networkId.clone());
+        m.insert("info".to_string(), chain);
+        m.insert("id".to_string(), networkId);
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Bool(is_true(&depositAllowed) && is_true(&withdrawAllowed)));
-        m.insert("deposit".to_string(), depositAllowed.clone());
-        m.insert("withdraw".to_string(), withdrawAllowed.clone());
+        m.insert("deposit".to_string(), depositAllowed);
+        m.insert("withdraw".to_string(), withdrawAllowed);
         m.insert("fee".to_string(), self.parse_number(withdrawFeeString, &[]));
         m.insert("precision".to_string(), precision.clone());
         m.insert("limits".to_string(), Value::Map({
@@ -908,15 +908,15 @@ impl ZebpayCore {
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), rawCurrency.clone());
-        m.insert("code".to_string(), code.clone());
-        m.insert("id".to_string(), currencyId.clone());
-        m.insert("name".to_string(), name.clone());
+        m.insert("info".to_string(), rawCurrency);
+        m.insert("code".to_string(), code);
+        m.insert("id".to_string(), currencyId);
+        m.insert("name".to_string(), name);
         m.insert("active".to_string(), Value::Bool(is_true(&deposit) && is_true(&withdraw)));
-        m.insert("deposit".to_string(), deposit.clone());
-        m.insert("withdraw".to_string(), withdraw.clone());
-        m.insert("fee".to_string(), self.parse_number(minWithdrawFeeString.clone(), &[]));
-        m.insert("precision".to_string(), precision.clone());
+        m.insert("deposit".to_string(), deposit);
+        m.insert("withdraw".to_string(), withdraw);
+        m.insert("fee".to_string(), self.parse_number(minWithdrawFeeString, &[]));
+        m.insert("precision".to_string(), precision);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -927,19 +927,19 @@ impl ZebpayCore {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(minWithdrawString.clone(), &[]));
+        m.insert("min".to_string(), self.parse_number(minWithdrawString, &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(minDepositString.clone(), &[]));
+        m.insert("min".to_string(), self.parse_number(minDepositString, &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
     m
 }));
-        m.insert("networks".to_string(), networks.clone());
+        m.insert("networks".to_string(), networks);
     m
 }));
 
@@ -965,7 +965,7 @@ impl ZebpayCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Null;
         let mut request: Value = Value::Map({
@@ -1011,12 +1011,12 @@ impl ZebpayCore {
             // }
             //
             let mut responseData: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-            data = self.safe_dict(responseData.clone(), Value::Int(0), &[Value::Map({
+            data = self.safe_dict(responseData, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         }
-        return self.parse_trading_fee(data.clone(), &[market.clone()]);
+        return self.parse_trading_fee(data.clone(), &[market]);
 
     Value::Null
 }
@@ -1035,7 +1035,7 @@ impl ZebpayCore {
     m
 }));
         let mut type_var: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTradingFees".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
             response = self.public_spot_get_v2_ex_tradefees(&[params.clone()]).await;
@@ -1068,7 +1068,7 @@ impl ZebpayCore {
             let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = fee.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut result, &symbol, fee.clone());
+                add_element_to_object(&mut result, &symbol, fee);
             }
         }
         }
@@ -1097,7 +1097,7 @@ impl ZebpayCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1130,8 +1130,8 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orderbook: Value = self.parse_order_book(bookData.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(bookData.clone(), "nonce", &[]));
+        let mut orderbook: Value = self.parse_order_book(bookData.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Int(0), Value::Int(1)]);
+        add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(bookData, "nonce", &[]));
         return orderbook;
 
     Value::Null
@@ -1155,7 +1155,7 @@ impl ZebpayCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1173,7 +1173,7 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(data.clone(), &[market.clone()]);
+        return self.parse_ticker(data.clone(), &[market]);
 
     Value::Null
 }
@@ -1194,9 +1194,9 @@ impl ZebpayCore {
     m
 }));
         let mut type_var: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (type_var.as_str() != Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() does not support ".into())).into()), type_var).into()), Value::Str(" markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() does not support ".to_string()))), type_var)), Value::Str(" markets".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1222,7 +1222,7 @@ impl ZebpayCore {
         //     ]
         //
         let mut tickerList: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-        return self.parse_tickers(tickerList.clone(), &[symbols.clone()]);
+        return self.parse_tickers(tickerList, &[symbols]);
 
     Value::Null
 }
@@ -1242,7 +1242,7 @@ impl ZebpayCore {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
@@ -1252,7 +1252,7 @@ impl ZebpayCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         if (limit == Value::Null) {
             limit = Value::Int(100); // default is 200
         }
@@ -1276,15 +1276,15 @@ impl ZebpayCore {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("since".to_string(), since.clone()); }
             }
         }
-        let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("endtime".into()), &[]);
+        let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("endtime".to_string()), &[]);
         if (until != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), until.clone()); }
-            params = self.omit(params.clone(), Value::from(vec![Value::Str("endtime".into()), Value::Str("until".into())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("endtime".to_string()), Value::Str("until".to_string())]), &[]);
         }
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             if (until == Value::Null) || (since == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() requires a both a since and until/endtime parameter for spot markets".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() requires a both a since and until/endtime parameter for spot markets".to_string()))));
             }
             let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_spot_get_v2_market_klines(&[__ws_arg_6]).await;
@@ -1324,7 +1324,7 @@ impl ZebpayCore {
         //             ]
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+        return self.parse_ohlc_vs(data.clone(), &[market, timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1351,7 +1351,7 @@ impl ZebpayCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1381,7 +1381,7 @@ impl ZebpayCore {
         //     ]
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-        return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        return self.parse_trades(data.clone(), &[market, since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1413,10 +1413,10 @@ impl ZebpayCore {
             market = self.market(symbol);
         }
         let mut type_var: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchMyTrades".to_string()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() does not support spot markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() does not support spot markets".to_string()))));
         }  else {
             response = self.private_swap_get_v1_trade_history(&[params.clone()]).await;
         }
@@ -1425,7 +1425,7 @@ impl ZebpayCore {
     m
 })]);
         let mut items: Value = self.safe_list_k(data.clone(), "items", &[Value::from(vec![])]);
-        return self.parse_trades(items.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        return self.parse_trades(items, &[market, since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1451,9 +1451,9 @@ impl ZebpayCore {
     m
 }));
         let mut type_var: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrderTrades".into()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrderTrades".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (type_var.as_str() != Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() does not support ".into())).into()), type_var).into()), Value::Str(" markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() does not support ".to_string()))), type_var)), Value::Str(" markets".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1487,7 +1487,7 @@ impl ZebpayCore {
     m
 })]);
         let mut trades: Value = Value::from(vec![data.clone()]);
-        return self.parse_trades(trades.clone(), &[]);
+        return self.parse_trades(trades, &[]);
 
     Value::Null
 }
@@ -1526,32 +1526,32 @@ impl ZebpayCore {
         //   }
         //
         //
-        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("aggregateTradeId".into()), &[]);
-        let mut orderId: Value = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("order".into()), &[]);
-        let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("timestamp".into()), Value::Str("tradeTime".into()), &[]);
+        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("aggregateTradeId".to_string()), &[]);
+        let mut orderId: Value = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("order".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("timestamp".to_string()), Value::Str("tradeTime".to_string()), &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
-        market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".into())]);
+        market = self.safe_market(&[marketId, market.clone(), Value::Str("_".to_string())]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("amount".into()), Value::Str("quantity".into()), &[]);
+        let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("amount".to_string()), Value::Str("quantity".to_string()), &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("symbol".to_string(), symbol.clone());
-        m.insert("order".to_string(), orderId.clone());
-        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]));
-        m.insert("side".to_string(), side.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("symbol".to_string(), symbol);
+        m.insert("order".to_string(), orderId);
+        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".to_string()), &[]));
+        m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), priceString.clone());
-        m.insert("amount".to_string(), amountString.clone());
+        m.insert("price".to_string(), priceString);
+        m.insert("amount".to_string(), amountString);
         m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "cost", &[]));
         m.insert("fee".to_string(), self.safe_dict_k(trade, "fee", &[]));
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1574,7 +1574,7 @@ impl ZebpayCore {
             self.load_markets(&[]).await;
         }
         let mut type_var: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isSpot: bool = type_var.as_str() == Some("spot");
         let mut response: Value = Value::Null;
         if isSpot {
@@ -1619,9 +1619,9 @@ impl ZebpayCore {
         let mut upperCaseType: Value = to_upper(&type_var);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("marginAsset".into()), Value::Str("takeProfitPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("marginAsset".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1635,29 +1635,29 @@ impl ZebpayCore {
             let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_spot_post_v2_ex_orders(&[__ws_arg_11]).await;
         }  else {
-            let mut marginAsset: Value = self.safe_string_k(params.clone(), "marginAsset", &[Value::Str("INR".into())]);
-            let mut formType: Value = self.safe_string_upper(params.clone(), Value::Str("formType".into()), &[Value::Str("ORDER_FORM".into())]);
-            add_element_to_object(&mut request, &Value::Str("formType".into()), formType.clone());
-            add_element_to_object(&mut request, &Value::Str("amount".into()), self.parse_to_numeric(self.amount_to_precision(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), amount.clone())));
-            add_element_to_object(&mut request, &Value::Str("marginAsset".into()), marginAsset.clone());
+            let mut marginAsset: Value = self.safe_string_k(params.clone(), "marginAsset", &[Value::Str("INR".to_string())]);
+            let mut formType: Value = self.safe_string_upper(params.clone(), Value::Str("formType".to_string()), &[Value::Str("ORDER_FORM".to_string())]);
+            add_element_to_object(&mut request, &Value::Str("formType".to_string()), formType);
+            add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.parse_to_numeric(self.amount_to_precision(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), amount.clone())));
+            add_element_to_object(&mut request, &Value::Str("marginAsset".to_string()), marginAsset);
             let mut hasTP: bool = takeProfitPrice != Value::Null;
             let mut hasSL: bool = stopLossPrice != Value::Null;
             if hasTP || hasSL {
                 if hasTP {
-                    add_element_to_object(&mut request, &Value::Str("takeProfitPrice".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), takeProfitPrice.clone())));
+                    add_element_to_object(&mut request, &Value::Str("takeProfitPrice".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), takeProfitPrice.clone())));
                 }
                 if hasSL {
-                    add_element_to_object(&mut request, &Value::Str("stopLossPrice".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), stopLossPrice.clone())));
+                    add_element_to_object(&mut request, &Value::Str("stopLossPrice".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), stopLossPrice.clone())));
                 }
                 let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_swap_post_v1_trade_order_add_tpsl(&[__ws_arg_12]).await;
             }  else {
-                add_element_to_object(&mut request, &Value::Str("type".into()), upperCaseType.clone());
+                add_element_to_object(&mut request, &Value::Str("type".to_string()), upperCaseType);
                 if (type_var.as_str() == Some("limit")) {
                     if (price == Value::Null) {
-                        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit orders".into()))));
+                        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit orders".to_string()))));
                     }
-                    add_element_to_object(&mut request, &Value::Str("price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), price.clone())));
+                    add_element_to_object(&mut request, &Value::Str("price".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), price.clone())));
                 }
                 let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_swap_post_v1_trade_order(&[__ws_arg_13]).await;
@@ -1674,7 +1674,7 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(data.clone(), &[market.clone()]);
+        return self.parse_order(data.clone(), &[market]);
 
     Value::Null
 }
@@ -1687,24 +1687,24 @@ impl ZebpayCore {
 }));
         let mut upperCaseType: Value = to_upper(&type_var);
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
-        let mut quoteOrderQty: Value = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[Value::Null]);
-        let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".into())]);
+        let mut quoteOrderQty: Value = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".to_string()), Value::Str("cost".to_string()), &[Value::Null]);
+        let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".to_string())]);
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[self.uuid(&[])]);
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("cost".into()), Value::Str("timeInForce".into()), Value::Str("clientOrderId".into())]), &[]);
-        add_element_to_object(&mut request, &Value::Str("type".into()), upperCaseType.clone());
-        add_element_to_object(&mut request, &Value::Str("clientOrderId".into()), clientOrderId.clone());
-        add_element_to_object(&mut request, &Value::Str("timeInForce".into()), timeInForce.clone());
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".to_string()), Value::Str("cost".to_string()), Value::Str("timeInForce".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+        add_element_to_object(&mut request, &Value::Str("type".to_string()), upperCaseType.clone());
+        add_element_to_object(&mut request, &Value::Str("clientOrderId".to_string()), clientOrderId);
+        add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), timeInForce);
         if (upperCaseType.as_str() == Some("MARKET")) {
             if (quoteOrderQty == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" spot market orders require cost in params".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" spot market orders require cost in params".to_string()))));
             }
-            add_element_to_object(&mut request, &Value::Str("quoteOrderAmount".into()), self.cost_to_precision(symbol.clone(), quoteOrderQty.clone()));
+            add_element_to_object(&mut request, &Value::Str("quoteOrderAmount".to_string()), self.cost_to_precision(symbol.clone(), quoteOrderQty));
         }  else {
             if (triggerPrice != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("stopLossPrice".into()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
+                add_element_to_object(&mut request, &Value::Str("stopLossPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice));
             }
-            add_element_to_object(&mut request, &Value::Str("amount".into()), self.amount_to_precision(symbol.clone(), amount.clone()));
-            add_element_to_object(&mut request, &Value::Str("price".into()), self.price_to_precision(symbol.clone(), price.clone()));
+            add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+            add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         return Value::from(vec![request.clone(), params.clone()]);
 
@@ -1745,9 +1745,9 @@ impl ZebpayCore {
         }  else {
             let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
             if (clientOrderId == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter for swap orders".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter for swap orders".to_string()))));
             }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientOrderId".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientOrderId".to_string(), clientOrderId); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_swap_delete_v1_trade_order(&[__ws_arg_15]).await;
@@ -1777,9 +1777,9 @@ impl ZebpayCore {
     m
 }));
         let mut type_var: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelAllOrders".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (type_var.as_str() != Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() does not support ".into())).into()), type_var).into()), Value::Str(" markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() does not support ".to_string()))), type_var)), Value::Str(" markets".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1798,7 +1798,7 @@ impl ZebpayCore {
     m
 })]);
         let mut parsedOrder: Value = self.parse_order(data.clone(), &[]);
-        return Value::from(vec![parsedOrder.clone()]);
+        return Value::from(vec![parsedOrder]);
 
     Value::Null
 }
@@ -1861,7 +1861,7 @@ impl ZebpayCore {
 })]);
             orders = self.safe_list_k(responseData.clone(), "data", &[Value::from(vec![])]);
         }
-        return self.parse_orders(orders.clone(), &[market.clone(), Value::Null, limit.clone()]);
+        return self.parse_orders(orders.clone(), &[market, Value::Null, limit.clone()]);
 
     Value::Null
 }
@@ -1932,7 +1932,7 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(responseData.clone(), &[market.clone()]);
+        return self.parse_order(responseData.clone(), &[market]);
 
     Value::Null
 }
@@ -1957,7 +1957,7 @@ impl ZebpayCore {
         //      }
         //
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-        market = self.safe_market(&[marketId.clone(), market.clone()]);
+        market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut timestamp: Value = self.safe_number_k(order.clone(), "timestamp", &[]);
@@ -1967,35 +1967,35 @@ impl ZebpayCore {
         let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
-        let mut status: Value = self.safe_string_lower(order.clone(), Value::Str("status".into()), &[]);
+        let mut status: Value = self.safe_string_lower(order.clone(), Value::Str("status".to_string()), &[]);
         let mut orderId: Value = self.safe_string_k(order.clone(), "orderId", &[]);
         let mut parsedOrder: Value = self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), orderId.clone());
-        m.insert("clientOrderId".to_string(), clientOrderId.clone());
+        m.insert("id".to_string(), orderId);
+        m.insert("clientOrderId".to_string(), clientOrderId);
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("type".to_string(), type_var.clone());
-        m.insert("timeInForce".to_string(), timeInForce.clone());
+        m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side.clone());
+        m.insert("side".to_string(), side);
         m.insert("amount".to_string(), amount.clone());
         m.insert("price".to_string(), price.clone());
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), datetime.clone());
+        m.insert("timestamp".to_string(), timestamp);
+        m.insert("datetime".to_string(), datetime);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("status".to_string(), status.clone());
-        m.insert("info".to_string(), order.clone());
+        m.insert("status".to_string(), status);
+        m.insert("info".to_string(), order);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[market.clone()]);
+}), &[market]);
         return parsedOrder;
 
     Value::Null
@@ -2033,7 +2033,7 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(data.clone(), &[market.clone()]);
+        return self.parse_order(data.clone(), &[market]);
 
     Value::Null
 }
@@ -2070,7 +2070,7 @@ impl ZebpayCore {
         //     }
         //
         let mut leveragePreferences: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-        return self.parse_leverages(leveragePreferences.clone(), &[symbols.clone(), Value::Str("symbol".into())]);
+        return self.parse_leverages(leveragePreferences, &[symbols, Value::Str("symbol".to_string())]);
 
     Value::Null
 }
@@ -2095,7 +2095,7 @@ impl ZebpayCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.safe_string_upper(market.clone(), Value::Str("id".into()), &[]));
+                m.insert("symbol".to_string(), self.safe_string_upper(market.clone(), Value::Str("id".to_string()), &[]));
             m
         });
         let __ws_arg_21 = self.extend(request, &[params.clone()]);
@@ -2109,7 +2109,7 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_leverage(data.clone(), &[market.clone()]);
+        return self.parse_leverage(data.clone(), &[market]);
 
     Value::Null
 }
@@ -2131,7 +2131,7 @@ impl ZebpayCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2139,7 +2139,7 @@ impl ZebpayCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("leverage".to_string(), leverage.clone());
+                m.insert("leverage".to_string(), leverage);
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
@@ -2194,8 +2194,8 @@ impl ZebpayCore {
         //    }
         //
         let mut positions: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-        let mut result: Value = self.parse_positions(positions.clone(), &[]);
-        return self.filter_by_array_positions(result.clone(), Value::Str("symbol".into()), &[symbols.clone(), Value::Bool(false)]);
+        let mut result: Value = self.parse_positions(positions, &[]);
+        return self.filter_by_array_positions(result, Value::Str("symbol".to_string()), &[symbols, Value::Bool(false)]);
 
     Value::Null
 }
@@ -2251,11 +2251,11 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let __ws_arg_25 = self.parse_margin_modification(data.clone(), &[market.clone()]);
+        let __ws_arg_25 = self.parse_margin_modification(data.clone(), &[market]);
         return self.extend(__ws_arg_25, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount.clone());
-        m.insert("direction".to_string(), Value::Str("in".into()));
+        m.insert("direction".to_string(), Value::Str("in".to_string()));
     m
 })]);
 
@@ -2307,11 +2307,11 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let __ws_arg_27 = self.parse_margin_modification(data.clone(), &[market.clone()]);
+        let __ws_arg_27 = self.parse_margin_modification(data.clone(), &[market]);
         return self.extend(__ws_arg_27, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount.clone());
-        m.insert("direction".to_string(), Value::Str("out".into()));
+        m.insert("direction".to_string(), Value::Str("out".to_string()));
     m
 })]);
 
@@ -2359,16 +2359,16 @@ impl ZebpayCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
                     m.insert("symbol".to_string(), symbol.clone());
-                    m.insert("base".to_string(), base.clone());
-                    m.insert("quote".to_string(), quote.clone());
-                    m.insert("baseId".to_string(), baseId.clone());
-                    m.insert("quoteId".to_string(), quoteId.clone());
-                    m.insert("type".to_string(), Value::Str("spot".into()));
+                    m.insert("base".to_string(), base);
+                    m.insert("quote".to_string(), quote);
+                    m.insert("baseId".to_string(), baseId);
+                    m.insert("quoteId".to_string(), quoteId);
+                    m.insert("type".to_string(), Value::Str("spot".to_string()));
                     m.insert("spot".to_string(), Value::Bool(true));
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("margin".to_string(), Value::Bool(false));
@@ -2408,7 +2408,7 @@ impl ZebpayCore {
 }));
     m
 }));
-                    m.insert("info".to_string(), market.clone());
+                    m.insert("info".to_string(), market);
                 m
             }));
         }
@@ -2466,20 +2466,20 @@ impl ZebpayCore {
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settle: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             append_to_array(&mut result, self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into()));
-        m.insert("base".to_string(), base.clone());
-        m.insert("quote".to_string(), quote.clone());
-        m.insert("baseId".to_string(), baseId.clone());
-        m.insert("quoteId".to_string(), quoteId.clone());
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle)));
+        m.insert("base".to_string(), base);
+        m.insert("quote".to_string(), quote);
+        m.insert("baseId".to_string(), baseId);
+        m.insert("quoteId".to_string(), quoteId);
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(false));
-        m.insert("type".to_string(), Value::Str("swap".into()));
+        m.insert("type".to_string(), Value::Str("swap".to_string()));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("Open"))));
         m.insert("contract".to_string(), Value::Bool(true));
@@ -2503,7 +2503,7 @@ impl ZebpayCore {
 }));
     m
 }));
-        m.insert("info".to_string(), market.clone());
+        m.insert("info".to_string(), market);
     m
 })]));
         }
@@ -2532,14 +2532,14 @@ impl ZebpayCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(entry.clone(), "total", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(entry.clone(), "free", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(entry.clone(), "used", &[])); }
-            let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+            let mut currencyId: Value = self.safe_string_k(entry, "currency", &[]);
+            let mut code: Value = self.safe_currency_code(currencyId, &[]);
             if (code != Value::Null) {
-                add_element_to_object(&mut result, &code, account.clone());
+                add_element_to_object(&mut result, &code, account);
             }
         }
         }
-        return self.safe_balance(result.clone());
+        return self.safe_balance(result);
 
     Value::Null
 }
@@ -2564,16 +2564,16 @@ impl ZebpayCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
-        m.insert("symbol".to_string(), marketId.clone());
+        m.insert("symbol".to_string(), marketId);
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
-        m.insert("datetime".to_string(), datetime.clone());
+        m.insert("datetime".to_string(), datetime);
         m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "initialMargin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entryPrice", &[]));
         m.insert("notional".to_string(), self.safe_number_k(position.clone(), "notional", &[]));
-        m.insert("leverage".to_string(), leverage.clone());
+        m.insert("leverage".to_string(), leverage);
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "contracts", &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(market, "contractSize", &[]));
@@ -2581,8 +2581,8 @@ impl ZebpayCore {
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("marginType".to_string(), Value::Str("isolated".into()));
-        m.insert("side".to_string(), self.safe_string_k(position.clone(), "side", &[]));
+        m.insert("marginType".to_string(), Value::Str("isolated".to_string()));
+        m.insert("side".to_string(), self.safe_string_k(position, "side", &[]));
         m.insert("percentage".to_string(), Value::Null);
     m
 });
@@ -2596,14 +2596,14 @@ impl ZebpayCore {
         let mut info: Value = self.safe_dict_k(leverage.clone(), "info", &[]);
         let mut leverageValue: Value = self.safe_integer_k(leverage.clone(), "longLeverage", &[]);
         let mut leverageValueShort: Value = self.safe_integer_k(leverage.clone(), "shortLeverage", &[]);
-        let mut marginMode: Value = self.safe_string_k(leverage.clone(), "marginMode", &[]);
+        let mut marginMode: Value = self.safe_string_k(leverage, "marginMode", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), info.clone());
-        m.insert("symbol".to_string(), marketId.clone());
-        m.insert("marginMode".to_string(), marginMode.clone());
-        m.insert("longLeverage".to_string(), leverageValue.clone());
-        m.insert("shortLeverage".to_string(), leverageValueShort.clone());
+        m.insert("info".to_string(), info);
+        m.insert("symbol".to_string(), marketId);
+        m.insert("marginMode".to_string(), marginMode);
+        m.insert("longLeverage".to_string(), leverageValue);
+        m.insert("shortLeverage".to_string(), leverageValueShort);
     m
 });
 
@@ -2613,13 +2613,13 @@ impl ZebpayCore {
     pub fn parse_trading_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(fee.clone(), "symbol", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("maker".to_string(), self.safe_number2(fee.clone(), Value::Str("makerFeeRate".into()), Value::Str("makerFee".into()), &[]));
-        m.insert("taker".to_string(), self.safe_number2(fee.clone(), Value::Str("takerFeeRate".into()), Value::Str("takerFee".into()), &[]));
+        m.insert("maker".to_string(), self.safe_number2(fee.clone(), Value::Str("makerFeeRate".to_string()), Value::Str("makerFee".to_string()), &[]));
+        m.insert("taker".to_string(), self.safe_number2(fee, Value::Str("takerFeeRate".to_string()), Value::Str("takerFee".to_string()), &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -2648,7 +2648,7 @@ impl ZebpayCore {
         //        }
         //     ]
         //
-        let mut timestamp: Value = self.safe_integer2(ticker.clone(), Value::Str("timestamp".into()), Value::Str("ts".into()), &[]);
+        let mut timestamp: Value = self.safe_integer2(ticker.clone(), Value::Str("timestamp".to_string()), Value::Str("ts".to_string()), &[]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone()]);
         let mut close: Value = self.safe_string_k(ticker.clone(), "close", &[]);
@@ -2658,30 +2658,30 @@ impl ZebpayCore {
         let mut askVolume: Value = self.safe_string_k(ticker.clone(), "askVolume", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), marketId.clone());
+        m.insert("id".to_string(), marketId);
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
-        m.insert("bidVolume".to_string(), bidVolume.clone());
+        m.insert("bidVolume".to_string(), bidVolume);
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "ask", &[]));
-        m.insert("askVolume".to_string(), askVolume.clone());
+        m.insert("askVolume".to_string(), askVolume);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), close.clone());
-        m.insert("last".to_string(), last.clone());
+        m.insert("close".to_string(), close);
+        m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), self.safe_string_k(ticker.clone(), "previousClose", &[]));
         m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "change", &[]));
-        m.insert("percentage".to_string(), percentage.clone());
+        m.insert("percentage".to_string(), percentage);
         m.insert("average".to_string(), self.safe_string_k(ticker.clone(), "average", &[]));
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "baseVolume", &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "quoteVolume", &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("info".to_string(), ticker.clone());
+        m.insert("info".to_string(), ticker);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -2701,15 +2701,15 @@ impl ZebpayCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
-        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market, "id", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(info.clone(), "amount", &[]));
         m.insert("total".to_string(), Value::Null);
         m.insert("code".to_string(), self.safe_string_k(info.clone(), "code", &[]));
-        m.insert("status".to_string(), self.safe_string_k(info.clone(), "status", &[]));
+        m.insert("status".to_string(), self.safe_string_k(info, "status", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -2717,68 +2717,68 @@ impl ZebpayCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        params = self.omit(params.clone(), Value::Str("defaultType".into()), &[]);
-        let mut isV1: bool = get_index_of(&path, &Value::Str("v1/".into())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        let mut marketType: Value = (if isV1 { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
+        params = self.omit(params.clone(), Value::Str("defaultType".to_string()), &[]);
+        let mut isV1: bool = get_index_of(&path, &Value::Str("v1/".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
+        let mut marketType: Value = (if isV1 { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &marketType);
-        let mut tail: Value = Value::Str(format!("{}{}", Value::Str("/api/".into()), self.implode_params(path.clone(), params.clone())).into());
+        let mut tail: Value = Value::Str(format!("{}{}", Value::Str("/api/".to_string()), self.implode_params(path.clone(), params.clone())));
         url = add(&url, &tail);
         let mut timestamp: Value = to_string_val(&self.milliseconds());
-        let mut signature: Value = Value::Str("".into());
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut signature: Value = Value::Str("".to_string());
+        let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
         let mut queryLength: Value = Value::Int(object_keys(&query).len() as i64);
-        let mut access: Option<String> = self.safe_string(api.clone(), Value::Int(0), &[Value::Str("public".into())]).as_str().map(str::to_owned);
+        let mut access: Option<String> = self.safe_string(api, Value::Int(0), &[Value::Str("public".to_string())]).as_str().map(str::to_owned);
         if (access.as_deref() == Some("public")) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 if is_true(&(queryLength != Value::Null)) && is_true(&(queryLength.as_f64() != Some(0.0))) {
-                    url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into()));
+                    url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[]))));
                 }
             }  else {
                 body = json_stringify(&params);
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("Referrer".to_string(), Value::Str("ccxt".into()));
-                        m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
+                        m.insert("Referrer".to_string(), Value::Str("ccxt".to_string()));
+                        m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
                     m
                 });
             }
         }  else {
             self.check_required_credentials(&[]);
             let mut isSpot: bool = marketType.as_str() == Some("spot");
-            add_element_to_object(&mut params, &Value::Str("timestamp".into()), timestamp.clone());
+            add_element_to_object(&mut params, &Value::Str("timestamp".to_string()), timestamp);
             if (method.as_str() == Some("GET")) || is_true(&((method.as_str() == Some("DELETE")) && isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
                 let mut queryString: Value = self.urlencode(params.clone(), &[]);
-                signature = self.hmac(self.encode(queryString.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
-                url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into()));
+                signature = self.hmac(self.encode(queryString.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("hex".to_string())]);
+                url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), queryString)));
             }  else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
                 body = json_stringify(&params);
-                signature = self.hmac(self.encode(body.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+                signature = self.hmac(self.encode(body.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("hex".to_string())]);
             }
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("Referrer".to_string(), Value::Str("ccxt".into()));
+                    m.insert("Referrer".to_string(), Value::Str("ccxt".to_string()));
                     m.insert("X-AUTH-APIKEY".to_string(), self.apiKey.clone());
                     m.insert("X-AUTH-SIGNATURE".to_string(), signature.clone());
                 m
             });
-            add_element_to_object(&mut headers, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+            add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
-        m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), body.clone());
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("method".to_string(), method);
+        m.insert("body".to_string(), body);
+        m.insert("headers".to_string(), headers);
     m
 });
 
@@ -2797,12 +2797,12 @@ impl ZebpayCore {
         //     { code: "200000", data: { ... }}
         // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         //
-        let mut errorCode: Value = self.safe_string2(response.clone(), Value::Str("code".into()), Value::Str("statusCode".into()), &[]);
-        let mut message: Value = self.safe_string2(response.clone(), Value::Str("msg".into()), Value::Str("statusDescription".into()), &[]);
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message).into());
+        let mut errorCode: Value = self.safe_string2(response.clone(), Value::Str("code".to_string()), Value::Str("statusCode".to_string()), &[]);
+        let mut message: Value = self.safe_string2(response.clone(), Value::Str("msg".to_string()), Value::Str("statusDescription".to_string()), &[]);
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message));
         self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
-        self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
-        self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
+        self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message, feedback.clone());
+        self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode, feedback);
         return Value::Null;
 
     Value::Null
