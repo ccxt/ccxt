@@ -3533,7 +3533,7 @@ export class BaseExchange {
         return result;
     }
 
-    filterByLimit (array: Dict[], limit: Int = undefined, key: IndexType = 'timestamp', fromStart: boolean = false): any {
+    filterByLimit (array: any[], limit: Int = undefined, key: IndexType = 'timestamp', fromStart: boolean = false): any {
         if (this.valueIsDefined (limit)) {
             const arrayLength = array.length;
             if (arrayLength > 0) {

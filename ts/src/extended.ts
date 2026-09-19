@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, List, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict, Endpoint } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, List, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict, Endpoint } from './base/types.js';
 import { ArgumentsRequired, BadRequest, InsufficientFunds, InvalidOrder, ExchangeError, AuthenticationError } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -351,7 +351,7 @@ export default class extended extends Exchange {
         });
     }
 
-    override async loadMarkets (reload: boolean = false, params: Dict = {}): Promise<Dictionary<Market>> {
+    override async loadMarkets (reload: boolean = false, params: Dict = {}) {
         const markets = await super.loadMarkets (reload, params);
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
         if ((currenciesByNumericId === undefined) || reload) {

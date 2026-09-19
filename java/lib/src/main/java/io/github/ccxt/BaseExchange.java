@@ -4721,7 +4721,7 @@ public Object describe()
             if (Helpers.isGreaterThan(arrayLength, 0))
             {
                 Boolean ascending = true;
-                if (((key != null && ((Map<?, ?>)(array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0))).containsKey(key))))
+                if ((Helpers.inOp((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), key)))
                 {
                     Object first = Helpers.GetValue((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), key);
                     Object last = Helpers.GetValue(Helpers.GetValue(array, Helpers.subtract(arrayLength, 1)), key);

@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, DepositAddress, Dict, Dictionary, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, Transaction, TransferEntry, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, Transaction, TransferEntry, Endpoint } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -587,7 +587,7 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    override setMarkets (markets: any, currencies = undefined): Dictionary<Market> {
+    override setMarkets (markets: any, currencies = undefined) {
         const result = super.setMarkets (markets, currencies);
         const symbols = Object.keys (result);
         for (let i = 0; i < symbols.length; i++) {
@@ -2697,7 +2697,7 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.mrgPosition] 'merge' or 'split', default is merge
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<{}> {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

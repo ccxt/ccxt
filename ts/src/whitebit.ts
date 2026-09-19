@@ -756,7 +756,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTransactionFees (codes: Strings = undefined, params: Dict = {}): Promise<{}> {
+    override async fetchTransactionFees (codes: Strings = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2338,7 +2338,7 @@ export default class whitebit extends Exchange {
      * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
      * @returns {object} the api result
      */
-    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}): Promise<{}> {
+    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3052,7 +3052,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<{}> {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
