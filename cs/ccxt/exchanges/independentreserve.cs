@@ -1338,7 +1338,7 @@ public partial class independentreserve : Exchange
         {
             this.checkRequiredCredentials();
             Int64 nonce = this.nonce();
-            List<object> auth = new List<object>() {url, ("apiKey=" + (this.apiKey)), ("nonce=" + ((object)nonce).ToString())};
+            List<object> auth = new List<object>() {url, ("apiKey=" + this.apiKey), ("nonce=" + ((object)nonce).ToString())};
             List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             for (int i = 0; i < keys.Count; i++)
             {

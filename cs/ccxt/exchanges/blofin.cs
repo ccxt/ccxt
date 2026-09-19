@@ -3682,7 +3682,7 @@ public partial class blofin : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object request = ((("/api/" + (this.version)) + "/") + this.implodeParams(path, parameters));
+        object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), request);
         // const type = this.getPathAuthenticationType (path);

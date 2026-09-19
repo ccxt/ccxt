@@ -2690,7 +2690,7 @@ public partial class upbit : Exchange
         object url = this.implodeParams(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
-        url = add(url, ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters)));
+        url = add(url, ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
         object query = this.omit(parameters, this.extractParams(path));
         if (!isEqual(method, "POST"))
         {

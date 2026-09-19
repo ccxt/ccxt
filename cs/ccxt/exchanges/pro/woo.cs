@@ -84,7 +84,7 @@ public partial class woo : ccxt.woo
 
     public async virtual Task<object> watchPublic(object messageHash, object message)
     {
-        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + (this.uid)) : "";
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + this.uid) : "";
         object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -97,7 +97,7 @@ public partial class woo : ccxt.woo
     public async virtual Task<object> unwatchPublic(object subHash, object symbol, object topic, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + (this.uid)) : "";
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + this.uid) : "";
         object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
         string unsubHash = ("unsubscribe::" + (subHash));
@@ -148,7 +148,7 @@ public partial class woo : ccxt.woo
         parameters = ((IList<object>)methodparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbol);
         object topic = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method);
-        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + (this.uid)) : "";
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + this.uid) : "";
         object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = new Dictionary<string, object>() {

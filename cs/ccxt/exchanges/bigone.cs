@@ -2169,7 +2169,7 @@ public partial class bigone : Exchange
                 body = this.json(query);
             }
         }
-        ((IDictionary<string,object>)headers)["User-Agent"] = ((("ccxt/" + this.id) + "-") + (this.version));
+        ((IDictionary<string,object>)headers)["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

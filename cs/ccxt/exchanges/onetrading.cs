@@ -2034,7 +2034,7 @@ public partial class onetrading : Exchange
             this.checkRequiredCredentials();
             headers = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
-                { "Authorization", ("Bearer " + (this.apiKey)) },
+                { "Authorization", ("Bearer " + this.apiKey) },
             };
             if (isEqual(method, "POST"))
             {

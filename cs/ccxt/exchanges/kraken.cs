@@ -4072,7 +4072,7 @@ public partial class kraken : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = ((((("/" + (this.version)) + "/") + (api)) + "/") + (path));
+        object url = ((((("/" + this.version) + "/") + (api)) + "/") + (path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)

@@ -3466,7 +3466,7 @@ public partial class bitstamp : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/");
-        url = add(url, add(this.version, "/"));
+        url = add(url, (this.version + "/"));
         url = add(url, this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
@@ -3478,7 +3478,7 @@ public partial class bitstamp : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object xAuth = ("BITSTAMP " + (this.apiKey));
+            object xAuth = ("BITSTAMP " + this.apiKey);
             string xAuthNonce = this.uuid();
             string xAuthTimestamp = ((object)this.milliseconds()).ToString();
             string xAuthVersion = "v2";

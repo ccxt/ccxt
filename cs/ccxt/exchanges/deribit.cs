@@ -4535,7 +4535,7 @@ public partial class deribit : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = (((((("/" + "api/") + (this.version)) + "/") + (api)) + "/") + (path));
+        string request = (((((("/" + "api/") + this.version) + "/") + (api)) + "/") + (path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -4557,7 +4557,7 @@ public partial class deribit : Exchange
             string auth = ((((timestamp + "\n") + nonce) + "\n") + (requestData)); // eslint-disable-line quotes
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
-                { "Authorization", (((((((("deri-hmac-sha256 id=" + (this.apiKey)) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) },
+                { "Authorization", (((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) },
             };
         }
         object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), request);

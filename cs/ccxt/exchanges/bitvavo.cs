@@ -2971,7 +2971,7 @@ public partial class bitvavo : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object url = ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters));
+        object url = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         bool getOrDelete = (isEqual(method, "GET")) || (isEqual(method, "DELETE"));
         if (getOrDelete)
         {

@@ -13286,7 +13286,7 @@ public partial class kucoin : Exchange
             string? partnerSecret = this.safeString2(partner, "secret", "key");
             if (((partnerId != null)) && ((partnerSecret != null)))
             {
-                object partnerPayload = ((timestamp + partnerId) + (this.apiKey));
+                object partnerPayload = ((timestamp + partnerId) + this.apiKey);
                 string partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256, "base64");
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER-SIGN"] = partnerSignature;
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER"] = partnerId;

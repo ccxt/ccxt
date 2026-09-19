@@ -2220,7 +2220,7 @@ public partial class hollaex : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        path = ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters));
+        path = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
