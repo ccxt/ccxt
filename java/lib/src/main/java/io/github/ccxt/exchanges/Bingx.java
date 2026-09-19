@@ -6776,7 +6776,7 @@ public class Bingx extends BingxApi
             for (var i = 0; Helpers.isLessThan(i, networksLength); i++)
             {
                 Object networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
-                Object network = Helpers.GetValue(networks, networkCode);
+                Object network = (networks == null || networkCode == null ? null : networks.get(networkCode));
                 Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
@@ -6916,7 +6916,7 @@ public class Bingx extends BingxApi
         for (var i = 0; i < Helpers.getArrayLength(keys); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            Object value = Helpers.GetValue(parameters, key);
+            Object value = (parameters == null || !(key instanceof String) ? null : parameters.get(key));
             if ((value instanceof List))
             {
                 Object arrStr = "[";
@@ -7558,7 +7558,7 @@ public class Bingx extends BingxApi
         for (var i = 0; i < Helpers.getArrayLength(keys); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            Object value = Helpers.GetValue(parameters, key);
+            Object value = (parameters == null || !(key instanceof String) ? null : parameters.get(key));
             if ((value instanceof List))
             {
                 Object arrStr = null;

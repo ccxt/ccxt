@@ -381,7 +381,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(data, marketId), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((data == null || marketId == null ? null : data.get(marketId)), market);
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
                 client.resolve(ticker, this.getMessageHash("ticker", symbol));
                 client.resolve(ticker, this.getMessageHash("ticker"));
@@ -1335,7 +1335,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             for (var i = 0; i < ((List<?>)assetIds).size(); i++)
             {
                 Object assetId = (assetIds == null || i < 0 || i >= assetIds.size() ? null : assetIds.get(i));
-                Object asset = Helpers.GetValue(assets, assetId);
+                Object asset = (assets == null || assetId == null ? null : assets.get(assetId));
                 String codeId = this.safeString(asset, "symbol");
                 String code = this.safeCurrencyCode(codeId);
                 Object account = this.account();

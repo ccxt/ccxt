@@ -139,7 +139,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             // fetch different urls and overwrite each other
             ((Map<String, Object>)urls).put((String)connectId, this.spawnWithResult("negotiateHelper", privateChannel, connectId, parameters));
             Helpers.addElementToObject(this.options, "urls", urls);
-            future = Helpers.GetValue(urls, connectId);
+            future = (urls == null || connectId == null ? null : urls.get(connectId));
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 

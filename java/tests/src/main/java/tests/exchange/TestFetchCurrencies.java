@@ -89,8 +89,8 @@ public class TestFetchCurrencies extends BaseTest {
                 Helpers.addElementToObject(ids, code, Helpers.GetValue(currency, "id"));
             } else
             {
-                Boolean isDifferent = !Helpers.isEqual(Helpers.GetValue(ids, code), Helpers.GetValue(currency, "id"));
-                Assert(!Boolean.TRUE.equals(isDifferent), Helpers.add((Helpers.add((Helpers.add((exchange.id + " fetchCurrencies() has different ids for the same code: "), code) + " "), Helpers.GetValue(ids, code)) + " "), Helpers.GetValue(currency, "id")));
+                Boolean isDifferent = !Helpers.isEqual((ids == null || !(code instanceof String) ? null : ids.get(code)), Helpers.GetValue(currency, "id"));
+                Assert(!Boolean.TRUE.equals(isDifferent), Helpers.add((Helpers.add((Helpers.add((exchange.id + " fetchCurrencies() has different ids for the same code: "), code) + " "), (ids == null || !(code instanceof String) ? null : ids.get(code))) + " "), Helpers.GetValue(currency, "id")));
             }
         }
         return true;

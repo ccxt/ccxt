@@ -857,7 +857,7 @@ public class Coinspot extends CoinspotApi
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
                     Object symbol = ((Map<String, Object>)market).get("symbol");
-                    Object ticker = Helpers.GetValue(prices, id);
+                    Object ticker = (prices == null || id == null ? null : prices.get(id));
                     ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
                 }
             }

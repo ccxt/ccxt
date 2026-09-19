@@ -11168,7 +11168,7 @@ public class Bybit extends BybitApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object entry = Helpers.GetValue(grouped, marketId);
+            Object entry = (grouped == null || marketId == null ? null : grouped.get(marketId));
             for (var j = 0; j < Helpers.getArrayLength(entry); j++)
             {
                 Long id = this.safeInteger(Helpers.GetValue(entry, j), "id");

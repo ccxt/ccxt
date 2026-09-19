@@ -522,7 +522,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (Helpers.GetValue(data, marketId)), market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) ((data == null || marketId == null ? null : data.get(marketId))), market);
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             ((List<Object>)result).add(ticker);
             String messageHash = ((topic + "::") + symbol);
@@ -666,7 +666,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Object ticker = this.parseWsBidAsk((Map<String, Object>) (Helpers.GetValue(data, marketId)), market);
+            Object ticker = this.parseWsBidAsk((Map<String, Object>) ((data == null || marketId == null ? null : data.get(marketId))), market);
             Helpers.addElementToObject(this.bidsasks, symbol, ticker);
             ((List<Object>)result).add(ticker);
             String messageHash = ((topic + "::") + symbol);

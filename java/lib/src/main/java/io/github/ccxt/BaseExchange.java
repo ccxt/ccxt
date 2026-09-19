@@ -6114,7 +6114,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object network = Helpers.GetValue(networks, key);
+                Object network = (networks == null || key == null ? null : networks.get(key));
                 Boolean deposit = (Boolean) this.safeBool(network, "deposit");
                 Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit");
                 if (java.util.Objects.equals(currencyDeposit, null) || (java.util.Objects.equals(deposit, true)))
@@ -7312,9 +7312,9 @@ public Object describe()
                     ((Map<String, Object>)reduced).put((String)feeCurrencyCode, new HashMap<String, Object>() {{}});
                 }
                 String rateKey = (((java.util.Objects.equals(rate, null)))) ? "" : rate;
-                if (Helpers.inOp(Helpers.GetValue(reduced, feeCurrencyCode), rateKey))
+                if (Helpers.inOp((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(reduced, feeCurrencyCode), rateKey), "cost", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(reduced, feeCurrencyCode), rateKey), "cost"), cost));
+                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(reduced, feeCurrencyCode), rateKey), "cost", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "cost"), cost));
                 } else
                 {
                     final Object finalCode = code;
@@ -7661,17 +7661,17 @@ public Object describe()
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
             Object ts = ((Helpers.isTrue(ms))) ? Helpers.GetValue(Helpers.GetValue(ohlcvs, i), 0) : this.parseToInt(Helpers.divide(Helpers.GetValue(Helpers.GetValue(ohlcvs, i), 0), 1000));
-            Object resultTimestamp = Helpers.GetValue(result, timestamp);
+            Object resultTimestamp = (result == null || timestamp == null ? null : result.get(timestamp));
             ((List<Object>)resultTimestamp).add(ts);
-            Object resultOpen = Helpers.GetValue(result, open);
+            Object resultOpen = (result == null || open == null ? null : result.get(open));
             ((List<Object>)resultOpen).add(Helpers.GetValue(Helpers.GetValue(ohlcvs, i), 1));
-            Object resultHigh = Helpers.GetValue(result, high);
+            Object resultHigh = (result == null || high == null ? null : result.get(high));
             ((List<Object>)resultHigh).add(Helpers.GetValue(Helpers.GetValue(ohlcvs, i), 2));
-            Object resultLow = Helpers.GetValue(result, low);
+            Object resultLow = (result == null || low == null ? null : result.get(low));
             ((List<Object>)resultLow).add(Helpers.GetValue(Helpers.GetValue(ohlcvs, i), 3));
-            Object resultClose = Helpers.GetValue(result, close);
+            Object resultClose = (result == null || close == null ? null : result.get(close));
             ((List<Object>)resultClose).add(Helpers.GetValue(Helpers.GetValue(ohlcvs, i), 4));
-            Object resultVolume = Helpers.GetValue(result, volume);
+            Object resultVolume = (result == null || volume == null ? null : result.get(volume));
             ((List<Object>)resultVolume).add(Helpers.GetValue(Helpers.GetValue(ohlcvs, i), 5));
         }
         return result;
@@ -8027,7 +8027,7 @@ public Object describe()
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object baseCoin = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object entry = Helpers.GetValue(replacements, baseCoin);
+            Object entry = (replacements == null || baseCoin == null ? null : replacements.get(baseCoin));
             Object primary = Helpers.GetValue(entry, "primary");
             Object secondary = Helpers.GetValue(entry, "secondary");
             if (!java.util.Objects.equals(networkCode, primary) && !java.util.Objects.equals(networkCode, secondary))
@@ -8094,14 +8094,14 @@ public Object describe()
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(Helpers.GetValue(currenciesToCheck, i), "networks", new HashMap<String, Object>() {{}});
             if (networks.containsKey(networkCode))
             {
-                return this.safeString(Helpers.GetValue(networks, networkCode), "id");
+                return this.safeString((networks == null || networkCode == null ? null : networks.get(networkCode)), "id");
             }
         }
         // before returning the original input, try to match if it's backward-maintained networkCode
         Map<String, Object> oldCodes = (Map<String, Object>) this.safeDict(this.options, "backwardSupportedNetworkCodes", new HashMap<String, Object>() {{}});
         if (oldCodes.containsKey(networkCode))
         {
-            return this.networkCodeToId(Helpers.GetValue(oldCodes, networkCode), currencyCode);
+            return this.networkCodeToId((oldCodes == null || networkCode == null ? null : oldCodes.get(networkCode)), currencyCode);
         }
         return networkCode;
     }
@@ -8163,7 +8163,7 @@ public Object describe()
         if (defaultNetworks.containsKey(currencyCode))
         {
             // if currency had set its network in "defaultNetworks", use it
-            defaultNetworkCode = Helpers.GetValue(defaultNetworks, currencyCode);
+            defaultNetworkCode = (defaultNetworks == null || currencyCode == null ? null : defaultNetworks.get(currencyCode));
         } else
         {
             // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
@@ -10355,7 +10355,7 @@ public Object describe()
             return Helpers.GetValue(markets, symbol);
         } else if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(symbol)))
         {
-            Object marketsList = Helpers.GetValue(marketsById, symbol);
+            Object marketsList = (marketsById == null || symbol == null ? null : marketsById.get(symbol));
             String defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
             for (var i = 0; i < Helpers.getArrayLength(marketsList); i++)
             {
@@ -11392,7 +11392,7 @@ public Object describe()
         Object lowercaseAccount = ((String)account).toLowerCase();
         if ((lowercaseAccount != null && accountsByType.containsKey(lowercaseAccount)))
         {
-            return Helpers.GetValue(accountsByType, lowercaseAccount);
+            return (accountsByType == null || !(lowercaseAccount instanceof String) ? null : accountsByType.get(lowercaseAccount));
         }
         Object markets = this.markets;
         Map<String, Object> marketsById = this.markets_by_id;

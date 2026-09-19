@@ -1628,7 +1628,7 @@ public class Bittrade extends BittradeApi
             Object account = null;
             if ((!java.util.Objects.equals(code, null)) && (result.containsKey(code)))
             {
-                account = Helpers.GetValue(result, code);
+                account = (result == null || code == null ? null : result.get(code));
             } else
             {
                 account = this.account();

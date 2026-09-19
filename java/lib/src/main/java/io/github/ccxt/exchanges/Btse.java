@@ -1440,7 +1440,7 @@ public class Btse extends BtseApi
             for (var i = 0; i < ((List<?>)symbolKeys).size(); i++)
             {
                 Object symbolKey = (symbolKeys == null || i < 0 || i >= symbolKeys.size() ? null : symbolKeys.get(i));
-                Object tiersList = Helpers.GetValue(result, symbolKey);
+                Object tiersList = (result == null || symbolKey == null ? null : result.get(symbolKey));
                 for (var j = 0; j < Helpers.getArrayLength(tiersList); j++)
                 {
                     if ((j == 0))

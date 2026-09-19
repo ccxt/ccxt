@@ -2556,7 +2556,7 @@ public class Coinbase extends CoinbaseApi
                 Object marketId = ((baseId + delimiter) + quoteId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, delimiter);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(Helpers.GetValue(rates, baseId), market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTicker((rates == null || baseId == null ? null : rates.get(baseId)), market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });

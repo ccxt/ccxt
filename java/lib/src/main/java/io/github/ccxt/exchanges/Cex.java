@@ -461,7 +461,7 @@ public class Cex extends CexApi
         for (var j = 0; j < ((List<?>)keys).size(); j++)
         {
             Object networkId = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
-            Object rawNetwork = Helpers.GetValue(rawNetworks, networkId);
+            Object rawNetwork = (rawNetworks == null || networkId == null ? null : rawNetworks.get(networkId));
             Object networkCode = this.networkIdToCode(networkId, code);
             Boolean deposit = java.util.Objects.equals(this.safeString(rawNetwork, "deposit"), "enabled");
             Boolean withdraw = java.util.Objects.equals(this.safeString(rawNetwork, "withdrawal"), "enabled");
@@ -1062,7 +1062,7 @@ public class Cex extends CexApi
             {
                 market = this.safeMarket(key);
             }
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(response, key)), market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) ((response == null || key == null ? null : response.get(key))), market);
             if (!java.util.Objects.equals(((Map<String, Object>)parsed).get("symbol"), null))
             {
                 ((Map<String, Object>)result).put((String)((Map<String, Object>)parsed).get("symbol"), parsed);

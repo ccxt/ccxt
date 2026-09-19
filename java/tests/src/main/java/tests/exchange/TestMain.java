@@ -413,7 +413,7 @@ public class TestMain extends BaseTest
         for (var i = 0; i < ((List<?>)objectNames).size(); i++)
         {
             Object objectName = (objectNames == null || i < 0 || i >= objectNames.size() ? null : objectNames.get(i));
-            Object objectMethods = Helpers.GetValue(objectSkips, objectName);
+            Object objectMethods = (objectSkips == null || objectName == null ? null : objectSkips.get(objectName));
             if (Helpers.isTrue(exchange.inArray(methodName, objectMethods)))
             {
                 // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"

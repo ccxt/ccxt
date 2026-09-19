@@ -449,7 +449,7 @@ public class Hollaex extends HollaexApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object market = Helpers.GetValue(pairs, key);
+                Object market = (pairs == null || key == null ? null : pairs.get(key));
                 String baseId = this.safeString(market, "pair_base");
                 String quoteId = this.safeString(market, "pair_2");
                 Object base = this.commonCurrencyCode(baseId.toUpperCase());
@@ -2352,7 +2352,7 @@ public class Hollaex extends HollaexApi
             for (var i = 0; Helpers.isLessThan(i, keysLength); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object value = Helpers.GetValue(withdrawalFees, key);
+                Object value = (withdrawalFees == null || key == null ? null : withdrawalFees.get(key));
                 String currencyId = this.safeString(value, "symbol");
                 String currencyCode = this.safeCurrencyCode(currencyId);
                 Object networkCode = this.networkIdToCode(key, currencyCode);

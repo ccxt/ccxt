@@ -753,7 +753,7 @@ public class Indodax extends IndodaxApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object rawTicker = Helpers.GetValue(tickers, key);
+                Object rawTicker = (tickers == null || key == null ? null : tickers.get(key));
                 Object marketId = Helpers.replace(((String)key), "_", "");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(rawTicker, market);
@@ -1507,13 +1507,13 @@ public class Indodax extends IndodaxApi
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
                     Object key = Helpers.GetValue(keys, i);
-                    transactions = this.arrayConcat(transactions, Helpers.GetValue(withdraw, key));
+                    transactions = this.arrayConcat(transactions, (withdraw == null || key == null ? null : withdraw.get(key)));
                 }
                 keys = new ArrayList<Object>(deposit.keySet());
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
                     Object key = Helpers.GetValue(keys, i);
-                    transactions = this.arrayConcat(transactions, Helpers.GetValue(deposit, key));
+                    transactions = this.arrayConcat(transactions, (deposit == null || key == null ? null : deposit.get(key)));
                 }
             } else
             {

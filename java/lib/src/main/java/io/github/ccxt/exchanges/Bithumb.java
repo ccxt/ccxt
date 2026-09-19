@@ -717,7 +717,7 @@ public class Bithumb extends BithumbApi
                         {
                             continue;
                         }
-                        Object market = Helpers.GetValue(data, currencyId);
+                        Object market = (data == null || currencyId == null ? null : data.get(currencyId));
                         String base = this.safeCurrencyCode(currencyId);
                         Boolean active = true;
                         if ((market instanceof List))
@@ -1358,7 +1358,7 @@ public class Bithumb extends BithumbApi
                     for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                     {
                         Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
-                        Object ticker = Helpers.GetValue(data, currencyId);
+                        Object ticker = (data == null || currencyId == null ? null : data.get(currencyId));
                         String base = this.safeCurrencyCode(currencyId);
                         Object symbol = Helpers.add((base + "/"), quote);
                         Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
@@ -3913,7 +3913,7 @@ public class Bithumb extends BithumbApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = Helpers.GetValue(query, key);
+            Object value = (query == null || key == null ? null : query.get(key));
             if ((value instanceof List))
             {
                 String encodedKey = (this.encodeURIComponent(key) + "[]");

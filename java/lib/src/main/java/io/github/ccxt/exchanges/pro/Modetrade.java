@@ -1504,7 +1504,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = Helpers.GetValue(balances, key);
+            Object value = (balances == null || key == null ? null : balances.get(key));
             String code = this.safeCurrencyCode(key);
             Object account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))

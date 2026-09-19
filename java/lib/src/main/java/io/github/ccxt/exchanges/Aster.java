@@ -4743,8 +4743,8 @@ public class Aster extends AsterApi
                 {
                     final Object finalCode = code;
                     Object parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, new HashMap<String, Object>() {{
-                        put( "crossMargin", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossMargin") );
-                        put( "crossWalletBalance", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossWalletBalance") );
+                        put( "crossMargin", Helpers.GetValue((balances == null || finalCode == null ? null : balances.get(finalCode)), "crossMargin") );
+                        put( "crossWalletBalance", Helpers.GetValue((balances == null || finalCode == null ? null : balances.get(finalCode)), "crossWalletBalance") );
                     }})), market);
                     ((List<Object>)result).add(parsed);
                 }
@@ -5439,7 +5439,7 @@ public class Aster extends AsterApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = Helpers.GetValue(values, key);
+            Object value = (values == null || key == null ? null : values.get(key));
             Boolean isObj = (value instanceof List) || Boolean.TRUE.equals(this.isDictionary(value));
             Object valueJsonified = ((Boolean.TRUE.equals(isObj))) ? this.json(value) : String.valueOf(value);
             Object encoded = this.encodeURIComponent(valueJsonified);
@@ -5455,7 +5455,7 @@ public class Aster extends AsterApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = Helpers.GetValue(dict, key);
+            Object value = (dict == null || key == null ? null : dict.get(key));
             Object capitalizedKey = this.capitalize(key);
             ((Map<String, Object>)capitalized).put((String)capitalizedKey, value);
         }

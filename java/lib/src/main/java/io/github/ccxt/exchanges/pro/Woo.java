@@ -1732,7 +1732,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             Object marketId = (postitionsIds == null || i < 0 || i >= postitionsIds.size() ? null : postitionsIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object rawPosition = Helpers.GetValue(rawPositions, marketId);
+            Object rawPosition = (rawPositions == null || marketId == null ? null : rawPositions.get(marketId));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});

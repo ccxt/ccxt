@@ -547,7 +547,7 @@ public class Extended extends ExtendedApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object item = Helpers.GetValue(input, key);
+            Object item = (input == null || key == null ? null : input.get(key));
             String numericIdString = this.safeString(item, "numericId");
             if (java.util.Objects.equals(numericIdString, null))
             {

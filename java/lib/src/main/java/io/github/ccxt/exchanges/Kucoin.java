@@ -11592,7 +11592,7 @@ public class Kucoin extends KucoinApi
                     ((Map<String, Object>)borrowRateHistories).put((String)code, new ArrayList<Object>(Arrays.asList()));
                 }
                 Map<String, Object> borrowRateStructure = (Map<String, Object>) this.parseBorrowRate(item);
-                Object borrowRateHistoriesCode = Helpers.GetValue(borrowRateHistories, code);
+                Object borrowRateHistoriesCode = (borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code));
                 ((List<Object>)borrowRateHistoriesCode).add(borrowRateStructure);
             }
         }
@@ -11600,7 +11600,7 @@ public class Kucoin extends KucoinApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            ((Map<String, Object>)borrowRateHistories).put((String)code, this.filterByCurrencySinceLimit(Helpers.GetValue(borrowRateHistories, code), code, since, limit));
+            ((Map<String, Object>)borrowRateHistories).put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit));
         }
         return borrowRateHistories;
     }
@@ -13879,7 +13879,7 @@ final Object finalMarket = market;
                     {
                         ((Map<String, Object>)result).put((String)symbol, new ArrayList<Object>(Arrays.asList()));
                     }
-                    ((List<Object>)Helpers.GetValue(result, symbol)).add(tier);
+                    ((List<Object>)(result == null || symbol == null ? null : result.get(symbol))).add(tier);
                 }
             }
             return result;

@@ -3159,7 +3159,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (((String)topic).indexOf(((String)key)) >= 0)
             {
-                Object method = Helpers.GetValue(methods, key);
+                Object method = (methods == null || key == null ? null : methods.get(key));
                 Helpers.callDynamically(this, method, new Object[] {client, message});
                 return;
             }

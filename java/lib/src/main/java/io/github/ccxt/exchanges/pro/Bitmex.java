@@ -541,7 +541,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            client.resolve(Helpers.GetValue(liquidationsBySymbol, symbol), ("liquidations::" + symbol));
+            client.resolve((liquidationsBySymbol == null || symbol == null ? null : liquidationsBySymbol.get(symbol)), ("liquidations::" + symbol));
         }
     }
 
@@ -753,7 +753,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ((table + ":") + symbol);
-            List<Object> trades = this.parseTrades(Helpers.GetValue(dataByMarketIds, marketId), market);
+            List<Object> trades = this.parseTrades((dataByMarketIds == null || marketId == null ? null : dataByMarketIds.get(marketId)), market);
             Object stored = this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(stored, null))
             {
@@ -1738,7 +1738,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            client.resolve(Helpers.GetValue(results, messageHash), messageHash);
+            client.resolve((results == null || messageHash == null ? null : results.get(messageHash)), messageHash);
         }
     }
 
@@ -1869,7 +1869,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 {
                     ((Map<String, Object>)numUpdatesByMarketId).put((String)marketId, 0);
                 }
-                ((Map<String, Object>)numUpdatesByMarketId).put((String)marketId, this.sum(Helpers.GetValue(numUpdatesByMarketId, marketId), 1));
+                ((Map<String, Object>)numUpdatesByMarketId).put((String)marketId, this.sum((numUpdatesByMarketId == null || marketId == null ? null : numUpdatesByMarketId.get(marketId)), 1));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Object orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);

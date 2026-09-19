@@ -3627,7 +3627,7 @@ public class Gate extends GateApi
                         Object networkCode = this.networkIdToCode(networkId, code);
                         if (!java.util.Objects.equals(networkCode, null))
                         {
-                            ((Map<String, Object>)withdrawFees).put((String)networkCode, this.parseNumber(Helpers.GetValue(withdrawFixOnChains, networkId)));
+                            ((Map<String, Object>)withdrawFees).put((String)networkCode, this.parseNumber((withdrawFixOnChains == null || networkId == null ? null : withdrawFixOnChains.get(networkId))));
                         }
                     }
                 }

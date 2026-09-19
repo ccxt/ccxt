@@ -2548,7 +2548,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }};
         if ((!java.util.Objects.equals(channel, null)) && (methods.containsKey(channel)))
         {
-            Object method = Helpers.GetValue(methods, channel);
+            Object method = (methods == null || channel == null ? null : methods.get(channel));
             Helpers.callDynamically(this, method, new Object[] {client, message});
         }
     }

@@ -1522,19 +1522,19 @@ public class Apex extends ApexApi
                 market = Helpers.GetValue(marketsMap, marketId);
             } else if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(marketId)))
             {
-                market = Helpers.GetValue(marketsById, marketId);
+                market = (marketsById == null || marketId == null ? null : marketsById.get(marketId));
             } else
             {
                 Object newMarketId = this.addHyphenBeforeUsdt(marketId);
                 if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(newMarketId)))
                 {
-                    Object markets = Helpers.GetValue(marketsById, newMarketId);
+                    Object markets = (marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId));
                     Object numMarkets = Helpers.getArrayLength(markets);
                     if (Helpers.isGreaterThan(numMarkets, 0))
                     {
-                        if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(marketsById, newMarketId), 0), "id2"), marketId))
+                        if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue((marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId)), 0), "id2"), marketId))
                         {
-                            market = Helpers.GetValue(Helpers.GetValue(marketsById, newMarketId), 0);
+                            market = Helpers.GetValue((marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId)), 0);
                         }
                     }
                 }

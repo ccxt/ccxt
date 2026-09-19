@@ -1412,7 +1412,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object timeframe = Helpers.GetValue(marketIds, symbol);
+            Object timeframe = (marketIds == null || symbol == null ? null : marketIds.get(symbol));
             Object interval = this.findTimeframe(timeframe);
             String hash = (((("candles" + ":") + interval) + ":") + symbol);
             Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), interval);
@@ -2451,7 +2451,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             String subscriptionHash = this.safeString(client.subscriptions, id);
             Object subscription = this.safeValue(client.subscriptions, subscriptionHash);
-            Object method = Helpers.GetValue(methods, channel);
+            Object method = (methods == null || channel == null ? null : methods.get(channel));
             Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
         }
         if (((Map<?, ?>)client.subscriptions).containsKey(id))
@@ -2721,7 +2721,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = Helpers.GetValue(findBy, key);
+            Object value = (findBy == null || key == null ? null : findBy.get(key));
             if (((String)url).indexOf(((String)key)) >= 0)
             {
                 return value;
