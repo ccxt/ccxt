@@ -333,7 +333,7 @@ public partial class okx : ccxt.okx
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -460,7 +460,7 @@ public partial class okx : ccxt.okx
         return ccxt.BaseExchange.ToFundingRates(this.filterByArray(this.fundingRates, "symbol", symbols));
     }
 
-    public virtual void handleFundingRate(WebSocketClient client, object message)
+    public virtual void handleFundingRate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // "data":[
@@ -664,7 +664,7 @@ public partial class okx : ccxt.okx
         return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -918,7 +918,7 @@ public partial class okx : ccxt.okx
         return ccxt.BaseExchange.ToLiquidationList(this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true));
     }
 
-    public virtual void handleLiquidation(WebSocketClient client, object message)
+    public virtual void handleLiquidation(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1627,7 +1627,7 @@ public partial class okx : ccxt.okx
         return orderbook;
     }
 
-    public virtual object handleOrderBook(WebSocketClient client, object message)
+    public virtual object handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -1850,12 +1850,12 @@ public partial class okx : ccxt.okx
         return ccxt.BaseExchange.ToBalances(await this.subscribe("private", "account", "account", null, parameters));
     }
 
-    public virtual void handleBalanceAndPosition(WebSocketClient client, object message)
+    public virtual void handleBalanceAndPosition(WebSocketClient client, Dictionary<string, object> message)
     {
         this.handleMyLiquidation(client as WebSocketClient, message);
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -2104,7 +2104,7 @@ public partial class okx : ccxt.okx
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true));
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -2280,7 +2280,7 @@ public partial class okx : ccxt.okx
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message)
+    public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -2534,7 +2534,7 @@ public partial class okx : ccxt.okx
         return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, request, messageHash));
     }
 
-    public virtual void handlePlaceOrders(WebSocketClient client, object message)
+    public virtual void handlePlaceOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //  batch-orders/order/cancel-order
@@ -2751,7 +2751,7 @@ public partial class okx : ccxt.okx
         return ccxt.BaseExchange.ToOrderList(await this.watch(url, messageHash, request, messageHash));
     }
 
-    public virtual void handleCancelAllOrders(WebSocketClient client, object message)
+    public virtual void handleCancelAllOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -2771,7 +2771,7 @@ public partial class okx : ccxt.okx
         (client as WebSocketClient).resolve(data, messageHash);
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     { event: 'subscribe', arg: { channel: "tickers", instId: "BTC-USDT" } }
@@ -2781,7 +2781,7 @@ public partial class okx : ccxt.okx
         return message;
     }
 
-    public virtual void handleAuthenticate(WebSocketClient client, object message)
+    public virtual void handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     { event: "login", success: true }
@@ -3036,7 +3036,7 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual void handleUnsubscription(WebSocketClient client, object message)
+    public virtual void handleUnsubscription(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {

@@ -138,7 +138,7 @@ public partial class bitstamp : ccxt.bitstamp
         return await this.watch(url, unsubHash, this.extend(request, parameters), unsubHash, subscription);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
@@ -356,7 +356,7 @@ public partial class bitstamp : ccxt.bitstamp
         }, market);
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -433,7 +433,7 @@ public partial class bitstamp : ccxt.bitstamp
         return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, message, messageHash));
     }
 
-    public virtual void handleFundingRate(WebSocketClient client, object message)
+    public virtual void handleFundingRate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -601,7 +601,7 @@ public partial class bitstamp : ccxt.bitstamp
         return await this.unWatchChannel(channel, channel, "myTrades", new List<object>() {symbol}, parameters);
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -691,7 +691,7 @@ public partial class bitstamp : ccxt.bitstamp
         }, market);
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message)
+    public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

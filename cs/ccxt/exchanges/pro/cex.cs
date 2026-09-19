@@ -79,7 +79,7 @@ public partial class cex : ccxt.cex
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, messageHash, request));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -182,7 +182,7 @@ public partial class cex : ccxt.cex
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
-    public virtual void handleTradesSnapshot(WebSocketClient client, object message)
+    public virtual void handleTradesSnapshot(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -233,7 +233,7 @@ public partial class cex : ccxt.cex
         }, market);
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -382,7 +382,7 @@ public partial class cex : ccxt.cex
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -591,7 +591,7 @@ public partial class cex : ccxt.cex
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(orders, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
     }
 
-    public virtual void handleTransaction(WebSocketClient client, object message)
+    public virtual void handleTransaction(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> data = this.safeDict(message, "data");
         string? symbol2 = this.safeString(data, "symbol2");
@@ -996,7 +996,7 @@ public partial class cex : ccxt.cex
         return this.fromPrecision(amount, scale);
     }
 
-    public virtual void handleOrdersSnapshot(WebSocketClient client, object message)
+    public virtual void handleOrdersSnapshot(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1076,7 +1076,7 @@ public partial class cex : ccxt.cex
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public virtual void handleOrderBookSnapshot(WebSocketClient client, object message)
+    public virtual void handleOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1128,7 +1128,7 @@ public partial class cex : ccxt.cex
         return ((string?)((object)(symbol)));
     }
 
-    public virtual void handleOrderBookUpdate(WebSocketClient client, object message)
+    public virtual void handleOrderBookUpdate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1221,7 +1221,7 @@ public partial class cex : ccxt.cex
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
-    public virtual void handleInitOHLCV(WebSocketClient client, object message)
+    public virtual void handleInitOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1269,7 +1269,7 @@ public partial class cex : ccxt.cex
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
-    public virtual object handleOHLCV24(WebSocketClient client, object message)
+    public virtual object handleOHLCV24(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1281,7 +1281,7 @@ public partial class cex : ccxt.cex
         return message;
     }
 
-    public virtual void handleOHLCV1m(WebSocketClient client, object message)
+    public virtual void handleOHLCV1m(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1308,7 +1308,7 @@ public partial class cex : ccxt.cex
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1589,7 +1589,7 @@ public partial class cex : ccxt.cex
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(canceledOrders, null, null, null, parameters));
     }
 
-    public virtual void resolveData(WebSocketClient client, IDictionary<string, object> message)
+    public virtual void resolveData(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    "e": "open-orders",
@@ -1613,7 +1613,7 @@ public partial class cex : ccxt.cex
         (client as WebSocketClient).resolve(data, messageHash);
     }
 
-    public virtual object handleConnected(WebSocketClient client, object message)
+    public virtual object handleConnected(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1688,7 +1688,7 @@ public partial class cex : ccxt.cex
         }
     }
 
-    public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
+    public virtual void handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

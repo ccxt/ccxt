@@ -1511,7 +1511,7 @@ public partial class nado : ccxt.nado
         }, market);
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1529,7 +1529,7 @@ public partial class nado : ccxt.nado
         (client as WebSocketClient).resolve(trades, messageHash);
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message)
+    public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsMyTrade(message));
         if ((this.myTrades == null))
@@ -1544,7 +1544,7 @@ public partial class nado : ccxt.nado
         (client as WebSocketClient).resolve(trades, ("myTrades:" + symbol));
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1655,7 +1655,7 @@ public partial class nado : ccxt.nado
         }, market);
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(message));
         if ((this.orders == null))
@@ -1736,7 +1736,7 @@ public partial class nado : ccxt.nado
         });
     }
 
-    public virtual void handlePosition(WebSocketClient client, object message)
+    public virtual void handlePosition(WebSocketClient client, Dictionary<string, object> message)
     {
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1796,7 +1796,7 @@ public partial class nado : ccxt.nado
         }, market);
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, object message)
+    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
     {
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(message));
         string? symbol = this.safeString(ticker, "symbol");
@@ -1854,7 +1854,7 @@ public partial class nado : ccxt.nado
         return ((Dictionary<string, object>)((object)(result)));
     }
 
-    public virtual void handleAllBidsAsks(WebSocketClient client, object message)
+    public virtual void handleAllBidsAsks(WebSocketClient client, Dictionary<string, object> message)
     {
         Dictionary<string, object> tickers = this.parseWsAllBidsAsks(message);
         List<object> symbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
@@ -1877,7 +1877,7 @@ public partial class nado : ccxt.nado
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

@@ -519,7 +519,7 @@ public partial class bybit : ccxt.bybit
         return await this.unWatchTickers(new List<object>() {symbol}, parameters);
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // linear
@@ -858,7 +858,7 @@ public partial class bybit : ccxt.bybit
         return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, parameters);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1286,7 +1286,7 @@ public partial class bybit : ccxt.bybit
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1520,7 +1520,7 @@ public partial class bybit : ccxt.bybit
         return await this.unWatchTopics(url, "myTrades", new List<object>() {}, new List<object>() {messageHash}, new List<object>() {subHash}, new List<object>() {topic}, parameters);
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1780,7 +1780,7 @@ public partial class bybit : ccxt.bybit
         }
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1934,7 +1934,7 @@ public partial class bybit : ccxt.bybit
         return ccxt.BaseExchange.ToLiquidationList(this.filterBySymbolsSinceLimit(this.liquidations, new List<object>() {symbolVar}, since, limit, true));
     }
 
-    public virtual void handleLiquidation(WebSocketClient client, object message)
+    public virtual void handleLiquidation(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1965,7 +1965,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if (((getValue(message, "data") is IList<object>) || (getValue(message, "data").GetType().IsGenericType && getValue(message, "data").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null) is IList<object>) || ((message != null && message.ContainsKey("data") ? message["data"] : null).GetType().IsGenericType && (message != null && message.ContainsKey("data") ? message["data"] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)
@@ -2118,7 +2118,7 @@ public partial class bybit : ccxt.bybit
         return await this.unWatchTopics(url, "orders", new List<object>() {}, new List<object>() {messageHash}, new List<object>() {subHash}, topics, parameters);
     }
 
-    public virtual void handleOrderWs(WebSocketClient client, object message)
+    public virtual void handleOrderWs(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -2146,7 +2146,7 @@ public partial class bybit : ccxt.bybit
         (client as WebSocketClient).resolve(order, messageHash);
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     spot
@@ -2349,7 +2349,7 @@ public partial class bybit : ccxt.bybit
         return ccxt.BaseExchange.ToBalances(await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -3039,7 +3039,7 @@ public partial class bybit : ccxt.bybit
         return message;
     }
 
-    public virtual object handleUnSubscribe(WebSocketClient client, object message)
+    public virtual object handleUnSubscribe(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {"success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe"}

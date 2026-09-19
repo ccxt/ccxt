@@ -343,7 +343,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true));
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -594,7 +594,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(name, messageHash, parameters));
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -772,7 +772,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }, market);
     }
 
-    public virtual object handleOrder(WebSocketClient client, object message)
+    public virtual object handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //  update (verbose)
@@ -944,7 +944,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 for (int i = 0; i < getArrayLength(orders); i++)
                 {
                     object currentOrder = getValue(orders, i);
-                    if (isEqual(getValue(currentOrder, "id"), getValue(message, "order_id")))
+                    if (isEqual(getValue(currentOrder, "id"), (message != null && message.ContainsKey("order_id") ? message["order_id"] : null)))
                     {
                         Dictionary<string, object> info = this.extend(this.safeDict(currentOrder, "info", new Dictionary<string, object>() {}), new Dictionary<string, object>() {
                             { "reason", reason },
@@ -963,7 +963,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         return message;
     }
 
-    public virtual void handleOrderSnapshot(WebSocketClient client, object message)
+    public virtual void handleOrderSnapshot(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // verbose
@@ -1132,7 +1132,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         });
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1179,7 +1179,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, object message)
+    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1293,7 +1293,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         });
     }
 
-    public virtual void handleOrderBookSnapshot(WebSocketClient client, object message)
+    public virtual void handleOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1365,7 +1365,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         (client as WebSocketClient).resolve(orderbook, messageHash);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1401,7 +1401,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         (client as WebSocketClient).resolve(orderbook, messageHash);
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -1635,7 +1635,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         (client as WebSocketClient).resolve(this.balance, messageHash);
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {

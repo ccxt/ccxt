@@ -93,5 +93,9 @@ check ('three-argument call-shaped receiver keeps the helper',
     '    public virtual object f(object a, object b)\n    {\n        IDictionary<string, object> m = new Dictionary<string, object>() {};\n        return inOp(getValue(m, "x"), b);\n    }',
     '    public virtual object f(object a, object b)\n    {\n        IDictionary<string, object> m = new Dictionary<string, object>() {};\n        return inOp(getValue(m, "x"), b);\n    }');
 
+check ('a nullable-return signature starts its own region (no parameter drift)',
+    '    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)\n    {\n        return;\n    }\n    public virtual bool? handleErrorMessage(WebSocketClient client, object message)\n    {\n        if (!(inOp(message, "success")))\n        {\n            return false;\n        }\n        return true;\n    }',
+    '    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)\n    {\n        return;\n    }\n    public virtual bool? handleErrorMessage(WebSocketClient client, object message)\n    {\n        if (!(inOp(message, "success")))\n        {\n            return false;\n        }\n        return true;\n    }');
+
 console.log (failures === 0 ? 'all passed' : (failures + ' failure(s)'));
 process.exit (failures === 0 ? 0 : 1);

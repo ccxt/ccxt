@@ -798,7 +798,7 @@ public partial class bullish : ccxt.bullish
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(positions, symbols, since, limit, true));
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly

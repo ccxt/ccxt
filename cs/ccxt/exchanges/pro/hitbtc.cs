@@ -248,7 +248,7 @@ public partial class hitbtc : ccxt.hitbtc
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -408,7 +408,7 @@ public partial class hitbtc : ccxt.hitbtc
         return ccxt.BaseExchange.ToTickers(this.filterByArray(newTickers, "symbol", symbols));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -569,7 +569,7 @@ public partial class hitbtc : ccxt.hitbtc
         return ccxt.BaseExchange.ToTickers(this.filterByArray(newTickers, "symbol", symbols));
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, object message)
+    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -657,7 +657,7 @@ public partial class hitbtc : ccxt.hitbtc
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp"));
     }
 
-    public virtual object handleTrades(WebSocketClient client, object message)
+    public virtual object handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -805,7 +805,7 @@ public partial class hitbtc : ccxt.hitbtc
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0));
     }
 
-    public virtual object handleOHLCV(WebSocketClient client, object message)
+    public virtual object handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -934,7 +934,7 @@ public partial class hitbtc : ccxt.hitbtc
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp"));
     }
 
-    public virtual object handleOrder(WebSocketClient client, object message)
+    public virtual object handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1391,7 +1391,7 @@ public partial class hitbtc : ccxt.hitbtc
         }
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1415,7 +1415,7 @@ public partial class hitbtc : ccxt.hitbtc
         (client as WebSocketClient).resolve(this.balance, messageHash);
     }
 
-    public virtual object handleNotification(WebSocketClient client, object message)
+    public virtual object handleNotification(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     { jsonrpc: "2.0", result: true, id: null }

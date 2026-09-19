@@ -307,7 +307,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
-    public virtual void handleInstrument(WebSocketClient client, object message)
+    public virtual void handleInstrument(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -421,7 +421,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         });
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -617,7 +617,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
-    public virtual object handleTrade(WebSocketClient client, object message)
+    public virtual object handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -714,7 +714,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return ccxt.BaseExchange.ToOrderBookSnapshot(await this.subscribeMultiple("LEVEL2", symbols, parameters));
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -797,7 +797,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -826,7 +826,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return message;
     }
 
-    public virtual void handleFundingRate(WebSocketClient client, object message)
+    public virtual void handleFundingRate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot

@@ -54,7 +54,7 @@ public partial class cryptocom : ccxt.cryptocom
         });
     }
 
-    public async virtual Task pong(WebSocketClient client, object message)
+    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
     {
         try
         {
@@ -249,7 +249,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -658,7 +658,7 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.unWatchPublicMultiple("ticker", symbols, messageHashes, subMessageHashes, subMessageHashes, parameters);
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -892,7 +892,7 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.unWatchPublicMultiple("ohlcv", new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, new List<object>() {subMessageHash}, parameters, subExtend);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //  {
@@ -1118,7 +1118,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1193,7 +1193,7 @@ public partial class cryptocom : ccxt.cryptocom
         return ccxt.BaseExchange.ToBalances(await this.watchPrivateSubscribe(messageHash, parameters));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1326,7 +1326,7 @@ public partial class cryptocom : ccxt.cryptocom
         return ccxt.BaseExchange.ToOrder(await this.watchPrivateRequest(messageHash, request));
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1403,7 +1403,7 @@ public partial class cryptocom : ccxt.cryptocom
         return ccxt.BaseExchange.ToOrderList(await this.watchPrivateRequest(messageHash, request));
     }
 
-    public virtual void handleCancelAllOrders(WebSocketClient client, object message)
+    public virtual void handleCancelAllOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1547,7 +1547,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
     }
 
-    public virtual void handleSubscribe(WebSocketClient client, object message)
+    public virtual void handleSubscribe(WebSocketClient client, Dictionary<string, object> message)
     {
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "candlestick", this.handleOHLCV },
@@ -1666,12 +1666,12 @@ public partial class cryptocom : ccxt.cryptocom
         return await (future as Exchange.Future);
     }
 
-    public virtual void handlePing(WebSocketClient client, object message)
+    public virtual void handlePing(WebSocketClient client, Dictionary<string, object> message)
     {
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual void handleAuthenticate(WebSocketClient client, object message)
+    public virtual void handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //  { id: 1648132625434, method: "public/auth", code: 0 }
@@ -1680,7 +1680,7 @@ public partial class cryptocom : ccxt.cryptocom
         (future as Future).resolve(true);
     }
 
-    public virtual void handleUnsubscribe(WebSocketClient client, object message)
+    public virtual void handleUnsubscribe(WebSocketClient client, Dictionary<string, object> message)
     {
         string? id = this.safeString(message, "id");
         List<object> keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);

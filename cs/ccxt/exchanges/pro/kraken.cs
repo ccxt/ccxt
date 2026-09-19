@@ -341,7 +341,7 @@ public partial class kraken : ccxt.kraken
         return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
-    public virtual void handleCreateEditOrder(WebSocketClient client, object message)
+    public virtual void handleCreateEditOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //  createOrder
@@ -478,7 +478,7 @@ public partial class kraken : ccxt.kraken
         return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
-    public virtual void handleCancelOrder(WebSocketClient client, object message)
+    public virtual void handleCancelOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -527,7 +527,7 @@ public partial class kraken : ccxt.kraken
         return ccxt.BaseExchange.ToOrderList(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
-    public virtual void handleCancelAllOrders(WebSocketClient client, object message)
+    public virtual void handleCancelAllOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -545,7 +545,7 @@ public partial class kraken : ccxt.kraken
         (client as WebSocketClient).resolve(message, reqId);
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -607,7 +607,7 @@ public partial class kraken : ccxt.kraken
         (client as WebSocketClient).resolve(result, messageHash);
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -646,7 +646,7 @@ public partial class kraken : ccxt.kraken
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -951,7 +951,7 @@ public partial class kraken : ccxt.kraken
         return request;
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         client.lastPong = this.milliseconds();
         return message;
@@ -966,7 +966,7 @@ public partial class kraken : ccxt.kraken
         return await this.watch(url, eventVar);
     }
 
-    public virtual void handleHeartbeat(WebSocketClient client, object message)
+    public virtual void handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // every second (approx) if no other updates are sent
@@ -977,7 +977,7 @@ public partial class kraken : ccxt.kraken
         (client as WebSocketClient).resolve(message, eventVar);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // first message (snapshot)
@@ -1149,7 +1149,7 @@ public partial class kraken : ccxt.kraken
         return joinedResult;
     }
 
-    public virtual object handleSystemStatus(WebSocketClient client, object message)
+    public virtual object handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -1302,7 +1302,7 @@ public partial class kraken : ccxt.kraken
         return ccxt.BaseExchange.ToTradeList(await this.watchPrivate("myTrades", symbol, since, limit, parameters));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
     {
         //
         //     {
@@ -1443,7 +1443,7 @@ public partial class kraken : ccxt.kraken
         return ccxt.BaseExchange.ToOrderList(await this.watchPrivate("orders", symbol, since, limit, this.extend(parameters, new Dictionary<string, object>() {             { "snap_orders", true },         })));
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
     {
         //
         //     {
@@ -1660,7 +1660,7 @@ public partial class kraken : ccxt.kraken
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, messageHash));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1725,7 +1725,7 @@ public partial class kraken : ccxt.kraken
         return messageHash;
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // public

@@ -2122,7 +2122,7 @@ public partial class weex : ccxt.weex
         return ((Dictionary<string, object>)((object)(market)));
     }
 
-    public async virtual Task pong(WebSocketClient client, object message)
+    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     { "event": "ping", "time": "1776078750000" } - public
