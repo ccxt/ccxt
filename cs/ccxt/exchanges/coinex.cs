@@ -1228,7 +1228,7 @@ public partial class coinex : Exchange
         return this.parseCurrencies(data);
     }
 
-    public override Dictionary<string, object> parseCurrency(object coin)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> coin)
     {
         IDictionary<string, object> asset = this.safeDict(coin, "asset", new Dictionary<string, object>() {});
         string? currencyId = this.safeString(asset, "ccy");
@@ -2362,7 +2362,7 @@ public partial class coinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
@@ -5236,7 +5236,7 @@ public partial class coinex : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
-    public override object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(IDictionary<string, object> info, object market = null)
     {
         //
         //     {
@@ -5382,7 +5382,7 @@ public partial class coinex : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,((string)code), since, limit));
     }
 
-    public override object parseBorrowInterest(object info, object market = null)
+    public override object parseBorrowInterest(IDictionary<string, object> info, object market = null)
     {
         //
         //     {
@@ -5797,7 +5797,7 @@ public partial class coinex : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
-    public override object parseLeverage(object leverage, object market = null)
+    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
     {
         //
         //     {

@@ -874,7 +874,7 @@ public partial class cryptocom : Exchange
         return this.parseCurrencies(enhancedArray);
     }
 
-    public override Dictionary<string, object> parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> currency)
     {
         string? id = this.safeString(currency, "_coin_id");
         string? code = this.safeCurrencyCode(id);
@@ -2945,7 +2945,7 @@ public partial class cryptocom : Exchange
         return this.safeString(timeInForces, ((string)timeInForce), timeInForce);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // createOrder, cancelOrder

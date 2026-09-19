@@ -3670,7 +3670,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // createOrder
@@ -5349,7 +5349,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToConversion(this.parseConversion(data));
     }
 
-    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(IDictionary<string, object> conversion, object fromCurrency = null, object toCurrency = null)
     {
         string? fromCoin = this.safeString(conversion, "source_currency");
         string? fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);

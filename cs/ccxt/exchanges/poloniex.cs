@@ -1467,7 +1467,7 @@ public partial class poloniex : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override Dictionary<string, object> parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> currency)
     {
         object entry = currency;
         string? id = this.safeString(entry, "coin");
@@ -1899,7 +1899,7 @@ public partial class poloniex : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // fetchOpenOrder
@@ -3807,7 +3807,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(response, market));
     }
 
-    public override object parseLeverage(object leverage, object market = null)
+    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
     {
         Int64? shortLeverage = null;
         Int64? longLeverage = null;

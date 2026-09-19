@@ -691,7 +691,7 @@ public partial class digifinex : Exchange
         return this.parseCurrencies(values);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         object networkEntries = rawCurrency;
         IDictionary<string, object> firstEntry = this.safeDict(networkEntries, 0, new Dictionary<string, object>() {}); // it must have at least one entry
@@ -2466,7 +2466,7 @@ public partial class digifinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // spot: createOrder
@@ -3727,7 +3727,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,((string)code), since, limit));
     }
 
-    public override object parseBorrowInterest(object info, object market = null)
+    public override object parseBorrowInterest(IDictionary<string, object> info, object market = null)
     {
         //
         //     {

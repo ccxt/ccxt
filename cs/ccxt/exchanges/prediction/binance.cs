@@ -881,7 +881,7 @@ public partial class binance : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object raw, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> raw, object market = null)
     {
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
@@ -1078,7 +1078,7 @@ public partial class binance : PredictionExchange
      * @param {object} [outcomeObj] the ourtome the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(object order, object outcomeObj = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, object outcomeObj = null)
     {
         //
         // {
@@ -1506,7 +1506,7 @@ public partial class binance : PredictionExchange
      * @param {object} [outcomeObj] the ourtome the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override object parsePredictionPosition(object position, object outcomeObj = null)
+    public override object parsePredictionPosition(IDictionary<string, object> position, object outcomeObj = null)
     {
         if ((outcomeObj == null))
         {
@@ -1667,7 +1667,7 @@ public partial class binance : PredictionExchange
      * @param {object} [outcomeObj] the outcome the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object outcomeObj = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, object outcomeObj = null)
     {
         //
         // {

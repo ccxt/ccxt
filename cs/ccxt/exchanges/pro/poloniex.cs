@@ -845,7 +845,7 @@ public partial class poloniex : ccxt.poloniex
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseWsOrderTrade(object trade, object market = null)
+    public override object parseWsOrderTrade(IDictionary<string, object> trade, object market = null)
     {
         //
         //    {

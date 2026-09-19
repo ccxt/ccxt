@@ -706,7 +706,7 @@ public partial class bitteam : Exchange
         return ((IDictionary<string, object>)((object)(result)));
     }
 
-    public override Dictionary<string, object> parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> currency)
     {
         IDictionary<string, object> statusesResponse = this.safeDict(this.options, "_temp_currencies_statuses", new Dictionary<string, object>() {});
         string? id = this.safeString(currency, "symbol");
@@ -1327,7 +1327,7 @@ public partial class bitteam : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // fetchOrders

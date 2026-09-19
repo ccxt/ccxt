@@ -2648,7 +2648,7 @@ public partial class nado : Exchange
         }, market);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         bool? canDeposit = this.safeBool(rawCurrency, "can_deposit", false);
         bool? canWithdraw = this.safeBool(rawCurrency, "can_withdraw", false);
@@ -2886,7 +2886,7 @@ public partial class nado : Exchange
         return ((bool)((object)(Precise.stringGe(Precise.stringAbs(filled), Precise.stringAbs(amount))))!);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // create order

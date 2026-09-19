@@ -1159,7 +1159,7 @@ public partial class aster : Exchange
         return this.parseCurrencies(sapiRows);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "asset");
         string? code = this.safeCurrencyCode(currencyId);
@@ -2651,7 +2651,7 @@ public partial class aster : Exchange
         return this.safeString(types, ((string)type), type);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // swap
@@ -3609,7 +3609,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbols, "symbol"));
     }
 
-    public override object parseLeverage(object leverage, object market = null)
+    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
     {
         //
         //     {
@@ -3696,7 +3696,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap"));
     }
 
-    public override object parseMarginMode(object marginMode, object market = null)
+    public override object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
     {
         //
         //     {

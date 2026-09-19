@@ -1355,7 +1355,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToOrderList(orders);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // cancelOrder, fetchOpenOrders, createOrder

@@ -2072,7 +2072,7 @@ public partial class bydfi : Exchange
         return this.extend(request, parameters);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // createOrder, fetchOpenOrders, fetchOpenOrder
@@ -2314,7 +2314,7 @@ public partial class bydfi : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
-    public override object parseLeverage(object leverage, object market = null)
+    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
         return new Dictionary<string, object>() {
@@ -2702,7 +2702,7 @@ public partial class bydfi : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(object marginMode, object market = null)
+    public override object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
     {
         string? marketId = this.safeString(marginMode, "symbol");
         return new Dictionary<string, object>() {

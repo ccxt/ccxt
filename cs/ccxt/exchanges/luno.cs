@@ -512,12 +512,12 @@ public partial class luno : Exchange
         return this.parseCurrencies(values);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         string? id = this.safeString(getValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
         string? code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawCurrency); i++)
+        for (int i = 0; i < (rawCurrency?.Count ?? 0); i++)
         {
             object networkEntry = getValue(rawCurrency, i);
             string? networkId = this.safeString(networkEntry, "name");
@@ -832,7 +832,7 @@ public partial class luno : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         //     {

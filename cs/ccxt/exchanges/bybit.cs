@@ -2711,7 +2711,7 @@ public partial class bybit : Exchange
         return this.parseCurrencies(rows);
     }
 
-    public override Dictionary<string, object> parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> currency)
     {
         string? currencyId = this.safeString(currency, "coin");
         string? code = this.safeCurrencyCode(currencyId);
@@ -4941,7 +4941,7 @@ public partial class bybit : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // v1 for usdc normal account
@@ -8495,7 +8495,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(position, market));
     }
 
-    public override object parseLeverage(object leverage, object market = null)
+    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
@@ -9173,7 +9173,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(rows,((string)code), sinceVar, limit));
     }
 
-    public override object parseBorrowInterest(object info, object market = null)
+    public override object parseBorrowInterest(IDictionary<string, object> info, object market = null)
     {
         //
         //     {
@@ -10227,7 +10227,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(data, symbols));
     }
 
-    public override object parseGreeks(object greeks, object market = null)
+    public override object parseGreeks(IDictionary<string, object> greeks, object market = null)
     {
         //
         //     {
@@ -10842,7 +10842,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(resultList, null, "symbol"));
     }
 
-    public override object parseOption(object chain, object currency = null, object market = null)
+    public override object parseOption(IDictionary<string, object> chain, object currency = null, object market = null)
     {
         //
         //     {
@@ -11338,7 +11338,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(dataList,((string)code), "fromCoin", "toCoin", since, limit));
     }
 
-    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(IDictionary<string, object> conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -11466,7 +11466,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToLongShortRatioList(this.parseLongShortRatioHistory(data, market));
     }
 
-    public override object parseLongShortRatio(object info, object market = null)
+    public override object parseLongShortRatio(IDictionary<string, object> info, object market = null)
     {
         //
         //     {
@@ -11579,7 +11579,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(ranks, symbols));
     }
 
-    public override object parseADLRank(object info, object market = null)
+    public override object parseADLRank(IDictionary<string, object> info, object market = null)
     {
         //
         // fetchPositionsADLRank
@@ -11673,7 +11673,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(result, market));
     }
 
-    public override object parseMarginMode(object marginMode, object market = null)
+    public override object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
     {
         string? marginType = this.safeString(marginMode, "marginMode");
         return new Dictionary<string, object>() {

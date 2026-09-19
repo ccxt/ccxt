@@ -1294,7 +1294,7 @@ public partial class hashkey : Exchange
         return this.parseCurrencies(coins);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "coinId");
         string? code = this.safeCurrencyCode(currencyId);
@@ -3649,7 +3649,7 @@ public partial class hashkey : Exchange
         return new List<object>() {isTrigger, parameters};
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // createOrder spot
@@ -4214,7 +4214,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(leverage, market));
     }
 
-    public override object parseLeverage(object leverage, object market = null)
+    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
     {
         string? marginMode = this.safeStringLower(leverage, "marginType");
         double? leverageValue = this.safeNumber(leverage, "leverage");

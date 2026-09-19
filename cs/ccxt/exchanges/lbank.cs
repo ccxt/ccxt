@@ -565,7 +565,7 @@ public partial class lbank : Exchange
         return this.parseCurrencies(values);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         string? id = this.safeString(getValue(rawCurrency, 0), "assetCode"); // first member is guaranteed
         string? code = this.safeCurrencyCode(id);
@@ -1970,7 +1970,7 @@ public partial class lbank : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // fetchOrderSupplement (private)

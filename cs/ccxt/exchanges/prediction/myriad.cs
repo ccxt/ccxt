@@ -705,7 +705,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] not used by myriad
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override object parsePredictionPosition(object position, object market = null)
+    public override object parsePredictionPosition(IDictionary<string, object> position, object market = null)
     {
         string? marketSlug = this.safeString(position, "marketSlug", "");
         string? outcomeTitle = this.safeString(position, "outcomeTitle", "");
@@ -844,7 +844,7 @@ public partial class myriad : PredictionExchange
         };
     }
 
-    public override object signEvmTransaction(object tx, object privateKey)
+    public override object signEvmTransaction(IDictionary<string, object> tx, object privateKey)
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
@@ -886,7 +886,7 @@ public partial class myriad : PredictionExchange
         return ("0x02" + (this.rlpEncodeList(signedFields)));
     }
 
-    public async override Task<object> ethRpc(object rpcUrl, object method, object rpcParams)
+    public async override Task<object> ethRpc(object rpcUrl, object method, IList<object> rpcParams)
     {
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -1521,7 +1521,7 @@ public partial class myriad : PredictionExchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, object market = null)
     {
         IDictionary<string, object> inner = this.safeDict(order, "order", new Dictionary<string, object>() {});
         string? orderHash = this.safeString2(order, "orderHash", "hash");
@@ -2702,7 +2702,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object raw, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> raw, object market = null)
     {
         //
         //     {
@@ -3342,7 +3342,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, object market = null)
     {
         object timestamp = this.safeTimestamp(trade, "timestamp");
         string? amountStr = this.safeString(trade, "shares");

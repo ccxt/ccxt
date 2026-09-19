@@ -2804,7 +2804,7 @@ public partial class kucoin : Exchange
         return this.parseCurrencies(filteredCurrencies);
     }
 
-    public override Dictionary<string, object> parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> currency)
     {
         object entry = currency;
         string? id = this.safeString(entry, "currency");
@@ -7208,7 +7208,7 @@ public partial class kucoin : Exchange
         return tradeType;
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         string? tradeType = this.safeString(order, "tradeType");
         List<object> utaTradeTypes = new List<object>() {"SPOT", "CROSS", "ISOLATED", "FUTURES"}; // tradeType specific for uta endpoint
@@ -10685,7 +10685,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit));
     }
 
-    public override object parseBorrowInterest(object info, object market = null)
+    public override object parseBorrowInterest(IDictionary<string, object> info, object market = null)
     {
         //
         // Cross
@@ -12687,7 +12687,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(object marginMode, object market = null)
+    public override object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
     {
         string? marginType = this.safeString(marginMode, "marginMode");
         marginType = ((bool) ((marginType == "ISOLATED"))) ? "isolated" : "cross";
@@ -13491,7 +13491,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(data, symbols));
     }
 
-    public override object parseADLRank(object info, object market = null)
+    public override object parseADLRank(IDictionary<string, object> info, object market = null)
     {
         //
         // fetchPositionsADLRank

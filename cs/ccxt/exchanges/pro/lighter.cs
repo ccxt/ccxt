@@ -696,7 +696,7 @@ public partial class lighter : ccxt.lighter
         return await this.unsubscribe(messageHash, this.extend(request, parameters));
     }
 
-    public override object parseWsOrderTrade(object trade, object market = null)
+    public override object parseWsOrderTrade(IDictionary<string, object> trade, object market = null)
     {
         //
         //     {

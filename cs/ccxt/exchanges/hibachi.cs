@@ -763,7 +763,7 @@ public partial class hibachi : Exchange
         return this.safeString(statuses, uppercaseStatus, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);

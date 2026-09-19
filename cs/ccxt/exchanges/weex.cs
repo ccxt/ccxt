@@ -1019,7 +1019,7 @@ public partial class weex : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "coin");
         string? code = this.safeCurrencyCode(currencyId);
@@ -3560,7 +3560,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // createOrder (spot)
@@ -4614,7 +4614,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap"));
     }
 
-    public override object parseMarginMode(object marginMode, object market = null)
+    public override object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
     {
         string? marketId = this.safeString(marginMode, "symbol");
         string? marginType = this.safeString(marginMode, "marginType");
@@ -4723,7 +4723,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbols, "symbol", "swap"));
     }
 
-    public override object parseLeverage(object leverage, object market = null)
+    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
         string? marginType = this.safeString(leverage, "marginType");

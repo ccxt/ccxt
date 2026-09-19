@@ -948,7 +948,7 @@ public partial class kraken : Exchange
         return this.parseCurrencies(enhancedArray);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         // todo: will need to rethink the fees
         // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
@@ -2119,7 +2119,7 @@ public partial class kraken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // createOrder
@@ -2304,7 +2304,7 @@ public partial class kraken : Exchange
         if ((market != null))
         {
             symbol = getValue(market, "symbol");
-            if (inOp(order, "fee"))
+            if ((order != null && order.ContainsKey("fee")))
             {
                 string? feeCost = this.safeString(order, "fee");
                 fee = new Dictionary<string, object>() {

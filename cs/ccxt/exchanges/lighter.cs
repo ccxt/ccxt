@@ -1581,7 +1581,7 @@ public partial class lighter : Exchange
         return this.parseCurrencies(data);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "asset_id");
         string? code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
@@ -2636,7 +2636,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         //     {

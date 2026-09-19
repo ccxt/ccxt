@@ -487,13 +487,13 @@ public partial class cryptomus : Exchange
         return this.parseCurrencies(groupedArray);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         // currency here is array of networks
         string? id = null; // all entries have same id, as they were grouped by
         string? code = null;
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawCurrency); i++)
+        for (int i = 0; i < (rawCurrency?.Count ?? 0); i++)
         {
             object networkEntry = getValue(rawCurrency, i);
             // set ID on first loop
@@ -1059,7 +1059,7 @@ public partial class cryptomus : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, null, null));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // createOrder

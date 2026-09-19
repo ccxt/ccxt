@@ -954,7 +954,7 @@ public partial class deribit : Exchange
         return this.parseCurrencies(data);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(currencyId);
@@ -2305,7 +2305,7 @@ public partial class deribit : Exchange
         return this.safeString(orderTypes, orderType, orderType);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // createOrder
@@ -4180,7 +4180,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToGreeks(this.parseGreeks(result, market));
     }
 
-    public override object parseGreeks(object greeks, object market = null)
+    public override object parseGreeks(IDictionary<string, object> greeks, object market = null)
     {
         //
         //     {
@@ -4364,7 +4364,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(result, "base_currency", "instrument_name"));
     }
 
-    public override object parseOption(object chain, object currency = null, object market = null)
+    public override object parseOption(IDictionary<string, object> chain, object currency = null, object market = null)
     {
         //
         //     {
