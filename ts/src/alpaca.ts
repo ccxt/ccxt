@@ -493,7 +493,7 @@ export default class alpaca extends Exchange {
             throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
         }
         const jetlag = timestamp.slice (jetlagStrStart, jetlagStrEnd);
-        const iso = this.parseToInt (this.parse8601 (localTime)) - this.parseToNumeric (jetlag) * 3600 * 1000;
+        const iso: int = this.parseToInt (this.parse8601 (localTime)) - this.parseToNumeric (jetlag) * 3600 * 1000;
         return iso;
     }
 
@@ -557,16 +557,16 @@ export default class alpaca extends Exchange {
         //         "price_increment": "1"
         //     }
         //
-        const marketId = this.safeString (asset, 'symbol');
+        const marketId: Str = this.safeString (asset, 'symbol');
         if (marketId === undefined) {
             throw new ExchangeError (this.id + ' parseMarket() missing marketId');
         }
         const parts = marketId.split ('/');
-        const assetClass = this.safeString (asset, 'class');
-        const baseId = this.safeString (parts, 0);
-        const quoteId = this.safeString (parts, 1);
-        const base = this.safeCurrencyCode (baseId);
-        let quote = this.safeCurrencyCode (quoteId);
+        const assetClass: Str = this.safeString (asset, 'class');
+        const baseId: Str = this.safeString (parts, 0);
+        const quoteId: Str = this.safeString (parts, 1);
+        const base: Str = this.safeCurrencyCode (baseId);
+        let quote: Str = this.safeCurrencyCode (quoteId);
         // Us equity markets do not include quote in symbol.
         // We can safely coerce us_equity quote to USD
         if (quote === undefined && assetClass === 'us_equity') {
@@ -805,10 +805,10 @@ export default class alpaca extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
-        const marketId = market['id'];
-        const loc = this.safeString (params, 'loc', 'us');
-        const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
+        const market: Market = this.market (symbol);
+        const marketId: Str = market['id'];
+        const loc: Str = this.safeString (params, 'loc', 'us');
+        const method: Str = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         let paginationCalls = 10;
@@ -1036,14 +1036,14 @@ export default class alpaca extends Exchange {
         //     }
         //
         const results: Ticker[] = [];
-        const snapshots = this.safeDict (response, 'snapshots', {});
-        const marketIds = Object.keys (snapshots);
+        const snapshots: Dict = this.safeDict (response, 'snapshots', {});
+        const marketIds: Strings = Object.keys (snapshots);
         for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
-            const entry = this.safeDict (snapshots, marketId);
-            const dailyBar = this.safeDict (entry, 'dailyBar', {});
-            const prevDailyBar = this.safeDict (entry, 'prevDailyBar', {});
+            const marketId: Str = marketIds[i];
+            const market: Market = this.safeMarket (marketId);
+            const entry: NullableDict = this.safeDict (snapshots, marketId);
+            const dailyBar: Dict = this.safeDict (entry, 'dailyBar', {});
+            const prevDailyBar: Dict = this.safeDict (entry, 'prevDailyBar', {});
             const latestQuote = this.safeDict (entry, 'latestQuote', {});
             const latestTrade = this.safeDict (entry, 'latestTrade', {});
             const datetime = this.safeString (latestQuote, 't');
@@ -1166,8 +1166,8 @@ export default class alpaca extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
-        const id = market['id'];
+        const market: Market = this.market (symbol);
+        const id: Str = market['id'];
         const request: Dict = {
             'symbol': id,
             'side': side,
