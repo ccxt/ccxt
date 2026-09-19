@@ -51,6 +51,7 @@ java {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+    systemProperty("ccxt.perf.stamp", "baseline-1")
     // Print wall time per test class and for the whole run so CI logs show
     // which suites dominate the test step.
     afterSuite(KotlinClosure2({ desc: TestDescriptor, result: TestResult ->
