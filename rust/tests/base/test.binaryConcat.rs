@@ -11,21 +11,21 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testBinaryConcat() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     // Test 1: Concat two binaries
-    let mut binary1: Value = exchange.string_to_binary(Value::Str("hello".to_string()), &[]);
-    let mut binary2: Value = exchange.string_to_binary(Value::Str(" world".to_string()), &[]);
+    let mut binary1: Value = exchange.string_to_binary(Value::Str("hello".into()), &[]);
+    let mut binary2: Value = exchange.string_to_binary(Value::Str(" world".into()), &[]);
     let mut result1: Value = exchange.binary_concat(binary1.clone(), &[binary2.clone()]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_string(result1.clone(), &[]).as_str() == Some("hello world")))));
     // Test 2: Concat three binaries
-    let mut binary3: Value = exchange.string_to_binary(Value::Str("foo".to_string()), &[]);
-    let mut binary4: Value = exchange.string_to_binary(Value::Str("bar".to_string()), &[]);
-    let mut binary5: Value = exchange.string_to_binary(Value::Str("baz".to_string()), &[]);
+    let mut binary3: Value = exchange.string_to_binary(Value::Str("foo".into()), &[]);
+    let mut binary4: Value = exchange.string_to_binary(Value::Str("bar".into()), &[]);
+    let mut binary5: Value = exchange.string_to_binary(Value::Str("baz".into()), &[]);
     let mut result2: Value = exchange.binary_concat(binary3.clone(), &[binary4.clone(), binary5.clone()]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_string(result2.clone(), &[]).as_str() == Some("foobarbaz")))));
     // Test 3: Concat with hex bytes
-    let mut result3: Value = exchange.binary_concat(exchange.base16_to_binary(Value::Str("68656c6c6f".to_string()), &[]), &[exchange.string_to_binary(Value::Str(" world".to_string()), &[])]);
+    let mut result3: Value = exchange.binary_concat(exchange.base16_to_binary(Value::Str("68656c6c6f".into()), &[]), &[exchange.string_to_binary(Value::Str(" world".into()), &[])]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_string(result3.clone(), &[]).as_str() == Some("hello world")))));
 }

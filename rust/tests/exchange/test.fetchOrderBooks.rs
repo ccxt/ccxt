@@ -10,8 +10,8 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchOrderBooks(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("fetchOrderBooks".to_string());
-    let mut symbols: Value = get_value(&exchange, &Value::Str("symbols".to_string()));
+    let mut method: Value = Value::Str("fetchOrderBooks".into());
+    let mut symbols: Value = get_value(&exchange, &Value::Str("symbols".into()));
     assert!(ccxt::runtime::is_true(&((symbols != Value::Null))));
     let mut symbol: Value = symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     let mut orderBooks: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_order_books", vec![Value::from(vec![symbol.clone()])]).await;

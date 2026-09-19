@@ -18,7 +18,7 @@ pub async fn testWatchBidsAsks(mut exchange: Value, mut skippedProperties: Value
 }
 pub async fn testWatchBidsAsksHelper(mut exchange: Value, mut skippedProperties: Value, mut argSymbols: Value, optional_args: &[Value]) -> Value {
     let mut argParams: Value = get_arg(optional_args, 0, Value::Null);
-    let mut method: Value = Value::Str("watchBidsAsks".to_string());
+    let mut method: Value = Value::Str("watchBidsAsks".into());
     let mut now: Value = exchange.milliseconds();
     let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     let mut maxIdleTime: Value = Value::Int(5000);

@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchPositions".to_string());
+    let mut method: Value = Value::Str("fetchPositions".into());
     let mut now: Value = exchange.milliseconds();
     // without symbol
     let mut positions: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_positions", vec![]).await;

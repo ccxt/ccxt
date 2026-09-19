@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchTradingFees(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("fetchTradingFees".to_string());
+    let mut method: Value = Value::Str("fetchTradingFees".into());
     let mut fees: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_trading_fees", vec![]).await;
     let mut symbols: Value = object_keys(&fees);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), symbols.clone()]);

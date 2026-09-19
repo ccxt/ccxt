@@ -211,7 +211,7 @@ impl KrakenfuturesCore {
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "get_message_hash" => self.get_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -297,12 +297,12 @@ impl KrakenfuturesCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://futures.kraken.com/ws/v1".to_string()));
+        m.insert("ws".to_string(), Value::Str("wss://futures.kraken.com/ws/v1".into()));
     m
 }));
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://demo-futures.kraken.com/ws/v1".to_string()));
+        m.insert("ws".to_string(), Value::Str("wss://demo-futures.kraken.com/ws/v1".into()));
     m
 }));
     m
@@ -350,14 +350,14 @@ impl KrakenfuturesCore {
         // Use the result of step 2 to hash the result of step 1 with the HMAC-SHA-512 algorithm
         // Base64-encode the result of step 3
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = Value::Str("challenge".to_string());
+        let mut messageHash: Value = Value::Str("challenge".into());
         let mut client: Value = self.client(&[url.clone()]);
         let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
+        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         if (authenticated == Value::Null) {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("event".to_string(), Value::Str("challenge".to_string()));
+                    m.insert("event".to_string(), Value::Str("challenge".into()));
                     m.insert("api_key".to_string(), self.apiKey.clone());
                 m
             });
@@ -385,7 +385,7 @@ impl KrakenfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orderbook: Value = self.watch_multi_helper(Value::Str("orderbook".to_string()), Value::Str("book".to_string()), &[symbols.clone(), Value::Map({
+        let mut orderbook: Value = self.watch_multi_helper(Value::Str("orderbook".into()), Value::Str("book".into()), &[symbols.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), limit.clone());
     m
@@ -415,7 +415,7 @@ impl KrakenfuturesCore {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("feed".to_string(), name.clone());
             m
         });
@@ -428,16 +428,17 @@ impl KrakenfuturesCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_439: bool = true;
             while { if !__for_first_439 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_439 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = get_value(&symbols, &i);
+            let mut symbol: Value = get_value(&symbols, &i);
             append_to_array(&mut marketIds, self.market_id(symbol.clone()));
         }
         }
         let mut length: f64 = ((symbols.len() as i64) as f64);
         if (length == 1.0) {
             let mut market: Value = self.market(marketIds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
+            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         }
-        if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("product_ids".to_string(), marketIds.clone()); }
+        add_element_to_object(&mut subscribe, &Value::Str("product_ids".into()), marketIds.clone());
         let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
 
@@ -465,7 +466,7 @@ impl KrakenfuturesCore {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("feed".to_string(), name.clone());
                 m.insert("api_key".to_string(), self.apiKey.clone());
                 m.insert("original_challenge".to_string(), self.options.as_map().and_then(|__m| __m.get("challenge")).cloned().unwrap_or(Value::Null));
@@ -521,7 +522,7 @@ impl KrakenfuturesCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
-        let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".to_string()), Value::Str("ticker".to_string()), &[symbols.clone(), Value::Null, params.clone()]).await;
+        let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".into()), Value::Str("ticker".into()), &[symbols.clone(), Value::Null, params.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -530,7 +531,7 @@ impl KrakenfuturesCore {
             add_element_to_object(&mut result, &crate::value::get_value_k(&ticker, "symbol"), ticker.clone());
             return result;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols.clone()]);
 
     Value::Null
 }
@@ -550,7 +551,7 @@ impl KrakenfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut ticker: Value = self.watch_multi_helper(Value::Str("bidask".to_string()), Value::Str("ticker_lite".to_string()), &[symbols.clone(), Value::Null, params.clone()]).await;
+        let mut ticker: Value = self.watch_multi_helper(Value::Str("bidask".into()), Value::Str("ticker_lite".into()), &[symbols.clone(), Value::Null, params.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -559,7 +560,7 @@ impl KrakenfuturesCore {
             add_element_to_object(&mut result, &crate::value::get_value_k(&ticker, "symbol"), ticker.clone());
             return result;
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbols.clone()]);
 
     Value::Null
 }
@@ -605,13 +606,13 @@ impl KrakenfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut trades: Value = self.watch_multi_helper(Value::Str("trade".to_string()), Value::Str("trade".to_string()), &[symbols.clone(), Value::Null, params.clone()]).await;
+        let mut trades: Value = self.watch_multi_helper(Value::Str("trade".into()), Value::Str("trade".into()), &[symbols.clone(), Value::Null, params.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut first: Value = self.safe_list(trades.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first.clone(), "symbol", &[]);
             limit = trades.get_limit(tradeSymbol.clone(), limit.clone());
         }
-        return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".to_string()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -659,13 +660,13 @@ impl KrakenfuturesCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut messageHash: Value = Value::Str("".to_string());
+        let mut messageHash: Value = Value::Str("".into());
         symbols = self.market_symbols(&[symbols.clone()]);
-        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols.clone())) {
-            messageHash = Value::Str(format!("{}{}", Value::Str("::".to_string()), join(&symbols, &Value::Str(",".to_string()))));
+        if is_true(&(symbols != Value::Null)) && !is_true(&self.is_empty(symbols.clone())) {
+            messageHash = Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbols, &Value::Str(",".into()))).into());
         }
-        messageHash = Value::Str(format!("{}{}", Value::Str("positions".to_string()), messageHash));
-        let mut newPositions: Value = self.subscribe_private(Value::Str("open_positions".to_string()), messageHash.clone(), &[params.clone()]).await;
+        messageHash = Value::Str(format!("{}{}", Value::Str("positions".into()), messageHash).into());
+        let mut newPositions: Value = self.subscribe_private(Value::Str("open_positions".into()), messageHash.clone(), &[params.clone()]).await;
         if is_true(&self.newUpdates) {
             return newPositions;
         }
@@ -717,31 +718,33 @@ impl KrakenfuturesCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_440: bool = true;
             while { if !__for_first_440 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_440 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
-            let mut rawPosition: Value = rawPositions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = get_value(&rawPositions, &i);
+            let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
             let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
-            add_element_to_object(&mut position, &Value::Str("timestamp".to_string()), timestamp.clone());
-            add_element_to_object(&mut position, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
+            add_element_to_object(&mut position, &Value::Str("timestamp".into()), timestamp.clone());
+            add_element_to_object(&mut position, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
             append_to_array(&mut newPositions, position.clone());
             cache.append(position.clone());
         }
         }
-        let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("positions::".to_string()));
+        let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("positions::".into()));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_441: bool = true;
             while { if !__for_first_441 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_441 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
+            let mut messageHash: Value = get_value(&messageHashes, &i);
+            let mut messageHash: Value = get_value(&messageHashes, &i);
+            let mut parts: Value = split(&messageHash, &Value::Str("::".into()));
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-            let mut symbols: Value = split(&symbolsString, &Value::Str(",".to_string()));
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
+            let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols.clone(), Value::Bool(false)]);
             if !is_true(&self.is_empty(positions.clone())) {
                 client.resolve(&[positions.clone(), messageHash.clone()]);
             }
         }
         }
-        client.resolve(&[newPositions.clone(), Value::Str("positions".to_string())]);
+        client.resolve(&[newPositions.clone(), Value::Str("positions".into())]);
 }
 
     pub fn parse_ws_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -765,13 +768,13 @@ impl KrakenfuturesCore {
         //        }
         //
         let mut marketId: Value = self.safe_string_k(position.clone(), "instrument", &[]);
-        let mut hedged: Value = Value::Str("both".to_string());
+        let mut hedged: Value = Value::Str("both".into());
         let mut balanceString: Value = self.safe_string_k(position.clone(), "balance", &[]);
         let mut side: Value = Value::Null;
-        if is_true(&crate::precise::Precise::stringGt(&balanceString, &Value::Str("0".to_string()))) {
-            side = Value::Str("long".to_string());
-        }  else if is_true(&crate::precise::Precise::stringLt(&balanceString, &Value::Str("0".to_string()))) {
-            side = Value::Str("short".to_string());
+        if is_true(&crate::precise::Precise::stringGt(&balanceString, &Value::Str("0".into()))) {
+            side = Value::Str("long".into());
+        }  else if is_true(&crate::precise::Precise::stringLt(&balanceString, &Value::Str("0".into()))) {
+            side = Value::Str("short".into());
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -829,30 +832,30 @@ impl KrakenfuturesCore {
             self.load_markets(&[]).await;
         }
         let mut verbose: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrders".to_string()), Value::Str("verbose".to_string()), &[Value::Bool(false)]); verbose = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut name: Value = Value::Str("open_orders".to_string());
-        let mut messageHash: Value = Value::Str("orders".to_string());
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrders".into()), Value::Str("verbose".into()), &[Value::Bool(false)]); verbose = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut name: Value = Value::Str("open_orders".into());
+        let mut messageHash: Value = Value::Str("orders".into());
         if is_true(&verbose) {
-            name = Value::Str("open_orders_verbose".to_string());
-            messageHash = Value::Str("orders:verbose".to_string());
+            name = Value::Str("open_orders_verbose".into());
+            messageHash = Value::Str("orders:verbose".into());
         }
         let mut feed: Value = self.safe_string_k(params.clone(), "feed", &[]);
         if (feed != Value::Null) {
             name = feed.clone();
-            messageHash = Value::Str("orders".to_string());
+            messageHash = Value::Str("orders".into());
             if (feed.as_str() == Some("open_orders_verbose")) {
-                messageHash = Value::Str("orders:verbose".to_string());
+                messageHash = Value::Str("orders:verbose".into());
             }
         }
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)))));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())).into());
         }
         let mut orders: Value = self.subscribe_private(name.clone(), messageHash.clone(), &[params.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_since_limit(orders.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".to_string()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -879,17 +882,17 @@ impl KrakenfuturesCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut name: Value = Value::Str("fills".to_string());
-        let mut messageHash: Value = Value::Str("myTrades".to_string());
+        let mut name: Value = Value::Str("fills".into());
+        let mut messageHash: Value = Value::Str("myTrades".into());
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)))));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())).into());
         }
         let mut trades: Value = self.subscribe_private(name.clone(), messageHash.clone(), &[params.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".to_string()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -911,15 +914,15 @@ impl KrakenfuturesCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut name: Value = Value::Str("balances".to_string());
+        let mut name: Value = Value::Str("balances".into());
         let mut messageHash: Value = name.clone();
         let mut account: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchBalance".to_string()), Value::Str("account".to_string()), &[]); account = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchBalance".into()), Value::Str("account".into()), &[]); account = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (account != Value::Null) {
             if (account.as_str() != Some("futures")) && (account.as_str() != Some("flex_futures")) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance account must be either 'futures' or 'flex_futures'".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance account must be either 'futures' or 'flex_futures'".into()))));
             }
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), account))));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), account).into())).into());
         }
         return self.subscribe_private(name.clone(), messageHash.clone(), &[params.clone()]).await;
 
@@ -968,7 +971,7 @@ impl KrakenfuturesCore {
         if (marketId != Value::Null) {
             let mut market: Value = self.market(marketId);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut messageHash: Value = self.get_message_hash(Value::Str("trade".to_string()), &[Value::Null, symbol.clone()]);
+            let mut messageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[Value::Null, symbol.clone()]);
             if (self.safe_list(self.trades.clone(), symbol.clone(), &[]) == Value::Null) {
                 let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(tradesLimit.clone()));
@@ -1039,9 +1042,9 @@ impl KrakenfuturesCore {
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
-        m.insert("takerOrMaker".to_string(), Value::Str("taker".to_string()));
-        m.insert("price".to_string(), self.safe_string2(trade.clone(), Value::Str("price".to_string()), Value::Str("limit_price".to_string()), &[]));
-        m.insert("amount".to_string(), self.safe_string2(trade.clone(), Value::Str("filled".to_string()), Value::Str("qty".to_string()), &[]));
+        m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
+        m.insert("price".to_string(), self.safe_string2(trade.clone(), Value::Str("price".into()), Value::Str("limit_price".into()), &[]));
+        m.insert("amount".to_string(), self.safe_string2(trade.clone(), Value::Str("filled".into()), Value::Str("qty".into()), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1096,10 +1099,10 @@ impl KrakenfuturesCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
-        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".to_string()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]));
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
         m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "matchRole", &[]));
-        m.insert("price".to_string(), self.safe_string2(trade.clone(), Value::Str("price".to_string()), Value::Str("limit_price".to_string()), &[]));
+        m.insert("price".to_string(), self.safe_string2(trade.clone(), Value::Str("price".into()), Value::Str("limit_price".into()), &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "tradeAmount", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
@@ -1194,9 +1197,9 @@ impl KrakenfuturesCore {
         if (order != Value::Null) {
             let mut marketId: Value = self.safe_string_k(order.clone(), "instrument", &[]);
             let mut feed: Value = self.safe_string_k(message.clone(), "feed", &[]);
-            let mut messageHash: Value = Value::Str("orders".to_string());
+            let mut messageHash: Value = Value::Str("orders".into());
             if (feed.as_str() == Some("open_orders_verbose")) {
-                messageHash = Value::Str("orders:verbose".to_string());
+                messageHash = Value::Str("orders:verbose".into());
             }
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
             let mut orderId: Value = self.safe_string_k(order.clone(), "order_id", &[]);
@@ -1206,20 +1209,20 @@ impl KrakenfuturesCore {
             })]);
             let mut previousOrder: Value = self.safe_dict(previousOrders.clone(), orderId.clone(), &[]);
             let mut reason: Value = self.safe_string_k(message.clone(), "reason", &[]);
-            if (previousOrder == Value::Null) || (reason.as_str() == Some("edited_by_user")) {
+            if is_true(&(previousOrder == Value::Null)) || is_true(&(reason.as_str() == Some("edited_by_user"))) {
                 let mut parsed: Value = self.parse_ws_order(order.clone(), &[]);
                 orders.append(parsed.clone());
                 client.resolve(&[orders.clone(), messageHash.clone()]);
-                client.resolve(&[orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol))]);
+                client.resolve(&[orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into())]);
             }  else {
                 let mut trade: Value = self.parse_ws_trade(order.clone(), &[]);
                 if (previousOrder.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null) == Value::Null) {
-                    add_element_to_object(&mut previousOrder, &Value::Str("trades".to_string()), Value::from(vec![]));
+                    add_element_to_object(&mut previousOrder, &Value::Str("trades".into()), Value::from(vec![]));
                 }
-                crate::runtime::append_to_object_array(&mut previousOrder, &Value::Str("trades".to_string()), trade.clone());
-                add_element_to_object(&mut previousOrder, &Value::Str("lastTradeTimestamp".to_string()), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null));
-                let mut totalCost: Value = Value::Str("0".to_string());
-                let mut totalAmount: Value = Value::Str("0".to_string());
+                crate::runtime::append_to_object_array(&mut previousOrder, &Value::Str("trades".into()), trade.clone());
+                add_element_to_object(&mut previousOrder, &Value::Str("lastTradeTimestamp".into()), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null));
+                let mut totalCost: Value = Value::Str("0".into());
+                let mut totalAmount: Value = Value::Str("0".into());
                 let mut trades: Value = previousOrder.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null);
                 {
                                         let mut i: Value = Value::Int(0);
@@ -1231,34 +1234,34 @@ impl KrakenfuturesCore {
                     totalAmount = crate::precise::Precise::stringAdd(&totalAmount, &self.number_to_string(crate::value::get_value_k(&currentTrade, "amount")));
                 }
                 }
-                if is_true(&crate::precise::Precise::stringGt(&totalAmount, &Value::Str("0".to_string()))) {
-                    add_element_to_object(&mut previousOrder, &Value::Str("average".to_string()), crate::precise::Precise::stringDiv(&totalCost, &totalAmount));
+                if is_true(&crate::precise::Precise::stringGt(&totalAmount, &Value::Str("0".into()))) {
+                    add_element_to_object(&mut previousOrder, &Value::Str("average".into()), crate::precise::Precise::stringDiv(&totalCost, &totalAmount));
                 }
-                add_element_to_object(&mut previousOrder, &Value::Str("cost".to_string()), totalCost.clone());
+                add_element_to_object(&mut previousOrder, &Value::Str("cost".into()), totalCost.clone());
                 let mut filledString: Value = self.number_to_string(trade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
-                let mut stringOrderFilled: Value = self.safe_string_k(previousOrder.clone(), "filled", &[Value::Str("0".to_string())]);
+                let mut stringOrderFilled: Value = self.safe_string_k(previousOrder.clone(), "filled", &[Value::Str("0".into())]);
                 let mut totalFilled: Value = crate::precise::Precise::stringAdd(&stringOrderFilled, &filledString);
-                add_element_to_object(&mut previousOrder, &Value::Str("filled".to_string()), totalFilled.clone());
+                add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), totalFilled.clone());
                 let mut prevAmountString: Value = self.safe_string_k(previousOrder.clone(), "amount", &[]);
                 let mut remaining: Value = crate::precise::Precise::stringSub(&prevAmountString, &totalFilled);
-                add_element_to_object(&mut previousOrder, &Value::Str("remaining".to_string()), remaining.clone());
+                add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), remaining.clone());
                 if (previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null) == Value::Null) {
-                    add_element_to_object(&mut previousOrder, &Value::Str("fee".to_string()), Value::Map({
+                    add_element_to_object(&mut previousOrder, &Value::Str("fee".into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), Value::Null);
-        m.insert("cost".to_string(), Value::Str("0".to_string()));
-        m.insert("currency".to_string(), self.number_to_string(self.safe_string(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("currency".to_string()), &[])));
+        m.insert("cost".to_string(), Value::Str("0".into()));
+        m.insert("currency".to_string(), self.number_to_string(self.safe_string(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("currency".into()), &[])));
     m
 }));
                 }
-                if (crate::value::get_value_k(&previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), "cost") != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]) != Value::Null) {
+                if is_true(&(crate::value::get_value_k(&previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), "cost") != Value::Null)) && is_true(&(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null)) {
                     let mut stringOrderCost: Value = self.number_to_string(crate::value::get_value_k(&previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), "cost"));
-                    let mut stringTradeCost: Value = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]));
-                    add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".to_string())), &Value::Str("cost".to_string()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
+                    let mut stringTradeCost: Value = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]));
+                    add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
                 }
                 // update the newUpdates count
                 orders.append(self.safe_order(previousOrder.clone(), &[]));
-                client.resolve(&[orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol))]);
+                client.resolve(&[orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into())]);
                 client.resolve(&[orders.clone(), messageHash.clone()]);
             }
         }  else {
@@ -1269,14 +1272,14 @@ impl KrakenfuturesCore {
                 // mapping every removal to canceled. Preserve reason on info
                 // so consumers can tell a user cancel from liquidation, etc.
                 let mut reason: Value = self.safe_string_k(message.clone(), "reason", &[]);
-                let mut status: Value = Value::Str("canceled".to_string());
+                let mut status: Value = Value::Str("canceled".into());
                 if (reason.as_str() == Some("full_fill")) {
-                    status = Value::Str("closed".to_string());
+                    status = Value::Str("closed".into());
                 }
                 let mut feed: Value = self.safe_string_k(message.clone(), "feed", &[]);
-                let mut messageHash: Value = Value::Str("orders".to_string());
+                let mut messageHash: Value = Value::Str("orders".into());
                 if (feed.as_str() == Some("open_orders_verbose")) {
-                    messageHash = Value::Str("orders:verbose".to_string());
+                    messageHash = Value::Str("orders:verbose".into());
                 }
                 {
                                         let mut i: Value = Value::Int(0);
@@ -1301,7 +1304,7 @@ impl KrakenfuturesCore {
     m
 })]));
                         client.resolve(&[orders.clone(), messageHash.clone()]);
-                        client.resolve(&[orders.clone(), add(&Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), &crate::value::get_value_k(&currentOrder, "symbol"))]);
+                        client.resolve(&[orders.clone(), add(&Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), &crate::value::get_value_k(&currentOrder, "symbol"))]);
                         break;
                     }
                 }
@@ -1365,9 +1368,9 @@ impl KrakenfuturesCore {
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
         self.orders = ArrayCacheBySymbolById::new(limit.clone());
         let mut feed: Option<String> = self.safe_string_k(message.clone(), "feed", &[]).as_str().map(str::to_owned);
-        let mut messageHash: Value = Value::Str("orders".to_string());
+        let mut messageHash: Value = Value::Str("orders".into());
         if (feed.as_deref() == Some("open_orders_verbose_snapshot")) {
-            messageHash = Value::Str("orders:verbose".to_string());
+            messageHash = Value::Str("orders:verbose".into());
         }
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1378,7 +1381,8 @@ impl KrakenfuturesCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_445: bool = true;
             while { if !__for_first_445 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_445 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut order: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut order: Value = get_value(&orders, &i);
+            let mut order: Value = get_value(&orders, &i);
             let mut parsed: Value = self.parse_ws_order(order.clone(), &[]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1395,8 +1399,9 @@ impl KrakenfuturesCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_446: bool = true;
                 while { if !__for_first_446 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_446 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-                let mut symbol: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol));
+                let mut symbol: Value = get_value(&keys, &i);
+                let mut symbol: Value = get_value(&keys, &i);
+                let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
                 client.resolve(&[self.orders.clone(), symbolMessageHash.clone()]);
             }
             }
@@ -1449,7 +1454,7 @@ impl KrakenfuturesCore {
         if (isCancelled != Value::Null) {
             unparsedOrder = self.safe_value_k(order.clone(), "order", &[]);
             if (isCancelled.as_bool() == Some(true)) {
-                status = Value::Str("cancelled".to_string());
+                status = Value::Str("cancelled".into());
             }
         }
         let mut marketId: Value = self.safe_string_k(unparsedOrder.clone(), "instrument", &[]);
@@ -1467,7 +1472,7 @@ impl KrakenfuturesCore {
         m.insert("type".to_string(), self.safe_string_k(unparsedOrder.clone(), "type", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), (if (direction == Some(0)) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
+        m.insert("side".to_string(), (if is_true(&(direction == Some(0))) { Value::Str("buy".into()) } else { Value::Str("sell".into()) }));
         m.insert("price".to_string(), self.safe_string_k(unparsedOrder.clone(), "limit_price", &[]));
         m.insert("stopPrice".to_string(), self.safe_string_k(unparsedOrder.clone(), "stop_price", &[]));
         m.insert("triggerPrice".to_string(), self.safe_string_k(unparsedOrder.clone(), "stop_price", &[]));
@@ -1530,7 +1535,7 @@ impl KrakenfuturesCore {
             if (symbol != Value::Null) {
                 add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             }
-            let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[Value::Null, symbol.clone()]);
+            let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[Value::Null, symbol.clone()]);
             client.resolve(&[ticker.clone(), messageHash.clone()]);
         }
 }
@@ -1559,7 +1564,7 @@ impl KrakenfuturesCore {
             if (symbol != Value::Null) {
                 add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
             }
-            let mut messageHash: Value = self.get_message_hash(Value::Str("bidask".to_string()), &[Value::Null, symbol.clone()]);
+            let mut messageHash: Value = self.get_message_hash(Value::Str("bidask".into()), &[Value::Null, symbol.clone()]);
             client.resolve(&[ticker.clone(), messageHash.clone()]);
         }
 }
@@ -1683,8 +1688,8 @@ impl KrakenfuturesCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[Value::Null, symbol.clone()]);
-        let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[Value::Map({
+        let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, symbol.clone()]);
+        let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1707,10 +1712,11 @@ impl KrakenfuturesCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_447: bool = true;
             while { if !__for_first_447 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_447 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
-            let mut bid: Value = bids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut bid: Value = get_value(&bids, &i);
+            let mut bid: Value = get_value(&bids, &i);
             let mut price: Value = self.safe_number_k(bid.clone(), "price", &[]);
             let mut qty: Value = self.safe_number_k(bid, "qty", &[]);
-            let mut bidsSide: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
+            let mut bidsSide: Value = get_value(&orderbook, &Value::Str("bids".into()));
             bidsSide.store(price.clone(), qty.clone());
         }
         }
@@ -1718,16 +1724,17 @@ impl KrakenfuturesCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_448: bool = true;
             while { if !__for_first_448 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_448 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
-            let mut ask: Value = asks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut ask: Value = get_value(&asks, &i);
+            let mut ask: Value = get_value(&asks, &i);
             let mut price: Value = self.safe_number_k(ask.clone(), "price", &[]);
             let mut qty: Value = self.safe_number_k(ask, "qty", &[]);
-            let mut asksSide: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
+            let mut asksSide: Value = get_value(&orderbook, &Value::Str("asks".into()));
             asksSide.store(price.clone(), qty.clone());
         }
         }
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
-        add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
+        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
+        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+        add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
@@ -1746,21 +1753,21 @@ impl KrakenfuturesCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[Value::Null, symbol.clone()]);
+        let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, symbol.clone()]);
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut side: Option<String> = self.safe_string_k(message.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut price: Value = self.safe_number_k(message.clone(), "price", &[]);
         let mut qty: Value = self.safe_number_k(message.clone(), "qty", &[]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         if (side.as_deref() == Some("sell")) {
-            let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
+            let mut asks: Value = get_value(&orderbook, &Value::Str("asks".into()));
             asks.store(price.clone(), qty.clone());
         }  else {
-            let mut bids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
+            let mut bids: Value = get_value(&orderbook, &Value::Str("bids".into()));
             bids.store(price.clone(), qty.clone());
         }
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
+        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
+        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
@@ -1913,7 +1920,7 @@ impl KrakenfuturesCore {
         let mut holding: Value = self.safe_dict_k(message.clone(), "holding", &[]);
         let mut futures: Value = self.safe_dict_k(message.clone(), "futures", &[]);
         let mut flexFutures: Value = self.safe_dict_k(message.clone(), "flex_futures", &[]);
-        let mut messageHash: Value = Value::Str("balances".to_string());
+        let mut messageHash: Value = Value::Str("balances".into());
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         if (holding != Value::Null) {
             let mut holdingKeys: Value = object_keys(&holding); // cashAccount
@@ -1928,17 +1935,18 @@ impl KrakenfuturesCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_449: bool = true;
                 while { if !__for_first_449 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_449 = false; i.as_f64().unwrap_or(f64::NAN) < ((holdingKeys.len() as i64) as f64) } {
-                let mut key: Value = holdingKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut key: Value = get_value(&holdingKeys, &i);
+                let mut key: Value = get_value(&holdingKeys, &i);
                 let mut code: Value = self.safe_currency_code(key.clone(), &[]);
                 let mut newAccount: Value = self.account();
-                add_element_to_object(&mut newAccount, &Value::Str("total".to_string()), self.safe_string(holding.clone(), key.clone(), &[]));
+                add_element_to_object(&mut newAccount, &Value::Str("total".into()), self.safe_string(holding.clone(), key.clone(), &[]));
                 if (code != Value::Null) {
                     add_element_to_object(&mut holdingResult, &code, newAccount.clone());
                 }
             }
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("cash".to_string(), holdingResult.clone()); }
-            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "cash")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("cash".to_string(), __be_tmp); } }
+            add_element_to_object(&mut self.balance, &Value::Str("cash".into()), holdingResult.clone());
+            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "cash")); add_element_to_object(&mut self.balance, &Value::Str("cash".into()), __be_tmp); };
             client.resolve(&[holdingResult.clone(), messageHash.clone()]);
         }
         if (futures != Value::Null) {
@@ -1954,27 +1962,28 @@ impl KrakenfuturesCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_450: bool = true;
                 while { if !__for_first_450 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_450 = false; i.as_f64().unwrap_or(f64::NAN) < ((futuresKeys.len() as i64) as f64) } {
-                let mut key: Value = futuresKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut key: Value = get_value(&futuresKeys, &i);
+                let mut key: Value = get_value(&futuresKeys, &i);
                 let mut symbol: Value = self.safe_symbol(key.clone(), &[]);
                 let mut newAccount: Value = self.account();
                 let mut future: Value = self.safe_dict(futures.clone(), key.clone(), &[]);
                 let mut currencyId: Value = self.safe_string_k(future.clone(), "unit", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-                add_element_to_object(&mut newAccount, &Value::Str("free".to_string()), self.safe_string_k(future.clone(), "available", &[]));
-                add_element_to_object(&mut newAccount, &Value::Str("used".to_string()), self.safe_string_k(future.clone(), "initial_margin", &[]));
-                add_element_to_object(&mut newAccount, &Value::Str("total".to_string()), self.safe_string_k(future.clone(), "balance", &[]));
+                add_element_to_object(&mut newAccount, &Value::Str("free".into()), self.safe_string_k(future.clone(), "available", &[]));
+                add_element_to_object(&mut newAccount, &Value::Str("used".into()), self.safe_string_k(future.clone(), "initial_margin", &[]));
+                add_element_to_object(&mut newAccount, &Value::Str("total".into()), self.safe_string_k(future.clone(), "balance", &[]));
                 add_element_to_object(&mut futuresResult, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-                if (symbol != Value::Null) && (code != Value::Null) {
+                if is_true(&(symbol != Value::Null)) && is_true(&(code != Value::Null)) {
                     add_element_to_object(get_value_mut(&mut futuresResult, &symbol), &code, newAccount.clone());
                 }
             }
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("margin".to_string(), futuresResult.clone()); }
-            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "margin")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("margin".to_string(), __be_tmp); } }
-            client.resolve(&[crate::value::get_value_k(&self.balance, "margin"), Value::Str(format!("{}{}", messageHash, Value::Str("futures".to_string())))]);
+            add_element_to_object(&mut self.balance, &Value::Str("margin".into()), futuresResult.clone());
+            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "margin")); add_element_to_object(&mut self.balance, &Value::Str("margin".into()), __be_tmp); };
+            client.resolve(&[crate::value::get_value_k(&self.balance, "margin"), Value::Str(format!("{}{}", messageHash, Value::Str("futures".into())).into())]);
         }
         if (flexFutures != Value::Null) {
             let mut flexFutureCurrencies: Value = self.safe_dict_k(flexFutures, "currencies", &[Value::Map({
@@ -1993,21 +2002,22 @@ impl KrakenfuturesCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_451: bool = true;
                 while { if !__for_first_451 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_451 = false; i.as_f64().unwrap_or(f64::NAN) < ((flexFuturesKeys.len() as i64) as f64) } {
-                let mut key: Value = flexFuturesKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut key: Value = get_value(&flexFuturesKeys, &i);
+                let mut key: Value = get_value(&flexFuturesKeys, &i);
                 let mut flexFuture: Value = self.safe_dict(flexFutureCurrencies.clone(), key.clone(), &[]);
                 let mut code: Value = self.safe_currency_code(key.clone(), &[]);
                 let mut newAccount: Value = self.account();
-                add_element_to_object(&mut newAccount, &Value::Str("free".to_string()), self.safe_string_k(flexFuture.clone(), "available", &[]));
-                add_element_to_object(&mut newAccount, &Value::Str("used".to_string()), self.safe_string_k(flexFuture.clone(), "collateral_value", &[]));
-                add_element_to_object(&mut newAccount, &Value::Str("total".to_string()), self.safe_string_k(flexFuture.clone(), "quantity", &[]));
+                add_element_to_object(&mut newAccount, &Value::Str("free".into()), self.safe_string_k(flexFuture.clone(), "available", &[]));
+                add_element_to_object(&mut newAccount, &Value::Str("used".into()), self.safe_string_k(flexFuture.clone(), "collateral_value", &[]));
+                add_element_to_object(&mut newAccount, &Value::Str("total".into()), self.safe_string_k(flexFuture.clone(), "quantity", &[]));
                 if (code != Value::Null) {
                     add_element_to_object(&mut flexFuturesResult, &code, newAccount.clone());
                 }
             }
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("flex".to_string(), flexFuturesResult.clone()); }
-            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "flex")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("flex".to_string(), __be_tmp); } }
-            client.resolve(&[crate::value::get_value_k(&self.balance, "flex"), Value::Str(format!("{}{}", messageHash, Value::Str("flex_futures".to_string())))]);
+            add_element_to_object(&mut self.balance, &Value::Str("flex".into()), flexFuturesResult.clone());
+            { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "flex")); add_element_to_object(&mut self.balance, &Value::Str("flex".into()), __be_tmp); };
+            client.resolve(&[crate::value::get_value_k(&self.balance, "flex"), Value::Str(format!("{}{}", messageHash, Value::Str("flex_futures".into())).into())]);
         }
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
 }
@@ -2053,7 +2063,8 @@ impl KrakenfuturesCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_452: bool = true;
             while { if !__for_first_452 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_452 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-            let mut trade: Value = trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = get_value(&trades, &i);
+            let mut trade: Value = get_value(&trades, &i);
             let mut parsedTrade: Value = self.parse_ws_my_trade(trade.clone(), &[]);
             if (parsedTrade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) != Value::Null) {
                 add_element_to_object(&mut tradeSymbols, &parsedTrade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), Value::Bool(true));
@@ -2066,12 +2077,13 @@ impl KrakenfuturesCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_453: bool = true;
             while { if !__for_first_453 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_453 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradeSymbolKeys.len() as i64) as f64) } {
-            let mut symbol: Value = tradeSymbolKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".to_string()), symbol));
+            let mut symbol: Value = get_value(&tradeSymbolKeys, &i);
+            let mut symbol: Value = get_value(&tradeSymbolKeys, &i);
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into());
             client.resolve(&[stored.clone(), messageHash.clone()]);
         }
         }
-        client.resolve(&[stored.clone(), Value::Str("myTrades".to_string())]);
+        client.resolve(&[stored.clone(), Value::Str("myTrades".into())]);
 }
 
     pub fn parse_ws_my_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -2108,7 +2120,7 @@ impl KrakenfuturesCore {
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
-        m.insert("side".to_string(), (if (isBuy.as_bool() == Some(true)) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
+        m.insert("side".to_string(), (if is_true(&(isBuy.as_bool() == Some(true))) { Value::Str("buy".into()) } else { Value::Str("sell".into()) }));
         m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "fill_type", &[]));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "qty", &[]));
@@ -2161,7 +2173,7 @@ impl KrakenfuturesCore {
         if length > ((0i64) as f64) {
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                    m.insert("event".to_string(), Value::Str("subscribe".into()));
                     m.insert("feed".to_string(), channelName.clone());
                     m.insert("product_ids".to_string(), rawSubs.clone());
                 m
@@ -2175,7 +2187,7 @@ impl KrakenfuturesCore {
 
     pub fn subscription_exists_for_hash(&mut self, mut url: Value, mut hash: Value) -> Value {
         let mut client: Value = self.client(&[url.clone()]);
-        return (Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &hash)));
+        return (Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &hash)));
 
     Value::Null
 }
@@ -2188,12 +2200,12 @@ impl KrakenfuturesCore {
         let mut withSymbol: bool = symbol != Value::Null;
         let mut messageHash: Value = unifiedElementName.clone();
         if !withSymbol {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("s".to_string())));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("s".into())).into());
         }  else {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), symbol))));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
         }
         if (subChannelName != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("#".to_string()), subChannelName))));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("#".into()), subChannelName).into())).into());
         }
         return messageHash;
 
@@ -2221,7 +2233,7 @@ impl KrakenfuturesCore {
             return Value::Bool(false);
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), errMsg)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), errMsg)));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             client.reject(&[Value::from(error.clone())]);
@@ -2238,26 +2250,26 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else if (event.as_deref() == Some("alert")) {
             self.handle_error_message(client.clone(), message.clone());
         }  else if (event.as_deref() == Some("pong")) {
-            crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.milliseconds());
+            crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
         }  else if (event.is_none()) {
             let mut feed: Value = self.safe_string_k(message.clone(), "feed", &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
-                    m.insert("ticker_lite".to_string(), Value::Str("handle_bid_ask".to_string()).clone());
-                    m.insert("trade".to_string(), Value::Str("handle_trade".to_string()).clone());
-                    m.insert("trade_snapshot".to_string(), Value::Str("handle_trade".to_string()).clone());
-                    m.insert("book".to_string(), Value::Str("handle_order_book".to_string()).clone());
-                    m.insert("book_snapshot".to_string(), Value::Str("handle_order_book_snapshot".to_string()).clone());
-                    m.insert("open_orders_verbose".to_string(), Value::Str("handle_order".to_string()).clone());
-                    m.insert("open_orders_verbose_snapshot".to_string(), Value::Str("handle_order_snapshot".to_string()).clone());
-                    m.insert("fills".to_string(), Value::Str("handle_my_trades".to_string()).clone());
-                    m.insert("fills_snapshot".to_string(), Value::Str("handle_my_trades".to_string()).clone());
-                    m.insert("open_orders".to_string(), Value::Str("handle_order".to_string()).clone());
-                    m.insert("open_orders_snapshot".to_string(), Value::Str("handle_order_snapshot".to_string()).clone());
-                    m.insert("balances".to_string(), Value::Str("handle_balance".to_string()).clone());
-                    m.insert("balances_snapshot".to_string(), Value::Str("handle_balance".to_string()).clone());
-                    m.insert("open_positions".to_string(), Value::Str("handle_positions".to_string()).clone());
+                    m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
+                    m.insert("ticker_lite".to_string(), Value::Str("handle_bid_ask".into()).clone());
+                    m.insert("trade".to_string(), Value::Str("handle_trade".into()).clone());
+                    m.insert("trade_snapshot".to_string(), Value::Str("handle_trade".into()).clone());
+                    m.insert("book".to_string(), Value::Str("handle_order_book".into()).clone());
+                    m.insert("book_snapshot".to_string(), Value::Str("handle_order_book_snapshot".into()).clone());
+                    m.insert("open_orders_verbose".to_string(), Value::Str("handle_order".into()).clone());
+                    m.insert("open_orders_verbose_snapshot".to_string(), Value::Str("handle_order_snapshot".into()).clone());
+                    m.insert("fills".to_string(), Value::Str("handle_my_trades".into()).clone());
+                    m.insert("fills_snapshot".to_string(), Value::Str("handle_my_trades".into()).clone());
+                    m.insert("open_orders".to_string(), Value::Str("handle_order".into()).clone());
+                    m.insert("open_orders_snapshot".to_string(), Value::Str("handle_order_snapshot".into()).clone());
+                    m.insert("balances".to_string(), Value::Str("handle_balance".into()).clone());
+                    m.insert("balances_snapshot".to_string(), Value::Str("handle_balance".into()).clone());
+                    m.insert("open_positions".to_string(), Value::Str("handle_positions".into()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods.clone(), feed.clone(), &[]);
@@ -2280,21 +2292,21 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //    }
         //
         let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
-        let mut messageHash: Value = Value::Str("challenge".to_string());
+        let mut messageHash: Value = Value::Str("challenge".into());
         if (event.as_deref() != Some("error")) {
             let mut challenge: Value = self.safe_value_k(message.clone(), "message", &[]);
-            let mut hashedChallenge: Value = self.hash(self.encode(challenge.clone()), Value::Str("sha256".to_string()), &[Value::Str("binary".to_string())]);
+            let mut hashedChallenge: Value = self.hash(self.encode(challenge.clone()), Value::Str("sha256".into()), &[Value::Str("binary".into())]);
             let mut base64Secret: Value = self.base64_to_binary(self.secret.clone(), &[]);
-            let mut signature: Value = self.hmac(hashedChallenge.clone(), base64Secret.clone(), Value::Str("sha512".to_string()), &[Value::Str("base64".to_string())]);
+            let mut signature: Value = self.hmac(hashedChallenge.clone(), base64Secret.clone(), Value::Str("sha512".into()), &[Value::Str("base64".into())]);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("challenge".to_string(), challenge.clone()); }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signedChallenge".to_string(), signature.clone()); }
-            let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
+            let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message))));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
-                remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             }
         }
         return message;

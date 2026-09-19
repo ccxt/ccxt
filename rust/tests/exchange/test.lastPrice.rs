@@ -16,17 +16,17 @@ pub fn testLastPrice(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("symbol".to_string(), Value::Str("ETH/BTC".to_string()));
+            m.insert("symbol".to_string(), Value::Str("ETH/BTC".into()));
             m.insert("timestamp".to_string(), Value::Int(1502962946216));
-            m.insert("datetime".to_string(), Value::Str("2017-09-01T00:00:00".to_string()));
-            m.insert("price".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("side".to_string(), Value::Str("buy".to_string()));
+            m.insert("datetime".to_string(), Value::Str("2017-09-01T00:00:00".into()));
+            m.insert("price".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("side".to_string(), Value::Str("buy".into()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".to_string()), Value::Str("datetime".to_string()), Value::Str("side".to_string()), Value::Str("price".to_string())]); // binance sometimes provides empty prices for old pairs
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("side".into()), Value::Str("price".into())]); // binance sometimes provides empty prices for old pairs
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
     //
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("price".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".to_string()).clone(), Value::from(vec![Value::Str("buy".to_string()), Value::Str("sell".to_string()), Value::Null]).clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("price".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()).clone(), Value::from(vec![Value::Str("buy".into()), Value::Str("sell".into()), Value::Null]).clone()]);
 }

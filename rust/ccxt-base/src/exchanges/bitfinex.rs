@@ -200,10 +200,10 @@ impl BitfinexCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("bitfinex".to_string()));
-        m.insert("name".to_string(), Value::Str("Bitfinex".to_string()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("VG".to_string())]));
-        m.insert("version".to_string(), Value::Str("v2".to_string()));
+        m.insert("id".to_string(), Value::Str("bitfinex".into()));
+        m.insert("name".to_string(), Value::Str("Bitfinex".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("VG".into())]));
+        m.insert("version".to_string(), Value::Str("v2".into()));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
@@ -252,7 +252,7 @@ impl BitfinexCore {
         m.insert("fetchDepositAddressesByNetwork".to_string(), Value::Bool(false));
         m.insert("fetchDepositsWithdrawals".to_string(), Value::Bool(true));
         m.insert("fetchFundingHistory".to_string(), Value::Bool(false));
-        m.insert("fetchFundingRate".to_string(), Value::Str("emulated".to_string()));
+        m.insert("fetchFundingRate".to_string(), Value::Str("emulated".into()));
         m.insert("fetchFundingRateHistory".to_string(), Value::Bool(true));
         m.insert("fetchFundingRates".to_string(), Value::Bool(true));
         m.insert("fetchGreeks".to_string(), Value::Bool(false));
@@ -292,7 +292,7 @@ impl BitfinexCore {
         m.insert("fetchTradingFee".to_string(), Value::Bool(false));
         m.insert("fetchTradingFees".to_string(), Value::Bool(true));
         m.insert("fetchTransactionFees".to_string(), Value::Null);
-        m.insert("fetchTransactions".to_string(), Value::Str("emulated".to_string()));
+        m.insert("fetchTransactions".to_string(), Value::Str("emulated".into()));
         m.insert("fetchVolatilityHistory".to_string(), Value::Bool(false));
         m.insert("reduceMargin".to_string(), Value::Bool(false));
         m.insert("repayCrossMargin".to_string(), Value::Bool(false));
@@ -308,35 +308,35 @@ impl BitfinexCore {
 }));
         m.insert("timeframes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("1m".to_string(), Value::Str("1m".to_string()));
-        m.insert("5m".to_string(), Value::Str("5m".to_string()));
-        m.insert("15m".to_string(), Value::Str("15m".to_string()));
-        m.insert("30m".to_string(), Value::Str("30m".to_string()));
-        m.insert("1h".to_string(), Value::Str("1h".to_string()));
-        m.insert("3h".to_string(), Value::Str("3h".to_string()));
-        m.insert("4h".to_string(), Value::Str("4h".to_string()));
-        m.insert("6h".to_string(), Value::Str("6h".to_string()));
-        m.insert("12h".to_string(), Value::Str("12h".to_string()));
-        m.insert("1d".to_string(), Value::Str("1D".to_string()));
-        m.insert("1w".to_string(), Value::Str("7D".to_string()));
-        m.insert("2w".to_string(), Value::Str("14D".to_string()));
-        m.insert("1M".to_string(), Value::Str("1M".to_string()));
+        m.insert("1m".to_string(), Value::Str("1m".into()));
+        m.insert("5m".to_string(), Value::Str("5m".into()));
+        m.insert("15m".to_string(), Value::Str("15m".into()));
+        m.insert("30m".to_string(), Value::Str("30m".into()));
+        m.insert("1h".to_string(), Value::Str("1h".into()));
+        m.insert("3h".to_string(), Value::Str("3h".into()));
+        m.insert("4h".to_string(), Value::Str("4h".into()));
+        m.insert("6h".to_string(), Value::Str("6h".into()));
+        m.insert("12h".to_string(), Value::Str("12h".into()));
+        m.insert("1d".to_string(), Value::Str("1D".into()));
+        m.insert("1w".to_string(), Value::Str("7D".into()));
+        m.insert("2w".to_string(), Value::Str("14D".into()));
+        m.insert("1M".to_string(), Value::Str("1M".into()));
     m
 }));
         m.insert("rateLimit".to_string(), Value::Int(250));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v1".to_string(), Value::Str("https://api.bitfinex.com".to_string()));
-        m.insert("public".to_string(), Value::Str("https://api-pub.bitfinex.com".to_string()));
-        m.insert("private".to_string(), Value::Str("https://api.bitfinex.com".to_string()));
+        m.insert("v1".to_string(), Value::Str("https://api.bitfinex.com".into()));
+        m.insert("public".to_string(), Value::Str("https://api-pub.bitfinex.com".into()));
+        m.insert("private".to_string(), Value::Str("https://api.bitfinex.com".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://www.bitfinex.com".to_string()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.bitfinex.com/v2/docs/".to_string()), Value::Str("https://github.com/bitfinexcom/bitfinex-api-node".to_string())]));
-        m.insert("fees".to_string(), Value::Str("https://www.bitfinex.com/fees".to_string()));
+        m.insert("www".to_string(), Value::Str("https://www.bitfinex.com".into()));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.bitfinex.com/v2/docs/".into()), Value::Str("https://github.com/bitfinexcom/bitfinex-api-node".into())]));
+        m.insert("fees".to_string(), Value::Str("https://www.bitfinex.com/fees".into()));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -1087,15 +1087,15 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("feeSide".to_string(), Value::Str("get".to_string()));
+        m.insert("feeSide".to_string(), Value::Str("get".into()));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
-        m.insert("maker".to_string(), self.parse_number(Value::Str("0.001".to_string()), &[]));
-        m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".to_string()), &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0.001".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".into()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("7500000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0018".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("15000000".to_string()), &[]), self.parse_number(Value::Str("0.0016".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000000".to_string()), &[]), self.parse_number(Value::Str("0.0014".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("30000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])])]));
-        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".to_string()), &[]), self.parse_number(Value::Str("0.0004".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("7500000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("15000000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("30000000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("7500000".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".into()), &[]), self.parse_number(Value::Str("0.0018".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("15000000".into()), &[]), self.parse_number(Value::Str("0.0016".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000000".into()), &[]), self.parse_number(Value::Str("0.0014".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".into()), &[]), self.parse_number(Value::Str("0.0012".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("30000000".into()), &[]), self.parse_number(Value::Str("0.001".into()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.001".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".into()), &[]), self.parse_number(Value::Str("0.0008".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".into()), &[]), self.parse_number(Value::Str("0.0006".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".into()), &[]), self.parse_number(Value::Str("0.0004".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]), self.parse_number(Value::Str("0.0002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("7500000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("15000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("30000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])])]));
     m
 }));
     m
@@ -1115,7 +1115,7 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchOrderBook".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("precision".to_string(), Value::Str("R0".to_string()));
+        m.insert("precision".to_string(), Value::Str("R0".into()));
     m
 }));
         m.insert("fetchCurrencies".to_string(), Value::Map({
@@ -1125,40 +1125,40 @@ impl BitfinexCore {
 }));
         m.insert("exchangeTypes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("MARKET".to_string(), Value::Str("market".to_string()));
-        m.insert("EXCHANGE MARKET".to_string(), Value::Str("market".to_string()));
-        m.insert("LIMIT".to_string(), Value::Str("limit".to_string()));
-        m.insert("EXCHANGE LIMIT".to_string(), Value::Str("limit".to_string()));
-        m.insert("EXCHANGE STOP".to_string(), Value::Str("market".to_string()));
-        m.insert("EXCHANGE FOK".to_string(), Value::Str("limit".to_string()));
-        m.insert("EXCHANGE STOP LIMIT".to_string(), Value::Str("limit".to_string()));
-        m.insert("EXCHANGE IOC".to_string(), Value::Str("limit".to_string()));
+        m.insert("MARKET".to_string(), Value::Str("market".into()));
+        m.insert("EXCHANGE MARKET".to_string(), Value::Str("market".into()));
+        m.insert("LIMIT".to_string(), Value::Str("limit".into()));
+        m.insert("EXCHANGE LIMIT".to_string(), Value::Str("limit".into()));
+        m.insert("EXCHANGE STOP".to_string(), Value::Str("market".into()));
+        m.insert("EXCHANGE FOK".to_string(), Value::Str("limit".into()));
+        m.insert("EXCHANGE STOP LIMIT".to_string(), Value::Str("limit".into()));
+        m.insert("EXCHANGE IOC".to_string(), Value::Str("limit".into()));
     m
 }));
         m.insert("orderTypes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("market".to_string(), Value::Str("EXCHANGE MARKET".to_string()));
-        m.insert("limit".to_string(), Value::Str("EXCHANGE LIMIT".to_string()));
+        m.insert("market".to_string(), Value::Str("EXCHANGE MARKET".into()));
+        m.insert("limit".to_string(), Value::Str("EXCHANGE LIMIT".into()));
     m
 }));
         m.insert("fiat".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("USD".to_string(), Value::Str("USD".to_string()));
-        m.insert("EUR".to_string(), Value::Str("EUR".to_string()));
-        m.insert("JPY".to_string(), Value::Str("JPY".to_string()));
-        m.insert("GBP".to_string(), Value::Str("GBP".to_string()));
-        m.insert("CHN".to_string(), Value::Str("CHN".to_string()));
+        m.insert("USD".to_string(), Value::Str("USD".into()));
+        m.insert("EUR".to_string(), Value::Str("EUR".into()));
+        m.insert("JPY".to_string(), Value::Str("JPY".into()));
+        m.insert("GBP".to_string(), Value::Str("GBP".into()));
+        m.insert("CHN".to_string(), Value::Str("CHN".into()));
     m
 }));
         m.insert("v2AccountsByType".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Str("exchange".to_string()));
-        m.insert("exchange".to_string(), Value::Str("exchange".to_string()));
-        m.insert("funding".to_string(), Value::Str("funding".to_string()));
-        m.insert("margin".to_string(), Value::Str("margin".to_string()));
-        m.insert("derivatives".to_string(), Value::Str("margin".to_string()));
-        m.insert("future".to_string(), Value::Str("margin".to_string()));
-        m.insert("swap".to_string(), Value::Str("margin".to_string()));
+        m.insert("spot".to_string(), Value::Str("exchange".into()));
+        m.insert("exchange".to_string(), Value::Str("exchange".into()));
+        m.insert("funding".to_string(), Value::Str("funding".into()));
+        m.insert("margin".to_string(), Value::Str("margin".into()));
+        m.insert("derivatives".to_string(), Value::Str("margin".into()));
+        m.insert("future".to_string(), Value::Str("margin".into()));
+        m.insert("swap".to_string(), Value::Str("margin".into()));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
@@ -1168,25 +1168,25 @@ impl BitfinexCore {
 }));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("BTC".to_string(), Value::Str("BITCOIN".to_string()));
-        m.insert("LTC".to_string(), Value::Str("LITECOIN".to_string()));
-        m.insert("ERC20".to_string(), Value::Str("ETHEREUM".to_string()));
-        m.insert("OMNI".to_string(), Value::Str("TETHERUSO".to_string()));
-        m.insert("LIQUID".to_string(), Value::Str("TETHERUSL".to_string()));
-        m.insert("TRC20".to_string(), Value::Str("TETHERUSX".to_string()));
-        m.insert("EOS".to_string(), Value::Str("TETHERUSS".to_string()));
-        m.insert("AVAX".to_string(), Value::Str("TETHERUSDTAVAX".to_string()));
-        m.insert("SOL".to_string(), Value::Str("TETHERUSDTSOL".to_string()));
-        m.insert("ALGO".to_string(), Value::Str("TETHERUSDTALG".to_string()));
-        m.insert("BCH".to_string(), Value::Str("TETHERUSDTBCH".to_string()));
-        m.insert("KSM".to_string(), Value::Str("TETHERUSDTKSM".to_string()));
-        m.insert("DVF".to_string(), Value::Str("TETHERUSDTDVF".to_string()));
-        m.insert("OMG".to_string(), Value::Str("TETHERUSDTOMG".to_string()));
+        m.insert("BTC".to_string(), Value::Str("BITCOIN".into()));
+        m.insert("LTC".to_string(), Value::Str("LITECOIN".into()));
+        m.insert("ERC20".to_string(), Value::Str("ETHEREUM".into()));
+        m.insert("OMNI".to_string(), Value::Str("TETHERUSO".into()));
+        m.insert("LIQUID".to_string(), Value::Str("TETHERUSL".into()));
+        m.insert("TRC20".to_string(), Value::Str("TETHERUSX".into()));
+        m.insert("EOS".to_string(), Value::Str("TETHERUSS".into()));
+        m.insert("AVAX".to_string(), Value::Str("TETHERUSDTAVAX".into()));
+        m.insert("SOL".to_string(), Value::Str("TETHERUSDTSOL".into()));
+        m.insert("ALGO".to_string(), Value::Str("TETHERUSDTALG".into()));
+        m.insert("BCH".to_string(), Value::Str("TETHERUSDTBCH".into()));
+        m.insert("KSM".to_string(), Value::Str("TETHERUSDTKSM".into()));
+        m.insert("DVF".to_string(), Value::Str("TETHERUSDTDVF".into()));
+        m.insert("OMG".to_string(), Value::Str("TETHERUSDTOMG".into()));
     m
 }));
         m.insert("networksById".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("TETHERUSE".to_string(), Value::Str("ERC20".to_string()));
+        m.insert("TETHERUSE".to_string(), Value::Str("ERC20".into()));
     m
 }));
     m
@@ -1275,14 +1275,14 @@ impl BitfinexCore {
 }));
         m.insert("spot".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("extends".to_string(), Value::Str("default".to_string()));
+        m.insert("extends".to_string(), Value::Str("default".into()));
     m
 }));
         m.insert("swap".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("extends".to_string(), Value::Str("default".to_string()));
+        m.insert("extends".to_string(), Value::Str("default".into()));
     m
 }));
         m.insert("inverse".to_string(), Value::Null);
@@ -1300,64 +1300,64 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("11010".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
-        m.insert("10001".to_string(), Value::Str("PermissionDenied".to_string()).clone());
-        m.insert("10020".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("10100".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("10114".to_string(), Value::Str("InvalidNonce".to_string()).clone());
-        m.insert("20060".to_string(), Value::Str("OnMaintenance".to_string()).clone());
-        m.insert("temporarily_unavailable".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("11010".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("10001".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("10020".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("10100".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("10114".to_string(), Value::Str("InvalidNonce".into()).clone());
+        m.insert("20060".to_string(), Value::Str("OnMaintenance".into()).clone());
+        m.insert("temporarily_unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("available balance is only".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("not enough exchange balance".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".to_string()).clone());
-        m.insert("symbol: invalid".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("available balance is only".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("not enough exchange balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("symbol: invalid".to_string(), Value::Str("BadSymbol".into()).clone());
     m
 }));
     m
 }));
         m.insert("commonCurrencies".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("UST".to_string(), Value::Str("USDT".to_string()));
-        m.insert("EUTF0".to_string(), Value::Str("EURT".to_string()));
-        m.insert("USTF0".to_string(), Value::Str("USDT".to_string()));
-        m.insert("ALG".to_string(), Value::Str("ALGO".to_string()));
-        m.insert("AMP".to_string(), Value::Str("AMPL".to_string()));
-        m.insert("ATO".to_string(), Value::Str("ATOM".to_string()));
-        m.insert("BCHABC".to_string(), Value::Str("XEC".to_string()));
-        m.insert("BCHN".to_string(), Value::Str("BCH".to_string()));
-        m.insert("DAT".to_string(), Value::Str("DATA".to_string()));
-        m.insert("DOG".to_string(), Value::Str("MDOGE".to_string()));
-        m.insert("DSH".to_string(), Value::Str("DASH".to_string()));
-        m.insert("EDO".to_string(), Value::Str("PNT".to_string()));
-        m.insert("EUS".to_string(), Value::Str("EURS".to_string()));
-        m.insert("EUT".to_string(), Value::Str("EURT".to_string()));
-        m.insert("HTX".to_string(), Value::Str("HT".to_string()));
-        m.insert("IDX".to_string(), Value::Str("ID".to_string()));
-        m.insert("IOT".to_string(), Value::Str("IOTA".to_string()));
-        m.insert("IQX".to_string(), Value::Str("IQ".to_string()));
-        m.insert("LUNA".to_string(), Value::Str("LUNC".to_string()));
-        m.insert("LUNA2".to_string(), Value::Str("LUNA".to_string()));
-        m.insert("MNA".to_string(), Value::Str("MANA".to_string()));
-        m.insert("ORS".to_string(), Value::Str("ORS Group".to_string()));
-        m.insert("PAS".to_string(), Value::Str("PASS".to_string()));
-        m.insert("QSH".to_string(), Value::Str("QASH".to_string()));
-        m.insert("QTM".to_string(), Value::Str("QTUM".to_string()));
-        m.insert("RBT".to_string(), Value::Str("RBTC".to_string()));
-        m.insert("SNG".to_string(), Value::Str("SNGLS".to_string()));
-        m.insert("STJ".to_string(), Value::Str("STORJ".to_string()));
-        m.insert("TERRAUST".to_string(), Value::Str("USTC".to_string()));
-        m.insert("TSD".to_string(), Value::Str("TUSD".to_string()));
-        m.insert("YGG".to_string(), Value::Str("YEED".to_string()));
-        m.insert("YYW".to_string(), Value::Str("YOYOW".to_string()));
-        m.insert("UDC".to_string(), Value::Str("USDC".to_string()));
-        m.insert("VSY".to_string(), Value::Str("VSYS".to_string()));
-        m.insert("WAX".to_string(), Value::Str("WAXP".to_string()));
-        m.insert("XCH".to_string(), Value::Str("XCHF".to_string()));
-        m.insert("ZBT".to_string(), Value::Str("ZB".to_string()));
+        m.insert("UST".to_string(), Value::Str("USDT".into()));
+        m.insert("EUTF0".to_string(), Value::Str("EURT".into()));
+        m.insert("USTF0".to_string(), Value::Str("USDT".into()));
+        m.insert("ALG".to_string(), Value::Str("ALGO".into()));
+        m.insert("AMP".to_string(), Value::Str("AMPL".into()));
+        m.insert("ATO".to_string(), Value::Str("ATOM".into()));
+        m.insert("BCHABC".to_string(), Value::Str("XEC".into()));
+        m.insert("BCHN".to_string(), Value::Str("BCH".into()));
+        m.insert("DAT".to_string(), Value::Str("DATA".into()));
+        m.insert("DOG".to_string(), Value::Str("MDOGE".into()));
+        m.insert("DSH".to_string(), Value::Str("DASH".into()));
+        m.insert("EDO".to_string(), Value::Str("PNT".into()));
+        m.insert("EUS".to_string(), Value::Str("EURS".into()));
+        m.insert("EUT".to_string(), Value::Str("EURT".into()));
+        m.insert("HTX".to_string(), Value::Str("HT".into()));
+        m.insert("IDX".to_string(), Value::Str("ID".into()));
+        m.insert("IOT".to_string(), Value::Str("IOTA".into()));
+        m.insert("IQX".to_string(), Value::Str("IQ".into()));
+        m.insert("LUNA".to_string(), Value::Str("LUNC".into()));
+        m.insert("LUNA2".to_string(), Value::Str("LUNA".into()));
+        m.insert("MNA".to_string(), Value::Str("MANA".into()));
+        m.insert("ORS".to_string(), Value::Str("ORS Group".into()));
+        m.insert("PAS".to_string(), Value::Str("PASS".into()));
+        m.insert("QSH".to_string(), Value::Str("QASH".into()));
+        m.insert("QTM".to_string(), Value::Str("QTUM".into()));
+        m.insert("RBT".to_string(), Value::Str("RBTC".into()));
+        m.insert("SNG".to_string(), Value::Str("SNGLS".into()));
+        m.insert("STJ".to_string(), Value::Str("STORJ".into()));
+        m.insert("TERRAUST".to_string(), Value::Str("USTC".into()));
+        m.insert("TSD".to_string(), Value::Str("TUSD".into()));
+        m.insert("YGG".to_string(), Value::Str("YEED".into()));
+        m.insert("YYW".to_string(), Value::Str("YOYOW".into()));
+        m.insert("UDC".to_string(), Value::Str("USDC".into()));
+        m.insert("VSY".to_string(), Value::Str("VSYS".into()));
+        m.insert("WAX".to_string(), Value::Str("WAXP".into()));
+        m.insert("XCH".to_string(), Value::Str("XCHF".into()));
+        m.insert("ZBT".to_string(), Value::Str("ZB".into()));
     m
 }));
     m
@@ -1377,7 +1377,7 @@ impl BitfinexCore {
         if (in_op(&self.options.as_map().and_then(|__m| __m.get("currencyNames")).cloned().unwrap_or(Value::Null), &code)) {
             return get_value(&self.options.as_map().and_then(|__m| __m.get("currencyNames")).cloned().unwrap_or(Value::Null), &code);
         }
-        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &code), Value::Str(" not supported for withdrawal".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &code), Value::Str(" not supported for withdrawal".into()))));
 
     Value::Null
 }
@@ -1425,8 +1425,8 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), self.safe_string(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("0".to_string(), Value::Str("maintenance".to_string()));
-        m.insert("1".to_string(), Value::Str("ok".to_string()));
+        m.insert("0".to_string(), Value::Str("maintenance".into()));
+        m.insert("1".to_string(), Value::Str("ok".into()));
     m
 }), statusRaw.clone(), &[statusRaw.clone()]));
         m.insert("updated".to_string(), Value::Null);
@@ -1452,8 +1452,8 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut labels: Value = Value::from(vec![Value::Str("pub:info:pair".to_string()), Value::Str("pub:info:pair:futures".to_string()), Value::Str("pub:list:pair:securities".to_string()), Value::Str("pub:list:pair:margin".to_string())]);
-        let mut config: Value = join(&labels, &Value::Str(",".to_string()));
+        let mut labels: Value = Value::from(vec![Value::Str("pub:info:pair".into()), Value::Str("pub:info:pair:futures".into()), Value::Str("pub:list:pair:securities".into()), Value::Str("pub:list:pair:margin".into())]);
+        let mut config: Value = join(&labels, &Value::Str(",".into()));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("config".to_string(), config.clone());
@@ -1482,28 +1482,28 @@ impl BitfinexCore {
             let mut type_var: Value = Value::Null;
             if Value::Int(id.as_str().and_then(|__s| __s.find("F0")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 spot = Value::Bool(false);
-                type_var = Value::Str("swap".to_string());
+                type_var = Value::Str("swap".into());
             }  else {
-                type_var = Value::Str("spot".to_string());
+                type_var = Value::Str("spot".into());
             }
             let mut swap: Value = Value::Bool(type_var.as_str() == Some("swap"));
             let mut baseId: Value = Value::Null;
             let mut quoteId: Value = Value::Null;
             if Value::Int(id.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                let mut parts: Value = split(&id, &Value::Str(":".to_string()));
+                let mut parts: Value = split(&id, &Value::Str(":".into()));
                 baseId = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 quoteId = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             }  else {
-                baseId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
-                quoteId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+                baseId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+                quoteId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             }
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut splitBase: Value = split(&base, &Value::Str("F0".to_string()));
-            let mut splitQuote: Value = split(&quote, &Value::Str("F0".to_string()));
+            let mut splitBase: Value = split(&base, &Value::Str("F0".into()));
+            let mut splitQuote: Value = split(&quote, &Value::Str("F0".into()));
             base = self.safe_string(splitBase.clone(), Value::Int(0), &[]);
             quote = self.safe_string(splitQuote.clone(), Value::Int(0), &[]);
-            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;
             let mut settle: Value = Value::Null;
@@ -1511,13 +1511,13 @@ impl BitfinexCore {
             if is_true(&swap) {
                 settle = quote.clone();
                 settleId = quote.clone();
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
             }
             let mut minOrderSizeString: Value = self.safe_string(market.clone(), Value::Int(3), &[]);
             let mut maxOrderSizeString: Value = self.safe_string(market.clone(), Value::Int(4), &[]);
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str("t".to_string()), id)));
+                    m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str("t".into()), id).into()));
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
@@ -1536,7 +1536,7 @@ impl BitfinexCore {
                     m.insert("contract".to_string(), Value::Bool(!is_true(&spot)));
                     m.insert("linear".to_string(), (if is_true(&swap) { Value::Bool(true) } else { Value::Null }));
                     m.insert("inverse".to_string(), (if is_true(&swap) { Value::Bool(false) } else { Value::Null }));
-                    m.insert("contractSize".to_string(), (if is_true(&swap) { self.parse_number(Value::Str("1".to_string()), &[]) } else { Value::Null }));
+                    m.insert("contractSize".to_string(), (if is_true(&swap) { self.parse_number(Value::Str("1".into()), &[]) } else { Value::Null }));
                     m.insert("expiry".to_string(), Value::Null);
                     m.insert("expiryDatetime".to_string(), Value::Null);
                     m.insert("strike".to_string(), Value::Null);
@@ -1563,7 +1563,7 @@ impl BitfinexCore {
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(Value::Str("1e-8".to_string()), &[]));
+        m.insert("min".to_string(), self.parse_number(Value::Str("1e-8".into()), &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1599,8 +1599,8 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut labels: Value = Value::from(vec![Value::Str("pub:list:currency".to_string()), Value::Str("pub:map:currency:sym".to_string()), Value::Str("pub:map:currency:label".to_string()), Value::Str("pub:map:currency:unit".to_string()), Value::Str("pub:map:currency:undl".to_string()), Value::Str("pub:map:currency:pool".to_string()), Value::Str("pub:map:currency:explorer".to_string()), Value::Str("pub:map:currency:tx:fee".to_string()), Value::Str("pub:map:tx:method".to_string()), Value::Str("pub:info:tx:status".to_string()), Value::Str("pub:list:currency:margin".to_string())]);
-        let mut config: Value = join(&labels, &Value::Str(",".to_string()));
+        let mut labels: Value = Value::from(vec![Value::Str("pub:list:currency".into()), Value::Str("pub:map:currency:sym".into()), Value::Str("pub:map:currency:label".into()), Value::Str("pub:map:currency:unit".into()), Value::Str("pub:map:currency:undl".into()), Value::Str("pub:map:currency:pool".into()), Value::Str("pub:map:currency:explorer".into()), Value::Str("pub:map:currency:tx:fee".into()), Value::Str("pub:map:tx:method".into()), Value::Str("pub:info:tx:status".into()), Value::Str("pub:list:currency:margin".into())]);
+        let mut config: Value = join(&labels, &Value::Str(",".into()));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("config".to_string(), config.clone());
@@ -1712,7 +1712,7 @@ impl BitfinexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_316: bool = true;
-            while { if !__for_first_316 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&indexed, &Value::Str("networks".to_string()))).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_316 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&indexed, &Value::Str("networks".into()))).as_f64().unwrap_or(f64::NAN) } {
             let mut networkObj: Value = get_value(&match &indexed { Value::Dict(__m15) => __m15.get("networks").cloned().unwrap_or(Value::Null), _ => Value::Null }, &i);
             let mut networkId: Value = self.safe_string(networkObj.clone(), Value::Int(0), &[]);
             let mut valuesList: Value = self.safe_list(networkObj.clone(), Value::Int(1), &[]);
@@ -1737,7 +1737,7 @@ impl BitfinexCore {
             while { if !__for_first_317 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_317 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&ids).as_f64().unwrap_or(f64::NAN) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
-            if (ends_with(&id, &Value::Str("F0".to_string()))) {
+            if (ends_with(&id, &Value::Str("F0".into()))) {
                 continue;
             }
             append_to_array(&mut allowedIds, id.clone());
@@ -1769,16 +1769,16 @@ impl BitfinexCore {
         let mut pool: Value = self.safe_list(crate::value::get_value_k(&indexed, "pool"), id.clone(), &[Value::from(vec![])]);
         let mut rawType: Option<String> = self.safe_string(pool.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut isCryptoCoin: bool = is_true(&(rawType.is_some())) || (in_op(&crate::value::get_value_k(&indexed, "explorer"), &id)); // "hacky" solution
-        let mut type_var: Value = (if isCryptoCoin { Value::Str("crypto".to_string()) } else { Value::Null });
+        let mut type_var: Value = (if isCryptoCoin { Value::Str("crypto".into()) } else { Value::Null });
         let mut feeValues: Value = self.safe_list(crate::value::get_value_k(&indexed, "fees"), id.clone(), &[Value::from(vec![])]);
         let mut fees: Value = self.safe_list(feeValues.clone(), Value::Int(1), &[Value::from(vec![])]);
         let mut fee: Value = self.safe_number(fees.clone(), Value::Int(1), &[]);
         let mut undl: Value = self.safe_list(crate::value::get_value_k(&indexed, "undl"), id.clone(), &[Value::from(vec![])]);
-        let mut defaultCurrencyPrecision: Value = self.safe_string_k(self.options.clone(), "defaultCurrencyPrecision", &[Value::Str("8".to_string())]); // kept here for backward-compatibility
+        let mut defaultCurrencyPrecision: Value = self.safe_string_k(self.options.clone(), "defaultCurrencyPrecision", &[Value::Str("8".into())]); // kept here for backward-compatibility
         // numberToString instead of an `as string` cast: the describe() default for this option is the
         // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
         // InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
-        let mut precision: Value = self.number_to_string(self.handle_option(Value::Str("fetchCurrencies".to_string()), Value::Str("defaultPrecision".to_string()), &[defaultCurrencyPrecision.clone()]));
+        let mut precision: Value = self.number_to_string(self.handle_option(Value::Str("fetchCurrencies".into()), Value::Str("defaultPrecision".into()), &[defaultCurrencyPrecision.clone()]));
         let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1881,14 +1881,14 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut requestedType: Value = self.safe_string_k(params.clone(), "type", &[Value::Str("exchange".to_string())]);
+        let mut requestedType: Value = self.safe_string_k(params.clone(), "type", &[Value::Str("exchange".into())]);
         let mut accountType: Value = self.safe_string(accountsByType.clone(), requestedType.clone(), &[requestedType.clone()]);
         if (accountType == Value::Null) {
             let mut keys: Value = object_keys(&accountsByType);
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".to_string()))), join(&keys, &Value::Str(", ".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".into())).into()), join(&keys, &Value::Str(", ".into())))));
         }
         let mut isDerivative: bool = requestedType.as_str() == Some("derivatives");
-        let mut query: Value = self.omit(params, Value::Str("type".to_string()), &[]);
+        let mut query: Value = self.omit(params, Value::Str("type".into()), &[]);
         let mut response: Value = self.private_post_auth_r_wallets(&[query.clone()]).await;
         let mut balances: Value = self.to_array(response.clone());
         let mut result: Value = Value::Map({
@@ -1908,7 +1908,7 @@ impl BitfinexCore {
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("debt".to_string(), interest.clone()); }
             }
             let mut type_var: Value = self.safe_string(balance.clone(), Value::Int(0), &[]);
-            let mut currencyId: Value = self.safe_string_lower(balance.clone(), Value::Int(1), &[Value::Str("".to_string())]);
+            let mut currencyId: Value = self.safe_string_lower(balance.clone(), Value::Int(1), &[Value::Str("".into())]);
             let mut start: Value = (match (&(Value::Int(currencyId.len() as i64)), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut isDerivativeCode: bool = slice(&currencyId, &start, &Value::Null).as_str() == Some("f0");
             // this will only filter the derivative codes if the requestedType is 'derivatives'
@@ -1957,12 +1957,12 @@ impl BitfinexCore {
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[]);
         if (fromId == Value::Null) {
             let mut keys: Value = object_keys(&accountsByType);
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() fromAccount must be one of ".to_string()))), join(&keys, &Value::Str(", ".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() fromAccount must be one of ".into())).into()), join(&keys, &Value::Str(", ".into())))));
         }
         let mut toId: Value = self.safe_string(accountsByType.clone(), toAccount.clone(), &[]);
         if (toId == Value::Null) {
             let mut keys: Value = object_keys(&accountsByType);
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() toAccount must be one of ".to_string()))), join(&keys, &Value::Str(", ".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() toAccount must be one of ".into())).into()), join(&keys, &Value::Str(", ".into())))));
         }
         let mut currency: Value = self.currency(code.clone());
         let mut fromCurrencyId: Value = self.convert_derivatives_id(currency.clone(), fromAccount.clone());
@@ -2003,10 +2003,10 @@ impl BitfinexCore {
         //
         let mut error: Option<String> = self.safe_string(response.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         if (error.as_deref() == Some("error")) {
-            let mut message: Value = self.safe_string(response.clone(), Value::Int(2), &[Value::Str("".to_string())]);
+            let mut message: Value = self.safe_string(response.clone(), Value::Int(2), &[Value::Str("".into())]);
             // same message as in v1
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message)));
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message)));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message).into()));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message)));
         }
         return self.parse_transfer(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2069,9 +2069,9 @@ impl BitfinexCore {
     pub fn parse_transfer_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("SUCCESS".to_string(), Value::Str("ok".to_string()));
-                m.insert("ERROR".to_string(), Value::Str("failed".to_string()));
-                m.insert("FAILURE".to_string(), Value::Str("failed".to_string()));
+                m.insert("SUCCESS".to_string(), Value::Str("ok".into()));
+                m.insert("ERROR".to_string(), Value::Str("failed".into()));
+                m.insert("FAILURE".to_string(), Value::Str("failed".into()));
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
@@ -2094,7 +2094,7 @@ impl BitfinexCore {
             let mut start: Value = (match (&(Value::Int(currencyId.len() as i64)), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut isDerivativeCode: bool = slice(&currencyId, &start, &Value::Null).as_str() == Some("F0");
             if !isDerivativeCode {
-                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str("F0".to_string())));
+                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str("F0".into())).into());
             }
         }  else if (type_var.as_str() != Some("margin")) {
             currencyId = self.safe_string(underlying.clone(), Value::Int(1), &[transferId.clone()]);
@@ -2125,7 +2125,7 @@ impl BitfinexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut precision: Value = self.handle_option(Value::Str("fetchOrderBook".to_string()), Value::Str("precision".to_string()), &[Value::Str("R0".to_string())]);
+        let mut precision: Value = self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("precision".into()), &[Value::Str("R0".into())]);
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2134,7 +2134,7 @@ impl BitfinexCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("len".to_string(), limit.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("len".to_string(), limit.clone()); }
         }
         let mut fullRequest: Value = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.public_get_book_symbol_precision(&[fullRequest.clone()]).await;
@@ -2160,7 +2160,7 @@ impl BitfinexCore {
             let mut price: Value = self.safe_number(order.clone(), priceIndex.clone(), &[]);
             let mut signedAmount: Value = self.safe_string(order.clone(), Value::Int(2), &[]);
             let mut amount: Value = crate::precise::Precise::stringAbs(&signedAmount);
-            let mut side: Value = (if is_true(&crate::precise::Precise::stringGt(&signedAmount, &Value::Str("0".to_string()))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+            let mut side: Value = (if is_true(&crate::precise::Precise::stringGt(&signedAmount, &Value::Str("0".into()))) { Value::Str("bids".into()) } else { Value::Str("asks".into()) });
             crate::runtime::append_to_object_array(&mut result, &side, Value::from(vec![price.clone(), self.parse_number(amount, &[])]));
         }
         }
@@ -2219,7 +2219,7 @@ impl BitfinexCore {
         // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
         // look like a number and the whole array would be read off by one.
         let mut firstValue: Value = self.safe_string(ticker.clone(), Value::Int(0), &[]);
-        let mut hasMarketId: bool = is_true(&(firstValue != Value::Null)) && ((starts_with(&firstValue, &Value::Str("t".to_string()))) || (starts_with(&firstValue, &Value::Str("f".to_string()))));
+        let mut hasMarketId: bool = is_true(&(firstValue != Value::Null)) && ((starts_with(&firstValue, &Value::Str("t".into()))) || (starts_with(&firstValue, &Value::Str("f".into()))));
         let mut isFetchTicker: bool = !hasMarketId;
         let mut symbol: Value = Value::Null;
         let mut minusIndex: Value = Value::Int(0);
@@ -2247,7 +2247,7 @@ impl BitfinexCore {
             change = self.safe_string(ticker.clone(), (match (&(Value::Int(8)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
             // branch reads at index 6 and scales
-            percentage = crate::precise::Precise::stringMul(&self.safe_string(ticker.clone(), (match (&(Value::Int(9)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]), &Value::Str("100".to_string()));
+            percentage = crate::precise::Precise::stringMul(&self.safe_string(ticker.clone(), (match (&(Value::Int(9)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]), &Value::Str("100".into()));
             volume = self.safe_string(ticker.clone(), (match (&(Value::Int(11)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             high = self.safe_string(ticker.clone(), (match (&(Value::Int(12)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             low = self.safe_string(ticker.clone(), (match (&(Value::Int(13)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
@@ -2258,7 +2258,7 @@ impl BitfinexCore {
             ask = self.safe_string(ticker.clone(), (match (&(Value::Int(3)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             change = self.safe_string(ticker.clone(), (match (&(Value::Int(5)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             percentage = self.safe_string(ticker.clone(), (match (&(Value::Int(6)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
-            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".to_string()));
+            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into()));
             volume = self.safe_string(ticker.clone(), (match (&(Value::Int(8)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             high = self.safe_string(ticker.clone(), (match (&(Value::Int(9)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             low = self.safe_string(ticker.clone(), (match (&(Value::Int(10)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
@@ -2316,9 +2316,9 @@ impl BitfinexCore {
         });
         if (symbols != Value::Null) {
             let mut ids: Value = self.market_ids(&[symbols.clone()]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".to_string(), join(&ids, &Value::Str(",".to_string()))); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbols".to_string(), join(&ids, &Value::Str(",".into()))); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".to_string(), Value::Str("ALL".to_string())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbols".to_string(), Value::Str("ALL".into())); }
         }
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut tickers: Value = self.public_get_tickers(&[__ws_arg_3]).await;
@@ -2396,10 +2396,10 @@ impl BitfinexCore {
         let mut priceIndex: Value = (if isPrivate { Value::Int(5) } else { Value::Int(3) });
         let mut priceString: Value = self.safe_string(tradeList.clone(), priceIndex.clone(), &[]);
         if (get_value(&amountString, &Value::Int(0)).as_str() == Some("-")) {
-            side = Value::Str("sell".to_string());
+            side = Value::Str("sell".into());
             amountString = crate::precise::Precise::stringAbs(&amountString);
         }  else {
-            side = Value::Str("buy".to_string());
+            side = Value::Str("buy".into());
         }
         let mut orderId: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
@@ -2413,7 +2413,7 @@ impl BitfinexCore {
             symbol = self.safe_symbol(marketId.clone(), &[]);
             orderId = self.safe_string(tradeList.clone(), Value::Int(3), &[]);
             let mut maker: Option<i64> = self.safe_integer(tradeList.clone(), Value::Int(8), &[]).as_i64();
-            takerOrMaker = (if is_true(&(maker == Some(1))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if is_true(&(maker == Some(1))) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
             let mut feeCostString: Value = self.safe_string(tradeList.clone(), Value::Int(9), &[]);
             feeCostString = crate::precise::Precise::stringNeg(&feeCostString);
             let mut feeCurrencyId: Value = self.safe_string(tradeList.clone(), Value::Int(10), &[]);
@@ -2472,26 +2472,26 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTrades".to_string()), Value::Str("paginate".to_string()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTrades".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Int(10000)]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Int(10000)]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut sort: Value = Value::Str("-1".to_string());
+        let mut sort: Value = Value::Str("-1".into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), since.clone()); }
-            sort = Value::Str("1".to_string());
+            add_element_to_object(&mut request, &Value::Str("start".into()), since.clone());
+            sort = Value::Str("1".into());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(10000))); }; // default 120, max 10000
+            add_element_to_object(&mut request, &Value::Str("limit".into()), crate::runtime::Math::min(&limit, &Value::Int(10000))); // default 120, max 10000
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("sort".to_string(), sort.clone()); }
-        { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        add_element_to_object(&mut request, &Value::Str("sort".into()), sort.clone());
+        { let __destr_tmp = self.handle_until_option(Value::Str("end".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_trades_symbol_hist(&[__ws_arg_5]).await;
         //
@@ -2538,7 +2538,7 @@ impl BitfinexCore {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Int(100));
         let mut params = get_arg(optional_args, 3, Value::Map({
@@ -2549,9 +2549,9 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("paginate".to_string()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".to_string()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), params.clone(), Value::Int(10000)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), params.clone(), Value::Int(10000)]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         if (limit == Value::Null) {
@@ -2567,10 +2567,10 @@ impl BitfinexCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), since.clone()); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("sort".to_string(), Value::Int(1)); }
+            add_element_to_object(&mut request, &Value::Str("start".into()), since.clone());
+            add_element_to_object(&mut request, &Value::Str("sort".into()), Value::Int(1));
         }
-        { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_until_option(Value::Str("end".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_candles_trade_timeframe_symbol_hist(&[__ws_arg_6]).await;
         return self.parse_ohlc_vs(self.to_array(response.clone()), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
@@ -2589,20 +2589,20 @@ impl BitfinexCore {
         if (status == Value::Null) {
             return Value::Null;
         }
-        let mut parts: Value = split(&status, &Value::Str(" ".to_string()));
+        let mut parts: Value = split(&status, &Value::Str(" ".into()));
         let mut state: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("ACTIVE".to_string(), Value::Str("open".to_string()));
-                m.insert("PARTIALLY".to_string(), Value::Str("open".to_string()));
-                m.insert("EXECUTED".to_string(), Value::Str("closed".to_string()));
-                m.insert("CANCELED".to_string(), Value::Str("canceled".to_string()));
-                m.insert("INSUFFICIENT".to_string(), Value::Str("canceled".to_string()));
-                m.insert("POSTONLY CANCELED".to_string(), Value::Str("canceled".to_string()));
-                m.insert("RSN_DUST".to_string(), Value::Str("rejected".to_string()));
-                m.insert("RSN_PAUSE".to_string(), Value::Str("rejected".to_string()));
-                m.insert("IOC CANCELED".to_string(), Value::Str("canceled".to_string()));
-                m.insert("FILLORKILL CANCELED".to_string(), Value::Str("canceled".to_string()));
+                m.insert("ACTIVE".to_string(), Value::Str("open".into()));
+                m.insert("PARTIALLY".to_string(), Value::Str("open".into()));
+                m.insert("EXECUTED".to_string(), Value::Str("closed".into()));
+                m.insert("CANCELED".to_string(), Value::Str("canceled".into()));
+                m.insert("INSUFFICIENT".to_string(), Value::Str("canceled".into()));
+                m.insert("POSTONLY CANCELED".to_string(), Value::Str("canceled".into()));
+                m.insert("RSN_DUST".to_string(), Value::Str("rejected".into()));
+                m.insert("RSN_PAUSE".to_string(), Value::Str("rejected".into()));
+                m.insert("IOC CANCELED".to_string(), Value::Str("canceled".into()));
+                m.insert("FILLORKILL CANCELED".to_string(), Value::Str("canceled".into()));
             m
         });
         return self.safe_string(statuses.clone(), state.clone(), &[status.clone()]);
@@ -2614,9 +2614,9 @@ impl BitfinexCore {
         // flags can be added to each other...
         let mut flagValues: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("1024".to_string(), Value::from(vec![Value::Str("reduceOnly".to_string())]));
-                m.insert("4096".to_string(), Value::from(vec![Value::Str("postOnly".to_string())]));
-                m.insert("5120".to_string(), Value::from(vec![Value::Str("reduceOnly".to_string()), Value::Str("postOnly".to_string())]));
+                m.insert("1024".to_string(), Value::from(vec![Value::Str("reduceOnly".into())]));
+                m.insert("4096".to_string(), Value::from(vec![Value::Str("postOnly".into())]));
+                m.insert("5120".to_string(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("postOnly".into())]));
             m
         });
         return self.safe_list(flagValues.clone(), flags.clone(), &[Value::Null]);
@@ -2627,13 +2627,13 @@ impl BitfinexCore {
     pub fn parse_time_in_force(&self, mut orderType: Value) -> Value {
         let mut orderTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("EXCHANGE IOC".to_string(), Value::Str("IOC".to_string()));
-                m.insert("EXCHANGE FOK".to_string(), Value::Str("FOK".to_string()));
-                m.insert("IOC".to_string(), Value::Str("IOC".to_string()));
-                m.insert("FOK".to_string(), Value::Str("FOK".to_string()));
+                m.insert("EXCHANGE IOC".to_string(), Value::Str("IOC".into()));
+                m.insert("EXCHANGE FOK".to_string(), Value::Str("FOK".into()));
+                m.insert("IOC".to_string(), Value::Str("IOC".into()));
+                m.insert("FOK".to_string(), Value::Str("FOK".into()));
             m
         });
-        return self.safe_string(orderTypes.clone(), orderType.clone(), &[Value::Str("GTC".to_string())]);
+        return self.safe_string(orderTypes.clone(), orderType.clone(), &[Value::Str("GTC".into())]);
 
     Value::Null
 }
@@ -2650,7 +2650,7 @@ impl BitfinexCore {
         let mut remaining: Value = crate::precise::Precise::stringAbs(&self.safe_string(orderList.clone(), Value::Int(6), &[]));
         let mut signedAmount: Value = self.safe_string(orderList.clone(), Value::Int(7), &[]);
         let mut amount: Value = crate::precise::Precise::stringAbs(&signedAmount);
-        let mut side: Value = (if is_true(&crate::precise::Precise::stringLt(&signedAmount, &Value::Str("0".to_string()))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+        let mut side: Value = (if is_true(&crate::precise::Precise::stringLt(&signedAmount, &Value::Str("0".into()))) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         let mut orderType: Value = self.safe_string(orderList.clone(), Value::Int(8), &[]);
         let mut type_var: Value = self.safe_string(self.safe_dict_k(self.options.clone(), "exchangeTypes", &[]), orderType.clone(), &[]);
         let mut timeInForce: Value = self.parse_time_in_force(orderType.clone());
@@ -2680,7 +2680,7 @@ impl BitfinexCore {
         let mut status: Value = Value::Null;
         let mut statusString: Value = self.safe_string(orderList.clone(), Value::Int(13), &[]);
         if (statusString != Value::Null) {
-            let mut parts: Value = split(&statusString, &Value::Str(" @ ".to_string()));
+            let mut parts: Value = split(&statusString, &Value::Str(" @ ".into()));
             status = self.parse_order_status(self.safe_string(parts.clone(), Value::Int(0), &[]));
         }
         let mut average: Value = self.safe_string(orderList.clone(), Value::Int(17), &[]);
@@ -2721,10 +2721,10 @@ impl BitfinexCore {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
         }
         /*
          * @method
@@ -2757,50 +2757,50 @@ impl BitfinexCore {
                 m.insert("amount".to_string(), amountString.clone());
             m
         });
-        let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
+        let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
         let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
         let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnlyParam: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
-        let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("cid".to_string()), Value::Str("clientOrderId".to_string()), &[]);
+        let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("cid".into()), Value::Str("clientOrderId".into()), &[]);
         let mut orderType: Value = to_upper(&type_var);
         if (trailingAmount != Value::Null) {
-            orderType = Value::Str("TRAILING STOP".to_string());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_trailing".to_string(), trailingAmount.clone()); }
+            orderType = Value::Str("TRAILING STOP".into());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price_trailing".to_string(), trailingAmount.clone()); }
         }  else if (triggerPrice != Value::Null) {
             // request['price'] is taken as triggerPrice for stop orders
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
             if (type_var.as_str() == Some("limit")) {
-                orderType = Value::Str("STOP LIMIT".to_string());
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_aux_limit".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+                orderType = Value::Str("STOP LIMIT".into());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price_aux_limit".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             }  else {
-                orderType = Value::Str("STOP".to_string());
+                orderType = Value::Str("STOP".into());
             }
         }
         let mut ioc: bool = timeInForce.as_deref() == Some("IOC");
         let mut fok: bool = timeInForce.as_deref() == Some("FOK");
         let mut postOnly: bool = is_true(&(postOnlyParam.as_bool() == Some(true))) || is_true(&(timeInForce.as_deref() == Some("PO")));
         if (ioc || fok) && is_true(&(price == Value::Null)) {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument with IOC and FOK orders".to_string()))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument with IOC and FOK orders".into()))));
         }
         if (ioc || fok) && is_true(&(type_var.as_str() == Some("market"))) {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not allow market IOC and FOK orders".to_string()))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not allow market IOC and FOK orders".into()))));
         }
         if is_true(&(type_var.as_str() != Some("market"))) && is_true(&(triggerPrice == Value::Null)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         if ioc {
-            orderType = Value::Str("IOC".to_string());
+            orderType = Value::Str("IOC".into());
         }  else if fok {
-            orderType = Value::Str("FOK".to_string());
+            orderType = Value::Str("FOK".into());
         }
         let mut marginMode: Value = Value::Null;
-        { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&(marginMode == Value::Null)) {
             // The EXCHANGE prefix is only required for non margin spot markets
-            orderType = Value::Str(format!("{}{}", Value::Str("EXCHANGE ".to_string()), orderType));
+            orderType = Value::Str(format!("{}{}", Value::Str("EXCHANGE ".into()), orderType).into());
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), orderType.clone()); }
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), orderType.clone()); }
         // flag values may be summed to combine flags
         let mut flags: Value = Value::Int(0);
         if postOnly {
@@ -2810,12 +2810,12 @@ impl BitfinexCore {
             flags = self.sum(&[flags.clone(), Value::Int(1024)]);
         }
         if (flags.as_f64() != Some(0.0)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("flags".to_string(), flags.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("flags".to_string(), flags.clone()); }
         }
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cid".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("cid".to_string(), clientOrderId.clone()); }
         }
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("timeInForce".to_string()), Value::Str("postOnly".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into()), Value::Str("clientOrderId".into())]), &[]);
         return self.extend(request.clone(), &[params.clone()]);
 
     Value::Null
@@ -2906,7 +2906,7 @@ impl BitfinexCore {
         if (status.as_str() != Some("SUCCESS")) {
             let mut errorCode: Value = self.safe_string(response.clone(), Value::Int(5), &[]);
             let mut errorText: Value = self.safe_string(response.clone(), Value::Int(7), &[]);
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), status)), Value::Str(": ".to_string()))), errorText)), Value::Str(" (#".to_string()))), errorCode)), Value::Str(")".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), status).into()), Value::Str(": ".into())).into()), errorText).into()), Value::Str(" (#".into())).into()), errorCode).into()), Value::Str(")".into()))));
         }
         let mut orders: Value = self.safe_list(response.clone(), Value::Int(4), &[Value::from(vec![])]);
         let mut order: Value = self.safe_list(orders.clone(), Value::Int(0), &[]);
@@ -2954,7 +2954,7 @@ impl BitfinexCore {
     m
 })]);
             let mut orderRequest: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
-            append_to_array(&mut ordersRequests, Value::from(vec![Value::Str("on".to_string()), orderRequest.clone()]));
+            append_to_array(&mut ordersRequests, Value::from(vec![Value::Str("on".into()), orderRequest.clone()]));
         }
         }
         let mut request: Value = Value::Map({
@@ -3071,7 +3071,7 @@ impl BitfinexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut cid: Value = self.safe_value2(params.clone(), Value::Str("cid".to_string()), Value::Str("clientOrderId".to_string()), &[]); // client order id
+        let mut cid: Value = self.safe_value2(params.clone(), Value::Str("cid".into()), Value::Str("clientOrderId".into()), &[]); // client order id
         let mut request: Value = Value::Null;
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -3080,7 +3080,7 @@ impl BitfinexCore {
         if (cid != Value::Null) {
             let mut cidDate: Value = self.safe_value_k(params.clone(), "cidDate", &[]); // client order id date
             if (cidDate == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')".into()))));
             }
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3088,7 +3088,7 @@ impl BitfinexCore {
                     m.insert("cid_date".to_string(), cidDate.clone());
                 m
             });
-            params = self.omit(params.clone(), Value::from(vec![Value::Str("cid".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("cid".into()), Value::Str("clientOrderId".into())]), &[]);
         }  else {
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3242,7 +3242,7 @@ impl BitfinexCore {
         let mut orders: Value = self.fetch_open_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_10]).await;
         let mut order: Value = self.safe_value(orders.clone(), Value::Int(0), &[]);
         if (order == Value::Null) {
-            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), id)), Value::Str(" not found".to_string()))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".into())).into()), id).into()), Value::Str(" not found".into()))));
         }
         return order;
 
@@ -3275,7 +3275,7 @@ impl BitfinexCore {
         let mut orders: Value = self.fetch_closed_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_11]).await;
         let mut order: Value = self.safe_value(orders.clone(), Value::Int(0), &[]);
         if (order == Value::Null) {
-            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), id)), Value::Str(" not found".to_string()))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".into())).into()), id).into()), Value::Str(" not found".into()))));
         }
         return order;
 
@@ -3402,21 +3402,21 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchClosedOrders".to_string()), Value::Str("paginate".to_string()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchClosedOrders".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), since.clone()); }
+            add_element_to_object(&mut request, &Value::Str("start".into()), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }; // default 25, max 2500
+            add_element_to_object(&mut request, &Value::Str("limit".into()), limit.clone()); // default 25, max 2500
         }
-        { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_until_option(Value::Str("end".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut market: Value = Value::Null;
         let mut response: Value = Value::Null;
         if (symbol == Value::Null) {
@@ -3424,7 +3424,7 @@ impl BitfinexCore {
             response = self.private_post_auth_r_orders_hist(&[__ws_arg_14]).await;
         }  else {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            add_element_to_object(&mut request, &Value::Str("symbol".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             let __ws_arg_15 = self.extend(request, &[params.clone()]);
             response = self.private_post_auth_r_orders_symbol_hist(&[__ws_arg_15]).await;
         }
@@ -3504,7 +3504,7 @@ impl BitfinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -3568,10 +3568,10 @@ impl BitfinexCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), since.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("start".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }; // default 25, max 1000
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 25, max 1000
         }
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -3655,10 +3655,10 @@ impl BitfinexCore {
         let mut currencyNetwork: Value = self.safe_dict(currencyNetworks.clone(), network.clone(), &[]);
         let mut networkId: Value = self.safe_string_k(currencyNetwork.clone(), "id", &[]);
         if (networkId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() could not find a network for '".to_string()))), code)), Value::Str("'. You can specify it by providing the 'network' value inside params".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() could not find a network for '".into())).into()), code).into()), Value::Str("'. You can specify it by providing the 'network' value inside params".into()))));
         }
-        let mut wallet: Value = self.safe_string_k(params.clone(), "wallet", &[Value::Str("exchange".to_string())]); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-        params = self.omit(params.clone(), Value::Str("network".to_string()), &[Value::Str("wallet".to_string())]);
+        let mut wallet: Value = self.safe_string_k(params.clone(), "wallet", &[Value::Str("exchange".into())]); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
+        params = self.omit(params.clone(), Value::Str("network".into()), &[Value::Str("wallet".into())]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), networkId.clone());
@@ -3708,17 +3708,17 @@ impl BitfinexCore {
     pub fn parse_transaction_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("SUCCESS".to_string(), Value::Str("ok".to_string()));
-                m.insert("COMPLETED".to_string(), Value::Str("ok".to_string()));
-                m.insert("ERROR".to_string(), Value::Str("failed".to_string()));
-                m.insert("FAILURE".to_string(), Value::Str("failed".to_string()));
-                m.insert("CANCELED".to_string(), Value::Str("canceled".to_string()));
-                m.insert("PENDING APPROVAL".to_string(), Value::Str("pending".to_string()));
-                m.insert("PENDING".to_string(), Value::Str("pending".to_string()));
-                m.insert("PENDING REVIEW".to_string(), Value::Str("pending".to_string()));
-                m.insert("PENDING CANCELLATION".to_string(), Value::Str("pending".to_string()));
-                m.insert("SENDING".to_string(), Value::Str("pending".to_string()));
-                m.insert("USER APPROVED".to_string(), Value::Str("pending".to_string()));
+                m.insert("SUCCESS".to_string(), Value::Str("ok".into()));
+                m.insert("COMPLETED".to_string(), Value::Str("ok".into()));
+                m.insert("ERROR".to_string(), Value::Str("failed".into()));
+                m.insert("FAILURE".to_string(), Value::Str("failed".into()));
+                m.insert("CANCELED".to_string(), Value::Str("canceled".into()));
+                m.insert("PENDING APPROVAL".to_string(), Value::Str("pending".into()));
+                m.insert("PENDING".to_string(), Value::Str("pending".into()));
+                m.insert("PENDING REVIEW".to_string(), Value::Str("pending".into()));
+                m.insert("PENDING CANCELLATION".to_string(), Value::Str("pending".into()));
+                m.insert("SENDING".to_string(), Value::Str("pending".into()));
+                m.insert("USER APPROVED".to_string(), Value::Str("pending".into()));
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
@@ -3805,13 +3805,13 @@ impl BitfinexCore {
             }
             amount = self.safe_number(data.clone(), Value::Int(5), &[]);
             id = self.safe_integer(data.clone(), Value::Int(0), &[]);
-            status = Value::Str("ok".to_string());
+            status = Value::Str("ok".into());
             if (id.as_f64() == Some(0.0)) {
                 id = Value::Null;
-                status = Value::Str("failed".to_string());
+                status = Value::Str("failed".into());
             }
             tag = self.safe_string(data.clone(), Value::Int(3), &[]);
-            type_var = Value::Str("withdrawal".to_string());
+            type_var = Value::Str("withdrawal".into());
             let mut networkId: Value = self.safe_string(data.clone(), Value::Int(2), &[]);
             network = self.network_id_to_code(&[to_upper(&networkId), code.clone()]); // withdraw returns in lowercase
         }  else if (transactionLength == 22.0) {
@@ -3826,10 +3826,10 @@ impl BitfinexCore {
             let mut signedAmount: Value = self.safe_string(transaction.clone(), Value::Int(12), &[]);
             amount = crate::precise::Precise::stringAbs(&signedAmount);
             if (signedAmount != Value::Null) {
-                if is_true(&crate::precise::Precise::stringLt(&signedAmount, &Value::Str("0".to_string()))) {
-                    type_var = Value::Str("withdrawal".to_string());
+                if is_true(&crate::precise::Precise::stringLt(&signedAmount, &Value::Str("0".into()))) {
+                    type_var = Value::Str("withdrawal".into());
                 }  else {
-                    type_var = Value::Str("deposit".to_string());
+                    type_var = Value::Str("deposit".into());
                 }
             }
             feeCost = self.safe_string(transaction.clone(), Value::Int(13), &[]);
@@ -4036,15 +4036,15 @@ impl BitfinexCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), since.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("start".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }; // max 1000
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // max 1000
         }
         let mut response: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
             let mut currencyMovements: Value = self.private_post_auth_r_movements_currency_hist(&[__ws_arg_21]).await;
             response = self.to_array(currencyMovements.clone());
@@ -4083,7 +4083,7 @@ impl BitfinexCore {
         let mut currency: Value = self.currency(code.clone());
         // if not provided explicitly we will try to match using the currency name
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
-        params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
+        params = self.omit(params.clone(), Value::Str("network".into()), &[]);
         let mut currencyNetworks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4091,10 +4091,10 @@ impl BitfinexCore {
         let mut currencyNetwork: Value = self.safe_dict(currencyNetworks.clone(), network.clone(), &[]);
         let mut networkId: Value = self.safe_string_k(currencyNetwork.clone(), "id", &[]);
         if (networkId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a network for '".to_string()))), code)), Value::Str("'. You can specify it by providing the 'network' value inside params".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a network for '".into())).into()), code).into()), Value::Str("'. You can specify it by providing the 'network' value inside params".into()))));
         }
-        let mut wallet: Value = self.safe_string_k(params.clone(), "wallet", &[Value::Str("exchange".to_string())]); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-        params = self.omit(params.clone(), Value::Str("network".to_string()), &[Value::Str("wallet".to_string())]);
+        let mut wallet: Value = self.safe_string_k(params.clone(), "wallet", &[Value::Str("exchange".into())]); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
+        params = self.omit(params.clone(), Value::Str("network".into()), &[Value::Str("wallet".into())]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), networkId.clone());
@@ -4104,7 +4104,7 @@ impl BitfinexCore {
             m
         });
         if (tag != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payment_id".to_string(), tag.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("payment_id".to_string(), tag.clone()); }
         }
         let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4112,7 +4112,7 @@ impl BitfinexCore {
 })]);
         let mut includeFee: Value = self.safe_bool_k(withdrawOptions, "includeFee", &[Value::Bool(false)]);
         if (includeFee.as_bool() == Some(true)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fee_deduct".to_string(), Value::Int(1)); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("fee_deduct".to_string(), Value::Int(1)); }
         }
         let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_auth_w_withdraw(&[__ws_arg_23]).await;
@@ -4148,8 +4148,8 @@ impl BitfinexCore {
         //
         let mut statusMessage: Option<String> = self.safe_string(response.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         if (statusMessage.as_deref() == Some("error")) {
-            let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &response);
-            let mut message: Value = self.safe_string(response.clone(), Value::Int(2), &[Value::Str("".to_string())]);
+            let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &response);
+            let mut message: Value = self.safe_string(response.clone(), Value::Int(2), &[Value::Str("".into())]);
             // same message as in v1
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
@@ -4283,7 +4283,7 @@ impl BitfinexCore {
         m.insert("id".to_string(), self.safe_string(positionList.clone(), Value::Int(11), &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("notional".to_string(), self.parse_number(amount.clone(), &[]));
-        m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
+        m.insert("marginMode".to_string(), Value::Str("isolated".into()));
         m.insert("liquidationPrice".to_string(), self.safe_number(positionList.clone(), Value::Int(8), &[]));
         m.insert("entryPrice".to_string(), self.safe_number(positionList.clone(), Value::Int(3), &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number(positionList.clone(), Value::Int(6), &[]));
@@ -4292,7 +4292,7 @@ impl BitfinexCore {
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("lastPrice".to_string(), Value::Null);
-        m.insert("side".to_string(), (if is_true(&crate::precise::Precise::stringGt(&amount, &Value::Str("0".to_string()))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) }));
+        m.insert("side".to_string(), (if is_true(&crate::precise::Precise::stringGt(&amount, &Value::Str("0".into()))) { Value::Str("long".into()) } else { Value::Str("short".into()) }));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -4319,39 +4319,39 @@ impl BitfinexCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut request: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));
+        let mut request: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (api.as_str() == Some("v1")) {
             request = add(&api, &request);
         }  else {
-            request = Value::Str(format!("{}{}", self.version.clone(), request));
+            request = Value::Str(format!("{}{}", self.version.clone(), request).into());
         }
-        let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string())), request));
+        let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".into())), request).into());
         if (api.as_str() == Some("public")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
         }
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = to_string_val(&self.nonce());
             body = json_stringify(&query);
-            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".to_string()), request)), nonce)), body));
-            let mut signature: Value = self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha384".to_string()), &[]);
+            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".into()), request).into()), nonce).into()), body).into());
+            let mut signature: Value = self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("bfx-nonce".to_string(), nonce.clone());
                     m.insert("bfx-apikey".to_string(), self.apiKey.clone());
                     m.insert("bfx-signature".to_string(), signature.clone());
-                    m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
+                    m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
             });
         }
@@ -4371,27 +4371,27 @@ impl BitfinexCore {
         // ["error", 11010, "ratelimit: error"]
         if (response != Value::Null) {
             if !is_true(&(matches!(&response, Value::Arr(_)))) {
-                let mut message: Value = self.safe_string2(response.clone(), Value::Str("message".to_string()), Value::Str("error".to_string()), &[]);
-                let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &body);
+                let mut message: Value = self.safe_string2(response.clone(), Value::Str("message".into()), Value::Str("error".into()), &[]);
+                let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &body);
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
-                panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &body)));
+                panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &body)));
             }
         }  else if (response.as_str() == Some("")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" returned empty response".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" returned empty response".into()))));
         }
         if (statusCode.as_f64() == Some(429.0)) {
-            panic!("{}", crate::exchange_errors::rate_limit_exceeded(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &body)));
+            panic!("{}", crate::exchange_errors::rate_limit_exceeded(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &body)));
         }
         if (statusCode.as_f64() == Some(500.0)) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
-            let mut errorCode: Value = self.safe_string(response.clone(), Value::Int(1), &[Value::Str("".to_string())]);
-            let mut errorText: Value = self.safe_string(response.clone(), Value::Int(2), &[Value::Str("".to_string())]);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), errorText));
+            let mut errorCode: Value = self.safe_string(response.clone(), Value::Int(1), &[Value::Str("".into())]);
+            let mut errorText: Value = self.safe_string(response.clone(), Value::Int(2), &[Value::Str("".into())]);
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), errorText).into());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorText.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorText.clone(), feedback.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), errorText)), Value::Str(" (#".to_string()))), errorCode)), Value::Str(")".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), errorText).into()), Value::Str(" (#".into())).into()), errorCode).into()), Value::Str(")".into()))));
         }
         return response;
 
@@ -4402,17 +4402,17 @@ impl BitfinexCore {
         if (type_var == Value::Null) {
             return Value::Null;
         }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("fee")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) || Value::Int(type_var.as_str().and_then(|__s| __s.find("charged")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            return Value::Str("fee".to_string());
+            return Value::Str("fee".into());
         }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("rebate")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            return Value::Str("rebate".to_string());
+            return Value::Str("rebate".into());
         }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("deposit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) || Value::Int(type_var.as_str().and_then(|__s| __s.find("withdrawal")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            return Value::Str("transaction".to_string());
+            return Value::Str("transaction".into());
         }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("transfer")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            return Value::Str("transfer".to_string());
+            return Value::Str("transfer".into());
         }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("payment")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            return Value::Str("payout".to_string());
+            return Value::Str("payout".into());
         }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("exchange")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) || Value::Int(type_var.as_str().and_then(|__s| __s.find("position")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            return Value::Str("trade".to_string());
+            return Value::Str("trade".into());
         }  else {
             return type_var;
         }
@@ -4448,7 +4448,7 @@ impl BitfinexCore {
         let mut after: Value = self.safe_number(itemList.clone(), Value::Int(6), &[]);
         let mut description: Value = self.safe_string(itemList.clone(), Value::Int(8), &[]);
         if (description != Value::Null) {
-            let mut parts: Value = split(&description, &Value::Str(" @ ".to_string()));
+            let mut parts: Value = split(&description, &Value::Str(" @ ".into()));
             let mut first: Value = self.safe_string_lower(parts.clone(), Value::Int(0), &[]);
             type_var = self.parse_ledger_entry_type(first.clone());
         }
@@ -4500,9 +4500,9 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLedger".to_string()), Value::Str("paginate".to_string()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLedger".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchLedger".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone(), Value::Int(2500)]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchLedger".into()), &[code.clone(), since.clone(), limit.clone(), params.clone(), Value::Int(2500)]).await;
         }
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
@@ -4510,16 +4510,16 @@ impl BitfinexCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), since.clone()); }
+            add_element_to_object(&mut request, &Value::Str("start".into()), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            add_element_to_object(&mut request, &Value::Str("limit".into()), limit.clone());
         }
-        { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_until_option(Value::Str("end".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            add_element_to_object(&mut request, &Value::Str("currency".into()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_auth_r_ledgers_currency_hist(&[__ws_arg_24]).await;
         }  else {
@@ -4576,7 +4576,7 @@ impl BitfinexCore {
     m
 }));
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() requires a symbols argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() requires a symbols argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -4584,7 +4584,7 @@ impl BitfinexCore {
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("keys".to_string(), join(&marketIds, &Value::Str(",".to_string())));
+                m.insert("keys".to_string(), join(&marketIds, &Value::Str(",".into())));
             m
         });
         let __ws_arg_26 = self.extend(request, &[params.clone()]);
@@ -4616,15 +4616,15 @@ impl BitfinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".to_string()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".to_string()), params.clone(), Value::Int(5000)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), params.clone(), Value::Int(5000)]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -4633,9 +4633,9 @@ impl BitfinexCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), since.clone()); }
+            add_element_to_object(&mut request, &Value::Str("start".into()), since.clone());
         }
-        { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_until_option(Value::Str("end".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_27 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_status_deriv_symbol_hist(&[__ws_arg_27]).await;
         //
@@ -4832,13 +4832,13 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut marketIds: Value = Value::from(vec![Value::Str("ALL".to_string())]);
+        let mut marketIds: Value = Value::from(vec![Value::Str("ALL".into())]);
         if (symbols != Value::Null) {
             marketIds = self.market_ids(&[symbols.clone()]);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("keys".to_string(), join(&marketIds, &Value::Str(",".to_string())));
+                m.insert("keys".to_string(), join(&marketIds, &Value::Str(",".into())));
             m
         });
         let __ws_arg_28 = self.extend(request, &[params.clone()]);
@@ -4924,7 +4924,7 @@ impl BitfinexCore {
  * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interest_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
@@ -4935,9 +4935,9 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenInterestHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenInterestHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOpenInterestHistory".to_string()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".to_string()), params.clone(), Value::Int(5000)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOpenInterestHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), params.clone(), Value::Int(5000)]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -4946,12 +4946,12 @@ impl BitfinexCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), since.clone()); }
+            add_element_to_object(&mut request, &Value::Str("start".into()), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            add_element_to_object(&mut request, &Value::Str("limit".into()), limit.clone());
         }
-        { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_until_option(Value::Str("end".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_30 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_status_deriv_symbol_hist(&[__ws_arg_30]).await;
         return self.parse_open_interests_history(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -5025,7 +5025,7 @@ impl BitfinexCore {
         let mut marketId: Value = self.safe_string(interest.clone(), Value::Int(0), &[]);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("swap".to_string())]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("swap".into())]));
         m.insert("openInterestAmount".to_string(), self.safe_number(interest.clone(), openInterestIndex.clone(), &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -5061,9 +5061,9 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLiquidations".to_string()), Value::Str("paginate".to_string()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLiquidations".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchLiquidations".to_string()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".to_string()), params.clone(), Value::Int(500)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchLiquidations".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), params.clone(), Value::Int(500)]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -5071,12 +5071,12 @@ impl BitfinexCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), since.clone()); }
+            add_element_to_object(&mut request, &Value::Str("start".into()), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            add_element_to_object(&mut request, &Value::Str("limit".into()), limit.clone());
         }
-        { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_until_option(Value::Str("end".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_31 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_liquidations_hist(&[__ws_arg_31]).await;
         return self.parse_liquidations(self.to_array(response.clone()), &[market.clone(), since.clone(), limit.clone()]);
@@ -5112,11 +5112,11 @@ impl BitfinexCore {
         let mut baseValue: Value = crate::precise::Precise::stringMul(&contracts, &contractSize);
         let mut price: Value = self.safe_string(entry.clone(), Value::Int(11), &[]);
         let mut sideFlag: Option<i64> = self.safe_integer(entry.clone(), Value::Int(8), &[]).as_i64();
-        let mut side: Value = (if is_true(&(sideFlag == Some(1))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut side: Value = (if is_true(&(sideFlag == Some(1))) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".into())]));
         m.insert("contracts".to_string(), self.parse_number(contracts, &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
         m.insert("price".to_string(), self.parse_number(price.clone(), &[]));
@@ -5151,7 +5151,7 @@ impl BitfinexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMargin() only support swap markets".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMargin() only support swap markets".into()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5186,13 +5186,13 @@ impl BitfinexCore {
         //     ]
         //
         let mut marginStatusRaw: Value = get_value(&data, &Value::Int(0));
-        let mut marginStatus: Value = (if (is_equal(&marginStatusRaw, &Value::Int(1))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
+        let mut marginStatus: Value = (if (is_equal(&marginStatusRaw, &Value::Int(1))) { Value::Str("ok".into()) } else { Value::Str("failed".into()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
+        m.insert("marginMode".to_string(), Value::Str("isolated".into()));
         m.insert("amount".to_string(), Value::Null);
         m.insert("total".to_string(), Value::Null);
         m.insert("code".to_string(), Value::Null);
@@ -5330,26 +5330,26 @@ impl BitfinexCore {
         if (amount != Value::Null) {
             let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount.clone());
             amountString = (if is_true(&(side.as_str() == Some("buy"))) { amountString.clone() } else { crate::precise::Precise::stringNeg(&amountString) });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".to_string(), amountString.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amount".to_string(), amountString.clone()); }
         }
-        let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
+        let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
         let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
         let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnlyParam: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
-        let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("cid".to_string()), Value::Str("clientOrderId".to_string()), &[]);
+        let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("cid".into()), Value::Str("clientOrderId".into()), &[]);
         if (trailingAmount != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_trailing".to_string(), trailingAmount.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price_trailing".to_string(), trailingAmount.clone()); }
         }  else if (triggerPrice != Value::Null) {
             // request['price'] is taken as triggerPrice for stop orders
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
             if (type_var.as_str() == Some("limit")) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_aux_limit".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price_aux_limit".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             }
         }
         let mut postOnly: bool = is_true(&(postOnlyParam.as_bool() == Some(true))) || is_true(&(timeInForce.as_deref() == Some("PO")));
         if is_true(&(type_var.as_str() != Some("market"))) && is_true(&(triggerPrice == Value::Null)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         // flag values may be summed to combine flags
         let mut flags: Value = Value::Int(0);
@@ -5360,16 +5360,16 @@ impl BitfinexCore {
             flags = self.sum(&[flags.clone(), Value::Int(1024)]);
         }
         if (flags.as_f64() != Some(0.0)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("flags".to_string(), flags.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("flags".to_string(), flags.clone()); }
         }
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cid".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("cid".to_string(), clientOrderId.clone()); }
         }
-        let mut leverage: Value = self.safe_integer2(params.clone(), Value::Str("leverage".to_string()), Value::Str("lev".to_string()), &[]);
+        let mut leverage: Value = self.safe_integer2(params.clone(), Value::Str("leverage".into()), Value::Str("lev".into()), &[]);
         if (leverage != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("lev".to_string(), leverage.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("lev".to_string(), leverage.clone()); }
         }
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("timeInForce".to_string()), Value::Str("postOnly".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("leverage".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into()), Value::Str("clientOrderId".into()), Value::Str("leverage".into())]), &[]);
         let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_auth_w_order_update(&[__ws_arg_35]).await;
         //
@@ -5421,7 +5421,7 @@ impl BitfinexCore {
         if (status.as_str() != Some("SUCCESS")) {
             let mut errorCode: Value = self.safe_string(response.clone(), Value::Int(5), &[]);
             let mut errorText: Value = self.safe_string(response.clone(), Value::Int(7), &[]);
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), status)), Value::Str(": ".to_string()))), errorText)), Value::Str(" (#".to_string()))), errorCode)), Value::Str(")".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), status).into()), Value::Str(": ".into())).into()), errorText).into()), Value::Str(" (#".into())).into()), errorCode).into()), Value::Str(")".into()))));
         }
         let mut order: Value = self.safe_list(response.clone(), Value::Int(4), &[Value::from(vec![])]);
         let mut newOrder: Value = Value::Map({

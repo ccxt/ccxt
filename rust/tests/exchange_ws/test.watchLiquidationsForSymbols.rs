@@ -10,16 +10,16 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchLiquidationsForSymbols".to_string());
+    let mut method: Value = Value::Str("watchLiquidationsForSymbols".into());
     // we have to skip some exchanges here due to the frequency of trading
     let mut skippedExchanges: Value = Value::from(vec![]);
-    if is_true(&exchange.in_array(get_value(&exchange, &Value::Str("id".to_string())), skippedExchanges.clone())) {
-        let mut m1: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".to_string())), Value::Str(" ".to_string()))), method)), Value::Str("() test skipped".to_string()))));
+    if is_true(&exchange.in_array(get_value(&exchange, &Value::Str("id".into())), skippedExchanges.clone())) {
+        let mut m1: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str("() test skipped".into())).into()));
         println_val(&m1);
         return Value::Bool(false);
     }
-    if (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &method) == Value::Null) || (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &method).as_bool() == Some(false)) {
-        let mut m2: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".to_string())), Value::Str(" does not support ".to_string()))), method)), Value::Str("() method".to_string()))));
+    if (get_value(&get_value(&exchange, &Value::Str("has".into())), &method) == Value::Null) || (get_value(&get_value(&exchange, &Value::Str("has".into())), &method).as_bool() == Some(false)) {
+        let mut m2: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" does not support ".into())).into()), method).into()), Value::Str("() method".into())).into()));
         println_val(&m2);
         return Value::Bool(false);
     }
@@ -32,7 +32,7 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
             now = date_now();
             let mut isArray: Value = Value::Bool(matches!(&response, Value::Arr(_)));
             assert!(ccxt::runtime::is_true(&(isArray.clone())));
-            let mut m3: Value = (Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".to_string())), Value::Str(" ".to_string()))), method)), Value::Str("() returned ".to_string()))), &Value::Int(response.len() as i64)), Value::Str(" liquidations".to_string()))));
+            let mut m3: Value = (Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str("() returned ".into())).into()), &Value::Int(response.len() as i64)), Value::Str(" liquidations".into())).into()));
             println_val(&m3);
             {
                                 let mut i: Value = Value::Int(0);
@@ -43,7 +43,7 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            if !(is_instance(&e, &Value::Str("NetworkError".to_string()))) {
+            if !(is_instance(&e, &Value::Str("NetworkError".into()))) {
                 panic!("{}", e);
             }
             now = date_now();

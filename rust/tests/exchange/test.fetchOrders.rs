@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchOrders(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchOrders".to_string());
+    let mut method: Value = Value::Str("fetchOrders".into());
     let mut orders: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_orders", vec![symbol.clone()]).await;
     assert!(ccxt::runtime::is_true(&((matches!(&orders, Value::Arr(_))))));
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), orders.clone(), symbol.clone()]);

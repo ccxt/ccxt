@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchBorrowInterest(mut exchange: Value, mut skippedProperties: Value, mut code: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchBorrowInterest".to_string());
+    let mut method: Value = Value::Str("fetchBorrowInterest".into());
     let mut borrowInterest: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_borrow_interest", vec![code.clone(), symbol.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), borrowInterest.clone(), code.clone()]);
     {

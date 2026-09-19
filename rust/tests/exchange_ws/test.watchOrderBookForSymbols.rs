@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchOrderBookForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbols: Value) -> Value {
-    let mut method: Value = Value::Str("watchOrderBookForSymbols".to_string());
+    let mut method: Value = Value::Str("watchOrderBookForSymbols".into());
     // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
     // loop has to be bounded by the deadline alone. waiting for every requested
     // symbol to be seen would hang forever whenever one of them stays idle.
@@ -27,7 +27,7 @@ pub async fn testWatchOrderBookForSymbols(mut exchange: Value, mut skippedProper
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // interim workaround for InvalidNonce raised by the c# runtime
-            if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) && !(is_instance(&e, &Value::Str("InvalidNonce".to_string()))) {
+            if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) && !(is_instance(&e, &Value::Str("InvalidNonce".into()))) {
                 panic!("{}", e);
             }
             succeeded = Value::Bool(false);
@@ -35,7 +35,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         currentTime = exchange.milliseconds();
         if (succeeded.as_bool() == Some(true)) && (response != Value::Null) {
             testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone(), Value::Null);
-            crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), Value::Str("symbol".to_string()).clone(), symbols.clone()]);
+            crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), Value::Str("symbol".into()).clone(), symbols.clone()]);
             let mut elapsed: Value = (match (&(currentTime), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if elapsed.as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {
                 idle = Value::Bool(true);

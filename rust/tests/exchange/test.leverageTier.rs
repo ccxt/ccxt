@@ -12,23 +12,23 @@ use super::*;
 pub fn testLeverageTier(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value) {
     let mut format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("tier".to_string(), exchange.parse_number(Value::Str("1".to_string()), &[]));
-            m.insert("minNotional".to_string(), exchange.parse_number(Value::Str("0".to_string()), &[]));
-            m.insert("maxNotional".to_string(), exchange.parse_number(Value::Str("5000".to_string()), &[]));
-            m.insert("maintenanceMarginRate".to_string(), exchange.parse_number(Value::Str("0.01".to_string()), &[]));
-            m.insert("maxLeverage".to_string(), exchange.parse_number(Value::Str("25".to_string()), &[]));
+            m.insert("tier".to_string(), exchange.parse_number(Value::Str("1".into()), &[]));
+            m.insert("minNotional".to_string(), exchange.parse_number(Value::Str("0".into()), &[]));
+            m.insert("maxNotional".to_string(), exchange.parse_number(Value::Str("5000".into()), &[]));
+            m.insert("maintenanceMarginRate".to_string(), exchange.parse_number(Value::Str("0.01".into()), &[]));
+            m.insert("maxLeverage".to_string(), exchange.parse_number(Value::Str("25".into()), &[]));
             m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("maintenanceMarginRate".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("maintenanceMarginRate".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     //
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("tier".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("minNotional".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maxNotional".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maxLeverage".to_string()).clone(), Value::Str("1".to_string()).clone()]);
-    crate::tests_support::shared::assert_less_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maintenanceMarginRate".to_string()).clone(), Value::Str("1".to_string()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("tier".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("minNotional".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maxNotional".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maxLeverage".into()).clone(), Value::Str("1".into()).clone()]);
+    crate::tests_support::shared::assert_less_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maintenanceMarginRate".into()).clone(), Value::Str("1".into()).clone()]);
 }

@@ -14,7 +14,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     // books where bid==ask and a stale `last` far from the median are normal — skip the
     // crypto-oriented price-relationship checks for them. the PredictionTicker type also
     // omits vwap/previousClose entirely, so their presence must not be asserted
-    if matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)]), Value::Bool(true)) {
+    if matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("prediction".into()), &[Value::Bool(false)]), Value::Bool(true)) {
         skippedProperties = exchange.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Bool(true));
@@ -32,33 +32,33 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("symbol".to_string(), Value::Str("ETH/BTC".to_string()));
+            m.insert("symbol".to_string(), Value::Str("ETH/BTC".into()));
             m.insert("timestamp".to_string(), Value::Int(1502962946216));
-            m.insert("datetime".to_string(), Value::Str("2017-09-01T00:00:00".to_string()));
-            m.insert("high".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("low".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("bid".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("bidVolume".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("ask".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("askVolume".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("vwap".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("open".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("close".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("last".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("previousClose".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("change".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("percentage".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("average".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("baseVolume".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("quoteVolume".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
+            m.insert("datetime".to_string(), Value::Str("2017-09-01T00:00:00".into()));
+            m.insert("high".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("low".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("bid".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("bidVolume".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("ask".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("askVolume".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("vwap".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("open".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("close".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("last".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("previousClose".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("change".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("percentage".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("average".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("baseVolume".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("quoteVolume".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
         m
     });
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".to_string()), Value::Str("datetime".to_string()), Value::Str("open".to_string()), Value::Str("high".to_string()), Value::Str("low".to_string()), Value::Str("close".to_string()), Value::Str("last".to_string()), Value::Str("baseVolume".to_string()), Value::Str("quoteVolume".to_string()), Value::Str("previousClose".to_string()), Value::Str("bidVolume".to_string()), Value::Str("askVolume".to_string()), Value::Str("vwap".to_string()), Value::Str("change".to_string()), Value::Str("percentage".to_string()), Value::Str("average".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("last".into()), Value::Str("baseVolume".into()), Value::Str("quoteVolume".into()), Value::Str("previousClose".into()), Value::Str("bidVolume".into()), Value::Str("askVolume".into()), Value::Str("vwap".into()), Value::Str("change".into()), Value::Str("percentage".into()), Value::Str("average".into())]);
     // trick csharp-transpiler for string
-    if !is_true(&(contains(&to_string_val(&method), &Value::Str("BidsAsks".to_string())))) {
-        append_to_array(&mut emptyAllowedFor, Value::Str("bid".to_string()));
-        append_to_array(&mut emptyAllowedFor, Value::Str("ask".to_string()));
+    if !is_true(&(contains(&to_string_val(&method), &Value::Str("BidsAsks".into())))) {
+        append_to_array(&mut emptyAllowedFor, Value::Str("bid".into()));
+        append_to_array(&mut emptyAllowedFor, Value::Str("ask".into()));
     }
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
@@ -67,73 +67,73 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut market: Value = Value::Null;
     let mut isUnrecognizedSymbol: Value = Value::Bool(false);
     let mut isFetchTickerCalled: bool = method.as_str() == Some("fetchTicker");
-    let mut symbolForMarket: Value = (if (symbol != Value::Null) { symbol.clone() } else { exchange.safe_string(entry.clone(), Value::Str("symbol".to_string()), &[]) });
+    let mut symbolForMarket: Value = (if is_true(&(symbol != Value::Null)) { symbol.clone() } else { exchange.safe_string(entry.clone(), Value::Str("symbol".into()), &[]) });
     if (symbolForMarket != Value::Null) {
-        if (get_value(&exchange, &Value::Str("markets".to_string())) != Value::Null) && is_true(&(crate::tests_support::shared::market_exists(&exchange, &symbolForMarket))) {
+        if is_true(&(get_value(&exchange, &Value::Str("markets".into())) != Value::Null)) && is_true(&(crate::tests_support::shared::market_exists(&exchange, &symbolForMarket))) {
             market = exchange.market(symbolForMarket.clone());
         }  else {
             isUnrecognizedSymbol = Value::Bool(true);
         }
     }
     // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
-    if !(in_op(&skippedProperties, &Value::Str("checkInactiveMarkets".to_string()))) {
+    if !(in_op(&skippedProperties, &Value::Str("checkInactiveMarkets".into()))) {
         if (market != Value::Null) && (market.as_map().and_then(|__m| __m.get("active")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             return;
         }
     }
-    if (in_op(&skippedProperties, &Value::Str("skipNonActiveMarkets".to_string()))) {
-        if (market == Value::Null) || (market.as_map().and_then(|__m| __m.get("active")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+    if (in_op(&skippedProperties, &Value::Str("skipNonActiveMarkets".into()))) {
+        if (market == Value::Null) || is_true(&(market.as_map().and_then(|__m| __m.get("active")).cloned().unwrap_or(Value::Null).as_bool() != Some(true))) {
             return;
         }
     }
     // only check "above zero" values if exchange is not supposed to have exotic index markets
-    let mut isStandardMarket: Value = (Value::Bool((market != Value::Null) && is_true(&exchange.in_array(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), Value::from(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())])))));
+    let mut isStandardMarket: Value = (Value::Bool((market != Value::Null) && is_true(&exchange.in_array(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("future".into()), Value::Str("option".into())])))));
     let mut valuesShouldBePositive: Value = isStandardMarket; // || (market === undefined) atm, no check for index markets
-    if is_true(&valuesShouldBePositive) && !(in_op(&skippedProperties, &Value::Str("positiveValues".to_string()))) {
-        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("open".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("high".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("low".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("close".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("ask".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("bid".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("average".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("vwap".to_string()).clone(), Value::Str("0".to_string()).clone()]);
+    if is_true(&valuesShouldBePositive) && !(in_op(&skippedProperties, &Value::Str("positiveValues".into()))) {
+        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("open".into()).clone(), Value::Str("0".into()).clone()]);
+        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("high".into()).clone(), Value::Str("0".into()).clone()]);
+        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("low".into()).clone(), Value::Str("0".into()).clone()]);
+        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("close".into()).clone(), Value::Str("0".into()).clone()]);
+        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("ask".into()).clone(), Value::Str("0".into()).clone()]);
+        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("bid".into()).clone(), Value::Str("0".into()).clone()]);
+        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("average".into()).clone(), Value::Str("0".into()).clone()]);
+        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("vwap".into()).clone(), Value::Str("0".into()).clone()]);
     }
     // volume can not be negative
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("askVolume".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("bidVolume".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("baseVolume".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("quoteVolume".to_string()).clone(), Value::Str("0".to_string()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("askVolume".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("bidVolume".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("baseVolume".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("quoteVolume".into()).clone(), Value::Str("0".into()).clone()]);
     //
     // close price
     //
-    let mut lastString: Value = exchange.safe_string(entry.clone(), Value::Str("last".to_string()), &[]);
-    let mut closeString: Value = exchange.safe_string(entry.clone(), Value::Str("close".to_string()), &[]);
-    assert!(ccxt::runtime::is_true(&((((closeString == Value::Null) && (lastString == Value::Null)) || is_true(&ccxt::precise::Precise::stringEq(&lastString, &closeString))))));
-    let mut openPrice: Value = exchange.safe_string(entry.clone(), Value::Str("open".to_string()), &[]);
+    let mut lastString: Value = exchange.safe_string(entry.clone(), Value::Str("last".into()), &[]);
+    let mut closeString: Value = exchange.safe_string(entry.clone(), Value::Str("close".into()), &[]);
+    assert!(ccxt::runtime::is_true(&(((is_true(&(closeString == Value::Null)) && is_true(&(lastString == Value::Null))) || is_true(&ccxt::precise::Precise::stringEq(&lastString, &closeString))))));
+    let mut openPrice: Value = exchange.safe_string(entry.clone(), Value::Str("open".into()), &[]);
     //
     // base & quote volumes
     //
-    let mut baseVolume: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("baseVolume".to_string()), &[]));
-    let mut quoteVolume: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("quoteVolume".to_string()), &[]));
-    let mut high: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("high".to_string()), &[]));
-    let mut low: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("low".to_string()), &[]));
-    let mut open: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("open".to_string()), &[]));
-    let mut close: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("close".to_string()), &[]));
-    if !(in_op(&skippedProperties, &Value::Str("compareQuoteVolumeBaseVolume".to_string()))) {
+    let mut baseVolume: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("baseVolume".into()), &[]));
+    let mut quoteVolume: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("quoteVolume".into()), &[]));
+    let mut high: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("high".into()), &[]));
+    let mut low: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("low".into()), &[]));
+    let mut open: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("open".into()), &[]));
+    let mut close: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("close".into()), &[]));
+    if !(in_op(&skippedProperties, &Value::Str("compareQuoteVolumeBaseVolume".into()))) {
         // assert!(ccxt::runtime::is_true(&(baseVolumeDefined === quoteVolumeDefined))); // No, exchanges might not report both values
         // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
         // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
         // far above baseVolume * high), so the spot-derived invariant does not hold there,
         // see https://github.com/ccxt/ccxt/pull/29563
-        let mut isInverse: Value = exchange.safe_bool(market.clone(), Value::Str("inverse".to_string()), &[Value::Bool(false)]);
-        if (baseVolume != Value::Null) && (quoteVolume != Value::Null) && (high != Value::Null) && (low != Value::Null) && (isInverse.as_bool() != Some(true)) {
+        let mut isInverse: Value = exchange.safe_bool(market.clone(), Value::Str("inverse".into()), &[Value::Bool(false)]);
+        if is_true(&(baseVolume != Value::Null)) && is_true(&(quoteVolume != Value::Null)) && is_true(&(high != Value::Null)) && is_true(&(low != Value::Null)) && is_true(&(isInverse.as_bool() != Some(true))) {
             let mut baseLow: Value = ccxt::precise::Precise::stringMul(&baseVolume, &low);
             let mut baseHigh: Value = ccxt::precise::Precise::stringMul(&baseVolume, &high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
-            let mut mPrecision: Value = exchange.safe_dict(market.clone(), Value::Str("precision".to_string()), &[]);
-            let mut amountPrecision: Value = exchange.safe_string(mPrecision.clone(), Value::Str("amount".to_string()), &[]);
-            let mut tolerance: Value = Value::Str("1.0001".to_string());
+            let mut mPrecision: Value = exchange.safe_dict(market.clone(), Value::Str("precision".into()), &[]);
+            let mut amountPrecision: Value = exchange.safe_string(mPrecision.clone(), Value::Str("amount".into()), &[]);
+            let mut tolerance: Value = Value::Str("1.0001".into());
             if (amountPrecision != Value::Null) {
                 baseLow = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringSub(&baseVolume, &amountPrecision), &low);
                 baseHigh = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringAdd(&baseVolume, &amountPrecision), &high);
@@ -167,13 +167,13 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     //
     // the Manual defines both against open: change is `last - open`, and
     // percentage is `(change/open) * 100`
-    let mut changeString: Value = exchange.safe_string(entry.clone(), Value::Str("change".to_string()), &[]);
-    let mut percentageString: Value = exchange.safe_string(entry.clone(), Value::Str("percentage".to_string()), &[]);
-    if (changeString != Value::Null) && (open != Value::Null) && (close != Value::Null) && !(in_op(&skippedProperties, &Value::Str("compareChange".to_string()))) {
+    let mut changeString: Value = exchange.safe_string(entry.clone(), Value::Str("change".into()), &[]);
+    let mut percentageString: Value = exchange.safe_string(entry.clone(), Value::Str("percentage".into()), &[]);
+    if is_true(&(changeString != Value::Null)) && is_true(&(open != Value::Null)) && is_true(&(close != Value::Null)) && !(in_op(&skippedProperties, &Value::Str("compareChange".into()))) {
         // the window is the larger of two roundings: float residue on a change
         // safeTicker derived, which needs a part per million of the price, and an
         // exchange's own rounding, which its reported decimals reveal
-        let mut pricePart: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&close), &Value::Str("1000000".to_string()));
+        let mut pricePart: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&close), &Value::Str("1000000".into()));
         let mut changeDecimals: Value = exchange.precision_from_string(changeString.clone());
         // exponent notation ("1e4") makes `precisionFromString` return a negative
         // count, which `parsePrecision` would turn into a step of 10000 - a string
@@ -185,25 +185,25 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
             // a change of "0" prints no decimals, so its apparent step is a whole unit
             // and accepts anything on a micro-priced asset. a per cent of the price
             // caps it, and covers whole units on a price in the tens of thousands
-            let mut quantumCap: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&close), &Value::Str("100".to_string()));
+            let mut quantumCap: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&close), &Value::Str("100".into()));
             changeQuantum = ccxt::precise::Precise::stringMin(&changeQuantum, &quantumCap);
             changeWindow = ccxt::precise::Precise::stringMax(&pricePart, &changeQuantum);
         }
         let mut difference: Value = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&changeString, &ccxt::precise::Precise::stringSub(&close, &open)));
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&difference, &changeWindow))));
     }
-    if (changeString != Value::Null) && (percentageString != Value::Null) && (open != Value::Null) && !(in_op(&skippedProperties, &Value::Str("comparePercentage".to_string()))) {
-        let mut derived: Value = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringDiv(&changeString, &open), &Value::Str("100".to_string()));
+    if is_true(&(changeString != Value::Null)) && is_true(&(percentageString != Value::Null)) && is_true(&(open != Value::Null)) && !(in_op(&skippedProperties, &Value::Str("comparePercentage".into()))) {
+        let mut derived: Value = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringDiv(&changeString, &open), &Value::Str("100".into()));
         // exchanges round the percentage, so allow one part in fifty of the derived
         // value plus a floor for moves near zero. a ratio where a percentage
         // belongs is out by a hundred and clears that by three orders of magnitude
-        let mut relative: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&derived), &Value::Str("50".to_string()));
-        let mut allowed: Value = ccxt::precise::Precise::stringMax(&relative, &Value::Str("0.01".to_string()));
+        let mut relative: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&derived), &Value::Str("50".into()));
+        let mut allowed: Value = ccxt::precise::Precise::stringMax(&relative, &Value::Str("0.01".into()));
         let mut gap: Value = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&percentageString, &derived));
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&gap, &allowed))));
     }
     // open and close should be between High & Low
-    if (high != Value::Null) && (low != Value::Null) && !(in_op(&skippedProperties, &Value::Str("compareOHLC".to_string()))) {
+    if (high != Value::Null) && (low != Value::Null) && !(in_op(&skippedProperties, &Value::Str("compareOHLC".into()))) {
         if (open != Value::Null) {
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&open, &low))));
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&open, &high))));
@@ -216,14 +216,14 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     //
     // vwap
     //
-    let mut vwap: Value = exchange.safe_string(entry.clone(), Value::Str("vwap".to_string()), &[]);
+    let mut vwap: Value = exchange.safe_string(entry.clone(), Value::Str("vwap".into()), &[]);
     if (vwap != Value::Null) {
         // todo
         // assert!(ccxt::runtime::is_true(&(high !== undefined)));
         // assert!(ccxt::runtime::is_true(&(low !== undefined)));
         // assert!(ccxt::runtime::is_true(&(vwap >= low && vwap <= high)))
         // todo: calc compare
-        assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&valuesShouldBePositive) || is_true(&ccxt::precise::Precise::stringGe(&vwap, &Value::Str("0".to_string())))))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&valuesShouldBePositive) || is_true(&ccxt::precise::Precise::stringGe(&vwap, &Value::Str("0".into())))))));
         if (baseVolume != Value::Null) {
             assert!(ccxt::runtime::is_true(&((quoteVolume != Value::Null))));
         }
@@ -231,45 +231,45 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
             assert!(ccxt::runtime::is_true(&((baseVolume != Value::Null))));
         }
     }
-    let mut askString: Value = exchange.safe_string(entry.clone(), Value::Str("ask".to_string()), &[]);
-    let mut bidString: Value = exchange.safe_string(entry.clone(), Value::Str("bid".to_string()), &[]);
-    if (askString != Value::Null) && (bidString != Value::Null) && !(in_op(&skippedProperties, &Value::Str("spread".to_string()))) {
+    let mut askString: Value = exchange.safe_string(entry.clone(), Value::Str("ask".into()), &[]);
+    let mut bidString: Value = exchange.safe_string(entry.clone(), Value::Str("bid".into()), &[]);
+    if is_true(&(askString != Value::Null)) && is_true(&(bidString != Value::Null)) && !(in_op(&skippedProperties, &Value::Str("spread".into()))) {
         // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
-        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("ask".to_string()).clone(), exchange.safe_string(entry.clone(), Value::Str("bid".to_string()), &[]).clone()]);
+        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("ask".into()).clone(), exchange.safe_string(entry.clone(), Value::Str("bid".into()), &[]).clone()]);
     }
     // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
-    let mut allowedPercentageVariation: Value = Value::Str("0.01".to_string());
-    if isFetchTickerCalled && (lastString != Value::Null) && (bidString != Value::Null) && (askString != Value::Null) && !(in_op(&skippedProperties, &Value::Str("lastBetweenBidAsk".to_string()))) {
-        let mut medianPrice: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAdd(&bidString, &askString), &Value::Str("2".to_string()));
-        let mut medianLow: Value = ccxt::precise::Precise::stringMul(&medianPrice, &ccxt::precise::Precise::stringSub(&Value::Str("1".to_string()), &allowedPercentageVariation));
-        let mut medianHigh: Value = ccxt::precise::Precise::stringMul(&medianPrice, &ccxt::precise::Precise::stringAdd(&Value::Str("1".to_string()), &allowedPercentageVariation));
+    let mut allowedPercentageVariation: Value = Value::Str("0.01".into());
+    if isFetchTickerCalled && (lastString != Value::Null) && (bidString != Value::Null) && (askString != Value::Null) && !(in_op(&skippedProperties, &Value::Str("lastBetweenBidAsk".into()))) {
+        let mut medianPrice: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAdd(&bidString, &askString), &Value::Str("2".into()));
+        let mut medianLow: Value = ccxt::precise::Precise::stringMul(&medianPrice, &ccxt::precise::Precise::stringSub(&Value::Str("1".into()), &allowedPercentageVariation));
+        let mut medianHigh: Value = ccxt::precise::Precise::stringMul(&medianPrice, &ccxt::precise::Precise::stringAdd(&Value::Str("1".into()), &allowedPercentageVariation));
         assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&ccxt::precise::Precise::stringGe(&lastString, &medianLow)) && is_true(&ccxt::precise::Precise::stringLe(&lastString, &medianHigh))))));
     }
-    let mut percentage: Value = exchange.safe_string(entry.clone(), Value::Str("percentage".to_string()), &[]);
-    let mut change: Value = exchange.safe_string(entry.clone(), Value::Str("change".to_string()), &[]);
+    let mut percentage: Value = exchange.safe_string(entry.clone(), Value::Str("percentage".into()), &[]);
+    let mut change: Value = exchange.safe_string(entry.clone(), Value::Str("change".into()), &[]);
     // option markets are exempt from the UPPER percentage/change caps only:
     // expiry-day convexity makes any finite cap wrong - a formerly-OTM
     // contract moving into the money legitimately gains 1000x+ (observed: a
     // paradex call at +109055% on its expiry date, mark price equal to
     // intrinsic). the floors stay: a long option cannot lose more than its
     // premium, so percentage >= -100 and change >= -open hold for options too
-    let mut isOptionMarket: Value = exchange.safe_bool(market.clone(), Value::Str("option".to_string()), &[Value::Bool(false)]);
-    if !(in_op(&skippedProperties, &Value::Str("maxIncrease".to_string()))) && !is_true(&isUnrecognizedSymbol) {
+    let mut isOptionMarket: Value = exchange.safe_bool(market.clone(), Value::Str("option".into()), &[Value::Bool(false)]);
+    if !(in_op(&skippedProperties, &Value::Str("maxIncrease".into()))) && !is_true(&isUnrecognizedSymbol) {
         //
         // percentage
         //
-        let mut maxIncrease: Value = Value::Str("1000".to_string()); // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
+        let mut maxIncrease: Value = Value::Str("1000".into()); // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if (percentage != Value::Null) {
             // - should be above -100 and (for non-options) below MAX
-            assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&percentage, &Value::Str("-100".to_string())))));
+            assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&percentage, &Value::Str("-100".into())))));
             if (isOptionMarket.as_bool() != Some(true)) {
-                assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&percentage, &ccxt::precise::Precise::stringMul(&Value::Str("+100".to_string()), &maxIncrease)))));
+                assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&percentage, &ccxt::precise::Precise::stringMul(&Value::Str("+100".into()), &maxIncrease)))));
             }
         }
         //
         // change
         //
-        let mut approxValue: Value = exchange.safe_string_n(entry.clone(), Value::from(vec![Value::Str("open".to_string()), Value::Str("close".to_string()), Value::Str("average".to_string()), Value::Str("bid".to_string()), Value::Str("ask".to_string()), Value::Str("vwap".to_string()), Value::Str("previousClose".to_string())]), &[]);
+        let mut approxValue: Value = exchange.safe_string_n(entry.clone(), Value::from(vec![Value::Str("open".into()), Value::Str("close".into()), Value::Str("average".into()), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("vwap".into()), Value::Str("previousClose".into())]), &[]);
         if (change != Value::Null) {
             // - should be above -price and (for non-options) below +price*maxIncrease
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&change, &ccxt::precise::Precise::stringNeg(&approxValue)))));
@@ -303,5 +303,5 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     // else {
     //    assert!(ccxt::runtime::is_true(&((askString === undefined) && (bidString === undefined))));
     // }
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".to_string()).clone(), symbol.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
 }

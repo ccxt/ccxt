@@ -194,12 +194,12 @@ impl BinanceusdmCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("binanceusdm".to_string()));
-        m.insert("name".to_string(), Value::Str("Binance USDⓈ-M".to_string()));
+        m.insert("id".to_string(), Value::Str("binanceusdm".into()));
+        m.insert("name".to_string(), Value::Str("Binance USDⓈ-M".into()));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a".to_string()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://binance-docs.github.io/apidocs/futures/en/".to_string()), Value::Str("https://binance-docs.github.io/apidocs/spot/en".to_string()), Value::Str("https://developers.binance.com/en".to_string())]));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a".into()));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://binance-docs.github.io/apidocs/futures/en/".into()), Value::Str("https://binance-docs.github.io/apidocs/spot/en".into()), Value::Str("https://developers.binance.com/en".into())]));
     m
 }));
         m.insert("has".to_string(), Value::Map({
@@ -217,11 +217,11 @@ impl BinanceusdmCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::from(vec![Value::Str("linear".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("linear".into())]));
     m
 }));
-        m.insert("defaultType".to_string(), Value::Str("swap".to_string()));
-        m.insert("defaultSubType".to_string(), Value::Str("linear".to_string()));
+        m.insert("defaultType".to_string(), Value::Str("swap".into()));
+        m.insert("defaultSubType".to_string(), Value::Str("linear".into()));
         m.insert("leverageBrackets".to_string(), Value::Null);
         m.insert("marginTypes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -237,9 +237,9 @@ impl BinanceusdmCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("-5021".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-5022".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-5028".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-5021".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-5022".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-5028".to_string(), Value::Str("InvalidOrder".into()).clone());
     m
 }));
     m

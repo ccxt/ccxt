@@ -16,34 +16,34 @@ pub fn testLedgerEntry(mut exchange: Value, mut skippedProperties: Value, mut me
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("id".to_string(), Value::Str("x1234".to_string()));
-            m.insert("currency".to_string(), Value::Str("BTC".to_string()));
-            m.insert("account".to_string(), Value::Str("spot".to_string()));
-            m.insert("referenceId".to_string(), Value::Str("foo".to_string()));
-            m.insert("referenceAccount".to_string(), Value::Str("bar".to_string()));
-            m.insert("status".to_string(), Value::Str("ok".to_string()));
-            m.insert("amount".to_string(), exchange.parse_number(Value::Str("22".to_string()), &[]));
-            m.insert("before".to_string(), exchange.parse_number(Value::Str("111".to_string()), &[]));
-            m.insert("after".to_string(), exchange.parse_number(Value::Str("133".to_string()), &[]));
+            m.insert("id".to_string(), Value::Str("x1234".into()));
+            m.insert("currency".to_string(), Value::Str("BTC".into()));
+            m.insert("account".to_string(), Value::Str("spot".into()));
+            m.insert("referenceId".to_string(), Value::Str("foo".into()));
+            m.insert("referenceAccount".to_string(), Value::Str("bar".into()));
+            m.insert("status".to_string(), Value::Str("ok".into()));
+            m.insert("amount".to_string(), exchange.parse_number(Value::Str("22".into()), &[]));
+            m.insert("before".to_string(), exchange.parse_number(Value::Str("111".into()), &[]));
+            m.insert("after".to_string(), exchange.parse_number(Value::Str("133".into()), &[]));
             m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("direction".to_string(), Value::Str("in".to_string()));
+            m.insert("direction".to_string(), Value::Str("in".into()));
             m.insert("timestamp".to_string(), Value::Int(1638230400000));
-            m.insert("datetime".to_string(), Value::Str("2021-11-30T00:00:00.000Z".to_string()));
-            m.insert("type".to_string(), Value::Str("deposit".to_string()));
+            m.insert("datetime".to_string(), Value::Str("2021-11-30T00:00:00.000Z".into()));
+            m.insert("type".to_string(), Value::Str("deposit".into()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("referenceId".to_string()), Value::Str("referenceAccount".to_string()), Value::Str("id".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("referenceId".into()), Value::Str("referenceAccount".into()), Value::Str("id".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
     //
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("direction".to_string()).clone(), Value::from(vec![Value::Str("in".to_string()), Value::Str("out".to_string())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".to_string()).clone(), Value::from(vec![Value::Str("trade".to_string()), Value::Str("transaction".to_string()), Value::Str("margin".to_string()), Value::Str("cashback".to_string()), Value::Str("referral".to_string()), Value::Str("transfer".to_string()), Value::Str("fee".to_string())]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("direction".into()).clone(), Value::from(vec![Value::Str("in".into()), Value::Str("out".into())]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".into()).clone(), Value::from(vec![Value::Str("trade".into()), Value::Str("transaction".into()), Value::Str("margin".into()), Value::Str("cashback".into()), Value::Str("referral".into()), Value::Str("transfer".into()), Value::Str("fee".into())]).clone()]);
     // testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'account', ['spot', 'swap', .. ]); // todo
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("before".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("after".to_string()).clone(), Value::Str("0".to_string()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("before".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("after".into()).clone(), Value::Str("0".into()).clone()]);
 }

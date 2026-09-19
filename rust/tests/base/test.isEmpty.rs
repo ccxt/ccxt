@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testIsEmpty() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Null).as_bool() == Some(true)))));
@@ -29,11 +29,11 @@ pub fn testIsEmpty() {
     assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::from(vec![Value::Int(1), Value::Int(2)])).as_bool() == Some(false)))));
     // below are scalars, so they are not checked.
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Str("".to_string())).as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Str("".into())).as_bool() == Some(false)))));
     // @ts-expect-error
     assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Int(0)).as_bool() == Some(false)))));
     // @ts-expect-error
     assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Bool(false)).as_bool() == Some(false)))));
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Str("non-empty string".to_string())).as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Str("non-empty string".into())).as_bool() == Some(false)))));
 }

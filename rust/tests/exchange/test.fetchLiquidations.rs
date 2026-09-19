@@ -10,8 +10,8 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchLiquidations(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("fetchLiquidations".to_string());
-    if (get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchLiquidations")).cloned().unwrap_or(Value::Null) == Value::Null) || (get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchLiquidations")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+    let mut method: Value = Value::Str("fetchLiquidations".into());
+    if (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchLiquidations")).cloned().unwrap_or(Value::Null) == Value::Null) || (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchLiquidations")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
         return Value::Bool(true);
     }
     let mut items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_liquidations", vec![code.clone()]).await;

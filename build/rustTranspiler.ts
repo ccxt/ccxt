@@ -23,10 +23,25 @@ if (platform === 'win32' && __dirname[0] === '/') {
     __dirname = __dirname.substring(1);
 }
 
+// The ast printer emits string literals as `Value::Str("lit".into())` — the
+// runtime's `Str` payload is a `Cow<'static, str>`, so a literal borrows its
+// `&'static str` instead of allocating. The post-passes below still match the
+// historical allocating spelling, so unwrap it where the transpiler output
+// enters the pipeline and restore the borrowed form at write time.
+const RUST_LITERAL_BOX_INTO = /Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)/g;
+const RUST_LITERAL_BOX_ALLOC = /Value::Str\(("(?:[^"\\]|\\.)*")\.to_string\(\)\)/g;
+function allocLiteralBoxes(content: string): string {
+    return content.replace(RUST_LITERAL_BOX_INTO, 'Value::Str($1.to_string())');
+}
+function borrowLiteralBoxes(content: string): string {
+    return content.replace(RUST_LITERAL_BOX_ALLOC, 'Value::Str($1.into())');
+}
+
 function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
+    content = borrowLiteralBoxes(content);
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -7469,7 +7484,7 @@ ${arms.join('\n')}
                         self.build_implicit_api();
                     }
                     if self.internals.implicit_api.contains_key(method) {
-                        self.call_method(crate::Value::Str(method.to_string()), &args[..]).await
+                        self.call_method(crate::Value::Str(method.to_string().into()), &args[..]).await
                     } else {
                         self.internals.dynamic_dispatch_miss = Some(method.to_string());
                         crate::Value::Null
@@ -7646,7 +7661,7 @@ ${fallthrough}
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
 ${arms.join('\n')}
             _ => crate::Value::Null,
@@ -7803,7 +7818,7 @@ ${arms.join('\n')}
         );
 
         // Base content from ast-transpiler
-        let content: string = rustResult.content ?? '';
+        let content: string = allocLiteralBoxes(rustResult.content ?? '');
 
         // Apply Rust-specific post-processing
         content = this.regexAll(content, this.getRustRegexes(asyncMethods));
@@ -8763,7 +8778,7 @@ impl std::ops::DerefMut for ${coreName} {
         } else {
             result = this.transpiler.transpileRustByPath(baseFile);
         }
-        let content: string = result.content ?? '';
+        let content: string = allocLiteralBoxes(result.content ?? '');
 
         // ── 1. take only the slice below the marker ────────────────────────────
         const jsDelimiter = '// ' + delimiter;
@@ -9145,7 +9160,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, finalFile);
+        fs.writeFileSync(outFile, borrowLiteralBoxes(finalFile));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
@@ -9248,7 +9263,7 @@ impl std::ops::DerefMut for ${coreName} {
 
             try {
                 const result = this.transpiler.transpileRustByPath(tsFile);
-                let content = result.content ?? '';
+                let content = allocLiteralBoxes(result.content ?? '');
                 // Reuse the per-exchange pipeline so async, variadic
                 // wraps, bool-Value coercion, etc. apply uniformly.
                 const asyncMethods = new Set<string>(
@@ -9615,7 +9630,7 @@ impl std::ops::DerefMut for ${coreName} {
         const tsFile = './ts/src/test/base/tests.init.ts';
         if (!fs.existsSync(tsFile)) return;
         const result = this.transpiler.transpileRustByPath(tsFile);
-        let content = (result.content ?? '').trim();
+        let content = allocLiteralBoxes((result.content ?? '').trim());
         // Keep only calls to base tests we actually transpiled — e.g.
         // `testLanguageSpecific()` lives in a subfolder we don't emit.
         const validFns = new Set(written.map(n => this.testEntryPointFor(n)));
@@ -9737,7 +9752,7 @@ impl std::ops::DerefMut for ${coreName} {
 
             try {
                 const result = this.transpiler.transpileRustByPath(tsFile);
-                let content = result.content ?? '';
+                let content = allocLiteralBoxes(result.content ?? '');
                 const asyncMethods = new Set<string>(
                     (result.methodsTypes || [])
                         .filter((m: any) => m.async)
@@ -10325,6 +10340,7 @@ impl std::ops::DerefMut for ${coreName} {
      * base-test and exchange-test transpilation so they stay in sync.
      */
     runExchangeTestPipeline(content: string, asyncMethods: Set<string>): string {
+        content = allocLiteralBoxes(content);
         content = this.regexAll(content, this.getRustRegexes(asyncMethods));
         content = this.rewriteHashAlgoConstants(content);
         content = this.rewriteBareErrorClassRefs(content);
@@ -10730,7 +10746,7 @@ impl std::ops::DerefMut for ${coreName} {
         log.magenta('Transpiling tests.ts from', (tsFile as any).yellow);
         try {
             const result = this.transpiler.transpileRustByPath(tsFile);
-            let content = result.content ?? '';
+            let content = allocLiteralBoxes(result.content ?? '');
             // Reuse the per-exchange pipeline so we get the same
             // post-processing as the transpiled exchanges. `methodsTypes`
             // carries camelCase names; the transpiled call sites are
@@ -10945,7 +10961,7 @@ impl std::ops::DerefMut for ${coreName} {
                            `                self.${flag} = Value::Bool(true);\n` +
                            `                let __m = __e.downcast_ref::<String>().map(|s| s.as_str())\n` +
                            `                    .or_else(|| __e.downcast_ref::<&str>().copied()).unwrap_or("panic");\n` +
-                           `                dump(&[Value::Str(format!("[TEST_FAILURE] {}", __m))]);\n` +
+                           `                dump(&[Value::Str(format!("[TEST_FAILURE] {}", __m).into())]);\n` +
                            `            }\n` +
                            `        }`;
                 },

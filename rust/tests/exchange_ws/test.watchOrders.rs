@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchOrders(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchOrders".to_string());
+    let mut method: Value = Value::Str("watchOrders".into());
     let mut now: Value = exchange.milliseconds();
     let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     while now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN) {
@@ -19,7 +19,7 @@ pub async fn testWatchOrders(mut exchange: Value, mut skippedProperties: Value, 
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_orders", vec![symbol.clone()]).await;
             if (response == Value::Null) {
-                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".to_string())), Value::Str(" watch returned undefined response".to_string()))));
+                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
@@ -32,7 +32,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if (success.as_bool() == Some(true)) {
             if (response == Value::Null) {
-                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".to_string())), Value::Str(" watch returned undefined response".to_string()))));
+                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
             }
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), symbol.clone()]);
             now = exchange.milliseconds();

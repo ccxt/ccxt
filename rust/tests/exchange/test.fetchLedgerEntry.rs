@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchLedgerEntry(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("fetchLedgerEntry".to_string());
+    let mut method: Value = Value::Str("fetchLedgerEntry".into());
     let mut items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ledger", vec![code.clone()]).await;
     let mut length: Value = Value::Int(items.len() as i64);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), items.clone(), code.clone()]);

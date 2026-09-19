@@ -10,13 +10,13 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("loadMarkets".to_string());
+    let mut method: Value = Value::Str("loadMarkets".into());
     let mut markets: Value = crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
-    assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(get_value(&exchange, &Value::Str("markets".to_string()))))));
-    assert!(ccxt::runtime::is_true(&((matches!(&get_value(&exchange, &Value::Str("symbols".to_string())), Value::Arr(_))))));
-    let mut symbolsLength: Value = Value::Int(get_value(&exchange, &Value::Str("symbols".to_string())).len() as i64);
-    assert!(ccxt::runtime::is_true(&((get_value(&exchange, &Value::Str("markets".to_string())) != Value::Null))));
-    let mut marketKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".to_string())));
+    assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(get_value(&exchange, &Value::Str("markets".into()))))));
+    assert!(ccxt::runtime::is_true(&((matches!(&get_value(&exchange, &Value::Str("symbols".into())), Value::Arr(_))))));
+    let mut symbolsLength: Value = Value::Int(get_value(&exchange, &Value::Str("symbols".into())).len() as i64);
+    assert!(ccxt::runtime::is_true(&((get_value(&exchange, &Value::Str("markets".into())) != Value::Null))));
+    let mut marketKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".into())));
     let mut marketKeysLength: Value = Value::Int(marketKeys.len() as i64);
     assert!(ccxt::runtime::is_true(&((symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     assert!(ccxt::runtime::is_true(&((marketKeysLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
@@ -26,20 +26,20 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1479: bool = true;
         while { if !__for_first_1479 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1479 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketValues.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), marketValues.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+        testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&marketValues, &i));
     }
     }
     // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
-    let mut marketTypes: Value = Value::from(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string()), Value::Str("index".to_string())]);
+    let mut marketTypes: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("future".into()), Value::Str("option".into()), Value::Str("index".into())]);
     let mut collectedTypes: Value = Value::from(vec![]);
-    let mut allMarkets: Value = object_values(&get_value(&exchange, &Value::Str("markets".to_string())));
+    let mut allMarkets: Value = object_values(&get_value(&exchange, &Value::Str("markets".into())));
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1480: bool = true;
         while { if !__for_first_1480 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1480 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(allMarkets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        let mut market: Value = allMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-        if !is_true(&exchange.in_array(get_value(&market, &Value::Str("type".to_string())), collectedTypes.clone())) {
-            append_to_array(&mut collectedTypes, get_value(&market, &Value::Str("type".to_string())));
+        let mut market: Value = get_value(&allMarkets, &i);
+        if !is_true(&exchange.in_array(get_value(&market, &Value::Str("type".into())), collectedTypes.clone())) {
+            append_to_array(&mut collectedTypes, get_value(&market, &Value::Str("type".into())));
         }
     }
     }
@@ -47,11 +47,11 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1481: bool = true;
         while { if !__for_first_1481 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1481 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketTypes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        let mut mType: Value = marketTypes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-        if (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType) != Value::Null) && (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType).as_bool() != Some(false)) {
-            let mut skipMarketTypes: Value = Value::Bool((in_op(&skippedProperties, &Value::Str("optionsNotLoadedByDefault".to_string()))) && (mType.as_str() == Some("option")));
+        let mut mType: Value = get_value(&marketTypes, &i);
+        if (get_value(&get_value(&exchange, &Value::Str("has".into())), &mType) != Value::Null) && (get_value(&get_value(&exchange, &Value::Str("has".into())), &mType).as_bool() != Some(false)) {
+            let mut skipMarketTypes: Value = Value::Bool((in_op(&skippedProperties, &Value::Str("optionsNotLoadedByDefault".into()))) && (mType.as_str() == Some("option")));
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(mType.clone(), collectedTypes.clone())) || is_true(&skipMarketTypes)))));
-        }  else if (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType).as_bool() == Some(false)) {
+        }  else if (get_value(&get_value(&exchange, &Value::Str("has".into())), &mType).as_bool() == Some(false)) {
             // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
             // marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
             // in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips

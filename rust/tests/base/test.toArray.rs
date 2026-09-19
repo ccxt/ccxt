@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testToArray() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     let mut obj1: Value = Value::Map({
@@ -23,7 +23,7 @@ pub fn testToArray() {
     });
     let mut obj2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("a".to_string(), Value::Str("x".to_string()));
+            m.insert("a".to_string(), Value::Str("x".into()));
             m.insert("b".to_string(), Value::Int(2));
         m
     });
@@ -36,5 +36,5 @@ pub fn testToArray() {
     assert!(ccxt::runtime::is_true(&((Value::Int(result1.len() as i64).as_f64() == Some(3.0)))));
     assert!(ccxt::runtime::is_true(&((Value::Int(result2.len() as i64).as_f64() == Some(2.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Int(1), result1.clone())) && is_true(&exchange.in_array(Value::Int(3), result1.clone())) && is_true(&exchange.in_array(Value::Int(2), result1.clone()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Str("x".to_string()), result2.clone())) && is_true(&exchange.in_array(Value::Int(2), result2.clone()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Str("x".into()), result2.clone())) && is_true(&exchange.in_array(Value::Int(2), result2.clone()))))));
 }

@@ -36,9 +36,9 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
     let mut codesTotal: Value = object_keys(&entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null));
     let mut codesFree: Value = object_keys(&entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null));
     let mut codesUsed: Value = object_keys(&entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null));
-    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesTotal.clone(), Value::Str("total".to_string()).clone()]);
-    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesFree.clone(), Value::Str("free".to_string()).clone()]);
-    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesUsed.clone(), Value::Str("used".to_string()).clone()]);
+    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesTotal.clone(), Value::Str("total".into()).clone()]);
+    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesFree.clone(), Value::Str("free".into()).clone()]);
+    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesUsed.clone(), Value::Str("used".into()).clone()]);
     let mut allCodes: Value = exchange.array_concat(codesTotal.clone(), codesFree.clone());
     allCodes = exchange.array_concat(allCodes.clone(), codesUsed.clone());
     let mut codesLength: Value = Value::Int(codesTotal.len() as i64);
@@ -60,9 +60,9 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
         assert!(ccxt::runtime::is_true(&((total != Value::Null))));
         assert!(ccxt::runtime::is_true(&((free != Value::Null))));
         assert!(ccxt::runtime::is_true(&((used != Value::Null))));
-        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&total, &Value::Str("0".to_string())))));
-        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&free, &Value::Str("0".to_string())))));
-        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&used, &Value::Str("0".to_string())))));
+        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&total, &Value::Str("0".into())))));
+        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&free, &Value::Str("0".into())))));
+        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&used, &Value::Str("0".into())))));
         let mut sumFreeUsed: Value = ccxt::precise::Precise::stringAdd(&free, &used);
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&total, &sumFreeUsed))));
     }

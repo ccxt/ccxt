@@ -15,6 +15,7 @@
 // digifinex / mexc reject (and the static request fixtures assert)
 // specific key orders such as `{symbol,type,side,quantity,price}`.
 pub use indexmap::IndexMap as HashMap;
+use std::borrow::Cow;
 use std::sync::Arc;
 #[cfg(feature = "transpiled-base")]
 use crate::exchange_generated::ExchangeBase;
@@ -33,13 +34,17 @@ use crate::exchange_generated::ExchangeBase;
 /// `Value::List(..)` (which wrap the `Arc`) so the ~18k transpiler-emitted
 /// `Value::Map({..})` / `Value::List(vec![..])` call sites need no change.
 /// Pattern matches use `Value::Dict(..)` / `Value::Arr(..)`.
+/// `Str` holds a `Cow<'static, str>`: transpiler-emitted string literals
+/// borrow their `&'static str` (`Value::Str("lit".into())`, zero allocation)
+/// while runtime-built strings stay owned. `clone()` on a borrowed literal
+/// is a pointer copy.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Null,
     Bool(bool),
     Int(i64),
     Float(f64),
-    Str(String),
+    Str(Cow<'static, str>),
     Dict(Arc<HashMap<String, Value>>),
     Arr(Arc<Vec<Value>>),
 }
@@ -65,7 +70,7 @@ impl Value {
             _ => return,
         };
         let mut integer: String = match m.get("integer") {
-            Some(Value::Str(s)) => s.clone(),
+            Some(Value::Str(s)) => s.to_string(),
             _ => return,
         };
         // Negative decimals → pad zeros onto the integer.
@@ -83,7 +88,7 @@ impl Value {
             integer.pop();
             decimals -= 1;
         }
-        m.insert("integer".to_string(),  Value::Str(integer));
+        m.insert("integer".to_string(),  Value::Str(Cow::Owned(integer)));
         m.insert("decimals".to_string(), Value::Int(decimals));
     }
 
@@ -163,7 +168,7 @@ impl Value {
     // ── constructors ──────────────────────────────────────────────────────────
 
     pub fn str(s: impl Into<String>) -> Self {
-        Value::Str(s.into())
+        Value::Str(Cow::Owned(s.into()))
     }
 
     pub fn int(n: i64) -> Self {
@@ -210,7 +215,7 @@ impl Value {
 
     // ── accessors ─────────────────────────────────────────────────────────────
 
-    pub fn as_str(&self)   -> Option<&str>  { if let Value::Str(s) = self { Some(s) } else { None } }
+    pub fn as_str(&self)   -> Option<&str>  { if let Value::Str(s) = self { Some(s.as_ref()) } else { None } }
     pub fn as_i64(&self)   -> Option<i64>   { if let Value::Int(n) = self { Some(*n) } else { None } }
     pub fn as_f64(&self)   -> Option<f64> {
         match self {
@@ -338,8 +343,8 @@ impl Value {
     #[cfg(feature = "transpiled-base")]
     fn snapshot_as_exchange(&self) -> crate::exchange::Exchange {
         let mut ex = crate::exchange::Exchange::new(None);
-        ex.options = crate::runtime::get_value(self, &Value::Str("options".to_string()));
-        ex.currencies = crate::runtime::get_value(self, &Value::Str("currencies".to_string()));
+        ex.options = crate::runtime::get_value(self, &Value::Str("options".into()));
+        ex.currencies = crate::runtime::get_value(self, &Value::Str("currencies".into()));
         ex
     }
 
@@ -412,9 +417,9 @@ impl Value {
             }
             let mut ex = crate::exchange::BaseCore::new(self.snapshot_as_exchange());
             let result = ex.set_markets(markets, &[]);
-            crate::runtime::add_element_to_object(self, &Value::Str("markets".to_string()), ex.markets.clone());
-            crate::runtime::add_element_to_object(self, &Value::Str("markets_by_id".to_string()), ex.markets_by_id.clone());
-            crate::runtime::add_element_to_object(self, &Value::Str("symbols".to_string()), ex.symbols.clone());
+            crate::runtime::add_element_to_object(self, &Value::Str("markets".into()), ex.markets.clone());
+            crate::runtime::add_element_to_object(self, &Value::Str("markets_by_id".into()), ex.markets_by_id.clone());
+            crate::runtime::add_element_to_object(self, &Value::Str("symbols".into()), ex.symbols.clone());
             return result;
         }
         #[cfg(not(feature = "transpiled-base"))]
@@ -441,7 +446,7 @@ impl Value {
             Value::Bool(b)     => serde_json::Value::Bool(*b),
             Value::Int(n)      => serde_json::json!(*n),
             Value::Float(f)    => serde_json::json!(*f),
-            Value::Str(s)      => serde_json::Value::String(s.clone()),
+            Value::Str(s)      => serde_json::Value::String(s.to_string()),
             Value::Arr(a)      => serde_json::Value::Array(a.iter().map(Value::to_json).collect()),
             Value::Dict(m)     => {
                 // A side marker keeps its entries in the shared side store —
@@ -494,14 +499,14 @@ impl Value {
                     // so preserve the exact digits as a string (Go does the
                     // same). CCXT's safe_integer/safe_number read it back as a
                     // number when needed.
-                    Value::Str(n.to_string())
+                    Value::Str(n.to_string().into())
                 } else if let Some(f) = n.as_f64() {
                     Value::Float(f)
                 } else {
                     Value::Null
                 }
             }
-            serde_json::Value::String(s)   => Value::Str(s.clone()),
+            serde_json::Value::String(s)   => Value::Str(s.clone().into()),
             serde_json::Value::Array(a)    => Value::Array(a.iter().map(Value::from_json).collect()),
             serde_json::Value::Object(m)   => Value::Map(
                 m.iter().map(|(k, v)| (k.clone(), Value::from_json(v))).collect()
@@ -554,8 +559,8 @@ impl std::ops::BitOr for Value {
     }
 }
 
-impl From<&str>    for Value { fn from(s: &str)   -> Self { Value::Str(s.to_owned()) } }
-impl From<String>  for Value { fn from(s: String) -> Self { Value::Str(s) } }
+impl From<&str>    for Value { fn from(s: &str)   -> Self { Value::Str(Cow::Owned(s.to_owned())) } }
+impl From<String>  for Value { fn from(s: String) -> Self { Value::Str(Cow::Owned(s)) } }
 impl From<i64>     for Value { fn from(n: i64)    -> Self { Value::Int(n) } }
 impl From<f64>     for Value { fn from(f: f64)    -> Self { Value::Float(f) } }
 impl From<bool>    for Value { fn from(b: bool)   -> Self { Value::Bool(b) } }
@@ -566,7 +571,7 @@ impl From<bool>    for Value { fn from(b: bool)   -> Self { Value::Bool(b) } }
 /// `ExchangeError` for the caller.
 impl From<crate::ExchangeError> for Value {
     fn from(e: crate::ExchangeError) -> Self {
-        Value::Str(format!("[{}] {}", e.kind, e.message))
+        Value::Str(format!("[{}] {}", e.kind, e.message).into())
     }
 }
 impl From<HashMap<String, Value>> for Value {
@@ -727,7 +732,7 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             // pre-populates heavy fields like `markets` with `Null`
             // before `load_markets` runs, so we still need to fall back
             // to the live-lookup if the snapshot value is null.
-            let snapshot_val = m.get(k);
+            let snapshot_val = m.get(k.as_ref());
             if let Some(v) = snapshot_val {
                 if !matches!(v, Value::Null) {
                     return v.clone();
@@ -756,7 +761,7 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
                 return Value::Null;
             }
             match s.chars().nth(*i as usize) {
-                Some(c) => Value::Str(c.to_string()),
+                Some(c) => Value::Str(c.to_string().into()),
                 None    => Value::Null,
             }
         }
@@ -774,7 +779,7 @@ pub fn set_value(obj: &mut Value, key: &Value, val: Value) {
             // frame from `object_keys(client.subscriptions)`) sees the new entry.
             try_ws_subs_write(m, k, &val);
             try_ws_sub_field_write(m, k, &val);
-            Arc::make_mut(m).insert(k.clone(), val);
+            Arc::make_mut(m).insert(k.to_string(), val);
         }
         (Value::Arr(a), Value::Int(i)) => {
             let idx = *i as usize;
@@ -788,9 +793,9 @@ pub fn set_value(obj: &mut Value, key: &Value, val: Value) {
 // ── safeXxx helpers (mirrors Exchange.ts safe helpers) ─────────────────────
 
 pub fn safe_string(obj: &Value, key: &str, default: Option<&str>) -> Option<String> {
-    let v = get_value(obj, &Value::Str(key.to_owned()));
+    let v = get_value(obj, &Value::Str(key.to_owned().into()));
     match v {
-        Value::Str(s)  => Some(s),
+        Value::Str(s)  => Some(s.to_string()),
         Value::Int(n)  => Some(n.to_string()),
         Value::Float(f)=> Some(f.to_string()),
         // Booleans are not strings/finite numbers → TS `safeString` returns the
@@ -801,7 +806,7 @@ pub fn safe_string(obj: &Value, key: &str, default: Option<&str>) -> Option<Stri
 }
 
 pub fn safe_number(obj: &Value, key: &str, default: Option<f64>) -> Option<f64> {
-    let v = get_value(obj, &Value::Str(key.to_owned()));
+    let v = get_value(obj, &Value::Str(key.to_owned().into()));
     match v {
         Value::Float(f) => Some(f),
         Value::Int(n)   => Some(n as f64),
@@ -811,7 +816,7 @@ pub fn safe_number(obj: &Value, key: &str, default: Option<f64>) -> Option<f64> 
 }
 
 pub fn safe_integer(obj: &Value, key: &str, default: Option<i64>) -> Option<i64> {
-    let v = get_value(obj, &Value::Str(key.to_owned()));
+    let v = get_value(obj, &Value::Str(key.to_owned().into()));
     match v {
         Value::Int(n)   => Some(n),
         Value::Float(f) => Some(f as i64),
@@ -821,7 +826,7 @@ pub fn safe_integer(obj: &Value, key: &str, default: Option<i64>) -> Option<i64>
 }
 
 pub fn safe_bool(obj: &Value, key: &str, default: Option<bool>) -> Option<bool> {
-    let v = get_value(obj, &Value::Str(key.to_owned()));
+    let v = get_value(obj, &Value::Str(key.to_owned().into()));
     match v {
         Value::Bool(b)  => Some(b),
         Value::Int(n)   => Some(n != 0),
@@ -863,7 +868,7 @@ fn cache_str_field(item: &Value, key: &str) -> Option<String> {
             // integer order ids, and JS `byId[1]` / `byId["1"]` are the same slot,
             // so a numeric id must dedupe like its string form (else the bucket
             // lookup and the _data removal disagree and a duplicate row leaks).
-            Some(Value::Str(s)) => Some(s.clone()),
+            Some(Value::Str(s)) => Some(s.to_string()),
             Some(Value::Int(n)) => Some(n.to_string()),
             Some(Value::Float(f)) => Some(f.to_string()),
             Some(Value::Bool(b)) => Some(b.to_string()),
@@ -885,7 +890,7 @@ fn tag_cache_hashmap_buckets(hm: Value, id: i64) -> Value {
                 let mut nb: HashMap<String, Value> = (**bd).clone();
                 nb.insert(
                     "__cache_backref".to_string(),
-                    Value::Arr(std::sync::Arc::new(vec![Value::Int(id), Value::Str(sym.clone())])),
+                    Value::Arr(std::sync::Arc::new(vec![Value::Int(id), Value::Str(sym.clone().into())])),
                 );
                 out.insert(sym.clone(), Value::Dict(std::sync::Arc::new(nb)));
             } else {
@@ -915,7 +920,7 @@ pub(crate) fn try_cache_hashmap_write(bucket: &HashMap<String, Value>, key: &str
         // hashmap[sym][key] = item
         {
             let hm = cache_dict_field_mut(m, "hashmap");
-            let b = hm.entry(sym.clone()).or_insert_with(|| Value::Map(HashMap::new()));
+            let b = hm.entry(sym.to_string()).or_insert_with(|| Value::Map(HashMap::new()));
             if let Value::Dict(bd) = b {
                 Arc::make_mut(bd).insert(key.to_string(), item.clone());
             }
@@ -938,7 +943,7 @@ pub(crate) fn try_cache_hashmap_write(bucket: &HashMap<String, Value>, key: &str
 fn cache_kind(v: &Value) -> Option<String> {
     match v {
         Value::Dict(d) => match d.get("__cacheKind") {
-            Some(Value::Str(s)) => Some(s.clone()),
+            Some(Value::Str(s)) => Some(s.to_string()),
             _ => None,
         },
         _ => None,
@@ -1194,7 +1199,7 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
                     Value::Arr(ref a) => match a.first() {
                         Some(Value::Int(n))   => n.to_string(),
                         Some(Value::Float(f)) => f.to_string(),
-                        Some(Value::Str(s))   => s.clone(),
+                        Some(Value::Str(s))   => s.to_string(),
                         _ => String::new(),
                     },
                     _ => String::new(),
@@ -1221,7 +1226,7 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
                             Value::Arr(a) => match a.first() {
                                 Some(Value::Int(n))   => n.to_string(),
                                 Some(Value::Float(f)) => f.to_string(),
-                                Some(Value::Str(s))   => s.clone(),
+                                Some(Value::Str(s))   => s.to_string(),
                                 _ => String::new(),
                             },
                             _ => String::new(),
@@ -1416,12 +1421,12 @@ fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, symbol: Val
                 Some(cache_int_field(m, "_allNewUpdates"))
             }
             Value::Str(sym) => {
-                let v = match cache_dict_field_mut(m, "_newUpdatesBySymbol").get(sym) {
+                let v = match cache_dict_field_mut(m, "_newUpdatesBySymbol").get(sym.as_ref()) {
                     Some(Value::Int(n)) => Some(*n),
                     _ => None,
                 };
                 cache_dict_field_mut(m, "_clearUpdatesBySymbol")
-                    .insert(sym.clone(), Value::Bool(true));
+                    .insert(sym.to_string(), Value::Bool(true));
                 v
             }
             _ => None,
@@ -1453,7 +1458,7 @@ fn as_f64(v: &Value) -> f64 {
 
 fn book_kind(v: &Value) -> Option<String> {
     match v { Value::Dict(d) => match d.get("__bookKind") {
-        Some(Value::Str(s)) => Some(s.clone()), _ => None,
+        Some(Value::Str(s)) => Some(s.to_string()), _ => None,
     }, _ => None }
 }
 
@@ -1777,7 +1782,7 @@ pub fn side_price_amounts(v: &Value) -> Option<Vec<[f64; 2]>> {
 pub(crate) fn make_side_marker(side_kind: &str, is_bid: bool, depth: i64) -> Value {
     let sid = alloc_side_id();
     let mut m = HashMap::new();
-    m.insert("__sideKind".to_string(), Value::Str(side_kind.to_string()));
+    m.insert("__sideKind".to_string(), Value::Str(side_kind.to_string().into()));
     m.insert("_isBid".to_string(),     Value::Bool(is_bid));
     m.insert("_depth".to_string(),     Value::Int(depth));
     m.insert("__side_id".to_string(),  Value::Int(sid));
@@ -1786,7 +1791,7 @@ pub(crate) fn make_side_marker(side_kind: &str, is_bid: bool, depth: i64) -> Val
 
 fn side_kind(v: &Value) -> Option<String> {
     match v { Value::Dict(d) => match d.get("__sideKind") {
-        Some(Value::Str(s)) => Some(s.clone()), _ => None,
+        Some(Value::Str(s)) => Some(s.to_string()), _ => None,
     }, _ => None }
 }
 
@@ -1828,7 +1833,7 @@ fn entry_id(entries: &[Level], i: usize) -> String {
     if let Value::Arr(a) = &entries[i].entry {
         if let Some(v) = a.get(2) {
             return match v {
-                Value::Str(s) => s.clone(),
+                Value::Str(s) => s.to_string(),
                 Value::Int(n) => n.to_string(),
                 _ => String::new(),
             };
@@ -1900,7 +1905,7 @@ fn side_store_array(side: &Value, delta: Value) {
             let size = delta_field(&delta, 1, as_f64, 0.0);
             let id = match &delta {
                 Value::Arr(a) => match a.get(2) {
-                    Some(Value::Str(s)) => s.clone(),
+                    Some(Value::Str(s)) => s.to_string(),
                     Some(Value::Int(n)) => n.to_string(),
                     _ => String::new(),
                 },
@@ -1977,8 +1982,8 @@ fn book_reseed_sides(book: &mut Value, snapshot: &Value) {
         "CountedOrderBook" => "CountedOrderBookSide",
         _                  => "OrderBookSide",
     };
-    let bids_deltas = crate::get_value(snapshot, &Value::Str("bids".to_string()));
-    let asks_deltas = crate::get_value(snapshot, &Value::Str("asks".to_string()));
+    let bids_deltas = crate::get_value(snapshot, &Value::Str("bids".into()));
+    let asks_deltas = crate::get_value(snapshot, &Value::Str("asks".into()));
     if let Value::Dict(book_arc) = book {
         let book_m = Arc::make_mut(book_arc);
         let depth = match book_m.get("_depth") {
@@ -1999,7 +2004,7 @@ fn book_reseed_sides(book: &mut Value, snapshot: &Value) {
                 _ => alloc_side_id(),
             };
             let mut m = HashMap::new();
-            m.insert("__sideKind".to_string(),  Value::Str(side_kind_str.to_string()));
+            m.insert("__sideKind".to_string(),  Value::Str(side_kind_str.to_string().into()));
             m.insert("_isBid".to_string(),      Value::Bool(is_bid));
             m.insert("_depth".to_string(),      Value::Int(depth));
             m.insert("__side_id".to_string(),   Value::Int(sid));
@@ -2028,7 +2033,7 @@ pub(crate) fn book_reset(book: &mut Value, snapshot: Value) {
     book_reseed_sides(book, &snapshot);
     let id = match book { Value::Dict(d) => book_id_of(d), _ => None };
     if let Some(id) = id {
-        let ts = match crate::get_value(&snapshot, &Value::Str("timestamp".to_string())) {
+        let ts = match crate::get_value(&snapshot, &Value::Str("timestamp".into())) {
             Value::Int(n)   => Some(n),
             Value::Float(f) => Some(f as i64),
             _ => None,
@@ -2036,16 +2041,16 @@ pub(crate) fn book_reset(book: &mut Value, snapshot: Value) {
         let dt = ts.and_then(|n| chrono::DateTime::<chrono::Utc>::from_timestamp_millis(n)
             .map(|t| t.to_rfc3339_opts(chrono::SecondsFormat::Millis, true)));
         book_meta_set(id, "timestamp", ts.map(Value::Int).unwrap_or(Value::Null));
-        book_meta_set(id, "datetime",  dt.map(Value::Str).unwrap_or(Value::Null));
-        book_meta_set(id, "nonce",     crate::get_value(&snapshot, &Value::Str("nonce".to_string())));
-        book_meta_set(id, "symbol",    crate::get_value(&snapshot, &Value::Str("symbol".to_string())));
+        book_meta_set(id, "datetime",  dt.map(|s| Value::Str(s.into())).unwrap_or(Value::Null));
+        book_meta_set(id, "nonce",     crate::get_value(&snapshot, &Value::Str("nonce".into())));
+        book_meta_set(id, "symbol",    crate::get_value(&snapshot, &Value::Str("symbol".into())));
     }
 }
 
 pub(crate) fn book_update(book: &mut Value, snapshot: Value) {
     if book_kind(book).is_none() { return; }
     // Skip stale updates.
-    let new_nonce = match crate::get_value(&snapshot, &Value::Str("nonce".to_string())) {
+    let new_nonce = match crate::get_value(&snapshot, &Value::Str("nonce".into())) {
         Value::Int(n) => Some(n), _ => None,
     };
     let cur_nonce = match book {
@@ -2148,16 +2153,16 @@ mod json_int_precision_tests {
         // 12345678901234567890 > i64::MAX but ≤ u64::MAX — must not round.
         let v: serde_json::Value = serde_json::from_str(r#"{"id": 12345678901234567890}"#).unwrap();
         let parsed = Value::from_json(&v);
-        let id = crate::runtime::get_value(&parsed, &Value::Str("id".to_string()));
-        assert_eq!(id, Value::Str("12345678901234567890".to_string()));
+        let id = crate::runtime::get_value(&parsed, &Value::Str("id".into()));
+        assert_eq!(id, Value::Str("12345678901234567890".into()));
     }
 
     #[test]
     fn small_ints_stay_ints_floats_stay_floats() {
         let v: serde_json::Value = serde_json::from_str(r#"{"a": 42, "b": -7, "c": 1.5}"#).unwrap();
         let p = Value::from_json(&v);
-        assert_eq!(crate::runtime::get_value(&p, &Value::Str("a".to_string())), Value::Int(42));
-        assert_eq!(crate::runtime::get_value(&p, &Value::Str("b".to_string())), Value::Int(-7));
-        assert_eq!(crate::runtime::get_value(&p, &Value::Str("c".to_string())), Value::Float(1.5));
+        assert_eq!(crate::runtime::get_value(&p, &Value::Str("a".into())), Value::Int(42));
+        assert_eq!(crate::runtime::get_value(&p, &Value::Str("b".into())), Value::Int(-7));
+        assert_eq!(crate::runtime::get_value(&p, &Value::Str("c".into())), Value::Float(1.5));
     }
 }

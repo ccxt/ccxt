@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testExtend() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("regirock".to_string()));
+            m.insert("id".to_string(), Value::Str("regirock".into()));
         m
     }));
     let mut obj1: Value = Value::Map({
@@ -25,7 +25,7 @@ pub fn testExtend() {
     m
 })]));
             m.insert("d".to_string(), Value::Null);
-            m.insert("e".to_string(), Value::Str("not_undefined".to_string()));
+            m.insert("e".to_string(), Value::Str("not_undefined".into()));
             m.insert("sub".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("a".to_string(), Value::Int(1));
@@ -37,11 +37,11 @@ pub fn testExtend() {
     m
 })]));
         m.insert("d".to_string(), Value::Null);
-        m.insert("e".to_string(), Value::Str("not_undefined".to_string()));
-        m.insert("other1".to_string(), Value::Str("x".to_string()));
+        m.insert("e".to_string(), Value::Str("not_undefined".into()));
+        m.insert("other1".to_string(), Value::Str("x".into()));
     m
 }));
-            m.insert("other1".to_string(), Value::Str("x".to_string()));
+            m.insert("other1".to_string(), Value::Str("x".into()));
         m
     });
     let mut obj2: Value = Value::Map({
@@ -54,7 +54,7 @@ pub fn testExtend() {
         m.insert("test3".to_string(), Value::Int(3));
     m
 })]));
-            m.insert("d".to_string(), Value::Str("not_undefined".to_string()));
+            m.insert("d".to_string(), Value::Str("not_undefined".into()));
             m.insert("e".to_string(), Value::Null);
             m.insert("sub".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -66,12 +66,12 @@ pub fn testExtend() {
         m.insert("test3".to_string(), Value::Int(3));
     m
 })]));
-        m.insert("d".to_string(), Value::Str("not_undefined".to_string()));
+        m.insert("d".to_string(), Value::Str("not_undefined".into()));
         m.insert("e".to_string(), Value::Null);
-        m.insert("other2".to_string(), Value::Str("y".to_string()));
+        m.insert("other2".to_string(), Value::Str("y".into()));
     m
 }));
-            m.insert("other2".to_string(), Value::Str("y".to_string()));
+            m.insert("other2".to_string(), Value::Str("y".into()));
         m
     });
     // snapshot originals for mutation checks
@@ -103,33 +103,33 @@ pub fn testExtend() {
         m.insert("test4".to_string(), Value::Int(4));
     m
 })]));
-            m.insert("d".to_string(), Value::Str("step3".to_string()));
-            m.insert("e".to_string(), Value::Str("back_to_string".to_string()));
-            m.insert("other3".to_string(), Value::Str("z".to_string()));
+            m.insert("d".to_string(), Value::Str("step3".into()));
+            m.insert("e".to_string(), Value::Str("back_to_string".into()));
+            m.insert("other3".to_string(), Value::Str("z".into()));
         m
     });
     let mut extended2: Value = exchange.extend(extended.clone(), &[obj3.clone()]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&extended2, &Value::Str("a".to_string())), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".to_string())), &Value::Int(0)), &Value::Int(5))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".to_string())), &Value::Int(1)), &Value::Int(6))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended2, &Value::Str("c".to_string())), &Value::Int(0)), &Value::Str("test1".to_string())), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended2, &Value::Str("c".to_string())), &Value::Int(0)), &Value::Str("test2".to_string()))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended2, &Value::Str("c".to_string())), &Value::Int(0)), &Value::Str("test3".to_string()))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended2, &Value::Str("c".to_string())), &Value::Int(0)), &Value::Str("test4".to_string())), &Value::Int(4))))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("d".to_string())).as_str() == Some("step3")))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("e".to_string())).as_str() == Some("back_to_string")))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("other1".to_string())).as_str() == Some("x")))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("other2".to_string())).as_str() == Some("y")))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("other3".to_string())).as_str() == Some("z")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&extended2, &Value::Str("a".into())), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(5))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".into())), &Value::Int(1)), &Value::Int(6))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test1".into())), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test2".into()))))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test3".into()))))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test4".into())), &Value::Int(4))))));
+    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("d".into())).as_str() == Some("step3")))));
+    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("e".into())).as_str() == Some("back_to_string")))));
+    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("other1".into())).as_str() == Some("x")))));
+    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("other2".into())).as_str() == Some("y")))));
+    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("other3".into())).as_str() == Some("z")))));
     // --- mutation check: first result must NOT be mutated by second extend ---
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&extended, &Value::Str("a".to_string())), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".to_string())), &Value::Int(0)), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&extended, &Value::Str("other3".to_string()))))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&extended, &Value::Str("a".into())), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&extended, &Value::Str("other3".into()))))))));
     // --- test 3: four-step chained extend on same base object ---
     let mut base: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("x".to_string(), Value::Int(0));
-            m.insert("keep".to_string(), Value::Str("yes".to_string()));
+            m.insert("keep".to_string(), Value::Str("yes".into()));
         m
     });
     let mut patch1: Value = Value::Map({
@@ -153,52 +153,52 @@ pub fn testExtend() {
     let mut r1: Value = exchange.extend(base.clone(), &[patch1.clone()]);
     let mut r2: Value = exchange.extend(r1.clone(), &[patch2.clone()]);
     let mut r3: Value = exchange.extend(r2.clone(), &[patch3.clone()]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("x".to_string())), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&((get_value(&r3, &Value::Str("keep".to_string())).as_str() == Some("yes")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p1".to_string())), &Value::Bool(true))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p2".to_string())), &Value::Bool(true))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p3".to_string())), &Value::Bool(true))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("x".into())), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&((get_value(&r3, &Value::Str("keep".into())).as_str() == Some("yes")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p1".into())), &Value::Bool(true))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p2".into())), &Value::Bool(true))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p3".into())), &Value::Bool(true))))));
     // --- mutation check: each intermediate must be unaffected ---
     assert!(ccxt::runtime::is_true(&((base.as_map().and_then(|__m| __m.get("x")).cloned().unwrap_or(Value::Null).as_f64() == Some(0.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r1, &Value::Str("x".to_string())), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r2, &Value::Str("x".to_string())), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&r1, &Value::Str("p3".to_string()))))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r1, &Value::Str("x".into())), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r2, &Value::Str("x".into())), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&r1, &Value::Str("p3".into()))))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&base, Value::Dict(__d) if __d.contains_key("p2"))))))));
     // --- test 4: extend with undefined values does NOT overwrite existing keys ---
     let mut withValues: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("keep1".to_string(), Value::Str("A".to_string()));
-            m.insert("keep2".to_string(), Value::Str("B".to_string()));
+            m.insert("keep1".to_string(), Value::Str("A".into()));
+            m.insert("keep2".to_string(), Value::Str("B".into()));
         m
     });
     let mut withUndefs: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("keep1".to_string(), Value::Null);
             m.insert("keep2".to_string(), Value::Null);
-            m.insert("newKey".to_string(), Value::Str("C".to_string()));
+            m.insert("newKey".to_string(), Value::Str("C".into()));
         m
     });
     let mut extUndef: Value = exchange.extend(withValues.clone(), &[withUndefs.clone()]);
     // extend() merges ALL keys (including undefined ones), so undefined wins over previous value
-    assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("keep1".to_string())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("keep2".to_string())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("newKey".to_string())).as_str() == Some("C")))));
+    assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("keep1".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("keep2".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("newKey".into())).as_str() == Some("C")))));
     // original must not be touched
     assert!(ccxt::runtime::is_true(&((withValues.as_map().and_then(|__m| __m.get("keep1")).cloned().unwrap_or(Value::Null).as_str() == Some("A")))));
     assert!(ccxt::runtime::is_true(&((withValues.as_map().and_then(|__m| __m.get("keep2")).cloned().unwrap_or(Value::Null).as_str() == Some("B")))));
 }
 fn tbfeCheckExtended(mut extended: Value, mut hasSub: Value) {
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&extended, &Value::Str("a".to_string())), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".to_string())), &Value::Int(0)), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".to_string())), &Value::Int(1)), &Value::Int(4))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended, &Value::Str("c".to_string())), &Value::Int(0)), &Value::Str("test1".to_string())), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended, &Value::Str("c".to_string())), &Value::Int(0)), &Value::Str("test2".to_string()))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended, &Value::Str("c".to_string())), &Value::Int(0)), &Value::Str("test3".to_string())), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("d".to_string())).as_str() == Some("not_undefined")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("e".to_string())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("other1".to_string())).as_str() == Some("x")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("other2".to_string())).as_str() == Some("y")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&extended, &Value::Str("a".into())), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".into())), &Value::Int(1)), &Value::Int(4))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test1".into())), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test2".into()))))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test3".into())), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("d".into())).as_str() == Some("not_undefined")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("e".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("other1".into())).as_str() == Some("x")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("other2".into())).as_str() == Some("y")))));
     if is_true(&hasSub) {
-        assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&extended, &Value::Str("sub".to_string()))))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&extended, &Value::Str("sub".into()))))));
     }
 }

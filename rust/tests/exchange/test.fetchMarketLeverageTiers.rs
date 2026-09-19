@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchMarketLeverageTiers(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchMarketLeverageTiers".to_string());
+    let mut method: Value = Value::Str("fetchMarketLeverageTiers".into());
     let mut tiers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_market_leverage_tiers", vec![symbol.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tiers.clone(), symbol.clone()]);
     {

@@ -11,13 +11,13 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testJson() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("regirock".to_string()));
+            m.insert("id".to_string(), Value::Str("regirock".into()));
         m
     }));
     // Test: object
     let mut obj: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("k".to_string(), Value::Str("v".to_string()));
+            m.insert("k".to_string(), Value::Str("v".into()));
         m
     });
     let mut objJson: Value = exchange.json(obj.clone());

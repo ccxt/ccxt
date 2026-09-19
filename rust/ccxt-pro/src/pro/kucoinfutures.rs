@@ -187,7 +187,7 @@ impl KucoinfuturesCore {
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
             "fetch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("fetch_bids_asks", args.to_vec()); crate::Value::Null },
             "parse_transfer_type" => self.parse_transfer_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -210,13 +210,13 @@ impl KucoinfuturesCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("kucoinfutures".to_string()));
-        m.insert("name".to_string(), Value::Str("KuCoin Futures".to_string()));
+        m.insert("id".to_string(), Value::Str("kucoinfutures".into()));
+        m.insert("name".to_string(), Value::Str("KuCoin Futures".into()));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg".to_string()));
-        m.insert("www".to_string(), Value::Str("https://futures.kucoin.com/".to_string()));
-        m.insert("referral".to_string(), Value::Str("https://futures.kucoin.com/?rcode=E5wkqe".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg".into()));
+        m.insert("www".to_string(), Value::Str("https://futures.kucoin.com/".into()));
+        m.insert("referral".to_string(), Value::Str("https://futures.kucoin.com/?rcode=E5wkqe".into()));
     m
 }));
         m.insert("has".to_string(), Value::Map({
@@ -234,12 +234,12 @@ impl KucoinfuturesCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::from(vec![Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("contract".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("swap".into()), Value::Str("future".into()), Value::Str("contract".into())]));
         m.insert("fetchTickersFees".to_string(), Value::Bool(false));
     m
 }));
-        m.insert("defaultType".to_string(), Value::Str("swap".to_string()));
-        m.insert("defaultAccountType".to_string(), Value::Str("contract".to_string()));
+        m.insert("defaultType".to_string(), Value::Str("swap".into()));
+        m.insert("defaultAccountType".to_string(), Value::Str("contract".into()));
     m
 }));
     m
@@ -264,7 +264,7 @@ impl KucoinfuturesCore {
 }));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("futuresPublicGetAllTickers".to_string()));
+                m.insert("method".to_string(), Value::Str("futuresPublicGetAllTickers".into()));
             m
         });
         let __ws_arg_0 = self.extend(request, &[params.clone()]);
@@ -311,7 +311,7 @@ impl KucoinfuturesCore {
             let __ws_arg_2 = self.extend(request, &[params.clone()]);
             response = self.parent.parent.futures_private_post_transfer_in(&[__ws_arg_2]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports transfers between future/swap, spot and funding accounts".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports transfers between future/swap, spot and funding accounts".into()))));
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -333,8 +333,8 @@ impl KucoinfuturesCore {
     pub fn parse_transfer_type(&self, mut transferType: Value) -> Value {
         let mut transferTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::Str("TRADE".to_string()));
-                m.insert("funding".to_string(), Value::Str("MAIN".to_string()));
+                m.insert("spot".to_string(), Value::Str("TRADE".into()));
+                m.insert("funding".to_string(), Value::Str("MAIN".into()));
             m
         });
         return self.safe_string_upper(transferTypes.clone(), transferType.clone(), &[transferType.clone()]);

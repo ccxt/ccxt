@@ -10,11 +10,11 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchOHLCV(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchOHLCV".to_string());
-    let mut timeframeKeys: Value = object_keys(&get_value(&exchange, &Value::Str("timeframes".to_string())));
+    let mut method: Value = Value::Str("fetchOHLCV".into());
+    let mut timeframeKeys: Value = object_keys(&get_value(&exchange, &Value::Str("timeframes".into())));
     assert!(ccxt::runtime::is_true(&((Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // prefer 1m timeframe if available, otherwise return the first one
-    let mut chosenTimeframeKey: Value = Value::Str("1m".to_string());
+    let mut chosenTimeframeKey: Value = Value::Str("1m".into());
     if !is_true(&exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone())) {
         chosenTimeframeKey = timeframeKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     }

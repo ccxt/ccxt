@@ -76,28 +76,28 @@ impl TestMainClass {
     let mut m = indexmap::IndexMap::new();
     m
 }),
-        ext: Value::Str("".to_string()),
-        lang: Value::Str("".to_string()),
-        proxyTestFileName: Value::Str("proxies".to_string()),
+        ext: Value::Str("".into()),
+        lang: Value::Str("".into()),
+        proxyTestFileName: Value::Str("proxies".into()),
         }
     }
 }
 impl TestMainClass {
     pub fn parse_cli_args_and_props(&mut self) {
-        self.responseTests = Value::Bool(is_true(&getCliArgValue(Value::Str("--responseTests".to_string()))) || is_true(&getCliArgValue(Value::Str("--response".to_string()))));
-        self.idTests = getCliArgValue(Value::Str("--idTests".to_string()));
-        self.requestTests = Value::Bool(is_true(&getCliArgValue(Value::Str("--requestTests".to_string()))) || is_true(&getCliArgValue(Value::Str("--request".to_string()))));
-        self.info = getCliArgValue(Value::Str("--info".to_string()));
-        self.verbose = getCliArgValue(Value::Str("--verbose".to_string()));
-        self.debug = getCliArgValue(Value::Str("--debug".to_string()));
-        self.privateTest = getCliArgValue(Value::Str("--private".to_string()));
-        self.privateTestOnly = getCliArgValue(Value::Str("--privateOnly".to_string()));
-        self.sandbox = getCliArgValue(Value::Str("--sandbox".to_string()));
-        self.loadKeys = getCliArgValue(Value::Str("--loadKeys".to_string()));
-        self.wsTests = getCliArgValue(Value::Str("--ws".to_string()));
-        self.staticWsTests = getCliArgValue(Value::Str("--wsTests".to_string()));
+        self.responseTests = Value::Bool(is_true(&getCliArgValue(Value::Str("--responseTests".into()))) || is_true(&getCliArgValue(Value::Str("--response".into()))));
+        self.idTests = getCliArgValue(Value::Str("--idTests".into()));
+        self.requestTests = Value::Bool(is_true(&getCliArgValue(Value::Str("--requestTests".into()))) || is_true(&getCliArgValue(Value::Str("--request".into()))));
+        self.info = getCliArgValue(Value::Str("--info".into()));
+        self.verbose = getCliArgValue(Value::Str("--verbose".into()));
+        self.debug = getCliArgValue(Value::Str("--debug".into()));
+        self.privateTest = getCliArgValue(Value::Str("--private".into()));
+        self.privateTestOnly = getCliArgValue(Value::Str("--privateOnly".into()));
+        self.sandbox = getCliArgValue(Value::Str("--sandbox".into()));
+        self.loadKeys = getCliArgValue(Value::Str("--loadKeys".into()));
+        self.wsTests = getCliArgValue(Value::Str("--ws".into()));
+        self.staticWsTests = getCliArgValue(Value::Str("--wsTests".into()));
         // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
-        self.predictionTests = getCliArgValue(Value::Str("--prediction".to_string()));
+        self.predictionTests = getCliArgValue(Value::Str("--prediction".into()));
         self.lang = getLang();
         self.ext = getExt();
 }
@@ -107,7 +107,7 @@ impl TestMainClass {
             self.init_inner(exchangeId.clone(), symbolArgv.clone(), methodArgv.clone()).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            dump(&[Value::Str("[TEST_FAILURE]".to_string())]); // tell run-tests.js this is failure
+            dump(&[Value::Str("[TEST_FAILURE]".into())]); // tell run-tests.js this is failure
             panic!("{}", e);
         }
         return Value::Bool(true);
@@ -138,14 +138,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.run_broker_id_tests().await;
             return Value::Bool(true);
         }
-        let mut newLine: Value = Value::Str("\n".to_string());
-        dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", newLine, Value::Str("".to_string()))), newLine)), Value::Str("".to_string()))), Value::Str("[INFO] TESTING ".to_string()))), self.ext.clone(), Value::Map({
+        let mut newLine: Value = Value::Str("\n".into());
+        dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", newLine, Value::Str("".into())).into()), newLine).into()), Value::Str("".into())).into()), Value::Str("[INFO] TESTING ".into())).into()), self.ext.clone(), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("exchange".to_string(), exchangeId.clone());
                 m.insert("symbol".to_string(), symbolArgv.clone());
                 m.insert("method".to_string(), methodArgv.clone());
                 m.insert("isWs".to_string(), self.wsTests.clone());
-                m.insert("useProxy".to_string(), getCliArgValue(Value::Str("--useProxy".to_string())));
+                m.insert("useProxy".to_string(), getCliArgValue(Value::Str("--useProxy".into())));
             m
         }), newLine.clone()]);
         let mut exchangeArgs: Value = Value::Map({
@@ -157,14 +157,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut exchange: Value = initExchange(exchangeId.clone(), &[exchangeArgs.clone(), self.wsTests.clone()]);
-        setExchangeProp(exchange.clone(), Value::Str("fetchHistoryCacheSize".to_string()), Value::Int(5));
-        if is_true(&get_value(&exchange, &Value::Str("alias".to_string()))) {
-            dump(&[self.add_padding(Value::Str("[INFO] skipping alias".to_string()), Value::Int(25))]);
+        setExchangeProp(exchange.clone(), Value::Str("fetchHistoryCacheSize".into()), Value::Int(5));
+        if is_true(&get_value(&exchange, &Value::Str("alias".into()))) {
+            dump(&[self.add_padding(Value::Str("[INFO] skipping alias".into()), Value::Int(25))]);
             exitScript(Value::Int(0));
         }
         self.import_files(exchange.clone()).await;
         // ensure test files are found & filled
-        assert((Value::Int(object_keys(&self.testFiles).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str("Test files were not loaded".to_string())]);
+        assert((Value::Int(object_keys(&self.testFiles).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str("Test files were not loaded".into())]);
         self.expand_settings(exchange.clone());
         self.check_if_specific_test_is_chosen(methodArgv.clone());
         self.start_test(exchange.clone(), symbolArgv.clone()).await;
@@ -177,19 +177,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn check_if_specific_test_is_chosen(&self, mut methodArgv: Value) {
         if (methodArgv != Value::Null) {
             let mut testFileNames: Value = object_keys(&self.testFiles);
-            let mut possibleMethodNames: Value = split(&methodArgv, &Value::Str(",".to_string())); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            let mut possibleMethodNames: Value = split(&methodArgv, &Value::Str(",".into())); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if get_array_length(&possibleMethodNames).as_f64().unwrap_or(f64::NAN) >= Value::Int(1).as_f64().unwrap_or(f64::NAN) {
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_1494: bool = true;
                     while { if !__for_first_1494 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1494 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(testFileNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut testFileName: Value = testFileNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    let mut testFileName: Value = get_value(&testFileNames, &i);
                     {
                                                 let mut j: Value = Value::Int(0);
                         let mut __for_first_1493: bool = true;
                         while { if !__for_first_1493 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1493 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&possibleMethodNames).as_f64().unwrap_or(f64::NAN) } {
                         let mut methodName: Value = get_value(&possibleMethodNames, &j);
-                        methodName = replace_str(&methodName, &Value::Str("()".to_string()), &Value::Str("".to_string()));
+                        methodName = replace_str(&methodName, &Value::Str("()".into()), &Value::Str("".into()));
                         if is_equal(&testFileName, &methodName) {
                             append_to_array(&mut self.onlySpecificTests.clone(), testFileName.clone());
                         }
@@ -202,9 +202,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn import_files(&mut self, mut exchange: Value) -> Value {
-        let mut properties: Value = object_keys(&get_value(&exchange, &Value::Str("has".to_string())));
-        append_to_array(&mut properties, Value::Str("loadMarkets".to_string()));
-        append_to_array(&mut properties, Value::Str("afterConstruct".to_string()));
+        let mut properties: Value = object_keys(&get_value(&exchange, &Value::Str("has".into())));
+        append_to_array(&mut properties, Value::Str("loadMarkets".into()));
+        append_to_array(&mut properties, Value::Str("afterConstruct".into()));
         if is_true(&isSync()) {
             self.testFiles = getTestFilesSync(properties, self.wsTests.clone());
         }  else {
@@ -216,17 +216,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn load_credentials_from_env(&self, mut exchange: Value) {
-        let mut exchangeId: Value = get_value(&exchange, &Value::Str("id".to_string()));
-        let mut reqCreds: Value = getExchangeProp(exchange.clone(), Value::Str(format!("{}{}", Value::Str("re".to_string()), Value::Str("quiredCredentials".to_string()))), &[]); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        let mut exchangeId: Value = get_value(&exchange, &Value::Str("id".into()));
+        let mut reqCreds: Value = getExchangeProp(exchange.clone(), Value::Str(format!("{}{}", Value::Str("re".into()), Value::Str("quiredCredentials".into())).into()), &[]); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         let mut objkeys: Value = object_keys(&reqCreds);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1495: bool = true;
             while { if !__for_first_1495 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1495 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(objkeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut credential: Value = objkeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut credential: Value = get_value(&objkeys, &i);
             let mut isRequired: Value = get_value(&reqCreds, &credential);
-            if (is_equal(&isRequired, &Value::Bool(true))) && (getExchangeProp(exchange.clone(), credential.clone(), &[]) == Value::Null) {
-                let mut fullKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", exchangeId, Value::Str("_".to_string()))), credential));
+            if (is_equal(&isRequired, &Value::Bool(true))) && is_true(&(getExchangeProp(exchange.clone(), credential.clone(), &[]) == Value::Null)) {
+                let mut fullKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", exchangeId, Value::Str("_".into())).into()), credential).into());
                 let mut credentialEnvName: Value = to_upper(&fullKey); // example: KRAKEN_APIKEY
                 let mut envVars: Value = getEnvVars();
                 let mut credentialValue: Value = (if (in_op(&envVars, &credentialEnvName)) { get_value(&envVars, &credentialEnvName) } else { Value::Null });
@@ -239,9 +239,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn expand_settings(&mut self, mut exchange: Value) {
-        let mut exchangeId: Value = get_value(&exchange, &Value::Str("id".to_string()));
-        let mut keysGlobal: Value = Value::Str(format!("{}{}", getRootDir(), Value::Str("keys.json".to_string())));
-        let mut keysLocal: Value = Value::Str(format!("{}{}", getRootDir(), Value::Str("keys.local.json".to_string())));
+        let mut exchangeId: Value = get_value(&exchange, &Value::Str("id".into()));
+        let mut keysGlobal: Value = Value::Str(format!("{}{}", getRootDir(), Value::Str("keys.json".into())).into());
+        let mut keysLocal: Value = Value::Str(format!("{}{}", getRootDir(), Value::Str("keys.local.json".into())).into());
         let mut keysGlobalExists: Value = ioFileExists(keysGlobal.clone());
         let mut keysLocalExists: Value = ioFileExists(keysLocal.clone());
         let mut globalSettings: Value = Value::Map({
@@ -269,9 +269,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1496: bool = true;
                 while { if !__for_first_1496 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1496 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(settingKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut key: Value = settingKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut key: Value = get_value(&settingKeys, &i);
                 let mut settingValue: Value = get_value(&exchangeSettings, &key);
-                let mut settingIsEmpty: bool = (settingValue == Value::Null) || (settingValue == Value::Null) || (settingValue.as_str() == Some("")) || (is_equal(&settingValue, &Value::Bool(false))) || (is_equal(&settingValue, &Value::Int(0)));
+                let mut settingIsEmpty: bool = is_true(&(settingValue == Value::Null)) || is_true(&(settingValue == Value::Null)) || is_true(&(settingValue.as_str() == Some(""))) || (is_equal(&settingValue, &Value::Bool(false))) || (is_equal(&settingValue, &Value::Int(0)));
                 if !settingIsEmpty {
                     let mut finalValue: Value = Value::Null;
                     if is_true(&exchange.is_dictionary(get_value(&exchangeSettings, &key))) {
@@ -293,7 +293,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_credentials_from_env(exchange.clone());
         }
         // skipped tests
-        let mut skippedFile: Value = Value::Str(format!("{}{}", getRootDir(), Value::Str("skip-tests.json".to_string())));
+        let mut skippedFile: Value = Value::Str(format!("{}{}", getRootDir(), Value::Str("skip-tests.json".into())).into());
         let mut skippedSettings: Value = ioFileRead(skippedFile.clone(), &[]);
         self.skippedSettingsForExchange = exchange.safe_value(skippedSettings.clone(), exchangeId.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -301,17 +301,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         let mut skippedSettingsForExchange: Value = self.skippedSettingsForExchange.clone();
         // others
-        let mut timeout: Value = exchange.safe_value(skippedSettingsForExchange.clone(), Value::Str("timeout".to_string()), &[]);
+        let mut timeout: Value = exchange.safe_value(skippedSettingsForExchange.clone(), Value::Str("timeout".into()), &[]);
         if (timeout != Value::Null) {
-            { let __sv_tmp = exchange.parse_to_int(timeout.clone()); ccxt::set_value(&mut exchange, &Value::Str("timeout".to_string()), __sv_tmp); }
+            { let __sv_tmp = exchange.parse_to_int(timeout.clone()); ccxt::set_value(&mut exchange, &Value::Str("timeout".into()), __sv_tmp); }
         }
-        if is_true(&getCliArgValue(Value::Str("--useProxy".to_string()))) {
-            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("httpProxy".to_string()), &[]); ccxt::set_value(&mut exchange, &Value::Str("httpProxy".to_string()), __sv_tmp); }
-            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("httpsProxy".to_string()), &[]); ccxt::set_value(&mut exchange, &Value::Str("httpsProxy".to_string()), __sv_tmp); }
-            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("wsProxy".to_string()), &[]); ccxt::set_value(&mut exchange, &Value::Str("wsProxy".to_string()), __sv_tmp); }
-            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("wssProxy".to_string()), &[]); ccxt::set_value(&mut exchange, &Value::Str("wssProxy".to_string()), __sv_tmp); }
+        if is_true(&getCliArgValue(Value::Str("--useProxy".into()))) {
+            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("httpProxy".into()), &[]); ccxt::set_value(&mut exchange, &Value::Str("httpProxy".into()), __sv_tmp); }
+            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("httpsProxy".into()), &[]); ccxt::set_value(&mut exchange, &Value::Str("httpsProxy".into()), __sv_tmp); }
+            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("wsProxy".into()), &[]); ccxt::set_value(&mut exchange, &Value::Str("wsProxy".into()), __sv_tmp); }
+            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("wssProxy".into()), &[]); ccxt::set_value(&mut exchange, &Value::Str("wssProxy".into()), __sv_tmp); }
         }
-        self.skippedMethods = exchange.safe_value(skippedSettingsForExchange.clone(), Value::Str("skipMethods".to_string()), &[Value::Map({
+        self.skippedMethods = exchange.safe_value(skippedSettingsForExchange.clone(), Value::Str("skipMethods".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -323,7 +323,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn add_padding(&self, mut message: Value, mut size: Value) -> Value {
         // has to be transpilable
-        let mut res: Value = Value::Str("".to_string());
+        let mut res: Value = Value::Str("".into());
         let mut messageLength: Value = Value::Int(message.len() as i64); // avoid php transpilation issue
         let mut missingSpace: Value = (match (&(subtract(&size, &messageLength)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // - 0 is added just to trick transpile to treat the .length as a string for php
         if missingSpace.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
@@ -331,11 +331,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1497: bool = true;
                 while { if !__for_first_1497 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1497 = false; i.as_f64().unwrap_or(f64::NAN) < missingSpace.as_f64().unwrap_or(f64::NAN) } {
-                res = Value::Str(format!("{}{}", res, Value::Str(" ".to_string())));
+                res = Value::Str(format!("{}{}", res, Value::Str(" ".into())).into());
             }
             }
         }
-        return Value::Str(format!("{}{}", message, res));
+        return Value::Str(format!("{}{}", message, res).into());
 
     Value::Null
 }
@@ -343,7 +343,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn test_method(&mut self, mut methodName: Value, mut exchange: Value, mut args: Value, mut isPublic: Value) -> Value {
         // todo: temporary skip for c#
         if Value::Int(methodName.as_str().and_then(|__s| __s.find("OrderBook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("cs")) {
-            add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("checksum".to_string()), Value::Bool(false));
+            add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("checksum".into()), Value::Bool(false));
         }
         // todo: temporary skip for php
         if Value::Int(methodName.as_str().and_then(|__s| __s.find("OrderBook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("php")) {
@@ -360,25 +360,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Bool(true);
         }
         let mut skipMessage: Value = Value::Null;
-        let mut supportedByExchange: bool = (in_op(&get_value(&exchange, &Value::Str("has".to_string())), &methodName)) && (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &methodName) != Value::Null) && (!is_equal(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &methodName), &Value::Bool(false)));
-        if !isLoadMarkets && is_true(&((Value::Int(self.onlySpecificTests.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (!is_equal(&exchange.in_array(methodName.clone(), self.onlySpecificTests.clone()), &Value::Bool(true))))) {
-            skipMessage = Value::Str("[INFO] IGNORED_TEST".to_string());
+        let mut supportedByExchange: bool = (in_op(&get_value(&exchange, &Value::Str("has".into())), &methodName)) && is_true(&(get_value(&get_value(&exchange, &Value::Str("has".into())), &methodName) != Value::Null)) && (!is_equal(&get_value(&get_value(&exchange, &Value::Str("has".into())), &methodName), &Value::Bool(false)));
+        if !isLoadMarkets && (is_true(&(Value::Int(self.onlySpecificTests.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) && (!is_equal(&exchange.in_array(methodName.clone(), self.onlySpecificTests.clone()), &Value::Bool(true)))) {
+            skipMessage = Value::Str("[INFO] IGNORED_TEST".into());
         }  else if !isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest {
-            skipMessage = Value::Str("[INFO] UNSUPPORTED_TEST".to_string()); // keep it aligned with the longest message
+            skipMessage = Value::Str("[INFO] UNSUPPORTED_TEST".into()); // keep it aligned with the longest message
         }  else if matches!(&skippedPropertiesForMethod, Value::Str(_)) {
-            skipMessage = Value::Str("[INFO] SKIPPED_TEST".to_string());
+            skipMessage = Value::Str("[INFO] SKIPPED_TEST".into());
         }  else if !(in_op(&self.testFiles, &methodName)) {
-            skipMessage = Value::Str("[INFO] UNIMPLEMENTED_TEST".to_string());
+            skipMessage = Value::Str("[INFO] UNIMPLEMENTED_TEST".into());
         }
-        let mut name: Value = get_value(&exchange, &Value::Str("id".to_string()));
+        let mut name: Value = get_value(&exchange, &Value::Str("id".into()));
         // the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
         // (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
         // report which method(s) were still running when the per-exchange timeout fired
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if isLoadMarkets {
-            dump(&[self.add_padding(Value::Str("[INFO] TESTING".to_string()), Value::Int(25)), name.clone(), methodName.clone()]);
+            dump(&[self.add_padding(Value::Str("[INFO] TESTING".into()), Value::Int(25)), name.clone(), methodName.clone()]);
             crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![Value::Bool(true)]).await;
-            dump(&[self.add_padding(Value::Str("[INFO] TESTING DONE".to_string()), Value::Int(25)), name.clone(), methodName.clone()]);
+            dump(&[self.add_padding(Value::Str("[INFO] TESTING DONE".into()), Value::Int(25)), name.clone(), methodName.clone()]);
         }
         if (skipMessage != Value::Null) && (skipMessage.as_str() != Some("")) {
             if is_true(&self.info) {
@@ -386,14 +386,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             return Value::Bool(true);
         }
-        let mut argsStringified: Value = Value::Str(format!("{}{}", add(&Value::Str("(".to_string()), &exchange.json(args.clone())), Value::Str(")".to_string()))); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
-        dump(&[self.add_padding(Value::Str("[INFO] TESTING".to_string()), Value::Int(25)), name.clone(), methodName.clone(), argsStringified.clone()]);
+        let mut argsStringified: Value = Value::Str(format!("{}{}", add(&Value::Str("(".into()), &exchange.json(args.clone())), Value::Str(")".into())).into()); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
+        dump(&[self.add_padding(Value::Str("[INFO] TESTING".into()), Value::Int(25)), name.clone(), methodName.clone(), argsStringified.clone()]);
         if is_true(&isSync()) {
             callMethodSync(self.testFiles.clone(), methodName.clone(), exchange.clone(), skippedPropertiesForMethod.clone(), args.clone());
         }  else {
             callMethod(self.testFiles.clone(), methodName.clone(), exchange.clone(), skippedPropertiesForMethod.clone(), args.clone()).await;
         }
-        dump(&[self.add_padding(Value::Str("[INFO] TESTING DONE".to_string()), Value::Int(25)), name.clone(), methodName.clone()]);
+        dump(&[self.add_padding(Value::Str("[INFO] TESTING DONE".into()), Value::Int(25)), name.clone(), methodName.clone()]);
         // add to the list of successed tests
         if is_true(&isPublic) {
             add_element_to_object(&mut self.checkedPublicTests, &methodName, Value::Bool(true));
@@ -409,12 +409,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
-        let mut methodNames: Value = Value::from(vec![methodName.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", methodName, Value::Str(".".to_string()))), self.ext.clone()))]);
+        let mut methodNames: Value = Value::from(vec![methodName.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", methodName, Value::Str(".".into())).into()), self.ext.clone()).into())]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1498: bool = true;
             while { if !__for_first_1498 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1498 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(methodNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut mName: Value = methodNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut mName: Value = get_value(&methodNames, &i);
             if (in_op(&self.skippedMethods, &mName)) {
                 // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
                 if matches!(&get_value(&self.skippedMethods, &mName), Value::Str(_)) {
@@ -428,13 +428,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // get "object-specific" skips
         let mut objectSkips: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderBook".to_string(), Value::from(vec![Value::Str("fetchOrderBook".to_string()), Value::Str("fetchOrderBooks".to_string()), Value::Str("fetchL2OrderBook".to_string()), Value::Str("watchOrderBook".to_string()), Value::Str("watchOrderBookForSymbols".to_string())]));
-                m.insert("ticker".to_string(), Value::from(vec![Value::Str("fetchTicker".to_string()), Value::Str("fetchTickers".to_string()), Value::Str("watchTicker".to_string()), Value::Str("watchTickers".to_string())]));
-                m.insert("trade".to_string(), Value::from(vec![Value::Str("fetchTrades".to_string()), Value::Str("watchTrades".to_string()), Value::Str("watchTradesForSymbols".to_string())]));
-                m.insert("ohlcv".to_string(), Value::from(vec![Value::Str("fetchOHLCV".to_string()), Value::Str("watchOHLCV".to_string()), Value::Str("watchOHLCVForSymbols".to_string())]));
-                m.insert("ledger".to_string(), Value::from(vec![Value::Str("fetchLedger".to_string()), Value::Str("fetchLedgerEntry".to_string())]));
-                m.insert("depositWithdraw".to_string(), Value::from(vec![Value::Str("fetchDepositsWithdrawals".to_string()), Value::Str("fetchDeposits".to_string()), Value::Str("fetchWithdrawals".to_string())]));
-                m.insert("depositWithdrawFee".to_string(), Value::from(vec![Value::Str("fetchDepositWithdrawFee".to_string()), Value::Str("fetchDepositWithdrawFees".to_string())]));
+                m.insert("orderBook".to_string(), Value::from(vec![Value::Str("fetchOrderBook".into()), Value::Str("fetchOrderBooks".into()), Value::Str("fetchL2OrderBook".into()), Value::Str("watchOrderBook".into()), Value::Str("watchOrderBookForSymbols".into())]));
+                m.insert("ticker".to_string(), Value::from(vec![Value::Str("fetchTicker".into()), Value::Str("fetchTickers".into()), Value::Str("watchTicker".into()), Value::Str("watchTickers".into())]));
+                m.insert("trade".to_string(), Value::from(vec![Value::Str("fetchTrades".into()), Value::Str("watchTrades".into()), Value::Str("watchTradesForSymbols".into())]));
+                m.insert("ohlcv".to_string(), Value::from(vec![Value::Str("fetchOHLCV".into()), Value::Str("watchOHLCV".into()), Value::Str("watchOHLCVForSymbols".into())]));
+                m.insert("ledger".to_string(), Value::from(vec![Value::Str("fetchLedger".into()), Value::Str("fetchLedgerEntry".into())]));
+                m.insert("depositWithdraw".to_string(), Value::from(vec![Value::Str("fetchDepositsWithdrawals".into()), Value::Str("fetchDeposits".into()), Value::Str("fetchWithdrawals".into())]));
+                m.insert("depositWithdrawFee".to_string(), Value::from(vec![Value::Str("fetchDepositWithdrawFee".into()), Value::Str("fetchDepositWithdrawFees".into())]));
             m
         });
         let mut objectNames: Value = object_keys(&objectSkips);
@@ -442,11 +442,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1499: bool = true;
             while { if !__for_first_1499 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1499 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(objectNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut objectName: Value = objectNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut objectName: Value = get_value(&objectNames, &i);
             let mut objectMethods: Value = get_value(&objectSkips, &objectName);
             if is_true(&exchange.in_array(methodName.clone(), objectMethods.clone())) {
                 // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
-                if (in_op(&self.skippedMethods, &objectName)) && (matches!(&get_value(&self.skippedMethods, &objectName), Value::Str(_))) {
+                if (in_op(&self.skippedMethods, &objectName)) && is_true(&(matches!(&get_value(&self.skippedMethods, &objectName), Value::Str(_)))) {
                     return get_value(&self.skippedMethods, &objectName);
                 }
                 let mut extraSkips: Value = exchange.safe_dict(self.skippedMethods.clone(), objectName.clone(), &[Value::Map({
@@ -460,14 +460,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // extend related skips
         // - if 'timestamp' is skipped, we should do so for 'datetime' too
         // - if 'bid' is skipped, skip 'ask' too
-        if (matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("timestamp"))) && !(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("datetime"))) {
-            { let __be_tmp = get_value(&finalSkips, &Value::Str("timestamp".to_string())); add_element_to_object(&mut finalSkips, &Value::Str("datetime".to_string()), __be_tmp); };
+        if is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("timestamp")))) && !is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("datetime")))) {
+            { let __be_tmp = get_value(&finalSkips, &Value::Str("timestamp".into())); add_element_to_object(&mut finalSkips, &Value::Str("datetime".into()), __be_tmp); };
         }
-        if (matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("bid"))) && !(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("ask"))) {
-            { let __be_tmp = get_value(&finalSkips, &Value::Str("bid".to_string())); add_element_to_object(&mut finalSkips, &Value::Str("ask".to_string()), __be_tmp); };
+        if is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("bid")))) && !is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("ask")))) {
+            { let __be_tmp = get_value(&finalSkips, &Value::Str("bid".into())); add_element_to_object(&mut finalSkips, &Value::Str("ask".into()), __be_tmp); };
         }
-        if (matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("baseVolume"))) && !(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("quoteVolume"))) {
-            { let __be_tmp = get_value(&finalSkips, &Value::Str("baseVolume".to_string())); add_element_to_object(&mut finalSkips, &Value::Str("quoteVolume".to_string()), __be_tmp); };
+        if is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("baseVolume")))) && !is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("quoteVolume")))) {
+            { let __be_tmp = get_value(&finalSkips, &Value::Str("baseVolume".into())); add_element_to_object(&mut finalSkips, &Value::Str("quoteVolume".into()), __be_tmp); };
         }
         return finalSkips;
 
@@ -495,18 +495,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let ex: Value = panic_to_value(_try_err); 
                 // close the TESTING marker (pairs with the dump in `testMethod`), so on a
                 // RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
-                dump(&[self.add_padding(Value::Str("[INFO] TESTING FAILED".to_string()), Value::Int(25)), get_value(&exchange, &Value::Str("id".to_string())), methodName.clone()]);
+                dump(&[self.add_padding(Value::Str("[INFO] TESTING FAILED".into()), Value::Int(25)), get_value(&exchange, &Value::Str("id".into())), methodName.clone()]);
                 let mut e: Value = getRootException(ex);
                 let mut isLoadMarkets: bool = methodName.as_str() == Some("loadMarkets");
-                let mut isAuthError: bool = is_instance(&e, &Value::Str("AuthenticationError".to_string()));
+                let mut isAuthError: bool = is_instance(&e, &Value::Str("AuthenticationError".into()));
                 let mut isNotSupported: bool = matches!(&e, Value::Str(__s) if __s.contains("[NotSupported]"));
-                let mut isOperationFailed: bool = is_instance(&e, &Value::Str("OperationFailed".to_string())); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                let mut lastUrlMsg: Value = (if is_true(&self.wsTests) { Value::Str("".to_string()) } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" (Last url: ".to_string()), self.get_last_request_url(exchange.clone()))), Value::Str(" )".to_string()))) });
+                let mut isOperationFailed: bool = is_instance(&e, &Value::Str("OperationFailed".into())); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                let mut lastUrlMsg: Value = (if is_true(&self.wsTests) { Value::Str("".into()) } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" (Last url: ".into()), self.get_last_request_url(exchange.clone())).into()), Value::Str(" )".into())).into()) });
                 if isOperationFailed {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i.as_f64() == (match (&(maxRetries), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
                         let mut isOnMaintenance: bool = matches!(&e, Value::Str(__s) if __s.contains("[OnMaintenance]"));
-                        let mut isExchangeNotAvailable: bool = is_instance(&e, &Value::Str("ExchangeNotAvailable".to_string()));
+                        let mut isExchangeNotAvailable: bool = is_instance(&e, &Value::Str("ExchangeNotAvailable".into()));
                         let mut shouldFail: Value = Value::Null;
                         let mut retSuccess: Value = Value::Null;
                         if isLoadMarkets {
@@ -531,8 +531,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                             }
                         }
                         // output the message
-                        let mut failType: Value = (if is_true(&shouldFail) { Value::Str("[TEST_FAILURE]".to_string()) } else { Value::Str("[TEST_WARNING]".to_string()) });
-                        dump(&[failType.clone(), get_value(&exchange, &Value::Str("id".to_string())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), Value::Str("Method could not be tested due to a repeated Network/Availability issues".to_string()), Value::Str(" | ".to_string()), exceptionMessage(e.clone())]);
+                        let mut failType: Value = (if is_true(&shouldFail) { Value::Str("[TEST_FAILURE]".into()) } else { Value::Str("[TEST_WARNING]".into()) });
+                        dump(&[failType.clone(), get_value(&exchange, &Value::Str("id".into())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), Value::Str("Method could not be tested due to a repeated Network/Availability issues".into()), Value::Str(" | ".into()), exceptionMessage(e.clone())]);
                         return retSuccess;
                     }  else {
                         // wait and retry again
@@ -542,14 +542,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }  else {
                     // if it's loadMarkets, then fail test, because it's mandatory for tests
                     if isLoadMarkets {
-                        dump(&[Value::Str("[TEST_FAILURE]".to_string()), get_value(&exchange, &Value::Str("id".to_string())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), Value::Str("Exchange can not load markets".to_string()), exceptionMessage(e.clone())]);
+                        dump(&[Value::Str("[TEST_FAILURE]".into()), get_value(&exchange, &Value::Str("id".into())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), Value::Str("Exchange can not load markets".into()), exceptionMessage(e.clone())]);
                         return Value::Bool(false);
                     }
                     // if the specific arguments to the test method throws "NotSupported" exception
                     // then let's don't fail the test
                     if isNotSupported {
                         if is_true(&self.info) {
-                            dump(&[Value::Str("[INFO] NOT_SUPPORTED".to_string()), get_value(&exchange, &Value::Str("id".to_string())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), exceptionMessage(e.clone())]);
+                            dump(&[Value::Str("[INFO] NOT_SUPPORTED".into()), get_value(&exchange, &Value::Str("id".into())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), exceptionMessage(e.clone())]);
                         }
                         return Value::Bool(true);
                     }
@@ -557,11 +557,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if is_true(&isPublic) && isAuthError {
                         if is_true(&self.info) {
                             // todo - turn into warning
-                            dump(&[Value::Str("[INFO]".to_string()), get_value(&exchange, &Value::Str("id".to_string())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), Value::Str("Authentication problem for public method".to_string()), exceptionMessage(e.clone())]);
+                            dump(&[Value::Str("[INFO]".into()), get_value(&exchange, &Value::Str("id".into())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), Value::Str("Authentication problem for public method".into()), exceptionMessage(e.clone())]);
                         }
                         return Value::Bool(true);
                     }  else {
-                        dump(&[Value::Str("[TEST_FAILURE]".to_string()), get_value(&exchange, &Value::Str("id".to_string())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), exceptionMessage(e.clone())]);
+                        dump(&[Value::Str("[TEST_FAILURE]".into()), get_value(&exchange, &Value::Str("id".into())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), exceptionMessage(e.clone())]);
                         return Value::Bool(false);
                     }
                 }
@@ -575,12 +575,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub fn get_last_request_url(&self, mut exchange: Value) -> Value {
         let mut fetchCache: Value = exchange.get_fetch_cache();
-        let mut url: Value = Value::Str("".to_string());
+        let mut url: Value = Value::Str("".into());
         if get_array_length(&fetchCache).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             let mut lastEntry: Value = get_value(&fetchCache, &subtract(&get_array_length(&fetchCache), &Value::Int(1)));
             let mut lastRequest: Value = lastEntry.as_map().and_then(|__m| __m.get("request")).cloned().unwrap_or(Value::Null);
             if (lastRequest != Value::Null) {
-                url = exchange.safe_string(lastRequest.clone(), Value::Str("url".to_string()), &[Value::Str("".to_string())]);
+                url = exchange.safe_string(lastRequest.clone(), Value::Str("url".into()), &[Value::Str("".into())]);
             }
         }
         return url;
@@ -623,17 +623,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             });
         }
         let mut market: Value = exchange.market(primarySymbol.clone());
-        let mut isSpot: Value = get_value(&market, &Value::Str("spot".to_string()));
+        let mut isSpot: Value = get_value(&market, &Value::Str("spot".into()));
         if !is_true(&self.wsTests) {
             if is_equal(&isSpot, &Value::Bool(true)) {
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchCurrencies".to_string(), Value::from(vec![])); }
+                add_element_to_object(&mut tests, &Value::Str("fetchCurrencies".into()), Value::from(vec![]));
             }  else {
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRates".to_string(), Value::from(vec![primarySymbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRate".to_string(), Value::from(vec![primarySymbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRateHistory".to_string(), Value::from(vec![primarySymbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchIndexOHLCV".to_string(), Value::from(vec![primarySymbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchMarkOHLCV".to_string(), Value::from(vec![primarySymbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPremiumIndexOHLCV".to_string(), Value::from(vec![primarySymbol.clone()])); }
+                add_element_to_object(&mut tests, &Value::Str("fetchFundingRates".into()), Value::from(vec![primarySymbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchFundingRate".into()), Value::from(vec![primarySymbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchFundingRateHistory".into()), Value::from(vec![primarySymbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchIndexOHLCV".into()), Value::from(vec![primarySymbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchMarkOHLCV".into()), Value::from(vec![primarySymbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchPremiumIndexOHLCV".into()), Value::from(vec![primarySymbol.clone()]));
             }
         }
         self.publicTests = tests.clone();
@@ -650,7 +650,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1501: bool = true;
             while { if !__for_first_1501 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1501 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(testNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut testName: Value = testNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut testName: Value = get_value(&testNames, &i);
             let mut testArgs: Value = get_value(&tests, &testName);
             append_to_array(&mut promises, self.test_safe(testName.clone(), exchange.clone(), &[testArgs.clone(), isPublicTest.clone()]).await);
         }
@@ -664,20 +664,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1502: bool = true;
             while { if !__for_first_1502 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1502 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(testNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut testName: Value = testNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut testReturnedValue: Value = results.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut testName: Value = get_value(&testNames, &i);
+            let mut testReturnedValue: Value = get_value(&results, &i);
             if !is_equal(&testReturnedValue, &Value::Bool(true)) {
                 append_to_array(&mut failedMethods, testName.clone());
             }
         }
         }
-        let mut testPrefixString: Value = (if is_true(&isPublicTest) { Value::Str("PUBLIC_TESTS".to_string()) } else { Value::Str("PRIVATE_TESTS".to_string()) });
+        let mut testPrefixString: Value = (if is_true(&isPublicTest) { Value::Str("PUBLIC_TESTS".into()) } else { Value::Str("PRIVATE_TESTS".into()) });
         if Value::Int(failedMethods.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            let mut errorsString: Value = join(&failedMethods, &Value::Str(", ".to_string()));
-            dump(&[Value::Str("[TEST_FAILURE]".to_string()), get_value(&exchange, &Value::Str("id".to_string())), testPrefixString.clone(), Value::Str(format!("{}{}", Value::Str("Failed methods : ".to_string()), errorsString))]);
+            let mut errorsString: Value = join(&failedMethods, &Value::Str(", ".into()));
+            dump(&[Value::Str("[TEST_FAILURE]".into()), get_value(&exchange, &Value::Str("id".into())), testPrefixString.clone(), Value::Str(format!("{}{}", Value::Str("Failed methods : ".into()), errorsString).into())]);
         }
         if is_true(&self.info) {
-            dump(&[self.add_padding(add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[INFO] END ".to_string()), testPrefixString)), Value::Str(" ".to_string()))), &get_value(&exchange, &Value::Str("id".to_string()))), Value::Int(25))]);
+            dump(&[self.add_padding(add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[INFO] END ".into()), testPrefixString).into()), Value::Str(" ".into())).into()), &get_value(&exchange, &Value::Str("id".into()))), Value::Int(25))]);
         }
         return Value::Bool(true);
 
@@ -685,12 +685,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub async fn load_exchange(&mut self, mut exchange: Value) -> Value {
-        let mut result: Value = self.test_safe(Value::Str("loadMarkets".to_string()), exchange.clone(), &[Value::from(vec![]), Value::Bool(true)]).await;
+        let mut result: Value = self.test_safe(Value::Str("loadMarkets".into()), exchange.clone(), &[Value::from(vec![]), Value::Bool(true)]).await;
         if !is_true(&result) {
             return Value::Bool(false);
         }
-        let mut exchangeSymbolsLength: Value = get_array_length(&get_value(&exchange, &Value::Str("symbols".to_string())));
-        dump(&[Value::Str("[INFO:MAIN] Exchange loaded".to_string()), exchangeSymbolsLength.clone(), Value::Str("symbols".to_string())]);
+        let mut exchangeSymbolsLength: Value = get_array_length(&get_value(&exchange, &Value::Str("symbols".into())));
+        dump(&[Value::Str("[INFO:MAIN] Exchange loaded".into()), exchangeSymbolsLength.clone(), Value::Str("symbols".into())]);
         return Value::Bool(true);
 
     Value::Null
@@ -698,11 +698,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub fn get_test_symbol(&self, mut exchange: Value, mut isSpot: Value, mut symbols: Value) -> Value {
         let mut symbol: Value = Value::Null;
-        let mut preferredSpotSymbol: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("preferredSpotSymbol".to_string()), &[]);
-        let mut preferredSwapSymbol: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("preferredSwapSymbol".to_string()), &[]);
-        if (is_equal(&isSpot, &Value::Bool(true))) && (preferredSpotSymbol != Value::Null) && (preferredSpotSymbol.as_str() != Some("")) {
+        let mut preferredSpotSymbol: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("preferredSpotSymbol".into()), &[]);
+        let mut preferredSwapSymbol: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("preferredSwapSymbol".into()), &[]);
+        if (is_equal(&isSpot, &Value::Bool(true))) && is_true(&(preferredSpotSymbol != Value::Null)) && is_true(&(preferredSpotSymbol.as_str() != Some(""))) {
             return preferredSpotSymbol;
-        }  else if (!is_equal(&isSpot, &Value::Bool(true))) && (preferredSwapSymbol != Value::Null) && (preferredSwapSymbol.as_str() != Some("")) {
+        }  else if (!is_equal(&isSpot, &Value::Bool(true))) && is_true(&(preferredSwapSymbol != Value::Null)) && is_true(&(preferredSwapSymbol.as_str() != Some(""))) {
             return preferredSwapSymbol;
         }
         {
@@ -710,10 +710,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_1503: bool = true;
             while { if !__for_first_1503 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1503 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
             let mut s: Value = get_value(&symbols, &i);
-            let mut market: Value = exchange.safe_value(get_value(&exchange, &Value::Str("markets".to_string())), s.clone(), &[]);
+            let mut market: Value = exchange.safe_value(get_value(&exchange, &Value::Str("markets".into())), s.clone(), &[]);
             if (market != Value::Null) {
-                let mut active: Value = exchange.safe_value(market.clone(), Value::Str("active".to_string()), &[]);
-                if (is_equal(&active, &Value::Bool(true))) || (active == Value::Null) {
+                let mut active: Value = exchange.safe_value(market.clone(), Value::Str("active".into()), &[]);
+                if (is_equal(&active, &Value::Bool(true))) || is_true(&(active == Value::Null)) {
                     symbol = s.clone();
                     break;
                 }
@@ -728,15 +728,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn get_exchange_code(&self, mut exchange: Value, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         if (codes == Value::Null) {
-            codes = Value::from(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("XRP".to_string()), Value::Str("LTC".to_string()), Value::Str("BCH".to_string()), Value::Str("EOS".to_string()), Value::Str("BNB".to_string()), Value::Str("BSV".to_string()), Value::Str("USDT".to_string())]);
+            codes = Value::from(vec![Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("XRP".into()), Value::Str("LTC".into()), Value::Str("BCH".into()), Value::Str("EOS".into()), Value::Str("BNB".into()), Value::Str("BSV".into()), Value::Str("USDT".into())]);
         }
         let mut code: Value = codes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1504: bool = true;
             while { if !__for_first_1504 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1504 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(codes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            if (in_op(&get_value(&exchange, &Value::Str("currencies".to_string())), &codes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))) {
-                return codes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            if (in_op(&get_value(&exchange, &Value::Str("currencies".into())), &get_value(&codes, &i))) {
+                return get_value(&codes, &i);
             }
         }
         }
@@ -751,18 +751,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut markets: Value = get_value(&exchange, &Value::Str("markets".to_string()));
+        let mut markets: Value = get_value(&exchange, &Value::Str("markets".into()));
         let mut keys: Value = object_keys(&markets);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1505: bool = true;
             while { if !__for_first_1505 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1505 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut key: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&markets, &key);
-            if is_true(&spot) && (is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true))) {
-                add_element_to_object(&mut res, &get_value(&market, &Value::Str("symbol".to_string())), market.clone());
-            }  else if !is_true(&spot) && (!is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true))) {
-                add_element_to_object(&mut res, &get_value(&market, &Value::Str("symbol".to_string())), market.clone());
+            if is_true(&spot) && (is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true))) {
+                add_element_to_object(&mut res, &get_value(&market, &Value::Str("symbol".into())), market.clone());
+            }  else if !is_true(&spot) && (!is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true))) {
+                add_element_to_object(&mut res, &get_value(&market, &Value::Str("symbol".into())), market.clone());
             }
         }
         }
@@ -774,9 +774,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn get_valid_symbol(&self, mut exchange: Value, optional_args: &[Value]) -> Value {
         let mut spot = get_arg(optional_args, 0, Value::Bool(true));
         let mut currentTypeMarkets: Value = self.get_markets_from_exchange(exchange.clone(), &[spot.clone()]);
-        let mut codes: Value = Value::from(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("XRP".to_string()), Value::Str("LTC".to_string()), Value::Str("BNB".to_string()), Value::Str("DASH".to_string()), Value::Str("DOGE".to_string()), Value::Str("ETC".to_string()), Value::Str("TRX".to_string()), Value::Str("USDT".to_string()), Value::Str("USDC".to_string()), Value::Str("USD".to_string()), Value::Str("GUSD".to_string()), Value::Str("EUR".to_string()), Value::Str("TUSD".to_string()), Value::Str("CNY".to_string()), Value::Str("JPY".to_string()), Value::Str("BRL".to_string())]);
-        let mut spotSymbols: Value = Value::from(vec![Value::Str("BTC/USDT".to_string()), Value::Str("BTC/USDC".to_string()), Value::Str("BTC/USD".to_string()), Value::Str("BTC/CNY".to_string()), Value::Str("BTC/EUR".to_string()), Value::Str("BTC/AUD".to_string()), Value::Str("BTC/BRL".to_string()), Value::Str("BTC/JPY".to_string()), Value::Str("ETH/USDT".to_string()), Value::Str("ETH/USDC".to_string()), Value::Str("ETH/USD".to_string()), Value::Str("ETH/CNY".to_string()), Value::Str("ETH/EUR".to_string()), Value::Str("ETH/AUD".to_string()), Value::Str("ETH/BRL".to_string()), Value::Str("ETH/JPY".to_string()), Value::Str("EUR/USDT".to_string()), Value::Str("EUR/USD".to_string()), Value::Str("EUR/USDC".to_string()), Value::Str("USDT/EUR".to_string()), Value::Str("USD/EUR".to_string()), Value::Str("USDC/EUR".to_string()), Value::Str("BTC/ETH".to_string()), Value::Str("ETH/BTC".to_string())]);
-        let mut swapSymbols: Value = Value::from(vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("BTC/USD:USDT".to_string()), Value::Str("BTC/USDC:USDC".to_string()), Value::Str("BTC/USD:USDC".to_string()), Value::Str("BTC/USD:USD".to_string()), Value::Str("ETH/USDT:USDT".to_string()), Value::Str("ETH/USD:USDT".to_string()), Value::Str("ETH/USDC:USDC".to_string()), Value::Str("ETH/USD:USDC".to_string()), Value::Str("ETH/USD:USD".to_string()), Value::Str("BTC/USD:BTC".to_string()), Value::Str("ETH/USD:ETH".to_string())]);
+        let mut codes: Value = Value::from(vec![Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("XRP".into()), Value::Str("LTC".into()), Value::Str("BNB".into()), Value::Str("DASH".into()), Value::Str("DOGE".into()), Value::Str("ETC".into()), Value::Str("TRX".into()), Value::Str("USDT".into()), Value::Str("USDC".into()), Value::Str("USD".into()), Value::Str("GUSD".into()), Value::Str("EUR".into()), Value::Str("TUSD".into()), Value::Str("CNY".into()), Value::Str("JPY".into()), Value::Str("BRL".into())]);
+        let mut spotSymbols: Value = Value::from(vec![Value::Str("BTC/USDT".into()), Value::Str("BTC/USDC".into()), Value::Str("BTC/USD".into()), Value::Str("BTC/CNY".into()), Value::Str("BTC/EUR".into()), Value::Str("BTC/AUD".into()), Value::Str("BTC/BRL".into()), Value::Str("BTC/JPY".into()), Value::Str("ETH/USDT".into()), Value::Str("ETH/USDC".into()), Value::Str("ETH/USD".into()), Value::Str("ETH/CNY".into()), Value::Str("ETH/EUR".into()), Value::Str("ETH/AUD".into()), Value::Str("ETH/BRL".into()), Value::Str("ETH/JPY".into()), Value::Str("EUR/USDT".into()), Value::Str("EUR/USD".into()), Value::Str("EUR/USDC".into()), Value::Str("USDT/EUR".into()), Value::Str("USD/EUR".into()), Value::Str("USDC/EUR".into()), Value::Str("BTC/ETH".into()), Value::Str("ETH/BTC".into())]);
+        let mut swapSymbols: Value = Value::from(vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("BTC/USD:USDT".into()), Value::Str("BTC/USDC:USDC".into()), Value::Str("BTC/USD:USDC".into()), Value::Str("BTC/USD:USD".into()), Value::Str("ETH/USDT:USDT".into()), Value::Str("ETH/USD:USDT".into()), Value::Str("ETH/USDC:USDC".into()), Value::Str("ETH/USD:USDC".into()), Value::Str("ETH/USD:USD".into()), Value::Str("BTC/USD:BTC".into()), Value::Str("ETH/USD:ETH".into())]);
         let mut targetSymbols: Value = (if is_true(&spot) { spotSymbols.clone() } else { swapSymbols.clone() });
         let mut symbol: Value = self.get_test_symbol(exchange.clone(), spot.clone(), targetSymbols.clone());
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
@@ -785,9 +785,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1506: bool = true;
                 while { if !__for_first_1506 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1506 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(codes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut currentCode: Value = codes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut marketsArrayForCurrentCode: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("base".to_string()), currentCode.clone(), &[]);
-                let mut indexedMkts: Value = exchange.index_by(marketsArrayForCurrentCode.clone(), Value::Str("symbol".to_string()));
+                let mut currentCode: Value = get_value(&codes, &i);
+                let mut marketsArrayForCurrentCode: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("base".into()), currentCode.clone(), &[]);
+                let mut indexedMkts: Value = exchange.index_by(marketsArrayForCurrentCode.clone(), Value::Str("symbol".into()));
                 let mut symbolsArrayForCurrentCode: Value = object_keys(&indexedMkts);
                 let mut symbolsLength: Value = Value::Int(symbolsArrayForCurrentCode.len() as i64);
                 if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
@@ -799,13 +799,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         // if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if (symbol == Value::Null) {
-            let mut activeMarkets: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("active".to_string()), Value::Bool(true), &[]);
+            let mut activeMarkets: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("active".into()), Value::Bool(true), &[]);
             let mut activeSymbols: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1507: bool = true;
                 while { if !__for_first_1507 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1507 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&activeMarkets).as_f64().unwrap_or(f64::NAN) } {
-                append_to_array(&mut activeSymbols, get_value(&get_value(&activeMarkets, &i), &Value::Str("symbol".to_string())));
+                append_to_array(&mut activeSymbols, get_value(&get_value(&activeMarkets, &i), &Value::Str("symbol".into())));
             }
             }
             symbol = self.get_test_symbol(exchange.clone(), spot.clone(), activeSymbols.clone());
@@ -816,7 +816,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if valuesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 let mut first: Value = values.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 if (first != Value::Null) {
-                    symbol = get_value(&first, &Value::Str("symbol".to_string()));
+                    symbol = get_value(&first, &Value::Str("symbol".into()));
                 }
             }
         }
@@ -830,15 +830,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // so `quoteVolume` is directly comparable between them. fall back to the
         // base volume converted with the last price, then to the raw base volume,
         // because not every exchange populates `quoteVolume`.
-        let mut quoteVolume: Value = exchange.safe_number(ticker.clone(), Value::Str("quoteVolume".to_string()), &[]);
+        let mut quoteVolume: Value = exchange.safe_number(ticker.clone(), Value::Str("quoteVolume".into()), &[]);
         if (quoteVolume != Value::Null) {
             return quoteVolume;
         }
-        let mut baseVolume: Value = exchange.safe_number(ticker.clone(), Value::Str("baseVolume".to_string()), &[]);
+        let mut baseVolume: Value = exchange.safe_number(ticker.clone(), Value::Str("baseVolume".into()), &[]);
         if (baseVolume == Value::Null) {
             return Value::Int(0);
         }
-        let mut last: Value = exchange.safe_number(ticker.clone(), Value::Str("last".to_string()), &[]);
+        let mut last: Value = exchange.safe_number(ticker.clone(), Value::Str("last".into()), &[]);
         if (last != Value::Null) {
             return multiply(&baseVolume, &last);
         }
@@ -857,26 +857,26 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // volumes denominated in different quote currencies are not) and keeps a
         // per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
         let mut defaultSymbol: Value = defaultSymbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut defaultMarket: Value = exchange.safe_dict(get_value(&exchange, &Value::Str("markets".to_string())), defaultSymbol.clone(), &[]);
+        let mut defaultMarket: Value = exchange.safe_dict(get_value(&exchange, &Value::Str("markets".into())), defaultSymbol.clone(), &[]);
         if (defaultMarket == Value::Null) {
             return defaultSymbols;
         }
         // an explicit per-exchange pin is a deliberate maintainer choice (it usually
         // works around a venue-specific quirk), so never rank around it
-        let mut isSpot: Value = exchange.safe_bool(defaultMarket.clone(), Value::Str("spot".to_string()), &[Value::Bool(false)]);
-        let mut preferredKey: Value = (if (is_equal(&isSpot, &Value::Bool(true))) { Value::Str("preferredSpotSymbol".to_string()) } else { Value::Str("preferredSwapSymbol".to_string()) });
+        let mut isSpot: Value = exchange.safe_bool(defaultMarket.clone(), Value::Str("spot".into()), &[Value::Bool(false)]);
+        let mut preferredKey: Value = (if (is_equal(&isSpot, &Value::Bool(true))) { Value::Str("preferredSpotSymbol".into()) } else { Value::Str("preferredSwapSymbol".into()) });
         let mut preferredSymbol: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), preferredKey.clone(), &[]);
         if (preferredSymbol != Value::Null) {
             return defaultSymbols;
         }
-        if !is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("fetchTickers".to_string()), &[Value::Bool(false)]), &Value::Bool(true)) {
+        if !is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("fetchTickers".into()), &[Value::Bool(false)]), &Value::Bool(true)) {
             return defaultSymbols;
         }
         let mut tickers: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             // dynamic dispatch: `fetchTickers` is not on the base exchange type in
             // the statically typed ports (c#/go/java), same as the other call sites
-            tickers = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchTickers".to_string()), Value::from(vec![])).await;
+            tickers = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchTickers".into()), Value::from(vec![])).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // choosing a symbol must never fail the run, keep the static choice
@@ -885,24 +885,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (tickers == Value::Null) {
             return defaultSymbols;
         }
-        let mut marketType: Value = exchange.safe_string(defaultMarket.clone(), Value::Str("type".to_string()), &[]);
-        let mut quote: Value = exchange.safe_string(defaultMarket.clone(), Value::Str("quote".to_string()), &[]);
-        let mut settle: Value = exchange.safe_string(defaultMarket.clone(), Value::Str("settle".to_string()), &[]);
+        let mut marketType: Value = exchange.safe_string(defaultMarket.clone(), Value::Str("type".into()), &[]);
+        let mut quote: Value = exchange.safe_string(defaultMarket.clone(), Value::Str("quote".into()), &[]);
+        let mut settle: Value = exchange.safe_string(defaultMarket.clone(), Value::Str("settle".into()), &[]);
         let mut candidates: Value = Value::from(vec![]);
         let mut tickerSymbols: Value = object_keys(&tickers);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1508: bool = true;
             while { if !__for_first_1508 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1508 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tickerSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut tickerSymbol: Value = tickerSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut market: Value = exchange.safe_dict(get_value(&exchange, &Value::Str("markets".to_string())), tickerSymbol.clone(), &[]);
+            let mut tickerSymbol: Value = get_value(&tickerSymbols, &i);
+            let mut market: Value = exchange.safe_dict(get_value(&exchange, &Value::Str("markets".into())), tickerSymbol.clone(), &[]);
             if (market != Value::Null) {
                 // exchanges keep returning tickers for delisted markets, and those
                 // never push a websocket update at all, so skip inactive markets
-                let mut isActive: Value = exchange.safe_bool(market.clone(), Value::Str("active".to_string()), &[Value::Bool(true)]);
-                let mut sameType: bool = is_equal(&exchange.safe_string(market.clone(), Value::Str("type".to_string()), &[]), &marketType);
-                let mut sameQuote: bool = is_equal(&exchange.safe_string(market.clone(), Value::Str("quote".to_string()), &[]), &quote);
-                let mut sameSettle: bool = is_equal(&exchange.safe_string(market.clone(), Value::Str("settle".to_string()), &[]), &settle);
+                let mut isActive: Value = exchange.safe_bool(market.clone(), Value::Str("active".into()), &[Value::Bool(true)]);
+                let mut sameType: bool = is_equal(&exchange.safe_string(market.clone(), Value::Str("type".into()), &[]), &marketType);
+                let mut sameQuote: bool = is_equal(&exchange.safe_string(market.clone(), Value::Str("quote".into()), &[]), &quote);
+                let mut sameSettle: bool = is_equal(&exchange.safe_string(market.clone(), Value::Str("settle".into()), &[]), &settle);
                 if (is_equal(&isActive, &Value::Bool(true))) && sameType && sameQuote && sameSettle {
                     let mut ticker: Value = exchange.safe_dict(tickers.clone(), tickerSymbol.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -914,22 +914,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             let mut m = indexmap::IndexMap::new();
                             m
                         });
-                        add_element_to_object(&mut entry, &Value::Str("symbol".to_string()), tickerSymbol.clone());
-                        if let Value::Dict(__d) = &mut entry { std::sync::Arc::make_mut(__d).insert("volume".to_string(), volume.clone()); }
+                        add_element_to_object(&mut entry, &Value::Str("symbol".into()), tickerSymbol.clone());
+                        add_element_to_object(&mut entry, &Value::Str("volume".into()), volume.clone());
                         append_to_array(&mut candidates, entry.clone());
                     }
                 }
             }
         }
         }
-        let mut ranked: Value = exchange.sort_by(candidates.clone(), Value::Str("volume".to_string()), &[Value::Bool(true)]);
+        let mut ranked: Value = exchange.sort_by(candidates.clone(), Value::Str("volume".into()), &[Value::Bool(true)]);
         let mut rankedLength: Value = get_array_length(&ranked);
         if is_equal(&rankedLength, &Value::Int(0)) {
             return defaultSymbols;
         }
-        let mut result: Value = Value::from(vec![exchange.safe_string(get_value(&ranked, &Value::Int(0)), Value::Str("symbol".to_string()), &[])]);
+        let mut result: Value = Value::from(vec![exchange.safe_string(get_value(&ranked, &Value::Int(0)), Value::Str("symbol".into()), &[])]);
         if rankedLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
-            append_to_array(&mut result, exchange.safe_string(get_value(&ranked, &Value::Int(1)), Value::Str("symbol".to_string()), &[]));
+            append_to_array(&mut result, exchange.safe_string(get_value(&ranked, &Value::Int(1)), Value::Str("symbol".into()), &[]));
         }
         return result;
 
@@ -940,18 +940,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut providedSymbol = get_arg(optional_args, 0, Value::Null);
         // prediction-market exchanges have no spot/swap markets and address methods by an
         // outcome handle (not a market symbol), so they take a dedicated test flow
-        if is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)]), &Value::Bool(true)) {
+        if is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("prediction".into()), &[Value::Bool(false)]), &Value::Bool(true)) {
             self.run_prediction_tests(exchange.clone()).await;
             return Value::Bool(true);
         }
         let mut spotSymbols: Value = Value::Null;
         let mut swapSymbols: Value = Value::Null;
         // `has` values can be true, false, undefined or 'emulated', so only false/undefined mean unsupported
-        let mut hasSpot: bool = (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &Value::Str("spot".to_string())) != Value::Null) && (!is_equal(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &Value::Str("spot".to_string())), &Value::Bool(false)));
-        let mut hasSwap: bool = (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &Value::Str("swap".to_string())) != Value::Null) && (!is_equal(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &Value::Str("swap".to_string())), &Value::Bool(false)));
+        let mut hasSpot: bool = is_true(&(get_value(&get_value(&exchange, &Value::Str("has".into())), &Value::Str("spot".into())) != Value::Null)) && (!is_equal(&get_value(&get_value(&exchange, &Value::Str("has".into())), &Value::Str("spot".into())), &Value::Bool(false)));
+        let mut hasSwap: bool = is_true(&(get_value(&get_value(&exchange, &Value::Str("has".into())), &Value::Str("swap".into())) != Value::Null)) && (!is_equal(&get_value(&get_value(&exchange, &Value::Str("has".into())), &Value::Str("swap".into())), &Value::Bool(false)));
         if (providedSymbol != Value::Null) {
             let mut market: Value = exchange.market(providedSymbol.clone());
-            if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
+            if is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true)) {
                 spotSymbols = Value::from(vec![providedSymbol.clone()]);
             }  else {
                 swapSymbols = Value::from(vec![providedSymbol.clone()]);
@@ -960,7 +960,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if hasSpot {
                 let mut primarySymbol: Value = self.get_valid_symbol(exchange.clone(), &[Value::Bool(true)]);
                 if (primarySymbol != Value::Null) {
-                    let mut secondarySymbol: Value = replace_str(&primarySymbol, &Value::Str("BTC".to_string()), &Value::Str("ETH".to_string())); // this should work any exchange
+                    let mut secondarySymbol: Value = replace_str(&primarySymbol, &Value::Str("BTC".into()), &Value::Str("ETH".into())); // this should work any exchange
                     spotSymbols = Value::from(vec![primarySymbol.clone(), secondarySymbol.clone()]);
                 }
             }
@@ -972,7 +972,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // getValidSymbol returns undefined in that case — skip swap
                 // tests rather than crashing on `undefined.replace(...)`.
                 if (primarySymbol != Value::Null) {
-                    let mut secondarySymbol: Value = replace_all_str(&primarySymbol, &Value::Str("BTC".to_string()), &Value::Str("ETH".to_string())); // this should work any exchange
+                    let mut secondarySymbol: Value = replace_all_str(&primarySymbol, &Value::Str("BTC".into()), &Value::Str("ETH".into())); // this should work any exchange
                     swapSymbols = Value::from(vec![primarySymbol.clone(), secondarySymbol.clone()]);
                 }
             }
@@ -989,35 +989,35 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         if (spotSymbols != Value::Null) {
-            dump(&[Value::Str("[INFO:MAIN] Selected SPOT SYMBOL:".to_string()), exchange.json(spotSymbols.clone())]);
+            dump(&[Value::Str("[INFO:MAIN] Selected SPOT SYMBOL:".into()), exchange.json(spotSymbols.clone())]);
         }
         if (swapSymbols != Value::Null) {
-            dump(&[Value::Str("[INFO:MAIN] Selected SWAP SYMBOL:".to_string()), exchange.json(swapSymbols.clone())]);
+            dump(&[Value::Str("[INFO:MAIN] Selected SWAP SYMBOL:".into()), exchange.json(swapSymbols.clone())]);
         }
         if !is_true(&self.privateTestOnly) {
             // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-            if hasSpot && (spotSymbols != Value::Null) {
+            if hasSpot && is_true(&(spotSymbols != Value::Null)) {
                 if is_true(&self.info) {
-                    dump(&[Value::Str("[INFO] ### SPOT TESTS ###".to_string())]);
+                    dump(&[Value::Str("[INFO] ### SPOT TESTS ###".into())]);
                 }
-                add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("defaultType".to_string()), Value::Str("spot".to_string()));
+                add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("defaultType".into()), Value::Str("spot".into()));
                 self.run_public_tests(exchange.clone(), spotSymbols.clone()).await;
             }
-            if hasSwap && (swapSymbols != Value::Null) {
+            if hasSwap && is_true(&(swapSymbols != Value::Null)) {
                 if is_true(&self.info) {
-                    dump(&[Value::Str("[INFO] ### SWAP TESTS ###".to_string())]);
+                    dump(&[Value::Str("[INFO] ### SWAP TESTS ###".into())]);
                 }
-                add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("defaultType".to_string()), Value::Str("swap".to_string()));
+                add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("defaultType".into()), Value::Str("swap".into()));
                 self.run_public_tests(exchange.clone(), swapSymbols.clone()).await;
             }
         }
         if is_true(&self.privateTest) || is_true(&self.privateTestOnly) {
-            if hasSpot && (spotSymbols != Value::Null) {
-                add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("defaultType".to_string()), Value::Str("spot".to_string()));
+            if hasSpot && is_true(&(spotSymbols != Value::Null)) {
+                add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("defaultType".into()), Value::Str("spot".into()));
                 self.run_private_tests(exchange.clone(), spotSymbols.clone()).await;
             }
-            if hasSwap && (swapSymbols != Value::Null) {
-                add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("defaultType".to_string()), Value::Str("swap".to_string()));
+            if hasSwap && is_true(&(swapSymbols != Value::Null)) {
+                add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("defaultType".into()), Value::Str("swap".into()));
                 self.run_private_tests(exchange.clone(), swapSymbols.clone()).await;
             }
         }
@@ -1033,23 +1033,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // then fetchEvents for an event id and run every method by that outcome handle
         // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
         // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
-        let mut outcomeSymbol: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("preferredPredictionOutcome".to_string()), &[]);
+        let mut outcomeSymbol: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("preferredPredictionOutcome".into()), &[]);
         if (outcomeSymbol != Value::Null) {
             // validate the pin against the live listing - venues can rotate ids/handles
             // (hyperliquid re-assigns outcome ids), which would strand a stale pin
             let mut pinFound: Value = Value::Bool(false);
-            let mut pinnedKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".to_string())));
+            let mut pinnedKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".into())));
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1510: bool = true;
                 while { if !__for_first_1510 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1510 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(pinnedKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut pinnedMarket: Value = get_value(&get_value(&exchange, &Value::Str("markets".to_string())), &pinnedKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-                let mut pinnedOutcomes: Value = exchange.safe_list(pinnedMarket.clone(), Value::Str("outcomes".to_string()), &[Value::from(vec![])]);
+                let mut pinnedMarket: Value = get_value(&get_value(&exchange, &Value::Str("markets".into())), &get_value(&pinnedKeys, &i));
+                let mut pinnedOutcomes: Value = exchange.safe_list(pinnedMarket.clone(), Value::Str("outcomes".into()), &[Value::from(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1509: bool = true;
                     while { if !__for_first_1509 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1509 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&pinnedOutcomes).as_f64().unwrap_or(f64::NAN) } {
-                    if is_equal(&exchange.safe_string(get_value(&pinnedOutcomes, &j), Value::Str("outcome".to_string()), &[]), &outcomeSymbol) {
+                    if is_equal(&exchange.safe_string(get_value(&pinnedOutcomes, &j), Value::Str("outcome".into()), &[]), &outcomeSymbol) {
                         pinFound = Value::Bool(true);
                         break;
                     }
@@ -1061,21 +1061,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
             if !is_true(&pinFound) {
-                dump(&[Value::Str("[INFO:MAIN] preferredPredictionOutcome".to_string()), outcomeSymbol.clone(), Value::Str("not in the live listing (stale pin?) - falling back to market scan".to_string())]);
+                dump(&[Value::Str("[INFO:MAIN] preferredPredictionOutcome".into()), outcomeSymbol.clone(), Value::Str("not in the live listing (stale pin?) - falling back to market scan".into())]);
                 outcomeSymbol = Value::Null;
             }
         }
         if (outcomeSymbol == Value::Null) {
-            let mut marketKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".to_string())));
+            let mut marketKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".into())));
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1511: bool = true;
                 while { if !__for_first_1511 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1511 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut market: Value = get_value(&get_value(&exchange, &Value::Str("markets".to_string())), &marketKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-                let mut outcomesList: Value = exchange.safe_list(market.clone(), Value::Str("outcomes".to_string()), &[Value::from(vec![])]);
+                let mut market: Value = get_value(&get_value(&exchange, &Value::Str("markets".into())), &get_value(&marketKeys, &i));
+                let mut outcomesList: Value = exchange.safe_list(market.clone(), Value::Str("outcomes".into()), &[Value::from(vec![])]);
                 let mut outcomesListLength: Value = get_array_length(&outcomesList);
                 if outcomesListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    outcomeSymbol = exchange.safe_string(get_value(&outcomesList, &Value::Int(0)), Value::Str("outcome".to_string()), &[]);
+                    outcomeSymbol = exchange.safe_string(get_value(&outcomesList, &Value::Int(0)), Value::Str("outcome".into()), &[]);
                     if (outcomeSymbol != Value::Null) {
                         break;
                     }
@@ -1084,7 +1084,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         if (outcomeSymbol == Value::Null) {
-            dump(&[Value::Str("[TEST_FAILURE]".to_string()), get_value(&exchange, &Value::Str("id".to_string())), Value::Str("no tradeable outcome available in loaded markets".to_string())]);
+            dump(&[Value::Str("[TEST_FAILURE]".into()), get_value(&exchange, &Value::Str("id".into())), Value::Str("no tradeable outcome available in loaded markets".into())]);
             return Value::Bool(false);
         }
         // fetchEvents/fetchEvent are prediction-only and not on every language's typed base
@@ -1096,15 +1096,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
                 // every prediction venue — assert it so the contract can't silently regress.
                 // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
-                let mut exchangeOptions: Value = getExchangeProp(exchange.clone(), Value::Str("options".to_string()), &[Value::Map({
+                let mut exchangeOptions: Value = getExchangeProp(exchange.clone(), Value::Str("options".into()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut allowUnscopedFetchEvents: Value = exchange.safe_bool(exchangeOptions.clone(), Value::Str("allowUnscopedFetchEvents".to_string()), &[Value::Bool(false)]);
+                let mut allowUnscopedFetchEvents: Value = exchange.safe_bool(exchangeOptions.clone(), Value::Str("allowUnscopedFetchEvents".into()), &[Value::Bool(false)]);
                 if !is_equal(&allowUnscopedFetchEvents, &Value::Bool(true)) {
-                    let mut unscopedError: Value = Value::Str("".to_string());
+                    let mut unscopedError: Value = Value::Str("".into());
                     let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                        callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::from(vec![Value::Map({
+                        callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".into()), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })])).await;
@@ -1112,42 +1112,42 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         unscopedError = exceptionMessage(e.clone());
                     }
-                    assert((Value::Int(unscopedError.as_str().and_then(|__s| __s.find("requires at least one of")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents () without a scope must throw ArgumentsRequired, got: ".to_string())), unscopedError))]);
+                    assert((Value::Int(unscopedError.as_str().and_then(|__s| __s.find("requires at least one of")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" fetchEvents () without a scope must throw ArgumentsRequired, got: ".into())), unscopedError).into())]);
                 }
                 // every venue requires fetchEvents to be scoped; a skip-tests.json
                 // preferredEventQuery supplies a query known to match the venue's markets
-                let mut eventQuery: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("preferredEventQuery".to_string()), &[]);
+                let mut eventQuery: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("preferredEventQuery".into()), &[]);
                 if (eventQuery == Value::Null) {
                     // derive one from the selected outcome handle (the market words with
                     // separators as spaces) so the scoped contract holds even without a pin
-                    let mut handleParts: Value = split(&outcomeSymbol, &Value::Str(":".to_string()));
+                    let mut handleParts: Value = split(&outcomeSymbol, &Value::Str(":".into()));
                     let mut marketPart: Value = get_value(&handleParts, &Value::Int(0));
                     let mut lowerPart: Value = to_lower(&marketPart);
-                    let mut dedashed: Value = replace_all_str(&lowerPart, &Value::Str("-".to_string()), &Value::Str(" ".to_string()));
-                    eventQuery = replace_all_str(&dedashed, &Value::Str("_".to_string()), &Value::Str(" ".to_string()));
+                    let mut dedashed: Value = replace_all_str(&lowerPart, &Value::Str("-".into()), &Value::Str(" ".into()));
+                    eventQuery = replace_all_str(&dedashed, &Value::Str("_".into()), &Value::Str(" ".into()));
                 }
                 let mut eventParams: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
                 if (eventQuery != Value::Null) {
-                    if let Value::Dict(__d) = &mut eventParams { std::sync::Arc::make_mut(__d).insert("query".to_string(), eventQuery.clone()); }
+                    add_element_to_object(&mut eventParams, &Value::Str("query".into()), eventQuery.clone());
                 }
-                let mut events: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::from(vec![eventParams.clone()])).await;
-                assert((events != Value::Null), &[add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents returned undefined".to_string()))]);
+                let mut events: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".into()), Value::from(vec![eventParams.clone()])).await;
+                assert((events != Value::Null), &[add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" fetchEvents returned undefined".into()))]);
                 // coerce the dynamic (any) result to a typed list via safeList (on the core interface)
                 let mut eventsList: Value = exchange.safe_list(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("events".to_string(), events.clone());
                     m
-                }), Value::Str("events".to_string()), &[Value::from(vec![])]);
+                }), Value::Str("events".into()), &[Value::from(vec![])]);
                 self.assert_prediction_events(exchange.clone(), eventsList.clone());
                 let mut eventsLength: Value = get_array_length(&eventsList);
                 if eventsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    eventId = exchange.safe_string(get_value(&eventsList, &Value::Int(0)), Value::Str("id".to_string()), &[]);
+                    eventId = exchange.safe_string(get_value(&eventsList, &Value::Int(0)), Value::Str("id".into()), &[]);
                 }
-                if (eventId != Value::Null) && (is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("fetchEvent".to_string()), &[Value::Bool(false)]), &Value::Bool(true))) {
-                    let mut event: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvent".to_string()), Value::from(vec![eventId.clone()])).await;
+                if is_true(&(eventId != Value::Null)) && (is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("fetchEvent".into()), &[Value::Bool(false)]), &Value::Bool(true))) {
+                    let mut event: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvent".into()), Value::from(vec![eventId.clone()])).await;
                     self.assert_prediction_event(exchange.clone(), event.clone());
                 }
                 // exercise EACH scoping parameter path, not just the initial query. a scope that
@@ -1168,7 +1168,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 // optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
                 // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
-                let mut extraScopes: Value = exchange.safe_list(self.skippedSettingsForExchange.clone(), Value::Str("preferredEventScopes".to_string()), &[Value::from(vec![])]);
+                let mut extraScopes: Value = exchange.safe_list(self.skippedSettingsForExchange.clone(), Value::Str("preferredEventScopes".into()), &[Value::from(vec![])]);
                 let mut extraScopesLength: Value = get_array_length(&extraScopes);
                 {
                                         let mut si: Value = Value::Int(0);
@@ -1182,22 +1182,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut sj: Value = Value::Int(0);
                     let mut __for_first_1513: bool = true;
                     while { if !__for_first_1513 { sj = (match (&(sj), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1513 = false; sj.as_f64().unwrap_or(f64::NAN) < scopesToTestLength.as_f64().unwrap_or(f64::NAN) } {
-                    let mut scope: Value = scopesToTest.as_array().and_then(|__arr| match &sj { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    let mut scope: Value = get_value(&scopesToTest, &sj);
                     // fetchEvents scoped by a single parameter must return a non-empty, valid list
-                    let mut scopedEvents: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::from(vec![scope.clone()])).await;
+                    let mut scopedEvents: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".into()), Value::from(vec![scope.clone()])).await;
                     let mut scopedList: Value = exchange.safe_list(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("events".to_string(), scopedEvents.clone());
                         m
-                    }), Value::Str("events".to_string()), &[Value::from(vec![])]);
+                    }), Value::Str("events".into()), &[Value::from(vec![])]);
                     let mut scopedListLength: Value = get_array_length(&scopedList);
-                    assert((scopedListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents scoped by ".to_string())), &exchange.json(scope.clone())), Value::Str(" returned no events - the parameter path may be broken".to_string())))]);
+                    assert((scopedListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" fetchEvents scoped by ".into())), &exchange.json(scope.clone())), Value::Str(" returned no events - the parameter path may be broken".into())).into())]);
                     self.assert_prediction_events(exchange.clone(), scopedList.clone());
                 }
                 }
                 if (eventQuery != Value::Null) {
                     // limit must bound the number of events returned (applied by applyEventFetchParams)
-                    let mut limited: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::from(vec![Value::Map({
+                    let mut limited: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".into()), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("query".to_string(), eventQuery.clone());
         m.insert("limit".to_string(), Value::Int(1));
@@ -1207,31 +1207,31 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut m = indexmap::IndexMap::new();
                             m.insert("events".to_string(), limited.clone());
                         m
-                    }), Value::Str("events".to_string()), &[Value::from(vec![])]);
+                    }), Value::Str("events".into()), &[Value::from(vec![])]);
                     let mut limitedListLength: Value = get_array_length(&limitedList);
-                    assert((limitedListLength.as_f64().unwrap_or(f64::NAN) <= Value::Int(1).as_f64().unwrap_or(f64::NAN)), &[add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents did not honour limit=1".to_string()))]);
+                    assert((limitedListLength.as_f64().unwrap_or(f64::NAN) <= Value::Int(1).as_f64().unwrap_or(f64::NAN)), &[add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" fetchEvents did not honour limit=1".into()))]);
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-                dump(&[Value::Str("[TEST_FAILURE]".to_string()), get_value(&exchange, &Value::Str("id".to_string())), Value::Str("fetchEvents/fetchEvent failed:".to_string()), exceptionMessage(e.clone())]);
+                dump(&[Value::Str("[TEST_FAILURE]".into()), get_value(&exchange, &Value::Str("id".into())), Value::Str("fetchEvents/fetchEvent failed:".into()), exceptionMessage(e.clone())]);
                 return Value::Bool(false);
              } }
             // no-arg fetchTickers honesty: a venue that cannot serve every ticker without an
             // unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
             // instead of silently returning a capped subset
-            let mut canServeAllTickers: Value = exchange.safe_bool(get_value(&exchange, &Value::Str("options".to_string())), Value::Str("loadAllOutcomes".to_string()), &[Value::Bool(false)]);
-            if (!is_equal(&canServeAllTickers, &Value::Bool(true))) && (is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("fetchTickers".to_string()), &[Value::Bool(false)]), &Value::Bool(true))) {
-                let mut tickersError: Value = Value::Str("".to_string());
+            let mut canServeAllTickers: Value = exchange.safe_bool(get_value(&exchange, &Value::Str("options".into())), Value::Str("loadAllOutcomes".into()), &[Value::Bool(false)]);
+            if (!is_equal(&canServeAllTickers, &Value::Bool(true))) && (is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("fetchTickers".into()), &[Value::Bool(false)]), &Value::Bool(true))) {
+                let mut tickersError: Value = Value::Str("".into());
                 let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                    callExchangeMethodDynamically(&mut exchange, Value::Str("fetchTickers".to_string()), Value::from(vec![])).await;
+                    callExchangeMethodDynamically(&mut exchange, Value::Str("fetchTickers".into()), Value::from(vec![])).await;
                  #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     tickersError = exceptionMessage(e.clone());
                 }
-                assert((Value::Int(tickersError.as_str().and_then(|__s| __s.find("requires an outcomes argument")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchTickers () without outcomes must throw ArgumentsRequired, got: ".to_string())), tickersError))]);
+                assert((Value::Int(tickersError.as_str().and_then(|__s| __s.find("requires an outcomes argument")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" fetchTickers () without outcomes must throw ArgumentsRequired, got: ".into())), tickersError).into())]);
             }
         }
-        dump(&[Value::Str("[INFO:MAIN] Selected prediction OUTCOME:".to_string()), outcomeSymbol.clone(), Value::Str("| EVENT:".to_string()), exchange.json(eventId.clone())]);
+        dump(&[Value::Str("[INFO:MAIN] Selected prediction OUTCOME:".into()), outcomeSymbol.clone(), Value::Str("| EVENT:".into()), exchange.json(eventId.clone())]);
         let mut publicTests: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("fetchStatus".to_string(), Value::from(vec![]));
@@ -1271,7 +1271,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             self.run_tests(exchange.clone(), privateTests.clone(), Value::Bool(false)).await;
             // order placement is real money — gated behind --fundedTests, like crypto createOrder
-            if is_true(&getCliArgValue(Value::Str("--fundedTests".to_string()))) {
+            if is_true(&getCliArgValue(Value::Str("--fundedTests".into()))) {
                 self.test_prediction_create_cancel_order(exchange.clone(), outcomeSymbol.clone()).await;
             }
         }
@@ -1281,13 +1281,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn assert_prediction_events(&self, mut exchange: Value, mut events: Value) -> Value {
-        assert((matches!(&events, Value::Arr(_))), &[add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents/fetchEvent should return a list".to_string()))]);
+        assert((matches!(&events, Value::Arr(_))), &[add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" fetchEvents/fetchEvent should return a list".into()))]);
         let mut eventsLength: Value = Value::Int(events.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1514: bool = true;
             while { if !__for_first_1514 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1514 = false; i.as_f64().unwrap_or(f64::NAN) < eventsLength.as_f64().unwrap_or(f64::NAN) } {
-            self.assert_prediction_event(exchange.clone(), events.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            self.assert_prediction_event(exchange.clone(), get_value(&events, &i));
         }
         }
         return Value::Bool(true);
@@ -1298,48 +1298,48 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn assert_prediction_event(&self, mut exchange: Value, mut event: Value) -> Value {
         // validates one PredictionEvent structure (id, event handle, markets each carrying an
         // outcomes list, and the optional typed fields when present)
-        let mut logText: Value = add(&Value::Str(" event: ".to_string()), &exchange.json(event.clone()));
-        assert(Value::Bool(is_equal(&exchange.is_dictionary(event.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event should be a dict".to_string())), logText))]);
-        assert((exchange.safe_string(event.clone(), Value::Str("id".to_string()), &[]) != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event missing id".to_string())), logText))]);
-        assert((exchange.safe_string(event.clone(), Value::Str("event".to_string()), &[]) != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event missing the unified event handle".to_string())), logText))]);
-        let mut markets: Value = exchange.safe_list(event.clone(), Value::Str("markets".to_string()), &[]);
-        assert((markets != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event missing markets".to_string())), logText))]);
+        let mut logText: Value = add(&Value::Str(" event: ".into()), &exchange.json(event.clone()));
+        assert(Value::Bool(is_equal(&exchange.is_dictionary(event.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event should be a dict".into())), logText).into())]);
+        assert((exchange.safe_string(event.clone(), Value::Str("id".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event missing id".into())), logText).into())]);
+        assert((exchange.safe_string(event.clone(), Value::Str("event".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event missing the unified event handle".into())), logText).into())]);
+        let mut markets: Value = exchange.safe_list(event.clone(), Value::Str("markets".into()), &[]);
+        assert((markets != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event missing markets".into())), logText).into())]);
         let mut marketsLength: Value = get_array_length(&markets);
-        assert((exchange.safe_string(event.clone(), Value::Str("symbol".to_string()), &[]) == Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event must not carry the deprecated symbol key".to_string())), logText))]);
+        assert((exchange.safe_string(event.clone(), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event must not carry the deprecated symbol key".into())), logText).into())]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1516: bool = true;
             while { if !__for_first_1516 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1516 = false; i.as_f64().unwrap_or(f64::NAN) < marketsLength.as_f64().unwrap_or(f64::NAN) } {
             let mut market: Value = get_value(&markets, &i);
-            assert(Value::Bool(is_equal(&exchange.is_dictionary(market.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event market should be a dict".to_string())), logText))]);
-            assert((exchange.safe_string(market.clone(), Value::Str("market".to_string()), &[]) != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event market missing the unified market handle".to_string())), logText))]);
+            assert(Value::Bool(is_equal(&exchange.is_dictionary(market.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event market should be a dict".into())), logText).into())]);
+            assert((exchange.safe_string(market.clone(), Value::Str("market".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event market missing the unified market handle".into())), logText).into())]);
             // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
-            assert((exchange.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]) == Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event market must not carry the deprecated symbol key".to_string())), logText))]);
-            let mut outcomes: Value = exchange.safe_list(market.clone(), Value::Str("outcomes".to_string()), &[]);
-            assert((outcomes != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event market missing outcomes".to_string())), logText))]);
+            assert((exchange.safe_string(market.clone(), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event market must not carry the deprecated symbol key".into())), logText).into())]);
+            let mut outcomes: Value = exchange.safe_list(market.clone(), Value::Str("outcomes".into()), &[]);
+            assert((outcomes != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event market missing outcomes".into())), logText).into())]);
             let mut outcomesLength: Value = get_array_length(&outcomes);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1515: bool = true;
                 while { if !__for_first_1515 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1515 = false; j.as_f64().unwrap_or(f64::NAN) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
-                assert((exchange.safe_string(get_value(&outcomes, &j), Value::Str("symbol".to_string()), &[]) == Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event outcome must not carry the deprecated symbol key".to_string())), logText))]);
+                assert((exchange.safe_string(get_value(&outcomes, &j), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event outcome must not carry the deprecated symbol key".into())), logText).into())]);
             }
             }
         }
         }
         // optional typed fields must have the right type when present
-        let mut active: Value = exchange.safe_value(event.clone(), Value::Str("active".to_string()), &[]);
+        let mut active: Value = exchange.safe_value(event.clone(), Value::Str("active".into()), &[]);
         if (active != Value::Null) {
             // typeof check, not `=== true || === false` — the latter transpiles to `== False`
             // in Python, which ruff rejects (E712)
-            assert((matches!(&active, Value::Bool(_))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event active must be a bool".to_string())), logText))]);
+            assert((matches!(&active, Value::Bool(_))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event active must be a bool".into())), logText).into())]);
         }
-        let mut tags: Value = exchange.safe_value(event.clone(), Value::Str("tags".to_string()), &[]);
+        let mut tags: Value = exchange.safe_value(event.clone(), Value::Str("tags".into()), &[]);
         if (tags != Value::Null) {
-            assert((matches!(&tags, Value::Arr(_))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event tags must be a list".to_string())), logText))]);
+            assert((matches!(&tags, Value::Arr(_))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event tags must be a list".into())), logText).into())]);
         }
-        let mut info: Value = exchange.safe_value(event.clone(), Value::Str("info".to_string()), &[]);
-        assert((info != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event missing info".to_string())), logText))]);
+        let mut info: Value = exchange.safe_value(event.clone(), Value::Str("info".into()), &[]);
+        assert((info != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" event missing info".into())), logText).into())]);
         return Value::Bool(true);
 
     Value::Null
@@ -1351,52 +1351,52 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
         // createOrder/cancelOrder are invoked dynamically since they aren't on every language's
         // typed core-exchange interface (e.g. Go's ICoreExchange).
-        if !is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("createOrder".to_string()), &[Value::Bool(false)]), &Value::Bool(true)) {
+        if !is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("createOrder".into()), &[Value::Bool(false)]), &Value::Bool(true)) {
             return Value::Bool(true);
         }
         // honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
         // and CI runs via an EU proxy, so live order placement is skipped and covered by fixtures
-        let mut createOrderSkip: Value = self.get_skips(exchange.clone(), Value::Str("createOrder".to_string()));
+        let mut createOrderSkip: Value = self.get_skips(exchange.clone(), Value::Str("createOrder".into()));
         if matches!(&createOrderSkip, Value::Str(_)) {
-            dump(&[Value::Str("[INFO] skipping prediction createOrder test".to_string()), get_value(&exchange, &Value::Str("id".to_string())), createOrderSkip.clone()]);
+            dump(&[Value::Str("[INFO] skipping prediction createOrder test".into()), get_value(&exchange, &Value::Str("id".into())), createOrderSkip.clone()]);
             return Value::Bool(true);
         }
-        let mut canCancel: bool = (is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("cancelOrder".to_string()), &[Value::Bool(false)]), &Value::Bool(true))) || (is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("cancelAllOrders".to_string()), &[Value::Bool(false)]), &Value::Bool(true)));
+        let mut canCancel: bool = (is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("cancelOrder".into()), &[Value::Bool(false)]), &Value::Bool(true))) || (is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("cancelAllOrders".into()), &[Value::Bool(false)]), &Value::Bool(true)));
         if !canCancel {
-            dump(&[Value::Str("[INFO] skipping prediction createOrder test".to_string()), get_value(&exchange, &Value::Str("id".to_string())), Value::Str("no cancelOrder/cancelAllOrders".to_string())]);
+            dump(&[Value::Str("[INFO] skipping prediction createOrder test".into()), get_value(&exchange, &Value::Str("id".into())), Value::Str("no cancelOrder/cancelAllOrders".into())]);
             return Value::Bool(true);
         }
         if !is_equal(&exchange.check_required_credentials(&[Value::Bool(false)]), &Value::Bool(true)) {
-            dump(&[Value::Str("[INFO] skipping prediction createOrder test".to_string()), get_value(&exchange, &Value::Str("id".to_string())), Value::Str("keys not found".to_string())]);
+            dump(&[Value::Str("[INFO] skipping prediction createOrder test".into()), get_value(&exchange, &Value::Str("id".into())), Value::Str("keys not found".into())]);
             return Value::Bool(true);
         }
         // default 5 @ 0.02 = 0.10 USD notional. a venue with a higher minimum (e.g. hyperliquid
         // testnet's 10 USD min) overrides amount/price via skip-tests.json fundedAmount/fundedPrice;
         // any override's notional (amount * price) MUST stay well under the 25 USD live-test cap
-        let mut price: Value = exchange.parse_to_numeric(Value::Str("0.02".to_string()));
-        let mut amount: Value = exchange.parse_to_numeric(Value::Str("5".to_string()));
-        let mut fundedPrice: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("fundedPrice".to_string()), &[]);
+        let mut price: Value = exchange.parse_to_numeric(Value::Str("0.02".into()));
+        let mut amount: Value = exchange.parse_to_numeric(Value::Str("5".into()));
+        let mut fundedPrice: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("fundedPrice".into()), &[]);
         if (fundedPrice != Value::Null) {
             price = exchange.parse_to_numeric(fundedPrice.clone());
         }
-        let mut fundedAmount: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("fundedAmount".to_string()), &[]);
+        let mut fundedAmount: Value = exchange.safe_string(self.skippedSettingsForExchange.clone(), Value::Str("fundedAmount".into()), &[]);
         if (fundedAmount != Value::Null) {
             amount = exchange.parse_to_numeric(fundedAmount.clone());
         }
-        dump(&[Value::Str("[INFO:MAIN] prediction createOrder".to_string()), get_value(&exchange, &Value::Str("id".to_string())), outcome.clone(), Value::Str("buy".to_string()), amount.clone(), Value::Str("@".to_string()), price.clone()]);
+        dump(&[Value::Str("[INFO:MAIN] prediction createOrder".into()), get_value(&exchange, &Value::Str("id".into())), outcome.clone(), Value::Str("buy".into()), amount.clone(), Value::Str("@".into()), price.clone()]);
         // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
         // either): record any failure, ALWAYS attempt the cancel, then report the failure
         let mut order: Value = Value::Null;
         let mut placedId: Value = Value::Null;
         let mut failure: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            order = callExchangeMethodDynamically(&mut exchange, Value::Str("createOrder".to_string()), Value::from(vec![outcome.clone(), Value::Str("limit".to_string()), Value::Str("buy".to_string()), amount.clone(), price.clone()])).await;
-            assert((order != Value::Null), &[add(&Value::Str("createOrder returned undefined for ".to_string()), &get_value(&exchange, &Value::Str("id".to_string())))]);
-            assert(Value::Bool(is_equal(&exchange.is_dictionary(order.clone()), &Value::Bool(true))), &[add(&Value::Str("createOrder did not return an order structure for ".to_string()), &get_value(&exchange, &Value::Str("id".to_string())))]);
-            placedId = exchange.safe_string(order.clone(), Value::Str("id".to_string()), &[]);
-            assert((placedId != Value::Null), &[add(&Value::Str("createOrder returned no order id for ".to_string()), &get_value(&exchange, &Value::Str("id".to_string())))]);
-            let mut returnedOutcome: Value = exchange.safe_string(order.clone(), Value::Str("outcome".to_string()), &[]);
-            assert(((returnedOutcome == Value::Null) || (is_equal(&returnedOutcome, &outcome))), &[add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str("createOrder outcome \"".to_string()), &exchange.json(returnedOutcome.clone())), Value::Str("\" should match requested \"".to_string()))), &outcome), Value::Str("\" for ".to_string()))), &get_value(&exchange, &Value::Str("id".to_string())))]);
+            order = callExchangeMethodDynamically(&mut exchange, Value::Str("createOrder".into()), Value::from(vec![outcome.clone(), Value::Str("limit".into()), Value::Str("buy".into()), amount.clone(), price.clone()])).await;
+            assert((order != Value::Null), &[add(&Value::Str("createOrder returned undefined for ".into()), &get_value(&exchange, &Value::Str("id".into())))]);
+            assert(Value::Bool(is_equal(&exchange.is_dictionary(order.clone()), &Value::Bool(true))), &[add(&Value::Str("createOrder did not return an order structure for ".into()), &get_value(&exchange, &Value::Str("id".into())))]);
+            placedId = exchange.safe_string(order.clone(), Value::Str("id".into()), &[]);
+            assert((placedId != Value::Null), &[add(&Value::Str("createOrder returned no order id for ".into()), &get_value(&exchange, &Value::Str("id".into())))]);
+            let mut returnedOutcome: Value = exchange.safe_string(order.clone(), Value::Str("outcome".into()), &[]);
+            assert((is_true(&(returnedOutcome == Value::Null)) || (is_equal(&returnedOutcome, &outcome))), &[add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str("createOrder outcome \"".into()), &exchange.json(returnedOutcome.clone())), Value::Str("\" should match requested \"".into())).into()), &outcome), Value::Str("\" for ".into())).into()), &get_value(&exchange, &Value::Str("id".into())))]);
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
             failure = exceptionMessage(e.clone());
@@ -1404,7 +1404,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // always cancel any placed order (cancelPredictionOrder swallows its own errors)
         self.cancel_prediction_order(exchange.clone(), placedId.clone(), outcome.clone()).await;
         if (failure != Value::Null) {
-            dump(&[Value::Str("[TEST_FAILURE]".to_string()), get_value(&exchange, &Value::Str("id".to_string())), Value::Str("prediction createOrder failed:".to_string()), failure.clone()]);
+            dump(&[Value::Str("[TEST_FAILURE]".into()), get_value(&exchange, &Value::Str("id".into())), Value::Str("prediction createOrder failed:".into()), failure.clone()]);
             return Value::Bool(false);
         }
         return Value::Bool(true);
@@ -1417,15 +1417,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return Value::Bool(true);
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            if is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("cancelOrder".to_string()), &[Value::Bool(false)]), &Value::Bool(true)) {
-                callExchangeMethodDynamically(&mut exchange, Value::Str("cancelOrder".to_string()), Value::from(vec![orderId.clone(), outcome.clone()])).await;
+            if is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("cancelOrder".into()), &[Value::Bool(false)]), &Value::Bool(true)) {
+                callExchangeMethodDynamically(&mut exchange, Value::Str("cancelOrder".into()), Value::from(vec![orderId.clone(), outcome.clone()])).await;
             }  else {
-                callExchangeMethodDynamically(&mut exchange, Value::Str("cancelAllOrders".to_string()), Value::from(vec![outcome.clone()])).await;
+                callExchangeMethodDynamically(&mut exchange, Value::Str("cancelAllOrders".into()), Value::from(vec![outcome.clone()])).await;
             }
-            dump(&[Value::Str("[INFO:MAIN] prediction order cancelled".to_string()), get_value(&exchange, &Value::Str("id".to_string())), orderId.clone()]);
+            dump(&[Value::Str("[INFO:MAIN] prediction order cancelled".into()), get_value(&exchange, &Value::Str("id".into())), orderId.clone()]);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            dump(&[Value::Str("[WARN] prediction order cancel failed".to_string()), get_value(&exchange, &Value::Str("id".to_string())), orderId.clone(), exceptionMessage(e.clone())]);
+            dump(&[Value::Str("[WARN] prediction order cancel failed".into()), get_value(&exchange, &Value::Str("id".into())), orderId.clone(), exceptionMessage(e.clone())]);
         }
         return Value::Bool(true);
 
@@ -1438,7 +1438,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // on the primary symbol per market type
         let mut symbol: Value = get_value(&symbols, &Value::Int(0));
         if !is_equal(&exchange.check_required_credentials(&[Value::Bool(false)]), &Value::Bool(true)) {
-            dump(&[Value::Str("[INFO] Skipping private tests".to_string()), Value::Str("Keys not found".to_string())]);
+            dump(&[Value::Str("[INFO] Skipping private tests".into()), Value::Str("Keys not found".into())]);
             return Value::Bool(true);
         }
         let mut code: Value = self.get_exchange_code(exchange.clone(), &[]);
@@ -1480,8 +1480,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("fetchLedgerEntry".to_string(), Value::from(vec![code.clone()]));
             m
         });
-        if is_true(&getCliArgValue(Value::Str("--fundedTests".to_string()))) {
-            if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("createOrder".to_string(), Value::from(vec![symbol.clone()])); }
+        if is_true(&getCliArgValue(Value::Str("--fundedTests".into()))) {
+            add_element_to_object(&mut tests, &Value::Str("createOrder".into()), Value::from(vec![symbol.clone()]));
         }
         if is_true(&self.wsTests) {
             tests = Value::Map({
@@ -1495,20 +1495,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
         }
         let mut market: Value = exchange.market(symbol.clone());
-        let mut isSpot: Value = get_value(&market, &Value::Str("spot".to_string()));
+        let mut isSpot: Value = get_value(&market, &Value::Str("spot".into()));
         if !is_true(&self.wsTests) {
             if is_equal(&isSpot, &Value::Bool(true)) {
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchCurrencies".to_string(), Value::from(vec![])); }
+                add_element_to_object(&mut tests, &Value::Str("fetchCurrencies".into()), Value::from(vec![]));
             }  else {
                 // derivatives only
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPositions".to_string(), Value::from(vec![symbol.clone()])); }; // this test fetches all positions for 1 symbol
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPosition".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPositionRisk".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("setPositionMode".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("setMarginMode".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchOpenInterestHistory".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRateHistory".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingHistory".to_string(), Value::from(vec![symbol.clone()])); }
+                add_element_to_object(&mut tests, &Value::Str("fetchPositions".into()), Value::from(vec![symbol.clone()])); // this test fetches all positions for 1 symbol
+                add_element_to_object(&mut tests, &Value::Str("fetchPosition".into()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchPositionRisk".into()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("setPositionMode".into()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("setMarginMode".into()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchOpenInterestHistory".into()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchFundingRateHistory".into()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchFundingHistory".into()), Value::from(vec![symbol.clone()]));
             }
         }
         // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
@@ -1544,10 +1544,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         // if exception was set, then throw it
         if (exceptionMessageString != Value::Null) {
-            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE] Failed ".to_string()), proxyTestName)), Value::Str(" : ".to_string()))), exceptionMessageString));
+            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE] Failed ".into()), proxyTestName).into()), Value::Str(" : ".into())).into()), exceptionMessageString).into());
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
-            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_WARNING]".to_string()), errorMessage))]);
+            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_WARNING]".into()), errorMessage).into())]);
         }
         return Value::Bool(true);
 
@@ -1556,29 +1556,29 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub fn check_constructor(&self, mut exchange: Value) {
         // todo: this might be moved in base tests later
-        if (get_value(&exchange, &Value::Str("id".to_string())).as_str() == Some("binance")) {
-            assert(((get_value(&exchange, &Value::Str("hostname".to_string())) == Value::Null) || (get_value(&exchange, &Value::Str("hostname".to_string())).as_str() == Some(""))), &[Value::Str("binance.com hostname should be empty".to_string())]);
-            assert((get_value(&exchange, &Value::Str("urls".to_string())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null).as_str() == Some("https://api.binance.com/api/v3")), &[add(&Value::Str("https://api.binance.com/api/v3 does not match: ".to_string()), &get_value(&exchange, &Value::Str("urls".to_string())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null))]);
-            assert((in_op(&get_value(&get_value(&exchange, &Value::Str("api".to_string())).as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null), &Value::Str("get".to_string())), &Value::Str("lending/union/account".to_string()))), &[Value::Str(format!("{}{}", Value::Str("SAPI should contain the endpoint lending/union/account, ".to_string()), jsonStringify(get_value(&get_value(&exchange, &Value::Str("api".to_string())).as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null), &Value::Str("get".to_string())))))]);
-        }  else if (get_value(&exchange, &Value::Str("id".to_string())).as_str() == Some("binanceus")) {
-            assert((get_value(&exchange, &Value::Str("hostname".to_string())).as_str() == Some("binance.us")), &[Value::Str(format!("{}{}", Value::Str("binance.us hostname does not match ".to_string()), get_value(&exchange, &Value::Str("hostname".to_string()))))]);
-            assert((get_value(&exchange, &Value::Str("urls".to_string())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null).as_str() == Some("https://api.binance.us/api/v3")), &[add(&Value::Str("https://api.binance.us/api/v3 does not match: ".to_string()), &get_value(&exchange, &Value::Str("urls".to_string())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null))]);
+        if (get_value(&exchange, &Value::Str("id".into())).as_str() == Some("binance")) {
+            assert(((get_value(&exchange, &Value::Str("hostname".into())) == Value::Null) || (get_value(&exchange, &Value::Str("hostname".into())).as_str() == Some(""))), &[Value::Str("binance.com hostname should be empty".into())]);
+            assert((get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null).as_str() == Some("https://api.binance.com/api/v3")), &[add(&Value::Str("https://api.binance.com/api/v3 does not match: ".into()), &get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null))]);
+            assert((in_op(&get_value(&get_value(&exchange, &Value::Str("api".into())).as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null), &Value::Str("get".into())), &Value::Str("lending/union/account".into()))), &[Value::Str(format!("{}{}", Value::Str("SAPI should contain the endpoint lending/union/account, ".into()), jsonStringify(get_value(&get_value(&exchange, &Value::Str("api".into())).as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null), &Value::Str("get".into())))).into())]);
+        }  else if (get_value(&exchange, &Value::Str("id".into())).as_str() == Some("binanceus")) {
+            assert((get_value(&exchange, &Value::Str("hostname".into())).as_str() == Some("binance.us")), &[Value::Str(format!("{}{}", Value::Str("binance.us hostname does not match ".into()), get_value(&exchange, &Value::Str("hostname".into()))).into())]);
+            assert((get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null).as_str() == Some("https://api.binance.us/api/v3")), &[add(&Value::Str("https://api.binance.us/api/v3 does not match: ".into()), &get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null))]);
         }
 }
 
     pub async fn test_return_response_headers(&mut self, mut exchange: Value) -> Value {
-        if (get_value(&exchange, &Value::Str("id".to_string())).as_str() != Some("binance")) {
+        if (get_value(&exchange, &Value::Str("id".into())).as_str() != Some("binance")) {
             return Value::Bool(false);
         }
-        ccxt::set_value(&mut exchange, &Value::Str("returnResponseHeaders".to_string()), Value::Bool(true));
-        let mut ticker: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ticker", vec![Value::Str("BTC/USDT".to_string())]).await;
+        ccxt::set_value(&mut exchange, &Value::Str("returnResponseHeaders".into()), Value::Bool(true));
+        let mut ticker: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ticker", vec![Value::Str("BTC/USDT".into())]).await;
         let mut info: Value = ticker.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null);
-        let mut headers: Value = get_value(&info, &Value::Str("responseHeaders".to_string()));
+        let mut headers: Value = get_value(&info, &Value::Str("responseHeaders".into()));
         let mut headersKeys: Value = object_keys(&headers);
-        assert((Value::Int(headersKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str("Response headers should not be empty".to_string())]);
+        assert((Value::Int(headersKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str("Response headers should not be empty".into())]);
         let mut headerValues: Value = object_values(&headers);
-        assert((Value::Int(headerValues.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str("Response headers values should not be empty".to_string())]);
-        ccxt::set_value(&mut exchange, &Value::Str("returnResponseHeaders".to_string()), Value::Bool(false));
+        assert((Value::Int(headerValues.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str("Response headers values should not be empty".into())]);
+        ccxt::set_value(&mut exchange, &Value::Str("returnResponseHeaders".into()), Value::Bool(false));
         return Value::Bool(true);
 
     Value::Null
@@ -1586,12 +1586,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub async fn start_test(&mut self, mut exchange: Value, mut symbolArgv: Value) -> Value {
         // we do not need to test aliases
-        if is_equal(&get_value(&exchange, &Value::Str("alias".to_string())), &Value::Bool(true)) {
+        if is_equal(&get_value(&exchange, &Value::Str("alias".into())), &Value::Bool(true)) {
             return Value::Bool(true);
         }
         self.check_constructor(exchange.clone());
         // await this.testReturnResponseHeaders (exchange);
-        if is_true(&self.sandbox) || (is_equal(&getExchangeProp(exchange.clone(), Value::Str("sandbox".to_string()), &[]), &Value::Bool(true))) {
+        if is_true(&self.sandbox) || (is_equal(&getExchangeProp(exchange.clone(), Value::Str("sandbox".into()), &[]), &Value::Bool(true))) {
             exchange.set_sandbox_mode(Value::Bool(true));
         }
         self.test_has_props(exchange.clone());
@@ -1624,14 +1624,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn test_has_props(&self, mut exchange: Value) {
-        let mut watchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("watchOrderBook".to_string()));
-        let mut fetchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("fetchOrderBook".to_string()));
+        let mut watchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("watchOrderBook".into()));
+        let mut fetchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("fetchOrderBook".into()));
         // ensure with hardcoded list of required methods
-        if is_true(&self.wsTests) && (exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("watchOrderBook".to_string()), &[Value::Bool(false)]).as_bool() != Some(true)) && !matches!(&watchOrderBookSkips, Value::Str(_)) {
-            dump(&[Value::Str("[TEST_FAILURE] Method \"watchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".to_string())]);
+        if is_true(&self.wsTests) && is_true(&(exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("watchOrderBook".into()), &[Value::Bool(false)]).as_bool() != Some(true))) && !matches!(&watchOrderBookSkips, Value::Str(_)) {
+            dump(&[Value::Str("[TEST_FAILURE] Method \"watchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".into())]);
             exitScript(Value::Int(1));
-        }  else if !is_true(&self.wsTests) && (exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("fetchOrderBook".to_string()), &[Value::Bool(false)]).as_bool() != Some(true)) && !matches!(&fetchOrderBookSkips, Value::Str(_)) {
-            dump(&[Value::Str("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".to_string())]);
+        }  else if !is_true(&self.wsTests) && is_true(&(exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("fetchOrderBook".into()), &[Value::Bool(false)]).as_bool() != Some(true))) && !matches!(&fetchOrderBookSkips, Value::Str(_)) {
+            dump(&[Value::Str("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".into())]);
             exitScript(Value::Int(1));
         }
 }
@@ -1654,9 +1654,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut storedString: Value = jsonStringify(storedOutput.clone());
         let mut errorMessage: Value = message.clone();
         if (key != Value::Null) {
-            errorMessage = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".to_string()), key)), Value::Str("]".to_string())));
+            errorMessage = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), key).into()), Value::Str("]".into())).into());
         }
-        errorMessage = Value::Str(format!("{}{}", errorMessage, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" computed: ".to_string()), storedString)), Value::Str(" stored: ".to_string()))), calculatedString))));
+        errorMessage = Value::Str(format!("{}{}", errorMessage, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" computed: ".into()), storedString).into()), Value::Str(" stored: ".into())).into()), calculatedString).into())).into());
         assert(cond.clone(), &[errorMessage.clone()]);
 }
 
@@ -1665,7 +1665,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // to make this test as fast as possible
         // and basically independent from the exchange
         // so we can run it offline
-        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/markets/".to_string()))), id)), Value::Str(".json".to_string())));
+        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/markets/".into())).into()), id).into()), Value::Str(".json".into())).into());
         let mut content: Value = ioFileRead(filename.clone(), &[]);
         return content;
 
@@ -1675,7 +1675,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn load_events_from_file(&self, mut id: Value) -> Value {
         // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
         // static/events/<id>.json; returns undefined when the exchange has no events fixture
-        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/events/".to_string()))), id)), Value::Str(".json".to_string())));
+        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/events/".into())).into()), id).into()), Value::Str(".json".into())).into());
         if !is_true(&ioFileExists(filename.clone())) {
             return Value::Null;
         }
@@ -1685,7 +1685,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn load_currencies_from_file(&self, mut id: Value) -> Value {
-        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/currencies/".to_string()))), id)), Value::Str(".json".to_string())));
+        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/currencies/".into())).into()), id).into()), Value::Str(".json".into())).into());
         let mut content: Value = ioFileRead(filename.clone(), &[]);
         return content;
 
@@ -1700,9 +1700,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         if (targetExchange != Value::Null) && (targetExchange.as_str() != Some("")) {
             // read a single exchange
-            let mut path: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", folder, targetExchange)), Value::Str(".json".to_string())));
+            let mut path: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", folder, targetExchange).into()), Value::Str(".json".into())).into());
             if !is_true(&ioFileExists(path.clone())) {
-                dump(&[Value::Str(format!("{}{}", Value::Str("[WARN] tests not found: ".to_string()), path))]);
+                dump(&[Value::Str(format!("{}{}", Value::Str("[WARN] tests not found: ".into()), path).into())]);
                 return Value::Null;
             }
             add_element_to_object(&mut result, &targetExchange, ioFileRead(path.clone(), &[]));
@@ -1713,7 +1713,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1518: bool = true;
             while { if !__for_first_1518 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1518 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(files.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut file: Value = files.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut file: Value = get_value(&files, &i);
             // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
             // fixtures live under static/<type>/prediction/). skip it by name — a string-equality
             // check the AST transpiler renders correctly in every language (indexOf/slice on this
@@ -1721,8 +1721,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (file.as_str() == Some("prediction")) {
                 continue;
             }
-            let mut exchangeName: Value = replace_str(&file, &Value::Str(".json".to_string()), &Value::Str("".to_string()));
-            let mut content: Value = ioFileRead(Value::Str(format!("{}{}", folder, file)), &[]);
+            let mut exchangeName: Value = replace_str(&file, &Value::Str(".json".into()), &Value::Str("".into()));
+            let mut content: Value = ioFileRead(Value::Str(format!("{}{}", folder, file).into()), &[]);
             add_element_to_object(&mut result, &exchangeName, content.clone());
         }
         }
@@ -1735,23 +1735,23 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (url == Value::Null) {
             return Value::Null;
         }
-        let mut urlParts: Value = split(&url, &Value::Str("/".to_string()));
-        let mut res: Value = Value::Str("".to_string());
+        let mut urlParts: Value = split(&url, &Value::Str("/".into()));
+        let mut res: Value = Value::Str("".into());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1519: bool = true;
             while { if !__for_first_1519 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1519 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if i.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN) {
-                let mut current: Value = urlParts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut current: Value = get_value(&urlParts, &i);
                 if Value::Int(current.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                     // handle urls like this: /v1/account/accounts?AccessK
-                    let mut currentParts: Value = split(&current, &Value::Str("?".to_string()));
-                    res = Value::Str(format!("{}{}", res, Value::Str("/".to_string())));
-                    res = Value::Str(format!("{}{}", res, currentParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)));
+                    let mut currentParts: Value = split(&current, &Value::Str("?".into()));
+                    res = Value::Str(format!("{}{}", res, Value::Str("/".into())).into());
+                    res = Value::Str(format!("{}{}", res, currentParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).into());
                     break;
                 }
-                res = Value::Str(format!("{}{}", res, Value::Str("/".to_string())));
-                res = Value::Str(format!("{}{}", res, current));
+                res = Value::Str(format!("{}{}", res, Value::Str("/".into())).into());
+                res = Value::Str(format!("{}{}", res, current).into());
             }
         }
         }
@@ -1765,20 +1765,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut parts: Value = split(&url, &Value::Str("&".to_string()));
+        let mut parts: Value = split(&url, &Value::Str("&".into()));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1520: bool = true;
             while { if !__for_first_1520 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1520 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(parts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut part: Value = parts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut keyValue: Value = split(&part, &Value::Str("=".to_string()));
+            let mut part: Value = get_value(&parts, &i);
+            let mut keyValue: Value = split(&part, &Value::Str("=".into()));
             let mut keysLength: Value = Value::Int(keyValue.len() as i64);
             if (keysLength.as_f64() != Some(2.0)) {
                 continue;
             }
             let mut key: Value = keyValue.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut value: Value = keyValue.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-            if (value != Value::Null) && ((starts_with(&value, &Value::Str("[".to_string()))) || (starts_with(&value, &Value::Str("{".to_string())))) {
+            if is_true(&(value != Value::Null)) && ((starts_with(&value, &Value::Str("[".into()))) || (starts_with(&value, &Value::Str("{".into())))) {
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value.clone());
             }
@@ -1794,13 +1794,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 // note: a plain `value === 0` is not enough, php's strict comparison says `0.0 !== 0`, so a
 // computed float zero would not be treated as empty and would mismatch a stored null (#30082)
     pub fn is_empty_output_value(&self, mut exchange: Value, mut value: Value) -> Value {
-        if (value == Value::Null) || (is_equal(&value, &Value::Bool(false))) || (value.as_str() == Some("")) {
+        if is_true(&(value == Value::Null)) || (is_equal(&value, &Value::Bool(false))) || is_true(&(value.as_str() == Some(""))) {
             return Value::Bool(true);
         }
-        if is_true(&exchange.is_dictionary(value.clone())) || (matches!(&value, Value::Arr(_))) {
+        if is_true(&exchange.is_dictionary(value.clone())) || is_true(&(matches!(&value, Value::Arr(_)))) {
             return Value::Bool(false);
         }
-        if (matches!(&value, Value::Str(_))) || (matches!(&value, Value::Bool(_))) {
+        if is_true(&(matches!(&value, Value::Str(_)))) || is_true(&(matches!(&value, Value::Bool(_)))) {
             return Value::Bool(false);
         }
         return Value::Bool(is_true(&(value.as_f64().unwrap_or(f64::NAN) <= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(value.as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))));
@@ -1821,12 +1821,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&isNullValue(value.clone())) {
             return Value::Bool(true);
         }
-        if (matches!(&value, Value::Arr(_))) {
+        if is_true(&(matches!(&value, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1521: bool = true;
                 while { if !__for_first_1521 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1521 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(value.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                if !is_true(&self.is_vacant_value(exchange.clone(), value.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))) {
+                if !is_true(&self.is_vacant_value(exchange.clone(), get_value(&value, &i))) {
                     return Value::Bool(false);
                 }
             }
@@ -1839,7 +1839,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1522: bool = true;
                 while { if !__for_first_1522 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1522 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                if !is_true(&self.is_vacant_value(exchange.clone(), get_value(&value, &keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)))) {
+                if !is_true(&self.is_vacant_value(exchange.clone(), get_value(&value, &get_value(&keys, &i)))) {
                     return Value::Bool(false);
                 }
             }
@@ -1860,7 +1860,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1523: bool = true;
             while { if !__for_first_1523 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1523 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut key: Value = get_value(&keys, &i);
             if !is_true(&(exchange.in_array(key.clone(), otherKeys.clone()))) && is_true(&self.is_vacant_value(exchange.clone(), get_value(&target, &key))) {
                 continue;
             }
@@ -1893,7 +1893,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         // if needed convert stringified jsons to objects
-        if (matches!(&storedOutput, Value::Str(_))) && (matches!(&newOutput, Value::Str(_))) && (starts_with(&storedOutput, &Value::Str("{".to_string()))) && (starts_with(&newOutput, &Value::Str("{".to_string()))) {
+        if is_true(&(matches!(&storedOutput, Value::Str(_)))) && is_true(&(matches!(&newOutput, Value::Str(_)))) && (starts_with(&storedOutput, &Value::Str("{".into()))) && (starts_with(&newOutput, &Value::Str("{".into()))) {
             storedOutput = jsonParse(storedOutput.clone());
             newOutput = jsonParse(newOutput.clone());
         }
@@ -1909,20 +1909,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 storedKeysLength = self.count_significant_keys(exchange.clone(), storedOutput.clone(), newOutputKeys.clone());
                 newKeysLength = self.count_significant_keys(exchange.clone(), newOutput.clone(), storedOutputKeys.clone());
             }
-            self.assert_static_error(Value::Bool(storedKeysLength.as_f64() == newKeysLength.as_f64()), Value::Str("output length mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[]);
+            self.assert_static_error(Value::Bool(storedKeysLength.as_f64() == newKeysLength.as_f64()), Value::Str("output length mismatch".into()), storedOutput.clone(), newOutput.clone(), &[]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1524: bool = true;
                 while { if !__for_first_1524 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1524 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(storedOutputKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut key: Value = storedOutputKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut key: Value = get_value(&storedOutputKeys, &i);
                 if is_true(&exchange.in_array(key.clone(), skipKeys.clone())) {
                     continue;
                 }
                 if !is_true(&(exchange.in_array(key.clone(), newOutputKeys.clone()))) {
-                    if (self.lang.as_str() == Some("C#")) && is_true(&self.is_vacant_value(exchange.clone(), get_value(&storedOutput, &key))) {
+                    if is_true(&(self.lang.as_str() == Some("C#"))) && is_true(&self.is_vacant_value(exchange.clone(), get_value(&storedOutput, &key))) {
                         continue;
                     }
-                    self.assert_static_error(Value::Bool(false), Value::Str(format!("{}{}", Value::Str("output key missing: ".to_string()), key)), storedOutput.clone(), newOutput.clone(), &[]);
+                    self.assert_static_error(Value::Bool(false), Value::Str(format!("{}{}", Value::Str("output key missing: ".into()), key).into()), storedOutput.clone(), newOutput.clone(), &[]);
                 }
                 let mut storedValue: Value = get_value(&storedOutput, &key);
                 let mut newValue: Value = get_value(&newOutput, &key);
@@ -1936,16 +1936,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 self.assert_new_and_stored_output_inner(exchange.clone(), skipKeys.clone(), newValue.clone(), storedValue.clone(), &[strictTypeCheck.clone(), key.clone()]);
             }
             }
-        }  else if (storedOutput != Value::Null) && (newOutput != Value::Null) && (matches!(&storedOutput, Value::Arr(_))) && (matches!(&newOutput, Value::Arr(_))) {
+        }  else if is_true(&(storedOutput != Value::Null)) && is_true(&(newOutput != Value::Null)) && is_true(&(matches!(&storedOutput, Value::Arr(_)))) && is_true(&(matches!(&newOutput, Value::Arr(_)))) {
             let mut storedArrayLength: Value = Value::Int(storedOutput.len() as i64);
             let mut newArrayLength: Value = Value::Int(newOutput.len() as i64);
-            self.assert_static_error(Value::Bool(storedArrayLength.as_f64() == newArrayLength.as_f64()), Value::Str("output length mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[]);
+            self.assert_static_error(Value::Bool(storedArrayLength.as_f64() == newArrayLength.as_f64()), Value::Str("output length mismatch".into()), storedOutput.clone(), newOutput.clone(), &[]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1525: bool = true;
                 while { if !__for_first_1525 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1525 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(storedOutput.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut storedItem: Value = storedOutput.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut newItem: Value = newOutput.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut storedItem: Value = get_value(&storedOutput, &i);
+                let mut newItem: Value = get_value(&newOutput, &i);
                 self.assert_new_and_stored_output_inner(exchange.clone(), skipKeys.clone(), newItem.clone(), storedItem.clone(), &[strictTypeCheck.clone()]);
             }
             }
@@ -1956,10 +1956,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
             // typed core hits constantly (its Num fields are real doubles, so an unset
             // cost arrives as 0.0 rather than as a string). Test for undefined instead.
-            let mut newOutputString: Value = (if (sanitizedNewOutput != Value::Null) { to_string_val(&sanitizedNewOutput) } else { Value::Str("undefined".to_string()) });
-            let mut storedOutputString: Value = (if (sanitizedStoredOutput != Value::Null) { to_string_val(&sanitizedStoredOutput) } else { Value::Str("undefined".to_string()) });
-            let mut messageError: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("output value mismatch:".to_string()), &newOutputString), Value::Str(" != ".to_string()))), &storedOutputString);
-            if is_true(&strictTypeCheck) && (self.lang.as_str() != Some("C#")) {
+            let mut newOutputString: Value = (if is_true(&(sanitizedNewOutput != Value::Null)) { to_string_val(&sanitizedNewOutput) } else { Value::Str("undefined".into()) });
+            let mut storedOutputString: Value = (if is_true(&(sanitizedStoredOutput != Value::Null)) { to_string_val(&sanitizedStoredOutput) } else { Value::Str("undefined".into()) });
+            let mut messageError: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("output value mismatch:".into()), &newOutputString), Value::Str(" != ".into())).into()), &storedOutputString);
+            if is_true(&strictTypeCheck) && is_true(&(self.lang.as_str() != Some("C#"))) {
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 self.assert_static_error(Value::Bool(is_equal(&sanitizedNewOutput, &sanitizedStoredOutput)), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
@@ -1970,8 +1970,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut isStoredString: Value = (Value::Bool(matches!(&sanitizedStoredOutput, Value::Str(_))));
                 let mut isComputedUndefined: Value = (Value::Bool(sanitizedNewOutput == Value::Null));
                 let mut isStoredUndefined: Value = (Value::Bool(sanitizedStoredOutput == Value::Null));
-                let mut shouldBeSame: Value = Value::Bool((isComputedBool.as_bool() == isStoredBool.as_bool()) && (isComputedString.as_bool() == isStoredString.as_bool()) && (isComputedUndefined.as_bool() == isStoredUndefined.as_bool()));
-                if !is_true(&shouldBeSame) && ((self.lang.as_str() == Some("PY")) || (self.lang.as_str() == Some("C#"))) && !is_true(&isComputedBool) && !is_true(&isStoredBool) && !is_true(&isComputedUndefined) && !is_true(&isStoredUndefined) {
+                let mut shouldBeSame: Value = Value::Bool(is_true(&(isComputedBool.as_bool() == isStoredBool.as_bool())) && is_true(&(isComputedString.as_bool() == isStoredString.as_bool())) && is_true(&(isComputedUndefined.as_bool() == isStoredUndefined.as_bool())));
+                if !is_true(&shouldBeSame) && (is_true(&(self.lang.as_str() == Some("PY"))) || is_true(&(self.lang.as_str() == Some("C#")))) && !is_true(&isComputedBool) && !is_true(&isStoredBool) && !is_true(&isComputedUndefined) && !is_true(&isStoredUndefined) {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
                     // c#: a typed core returns the unified `Num` fields as a real double, whereas the
@@ -2002,12 +2002,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         return Value::Bool(true);
                     }
                 }
-                self.assert_static_error(shouldBeSame.clone(), Value::Str("output type mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
+                self.assert_static_error(shouldBeSame.clone(), Value::Str("output type mismatch".into()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                 let mut isBoolean: bool = is_true(&isComputedBool) || is_true(&isStoredBool);
                 let mut isString: bool = is_true(&isComputedString) || is_true(&isStoredString);
                 let mut isUndefined: bool = is_true(&isComputedUndefined) || is_true(&isStoredUndefined); // undefined is a perfetly valid value
                 if isBoolean || isString || isUndefined {
-                    if (self.lang.as_str() == Some("C#")) || (self.lang.as_str() == Some("GO")) {
+                    if is_true(&(self.lang.as_str() == Some("C#"))) || is_true(&(self.lang.as_str() == Some("GO"))) {
                         // tmp c# number comparsion
                         let mut isNumber: Value = Value::Bool(false);
                         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -2056,8 +2056,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&self.info) {
-                let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.var_to_string(&[newOutput.clone()]), Value::Str("(calculated)".to_string()))), Value::Str(" != ".to_string()))), self.var_to_string(&[storedOutput.clone()]))), Value::Str("(stored)".to_string())));
-                dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE_DETAIL]".to_string()), errorMessage))]);
+                let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.var_to_string(&[newOutput.clone()]), Value::Str("(calculated)".into())).into()), Value::Str(" != ".into())).into()), self.var_to_string(&[storedOutput.clone()])).into()), Value::Str("(stored)".into())).into());
+                dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE_DETAIL]".into()), errorMessage).into())]);
             }
             panic!("{}", e);
         }
@@ -2070,9 +2070,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut obj = get_arg(optional_args, 0, Value::Null);
         let mut newString: Value = Value::Null;
         if (obj == Value::Null) {
-            newString = Value::Str("undefined".to_string());
+            newString = Value::Str("undefined".into());
         }  else if is_true(&isNullValue(obj.clone())) {
-            newString = Value::Str("null".to_string());
+            newString = Value::Str("null".into());
         }  else {
             newString = jsonStringify(obj.clone());
         }
@@ -2086,17 +2086,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // remove the host part from the url
             let mut firstPath: Value = self.remove_hostnamefrom_url(storedUrl.clone());
             let mut secondPath: Value = self.remove_hostnamefrom_url(requestUrl.clone());
-            self.assert_static_error(Value::Bool(firstPath.as_str() == secondPath.as_str()), Value::Str("url mismatch".to_string()), firstPath.clone(), secondPath.clone(), &[]);
+            self.assert_static_error(Value::Bool(firstPath.as_str() == secondPath.as_str()), Value::Str("url mismatch".into()), firstPath.clone(), secondPath.clone(), &[]);
         }
         // body (aka storedOutput and newOutput) is not defined and information is in the url
         // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
-        if (storedOutput == Value::Null) && (newOutput == Value::Null) {
-            if (storedUrl != Value::Null) && (requestUrl != Value::Null) {
-                let mut storedUrlParts: Value = split(&storedUrl, &Value::Str("?".to_string()));
-                let mut newUrlParts: Value = split(&requestUrl, &Value::Str("?".to_string()));
+        if is_true(&(storedOutput == Value::Null)) && is_true(&(newOutput == Value::Null)) {
+            if is_true(&(storedUrl != Value::Null)) && is_true(&(requestUrl != Value::Null)) {
+                let mut storedUrlParts: Value = split(&storedUrl, &Value::Str("?".into()));
+                let mut newUrlParts: Value = split(&requestUrl, &Value::Str("?".into()));
                 let mut storedUrlQuery: Value = exchange.safe_value(storedUrlParts.clone(), Value::Int(1), &[]);
                 let mut newUrlQuery: Value = exchange.safe_value(newUrlParts.clone(), Value::Int(1), &[]);
-                if (storedUrlQuery == Value::Null) && (newUrlQuery == Value::Null) {
+                if is_true(&(storedUrlQuery == Value::Null)) && is_true(&(newUrlQuery == Value::Null)) {
                     return Value::Bool(true);
                 }
                 let mut storedUrlParams: Value = self.urlencoded_to_dict(storedUrlQuery.clone());
@@ -2105,18 +2105,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return Value::Bool(true);
             }
         }
-        if (type_var.as_str() == Some("json")) && (storedOutput != Value::Null) && (newOutput != Value::Null) {
+        if (type_var.as_str() == Some("json")) && is_true(&(storedOutput != Value::Null)) && is_true(&(newOutput != Value::Null)) {
             if matches!(&storedOutput, Value::Str(_)) {
                 storedOutput = jsonParse(storedOutput.clone());
             }
             if matches!(&newOutput, Value::Str(_)) {
                 newOutput = jsonParse(newOutput.clone());
             }
-        }  else if (type_var.as_str() == Some("urlencoded")) && (storedOutput != Value::Null) && (newOutput != Value::Null) {
+        }  else if (type_var.as_str() == Some("urlencoded")) && is_true(&(storedOutput != Value::Null)) && is_true(&(newOutput != Value::Null)) {
             storedOutput = self.urlencoded_to_dict(storedOutput.clone());
             newOutput = self.urlencoded_to_dict(newOutput.clone());
         }  else if (type_var.as_str() == Some("both")) {
-            if (is_equal(&Value::Bool(starts_with(&storedOutput, &Value::Str("{".to_string()))), &Value::Bool(true))) || (is_equal(&Value::Bool(starts_with(&storedOutput, &Value::Str("[".to_string()))), &Value::Bool(true))) {
+            if (is_equal(&Value::Bool(starts_with(&storedOutput, &Value::Str("{".into()))), &Value::Bool(true))) || (is_equal(&Value::Bool(starts_with(&storedOutput, &Value::Str("[".into()))), &Value::Bool(true))) {
                 storedOutput = jsonParse(storedOutput.clone());
                 newOutput = jsonParse(newOutput.clone());
             }  else {
@@ -2161,7 +2161,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut output: Value = Value::Null;
         let mut requestUrl: Value = Value::Null;
         if is_true(&self.info) {
-            dump(&[Value::Str("[INFO] STATIC REQUEST TEST:".to_string()), method.clone(), Value::Str(":".to_string()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)]);
+            dump(&[Value::Str("[INFO] STATIC REQUEST TEST:".into()), method.clone(), Value::Str(":".into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)]);
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if !is_true(&isSync()) {
@@ -2174,19 +2174,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !(matches!(&e, Value::Str(__s) if __s.contains("[InvalidProxySettings]"))) {
                 panic!("{}", e);
             }
-            output = get_value(&exchange, &Value::Str("last_request_body".to_string()));
-            requestUrl = get_value(&exchange, &Value::Str("last_request_url".to_string()));
+            output = get_value(&exchange, &Value::Str("last_request_body".into()));
+            requestUrl = get_value(&exchange, &Value::Str("last_request_url".into()));
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            let mut callOutput: Value = exchange.safe_value(data.clone(), Value::Str("output".to_string()), &[]);
+            let mut callOutput: Value = exchange.safe_value(data.clone(), Value::Str("output".into()), &[]);
             self.assert_static_request_output(exchange.clone(), type_var.clone(), skipKeys.clone(), data.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null), requestUrl.clone(), callOutput.clone(), output.clone());
             // optional per-test header pinning. only the keys the fixture lists are compared, so a
             // fixture can pin one auth header without freezing the whole header set. this is the
             // only cross-language assertion on header *names*, which the php transpiler can
             // silently corrupt when a header literal contains a local/parameter name of sign ()
-            let mut storedHeaders: Value = exchange.safe_dict(data.clone(), Value::Str("headers".to_string()), &[]);
+            let mut storedHeaders: Value = exchange.safe_dict(data.clone(), Value::Str("headers".into()), &[]);
             if (storedHeaders != Value::Null) {
-                let mut sentHeaders: Value = (if (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+                let mut sentHeaders: Value = (if is_true(&(get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -2195,18 +2195,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_1527: bool = true;
                     while { if !__for_first_1527 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1527 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(storedHeaderKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut headerKey: Value = storedHeaderKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    let mut headerKey: Value = get_value(&storedHeaderKeys, &i);
                     let mut storedHeaderValue: Value = get_value(&storedHeaders, &headerKey);
                     let mut sentHeaderValue: Value = exchange.safe_string(sentHeaders.clone(), headerKey.clone(), &[]);
-                    self.assert_static_error(Value::Bool(is_equal(&sentHeaderValue, &storedHeaderValue)), Value::Str(format!("{}{}", Value::Str("header mismatch for ".to_string()), headerKey)), storedHeaderValue.clone(), sentHeaderValue.clone(), &[]);
+                    self.assert_static_error(Value::Bool(is_equal(&sentHeaderValue, &storedHeaderValue)), Value::Str(format!("{}{}", Value::Str("header mismatch for ".into()), headerKey).into()), storedHeaderValue.clone(), sentHeaderValue.clone(), &[]);
                 }
                 }
             }
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.requestTestsFailed = Value::Bool(true);
-            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".to_string()), self.lang.clone())), Value::Str("][STATIC_REQUEST]".to_string()))), Value::Str("[".to_string()))), &get_value(&exchange, &Value::Str("id".to_string()))), Value::Str("]".to_string()))), Value::Str("[".to_string()))), method)), Value::Str("]".to_string()))), Value::Str("[".to_string()))), &data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)), Value::Str("]".to_string()))), exceptionMessage(e.clone())));
-            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".to_string()), errorMessage))]);
+            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_REQUEST]".into())).into()), Value::Str("[".into())).into()), &get_value(&exchange, &Value::Str("id".into()))), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), &data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)), Value::Str("]".into())).into()), exceptionMessage(e.clone())).into());
+            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
         }
         return Value::Bool(true);
 
@@ -2214,11 +2214,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_response_statically(&mut self, mut exchange: Value, mut method: Value, mut skipKeys: Value, mut data: Value) -> Value {
-        let mut expectedResult: Value = exchange.safe_value(data.clone(), Value::Str("parsedResponse".to_string()), &[]);
+        let mut expectedResult: Value = exchange.safe_value(data.clone(), Value::Str("parsedResponse".into()), &[]);
         // 'httpResponseByUrl' serves a body per url fragment for methods that call several
         // endpoints; the typed ports narrow each body to the shape its api leaf declares,
         // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
-        let mut responsesByUrl: Value = exchange.safe_dict(data.clone(), Value::Str("httpResponseByUrl".to_string()), &[]);
+        let mut responsesByUrl: Value = exchange.safe_dict(data.clone(), Value::Str("httpResponseByUrl".into()), &[]);
         let mut mockedExchange: Value = exchange.clone();
         if (responsesByUrl != Value::Null) {
             mockedExchange = setFetchResponseByUrl(&mut exchange, responsesByUrl.clone());
@@ -2226,7 +2226,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             mockedExchange = setFetchResponse(&mut exchange, data.as_map().and_then(|__m| __m.get("httpResponse")).cloned().unwrap_or(Value::Null));
         }
         if is_true(&self.info) {
-            dump(&[Value::Str("[INFO] STATIC RESPONSE TEST:".to_string()), method.clone(), Value::Str(":".to_string()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)]);
+            dump(&[Value::Str("[INFO] STATIC RESPONSE TEST:".into()), method.clone(), Value::Str(":".into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)]);
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if !is_true(&isSync()) {
@@ -2239,8 +2239,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.responseTestsFailed = Value::Bool(true);
-            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".to_string()), self.lang.clone())), Value::Str("][STATIC_RESPONSE]".to_string()))), Value::Str("[".to_string()))), &get_value(&exchange, &Value::Str("id".to_string()))), Value::Str("]".to_string()))), Value::Str("[".to_string()))), method)), Value::Str("]".to_string()))), Value::Str("[".to_string()))), &data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)), Value::Str("]".to_string()))), exceptionMessage(e.clone())));
-            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".to_string()), errorMessage))]);
+            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_RESPONSE]".into())).into()), Value::Str("[".into())).into()), &get_value(&exchange, &Value::Str("id".into()))), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), &data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)), Value::Str("]".into())).into()), exceptionMessage(e.clone())).into());
+            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
         }
         setFetchResponse(&mut exchange, Value::Null); // reset state
         return Value::Bool(true);
@@ -2255,18 +2255,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1528: bool = true;
             while { if !__for_first_1528 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1528 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messages.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut waited: Value = Value::Int(0);
-            while !is_true(&wsClientHasPendingFutures(exchange.clone(), url.clone())) && (waited.as_f64().unwrap_or(f64::NAN) < Value::Int(5000).as_f64().unwrap_or(f64::NAN)) {
+            while !is_true(&wsClientHasPendingFutures(exchange.clone(), url.clone())) && is_true(&(waited.as_f64().unwrap_or(f64::NAN) < Value::Int(5000).as_f64().unwrap_or(f64::NAN))) {
                 exchange.sleep(Value::Int(50)).await;
                 waited = (match (&(waited), &(Value::Int(50))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             }
-            injectWsMessage(exchange.clone(), url.clone(), messages.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            injectWsMessage(exchange.clone(), url.clone(), get_value(&messages, &i));
             // threaded runtimes resolve futures on another thread — wait for
             // the consumed frame to settle so the pending check above does not
             // observe a stale future and burn the next frame early; frames
             // that resolve nothing (e.g. subscribe acks) fall through on the
             // timeout
             let mut settled: Value = Value::Int(0);
-            while is_true(&wsClientHasPendingFutures(exchange.clone(), url.clone())) && (settled.as_f64().unwrap_or(f64::NAN) < Value::Int(500).as_f64().unwrap_or(f64::NAN)) {
+            while is_true(&wsClientHasPendingFutures(exchange.clone(), url.clone())) && is_true(&(settled.as_f64().unwrap_or(f64::NAN) < Value::Int(500).as_f64().unwrap_or(f64::NAN))) {
                 exchange.sleep(Value::Int(20)).await;
                 settled = (match (&(settled), &(Value::Int(20))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             }
@@ -2282,7 +2282,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // work stealing): give up eventually so the stack unwinds instead
             // of deadlocking
             let mut waitedDone: Value = Value::Int(0);
-            while !is_true(&isWsTestCompleted(exchange.clone(), url.clone())) && (waitedDone.as_f64().unwrap_or(f64::NAN) < Value::Int(30000).as_f64().unwrap_or(f64::NAN)) {
+            while !is_true(&isWsTestCompleted(exchange.clone(), url.clone())) && is_true(&(waitedDone.as_f64().unwrap_or(f64::NAN) < Value::Int(30000).as_f64().unwrap_or(f64::NAN))) {
                 rejectPendingWsFutures(exchange.clone(), url.clone());
                 exchange.sleep(Value::Int(50)).await;
                 waitedDone = (match (&(waitedDone), &(Value::Int(50))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -2307,7 +2307,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // runtimes — roundtrip through json so the deep-compare sees plain
                 // dicts in every language
                 let mut unifiedResult: Value = jsonParse(jsonStringify(result.clone()));
-                self.assert_static_response_output(exchange.clone(), skipKeys.clone(), unifiedResult.clone(), expectedResults.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                self.assert_static_response_output(exchange.clone(), skipKeys.clone(), unifiedResult.clone(), get_value(&expectedResults, &i));
             }
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2327,17 +2327,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn assert_ws_sent_messages(&self, mut exchange: Value, mut url: Value, mut data: Value) {
         // the ws analog of the static request tests: assert the frames the
         // watch method sent over the mocked transport (subscribe requests etc)
-        let mut expectedSent: Value = exchange.safe_list(data.clone(), Value::Str("sentMessages".to_string()), &[]);
+        let mut expectedSent: Value = exchange.safe_list(data.clone(), Value::Str("sentMessages".into()), &[]);
         if (expectedSent == Value::Null) {
             return;
         }
         // ids/signatures/timestamps inside outgoing frames can be volatile —
         // exclude them per entry without touching the response skipKeys
-        let mut sentSkipKeys: Value = exchange.safe_list(data.clone(), Value::Str("sentSkipKeys".to_string()), &[Value::from(vec![])]);
+        let mut sentSkipKeys: Value = exchange.safe_list(data.clone(), Value::Str("sentSkipKeys".into()), &[Value::from(vec![])]);
         let mut sentMessages: Value = getWsSentMessages(exchange.clone(), url.clone());
         let mut sentLength: Value = get_array_length(&sentMessages);
         let mut expectedLength: Value = get_array_length(&expectedSent);
-        assert(Value::Bool(is_equal(&sentLength, &expectedLength)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str("sent ws messages count mismatch: sent ".to_string()), &to_string_val(&sentLength)), Value::Str(", expected ".to_string()))), &to_string_val(&expectedLength)), Value::Str(" ".to_string()))), jsonStringify(sentMessages.clone())))]);
+        assert(Value::Bool(is_equal(&sentLength, &expectedLength)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str("sent ws messages count mismatch: sent ".into()), &to_string_val(&sentLength)), Value::Str(", expected ".into())).into()), &to_string_val(&expectedLength)), Value::Str(" ".into())).into()), jsonStringify(sentMessages.clone())).into())]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1530: bool = true;
@@ -2349,20 +2349,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_ws_statically(&mut self, mut exchange: Value, mut method: Value, mut skipKeys: Value, mut data: Value) -> Value {
-        let mut url: Value = exchange.safe_string(data.clone(), Value::Str("url".to_string()), &[]);
+        let mut url: Value = exchange.safe_string(data.clone(), Value::Str("url".into()), &[]);
         setupWsMockTransport(exchange.clone(), url.clone());
-        let mut httpResponse: Value = exchange.safe_value(data.clone(), Value::Str("httpResponse".to_string()), &[]);
+        let mut httpResponse: Value = exchange.safe_value(data.clone(), Value::Str("httpResponse".into()), &[]);
         if (httpResponse != Value::Null) {
             // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
             setFetchResponse(&mut exchange, httpResponse.clone());
         }
         if is_true(&self.info) {
-            dump(&[Value::Str("[INFO] STATIC WS TEST:".to_string()), method.clone(), Value::Str(":".to_string()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)]);
+            dump(&[Value::Str("[INFO] STATIC WS TEST:".into()), method.clone(), Value::Str(":".into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)]);
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut messages: Value = exchange.safe_list(data.clone(), Value::Str("messages".to_string()), &[Value::from(vec![])]);
+            let mut messages: Value = exchange.safe_list(data.clone(), Value::Str("messages".into()), &[Value::from(vec![])]);
             let mut input: Value = self.sanitize_data_input(data.as_map().and_then(|__m| __m.get("input")).cloned().unwrap_or(Value::Null));
-            let mut expectedResults: Value = exchange.safe_list(data.clone(), Value::Str("parsedResponses".to_string()), &[]);
+            let mut expectedResults: Value = exchange.safe_list(data.clone(), Value::Str("parsedResponses".into()), &[]);
             if (expectedResults != Value::Null) {
                 // 'parsedResponses' asserts one result per successive watch
                 // resolution (e.g. an order going from open to closed)
@@ -2387,8 +2387,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.staticWsTestsFailed = Value::Bool(true);
-            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".to_string()), self.lang.clone())), Value::Str("][STATIC_WS]".to_string()))), Value::Str("[".to_string()))), &get_value(&exchange, &Value::Str("id".to_string()))), Value::Str("]".to_string()))), Value::Str("[".to_string()))), method)), Value::Str("]".to_string()))), Value::Str("[".to_string()))), &data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)), Value::Str("]".to_string()))), exceptionMessage(e.clone())));
-            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".to_string()), errorMessage))]);
+            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_WS]".into())).into()), Value::Str("[".into())).into()), &get_value(&exchange, &Value::Str("id".into()))), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), &data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)), Value::Str("]".into())).into()), exceptionMessage(e.clone())).into());
+            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
         }
         setFetchResponse(&mut exchange, Value::Null); // reset state
         return Value::Bool(true);
@@ -2411,56 +2411,56 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1532: bool = true;
             while { if !__for_first_1532 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1532 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(methodsNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut method: Value = methodsNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1531: bool = true;
                 while { if !__for_first_1531 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1531 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
-                let mut description: Value = get_value(&result, &Value::Str("description".to_string()));
-                if (testName != Value::Null) && (!is_equal(&testName, &description)) {
+                let mut description: Value = get_value(&result, &Value::Str("description".into()));
+                if is_true(&(testName != Value::Null)) && (!is_equal(&testName, &description)) {
                     continue;
                 }
                 // a fresh exchange per entry: ws caches (trades, orderbooks,
                 // ohlcvs) and request-id counters survive between watch calls
                 // and would leak state across entries otherwise
                 let mut exchange: Value = self.init_offline_exchange(exchangeName.clone(), &[Value::Bool(true)]);
-                let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".to_string()), &[Value::Bool(false)]);
+                let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]);
                 if (isDisabled.as_bool() == Some(true)) {
                     continue;
                 }
-                let mut disabledString: Value = exchange.safe_string(result.clone(), Value::Str("disabled".to_string()), &[Value::Str("".to_string())]);
+                let mut disabledString: Value = exchange.safe_string(result.clone(), Value::Str("disabled".into()), &[Value::Str("".into())]);
                 if (disabledString.as_str() != Some("")) {
                     continue;
                 }
-                let mut isDisabledCSharp: Value = exchange.safe_string(result.clone(), Value::Str("disabledCS".to_string()), &[]);
-                if (isDisabledCSharp != Value::Null) && (self.lang.as_str() == Some("C#")) {
+                let mut isDisabledCSharp: Value = exchange.safe_string(result.clone(), Value::Str("disabledCS".into()), &[]);
+                if is_true(&(isDisabledCSharp != Value::Null)) && is_true(&(self.lang.as_str() == Some("C#"))) {
                     continue;
                 }
-                let mut isDisabledGo: Value = exchange.safe_string(result.clone(), Value::Str("disabledGO".to_string()), &[]);
-                if (isDisabledGo != Value::Null) && (self.lang.as_str() == Some("GO")) {
+                let mut isDisabledGo: Value = exchange.safe_string(result.clone(), Value::Str("disabledGO".into()), &[]);
+                if is_true(&(isDisabledGo != Value::Null)) && is_true(&(self.lang.as_str() == Some("GO"))) {
                     continue;
                 }
-                let mut isDisabledJava: Value = exchange.safe_string(result.clone(), Value::Str("disabledJava".to_string()), &[]);
-                if (isDisabledJava != Value::Null) && (self.lang.as_str() == Some("java")) {
+                let mut isDisabledJava: Value = exchange.safe_string(result.clone(), Value::Str("disabledJava".into()), &[]);
+                if is_true(&(isDisabledJava != Value::Null)) && is_true(&(self.lang.as_str() == Some("java"))) {
                     continue;
                 }
-                let mut isDisabledPhp: Value = exchange.safe_string(result.clone(), Value::Str("disabledPHP".to_string()), &[]);
-                if (isDisabledPhp != Value::Null) && (self.lang.as_str() == Some("PHP")) {
+                let mut isDisabledPhp: Value = exchange.safe_string(result.clone(), Value::Str("disabledPHP".into()), &[]);
+                if is_true(&(isDisabledPhp != Value::Null)) && is_true(&(self.lang.as_str() == Some("PHP"))) {
                     continue;
                 }
-                let mut isDisabledRust: Value = exchange.safe_string(result.clone(), Value::Str("disabledRS".to_string()), &[]);
-                if (isDisabledRust != Value::Null) && (self.lang.as_str() == Some("RUST")) {
+                let mut isDisabledRust: Value = exchange.safe_string(result.clone(), Value::Str("disabledRS".into()), &[]);
+                if is_true(&(isDisabledRust != Value::Null)) && is_true(&(self.lang.as_str() == Some("RUST"))) {
                     continue;
                 }
                 exchange.extend_exchange_options(globalOptions.clone());
-                let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".to_string()), &[Value::Map({
+                let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".into()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
                 exchange.extend_exchange_options(testExchangeOptions.clone());
-                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::from(vec![])]);
+                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".into()), &[Value::from(vec![])]);
                 self.test_ws_statically(exchange.clone(), method.clone(), skipKeys.clone(), result.clone()).await;
                 if !is_true(&isSync()) {
                     close(exchange.clone()).await;
@@ -2498,25 +2498,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        let mut basePath: Value = Value::Str(format!("{}{}", getRootDir(), Value::Str("ts/src/test/static/binaries/".to_string())));
+        let mut basePath: Value = Value::Str(format!("{}{}", getRootDir(), Value::Str("ts/src/test/static/binaries/".into())).into());
         if (exchangeName.as_str() == Some("lighter")) {
             if (self.lang.as_str() == Some("JS")) {
-                wasmExecPath = Value::Str(format!("{}{}", basePath, Value::Str("wasm_exec.js".to_string())));
-                libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer.wasm".to_string())));
+                wasmExecPath = Value::Str(format!("{}{}", basePath, Value::Str("wasm_exec.js".into())).into());
+                libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer.wasm".into())).into());
             }  else {
                 if is_true(&isWindows()) {
-                    libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-windows-amd64.dll".to_string())));
+                    libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-windows-amd64.dll".into())).into());
                 }  else if is_true(&isLinux()) {
                     if is_true(&isAmd64()) {
-                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-linux-amd64.so".to_string())));
+                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-linux-amd64.so".into())).into());
                     }  else {
-                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-linux-arm64.so".to_string())));
+                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-linux-arm64.so".into())).into());
                     }
                 }  else {
                     if is_true(&isAmd64()) {
-                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-darwin-x86.dylib".to_string())));
+                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-darwin-x86.dylib".into())).into());
                     }  else {
-                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-darwin-arm64.dylib".to_string())));
+                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-darwin-arm64.dylib".into())).into());
                     }
                 }
             }
@@ -2527,33 +2527,33 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("currencies".to_string(), currencies.clone());
                 m.insert("enableRateLimit".to_string(), Value::Bool(false));
                 m.insert("rateLimit".to_string(), Value::Int(1));
-                m.insert("httpProxy".to_string(), Value::Str("http://fake:8080".to_string()));
-                m.insert("httpsProxy".to_string(), Value::Str("http://fake:8080".to_string()));
-                m.insert("apiKey".to_string(), Value::Str("key".to_string()));
-                m.insert("secret".to_string(), Value::Str("secretsecret".to_string()));
-                m.insert("password".to_string(), Value::Str("password".to_string()));
-                m.insert("walletAddress".to_string(), Value::Str("wallet".to_string()));
-                m.insert("privateKey".to_string(), Value::Str("0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771".to_string()));
-                m.insert("uid".to_string(), Value::Str("uid".to_string()));
-                m.insert("token".to_string(), Value::Str("token".to_string()));
-                m.insert("login".to_string(), Value::Str("login".to_string()));
-                m.insert("accountId".to_string(), Value::Str("12345".to_string()));
+                m.insert("httpProxy".to_string(), Value::Str("http://fake:8080".into()));
+                m.insert("httpsProxy".to_string(), Value::Str("http://fake:8080".into()));
+                m.insert("apiKey".to_string(), Value::Str("key".into()));
+                m.insert("secret".to_string(), Value::Str("secretsecret".into()));
+                m.insert("password".to_string(), Value::Str("password".into()));
+                m.insert("walletAddress".to_string(), Value::Str("wallet".into()));
+                m.insert("privateKey".to_string(), Value::Str("0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771".into()));
+                m.insert("uid".to_string(), Value::Str("uid".into()));
+                m.insert("token".to_string(), Value::Str("token".into()));
+                m.insert("login".to_string(), Value::Str("login".into()));
+                m.insert("accountId".to_string(), Value::Str("12345".into()));
                 m.insert("accounts".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("myAccount".to_string()));
-        m.insert("code".to_string(), Value::Str("USDT".to_string()));
+        m.insert("id".to_string(), Value::Str("myAccount".into()));
+        m.insert("code".to_string(), Value::Str("USDT".into()));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("myAccount".to_string()));
-        m.insert("code".to_string(), Value::Str("USDC".to_string()));
+        m.insert("id".to_string(), Value::Str("myAccount".into()));
+        m.insert("code".to_string(), Value::Str("USDC".into()));
     m
 })]));
                 m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("enableUnifiedAccount".to_string(), Value::Bool(true));
         m.insert("enableUnifiedMargin".to_string(), Value::Bool(false));
-        m.insert("accessToken".to_string(), Value::Str("token".to_string()));
+        m.insert("accessToken".to_string(), Value::Str("token".into()));
         m.insert("expires".to_string(), Value::Int(999999999999999));
         m.insert("leverageBrackets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2566,12 +2566,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (exchangeName.as_str() == Some("grvt")) {
-            if let Value::Dict(__d) = &mut options { std::sync::Arc::make_mut(__d).insert("apiKey".to_string(), Value::Str("".to_string())); }
-            if let Value::Dict(__d) = &mut options { std::sync::Arc::make_mut(__d).insert("secret".to_string(), Value::Str("".to_string())); }
+            add_element_to_object(&mut options, &Value::Str("apiKey".into()), Value::Str("".into()));
+            add_element_to_object(&mut options, &Value::Str("secret".into()), Value::Str("".into()));
         }
         let mut exchange: Value = initExchange(exchangeName.clone(), &[options.clone(), isWs.clone()]);
         if (currencies != Value::Null) {
-            ccxt::set_value(&mut exchange, &Value::Str("currencies".to_string()), currencies.clone());
+            ccxt::set_value(&mut exchange, &Value::Str("currencies".into()), currencies.clone());
         }
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
@@ -2581,18 +2581,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1534: bool = true;
                 while { if !__for_first_1534 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1534 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(predictionEvents.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut evMarkets: Value = exchange.safe_list(predictionEvents.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("markets".to_string()), &[Value::from(vec![])]);
+                let mut evMarkets: Value = exchange.safe_list(get_value(&predictionEvents, &i), Value::Str("markets".into()), &[Value::from(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1533: bool = true;
                     while { if !__for_first_1533 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1533 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(evMarkets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut evMarket: Value = evMarkets.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    let mut evMarket: Value = get_value(&evMarkets, &j);
                     // every market row must carry the unified market handle (PredictionMarket
                     // declares it required) — enforce it on the fixtures so a venue that stops
                     // setting it fails offline, not just in live tests. 'symbol' is deprecated
                     // on prediction structures and must be absent
-                    assert((exchange.safe_string(evMarket.clone(), Value::Str("market".to_string()), &[]) != Value::Null), &[Value::Str(format!("{}{}", exchangeName, Value::Str(" static events fixture: market row missing the unified market handle".to_string())))]);
-                    assert((exchange.safe_string(evMarket.clone(), Value::Str("symbol".to_string()), &[]) == Value::Null), &[Value::Str(format!("{}{}", exchangeName, Value::Str(" static events fixture: market row must not carry the deprecated symbol key".to_string())))]);
+                    assert((exchange.safe_string(evMarket.clone(), Value::Str("market".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", exchangeName, Value::Str(" static events fixture: market row missing the unified market handle".into())).into())]);
+                    assert((exchange.safe_string(evMarket.clone(), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", exchangeName, Value::Str(" static events fixture: market row must not carry the deprecated symbol key".into())).into())]);
                     append_to_array(&mut eventMarkets, evMarket.clone());
                 }
                 }
@@ -2611,38 +2611,38 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut testName = get_arg(optional_args, 0, Value::Null);
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         let mut exchange: Value = self.init_offline_exchange(exchangeName.clone(), &[]);
-        let mut globalOptions: Value = exchange.safe_dict(exchangeData.clone(), Value::Str("options".to_string()), &[Value::Map({
+        let mut globalOptions: Value = exchange.safe_dict(exchangeData.clone(), Value::Str("options".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         // read apiKey/secret from the test file
-        let mut apiKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("apiKey".to_string()), &[]);
+        let mut apiKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("apiKey".into()), &[]);
         if !is_true(&exchange.is_empty_string(apiKey.clone())) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("apiKey".to_string()), to_string_val(&apiKey));
+            ccxt::set_value(&mut exchange, &Value::Str("apiKey".into()), to_string_val(&apiKey));
         }
-        let mut secret: Value = exchange.safe_string(exchangeData.clone(), Value::Str("secret".to_string()), &[]);
+        let mut secret: Value = exchange.safe_string(exchangeData.clone(), Value::Str("secret".into()), &[]);
         if !is_true(&exchange.is_empty_string(secret.clone())) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), to_string_val(&secret));
+            ccxt::set_value(&mut exchange, &Value::Str("secret".into()), to_string_val(&secret));
         }
-        let mut privateKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("privateKey".to_string()), &[]);
+        let mut privateKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("privateKey".into()), &[]);
         if !is_true(&exchange.is_empty_string(privateKey.clone())) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("privateKey".to_string()), to_string_val(&privateKey));
+            ccxt::set_value(&mut exchange, &Value::Str("privateKey".into()), to_string_val(&privateKey));
         }
-        let mut walletAddress: Value = exchange.safe_string(exchangeData.clone(), Value::Str("walletAddress".to_string()), &[]);
+        let mut walletAddress: Value = exchange.safe_string(exchangeData.clone(), Value::Str("walletAddress".into()), &[]);
         if !is_true(&exchange.is_empty_string(walletAddress.clone())) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), to_string_val(&walletAddress));
+            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".into()), to_string_val(&walletAddress));
         }
-        let mut accounts: Value = exchange.safe_list(exchangeData.clone(), Value::Str("accounts".to_string()), &[]);
+        let mut accounts: Value = exchange.safe_list(exchangeData.clone(), Value::Str("accounts".into()), &[]);
         if (accounts != Value::Null) && (accounts != Value::Null) {
-            ccxt::set_value(&mut exchange, &Value::Str("accounts".to_string()), accounts.clone());
+            ccxt::set_value(&mut exchange, &Value::Str("accounts".into()), accounts.clone());
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extend_exchange_options(globalOptions.clone());
-        let mut methods: Value = exchange.safe_value(exchangeData.clone(), Value::Str("methods".to_string()), &[Value::Map({
+        let mut methods: Value = exchange.safe_value(exchangeData.clone(), Value::Str("methods".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2651,65 +2651,65 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1536: bool = true;
             while { if !__for_first_1536 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1536 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(methodsNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut method: Value = methodsNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1535: bool = true;
                 while { if !__for_first_1535 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1535 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
-                let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
-                let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".to_string()), &[Value::Map({
+                let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".into())); // snapshot options;
+                let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".into()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 let __eeo0 = exchange.deep_extend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
                 exchange.extend_exchange_options(__eeo0);
-                let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".to_string()), &[]);
-                if (testName != Value::Null) && (!is_equal(&testName, &description)) {
+                let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".into()), &[]);
+                if is_true(&(testName != Value::Null)) && (!is_equal(&testName, &description)) {
                     continue;
                 }
-                let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".to_string()), &[Value::Bool(false)]);
+                let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]);
                 if (isDisabled.as_bool() == Some(true)) {
                     continue;
                 }
-                let mut disabledString: Value = exchange.safe_string(result.clone(), Value::Str("disabled".to_string()), &[Value::Str("".to_string())]);
+                let mut disabledString: Value = exchange.safe_string(result.clone(), Value::Str("disabled".into()), &[Value::Str("".into())]);
                 if (disabledString.as_str() != Some("")) {
                     continue;
                 }
-                let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".to_string()), &[Value::Bool(false)]);
-                if (isDisabledCSharp.as_bool() == Some(true)) && (self.lang.as_str() == Some("C#")) {
+                let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]);
+                if is_true(&(isDisabledCSharp.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("C#"))) {
                     continue;
                 }
-                let mut isDisabledGo: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".to_string()), &[Value::Bool(false)]);
-                if (isDisabledGo.as_bool() == Some(true)) && (self.lang.as_str() == Some("GO")) {
+                let mut isDisabledGo: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]);
+                if is_true(&(isDisabledGo.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("GO"))) {
                     continue;
                 }
-                let mut isDisabledRust: Value = exchange.safe_bool(result.clone(), Value::Str("disabledRS".to_string()), &[Value::Bool(false)]);
-                if is_true(&isDisabledRust) && (self.lang.as_str() == Some("RUST")) {
+                let mut isDisabledRust: Value = exchange.safe_bool(result.clone(), Value::Str("disabledRS".into()), &[Value::Bool(false)]);
+                if is_true(&isDisabledRust) && is_true(&(self.lang.as_str() == Some("RUST"))) {
                     continue;
                 }
-                let mut isDisabledJava: Value = exchange.safe_bool(result.clone(), Value::Str("disabledJava".to_string()), &[Value::Bool(false)]);
-                if (isDisabledJava.as_bool() == Some(true)) && (self.lang.as_str() == Some("java")) {
+                let mut isDisabledJava: Value = exchange.safe_bool(result.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]);
+                if is_true(&(isDisabledJava.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("java"))) {
                     continue;
                 }
-                let mut type_var: Value = exchange.safe_string(exchangeData.clone(), Value::Str("outputType".to_string()), &[]);
-                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::from(vec![])]);
+                let mut type_var: Value = exchange.safe_string(exchangeData.clone(), Value::Str("outputType".into()), &[]);
+                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".into()), &[Value::from(vec![])]);
                 match std::panic::AssertUnwindSafe(self.test_request_statically(exchange.clone(), method.clone(), result.clone(), type_var.clone(), skipKeys.clone())).catch_unwind().await {
             Ok(_) => {},
             Err(__e) => {
                 self.requestTestsFailed = Value::Bool(true);
                 let __m = __e.downcast_ref::<String>().map(|s| s.as_str())
                     .or_else(|| __e.downcast_ref::<&str>().copied()).unwrap_or("panic");
-                dump(&[Value::Str(format!("[TEST_FAILURE] {}", __m))]);
+                dump(&[Value::Str(format!("[TEST_FAILURE] {}", __m).into())]);
             }
         }
                 // reset options
                 { let __sv_tmp = exchange.convert_to_safe_dictionary(exchange.deep_extend(oldExchangeOptions.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })])); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); }
+                })])); ccxt::set_value(&mut exchange, &Value::Str("options".into()), __sv_tmp); }
             }
             }
         }
@@ -2726,31 +2726,31 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut testName = get_arg(optional_args, 0, Value::Null);
         let mut exchange: Value = self.init_offline_exchange(exchangeName.clone(), &[]);
         // read apiKey/secret from the test file
-        let mut apiKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("apiKey".to_string()), &[]);
+        let mut apiKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("apiKey".into()), &[]);
         if !is_true(&exchange.is_empty_string(apiKey.clone())) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("apiKey".to_string()), to_string_val(&apiKey));
+            ccxt::set_value(&mut exchange, &Value::Str("apiKey".into()), to_string_val(&apiKey));
         }
-        let mut secret: Value = exchange.safe_string(exchangeData.clone(), Value::Str("secret".to_string()), &[]);
+        let mut secret: Value = exchange.safe_string(exchangeData.clone(), Value::Str("secret".into()), &[]);
         if !is_true(&exchange.is_empty_string(secret.clone())) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), to_string_val(&secret));
+            ccxt::set_value(&mut exchange, &Value::Str("secret".into()), to_string_val(&secret));
         }
-        let mut privateKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("privateKey".to_string()), &[]);
+        let mut privateKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("privateKey".into()), &[]);
         if !is_true(&exchange.is_empty_string(privateKey.clone())) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("privateKey".to_string()), to_string_val(&privateKey));
+            ccxt::set_value(&mut exchange, &Value::Str("privateKey".into()), to_string_val(&privateKey));
         }
-        let mut walletAddress: Value = exchange.safe_string(exchangeData.clone(), Value::Str("walletAddress".to_string()), &[]);
+        let mut walletAddress: Value = exchange.safe_string(exchangeData.clone(), Value::Str("walletAddress".into()), &[]);
         if !is_true(&exchange.is_empty_string(walletAddress.clone())) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), to_string_val(&walletAddress));
+            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".into()), to_string_val(&walletAddress));
         }
-        let mut methods: Value = exchange.safe_value(exchangeData.clone(), Value::Str("methods".to_string()), &[Value::Map({
+        let mut methods: Value = exchange.safe_value(exchangeData.clone(), Value::Str("methods".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut options: Value = exchange.safe_value(exchangeData.clone(), Value::Str("options".to_string()), &[Value::Map({
+        let mut options: Value = exchange.safe_value(exchangeData.clone(), Value::Str("options".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2761,57 +2761,57 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1538: bool = true;
             while { if !__for_first_1538 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1538 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(methodsNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut method: Value = methodsNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1537: bool = true;
                 while { if !__for_first_1537 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1537 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
-                let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".to_string()), &[]);
-                let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
-                let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".to_string()), &[Value::Map({
+                let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".into()), &[]);
+                let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".into())); // snapshot options;
+                let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".into()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 let __eeo1 = exchange.deep_extend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
                 exchange.extend_exchange_options(__eeo1);
-                let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".to_string()), &[Value::Bool(false)]);
+                let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]);
                 if (isDisabled.as_bool() == Some(true)) {
                     continue;
                 }
-                let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".to_string()), &[Value::Bool(false)]);
-                if (isDisabledCSharp.as_bool() == Some(true)) && (self.lang.as_str() == Some("C#")) {
+                let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]);
+                if is_true(&(isDisabledCSharp.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("C#"))) {
                     continue;
                 }
-                let mut isDisabledPHP: Value = exchange.safe_bool(result.clone(), Value::Str("disabledPHP".to_string()), &[Value::Bool(false)]);
-                if (isDisabledPHP.as_bool() == Some(true)) && (self.lang.as_str() == Some("PHP")) {
+                let mut isDisabledPHP: Value = exchange.safe_bool(result.clone(), Value::Str("disabledPHP".into()), &[Value::Bool(false)]);
+                if is_true(&(isDisabledPHP.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("PHP"))) {
                     continue;
                 }
-                if (testName != Value::Null) && (!is_equal(&testName, &description)) {
+                if is_true(&(testName != Value::Null)) && (!is_equal(&testName, &description)) {
                     continue;
                 }
-                let mut isDisabledGO: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".to_string()), &[Value::Bool(false)]);
-                if (isDisabledGO.as_bool() == Some(true)) && (self.lang.as_str() == Some("GO")) {
+                let mut isDisabledGO: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]);
+                if is_true(&(isDisabledGO.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("GO"))) {
                     continue;
                 }
-                let mut isDisabledRust: Value = exchange.safe_bool(result.clone(), Value::Str("disabledRS".to_string()), &[Value::Bool(false)]);
-                if is_true(&isDisabledRust) && (self.lang.as_str() == Some("RUST")) {
+                let mut isDisabledRust: Value = exchange.safe_bool(result.clone(), Value::Str("disabledRS".into()), &[Value::Bool(false)]);
+                if is_true(&isDisabledRust) && is_true(&(self.lang.as_str() == Some("RUST"))) {
                     continue;
                 }
-                let mut isDisabledJava: Value = exchange.safe_bool(result.clone(), Value::Str("disabledJava".to_string()), &[Value::Bool(false)]);
-                if (isDisabledJava.as_bool() == Some(true)) && (self.lang.as_str() == Some("java")) {
+                let mut isDisabledJava: Value = exchange.safe_bool(result.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]);
+                if is_true(&(isDisabledJava.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("java"))) {
                     continue;
                 }
-                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::from(vec![])]);
+                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".into()), &[Value::from(vec![])]);
                 match std::panic::AssertUnwindSafe(self.test_response_statically(exchange.clone(), method.clone(), skipKeys.clone(), result.clone())).catch_unwind().await {
             Ok(_) => {},
             Err(__e) => {
                 self.responseTestsFailed = Value::Bool(true);
                 let __m = __e.downcast_ref::<String>().map(|s| s.as_str())
                     .or_else(|| __e.downcast_ref::<&str>().copied()).unwrap_or("panic");
-                dump(&[Value::Str(format!("[TEST_FAILURE] {}", __m))]);
+                dump(&[Value::Str(format!("[TEST_FAILURE] {}", __m).into())]);
             }
         }
                 // reset options
@@ -2845,7 +2845,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1539: bool = true;
             while { if !__for_first_1539 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1539 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(methodsNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut method: Value = methodsNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             let mut resultsLength: Value = get_array_length(&results);
             sum = exchange.sum(&[sum.clone(), resultsLength.clone()]);
@@ -2857,45 +2857,45 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn check_if_exchange_is_disabled(&self, mut exchangeName: Value, mut exchangeData: Value) -> Value {
-        let mut exchange: Value = initExchange(Value::Str("Exchange".to_string()), &[Value::Map({
+        let mut exchange: Value = initExchange(Value::Str("Exchange".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         // prediction-market exchanges exist only in the async namespaces in python/php,
         // so their fixtures declare asyncOnly and the sync harness skips them
-        let mut isAsyncOnly: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("asyncOnly".to_string()), &[Value::Bool(false)]);
-        if (isAsyncOnly.as_bool() == Some(true)) && is_true(&isSync()) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".to_string()), exchangeName)), Value::Str(" is async-only, skipped by the sync test harness".to_string())))]);
+        let mut isAsyncOnly: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("asyncOnly".into()), &[Value::Bool(false)]);
+        if is_true(&(isAsyncOnly.as_bool() == Some(true))) && is_true(&isSync()) {
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is async-only, skipped by the sync test harness".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledPy: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPy".to_string()), &[Value::Bool(false)]);
-        if (isDisabledPy.as_bool() == Some(true)) && (self.lang.as_str() == Some("PY")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".to_string()), exchangeName)), Value::Str(" is disabled in python".to_string())))]);
+        let mut isDisabledPy: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPy".into()), &[Value::Bool(false)]);
+        if is_true(&(isDisabledPy.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("PY"))) {
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in python".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledPHP: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPHP".to_string()), &[Value::Bool(false)]);
-        if (isDisabledPHP.as_bool() == Some(true)) && (self.lang.as_str() == Some("PHP")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".to_string()), exchangeName)), Value::Str(" is disabled in php".to_string())))]);
+        let mut isDisabledPHP: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPHP".into()), &[Value::Bool(false)]);
+        if is_true(&(isDisabledPHP.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("PHP"))) {
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in php".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledCSharp: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledCS".to_string()), &[Value::Bool(false)]);
-        if (isDisabledCSharp.as_bool() == Some(true)) && (self.lang.as_str() == Some("C#")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".to_string()), exchangeName)), Value::Str(" is disabled in c#".to_string())))]);
+        let mut isDisabledCSharp: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]);
+        if is_true(&(isDisabledCSharp.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("C#"))) {
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in c#".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledGO: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledGO".to_string()), &[Value::Bool(false)]);
-        if (isDisabledGO.as_bool() == Some(true)) && (self.lang.as_str() == Some("GO")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".to_string()), exchangeName)), Value::Str(" is disabled in go".to_string())))]);
+        let mut isDisabledGO: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]);
+        if is_true(&(isDisabledGO.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("GO"))) {
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in go".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledRust: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledRS".to_string()), &[Value::Bool(false)]);
-        if is_true(&isDisabledRust) && (self.lang.as_str() == Some("RUST")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".to_string()), exchangeName)), Value::Str(" is disabled in rust".to_string())))]);
+        let mut isDisabledRust: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledRS".into()), &[Value::Bool(false)]);
+        if is_true(&isDisabledRust) && is_true(&(self.lang.as_str() == Some("RUST"))) {
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in rust".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledJava: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledJava".to_string()), &[Value::Bool(false)]);
-        if (isDisabledJava.as_bool() == Some(true)) && (self.lang.as_str() == Some("java")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".to_string()), exchangeName)), Value::Str(" is disabled in java".to_string())))]);
+        let mut isDisabledJava: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]);
+        if is_true(&(isDisabledJava.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("java"))) {
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in java".into())).into())]);
             return Value::Bool(true);
         }
         return Value::Bool(false);
@@ -2906,7 +2906,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn run_static_request_tests(&mut self, optional_args: &[Value]) -> Value {
         let mut targetExchange = get_arg(optional_args, 0, Value::Null);
         let mut testName = get_arg(optional_args, 1, Value::Null);
-        self.run_static_tests(Value::Str("request".to_string()), &[targetExchange.clone(), testName.clone()]).await;
+        self.run_static_tests(Value::Str("request".into()), &[targetExchange.clone(), testName.clone()]).await;
         return Value::Bool(true);
 
     Value::Null
@@ -2917,32 +2917,32 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut testName = get_arg(optional_args, 1, Value::Null);
         // prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
         // run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
-        let mut folder: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/".to_string()))), type_var)), Value::Str("/".to_string())));
+        let mut folder: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/".into())).into()), type_var).into()), Value::Str("/".into())).into());
         if is_true(&self.predictionTests) {
-            folder = Value::Str(format!("{}{}", folder, Value::Str("prediction/".to_string())));
+            folder = Value::Str(format!("{}{}", folder, Value::Str("prediction/".into())).into());
         }
         let mut staticData: Value = self.load_static_data(folder.clone(), &[targetExchange.clone()]);
         if (staticData == Value::Null) {
             return Value::Bool(true);
         }
         let mut exchanges: Value = object_keys(&staticData);
-        let mut exchange: Value = initExchange(Value::Str("Exchange".to_string()), &[Value::Map({
+        let mut exchange: Value = initExchange(Value::Str("Exchange".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         let mut promises: Value = Value::from(vec![]);
         let mut sum: Value = Value::Int(0);
         if (targetExchange != Value::Null) && (targetExchange.as_str() != Some("")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str("[INFO:MAIN] Exchange to test: ".to_string()), targetExchange))]);
+            dump(&[Value::Str(format!("{}{}", Value::Str("[INFO:MAIN] Exchange to test: ".into()), targetExchange).into())]);
         }
         if (testName != Value::Null) && (testName.as_str() != Some("")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str("[INFO:MAIN] Testing only: ".to_string()), testName))]);
+            dump(&[Value::Str(format!("{}{}", Value::Str("[INFO:MAIN] Testing only: ".into()), testName).into())]);
         }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1540: bool = true;
             while { if !__for_first_1540 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1540 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(exchanges.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut exchangeName: Value = exchanges.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut exchangeName: Value = get_value(&exchanges, &i);
             let mut exchangeData: Value = get_value(&staticData, &exchangeName);
             let mut disabled: Value = self.check_if_exchange_is_disabled(exchangeName.clone(), exchangeData.clone());
             if is_true(&disabled) {
@@ -2970,15 +2970,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 self.responseTestsFailed = Value::Bool(true);
             }
-            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".to_string()), self.lang.clone())), Value::Str("][STATIC_REQUEST]".to_string()))), exceptionMessage(e.clone())));
-            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".to_string()), errorMessage))]);
+            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_REQUEST]".into())).into()), exceptionMessage(e.clone())).into());
+            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
         }
         if is_true(&self.requestTestsFailed) || is_true(&self.responseTestsFailed) || is_true(&self.staticWsTestsFailed) {
             exitScript(Value::Int(1));
         }  else {
-            let mut prefix: Value = (if is_true(&(isSync())) { Value::Str("[SYNC]".to_string()) } else { Value::Str("".to_string()) });
-            let mut successMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".to_string()), self.lang.clone())), Value::Str("]".to_string()))), prefix)), Value::Str("[TEST_SUCCESS] ".to_string()))), to_string_val(&sum))), Value::Str(" static ".to_string()))), type_var)), Value::Str(" tests passed.".to_string())));
-            dump(&[Value::Str(format!("{}{}", Value::Str("[INFO]".to_string()), successMessage))]);
+            let mut prefix: Value = (if is_true(&(isSync())) { Value::Str("[SYNC]".into()) } else { Value::Str("".into()) });
+            let mut successMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("]".into())).into()), prefix).into()), Value::Str("[TEST_SUCCESS] ".into())).into()), to_string_val(&sum)).into()), Value::Str(" static ".into())).into()), type_var).into()), Value::Str(" tests passed.".into())).into());
+            dump(&[Value::Str(format!("{}{}", Value::Str("[INFO]".into()), successMessage).into())]);
         }
         return Value::Bool(true);
 
@@ -2991,7 +2991,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //  -----------------------------------------------------------------------------
         //  --- Init of mockResponses tests functions------------------------------------
         //  -----------------------------------------------------------------------------
-        self.run_static_tests(Value::Str("response".to_string()), &[exchangeName.clone(), test.clone()]).await;
+        self.run_static_tests(Value::Str("response".into()), &[exchangeName.clone(), test.clone()]).await;
         return Value::Bool(true);
 
     Value::Null
@@ -3006,7 +3006,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&isSync()) {
             return Value::Bool(true);
         }
-        self.run_static_tests(Value::Str("ws".to_string()), &[exchangeName.clone(), test.clone()]).await;
+        self.run_static_tests(Value::Str("ws".into()), &[exchangeName.clone(), test.clone()]).await;
         return Value::Bool(true);
 
     Value::Null
@@ -3018,8 +3018,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //  -----------------------------------------------------------------------------
         let mut promises: Value = Value::from(vec![self.test_binance().await, self.test_okx().await, self.test_cryptocom().await, self.test_bybit().await, self.test_kucoin().await, self.test_kucoinfutures().await, self.test_bitget().await, self.test_mexc().await, self.test_htx().await, self.test_woo().await, self.test_coinex().await, self.test_bingx().await, self.test_phemex().await, self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await, self.test_bithumb().await]);
         promise_all(&promises).await;
-        let mut successMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".to_string()), self.lang.clone())), Value::Str("][TEST_SUCCESS] brokerId tests passed.".to_string())));
-        dump(&[Value::Str(format!("{}{}", Value::Str("[INFO]".to_string()), successMessage))]);
+        let mut successMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][TEST_SUCCESS] brokerId tests passed.".into())).into());
+        dump(&[Value::Str(format!("{}{}", Value::Str("[INFO]".into()), successMessage).into())]);
         exitScript(Value::Int(0));
         return Value::Bool(true);
 
@@ -3027,70 +3027,70 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_binance(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("binance".to_string()), &[]);
-        let mut spotId: Value = Value::Str("x-TKT5PX2F".to_string());
-        let mut swapId: Value = Value::Str("x-cvBPrNm9".to_string());
-        let mut inverseSwapId: Value = Value::Str("x-xcKtGhcu".to_string());
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("binance".into()), &[]);
+        let mut spotId: Value = Value::Str("x-TKT5PX2F".into());
+        let mut swapId: Value = Value::Str("x-cvBPrNm9".into());
+        let mut inverseSwapId: Value = Value::Str("x-xcKtGhcu".into());
         let mut spotOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            spotOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            spotOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
         let mut spotIdString: Value = to_string_val(&spotId);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &spotIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - spot clientOrderId: ".to_string()), &clientOrderId), Value::Str(" does not start with spotId".to_string()))), spotIdString))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &spotIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - spot clientOrderId: ".into()), &clientOrderId), Value::Str(" does not start with spotId".into())).into()), spotIdString).into())]);
         let mut swapOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            swapOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            swapOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapInverseOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:BTC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            swapInverseOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            swapInverseOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         // linear swap
         let mut clientOrderIdSwap: Value = swapOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
         let mut swapIdString: Value = to_string_val(&swapId);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdSwap, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderId: ".to_string()), &clientOrderIdSwap), Value::Str(" does not start with swapId".to_string()))), swapIdString))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdSwap, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderId: ".into()), &clientOrderIdSwap), Value::Str(" does not start with swapId".into())).into()), swapIdString).into())]);
         // inverse swap
         let mut clientOrderIdInverse: Value = swapInverseOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdInverse, &inverseSwapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderIdInverse: ".to_string()), &clientOrderIdInverse), Value::Str(" does not start with swapId".to_string()))), inverseSwapId))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdInverse, &inverseSwapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderIdInverse: ".into()), &clientOrderIdInverse), Value::Str(" does not start with swapId".into())).into()), inverseSwapId).into())]);
         // linear swap conditional order
         let mut swapAlgoOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Float(0.002), Value::Int(102000), Value::Map({
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Float(0.002), Value::Int(102000), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("triggerPrice".to_string(), Value::Int(101000));
                 m
             })]).await;
-            let mut checkOrderRequest: Value = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            let mut checkOrderRequest: Value = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             let mut algoOrderIdDefined: Value = (Value::Bool(checkOrderRequest.as_map().and_then(|__m| __m.get("algoOrderId")).cloned().unwrap_or(Value::Null) != Value::Null));
-            assert(algoOrderIdDefined.clone(), &[Value::Str("binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined".to_string())]);
+            assert(algoOrderIdDefined.clone(), &[Value::Str("binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined".into())]);
             let mut clientAlgoIdSwap: Value = swapAlgoOrderRequest.as_map().and_then(|__m| __m.get("clientAlgoId")).cloned().unwrap_or(Value::Null);
             let mut swapAlgoIdString: Value = to_string_val(&swapId);
-            assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientAlgoIdSwap, &swapAlgoIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderId: ".to_string()), &clientAlgoIdSwap), Value::Str(" does not start with swapId".to_string()))), swapAlgoIdString))]);
+            assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientAlgoIdSwap, &swapAlgoIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderId: ".into()), &clientAlgoIdSwap), Value::Str(" does not start with swapId".into())).into()), swapAlgoIdString).into())]);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            swapAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            swapAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut createOrdersRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3099,24 +3099,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut orders: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
-        m.insert("type".to_string(), Value::Str("limit".to_string()));
-        m.insert("side".to_string(), Value::Str("sell".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".into()));
+        m.insert("type".to_string(), Value::Str("limit".into()));
+        m.insert("side".to_string(), Value::Str("sell".into()));
         m.insert("amount".to_string(), Value::Int(1));
         m.insert("price".to_string(), Value::Int(100000));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
-        m.insert("type".to_string(), Value::Str("market".to_string()));
-        m.insert("side".to_string(), Value::Str("buy".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".into()));
+        m.insert("type".to_string(), Value::Str("market".into()));
+        m.insert("side".to_string(), Value::Str("buy".into()));
         m.insert("amount".to_string(), Value::Int(1));
     m
 })]);
             crate::live_dispatch::dispatch(&mut exchange, "create_orders", vec![orders.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            createOrdersRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            createOrdersRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut batchOrders: Value = createOrdersRequest.as_map().and_then(|__m| __m.get("batchOrders")).cloned().unwrap_or(Value::Null);
         {
@@ -3124,8 +3124,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1541: bool = true;
             while { if !__for_first_1541 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1541 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&batchOrders).as_f64().unwrap_or(f64::NAN) } {
             let mut current: Value = get_value(&batchOrders, &i);
-            let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".to_string()));
-            assert(Value::Bool(is_equal(&Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance createOrders - clientOrderId: ".to_string()), &currentClientOrderId), Value::Str(" does not start with swapId".to_string()))), swapIdString))]);
+            let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".into()));
+            assert(Value::Bool(is_equal(&Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance createOrders - clientOrderId: ".into()), &currentClientOrderId), Value::Str(" does not start with swapId".into())).into()), swapIdString).into())]);
         }
         }
         if !is_true(&isSync()) {
@@ -3137,37 +3137,37 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_okx(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("okx".to_string()), &[]);
-        let mut id: Value = Value::Str("6b9ad766b55dBCDE".to_string());
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("okx".into()), &[]);
+        let mut id: Value = Value::Str("6b9ad766b55dBCDE".into());
         let mut spotOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
-        let mut clientOrderId: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".to_string())); // returns order inside array
+        let mut clientOrderId: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".into())); // returns order inside array
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("okx - spot clientOrderId: ".to_string()), &clientOrderId), Value::Str(" does not start with id: ".to_string()))), idString))]);
-        let mut spotTag: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("tag".to_string()));
-        assert(Value::Bool(is_equal(&spotTag, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("okx - id: ".to_string()), id)), Value::Str(" different from spot tag: ".to_string()))), &spotTag)]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("okx - spot clientOrderId: ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        let mut spotTag: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("tag".into()));
+        assert(Value::Bool(is_equal(&spotTag, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("okx - id: ".into()), id).into()), Value::Str(" different from spot tag: ".into())).into()), &spotTag)]);
         let mut swapOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
-        let mut clientOrderIdSwap: Value = get_value(&get_value(&swapOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".to_string()));
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdSwap, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("okx - swap clientOrderId: ".to_string()), &clientOrderIdSwap), Value::Str(" does not start with id: ".to_string()))), idString))]);
-        let mut swapTag: Value = get_value(&get_value(&swapOrderRequest, &Value::Int(0)), &Value::Str("tag".to_string()));
-        assert(Value::Bool(is_equal(&swapTag, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("okx - id: ".to_string()), id)), Value::Str(" different from swap tag: ".to_string()))), &swapTag)]);
+        let mut clientOrderIdSwap: Value = get_value(&get_value(&swapOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".into()));
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdSwap, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("okx - swap clientOrderId: ".into()), &clientOrderIdSwap), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        let mut swapTag: Value = get_value(&get_value(&swapOrderRequest, &Value::Int(0)), &Value::Str("tag".into()));
+        assert(Value::Bool(is_equal(&swapTag, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("okx - id: ".into()), id).into()), Value::Str(" different from swap tag: ".into())).into()), &swapTag)]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3177,21 +3177,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_cryptocom(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("cryptocom".to_string()), &[]);
-        let mut id: Value = Value::Str("CCXT".to_string());
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("cryptocom".into()), &[]);
+        let mut id: Value = Value::Str("CCXT".into());
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
-        let mut brokerId: Value = get_value(&request.as_map().and_then(|__m| __m.get("params")).cloned().unwrap_or(Value::Null), &Value::Str("broker_id".to_string()));
-        assert(Value::Bool(is_equal(&brokerId, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("cryptocom - id: ".to_string()), id)), Value::Str(" different from  broker_id: ".to_string()))), &brokerId)]);
+        let mut brokerId: Value = get_value(&request.as_map().and_then(|__m| __m.get("params")).cloned().unwrap_or(Value::Null), &Value::Str("broker_id".into()));
+        assert(Value::Bool(is_equal(&brokerId, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("cryptocom - id: ".into()), id).into()), Value::Str(" different from  broker_id: ".into())).into()), &brokerId)]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3201,24 +3201,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_bybit(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("bybit".to_string()), &[]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("bybit".into()), &[]);
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut id: Value = Value::Str("CCXT".to_string());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str("id not in options".to_string())]);
+        let mut id: Value = Value::Str("CCXT".into());
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str("id not in options".into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("Referer")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bybit - id: ".to_string()), id)), Value::Str(" not in headers.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("Referer")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bybit - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3228,58 +3228,58 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_bithumb(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("bithumb".to_string()), &[]);
-        let mut id: Value = Value::Str("CCXT".to_string());
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("bithumb".into()), &[]);
+        let mut id: Value = Value::Str("CCXT".into());
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             // default path: generation 2, the versioned (jwt-signed) endpoints
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/KRW".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/KRW".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bithumb - id: ".to_string()), id)), Value::Str(" not in headers (v2 endpoints).".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bithumb - id: ".into()), id).into()), Value::Str(" not in headers (v2 endpoints).".into())).into())]);
         reqHeaders = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             // legacy path: generation 1, the hmac-signed endpoints
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/KRW".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/KRW".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("generation".to_string(), Value::Int(1));
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bithumb - id: ".to_string()), id)), Value::Str(" not in headers (legacy endpoints).".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bithumb - id: ".into()), id).into()), Value::Str(" not in headers (legacy endpoints).".into())).into())]);
         reqHeaders = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             // public endpoints carry the partner header as well
-            crate::live_dispatch::dispatch(&mut exchange, "fetch_ticker", vec![Value::Str("BTC/KRW".to_string())]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "fetch_ticker", vec![Value::Str("BTC/KRW".into())]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bithumb - id: ".to_string()), id)), Value::Str(" not in headers (public endpoints).".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bithumb - id: ".into()), id).into()), Value::Str(" not in headers (public endpoints).".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3289,71 +3289,71 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_kucoin(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("kucoin".to_string()), &[]);
-        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("uta".to_string()), Value::Bool(false)); // prevents fetching account mode inside createOrder
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("kucoin".into()), &[]);
+        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("uta".into()), Value::Bool(false)); // prevents fetching account mode inside createOrder
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut spotId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("spot".to_string())), &Value::Str("id".to_string()));
-        let mut spotKey: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("spot".to_string())), &Value::Str("key".to_string()));
-        assert((spotId.as_str() == Some("ccxt")), &[Value::Str(format!("{}{}", add(&Value::Str("kucoin - id: ".to_string()), &spotId), Value::Str(" not in options".to_string())))]);
-        assert((spotKey.as_str() == Some("9e58cc35-5b5e-4133-92ec-166e3f077cb8")), &[Value::Str(format!("{}{}", add(&Value::Str("kucoin - key: ".to_string()), &spotKey), Value::Str(" not in options.".to_string())))]);
-        let mut futureId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".to_string())), &Value::Str("id".to_string()));
-        let mut futureKey: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".to_string())), &Value::Str("key".to_string()));
-        assert((futureId.as_str() == Some("ccxtfutures")), &[Value::Str(format!("{}{}", add(&Value::Str("kucoin - id: ".to_string()), &futureId), Value::Str(" not in options.".to_string())))]);
-        assert((futureKey.as_str() == Some("1b327198-f30c-4f14-a0ac-918871282f15")), &[Value::Str(format!("{}{}", add(&Value::Str("kucoin - key: ".to_string()), &futureKey), Value::Str(" not in options.".to_string())))]);
+        let mut spotId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("spot".into())), &Value::Str("id".into()));
+        let mut spotKey: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("spot".into())), &Value::Str("key".into()));
+        assert((spotId.as_str() == Some("ccxt")), &[Value::Str(format!("{}{}", add(&Value::Str("kucoin - id: ".into()), &spotId), Value::Str(" not in options".into())).into())]);
+        assert((spotKey.as_str() == Some("9e58cc35-5b5e-4133-92ec-166e3f077cb8")), &[Value::Str(format!("{}{}", add(&Value::Str("kucoin - key: ".into()), &spotKey), Value::Str(" not in options.".into())).into())]);
+        let mut futureId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".into())), &Value::Str("id".into()));
+        let mut futureKey: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".into())), &Value::Str("key".into()));
+        assert((futureId.as_str() == Some("ccxtfutures")), &[Value::Str(format!("{}{}", add(&Value::Str("kucoin - id: ".into()), &futureId), Value::Str(" not in options.".into())).into())]);
+        assert((futureKey.as_str() == Some("1b327198-f30c-4f14-a0ac-918871282f15")), &[Value::Str(format!("{}{}", add(&Value::Str("kucoin - key: ".into()), &futureKey), Value::Str(" not in options.".into())).into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        let mut id: Value = Value::Str("ccxt".to_string());
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".to_string()), id)), Value::Str(" not in headers for spot orders.".to_string())))]);
+        let mut id: Value = Value::Str("ccxt".into());
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".into()), id).into()), Value::Str(" not in headers for spot orders.".into())).into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".to_string()), id)), Value::Str(" not in headers for spot uta orders.".to_string())))]);
-        id = Value::Str("ccxtfutures".to_string());
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".into()), id).into()), Value::Str(" not in headers for spot uta orders.".into())).into())]);
+        id = Value::Str("ccxtfutures".into());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".to_string()), id)), Value::Str(" not in headers for swap orders.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".into()), id).into()), Value::Str(" not in headers for swap orders.".into())).into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".to_string()), id)), Value::Str(" not in headers for swap uta orders.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".into()), id).into()), Value::Str(" not in headers for swap uta orders.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3363,38 +3363,38 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_kucoinfutures(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("kucoinfutures".to_string()), &[]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("kucoinfutures".into()), &[]);
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut id: Value = Value::Str("ccxtfutures".to_string());
-        let mut futureId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".to_string())), &Value::Str("id".to_string()));
-        let mut futureKey: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".to_string())), &Value::Str("key".to_string()));
-        assert(Value::Bool(is_equal(&futureId, &id)), &[Value::Str(format!("{}{}", add(&Value::Str("kucoinfutures - id: ".to_string()), &futureId), Value::Str(" not in options.".to_string())))]);
-        assert((futureKey.as_str() == Some("1b327198-f30c-4f14-a0ac-918871282f15")), &[Value::Str(format!("{}{}", add(&Value::Str("kucoinfutures - key: ".to_string()), &futureKey), Value::Str(" not in options.".to_string())))]);
+        let mut id: Value = Value::Str("ccxtfutures".into());
+        let mut futureId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".into())), &Value::Str("id".into()));
+        let mut futureKey: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".into())), &Value::Str("key".into()));
+        assert(Value::Bool(is_equal(&futureId, &id)), &[Value::Str(format!("{}{}", add(&Value::Str("kucoinfutures - id: ".into()), &futureId), Value::Str(" not in options.".into())).into())]);
+        assert((futureKey.as_str() == Some("1b327198-f30c-4f14-a0ac-918871282f15")), &[Value::Str(format!("{}{}", add(&Value::Str("kucoinfutures - key: ".into()), &futureKey), Value::Str(" not in options.".into())).into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("uta".to_string()), Value::Bool(false));
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("uta".into()), Value::Bool(false));
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoinfutures - id: ".to_string()), id)), Value::Str(" not in headers.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoinfutures - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("uta".to_string()), Value::Bool(true));
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("uta".into()), Value::Bool(true));
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoinfutures - id: ".to_string()), id)), Value::Str(" not in headers for uta orders.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoinfutures - id: ".into()), id).into()), Value::Str(" not in headers for uta orders.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3404,23 +3404,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_bitget(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("bitget".to_string()), &[]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("bitget".into()), &[]);
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut id: Value = Value::Str("p4sve".to_string());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bitget - id: ".to_string()), id)), Value::Str(" not in options".to_string())))]);
+        let mut id: Value = Value::Str("p4sve".into());
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bitget - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-CHANNEL-API-CODE")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bitget - id: ".to_string()), id)), Value::Str(" not in headers.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-CHANNEL-API-CODE")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bitget - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3430,24 +3430,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_mexc(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("mexc".to_string()), &[]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("mexc".into()), &[]);
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut id: Value = Value::Str("CCXT".to_string());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("mexc - id: ".to_string()), id)), Value::Str(" not in options".to_string())))]);
+        let mut id: Value = Value::Str("CCXT".into());
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("mexc - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("source")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("mexc - id: ".to_string()), id)), Value::Str(" not in headers.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("source")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("mexc - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3457,47 +3457,47 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_htx(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("htx".to_string()), &[]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("htx".into()), &[]);
         // spot test
-        let mut id: Value = Value::Str("AA03022abc".to_string());
+        let mut id: Value = Value::Str("AA03022abc".into());
         let mut spotOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("client-order-id")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - spot clientOrderId ".to_string()), &clientOrderId), Value::Str(" does not start with id: ".to_string()))), idString))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - spot clientOrderId ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         // swap test
         let mut swapOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapInverseOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:BTC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            swapInverseOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            swapInverseOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdSwap: Value = swapOrderRequest.as_map().and_then(|__m| __m.get("channel_code")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdSwap, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - swap channel_code ".to_string()), &clientOrderIdSwap), Value::Str(" does not start with id: ".to_string()))), idString))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdSwap, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - swap channel_code ".into()), &clientOrderIdSwap), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         let mut clientOrderIdInverse: Value = swapInverseOrderRequest.as_map().and_then(|__m| __m.get("channel_code")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdInverse, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - swap inverse channel_code ".to_string()), &clientOrderIdInverse), Value::Str(" does not start with id: ".to_string()))), idString))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdInverse, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - swap inverse channel_code ".into()), &clientOrderIdInverse), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3507,39 +3507,39 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_woo(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("woo".to_string()), &[]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("woo".into()), &[]);
         // spot test
-        let mut id: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string());
+        let mut id: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".into());
         let mut spotOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("broker_id")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&brokerId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("woo - broker_id: ".to_string()), &brokerId), Value::Str(" does not start with id: ".to_string()))), idString))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&brokerId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("woo - broker_id: ".into()), &brokerId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         // swap test
         let mut stopOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("stopPrice".to_string(), Value::Int(30000));
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            stopOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            stopOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdStop: Value = stopOrderRequest.as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdStop, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("woo - brokerId: ".to_string()), &clientOrderIdStop), Value::Str(" does not start with id: ".to_string()))), idString))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdStop, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("woo - brokerId: ".into()), &clientOrderIdStop), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3549,22 +3549,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_coinex(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("coinex".to_string()), &[]);
-        let mut id: Value = Value::Str("x-167673045".to_string());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("coinex - id: ".to_string()), id)), Value::Str(" not in options".to_string())))]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("coinex".into()), &[]);
+        let mut id: Value = Value::Str("x-167673045".into());
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("coinex - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
         let mut spotOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("client_id")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("coinex - clientOrderId: ".to_string()), &clientOrderId), Value::Str(" does not start with id: ".to_string()))), idString))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("coinex - clientOrderId: ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3574,24 +3574,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_bingx(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("bingx".to_string()), &[]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("bingx".into()), &[]);
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut id: Value = Value::Str("CCXT".to_string());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bingx - id: ".to_string()), id)), Value::Str(" not in options".to_string())))]);
+        let mut id: Value = Value::Str("CCXT".into());
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bingx - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-SOURCE-KEY")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bingx - id: ".to_string()), id)), Value::Str(" not in headers.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-SOURCE-KEY")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bingx - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3601,21 +3601,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_phemex(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("phemex".to_string()), &[]);
-        let mut id: Value = Value::Str("CCXT123456".to_string());
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("phemex".into()), &[]);
+        let mut id: Value = Value::Str("CCXT123456".into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("clOrdID")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("phemex - clOrdID: ".to_string()), &clientOrderId), Value::Str(" does not start with id: ".to_string()))), idString))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("phemex - clOrdID: ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3625,21 +3625,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_blofin(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("blofin".to_string()), &[]);
-        let mut id: Value = Value::Str("ec6dd3a7dd982d0b".to_string());
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("blofin".into()), &[]);
+        let mut id: Value = Value::Str("ec6dd3a7dd982d0b".into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("LTC/USDT:USDT".to_string()), Value::Str("market".to_string()), Value::Str("buy".to_string()), Value::Int(1)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("LTC/USDT:USDT".into()), Value::Str("market".into()), Value::Str("buy".into()), Value::Int(1)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&brokerId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("blofin - brokerId: ".to_string()), &brokerId), Value::Str(" does not start with id: ".to_string()))), idString))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&brokerId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("blofin - brokerId: ".into()), &brokerId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3665,22 +3665,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 //     return true;
 // }
     pub async fn test_coinbaseinternational(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("coinbaseinternational".to_string()), &[]);
-        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("portfolio".to_string()), Value::Str("random".to_string()));
-        let mut id: Value = Value::Str("nfqkvdjp".to_string());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str("id not in options".to_string())]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("coinbaseinternational".into()), &[]);
+        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("portfolio".into()), Value::Str("random".into()));
+        let mut id: Value = Value::Str("nfqkvdjp".into());
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str("id not in options".into())]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("client_order_id")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &to_string_val(&id))), &Value::Bool(true))), &[Value::Str("clientOrderId does not start with id".to_string())]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &to_string_val(&id))), &Value::Bool(true))), &[Value::Str("clientOrderId does not start with id".into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3690,21 +3690,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_coinbase_advanced(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("coinbase".to_string()), &[]);
-        let mut id: Value = Value::Str("ccxt".to_string());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str("id not in options".to_string())]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("coinbase".into()), &[]);
+        let mut id: Value = Value::Str("ccxt".into());
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str("id not in options".into())]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("client_order_id")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &to_string_val(&id))), &Value::Bool(true))), &[Value::Str("clientOrderId does not start with id".to_string())]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &to_string_val(&id))), &Value::Bool(true))), &[Value::Str("clientOrderId does not start with id".into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3717,22 +3717,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.lang.as_str() == Some("java")) {
             return Value::Bool(false);
         }
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("woofipro".to_string()), &[]);
-        ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
-        let mut id: Value = Value::Str("CCXT".to_string());
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("woofipro".into()), &[]);
+        ccxt::set_value(&mut exchange, &Value::Str("secret".into()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".into()));
+        let mut id: Value = Value::Str("CCXT".into());
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("order_tag")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&brokerId, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("woofipro - id: ".to_string()), id)), Value::Str(" different from  broker_id: ".to_string()))), &brokerId)]);
+        assert(Value::Bool(is_equal(&brokerId, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("woofipro - id: ".into()), id).into()), Value::Str(" different from  broker_id: ".into())).into()), &brokerId)]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3742,32 +3742,32 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_xt(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("xt".to_string()), &[]);
-        let mut id: Value = Value::Str("CCXT".to_string());
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("xt".into()), &[]);
+        let mut id: Value = Value::Str("CCXT".into());
         let mut spotOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut spotMedia: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("media")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&spotMedia, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("xt - id: ".to_string()), id)), Value::Str(" different from swap tag: ".to_string()))), &spotMedia)]);
+        assert(Value::Bool(is_equal(&spotMedia, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("xt - id: ".into()), id).into()), Value::Str(" different from swap tag: ".into())).into()), &spotMedia)]);
         let mut swapOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapMedia: Value = swapOrderRequest.as_map().and_then(|__m| __m.get("clientMedia")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&swapMedia, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("xt - id: ".to_string()), id)), Value::Str(" different from swap tag: ".to_string()))), &swapMedia)]);
+        assert(Value::Bool(is_equal(&swapMedia, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("xt - id: ".into()), id).into()), Value::Str(" different from swap tag: ".into())).into()), &swapMedia)]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3780,55 +3780,55 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.lang.as_str() == Some("java")) {
             return Value::Bool(false);
         }
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("paradex".to_string()), &[]);
-        ccxt::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), Value::Str("0xc751489d24a33172541ea451bc253d7a9e98c781".to_string()));
-        ccxt::set_value(&mut exchange, &Value::Str("privateKey".to_string()), Value::Str("c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b".to_string()));
-        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("authToken".to_string()), Value::Str("token".to_string()));
-        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("systemConfig".to_string()), Value::Map({
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("paradex".into()), &[]);
+        ccxt::set_value(&mut exchange, &Value::Str("walletAddress".into()), Value::Str("0xc751489d24a33172541ea451bc253d7a9e98c781".into()));
+        ccxt::set_value(&mut exchange, &Value::Str("privateKey".into()), Value::Str("c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b".into()));
+        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("authToken".into()), Value::Str("token".into()));
+        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("systemConfig".into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("starknet_gateway_url".to_string(), Value::Str("https://potc-testnet-sepolia.starknet.io".to_string()));
-        m.insert("starknet_fullnode_rpc_url".to_string(), Value::Str("https://pathfinder.api.testnet.paradex.trade/rpc/v0_7".to_string()));
-        m.insert("starknet_chain_id".to_string(), Value::Str("PRIVATE_SN_POTC_SEPOLIA".to_string()));
-        m.insert("block_explorer_url".to_string(), Value::Str("https://voyager.testnet.paradex.trade/".to_string()));
-        m.insert("paraclear_address".to_string(), Value::Str("0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6".to_string()));
+        m.insert("starknet_gateway_url".to_string(), Value::Str("https://potc-testnet-sepolia.starknet.io".into()));
+        m.insert("starknet_fullnode_rpc_url".to_string(), Value::Str("https://pathfinder.api.testnet.paradex.trade/rpc/v0_7".into()));
+        m.insert("starknet_chain_id".to_string(), Value::Str("PRIVATE_SN_POTC_SEPOLIA".into()));
+        m.insert("block_explorer_url".to_string(), Value::Str("https://voyager.testnet.paradex.trade/".into()));
+        m.insert("paraclear_address".to_string(), Value::Str("0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6".into()));
         m.insert("paraclear_decimals".to_string(), Value::Int(8));
-        m.insert("paraclear_account_proxy_hash".to_string(), Value::Str("0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9".to_string()));
-        m.insert("paraclear_account_hash".to_string(), Value::Str("0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e".to_string()));
-        m.insert("oracle_address".to_string(), Value::Str("0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f".to_string()));
+        m.insert("paraclear_account_proxy_hash".to_string(), Value::Str("0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9".into()));
+        m.insert("paraclear_account_hash".to_string(), Value::Str("0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e".into()));
+        m.insert("oracle_address".to_string(), Value::Str("0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f".into()));
         m.insert("bridged_tokens".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("name".to_string(), Value::Str("TEST USDC".to_string()));
-        m.insert("symbol".to_string(), Value::Str("USDC".to_string()));
+        m.insert("name".to_string(), Value::Str("TEST USDC".into()));
+        m.insert("symbol".to_string(), Value::Str("USDC".into()));
         m.insert("decimals".to_string(), Value::Int(6));
-        m.insert("l1_token_address".to_string(), Value::Str("0x29A873159D5e14AcBd63913D4A7E2df04570c666".to_string()));
-        m.insert("l1_bridge_address".to_string(), Value::Str("0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C".to_string()));
-        m.insert("l2_token_address".to_string(), Value::Str("0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e".to_string()));
-        m.insert("l2_bridge_address".to_string(), Value::Str("0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef".to_string()));
+        m.insert("l1_token_address".to_string(), Value::Str("0x29A873159D5e14AcBd63913D4A7E2df04570c666".into()));
+        m.insert("l1_bridge_address".to_string(), Value::Str("0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C".into()));
+        m.insert("l2_token_address".to_string(), Value::Str("0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e".into()));
+        m.insert("l2_bridge_address".to_string(), Value::Str("0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef".into()));
     m
 })]));
-        m.insert("l1_core_contract_address".to_string(), Value::Str("0x582CC5d9b509391232cd544cDF9da036e55833Af".to_string()));
-        m.insert("l1_operator_address".to_string(), Value::Str("0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB".to_string()));
-        m.insert("l1_chain_id".to_string(), Value::Str("11155111".to_string()));
-        m.insert("liquidation_fee".to_string(), Value::Str("0.2".to_string()));
+        m.insert("l1_core_contract_address".to_string(), Value::Str("0x582CC5d9b509391232cd544cDF9da036e55833Af".into()));
+        m.insert("l1_operator_address".to_string(), Value::Str("0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB".into()));
+        m.insert("l1_chain_id".to_string(), Value::Str("11155111".into()));
+        m.insert("liquidation_fee".to_string(), Value::Str("0.2".into()));
     m
 }));
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut id: Value = Value::Str("CCXT".to_string());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("paradex - id: ".to_string()), id)), Value::Str(" not in options".to_string())))]);
+        let mut id: Value = Value::Str("CCXT".into());
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("paradex - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("PARADEX-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("paradex - id: ".to_string()), id)), Value::Str(" not in headers".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("PARADEX-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("paradex - id: ".into()), id).into()), Value::Str(" not in headers".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3838,23 +3838,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_hashkey(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("hashkey".to_string()), &[]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("hashkey".into()), &[]);
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut id: Value = Value::Str("10000700011".to_string());
+        let mut id: Value = Value::Str("10000700011".into());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("INPUT-SOURCE")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("hashkey - id: ".to_string()), id)), Value::Str(" not in headers.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("INPUT-SOURCE")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("hashkey - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3864,19 +3864,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_cryptomus(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("cryptomus".to_string()), &[]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("cryptomus".into()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("sell".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("sell".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
-        let mut tag: Value = Value::Str("ccxt".to_string());
-        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("tag")).cloned().unwrap_or(Value::Null), &tag)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("cryptomus - tag: ".to_string()), tag)), Value::Str(" not in request.".to_string())))]);
+        let mut tag: Value = Value::Str("ccxt".into());
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("tag")).cloned().unwrap_or(Value::Null), &tag)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("cryptomus - tag: ".into()), tag).into()), Value::Str(" not in request.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3889,9 +3889,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.lang.as_str() == Some("java")) {
             return Value::Bool(false);
         }
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("derive".to_string()), &[]);
-        let mut id: Value = Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".to_string());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("derive - id: ".to_string()), id)), Value::Str(" not in options".to_string())))]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("derive".into()), &[]);
+        let mut id: Value = Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".into());
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("derive - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3901,17 +3901,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), Value::Int(1234));
                     m.insert("max_fee".to_string(), Value::Int(10));
-                    m.insert("deriveWalletAddress".to_string(), Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".to_string()));
+                    m.insert("deriveWalletAddress".to_string(), Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".into()));
                 m
             });
-            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".to_string()));
-            ccxt::set_value(&mut exchange, &Value::Str("privateKey".to_string()), Value::Str("0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5".to_string()));
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("LBTC/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("sell".to_string()), Value::Float(0.01), Value::Int(3000), params.clone()]).await;
+            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".into()), Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".into()));
+            ccxt::set_value(&mut exchange, &Value::Str("privateKey".into()), Value::Str("0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5".into()));
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("LBTC/USDC".into()), Value::Str("limit".into()), Value::Str("sell".into()), Value::Float(0.01), Value::Int(3000), params.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
-        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("referral_code")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("derive - referral_code: ".to_string()), id)), Value::Str(" not in request.".to_string())))]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("referral_code")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("derive - referral_code: ".into()), id).into()), Value::Str(" not in request.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3924,22 +3924,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.lang.as_str() == Some("java")) {
             return Value::Bool(false);
         }
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("modetrade".to_string()), &[]);
-        ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
-        let mut id: Value = Value::Str("CCXTMODE".to_string());
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("modetrade".into()), &[]);
+        ccxt::set_value(&mut exchange, &Value::Str("secret".into()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".into()));
+        let mut id: Value = Value::Str("CCXTMODE".into());
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("order_tag")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&brokerId, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("modetrade - id: ".to_string()), id)), Value::Str(" different from  broker_id: ".to_string()))), &brokerId)]);
+        assert(Value::Bool(is_equal(&brokerId, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("modetrade - id: ".into()), id).into()), Value::Str(" different from  broker_id: ".into())).into()), &brokerId)]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3949,25 +3949,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_backpack(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("backpack".to_string()), &[]);
-        ccxt::set_value(&mut exchange, &Value::Str("apiKey".to_string()), Value::Str("Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=".to_string()));
-        ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=".to_string()));
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("backpack".into()), &[]);
+        ccxt::set_value(&mut exchange, &Value::Str("apiKey".into()), Value::Str("Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=".into()));
+        ccxt::set_value(&mut exchange, &Value::Str("secret".into()), Value::Str("sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=".into()));
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut id: Value = Value::Str("1400".to_string());
+        let mut id: Value = Value::Str("1400".into());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("ETH/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(5000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("ETH/USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(5000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-Broker-Id")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("backpack - id: ".to_string()), id)), Value::Str(" not in headers.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-Broker-Id")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("backpack - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3977,23 +3977,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_toobit(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("toobit".to_string()), &[]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("toobit".into()), &[]);
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut id: Value = Value::Str("177321641268789".to_string());
+        let mut id: Value = Value::Str("177321641268789".into());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-BB-API-PLATFORM")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("toobit - id: ".to_string()), id)), Value::Str(" not in headers.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-BB-API-PLATFORM")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("toobit - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4003,53 +4003,53 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_weex(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("weex".to_string()), &[]);
-        let mut id: Value = Value::Str("b-WEEX111125".to_string());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("weex - id: ".to_string()), id)), Value::Str(" not in options".to_string())))]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("weex".into()), &[]);
+        let mut id: Value = Value::Str("b-WEEX111125".into());
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("weex - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &id)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("weex - newClientOrderId: ".to_string()), &clientOrderId), Value::Str(" for spot order does not start with id: ".to_string()))), id))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &id)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("weex - newClientOrderId: ".into()), &clientOrderId), Value::Str(" for spot order does not start with id: ".into())).into()), id).into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         clientOrderId = request.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &id)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("weex - newClientOrderId: ".to_string()), &clientOrderId), Value::Str(" for swap order does not start with id: ".to_string()))), id))]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &id)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("weex - newClientOrderId: ".into()), &clientOrderId), Value::Str(" for swap order does not start with id: ".into())).into()), id).into())]);
 
     Value::Null
 }
 
     pub async fn test_foxbit(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("foxbit".to_string()), &[]);
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("foxbit".into()), &[]);
         let mut reqHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut id: Value = Value::Str("ccxt".to_string());
+        let mut id: Value = Value::Str("ccxt".into());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/BRL".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/BRL".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
-            reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".to_string())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".to_string())) } else { Value::Map({
+            reqHeaders = (if is_true(&((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null))) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-FB-CLIENT")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("foxbit - id: ".to_string()), id)), Value::Str(" not in headers.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-FB-CLIENT")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("foxbit - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
         let mut version: Value = exchange.get_ccxt_version();
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-FB-CLIENT-VERSION")).cloned().unwrap_or(Value::Null), &version)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("foxbit - version: ".to_string()), version)), Value::Str(" not in headers.".to_string())))]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-FB-CLIENT-VERSION")).cloned().unwrap_or(Value::Null), &version)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("foxbit - version: ".into()), version).into()), Value::Str(" not in headers.".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }

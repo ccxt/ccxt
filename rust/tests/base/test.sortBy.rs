@@ -12,7 +12,7 @@ pub fn testSortBy1() {
     // todo: other argument checks
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     let mut arr: Value = Value::from(vec![Value::Map({
@@ -40,8 +40,8 @@ pub fn testSortBy1() {
         m.insert("x".to_string(), Value::Int(3));
     m
 })]);
-    let mut newArray: Value = exchange.sort_by(arr.clone(), Value::Str("x".to_string()), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), newArray.clone(), Value::from(vec![Value::Map({
+    let mut newArray: Value = exchange.sort_by(arr.clone(), Value::Str("x".into()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".into()).clone(), newArray.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(0));
     m
@@ -66,8 +66,8 @@ pub fn testSortBy1() {
         m.insert("x".to_string(), Value::Int(5));
     m
 })]).clone()]);
-    let mut newArrayDescending: Value = exchange.sort_by(arr.clone(), Value::Str("x".to_string()), &[Value::Bool(true)]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), newArrayDescending.clone(), Value::from(vec![Value::Map({
+    let mut newArrayDescending: Value = exchange.sort_by(arr.clone(), Value::Str("x".into()), &[Value::Bool(true)]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".into()).clone(), newArrayDescending.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(5));
     m
@@ -92,8 +92,8 @@ pub fn testSortBy1() {
         m.insert("x".to_string(), Value::Int(0));
     m
 })]).clone()]);
-    let mut emptyArray: Value = exchange.sort_by(Value::from(vec![]), Value::Str("x".to_string()), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), emptyArray.clone(), Value::from(vec![]).clone()]);
+    let mut emptyArray: Value = exchange.sort_by(Value::from(vec![]), Value::Str("x".into()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".into()).clone(), emptyArray.clone(), Value::from(vec![]).clone()]);
     // regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
     let mut arrTwoDigits: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -136,8 +136,8 @@ pub fn testSortBy1() {
         m.insert("x".to_string(), Value::Int(6));
     m
 })]);
-    let mut sortedTwoDigits: Value = exchange.sort_by(arrTwoDigits.clone(), Value::Str("x".to_string()), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), sortedTwoDigits.clone(), Value::from(vec![Value::Map({
+    let mut sortedTwoDigits: Value = exchange.sort_by(arrTwoDigits.clone(), Value::Str("x".into()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".into()).clone(), sortedTwoDigits.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(1));
     m
@@ -204,8 +204,8 @@ pub fn testSortBy1() {
         m.insert("x".to_string(), Value::Int(3));
     m
 })]);
-    exchange.sort_by(original.clone(), Value::Str("x".to_string()), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), original.clone(), Value::from(vec![Value::Map({
+    exchange.sort_by(original.clone(), Value::Str("x".into()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".into()).clone(), original.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(5));
     m
@@ -256,8 +256,8 @@ pub fn testSortBy1() {
         m.insert("x".to_string(), Value::Int(3));
     m
 })]);
-    exchange.sort_by(originalDescending.clone(), Value::Str("x".to_string()), &[Value::Bool(true)]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), originalDescending.clone(), Value::from(vec![Value::Map({
+    exchange.sort_by(originalDescending.clone(), Value::Str("x".into()), &[Value::Bool(true)]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".into()).clone(), originalDescending.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(5));
     m
@@ -285,14 +285,14 @@ pub fn testSortBy1() {
     // immutability - array rows (orderbook-style numeric keys) should not be modified
     let mut originalRows: Value = Value::from(vec![Value::from(vec![Value::Float(3000.5), Value::Int(1)]), Value::from(vec![Value::Float(2900.5), Value::Int(2)]), Value::from(vec![Value::Float(2950.5), Value::Int(3)])]);
     exchange.sort_by(originalRows.clone(), Value::Int(0), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), originalRows.clone(), Value::from(vec![Value::from(vec![Value::Float(3000.5), Value::Int(1)]), Value::from(vec![Value::Float(2900.5), Value::Int(2)]), Value::from(vec![Value::Float(2950.5), Value::Int(3)])]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".into()).clone(), originalRows.clone(), Value::from(vec![Value::from(vec![Value::Float(3000.5), Value::Int(1)]), Value::from(vec![Value::Float(2900.5), Value::Int(2)]), Value::from(vec![Value::Float(2950.5), Value::Int(3)])]).clone()]);
     exchange.sort_by(originalRows.clone(), Value::Int(0), &[Value::Bool(true)]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), originalRows.clone(), Value::from(vec![Value::from(vec![Value::Float(3000.5), Value::Int(1)]), Value::from(vec![Value::Float(2900.5), Value::Int(2)]), Value::from(vec![Value::Float(2950.5), Value::Int(3)])]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".into()).clone(), originalRows.clone(), Value::from(vec![Value::from(vec![Value::Float(3000.5), Value::Int(1)]), Value::from(vec![Value::Float(2900.5), Value::Int(2)]), Value::from(vec![Value::Float(2950.5), Value::Int(3)])]).clone()]);
 }
 pub fn testSortBy2() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     // sort ascending by key1, then key2 (key1 values are all distinct here)
@@ -317,8 +317,8 @@ pub fn testSortBy2() {
         m.insert("y".to_string(), Value::Int(4));
     m
 })]);
-    let mut sorted: Value = exchange.sort_by2(arr.clone(), Value::Str("x".to_string()), Value::Str("y".to_string()), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".to_string()).clone(), sorted.clone(), Value::from(vec![Value::Map({
+    let mut sorted: Value = exchange.sort_by2(arr.clone(), Value::Str("x".into()), Value::Str("y".into()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".into()).clone(), sorted.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(0));
         m.insert("y".to_string(), Value::Int(4));
@@ -361,8 +361,8 @@ pub fn testSortBy2() {
         m.insert("y".to_string(), Value::Int(4));
     m
 })]);
-    let mut sortedDescending: Value = exchange.sort_by2(arr2.clone(), Value::Str("x".to_string()), Value::Str("y".to_string()), &[Value::Bool(true)]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".to_string()).clone(), sortedDescending.clone(), Value::from(vec![Value::Map({
+    let mut sortedDescending: Value = exchange.sort_by2(arr2.clone(), Value::Str("x".into()), Value::Str("y".into()), &[Value::Bool(true)]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".into()).clone(), sortedDescending.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(3));
         m.insert("y".to_string(), Value::Int(1));
@@ -405,8 +405,8 @@ pub fn testSortBy2() {
         m.insert("y".to_string(), Value::Int(1));
     m
 })]);
-    let mut sortedByKey2: Value = exchange.sort_by2(arr3.clone(), Value::Str("x".to_string()), Value::Str("y".to_string()), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".to_string()).clone(), sortedByKey2.clone(), Value::from(vec![Value::Map({
+    let mut sortedByKey2: Value = exchange.sort_by2(arr3.clone(), Value::Str("x".into()), Value::Str("y".into()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".into()).clone(), sortedByKey2.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(1));
         m.insert("y".to_string(), Value::Int(1));
@@ -449,8 +449,8 @@ pub fn testSortBy2() {
         m.insert("y".to_string(), Value::Int(1));
     m
 })]);
-    let mut sortedByKey2Descending: Value = exchange.sort_by2(arr4.clone(), Value::Str("x".to_string()), Value::Str("y".to_string()), &[Value::Bool(true)]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".to_string()).clone(), sortedByKey2Descending.clone(), Value::from(vec![Value::Map({
+    let mut sortedByKey2Descending: Value = exchange.sort_by2(arr4.clone(), Value::Str("x".into()), Value::Str("y".into()), &[Value::Bool(true)]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".into()).clone(), sortedByKey2Descending.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(1));
         m.insert("y".to_string(), Value::Int(9));
@@ -498,8 +498,8 @@ pub fn testSortBy2() {
         m.insert("y".to_string(), Value::Int(2));
     m
 })]);
-    let mut sortedMixed: Value = exchange.sort_by2(arr5.clone(), Value::Str("x".to_string()), Value::Str("y".to_string()), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".to_string()).clone(), sortedMixed.clone(), Value::from(vec![Value::Map({
+    let mut sortedMixed: Value = exchange.sort_by2(arr5.clone(), Value::Str("x".into()), Value::Str("y".into()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".into()).clone(), sortedMixed.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(1));
         m.insert("y".to_string(), Value::Int(2));
@@ -526,8 +526,8 @@ pub fn testSortBy2() {
     m
 })]).clone()]);
     // empty array
-    let mut emptyArray: Value = exchange.sort_by2(Value::from(vec![]), Value::Str("x".to_string()), Value::Str("y".to_string()), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".to_string()).clone(), emptyArray.clone(), Value::from(vec![]).clone()]);
+    let mut emptyArray: Value = exchange.sort_by2(Value::from(vec![]), Value::Str("x".into()), Value::Str("y".into()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".into()).clone(), emptyArray.clone(), Value::from(vec![]).clone()]);
     // immutability - original array should not be modified (ascending)
     let mut original: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -550,8 +550,8 @@ pub fn testSortBy2() {
         m.insert("y".to_string(), Value::Int(4));
     m
 })]);
-    exchange.sort_by2(original.clone(), Value::Str("x".to_string()), Value::Str("y".to_string()), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".to_string()).clone(), original.clone(), Value::from(vec![Value::Map({
+    exchange.sort_by2(original.clone(), Value::Str("x".into()), Value::Str("y".into()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".into()).clone(), original.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(3));
         m.insert("y".to_string(), Value::Int(1));
@@ -594,8 +594,8 @@ pub fn testSortBy2() {
         m.insert("y".to_string(), Value::Int(4));
     m
 })]);
-    exchange.sort_by2(originalDescending.clone(), Value::Str("x".to_string()), Value::Str("y".to_string()), &[Value::Bool(true)]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".to_string()).clone(), originalDescending.clone(), Value::from(vec![Value::Map({
+    exchange.sort_by2(originalDescending.clone(), Value::Str("x".into()), Value::Str("y".into()), &[Value::Bool(true)]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".into()).clone(), originalDescending.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("x".to_string(), Value::Int(3));
         m.insert("y".to_string(), Value::Int(1));

@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchMarginModes(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchMarginModes".to_string());
+    let mut method: Value = Value::Str("fetchMarginModes".into());
     let mut marginModes: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_margin_modes", vec![Value::from(vec![symbol.clone()])]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), marginModes.clone(), symbol.clone()]);
     let mut marginModeKeys: Value = object_keys(&marginModes);
