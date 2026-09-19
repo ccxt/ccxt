@@ -1877,7 +1877,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public void handleAuthenticate(Client client, Map<String, Object> message)

@@ -4100,10 +4100,46 @@ class NewTranspiler {
         const lines = content.split('\n');
 
         for (let i = 0; i < lines.length; i++) {
-            const spawnMatch = lines[i].match(/this\.spawn\(\(\)\s*->\s*\{.*this\.(\w+)\(([^)]+)\)/);
+            const spawnMatch = lines[i].match(/this\.spawn\(\(\)\s*->\s*\{.*this\.(\w+)\(/);
             if (!spawnMatch) continue;
 
-            const args = spawnMatch[2].split(',').map((a: string) => a.trim());
+            // the arguments may carry the checkcast a retyped parameter demands
+            // (`(Map<String, Object>) (x)`), whose parens hold commas of their own: take the
+            // raw argument span to the matching close paren, split it at depth 0, and use the
+            // trailing identifier of each argument as the captured-variable candidate
+            let methodOpen = lines[i].indexOf(`this.${spawnMatch[1]}(`, lines[i].indexOf('this.spawn'));
+            if (methodOpen === -1) continue;
+            methodOpen += spawnMatch[1].length + 5;
+            let depth = 1;
+            let methodClose = methodOpen + 1;
+            for (; methodClose < lines[i].length && depth > 0; methodClose++) {
+                const ch = lines[i][methodClose];
+                if (ch === '(') depth++;
+                else if (ch === ')') depth--;
+            }
+            const argsText = lines[i].slice(methodOpen + 1, methodClose - 1);
+            const argOrigin = methodOpen + 1;
+            const candidates: { name: string, start: number, end: number }[] = [];
+            let argStart = 0;
+            depth = 0;
+            const addCandidate = (start: number, end: number) => {
+                const nameMatch = argsText.slice(start, end).match(/([a-z]\w*)\s*\)*\s*$/);
+                if (nameMatch !== null) {
+                    candidates.push({ name: nameMatch[1], start: argOrigin + start, end: argOrigin + end });
+                }
+            };
+            for (let k = 0; k < argsText.length; k++) {
+                const ch = argsText[k];
+                if (ch === ',' && depth === 0) {
+                    addCandidate(argStart, k);
+                    argStart = k + 1;
+                } else if (ch === '(' || ch === '<') {
+                    depth++;
+                } else if (ch === ')' || ch === '>') {
+                    depth--;
+                }
+            }
+            addCandidate(argStart, argsText.length);
 
             let methodStart = 0;
             for (let j = i - 1; j >= 0; j--) {
@@ -4113,8 +4149,10 @@ class NewTranspiler {
                 }
             }
 
-            for (const arg of args) {
-                if (!arg.match(/^[a-z]\w+$/)) continue;
+            const finals: { name: string, start: number, end: number }[] = [];
+            for (const candidate of candidates) {
+                const arg = candidate.name;
+                if (finals.some((f) => f.name === arg)) continue;
                 let reassigned = false;
                 for (let j = methodStart; j < i; j++) {
                     if (new RegExp(`^\\s+${arg}\\s*=\\s`).test(lines[j])) {
@@ -4123,16 +4161,23 @@ class NewTranspiler {
                     }
                 }
                 if (reassigned) {
-                    const finalName = `_final_${arg}`;
-                    const indent = lines[i].match(/^\s*/)?.[0] || '';
-                    lines.splice(i, 0, `${indent}final Object ${finalName} = ${arg};`);
-                    i++;
-                    lines[i] = lines[i].replace(
-                        new RegExp(`this\\.(\\w+)\\(([^)]*\\b)${arg}\\b`),
-                        (m: string, method: string, before: string) => `this.${method}(${before}${finalName}`
-                    );
+                    finals.push(candidate);
                 }
             }
+            if (finals.length === 0) continue;
+
+            // from the last argument to the first, so the earlier offsets stay valid
+            let line = lines[i];
+            for (const candidate of finals.slice().reverse()) {
+                const finalName = `_final_${candidate.name}`;
+                const segment = line.slice(candidate.start, candidate.end);
+                const replaced = segment.replace(new RegExp(`\\b${candidate.name}\\b`), finalName);
+                line = line.slice(0, candidate.start) + replaced + line.slice(candidate.end);
+            }
+            const indent = lines[i].match(/^\s*/)?.[0] || '';
+            lines.splice(i, 0, ...finals.map((c) => `${indent}final Object _final_${c.name} = ${c.name};`));
+            lines[i + finals.length] = line;
+            i += finals.length;
         }
 
         return lines.join('\n');

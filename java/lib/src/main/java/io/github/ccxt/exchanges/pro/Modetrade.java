@@ -1656,7 +1656,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public Object handlePong(Client client, Map<String, Object> message)
