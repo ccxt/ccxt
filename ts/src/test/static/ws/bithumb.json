@@ -1,0 +1,222 @@
+{
+    "exchange": "bithumb",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "rising from open despite falling from previous close",
+                "input": [
+                    "SOL/BTC"
+                ],
+                "url": "wss://ws-api.bithumb.com/websocket/v1",
+                "messages": [
+                    {
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333",
+                        "code": "BTC-SOL",
+                        "type": "ticker"
+                    }
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "ignored"
+                        },
+                        {
+                            "type": "ticker",
+                            "codes": [
+                                "BTC-SOL"
+                            ]
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "SOL/BTC",
+                        "timestamp": 1789399190794,
+                        "datetime": "2026-09-14T15:19:50.794Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 110,
+                        "last": 110,
+                        "previousClose": 120,
+                        "change": 10,
+                        "percentage": 10,
+                        "average": 105,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "trade_timestamp": "1789399190794",
+                            "opening_price": "100",
+                            "trade_price": "110",
+                            "prev_closing_price": "120",
+                            "signed_change_price": "-10",
+                            "signed_change_rate": "-0.08333333",
+                            "code": "BTC-SOL",
+                            "type": "ticker",
+                            "market": "BTC-SOL"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "falling from open despite rising from previous close",
+                "input": [
+                    "SOL/BTC"
+                ],
+                "url": "wss://ws-api.bithumb.com/websocket/v1",
+                "messages": [
+                    {
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "90",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "10",
+                        "signed_change_rate": "0.125",
+                        "code": "BTC-SOL",
+                        "type": "ticker"
+                    }
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "ignored"
+                        },
+                        {
+                            "type": "ticker",
+                            "codes": [
+                                "BTC-SOL"
+                            ]
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "SOL/BTC",
+                        "timestamp": 1789399190794,
+                        "datetime": "2026-09-14T15:19:50.794Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 90,
+                        "last": 90,
+                        "previousClose": 80,
+                        "change": -10,
+                        "percentage": -10,
+                        "average": 95,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "trade_timestamp": "1789399190794",
+                            "opening_price": "100",
+                            "trade_price": "90",
+                            "prev_closing_price": "80",
+                            "signed_change_price": "10",
+                            "signed_change_rate": "0.125",
+                            "code": "BTC-SOL",
+                            "type": "ticker",
+                            "market": "BTC-SOL"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "flat from open despite changing from previous close",
+                "input": [
+                    "SOL/BTC"
+                ],
+                "url": "wss://ws-api.bithumb.com/websocket/v1",
+                "messages": [
+                    {
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "100",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "20",
+                        "signed_change_rate": "0.25",
+                        "code": "BTC-SOL",
+                        "type": "ticker"
+                    }
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "ignored"
+                        },
+                        {
+                            "type": "ticker",
+                            "codes": [
+                                "BTC-SOL"
+                            ]
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "SOL/BTC",
+                        "timestamp": 1789399190794,
+                        "datetime": "2026-09-14T15:19:50.794Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 100,
+                        "last": 100,
+                        "previousClose": 80,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 100,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "trade_timestamp": "1789399190794",
+                            "opening_price": "100",
+                            "trade_price": "100",
+                            "prev_closing_price": "80",
+                            "signed_change_price": "20",
+                            "signed_change_rate": "0.25",
+                            "code": "BTC-SOL",
+                            "type": "ticker",
+                            "market": "BTC-SOL"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ]
+    }
+}
