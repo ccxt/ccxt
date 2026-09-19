@@ -244,9 +244,7 @@ impl crate::exchange_generated::ExchangeBase for BybitCore {
                 "fetch_transfers" => self.fetch_transfers(&args[..]).await,
                 "fetch_volatility_history" => self.fetch_volatility_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
-                "get_amount" => self.get_amount(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "get_bybit_type" => self.get_bybit_type(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-                "get_cost" => self.get_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "get_leverage_tiers_paginated" => self.get_leverage_tiers_paginated(&args[..]).await,
                 "get_price" => self.get_price(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -264,31 +262,25 @@ impl crate::exchange_generated::ExchangeBase for BybitCore {
                 "parse_greeks" => self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ledger_entry_type" => self.parse_ledger_entry_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_leverage_tiers" => self.parse_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_liquidation" => self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_long_short_ratio" => self.parse_long_short_ratio(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_margin_loan" => self.parse_margin_loan(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_margin_mode" => self.parse_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_margin_mode_type" => self.parse_margin_mode_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_settlement" => self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_settlements" => self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer_status" => self.parse_transfer_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_volatility_history" => self.parse_volatility_history(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "repay_cross_margin" => self.repay_cross_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "safe_market" => self.safe_market(&args[..]),
@@ -3857,18 +3849,16 @@ impl BybitCore {
     Value::Null
 }
 
-    pub fn get_amount(&self, mut symbol: Value, mut amount: Value) -> Value {
+    pub fn get_amount(&self, mut symbol: Value, mut amount: Value) -> Option<String> {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
         let mut market: Value = self.market(symbol.clone());
         let mut emptyPrecisionAmount: bool = market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null) == Value::Null;
         let mut amountString: Value = self.number_to_string(amount.clone());
         if !emptyPrecisionAmount && (amountString.as_str() != Some("0")) {
-            return self.amount_to_precision(symbol, amount);
+            return self.amount_to_precision(symbol, amount).as_str().map(str::to_owned);
         }
-        return amountString;
-
-    Value::Null
+        return amountString.as_str().map(str::to_owned);
 }
 
     pub fn get_price(&self, mut symbol: Value, mut price: Value) -> Value {
@@ -3885,15 +3875,13 @@ impl BybitCore {
     Value::Null
 }
 
-    pub fn get_cost(&self, mut symbol: Value, mut cost: Value) -> Value {
+    pub fn get_cost(&self, mut symbol: Value, mut cost: Value) -> Option<String> {
         let mut market: Value = self.market(symbol.clone());
         let mut emptyPrecisionPrice: bool = market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null) == Value::Null;
         if !emptyPrecisionPrice {
-            return self.cost_to_precision(symbol, cost.clone());
+            return self.cost_to_precision(symbol, cost.clone()).as_str().map(str::to_owned);
         }
-        return cost;
-
-    Value::Null
+        return cost.as_str().map(str::to_owned);
 }
 
 /*
@@ -6277,7 +6265,7 @@ impl BybitCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("NEW".to_string(), Value::Str("open".into()));
@@ -6302,12 +6290,10 @@ impl BybitCore {
                 m.insert("Active".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Value {
+    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("GoodTillCancel".to_string(), Value::Str("GTC".into()));
@@ -6316,9 +6302,7 @@ impl BybitCore {
                 m.insert("PostOnly".to_string(), Value::Str("PO".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]);
-
-    Value::Null
+        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -6472,7 +6456,7 @@ impl BybitCore {
         let mut remaining: Value = self.safe_string_k(order.clone(), "leavesQty", &[]);
         let mut lastTradeTimestamp: Value = self.safe_integer2(order.clone(), Value::Str("updatedTime".into()), Value::Str("updatedAt".into()), &[]);
         let mut rawStatus: Value = self.safe_string_k(order.clone(), "orderStatus", &[]);
-        let mut status: Value = self.parse_order_status(rawStatus);
+        let mut status: Value = self.parse_order_status(rawStatus).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut fee: Value = Value::Null;
         let mut cumFeeDetail: Value = self.safe_dict_k(order.clone(), "cumFeeDetail", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6494,7 +6478,7 @@ impl BybitCore {
         }
         let mut avgPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "avgPrice", &[]));
         let mut rawTimeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
-        let mut timeInForce: Value = self.parse_time_in_force(rawTimeInForce);
+        let mut timeInForce: Value = self.parse_time_in_force(rawTimeInForce).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut triggerPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "triggerPrice", &[]));
         let mut reduceOnly: Value = self.safe_bool_k(order.clone(), "reduceOnly", &[]);
         let mut takeProfitPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "takeProfit", &[]));
@@ -6772,7 +6756,7 @@ impl BybitCore {
         if !is_true(&crate::precise::Precise::stringGt(&self.number_to_string(amount.clone()), &Value::Str("0".into()))) {
             amount = Value::Null;
         }
-        let mut amountString: Value = (if (amount != Value::Null) { self.get_amount(symbol.clone(), amount.clone()) } else { Value::Null });
+        let mut amountString: Value = (if (amount != Value::Null) { self.get_amount(symbol.clone(), amount.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null) } else { Value::Null });
         let mut priceString: Value = (if (price != Value::Null) { self.get_price(symbol.clone(), self.number_to_string(price.clone())) } else { Value::Null });
         if endpointIsTradingStop {
             if hasStopLoss || hasTakeProfit || isTriggerOrder || (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -6880,7 +6864,7 @@ impl BybitCore {
                     let mut quoteAmount: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
                     orderCost = quoteAmount.clone();
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.get_cost(symbol.clone(), orderCost.clone())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.get_cost(symbol.clone(), orderCost.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketUnit".to_string(), Value::Str("baseCoin".into())); }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), amountString.clone()); }
@@ -6896,13 +6880,13 @@ impl BybitCore {
                 }  else {
                     let mut quoteAmount: Value = crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &priceString);
                     let mut costRequest: Value = (if (cost != Value::Null) { cost.clone() } else { quoteAmount.clone() });
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.get_cost(symbol.clone(), costRequest.clone())); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.get_cost(symbol.clone(), costRequest.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
                 }
             }  else {
                 if (cost != Value::Null) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.get_cost(symbol.clone(), self.number_to_string(cost.clone()))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.get_cost(symbol.clone(), self.number_to_string(cost.clone())).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
                 }  else if (price != Value::Null) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.get_cost(symbol.clone(), crate::precise::Precise::stringMul(&amountString, &priceString))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.get_cost(symbol.clone(), crate::precise::Precise::stringMul(&amountString, &priceString)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
                 }  else {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), amountString.clone()); }
                 }
@@ -7107,7 +7091,7 @@ impl BybitCore {
         { let __destr_tmp = self.get_bybit_type(Value::Str("editOrderRequest".into()), market.clone(), &[params.clone()]); category = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".to_string(), category); }
         if (amount != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.get_amount(symbol.clone(), amount.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.get_amount(symbol.clone(), amount.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
         }
         if (price != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.get_price(symbol.clone(), self.number_to_string(price.clone()))); }
@@ -8917,7 +8901,7 @@ impl BybitCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("unknown".into()));
@@ -8934,9 +8918,7 @@ impl BybitCore {
                 m.insert("BlockchainConfirmed".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -8985,7 +8967,7 @@ impl BybitCore {
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency]);
         let mut timestamp: Value = self.safe_integer2(transaction.clone(), Value::Str("createTime".into()), Value::Str("successAt".into()), &[]);
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "updateTime", &[]);
-        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
+        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut feeCost: Value = self.safe_number2(transaction.clone(), Value::Str("depositFee".into()), Value::Str("withdrawFee".into()), &[]);
         let mut type_var: Value = (if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("depositFee"))) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) });
         let mut fee: Value = Value::Null;
@@ -9270,7 +9252,7 @@ impl BybitCore {
         m.insert("account".to_string(), self.safe_string_k(item.clone(), "wallet_id", &[]));
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "tx_id", &[]));
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item.clone(), "type", &[])));
+        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item.clone(), "type", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.clone());
         m.insert("amount".to_string(), amount.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -9290,7 +9272,7 @@ impl BybitCore {
     Value::Null
 }
 
-    pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Value {
+    pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Option<String> {
         let mut types: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Deposit".to_string(), Value::Str("transaction".into()));
@@ -9314,9 +9296,7 @@ impl BybitCore {
                 m.insert("CURRENCY_SELL".to_string(), Value::Str("trade".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]);
-
-    Value::Null
+        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -10685,7 +10665,7 @@ impl BybitCore {
     m
 })]);
         let mut statusRaw: Value = self.safe_string2(response.clone(), Value::Str("retCode".into()), Value::Str("retMsg".into()), &[]);
-        let mut status: Value = self.parse_transfer_status(statusRaw);
+        let mut status: Value = self.parse_transfer_status(statusRaw).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let __ws_arg_60 = self.parse_transfer(transfer, &[currency]);
         let __ws_arg_61 = self.iso8601(timestamp.clone());
         let __ws_arg_62 = self.parse_number(amountToPrecision, &[]);
@@ -10910,7 +10890,7 @@ impl BybitCore {
     Value::Null
 }
 
-    pub fn parse_transfer_status(&self, mut status: Value) -> Value {
+    pub fn parse_transfer_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("ok".into()));
@@ -10918,9 +10898,7 @@ impl BybitCore {
                 m.insert("SUCCESS".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
@@ -10964,7 +10942,7 @@ impl BybitCore {
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount);
         m.insert("toAccount".to_string(), toAccount);
-        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "status", &[])));
+        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
     m
 });
 
@@ -13442,14 +13420,14 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode);
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
-        m.insert("marginMode".to_string(), self.parse_margin_mode_type(marginType));
+        m.insert("marginMode".to_string(), self.parse_margin_mode_type(marginType).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
     m
 });
 
     Value::Null
 }
 
-    pub fn parse_margin_mode_type(&self, mut marginMode: Value) -> Value {
+    pub fn parse_margin_mode_type(&self, mut marginMode: Value) -> Option<String> {
         let mut marginModes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ISOLATED_MARGIN".to_string(), Value::Str("isolated".into()));
@@ -13457,9 +13435,7 @@ impl BybitCore {
                 m.insert("PORTFOLIO_MARGIN".to_string(), Value::Str("portfolio".into()));
             m
         });
-        return self.safe_string(marginModes, marginMode.clone(), &[marginMode.clone()]);
-
-    Value::Null
+        return self.safe_string(marginModes, marginMode.clone(), &[marginMode.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {

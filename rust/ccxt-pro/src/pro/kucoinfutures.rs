@@ -174,7 +174,6 @@ impl crate::exchange_generated::ExchangeBase for KucoinfuturesCore {
         Box::pin(async move {
             match method {
                 "fetch_bids_asks" => self.fetch_bids_asks(&args[..]).await,
-                "parse_transfer_type" => self.parse_transfer_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
@@ -190,7 +189,6 @@ impl KucoinfuturesCore {
         let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
             "fetch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("fetch_bids_asks", args.to_vec()); crate::Value::Null },
-            "parse_transfer_type" => self.parse_transfer_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "transfer" => { crate::exchange_stubs::enqueue_spawn("transfer", args.to_vec()); crate::Value::Null },
             _ => crate::Value::Null,
         }
@@ -300,14 +298,14 @@ impl KucoinfuturesCore {
                 m.insert("amount".to_string(), amountToPrecision.clone());
             m
         });
-        let mut toAccountString: Value = self.parse_transfer_type(toAccount.clone());
+        let mut toAccountString: Value = self.parse_transfer_type(toAccount.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if (toAccountString.as_str() == Some("TRADE")) || (toAccountString.as_str() == Some("MAIN")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("recAccountType".to_string(), toAccountString.clone()); }
             let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.parent.parent.futures_private_post_transfer_out(&[__ws_arg_1]).await;
         }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payAccountType".to_string(), self.parse_transfer_type(fromAccount.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payAccountType".to_string(), self.parse_transfer_type(fromAccount.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
             let __ws_arg_2 = self.extend(request, &[params.clone()]);
             response = self.parent.parent.futures_private_post_transfer_in(&[__ws_arg_2]).await;
         }  else {
@@ -330,15 +328,13 @@ impl KucoinfuturesCore {
     Value::Null
 }
 
-    pub fn parse_transfer_type(&self, mut transferType: Value) -> Value {
+    pub fn parse_transfer_type(&self, mut transferType: Value) -> Option<String> {
         let mut transferTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("TRADE".into()));
                 m.insert("funding".to_string(), Value::Str("MAIN".into()));
             m
         });
-        return self.safe_string_upper(transferTypes, transferType.clone(), &[transferType.clone()]);
-
-    Value::Null
+        return self.safe_string_upper(transferTypes, transferType.clone(), &[transferType.clone()]).as_str().map(str::to_owned);
 }
 }

@@ -175,7 +175,6 @@ impl crate::exchange_generated::ExchangeBase for ToobitCore {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..]).await,
-                "get_user_stream_url" => self.get_user_stream_url(),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "keep_alive_listen_key" => self.keep_alive_listen_key(&args[..]).await,
@@ -214,7 +213,6 @@ impl ToobitCore {
         let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "get_user_stream_url" => self.get_user_stream_url(),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -1157,7 +1155,7 @@ impl ToobitCore {
         if (subscriptionHash == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a subscription hash".into()))));
         }
-        let mut url: Value = self.get_user_stream_url();
+        let mut url: Value = self.get_user_stream_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
         self.set_balance_cache(client.clone(), marketType, &[subscriptionHash.clone(), params.clone()]);
         client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())]);
@@ -1305,7 +1303,7 @@ impl ToobitCore {
         if (symbol != Value::Null) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
         }
-        let mut url: Value = self.get_user_stream_url();
+        let mut url: Value = self.get_user_stream_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut orders: Value = self.watch(url, messageHash.clone(), &[params, messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
@@ -1404,7 +1402,7 @@ impl ToobitCore {
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "p", &[]));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "z", &[]));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order, "X", &[])));
+        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order, "X", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -1444,7 +1442,7 @@ impl ToobitCore {
         if (symbol != Value::Null) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
         }
-        let mut url: Value = self.get_user_stream_url();
+        let mut url: Value = self.get_user_stream_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[params, messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol, limit.clone());
@@ -1544,7 +1542,7 @@ impl ToobitCore {
             messageHash = Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbols, &Value::Str(",".into()))).into());
         }
         messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":positions".into())).into()), messageHash).into());
-        let mut url: Value = self.get_user_stream_url();
+        let mut url: Value = self.get_user_stream_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
         self.set_positions_cache(client.clone(), type_var.clone(), &[symbols.clone()]);
         let mut cache: Value = self.safe_value(self.positions.clone(), type_var.clone(), &[]);
@@ -1798,7 +1796,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             { let __be_tmp = self.milliseconds(); add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("lastAuthenticatedTime".into()), __be_tmp); };
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
-            let mut url: Value = self.get_user_stream_url();
+            let mut url: Value = self.get_user_stream_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             let mut client: Value = self.client(&[url]);
             let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".into())));
             {
@@ -1820,10 +1818,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     Value::Null
 }
 
-    pub fn get_user_stream_url(&self) -> Value {
-        return add(&add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "common"), &Value::Str("/api/v1/ws/".into())), &crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "listenKey"));
-
-    Value::Null
+    pub fn get_user_stream_url(&self) -> Option<String> {
+        return add(&add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "common"), &Value::Str("/api/v1/ws/".into())), &crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "listenKey")).as_str().map(str::to_owned);
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {

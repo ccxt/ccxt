@@ -501,7 +501,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut isAuthError: bool = is_instance(&e, &Value::Str("AuthenticationError".into()));
                 let mut isNotSupported: bool = matches!(&e, Value::Str(__s) if __s.contains("[NotSupported]"));
                 let mut isOperationFailed: bool = is_instance(&e, &Value::Str("OperationFailed".into())); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                let mut lastUrlMsg: Value = (if is_true(&self.wsTests) { Value::Str("".into()) } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" (Last url: ".into()), self.get_last_request_url(exchange.clone())).into()), Value::Str(" )".into())).into()) });
+                let mut lastUrlMsg: Value = (if is_true(&self.wsTests) { Value::Str("".into()) } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" (Last url: ".into()), self.get_last_request_url(exchange.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)).into()), Value::Str(" )".into())).into()) });
                 if isOperationFailed {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i.as_f64() == (match (&(maxRetries), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
@@ -573,7 +573,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn get_last_request_url(&self, mut exchange: Value) -> Value {
+    pub fn get_last_request_url(&self, mut exchange: Value) -> Option<String> {
         let mut fetchCache: Value = exchange.get_fetch_cache();
         let mut url: Value = Value::Str("".into());
         if get_array_length(&fetchCache).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
@@ -583,9 +583,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 url = exchange.safe_string(lastRequest.clone(), Value::Str("url".into()), &[Value::Str("".into())]);
             }
         }
-        return url;
-
-    Value::Null
+        return url.as_str().map(str::to_owned);
 }
 
     pub async fn run_public_tests(&mut self, mut exchange: Value, mut symbols: Value) -> Value {

@@ -1296,7 +1296,7 @@ impl WoofiproCore {
             remaining = crate::precise::Precise::stringSub(&remaining, &totalExecQuantity);
         }
         let mut rawStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
-        let mut status: Value = self.parent.parse_order_status(rawStatus);
+        let mut status: Value = self.parent.parse_order_status(rawStatus).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut trades: Value = Value::Null;
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
         let mut triggerPrice: Value = self.safe_number_k(order.clone(), "triggerPrice", &[]);

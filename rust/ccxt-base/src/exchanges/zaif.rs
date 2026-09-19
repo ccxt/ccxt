@@ -83,7 +83,6 @@ impl crate::exchange_generated::ExchangeBase for ZaifCore {
             match method {
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
-                "custom_nonce" => self.custom_nonce(),
                 "fetch_balance" => self.fetch_balance(&args[..]).await,
                 "fetch_closed_orders" => self.fetch_closed_orders(&args[..]).await,
                 "fetch_markets" => self.fetch_markets(&args[..]).await,
@@ -1266,12 +1265,10 @@ impl ZaifCore {
     Value::Null
 }
 
-    pub fn custom_nonce(&self) -> Value {
+    pub fn custom_nonce(&self) -> Option<String> {
         let mut num: Value = self.number_to_string((match ((self.milliseconds()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut nonce: Value = (match &num { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
-        return to_fixed(&nonce, &Value::Int(8));
-
-    Value::Null
+        return to_fixed(&nonce, &Value::Int(8)).as_str().map(str::to_owned);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
@@ -1297,7 +1294,7 @@ impl ZaifCore {
             }  else {
                 url = Value::Str(format!("{}{}", url, Value::Str("tapi".into())).into());
             }
-            let mut nonce: Value = self.custom_nonce();
+            let mut nonce: Value = self.custom_nonce().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             let __ws_arg_8 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), path);

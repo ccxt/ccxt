@@ -98,7 +98,6 @@ impl crate::exchange_generated::ExchangeBase for CryptomusCore {
                 "parse_fee_tiers" => self.parse_fee_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(&args[..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1469,7 +1468,7 @@ impl CryptomusCore {
         }
         let mut amount: Value = self.safe_number_k(order.clone(), "quantity", &[]);
         let mut cost: Value = self.safe_number_k(order.clone(), "value", &[]);
-        let mut status: Value = self.parse_order_status(&[self.safe_string_k(order.clone(), "state", &[])]);
+        let mut status: Value = self.parse_order_status(&[self.safe_string_k(order.clone(), "state", &[])]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1501,7 +1500,7 @@ impl CryptomusCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, optional_args: &[Value]) -> Value {
+    pub fn parse_order_status(&self, optional_args: &[Value]) -> Option<String> {
         let mut status = get_arg(optional_args, 0, Value::Null);
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1513,9 +1512,7 @@ impl CryptomusCore {
                 m.insert("failed".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*

@@ -100,7 +100,6 @@ impl crate::exchange_generated::ExchangeBase for Bit2cCore {
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "remove_comma_from_value" => self.remove_comma_from_value(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -1251,7 +1250,7 @@ impl Bit2cCore {
     Value::Null
 }
 
-    pub fn remove_comma_from_value(&self, mut str_val: Value) -> Value {
+    pub fn remove_comma_from_value(&self, mut str_val: Value) -> Option<String> {
         let mut newString: Value = Value::Str("".into());
         let mut strParts: Value = split(&str_val, &Value::Str(",".into()));
         {
@@ -1261,9 +1260,7 @@ impl Bit2cCore {
             newString = add(&newString, &get_value(&strParts, &i));
         }
         }
-        return newString;
-
-    Value::Null
+        return newString.as_str().map(str::to_owned);
 }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1313,7 +1310,7 @@ impl Bit2cCore {
             id = reference.clone();
             timestamp = self.safe_timestamp(trade.clone(), Value::Str("ticks".into()), &[]);
             price = self.safe_string_k(trade.clone(), "price", &[]);
-            price = self.remove_comma_from_value(price.clone());
+            price = self.remove_comma_from_value(price.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             amount = self.safe_string_k(trade.clone(), "firstAmount", &[]);
             let mut reference_parts: Value = split(&reference, &Value::Str("|".into())); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             let mut marketId: Value = self.safe_string_k(trade.clone(), "pair", &[]);

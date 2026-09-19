@@ -95,7 +95,6 @@ impl crate::exchange_generated::ExchangeBase for LbankCore {
             match method {
                 "cancel_all_orders" => self.cancel_all_orders(&args[..]).await,
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "convert_secret_to_pem" => self.convert_secret_to_pem(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "fetch_balance" => self.fetch_balance(&args[..]).await,
@@ -130,7 +129,6 @@ impl crate::exchange_generated::ExchangeBase for LbankCore {
                 "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,
                 "fetch_transaction_fees" => self.fetch_transaction_fees(&args[..]).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
-                "get_network_code_for_currency" => self.get_network_code_for_currency(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -138,13 +136,11 @@ impl crate::exchange_generated::ExchangeBase for LbankCore {
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_public_deposit_withdraw_fees" => self.parse_public_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -2447,7 +2443,7 @@ impl LbankCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("-1".to_string(), Value::Str("canceled".into()));
@@ -2458,9 +2454,7 @@ impl LbankCore {
                 m.insert("4".to_string(), Value::Str("closed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2592,7 +2586,7 @@ impl LbankCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_order_status(rawStatus));
+        m.insert("status".to_string(), self.parse_order_status(rawStatus).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
@@ -3084,7 +3078,7 @@ impl LbankCore {
     Value::Null
 }
 
-    pub fn get_network_code_for_currency(&self, mut currencyCode: Value, mut params: Value) -> Value {
+    pub fn get_network_code_for_currency(&self, mut currencyCode: Value, mut params: Value) -> Option<String> {
         let mut defaultNetworks: Value = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]);
         let mut defaultNetwork: Value = self.safe_string_upper(defaultNetworks, currencyCode, &[]);
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
@@ -3093,9 +3087,7 @@ impl LbankCore {
 })]);
         let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[defaultNetwork]); // this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network.clone(), &[network.clone()]); // handle ERC20>ETH alias
-        return network;
-
-    Value::Null
+        return network.as_str().map(str::to_owned);
 }
 
 /*
@@ -3148,7 +3140,7 @@ impl LbankCore {
                 m.insert("assetCode".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut network: Value = self.get_network_code_for_currency(code.clone(), params.clone());
+        let mut network: Value = self.get_network_code_for_currency(code.clone(), params.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         if (network != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("netWork".to_string(), network); }; // ... yes, really lol
             params = self.omit(params.clone(), Value::Str("network".into()), &[]);
@@ -3309,7 +3301,7 @@ impl LbankCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value, mut type_var: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value, mut type_var: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deposit".to_string(), Value::Map({
@@ -3334,9 +3326,7 @@ impl LbankCore {
         return self.safe_string(self.safe_dict(statuses, type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), status.clone(), &[status.clone()]);
-
-    Value::Null
+})]), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -3390,7 +3380,7 @@ impl LbankCore {
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
         let mut currencyId: Value = self.safe_string2(transaction.clone(), Value::Str("coin".into()), Value::Str("coid".into()), &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
-        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]), type_var.clone());
+        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]), type_var.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_number_k(transaction.clone(), "fee", &[]);
         if (feeCost != Value::Null) {
@@ -4136,11 +4126,11 @@ impl LbankCore {
                 if (cacheSecretAsPem.as_bool() == Some(true)) {
                     pem = self.safe_string_k(self.options.clone(), "pem", &[]);
                     if (pem == Value::Null) {
-                        pem = self.convert_secret_to_pem(self.encode(self.secret.clone()));
+                        pem = self.convert_secret_to_pem(self.encode(self.secret.clone())).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("pem".to_string(), pem.clone()); }
                     }
                 }  else {
-                    pem = self.convert_secret_to_pem(self.encode(self.secret.clone()));
+                    pem = self.convert_secret_to_pem(self.encode(self.secret.clone())).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                 }
                 sign = rsa(uppercaseHash.clone(), pem, Value::Str("sha256".into()));
             }  else if (signatureMethod.as_str() == Some("HmacSHA256")) {
@@ -4169,7 +4159,7 @@ impl LbankCore {
     Value::Null
 }
 
-    pub fn convert_secret_to_pem(&self, mut secret: Value) -> Value {
+    pub fn convert_secret_to_pem(&self, mut secret: Value) -> Option<String> {
         let mut lineLength: Value = Value::Int(64);
         let mut secretLength: Value = subtract(&get_array_length(&secret), &Value::Int(0));
         let mut numLines: Value = self.parse_to_int((match ((secretLength).as_f64(), (lineLength).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
@@ -4184,9 +4174,7 @@ impl LbankCore {
             pem = Value::Str(format!("{}{}", pem, Value::Str(format!("{}{}", slice(&self.secret, &start, &end), Value::Str("\n".into())).into())).into()); // eslint-disable-line
         }
         }
-        return Value::Str(format!("{}{}", pem, Value::Str("-----END PRIVATE KEY-----".into())).into());
-
-    Value::Null
+        return Value::Str(format!("{}{}", pem, Value::Str("-----END PRIVATE KEY-----".into())).into()).as_str().map(str::to_owned);
 }
 
     pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {

@@ -162,15 +162,12 @@ impl crate::exchange_generated::ExchangeBase for PoloniexCore {
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_open_orders" => self.parse_open_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order_type" => self.parse_order_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_spot_market" => self.parse_spot_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_swap_market" => self.parse_swap_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "prepare_request_for_deposit_address" => self.prepare_request_for_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "reduce_margin" => self.reduce_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
@@ -2380,7 +2377,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("NEW".to_string(), Value::Str("open".into()));
@@ -2392,9 +2389,7 @@ impl PoloniexCore {
                 m.insert("FAILED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2513,10 +2508,10 @@ impl PoloniexCore {
         let mut price: Value = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("price".into()), Value::Str("rate".into()), Value::Str("px".into())]), &[]);
         let mut amount: Value = self.safe_string2(order.clone(), Value::Str("quantity".into()), Value::Str("sz".into()), &[]);
         let mut filled: Value = self.safe_string2(order.clone(), Value::Str("filledQuantity".into()), Value::Str("execQty".into()), &[]);
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
+        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
         let mut rawType: Value = self.safe_string_k(order.clone(), "type", &[]);
-        let mut type_var: Value = self.parse_order_type(rawType.clone());
+        let mut type_var: Value = self.parse_order_type(rawType.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut id: Value = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("orderNumber".into()), Value::Str("id".into()), Value::Str("orderId".into()), Value::Str("ordId".into())]), &[]);
         let mut fee: Value = Value::Null;
         let mut feeCurrency: Value = self.safe_string2(order.clone(), Value::Str("tokenFeeCurrency".into()), Value::Str("feeCcy".into()), &[]);
@@ -2577,7 +2572,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn parse_order_type(&self, mut status: Value) -> Value {
+    pub fn parse_order_type(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("MARKET".to_string(), Value::Str("market".into()));
@@ -2587,9 +2582,7 @@ impl PoloniexCore {
                 m.insert("STOP-MARKET".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_open_orders(&self, mut orders: Value, mut market: Value, mut result: Value) -> Value {
@@ -4125,7 +4118,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("COMPLETE".to_string(), Value::Str("ok".into()));
@@ -4138,9 +4131,7 @@ impl PoloniexCore {
                 m.insert("COMPLETE_ERROR".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -4188,7 +4179,7 @@ impl PoloniexCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[]);
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[Value::Str("pending".into())]);
-        status = self.parse_transaction_status(status.clone());
+        status = self.parse_transaction_status(status.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut txid: Value = self.safe_string_k(transaction.clone(), "txid", &[]);
         let mut type_var: Value = (if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("withdrawalRequestsId"))) { Value::Str("withdrawal".into()) } else { Value::Str("deposit".into()) });
         let mut id: Value = self.safe_string2(transaction.clone(), Value::Str("withdrawalRequestsId".into()), Value::Str("depositNumber".into()), &[]);

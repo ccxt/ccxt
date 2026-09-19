@@ -93,7 +93,6 @@ impl crate::exchange_generated::ExchangeBase for UpbitCore {
     {
         Box::pin(async move {
             match method {
-                "calc_order_price" => self.calc_order_price(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_deposit_address" => self.create_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
@@ -130,11 +129,9 @@ impl crate::exchange_generated::ExchangeBase for UpbitCore {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -1812,7 +1809,7 @@ impl UpbitCore {
     Value::Null
 }
 
-    pub fn calc_order_price(&self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn calc_order_price(&self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Option<String> {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1840,9 +1837,7 @@ impl UpbitCore {
         if (quoteAmount == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" calcOrderPrice() could not determine quote amount".into()))));
         }
-        return quoteAmount;
-
-    Value::Null
+        return quoteAmount.as_str().map(str::to_owned);
 }
 
 /*
@@ -1909,7 +1904,7 @@ impl UpbitCore {
         }  else if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ord_type".to_string(), Value::Str("price".into())); }
-                let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price.clone(), params.clone()]);
+                let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price.clone(), params.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), orderPrice.clone()); }
             }  else {
                 if (amount == Value::Null) {
@@ -1925,7 +1920,7 @@ impl UpbitCore {
             params = self.omit(params.clone(), Value::from(vec![Value::Str("ordType".into()), Value::Str("ord_type".into())]), &[]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ord_type".to_string(), Value::Str("best".into())); }
             if (side.as_str() == Some("buy")) {
-                let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price, params.clone()]);
+                let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price, params.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), orderPrice); }
             }  else {
                 if (amount == Value::Null) {
@@ -2059,7 +2054,7 @@ impl UpbitCore {
         }  else if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("new_ord_type".to_string(), Value::Str("price".into())); }
-                let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price.clone(), params.clone()]);
+                let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price.clone(), params.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("new_price".to_string(), orderPrice.clone()); }
             }  else {
                 if (amount == Value::Null) {
@@ -2075,7 +2070,7 @@ impl UpbitCore {
             params = self.omit(params.clone(), Value::from(vec![Value::Str("newOrdType".into()), Value::Str("new_ord_type".into())]), &[]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("new_ord_type".to_string(), Value::Str("best".into())); }
             if (side.as_str() == Some("buy")) {
-                let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price, params.clone()]);
+                let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price, params.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("new_price".to_string(), orderPrice); }
             }  else {
                 if (amount == Value::Null) {
@@ -2301,7 +2296,7 @@ impl UpbitCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("submitting".to_string(), Value::Str("pending".into()));
@@ -2314,9 +2309,7 @@ impl UpbitCore {
                 m.insert("canceled".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -2374,7 +2367,7 @@ impl UpbitCore {
         m.insert("tag".to_string(), tag);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_lower(transaction.clone(), Value::Str("state".into()), &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_lower(transaction.clone(), Value::Str("state".into()), &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("updated".to_string(), self.parse8601(updatedRaw));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
@@ -2394,7 +2387,7 @@ impl UpbitCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("wait".to_string(), Value::Str("open".into()));
@@ -2402,9 +2395,7 @@ impl UpbitCore {
                 m.insert("cancel".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2492,7 +2483,7 @@ impl UpbitCore {
         let mut identifier: Value = self.safe_string_k(order.clone(), "identifier", &[]);
         let mut type_var: Value = self.safe_string_k(order.clone(), "ord_type", &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
+        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut lastTradeTimestamp: Value = Value::Null;
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "volume", &[]);

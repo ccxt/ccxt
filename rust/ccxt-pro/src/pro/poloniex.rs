@@ -185,7 +185,6 @@ impl crate::exchange_generated::ExchangeBase for PoloniexCore {
                 "handle_order" => self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_trade" => self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_status" => self.parse_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -233,7 +232,6 @@ impl PoloniexCore {
             "handle_pong" => { self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_trade" => self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "parse_status" => self.parse_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1171,7 +1169,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn parse_status(&self, mut status: Value) -> Value {
+    pub fn parse_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("NEW".to_string(), Value::Str("open".into()));
@@ -1182,9 +1180,7 @@ impl PoloniexCore {
                 m.insert("CANCELED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ws_order_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1368,7 +1364,7 @@ impl PoloniexCore {
                         add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
                     }
                     let mut rawState: Value = self.safe_string_k(order.clone(), "state", &[]);
-                    let mut state: Value = self.parse_status(rawState);
+                    let mut state: Value = self.parse_status(rawState).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                     add_element_to_object(&mut previousOrder, &Value::Str("status".into()), state);
                     // update the newUpdates count
                     orders.append(previousOrder.clone());
@@ -1457,7 +1453,7 @@ impl PoloniexCore {
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), filledAmount);
         m.insert("remaining".to_string(), self.safe_string_k(order.clone(), "remaining_size", &[]));
-        m.insert("status".to_string(), self.parse_status(status));
+        m.insert("status".to_string(), self.parse_status(status).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), Value::Null);

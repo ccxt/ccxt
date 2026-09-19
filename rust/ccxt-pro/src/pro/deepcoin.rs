@@ -177,14 +177,11 @@ impl crate::exchange_generated::ExchangeBase for DeepcoinCore {
                 "create_public_request" => self.create_public_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_taker_or_maker" => self.handle_taker_or_maker(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "order_book_suffix" => self.order_book_suffix(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
                 "parse_position_side" => self.parse_position_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_trade_side" => self.parse_trade_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_margin_mode" => self.parse_ws_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ws_order_status" => self.parse_ws_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -231,17 +228,14 @@ impl DeepcoinCore {
             "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_position" => { self.handle_position(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_subscription_status" => { self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_taker_or_maker" => self.handle_taker_or_maker(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_un_subscription" => { self.handle_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "order_book_suffix" => self.order_book_suffix(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "parse_position_side" => self.parse_position_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_trade_side" => self.parse_trade_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_margin_mode" => self.parse_ws_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_ws_order_status" => self.parse_ws_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -907,8 +901,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("TradeID".into()), Value::Str("TI".into()), &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "OS", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("takerOrMaker".to_string(), self.handle_taker_or_maker(matchRole));
-        m.insert("side".to_string(), self.parse_trade_side(direction));
+        m.insert("takerOrMaker".to_string(), self.handle_taker_or_maker(matchRole).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("side".to_string(), self.parse_trade_side(direction).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "P", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "V", &[]));
         m.insert("cost".to_string(), self.safe_string_k(trade, "T", &[]));
@@ -919,28 +913,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_trade_side(&self, mut direction: Value) -> Value {
+    pub fn parse_trade_side(&self, mut direction: Value) -> Option<String> {
         let mut sides: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("buy".into()));
                 m.insert("1".to_string(), Value::Str("sell".into()));
             m
         });
-        return self.safe_string(sides, direction.clone(), &[direction.clone()]);
-
-    Value::Null
+        return self.safe_string(sides, direction.clone(), &[direction.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn handle_taker_or_maker(&self, mut matchRole: Value) -> Value {
+    pub fn handle_taker_or_maker(&self, mut matchRole: Value) -> Option<String> {
         let mut roles: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("maker".into()));
                 m.insert("1".to_string(), Value::Str("taker".into()));
             m
         });
-        return self.safe_string(roles, matchRole.clone(), &[matchRole.clone()]);
-
-    Value::Null
+        return self.safe_string(roles, matchRole.clone(), &[matchRole.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -1567,11 +1557,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("timestamp".to_string(), timestamp);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp(order.clone(), Value::Str("U".into()), &[]));
-        m.insert("status".to_string(), self.parse_ws_order_status(state));
+        m.insert("status".to_string(), self.parse_ws_order_status(state).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Null);
-        m.insert("side".to_string(), self.parse_trade_side(direction));
+        m.insert("side".to_string(), self.parse_trade_side(direction).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "P", &[]));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "t", &[]));
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "V", &[]));
@@ -1592,7 +1582,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_ws_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("1".to_string(), Value::Str("closed".into()));
@@ -1600,9 +1590,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("6".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*

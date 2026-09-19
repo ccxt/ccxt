@@ -183,7 +183,6 @@ impl crate::exchange_generated::ExchangeBase for CoinbaseexchangeCore {
                 "handle_trade" => self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ws_order_status" => self.parse_ws_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "subscribe" => self.subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "subscribe_multiple" => self.subscribe_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -223,7 +222,6 @@ impl CoinbaseexchangeCore {
             "handle_trade" => self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_ws_order_status" => self.parse_ws_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "subscribe" => { crate::exchange_stubs::enqueue_spawn("subscribe", args.to_vec()); crate::Value::Null },
             "subscribe_multiple" => { crate::exchange_stubs::enqueue_spawn("subscribe_multiple", args.to_vec()); crate::Value::Null },
@@ -931,16 +929,14 @@ impl CoinbaseexchangeCore {
     Value::Null
 }
 
-    pub fn parse_ws_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("filled".to_string(), Value::Str("closed".into()));
                 m.insert("canceled".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status, &[Value::Str("open".into())]);
-
-    Value::Null
+        return self.safe_string(statuses, status, &[Value::Str("open".into())]).as_str().map(str::to_owned);
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
@@ -1149,7 +1145,7 @@ impl CoinbaseexchangeCore {
         let mut time: Value = self.safe_string_k(order.clone(), "time", &[]);
         let mut timestamp: Value = self.parse8601(time);
         let mut reason: Value = self.safe_string_k(order.clone(), "reason", &[]);
-        let mut status: Value = self.parse_ws_order_status(reason);
+        let mut status: Value = self.parse_ws_order_status(reason).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut orderType: Value = self.safe_string_k(order.clone(), "order_type", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "remaining_size", &[]);
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);

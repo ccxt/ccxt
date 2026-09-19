@@ -153,13 +153,10 @@ impl crate::exchange_generated::ExchangeBase for PacificaCore {
                 "handle_origin_and_single_address" => self.handle_origin_and_single_address(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "initialize_client" => self.initialize_client().await,
                 "load_account_settings" => self.load_account_settings(&args[..]).await,
-                "map_side" => self.map_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "map_time_in_force" => self.map_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_account_settings" => self.parse_account_settings(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ledger_entry_type" => self.parse_ledger_entry_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_leverage_from_market" => self.parse_leverage_from_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_leverage_from_setting" => self.parse_leverage_from_setting(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_margin_mode_from_setting" => self.parse_margin_mode_from_setting(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -167,21 +164,17 @@ impl crate::exchange_generated::ExchangeBase for PacificaCore {
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order_type" => self.parse_order_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "post_action_request" => self.post_action_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-                "prepare_message" => self.prepare_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "revoke_api_key" => self.revoke_api_key(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "revoke_builder_code" => self.revoke_builder_code(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "set_leverage" => self.set_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "set_margin_mode" => self.set_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "sort_json_keys" => self.sort_json_keys(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
@@ -2393,7 +2386,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut sigPayload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("side".to_string(), self.map_side(side));
+                m.insert("side".to_string(), self.map_side(side).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
             m
         });
         let mut operationType: Value = Value::Null;
@@ -2407,7 +2400,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isTakeProfitOrder: bool = takeProfitPrice != Value::Null;
         let mut isStopLossOrder: bool = stopLossPrice != Value::Null;
         let mut isStopOrder: bool = triggerPrice != Value::Null;
-        let mut timeInForce: Value = self.map_time_in_force(tifRaw);
+        let mut timeInForce: Value = self.map_time_in_force(tifRaw).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         if isMarket {
             operationType = Value::Str("create_market_order".into());
             if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("reduce_only".to_string(), reduceOnly.clone()); }
@@ -3561,7 +3554,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("open".to_string(), Value::Str("open".into()));
@@ -3571,12 +3564,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("rejected".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn map_time_in_force(&self, mut tifRaw: Value) -> Value {
+    pub fn map_time_in_force(&self, mut tifRaw: Value) -> Option<String> {
         let mut tifMap: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("GTC".to_string(), Value::Str("GTC".into()));
@@ -3592,24 +3583,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (tifRaw != Value::Null) {
             tif = to_upper(&tifRaw);
         }
-        return self.safe_string(tifMap, tif, &[]);
-
-    Value::Null
+        return self.safe_string(tifMap, tif, &[]).as_str().map(str::to_owned);
 }
 
-    pub fn map_side(&self, mut sideRaw: Value) -> Value {
+    pub fn map_side(&self, mut sideRaw: Value) -> Option<String> {
         let mut sideMap: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sell".to_string(), Value::Str("ask".into()));
                 m.insert("buy".to_string(), Value::Str("bid".into()));
             m
         });
-        return self.safe_string(sideMap, sideRaw.clone(), &[sideRaw.clone()]);
-
-    Value::Null
+        return self.safe_string(sideMap, sideRaw.clone(), &[sideRaw.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order_type(&self, mut status: Value) -> Value {
+    pub fn parse_order_type(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("stop_limit".to_string(), Value::Str("limit".into()));
@@ -3620,9 +3607,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("stop_loss_market".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -3735,7 +3720,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer2(order.clone(), Value::Str("updated_at".into()), Value::Str("ut".into()), &[]));
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), self.parse_order_type(self.safe_string_lower2(order.clone(), Value::Str("order_type".into()), Value::Str("ot".into()), &[])));
+        m.insert("type".to_string(), self.parse_order_type(self.safe_string_lower2(order.clone(), Value::Str("order_type".into()), Value::Str("ot".into()), &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool2(order.clone(), Value::Str("reduce_only".into()), Value::Str("r".into()), &[]));
@@ -3747,7 +3732,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("average".to_string(), self.safe_string2(order, Value::Str("average_filled_price".into()), Value::Str("p".into()), &[]));
         m.insert("filled".to_string(), filledAmount);
         m.insert("remaining".to_string(), remaining);
-        m.insert("status".to_string(), self.parse_order_status(status.clone()));
+        m.insert("status".to_string(), self.parse_order_status(status.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -4300,7 +4285,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
-        m.insert("type".to_string(), self.parse_ledger_entry_type(type_var));
+        m.insert("type".to_string(), self.parse_ledger_entry_type(type_var).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("currency".to_string(), Value::Null);
         m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -4315,7 +4300,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Value {
+    pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Option<String> {
         let mut ledgerType: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_transfer".to_string(), Value::Str("transfer".into()));
@@ -4335,9 +4320,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("payout".to_string(), Value::Str("payout".into()));
             m
         });
-        return self.safe_string(ledgerType, type_var.clone(), &[type_var.clone()]);
-
-    Value::Null
+        return self.safe_string(ledgerType, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -4600,7 +4583,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account".to_string(), originAddress.clone());
             m
         });
-        let mut subaccountSignature: Value = self.sign_message(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey);
+        let mut subaccountSignature: Value = self.sign_message(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut mainSignatureHeader: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), timestamp.clone());
@@ -4613,7 +4596,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("signature".to_string(), subaccountSignature.clone());
             m
         });
-        let mut main_signature: Value = self.sign_message(mainSignatureHeader, mainSigPayload, self.privateKey.clone());
+        let mut main_signature: Value = self.sign_message(mainSignatureHeader, mainSigPayload, self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_account".to_string(), originAddress); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("subaccount".to_string(), subAccountAddress); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("sub_signature".to_string(), subaccountSignature); }
@@ -4888,7 +4871,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn prepare_message(&self, mut header: Value, mut payload: Value) -> Value {
+    pub fn prepare_message(&self, mut header: Value, mut payload: Value) -> Option<String> {
         if (header.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null) == Value::Null) || (header.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null) == Value::Null) || (header.as_map().and_then(|__m| __m.get("expiry_window")).cloned().unwrap_or(Value::Null) == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" prepareMessage() requires type, timestamp, expiry_window in header".into()))));
         }
@@ -4898,22 +4881,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         let mut sorted: Value = self.sort_json_keys(data);
-        return json_stringify(&sorted);
-
-    Value::Null
+        return json_stringify(&sorted).as_str().map(str::to_owned);
 }
 
-    pub fn sign_message(&self, mut header: Value, mut payload: Value, mut privateKey: Value) -> Value {
-        let mut message: Value = self.prepare_message(header, payload);
+    pub fn sign_message(&self, mut header: Value, mut payload: Value, mut privateKey: Value) -> Option<String> {
+        let mut message: Value = self.prepare_message(header, payload).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageBytes: Value = self.encode(message.clone());
         let mut secretBytes: Value = self.base58_to_binary(privateKey, &[]);
         let mut seed: Value = self.array_slice(secretBytes, Value::Int(0), &[Value::Int(32)]);
         let mut signatureBase64: Value = eddsa(messageBytes, seed, Value::Str("ed25519".into()));
         let mut signatureBinary: Value = self.base64_to_binary(signatureBase64, &[]);
         let mut signatureBase58: Value = self.binary_to_base58(signatureBinary, &[]);
-        return signatureBase58;
-
-    Value::Null
+        return signatureBase58.as_str().map(str::to_owned);
 }
 
     pub fn post_action_request(&self, mut operationType: Value, mut sigPayload: Value, mut params: Value) -> Value {
@@ -4944,7 +4923,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), operationType.clone());
             m
         });
-        let mut signature: Value = self.sign_message(signatureHeader.clone(), sigPayload.clone(), self.privateKey.clone());
+        let mut signature: Value = self.sign_message(signatureHeader.clone(), sigPayload.clone(), self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut finalHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

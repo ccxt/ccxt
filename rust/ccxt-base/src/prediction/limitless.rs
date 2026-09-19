@@ -112,9 +112,6 @@ impl crate::exchange_generated::ExchangeBase for LimitlessCore {
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order_side" => self.parse_order_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order_time_in_force" => self.parse_order_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -2609,7 +2606,7 @@ impl LimitlessCore {
         let mut mkt: Value = self.safe_outcome(tokenId, &[market]);
         let mut outcomeSymbol: Value = self.safe_string_k(mkt.clone(), "outcome", &[]);
         let mut rawSide: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
-        let mut side: Value = self.parse_order_side(rawSide);
+        let mut side: Value = self.parse_order_side(rawSide).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut price: Value = self.safe_string_k(rawOrder.clone(), "price", &[]);
         let mut amountKey: Value = (if (side.as_str() == Some("buy")) { Value::Str("takerAmount".into()) } else { Value::Str("makerAmount".into()) }); // todo check
         let mut amount: Value = self.safe_string(rawOrder.clone(), amountKey, &[]);
@@ -2654,13 +2651,13 @@ impl LimitlessCore {
         m.insert("timestamp".to_string(), ts);
         m.insert("datetime".to_string(), datetime);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_order_status(rawStatus));
+        m.insert("status".to_string(), self.parse_order_status(rawStatus).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("outcome".to_string(), outcomeSymbol);
         m.insert("outcomeId".to_string(), self.safe_string_k(mkt.clone(), "outcomeId", &[]));
         m.insert("label".to_string(), self.safe_string_k(mkt.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(mkt, "market", &[]));
         m.insert("type".to_string(), type_var);
-        m.insert("timeInForce".to_string(), self.parse_order_time_in_force(timeInForce));
+        m.insert("timeInForce".to_string(), self.parse_order_time_in_force(timeInForce).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price);
@@ -2687,7 +2684,7 @@ impl LimitlessCore {
  * @param {string} status the raw limitless order status
  * @returns {string} the unified order status
  */
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("LIVE".to_string(), Value::Str("open".into()));
@@ -2698,9 +2695,7 @@ impl LimitlessCore {
                 m.insert("FAILED".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2711,15 +2706,13 @@ impl LimitlessCore {
  * @param {string} timeInForce the raw limitless time in force
  * @returns {string} the unified time in force
  */
-    pub fn parse_order_time_in_force(&self, mut timeInForce: Value) -> Value {
+    pub fn parse_order_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("FAK".to_string(), Value::Str("FOK".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]);
-
-    Value::Null
+        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2730,7 +2723,7 @@ impl LimitlessCore {
  * @param {string} side the raw limitless order side
  * @returns {string} the unified order side
  */
-    pub fn parse_order_side(&self, mut side: Value) -> Value {
+    pub fn parse_order_side(&self, mut side: Value) -> Option<String> {
         let mut sides: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("BUY".to_string(), Value::Str("buy".into()));
@@ -2739,9 +2732,7 @@ impl LimitlessCore {
                 m.insert("1".to_string(), Value::Str("sell".into()));
             m
         });
-        return self.safe_string(sides, side.clone(), &[side.clone()]);
-
-    Value::Null
+        return self.safe_string(sides, side.clone(), &[side.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn apply_scale(&self, mut amount: Value, optional_args: &[Value]) -> Value {

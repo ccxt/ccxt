@@ -110,19 +110,14 @@ impl crate::exchange_generated::ExchangeBase for AlpacaCore {
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_transactions_helper" => self.fetch_transactions_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null)).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
-                "generate_client_order_id" => self.generate_client_order_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_transaction_type" => self.parse_transaction_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -1575,8 +1570,6 @@ impl AlpacaCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let __ohlcv_empty = indexmap::IndexMap::new();
-        let ohlcv = ohlcv.as_map().unwrap_or(&__ohlcv_empty);
         //
         //     {
         //        "c":22895,
@@ -1589,9 +1582,9 @@ impl AlpacaCore {
         //        "vw":22889.5
         //     }
         //
-        let mut datetime: Value = (match ohlcv.get("t") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut datetime: Value = self.safe_string_k(ohlcv.clone(), "t", &[]);
         let mut timestamp: Value = self.parse8601(datetime);
-        return Value::from(vec![timestamp, (match ohlcv.get("o") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }), (match ohlcv.get("h") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }), (match ohlcv.get("l") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }), (match ohlcv.get("c") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }), (match ohlcv.get("v") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null })]);
+        return Value::from(vec![timestamp, self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1771,9 +1764,7 @@ impl AlpacaCore {
     Value::Null
 }
 
-    pub fn generate_client_order_id(&self, mut params: Value) -> Value {
-        let __params_empty = indexmap::IndexMap::new();
-        let params = params.as_map().unwrap_or(&__params_empty);
+    pub fn generate_client_order_id(&self, mut params: Value) -> Option<String> {
         let mut clientOrderIdprefix: Value = self.safe_string_k(self.options.clone(), "clientOrderId", &[]);
         let mut uuid: Value = self.uuid(&[]);
         let mut parts: Value = split(&uuid, &Value::Str("-".into()));
@@ -1783,10 +1774,8 @@ impl AlpacaCore {
                 m.insert("id".to_string(), random_id);
             m
         }));
-        let mut clientOrderId: Value = (match params.get("clientOrderId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => defaultClientId });
-        return clientOrderId;
-
-    Value::Null
+        let mut clientOrderId: Value = self.safe_string_k(params, "clientOrderId", &[defaultClientId]);
+        return clientOrderId.as_str().map(str::to_owned);
 }
 
 /*
@@ -1940,7 +1929,7 @@ impl AlpacaCore {
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".to_string(), defaultTIF); }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".to_string(), self.generate_client_order_id(params.clone())); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".to_string(), self.generate_client_order_id(params.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
         let __ws_arg_11 = self.extend(request.clone(), &[params]);
         let mut order: Value = self.trader_private_post_v2_orders(&[__ws_arg_11]).await;
@@ -2216,7 +2205,7 @@ impl AlpacaCore {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".to_string(), to_lower(&timeInForce)); }
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".to_string(), self.generate_client_order_id(params.clone())); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".to_string(), self.generate_client_order_id(params.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
         let __ws_arg_17 = self.extend(request, &[params]);
         let mut response: Value = self.trader_private_patch_v2_orders_order_id(&[__ws_arg_17]).await;
@@ -2269,7 +2258,7 @@ impl AlpacaCore {
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut alpacaStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
-        let mut status: Value = self.parse_order_status(alpacaStatus);
+        let mut status: Value = self.parse_order_status(alpacaStatus).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut feeValue: Value = self.safe_string_k(order.clone(), "commission", &[]);
         let mut fee: Value = Value::Null;
         if (feeValue != Value::Null) {
@@ -2299,7 +2288,7 @@ impl AlpacaCore {
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("type".to_string(), orderType.clone());
-        m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "time_in_force", &[])));
+        m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "time_in_force", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(order.clone(), "side", &[]));
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "limit_price", &[]));
@@ -2318,7 +2307,7 @@ impl AlpacaCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pending_new".to_string(), Value::Str("open".into()));
@@ -2341,12 +2330,10 @@ impl AlpacaCore {
                 m.insert("rejected".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Value {
+    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("day".to_string(), Value::Str("Day".into()));
@@ -2355,9 +2342,7 @@ impl AlpacaCore {
                 m.insert("fok".to_string(), Value::Str("FOK".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]);
-
-    Value::Null
+        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2809,7 +2794,7 @@ impl AlpacaCore {
             }  else {
                 code = self.safe_currency_code(Value::Null, &[currency.clone()]);
             }
-            status = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
+            status = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             comment = activityType.clone();
             internal = (Value::Bool(activityType.as_str() != Some("TRANS")));
         }  else {
@@ -2820,11 +2805,11 @@ impl AlpacaCore {
             address = self.safe_string_k(transaction.clone(), "to_address", &[]);
             addressTo = self.safe_string_k(transaction.clone(), "to_address", &[]);
             addressFrom = self.safe_string_k(transaction.clone(), "from_address", &[]);
-            type_var = self.parse_transaction_type(self.safe_string_k(transaction.clone(), "direction", &[]));
+            type_var = self.parse_transaction_type(self.safe_string_k(transaction.clone(), "direction", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             amount = self.safe_number_k(transaction.clone(), "amount", &[]);
             let mut currencyId: Value = self.safe_string_k(transaction.clone(), "asset", &[]);
             code = self.safe_currency_code(currencyId, &[currency]);
-            status = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
+            status = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             let mut fees: Value = self.safe_string_k(transaction.clone(), "fees", &[]);
             let mut networkFee: Value = self.safe_string_k(transaction.clone(), "network_fee", &[]);
             let mut totalFee: Value = crate::precise::Precise::stringAdd(&fees, &networkFee);
@@ -2863,7 +2848,7 @@ impl AlpacaCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PROCESSING".to_string(), Value::Str("pending".into()));
@@ -2874,21 +2859,17 @@ impl AlpacaCore {
                 m.insert("pending".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transaction_type(&self, mut type_var: Value) -> Value {
+    pub fn parse_transaction_type(&self, mut type_var: Value) -> Option<String> {
         let mut types: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("INCOMING".to_string(), Value::Str("deposit".into()));
                 m.insert("OUTGOING".to_string(), Value::Str("withdrawal".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]);
-
-    Value::Null
+        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*

@@ -142,15 +142,12 @@ impl crate::exchange_generated::ExchangeBase for HibachiCore {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_settlement" => self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_settlements" => self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_transaction_type" => self.parse_transaction_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
@@ -1102,7 +1099,7 @@ impl HibachiCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut uppercaseStatus: Value = (if (status == Value::Null) { Value::Null } else { to_upper(&status) });
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1117,9 +1114,7 @@ impl HibachiCore {
                 m.insert("REJECTED".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, uppercaseStatus, &[status]);
-
-    Value::Null
+        return self.safe_string(statuses, uppercaseStatus, &[status]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1174,7 +1169,7 @@ impl HibachiCore {
         m.insert("timestamp".to_string(), timestamp);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
-        m.insert("status".to_string(), self.parse_order_status(status));
+        m.insert("status".to_string(), self.parse_order_status(status).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
@@ -2480,7 +2475,7 @@ impl HibachiCore {
     Value::Null
 }
 
-    pub fn parse_transaction_type(&self, mut type_var: Value) -> Value {
+    pub fn parse_transaction_type(&self, mut type_var: Value) -> Option<String> {
         let mut types: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deposit".to_string(), Value::Str("transaction".into()));
@@ -2489,12 +2484,10 @@ impl HibachiCore {
                 m.insert("transfer-out".to_string(), Value::Str("transfer".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]);
-
-    Value::Null
+        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pending".to_string(), Value::Str("pending".into()));
@@ -2503,9 +2496,7 @@ impl HibachiCore {
                 m.insert("failed".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
@@ -2543,8 +2534,8 @@ impl HibachiCore {
             timestamp = self.safe_integer_product(item.clone(), Value::Str("timestampSec".into()), Value::Int(1000), &[]);
             amount = self.safe_number_k(item.clone(), "quantity", &[]);
             direction = (if ((transactionType.as_str() == Some("deposit")) || (transactionType.as_str() == Some("transfer-in"))) { Value::Str("in".into()) } else { Value::Str("out".into()) });
-            type_var = self.parse_transaction_type(transactionType.clone());
-            status = self.parse_transaction_status(self.safe_string_k(item.clone(), "status", &[]));
+            type_var = self.parse_transaction_type(transactionType.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            status = self.parse_transaction_status(self.safe_string_k(item.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             if (transactionType.as_str() == Some("transfer-in")) {
                 referenceAccount = self.safe_string_k(item.clone(), "srcAccountId", &[]);
             }  else if (transactionType.as_str() == Some("transfer-out")) {
@@ -2737,7 +2728,7 @@ impl HibachiCore {
         let mut address: Value = self.safe_string_k(transaction.clone(), "withdrawalAddress", &[]);
         let mut transactionType: Value = self.safe_string_k(transaction.clone(), "transactionType", &[]);
         if (transactionType.as_str() != Some("deposit")) && (transactionType.as_str() != Some("withdrawal")) {
-            transactionType = self.parse_transaction_type(transactionType.clone());
+            transactionType = self.parse_transaction_type(transactionType.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2756,7 +2747,7 @@ impl HibachiCore {
         m.insert("type".to_string(), transactionType);
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "quantity", &[]));
         m.insert("currency".to_string(), Value::Str("USDT".into()));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction, "status", &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction, "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);

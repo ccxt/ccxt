@@ -349,7 +349,7 @@ impl BithumbCore {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id(market);
+            let mut marketIdRequest: Value = self.parent.get_gen2_market_id(market).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
@@ -412,7 +412,7 @@ impl BithumbCore {
             let mut market: Value = self.market(symbol);
             let mut streamMarketId: Value = Value::Null;
             if isGenerationTwo {
-                streamMarketId = self.parent.get_gen2_market_id(market.clone());
+                streamMarketId = self.parent.get_gen2_market_id(market.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             }  else {
                 streamMarketId = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), Value::Str("_".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into()));
             }
@@ -685,7 +685,7 @@ impl BithumbCore {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id(market);
+            let mut marketIdRequest: Value = self.parent.get_gen2_market_id(market).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
@@ -903,7 +903,7 @@ impl BithumbCore {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id(market);
+            let mut marketIdRequest: Value = self.parent.get_gen2_market_id(market).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));

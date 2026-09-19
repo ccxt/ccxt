@@ -1782,7 +1782,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "i", &[Value::Str("orderId".into())]));
-        m.insert("type".to_string(), self.parent.parse_order_status(self.safe_string_k(trade.clone(), "st", &[Value::Str("state".into())])));
+        m.insert("type".to_string(), self.parent.parse_order_status(self.safe_string_k(trade.clone(), "st", &[Value::Str("state".into())])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("sd".into()), &[Value::Str("orderSide".into())]));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_number_k(trade.clone(), "price", &[]));
@@ -1871,7 +1871,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("remaining".to_string(), self.safe_string_k(order.clone(), "lq", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_string2(order.clone(), Value::Str("ap".into()), Value::Str("avgPrice".into()), &[]));
-        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order.clone(), "st", &[Value::Str("state".into())])));
+        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order.clone(), "st", &[Value::Str("state".into())])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), Value::Null);
