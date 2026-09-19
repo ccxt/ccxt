@@ -87,7 +87,7 @@ check ('toString() + unproven param',
 // own, so an unnamed right operand is wrapped (CS0029 on the farm without the wrap)
 check ('this.id + conditional right',
     'function f (c, a, b) { const x = this.id + (c ? a : b); return x; }',
-    'string x = (this.id + ((((bool) isTrue(c)) ? a : b)));');
+    'string x = (this.id + ((isTrue(c) ? a : b)));');
 
 // an object literal right operand: add(string, object) calls b.ToString() exactly like
 // String.Concat does

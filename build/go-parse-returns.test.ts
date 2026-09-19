@@ -73,8 +73,8 @@ check ('parse*: Dict -> map[string]any',
         "        const out: Dict = { 'a': x['a'] };\n" +
         '        return out;\n' +
         '    }\n'),
-    'ParseInfoX(x any) map[string]any {',
-    'ParseInfoX(x any) any {');
+    'ParseInfoX(x map[string]any) map[string]any {',
+    'ParseInfoX(x map[string]any) any {');
 
 check ('caller local of a Dict parse* reads natively',
     classOf ('    parseInfoX (x: Dict): Dict {\n' +
@@ -91,20 +91,20 @@ check ('caller local of a Dict parse* reads natively',
 // List: an array literal body prints []any
 check ('parse*: List -> []any',
     classOf ('    parseListX (x: Dict): List {\n        return [ x ];\n    }\n'),
-    'ParseListX(x any) []any {',
-    'ParseListX(x any) any {');
+    'ParseListX(x map[string]any) []any {',
+    'ParseListX(x map[string]any) any {');
 
 // Bool: a literal body prints bool
 check ('parse*: Bool -> bool',
     classOf ('    parseFlagX (x: Dict): Bool {\n        return true;\n    }\n'),
-    'ParseFlagX(x any) bool {',
-    'ParseFlagX(x any) any {');
+    'ParseFlagX(x map[string]any) bool {',
+    'ParseFlagX(x map[string]any) any {');
 
 // number: a numeric literal body prints float64
 check ('parse*: number -> float64',
     classOf ('    parseAmountX (x: Dict): number {\n        return 1;\n    }\n'),
-    'ParseAmountX(x any) float64 {',
-    'ParseAmountX(x any) any {');
+    'ParseAmountX(x map[string]any) float64 {',
+    'ParseAmountX(x map[string]any) any {');
 
 // an absent path is fine for the nullable annotations (Str -> *string, nil)
 check ('parse*: Str with an absent path stays *string',

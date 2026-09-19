@@ -113,7 +113,7 @@ check ('...its ternary line prints unchanged',
         }
         return close;
     }`,
-    'close = ((bool) ((close == null))) ? new Dictionary<string, object>() {} : close;');
+    'close = ((close == null)) ? new Dictionary<string, object>() {} : close;');
 
 // ---- negatives: every shape that must keep the printer's `object` ----
 
