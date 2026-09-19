@@ -3963,7 +3963,7 @@ public class Woofipro extends WoofiproApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marginModes = (this.fetchMarginModes((Object)(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), (Object)(parameters))).join();
-            Object marginMode = this.safeDict(marginModes, ((Map<String, Object>)market).get("symbol"));
+            Map<String, Object> marginMode = (Map<String, Object>) this.safeDict(marginModes, ((Map<String, Object>)market).get("symbol"));
             if (java.util.Objects.equals(marginMode, null))
             {
                 throw new BadSymbol(((this.id + " fetchMarginMode() did not return a margin mode for ") + ((Map<String, Object>)market).get("symbol"))) ;

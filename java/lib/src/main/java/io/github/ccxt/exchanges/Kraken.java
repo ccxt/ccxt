@@ -2105,7 +2105,7 @@ public class Kraken extends KrakenApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             ((Map<String, Object>)result).put("usingCost", isUsingCost);
             // it's impossible to know if the order was created using cost or base currency
             // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
@@ -2844,7 +2844,7 @@ final Object finalId = id;
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
@@ -4155,7 +4155,7 @@ final Object finalId = id;
                 //         }
                 //     }
                 //
-                Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+                Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 return this.parseTransaction(result, currency);
             }
             throw new ExchangeError((this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;

@@ -2196,7 +2196,7 @@ public class Nado extends NadoApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            Object ticker = this.safeDict(tickers, symbol);
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol);
             if (java.util.Objects.equals(ticker, null))
             {
                 throw new BadSymbol(((this.id + " fetchTicker() ticker not found for ") + symbol)) ;

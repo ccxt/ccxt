@@ -1016,7 +1016,7 @@ public class Alpaca extends AlpacaApi
             //   }
             //
             Map<String, Object> orderbooks = (Map<String, Object>) this.safeDict(response, "orderbooks", new HashMap<String, Object>() {{}});
-            Object rawOrderbook = this.safeDict(orderbooks, id, new HashMap<String, Object>() {{}});
+            Map<String, Object> rawOrderbook = (Map<String, Object>) this.safeDict(orderbooks, id, new HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
             return this.parseOrderBook(rawOrderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "b", "a", "p", "s");
         }).thenApply(OrderBook::new);

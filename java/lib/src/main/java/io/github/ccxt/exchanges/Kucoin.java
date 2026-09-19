@@ -3877,7 +3877,7 @@ public class Kucoin extends KucoinApi
                 //        }
                 //    }
                 //
-                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseTicker(data, market);
             } else
             {
@@ -3940,12 +3940,12 @@ public class Kucoin extends KucoinApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 response = (this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, parameters))).join();
-                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseTicker(data, market);
             } else
             {
                 response = (this.publicGetMarkPriceSymbolCurrent(this.extend(request, parameters))).join();
-                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseSpotOrUtaTicker(data, market);
             }
         }).thenApply(Ticker::new);
@@ -4981,7 +4981,7 @@ public class Kucoin extends KucoinApi
             //         }
             //    }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -5173,7 +5173,7 @@ public class Kucoin extends KucoinApi
             //        },
             //    }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -5409,7 +5409,7 @@ public class Kucoin extends KucoinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -5982,7 +5982,7 @@ public class Kucoin extends KucoinApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -6348,7 +6348,7 @@ public class Kucoin extends KucoinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -7614,7 +7614,7 @@ public class Kucoin extends KucoinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -9318,7 +9318,7 @@ public class Kucoin extends KucoinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
@@ -13494,7 +13494,7 @@ public class Kucoin extends KucoinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
@@ -13558,7 +13558,7 @@ public class Kucoin extends KucoinApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
         });
 

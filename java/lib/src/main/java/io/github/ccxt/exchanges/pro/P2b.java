@@ -424,7 +424,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         //    }
         //
         List<Object> data = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
-        Object trades = this.safeList(data, 1);
+        List<Object> trades = (List<Object>) this.safeList(data, 1);
         String marketId = this.safeString(data, 0);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = this.safeString(market, "symbol");

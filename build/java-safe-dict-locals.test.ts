@@ -91,11 +91,14 @@ check ('a later destructuring write keeps Object',
     "Object x = this.safeDict(a, b)",
     `${MAP} x = (${MAP}) this.safeDict(a, b)`);
 
-// 8. a `return x as <type>` site keeps the Object declaration (the accept'd cast shape)
-check ('a later as-cast keeps Object',
+// 8. hx3 B-15: a `return x as <type>` site no longer forces Object — the printer drops a
+// TypeReference assertion (printAsExpression falls through to the operand), so the printed
+// statement is the SAME as with the Object declaration. `x as string` / `x as any[]` still
+// print a cast and keep Object (see java-b15-typed-local-assertions.test.ts).
+check ('a later as-cast to a structure type keeps the local typed',
     classOf ("        const x = this.safeDict (a, b)\n        return x as Ticker\n"),
-    "Object x = this.safeDict(a, b)",
-    `${MAP} x = (${MAP}) this.safeDict(a, b)`);
+    `${MAP} x = (${MAP}) this.safeDict(a, b)`,
+    "Object x = this.safeDict(a, b)");
 
 // 9. a later write that IS a structure box (safeCurrency) takes the reassignment checkcast
 check ('a later structure-box write takes the reassignment cast',

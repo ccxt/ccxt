@@ -293,7 +293,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "bids", new ArrayList<Object>(Arrays.asList()) );
             put( "asks", new ArrayList<Object>(Arrays.asList()) );
         }};
-        Object inserts = this.safeList(data, "inserts");
+        List<Object> inserts = (List<Object>) this.safeList(data, "inserts");
         for (var i = 0; i < ((List<?>)(List<Object>)(inserts)).size(); i++)
         {
             Map<String, Object> insert = (Map<String, Object>) this.safeDict(inserts, i);

@@ -2853,10 +2853,10 @@ public class Bingx extends BingxApi
             List<Object> data = (List<Object>) this.safeList(response, "data");
             if (!java.util.Objects.equals(data, null))
             {
-                Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 return this.parseTicker(first, market);
             }
-            Object dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> dataDict = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTicker(dataDict, market);
         }).thenApply(Ticker::new);
 
@@ -3551,7 +3551,7 @@ public class Bingx extends BingxApi
                 response = (this.swapV2PrivateGetUserPositions(this.extend(request, parameters))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parsePosition(first, market);
         }).thenApply(Position::new);
 
@@ -4205,7 +4205,7 @@ public class Bingx extends BingxApi
                 Object parsedResponse = this.parseJson(response);
                 response = parsedResponse;
             }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object result = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -6756,7 +6756,7 @@ public class Bingx extends BingxApi
         // currencie structure
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object networks = this.safeDict(fee, "networks", new HashMap<String, Object>() {{}});
+        Map<String, Object> networks = (Map<String, Object>) this.safeDict(fee, "networks", new HashMap<String, Object>() {{}});
         Object networkCodes = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
         Object networksLength = ((List<?>)networkCodes).size();
         Map<String, Object> result = new HashMap<String, Object>() {{

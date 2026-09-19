@@ -1064,7 +1064,7 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Object result = this.safeDict(response, "result");
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
             return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
@@ -1123,7 +1123,7 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Object result = this.safeDict(response, "result");
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
             return this.parseOrder(result);
         }).thenApply(Order::new);
 

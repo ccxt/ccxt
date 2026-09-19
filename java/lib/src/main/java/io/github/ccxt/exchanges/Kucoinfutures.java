@@ -121,7 +121,7 @@ public class Kucoinfutures extends KucoinfuturesApi
             {
                 throw new BadRequest((this.id + " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
             }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             final Object finalToAccount = toAccount;
             return this.extend(this.parseTransfer(data, currency), new HashMap<String, Object>() {{
                 put( "amount", Kucoinfutures.this.parseNumber(amountToPrecision) );

@@ -1671,7 +1671,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         //
         // const action = this.safeString (message, 'action');
-        Object response = this.safeList(message, "response");
+        List<Object> response = (List<Object>) this.safeList(message, "response");
         // const marketId = this.safeString (firstRawTrade, 'market');
         List<Object> trades = this.parseTrades((List<Object>)(response), null, null);
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
@@ -1783,7 +1783,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
-        Object response = this.safeList(message, "response");
+        List<Object> response = (List<Object>) this.safeList(message, "response");
         String messageHash = this.safeString(message, "requestId");
         List<Object> withdrawals = this.parseTransactions((List<Object>)(response), null, null, null, new HashMap<String, Object>() {{
             put( "type", "withdrawal" );

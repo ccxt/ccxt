@@ -289,7 +289,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 Object tickers = (this.fetchMarkPrices((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-                Object ticker = this.safeDict(tickers, symbol);
+                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol);
                 if (java.util.Objects.equals(ticker, null))
                 {
                     throw new NullResponse(((this.id + " fetchMarkPrices() could not find a ticker for ") + symbol)) ;
@@ -1015,7 +1015,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 Object tickers = (this.fetchTickersWs((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-                Object ticker = this.safeDict(tickers, symbol);
+                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol);
                 if (java.util.Objects.equals(ticker, null))
                 {
                     throw new NullResponse(((this.id + " fetchTickerWs() could not find a ticker for ") + symbol)) ;
@@ -1297,7 +1297,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-                Object ticker = this.safeDict(tickers, symbol);
+                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol);
                 if (java.util.Objects.equals(ticker, null))
                 {
                     throw new NullResponse(((this.id + " fetchTickers() could not find a ticker for ") + symbol)) ;

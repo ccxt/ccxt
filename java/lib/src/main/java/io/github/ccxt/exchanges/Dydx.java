@@ -2692,7 +2692,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 

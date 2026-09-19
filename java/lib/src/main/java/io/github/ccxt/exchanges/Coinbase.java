@@ -3162,12 +3162,12 @@ public class Coinbase extends CoinbaseApi
                 return ledger;
             }
             Object lastIndex = Helpers.subtract(length, 1);
-            Object last = this.safeDict(ledger, lastIndex);
+            Map<String, Object> last = (Map<String, Object>) this.safeDict(ledger, lastIndex);
             Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "next_starting_after");
             if ((!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
             {
-                Helpers.addElementToObject(Helpers.GetValue(last, "info"), "next_starting_after", cursor);
+                Helpers.addElementToObject(last.get("info"), "next_starting_after", cursor);
                 Helpers.addElementToObject(ledger, lastIndex, last);
             }
             return ledger;

@@ -2640,7 +2640,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.safeInteger(first, "ts");
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
@@ -3294,7 +3294,7 @@ public class Okx extends OkxApi
             // rpi liquidity, so index 0 and 1 stay the price and the amount
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(first, "ts");
             return this.parseOrderBook(first, symbol, timestamp);
         }).thenApply(OrderBook::new);
@@ -3429,7 +3429,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         }).thenApply(Ticker::new);
 
@@ -4219,7 +4219,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -5207,7 +5207,7 @@ public class Okx extends OkxApi
             Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
             // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object order = this.safeDict(data, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -6015,7 +6015,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object order = this.safeDict(data, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -7146,7 +7146,7 @@ public class Okx extends OkxApi
             Object response = responseRaw;
             if (!java.util.Objects.equals(network, null))
             {
-                Object result = this.safeDict(response, network);
+                Map<String, Object> result = (Map<String, Object>) this.safeDict(response, network);
                 if (java.util.Objects.equals(result, null))
                 {
                     throw new InvalidAddress(((((this.id + " fetchDepositAddress() cannot find ") + network) + " deposit address for ") + code)) ;
@@ -7243,7 +7243,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object transaction = this.safeDict(data, 0);
+            Map<String, Object> transaction = (Map<String, Object>) this.safeDict(data, 0);
             return this.parseTransaction(transaction, currency);
         }).thenApply(Transaction::new);
 
@@ -7378,7 +7378,7 @@ public class Okx extends OkxApi
             }
             Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data");
-            Object deposit = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> deposit = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTransaction(deposit, currency);
         });
 
@@ -7526,7 +7526,7 @@ public class Okx extends OkxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object withdrawal = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawal = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTransaction(withdrawal);
         });
 
@@ -8277,7 +8277,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object rawTransfer = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> rawTransfer = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTransfer(rawTransfer, currency);
         }).thenApply(TransferEntry::new);
 
@@ -8425,7 +8425,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object transfer = this.safeDict(data, 0);
+            Map<String, Object> transfer = (Map<String, Object>) this.safeDict(data, 0);
             return this.parseTransfer(transfer);
         }).thenApply(TransferEntry::new);
 
@@ -8743,7 +8743,7 @@ public class Okx extends OkxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
         }).thenApply(FundingRate::new);
 
@@ -9471,7 +9471,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             String errorCode = this.safeString(response, "code");
             final Object finalErrorCode = errorCode;
             return this.extend(this.parseMarginModification(entry, market), new HashMap<String, Object>() {{
@@ -10915,7 +10915,7 @@ public class Okx extends OkxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object order = this.safeDict(data, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -10972,7 +10972,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object chain = this.safeDict(result, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> chain = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
             return this.parseOption(chain, null, market);
         }).thenApply(Option::new);
 
@@ -11139,7 +11139,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(result, "baseCcy", fromCode);
             Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(result, "quoteCcy", toCode);
@@ -11204,7 +11204,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(result, "baseCcy", fromCode);
             Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(result, "quoteCcy", toCode);
@@ -11261,7 +11261,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(result, "baseCcy");
             String toCurrencyId = this.safeString(result, "quoteCcy");
             Object fromCurrency = null;

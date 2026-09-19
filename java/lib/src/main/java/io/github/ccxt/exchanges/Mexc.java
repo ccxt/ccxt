@@ -3672,7 +3672,7 @@ public class Mexc extends MexcApi
                 //         ]
                 //     }
                 //
-                Object data = this.safeList(response, "data");
+                List<Object> data = (List<Object>) this.safeList(response, "data");
                 return this.parseOrders(data, market);
             }
         });
@@ -4041,7 +4041,7 @@ public class Mexc extends MexcApi
                 //         ]
                 //     }
                 //
-                Object data = this.safeList(response, "data");
+                List<Object> data = (List<Object>) this.safeList(response, "data");
                 return this.parseOrders(data, market);
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

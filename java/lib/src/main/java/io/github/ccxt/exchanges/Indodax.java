@@ -1314,7 +1314,7 @@ public class Indodax extends IndodaxApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "return");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return");
             return this.parseOrder(data);
         }).thenApply(Order::new);
 
