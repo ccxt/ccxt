@@ -7920,7 +7920,9 @@ impl std::ops::DerefMut for ${coreName} {
         // not transpiled"): `removeAt ()` / `slice ()` are JS Array helpers on
         // BaseCache with no port equivalent; the python/php/cs lanes ship
         // hand-written siblings (test_cache_native.*). Skip it here too.
-        const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual', 'test.clientRetention', 'test.cacheNative']);
+        // `test.wsSnapshotReadiness` is native JS: it exercises the JS Client
+        // and static transport helper, whose implementations are language-specific.
+        const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual', 'test.clientRetention', 'test.cacheNative', 'test.wsSnapshotReadiness']);
         const SKIP_PREFIXES = ['test.singleFlight', 'test.serverPingLiveness'];
         for (const testName of testFiles) {
             if (SKIP.has(testName) || SKIP_PREFIXES.some(p => testName.startsWith(p))) continue;
