@@ -1153,7 +1153,7 @@ impl BittradeCore {
         });
         let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_common_exchange(&[__ws_arg_0]).await;
-        return self.parse_trading_limits(self.safe_value_k(response, "data", &[Value::Map({
+        return self.parse_trading_limits(self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[]);
@@ -1487,7 +1487,7 @@ impl BittradeCore {
             if is_true(&(response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null)) || is_true(&(response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() returned empty response: ".to_string()))), json_stringify(&response))));
             }
-            let mut tick: Value = self.safe_value_k(response.clone(), "tick", &[]);
+            let mut tick: Value = self.safe_dict_k(response.clone(), "tick", &[]);
             let mut timestamp: Value = self.safe_integer_k(tick.clone(), "ts", &[self.safe_integer(response.clone(), Value::Str("ts".to_string()), &[])]);
             let mut result: Value = self.parse_order_book(tick.clone(), symbol.clone(), &[timestamp.clone()]);
             add_element_to_object(&mut result, &Value::Str("nonce".to_string()), self.safe_integer_k(tick.clone(), "version", &[]));
@@ -1984,21 +1984,21 @@ impl BittradeCore {
         //         ]
         //     }
         //
-        let mut currencies: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut currencies: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_currencies(currencies.clone());
 
     Value::Null
 }
 
     pub fn parse_currency(&self, mut currency: Value) -> Value {
-        let mut id: Value = self.safe_value_k(currency.clone(), "name", &[]);
+        let mut id: Value = self.safe_string_k(currency.clone(), "name", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-        let mut depositEnabled: Value = self.safe_value_k(currency.clone(), "deposit-enabled", &[]);
-        let mut withdrawEnabled: Value = self.safe_value_k(currency.clone(), "withdraw-enabled", &[]);
-        let mut countryDisabled: Value = self.safe_value_k(currency.clone(), "country-disabled", &[]);
+        let mut depositEnabled: Value = self.safe_bool_k(currency.clone(), "deposit-enabled", &[]);
+        let mut withdrawEnabled: Value = self.safe_bool_k(currency.clone(), "withdraw-enabled", &[]);
+        let mut countryDisabled: Value = self.safe_bool_k(currency.clone(), "country-disabled", &[]);
         let mut visible: Value = self.safe_bool_k(currency.clone(), "visible", &[Value::Bool(false)]);
         let mut state: Option<String> = self.safe_string_k(currency.clone(), "state", &[]).as_str().map(str::to_owned);
-        let mut active: Value = Value::Bool(is_true(&(visible.as_bool() == Some(true))) && (is_equal(&depositEnabled, &Value::Bool(true))) && (is_equal(&withdrawEnabled, &Value::Bool(true))) && is_true(&(state.as_deref() == Some("online"))) && (!is_equal(&countryDisabled, &Value::Bool(true))));
+        let mut active: Value = Value::Bool(is_true(&(visible.as_bool() == Some(true))) && is_true(&(depositEnabled.as_bool() == Some(true))) && is_true(&(withdrawEnabled.as_bool() == Some(true))) && is_true(&(state.as_deref() == Some("online"))) && is_true(&(countryDisabled.as_bool() != Some(true))));
         let mut name: Value = self.safe_string_k(currency.clone(), "display-name", &[]);
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "withdraw-precision", &[])]), &[]);
         return self.safe_currency_structure(Value::Map({
@@ -2514,10 +2514,10 @@ impl BittradeCore {
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client-order-id".to_string()), &[]); // must be 64 chars max and unique within 24 hours
         if (clientOrderId == Value::Null) {
-            let mut broker: Value = self.safe_value_k(self.options.clone(), "broker", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut broker: Value = self.safe_dict_k(self.options.clone(), "broker", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut brokerId: Value = self.safe_string_k(broker.clone(), "id", &[]);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("client-order-id".to_string(), Value::Str(format!("{}{}", brokerId, self.uuid(&[])))); }
         }  else {
@@ -2799,10 +2799,10 @@ impl BittradeCore {
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut networkId: Value = self.safe_string_k(depositAddress.clone(), "chain", &[]);
-        let mut networks: Value = self.safe_value_k(currency.clone(), "networks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut networks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut networksById: Value = self.index_by(networks.clone(), Value::Str("id".to_string()));
         let mut networkValue: Value = self.safe_value(networksById.clone(), networkId.clone(), &[networkId.clone()]);
         let mut network: Value = self.safe_string_k(networkValue.clone(), "network", &[]);
@@ -3064,10 +3064,10 @@ impl BittradeCore {
         if (tag != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("addr-tag".to_string(), tag.clone()); } // only for XRP?
         }
-        let mut networks: Value = self.safe_value_k(self.options.clone(), "networks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]); // this line allows the user to specify either ERC20 or ETH
         network = self.safe_string_lower(networks.clone(), network.clone(), &[network.clone()]); // handle ETH>ERC20 alias
         if (network != Value::Null) {

@@ -354,7 +354,7 @@ impl HollaexCore {
         if (symbol == Value::Null) {
             return;
         }
-        let mut data: Value = self.safe_value_k(message, "data", &[]);
+        let mut data: Value = self.safe_dict_k(message, "data", &[]);
         let mut timestamp: Value = self.safe_string_k(data.clone(), "timestamp", &[]);
         let mut timestampMs: Value = self.parse8601(timestamp.clone());
         let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestampMs.clone()]);
@@ -432,7 +432,7 @@ impl HollaexCore {
             stored = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::from(vec![])]);
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);
@@ -961,7 +961,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("usertrade".to_string(), Value::Str("handle_my_trades".to_string()).clone());
             m
         });
-        let mut topic: Value = self.safe_value_k(message.clone(), "topic", &[]);
+        let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
         let mut method: Value = self.safe_value(methods.clone(), topic.clone(), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);

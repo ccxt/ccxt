@@ -402,7 +402,7 @@ impl CexCore {
         //         "ok": "ok"
         //     }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -410,7 +410,7 @@ impl CexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut usedBalance: Value = self.safe_value_k(data.clone(), "obalance", &[Value::Map({
+        let mut usedBalance: Value = self.safe_dict_k(data.clone(), "obalance", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -735,7 +735,7 @@ impl CexCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -779,7 +779,7 @@ impl CexCore {
         //        "priceChangePercentage": "0.23",
         //        "pair": ["BTC", "USDT"]
         //    }
-        let mut pair: Value = self.safe_value_k(ticker.clone(), "pair", &[Value::from(vec![])]);
+        let mut pair: Value = self.safe_list_k(ticker.clone(), "pair", &[Value::from(vec![])]);
         let mut baseId: Value = self.safe_string_k(ticker.clone(), "symbol1", &[]);
         if (baseId == Value::Null) {
             baseId = self.safe_string(pair.clone(), Value::Int(0), &[]);
@@ -953,7 +953,7 @@ impl CexCore {
 }
 
     pub fn handle_transaction(&mut self, mut client: Value, mut message: Value) {
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
         let mut symbol2: Option<String> = self.safe_string_k(data.clone(), "symbol2", &[]).as_str().map(str::to_owned);
         if (symbol2.is_none()) {
             return;
@@ -1005,7 +1005,7 @@ impl CexCore {
         //             "id": "59091012962"
         //         }
         //     }
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1160,7 +1160,7 @@ impl CexCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1169,7 +1169,7 @@ impl CexCore {
         let mut remains: Value = self.safe_string_k(data.clone(), "remains", &[]);
         let mut baseId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         let mut quoteId: Value = self.safe_string_k(data.clone(), "symbol2", &[]);
-        let mut pair: Value = self.safe_value_k(data.clone(), "pair", &[]);
+        let mut pair: Value = self.safe_dict_k(data.clone(), "pair", &[]);
         if (pair != Value::Null) {
             baseId = self.safe_string_k(pair.clone(), "symbol1", &[]);
             quoteId = self.safe_string_k(pair.clone(), "symbol2", &[]);
@@ -1184,7 +1184,7 @@ impl CexCore {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut storedOrders: Value = self.orders.clone();
-        let mut ordersBySymbol: Value = self.safe_value(storedOrders.hashmap(), symbol.clone(), &[Value::Map({
+        let mut ordersBySymbol: Value = self.safe_dict(storedOrders.hashmap(), symbol.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1257,7 +1257,7 @@ impl CexCore {
         //           "id": "59425993020"
         //       }
         //
-        let mut isTransaction: bool = self.safe_value_k(order.clone(), "d", &[]) != Value::Null;
+        let mut isTransaction: bool = self.safe_string_k(order.clone(), "d", &[]) != Value::Null;
         let mut remainsPrecision: Value = self.safe_string_k(order.clone(), "remains", &[]);
         let mut remaining: Value = Value::Null;
         if (remainsPrecision != Value::Null) {
@@ -1275,7 +1275,7 @@ impl CexCore {
         }
         let mut baseId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut quoteId: Value = self.safe_string_k(order.clone(), "symbol2", &[]);
-        let mut pair: Value = self.safe_value_k(order.clone(), "pair", &[]);
+        let mut pair: Value = self.safe_dict_k(order.clone(), "pair", &[]);
         if (pair != Value::Null) {
             baseId = self.safe_string_k(order.clone(), "symbol1", &[]);
             quoteId = self.safe_string_k(order.clone(), "symbol2", &[]);
@@ -1469,7 +1469,7 @@ impl CexCore {
         //         "ok": "ok"
         //     }
         //
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1521,7 +1521,7 @@ impl CexCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1536,8 +1536,8 @@ impl CexCore {
             return;
         }
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "time", &[]);
-        let mut asks: Value = self.safe_value_k(data.clone(), "asks", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_value_k(data, "bids", &[Value::from(vec![])]);
+        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
         self.handle_deltas(crate::value::get_value_k(&storedOrderBook, "asks"), asks.clone());
         self.handle_deltas(crate::value::get_value_k(&storedOrderBook, "bids"), bids.clone());
         add_element_to_object(&mut storedOrderBook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -1635,7 +1635,7 @@ impl CexCore {
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut market: Value = self.safe_market(&[symbol.clone()]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol));
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::from(vec![])]);
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
         let mut stored = ArrayCacheByTimestamp::new(limit.clone());
         let mut sorted: Value = self.sort_by(data.clone(), Value::Int(0), &[]);
@@ -1678,7 +1678,7 @@ impl CexCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2011,7 +2011,7 @@ impl CexCore {
         //        "placed-cancelled": []
         //    }
         //
-        let mut canceledOrders: Value = self.safe_value_k(response, "cancel-orders", &[]);
+        let mut canceledOrders: Value = self.safe_list_k(response, "cancel-orders", &[]);
         return self.parse_orders(canceledOrders.clone(), &[Value::Null, Value::Null, Value::Null, params.clone()]);
 
     Value::Null
@@ -2048,7 +2048,7 @@ impl CexCore {
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+            let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

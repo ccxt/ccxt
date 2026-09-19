@@ -1128,10 +1128,10 @@ impl TokocryptoCore {
         if is_equal(&self.options.as_map().and_then(|__m| __m.get("adjustForTimeDifference")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut list: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
         let mut result: Value = Value::from(vec![]);
         {
@@ -1149,7 +1149,7 @@ impl TokocryptoCore {
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-            let mut filters: Value = self.safe_value_k(market.clone(), "filters", &[Value::from(vec![])]);
+            let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]);
             let mut filtersByType: Value = self.index_by(filters.clone(), Value::Str("filterType".to_string()));
             let mut status: Option<String> = self.safe_string_k(market.clone(), "spotTradingEnable", &[]).as_str().map(str::to_owned);
             let mut active: Value = (Value::Bool(status.as_deref() == Some("1")));
@@ -1250,10 +1250,10 @@ impl TokocryptoCore {
                 add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("price".to_string()), filter.as_map().and_then(|__m| __m.get("tickSize")).cloned().unwrap_or(Value::Null));
             }
             if is_true(&(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("LOT_SIZE")))) {
-                let mut filter: Value = self.safe_value_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]);
+                let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
                 add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("amount".to_string()), self.safe_number_k(filter.clone(), "stepSize", &[]));
                 add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("amount".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1263,10 +1263,10 @@ impl TokocryptoCore {
 }));
             }
             if is_true(&(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("MARKET_LOT_SIZE")))) {
-                let mut filter: Value = self.safe_value_k(filtersByType.clone(), "MARKET_LOT_SIZE", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]);
+                let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "MARKET_LOT_SIZE", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
                 add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("market".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minQty", &[]));
@@ -1275,10 +1275,10 @@ impl TokocryptoCore {
 }));
             }
             if is_true(&(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("MIN_NOTIONAL")))) {
-                let mut filter: Value = self.safe_value_k(filtersByType, "MIN_NOTIONAL", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]);
+                let mut filter: Value = self.safe_dict_k(filtersByType, "MIN_NOTIONAL", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
                 add_element_to_object(get_value_mut(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("cost".to_string())), &Value::Str("min".to_string()), self.safe_number2(filter.clone(), Value::Str("minNotional".to_string()), Value::Str("notional".to_string()), &[]));
             }
             append_to_array(&mut result, entry.clone());
@@ -1354,7 +1354,7 @@ impl TokocryptoCore {
         //         },
         //         "timestamp":1692262634599
         //     }
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[response.clone()]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         let mut timestamp: Value = self.safe_integer2(response.clone(), Value::Str("T".to_string()), Value::Str("timestamp".to_string()), &[]);
         let mut orderbook: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone()]);
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(data.clone(), "lastUpdateId", &[]));
@@ -1468,10 +1468,10 @@ impl TokocryptoCore {
         id = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("tradeId".to_string()), &[id.clone()]);
         let mut side: Value = Value::Null;
         let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
-        let mut buyerMaker: Value = self.safe_value2(trade.clone(), Value::Str("m".to_string()), Value::Str("isBuyerMaker".to_string()), &[]);
+        let mut buyerMaker: Value = self.safe_bool2(trade.clone(), Value::Str("m".to_string()), Value::Str("isBuyerMaker".to_string()), &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (buyerMaker != Value::Null) {
-            side = (if (is_equal(&buyerMaker, &Value::Bool(true))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) }); // this is reversed intentionally
+            side = (if is_true(&(buyerMaker.as_bool() == Some(true))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) }); // this is reversed intentionally
             takerOrMaker = Value::Str("taker".to_string());
         }  else if is_true(&(matches!(&trade, Value::Dict(__d) if __d.contains_key("side")))) {
             side = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
@@ -2028,10 +2028,10 @@ impl TokocryptoCore {
                 m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
             m
         });
-        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut balances: Value = self.safe_list_k(data, "accountAssets", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2198,7 +2198,7 @@ impl TokocryptoCore {
         }  else if (side.as_str() == Some("1")) {
             side = Value::Str("sell".to_string());
         }
-        let mut fills: Value = self.safe_value_k(order.clone(), "fills", &[Value::from(vec![])]);
+        let mut fills: Value = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]);
         let mut clientOrderId: Value = self.safe_string2(order.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientId".to_string()), &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         if (timeInForce.as_str() == Some("GTX")) {
@@ -2324,7 +2324,7 @@ impl TokocryptoCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("side".to_string(), Value::Int(1)); }
         }
         if (clientOrderId == Value::Null) {
-            let mut broker: Value = self.safe_value_k(self.options.clone(), "broker", &[]);
+            let mut broker: Value = self.safe_dict_k(self.options.clone(), "broker", &[]);
             if (broker != Value::Null) {
                 let mut brokerId: Value = self.safe_string_k(broker.clone(), "marketType", &[]);
                 if (brokerId != Value::Null) {
@@ -2499,11 +2499,11 @@ impl TokocryptoCore {
         //         "timestamp": 1662710056523
         //     }
         //
-        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut list: Value = self.safe_value_k(data, "list", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut list: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
         let mut rawOrder: Value = self.safe_dict(list.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2585,10 +2585,10 @@ impl TokocryptoCore {
         //         "timestamp": 1572860756458
         //     }
         //
-        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut orders: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2783,10 +2783,10 @@ impl TokocryptoCore {
         //         "timestamp": 1573723498893
         //     }
         //
-        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut trades: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2816,10 +2816,10 @@ impl TokocryptoCore {
                 m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut networks: Value = self.safe_value_k(self.options.clone(), "networks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]); // this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks.clone(), network.clone(), &[network.clone()]); // handle ERC20>ETH alias
         if (network != Value::Null) {
@@ -2845,10 +2845,10 @@ impl TokocryptoCore {
         //         "timestamp":1660685915746
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut address: Value = self.safe_string_k(data.clone(), "address", &[]);
         let mut tag: Value = self.safe_string_k(data.clone(), "addressTag", &[Value::Str("".to_string())]);
         if (Value::Int(tag.len() as i64).as_f64() == Some(0.0)) {
@@ -2938,10 +2938,10 @@ impl TokocryptoCore {
         //         "timestamp":1659758865998
         //     }
         //
-        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut deposits: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
         return self.parse_transactions(deposits.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -3014,10 +3014,10 @@ impl TokocryptoCore {
         //         "timestamp":1659759062187
         //     }
         //
-        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut withdrawals: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
         return self.parse_transactions(withdrawals.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -3047,10 +3047,10 @@ impl TokocryptoCore {
 }));
             m
         });
-        let mut statuses: Value = self.safe_value(statusesByType.clone(), type_var.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut statuses: Value = self.safe_dict(statusesByType.clone(), type_var.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
 
     Value::Null
@@ -3147,10 +3147,10 @@ impl TokocryptoCore {
         }
         let mut id: Value = self.safe_string_k(transaction.clone(), "id", &[]);
         if (id == Value::Null) {
-            let mut data: Value = self.safe_value_k(transaction.clone(), "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut data: Value = self.safe_dict_k(transaction.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             id = self.safe_string_k(data.clone(), "withdrawId", &[]);
             type_var = Value::Str("withdrawal".to_string());
         }

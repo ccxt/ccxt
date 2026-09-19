@@ -502,8 +502,8 @@ impl LunoCore {
         let mut priceKey = get_arg(optional_args, 3, Value::Str("price".to_string()));
         let mut amountKey = get_arg(optional_args, 4, Value::Str("volume".to_string()));
         let mut countOrIdKey = get_arg(optional_args, 5, Value::Int(2));
-        let mut bids: Value = self.parse_order_book_bids_asks(self.safe_value(orderbook.clone(), bidsKey.clone(), &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
-        let mut asks: Value = self.parse_order_book_bids_asks(self.safe_value(orderbook.clone(), asksKey.clone(), &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
+        let mut bids: Value = self.parse_order_book_bids_asks(self.safe_list(orderbook.clone(), bidsKey.clone(), &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
+        let mut asks: Value = self.parse_order_book_bids_asks(self.safe_list(orderbook.clone(), asksKey.clone(), &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());

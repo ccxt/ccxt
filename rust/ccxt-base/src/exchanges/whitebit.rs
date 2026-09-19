@@ -1345,15 +1345,15 @@ impl WhitebitCore {
         quoteId = (if is_true(&(quoteId.as_str() == Some("PERP"))) { Value::Str("USDT".to_string()) } else { quoteId.clone() });
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut active: Value = self.safe_value_k(market.clone(), "tradesEnabled", &[]);
-        let mut isCollateral: Value = self.safe_value_k(market.clone(), "isCollateral", &[]);
+        let mut active: Value = self.safe_bool_k(market.clone(), "tradesEnabled", &[]);
+        let mut isCollateral: Value = self.safe_bool_k(market.clone(), "isCollateral", &[]);
         let mut typeId: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
         let mut settle: Value = Value::Null;
         let mut settleId: Value = Value::Null;
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut swap: Value = Value::Bool(is_true(&(typeId.as_deref() == Some("futures"))) || is_true(&(typeId.as_deref() == Some("tradfiFutures"))));
-        let mut margin: Value = Value::Bool((is_equal(&isCollateral, &Value::Bool(true))) && !is_true(&swap));
+        let mut margin: Value = Value::Bool(is_true(&(isCollateral.as_bool() == Some(true))) && !is_true(&swap));
         let mut contract: Value = Value::Bool(false);
         let mut amountPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "stockPrec", &[])]), &[]);
         let mut linear: Value = Value::Null;
@@ -1708,17 +1708,17 @@ impl WhitebitCore {
     m
 })]);
             let mut code: Value = self.safe_currency_code(currency.clone(), &[]);
-            let mut withdraw: Value = self.safe_value_k(data.clone(), "withdraw", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut withdraw: Value = self.safe_dict_k(data.clone(), "withdraw", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             if (code != Value::Null) {
                 add_element_to_object(&mut withdrawFees, &code, self.safe_string_k(withdraw.clone(), "fixed", &[]));
             }
-            let mut deposit: Value = self.safe_value_k(data, "deposit", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut deposit: Value = self.safe_dict_k(data, "deposit", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             if (code != Value::Null) {
                 add_element_to_object(&mut depositFees, &code, self.safe_string_k(deposit.clone(), "fixed", &[]));
             }
@@ -1822,7 +1822,7 @@ impl WhitebitCore {
             let mut feeInfo: Value = get_value(&response, &entry);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if is_true(&(code != Value::Null)) && (is_true(&(codes == Value::Null)) || is_true(&(self.in_array(code.clone(), codes.clone())))) {
-                let mut depositWithdrawFee: Value = self.safe_value(depositWithdrawFees.clone(), code.clone(), &[]);
+                let mut depositWithdrawFee: Value = self.safe_dict(depositWithdrawFees.clone(), code.clone(), &[]);
                 if (depositWithdrawFee == Value::Null) {
                     add_element_to_object(&mut depositWithdrawFees, &code, self.deposit_withdraw_fee(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1831,8 +1831,8 @@ impl WhitebitCore {
                 }
                 add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("info".to_string())), &entry, feeInfo.clone());
                 let mut networkId: Value = self.safe_string(splitEntry.clone(), Value::Int(1), &[]);
-                let mut withdraw: Value = self.safe_value_k(feeInfo.clone(), "withdraw", &[]);
-                let mut deposit: Value = self.safe_value_k(feeInfo.clone(), "deposit", &[]);
+                let mut withdraw: Value = self.safe_dict_k(feeInfo.clone(), "withdraw", &[]);
+                let mut deposit: Value = self.safe_dict_k(feeInfo.clone(), "deposit", &[]);
                 let mut withdrawFee: Value = self.safe_number_k(withdraw.clone(), "fixed", &[]);
                 let mut depositFee: Value = self.safe_number_k(deposit.clone(), "fixed", &[]);
                 let mut withdrawResult: Value = Value::Map({
@@ -1928,10 +1928,10 @@ impl WhitebitCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            let mut fee: Value = self.safe_value(response.clone(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut fee: Value = self.safe_dict(response.clone(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut makerFee: Value = self.safe_string_k(fee.clone(), "maker_fee", &[]);
             let mut takerFee: Value = self.safe_string_k(fee.clone(), "taker_fee", &[]);
             makerFee = crate::precise::Precise::stringDiv(&makerFee, &Value::Str("100".to_string()));
@@ -2874,7 +2874,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut marketId: Value = get_value(&keys, &i);
                 let mut marketId: Value = get_value(&keys, &i);
                 let mut marketNew: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
-                let mut rawTrades: Value = self.safe_value(response.clone(), marketId.clone(), &[Value::from(vec![])]);
+                let mut rawTrades: Value = self.safe_list(response.clone(), marketId.clone(), &[Value::from(vec![])]);
                 let mut parsed: Value = self.parse_trades(rawTrades.clone(), &[marketNew.clone(), since.clone(), limit.clone()]);
                 results = self.array_concat(results.clone(), parsed.clone());
             }
@@ -3592,10 +3592,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (marketType.as_str() == Some("swap")) {
             response = self.v4_private_post_collateral_account_balance(&[params.clone()]).await;
         }  else {
-            let mut options: Value = self.safe_value_k(self.options.clone(), "fetchBalance", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchBalance", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut defaultAccount: Value = self.safe_string_k(options.clone(), "account", &[]);
             let mut account: Option<String> = self.safe_string2(params.clone(), Value::Str("account".to_string()), Value::Str("type".to_string()), &[defaultAccount.clone()]).as_str().map(str::to_owned);
             params = self.omit(params.clone(), Value::from(vec![Value::Str("account".to_string()), Value::Str("type".to_string())]), &[]);
@@ -4147,10 +4147,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut url: Value = self.safe_string_k(response.clone(), "url", &[]);
-        let mut account: Value = self.safe_value_k(response.clone(), "account", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut account: Value = self.safe_dict_k(response.clone(), "account", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut address: Value = self.safe_string_k(account.clone(), "address", &[url.clone()]);
         let mut tag: Value = self.safe_string_k(account.clone(), "memo", &[]);
         self.check_address(&[address.clone()]);
@@ -4356,7 +4356,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "accountsByType", &[]);
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
         let mut fromAccountId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
         let mut toAccountId: Value = self.safe_string(accountsByType.clone(), toAccount.clone(), &[toAccount.clone()]);
         let mut amountString: Value = self.currency_to_precision(code.clone(), amount.clone(), &[]);
@@ -4619,7 +4619,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        let mut records: Value = self.safe_value_k(response.clone(), "records", &[Value::from(vec![])]);
+        let mut records: Value = self.safe_list_k(response.clone(), "records", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(records.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5636,7 +5636,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn is_fiat(&self, mut currency: Value) -> Value {
-        let mut fiatCurrencies: Value = self.safe_value_k(self.options.clone(), "fiatCurrencies", &[Value::from(vec![])]);
+        let mut fiatCurrencies: Value = self.safe_list_k(self.options.clone(), "fiatCurrencies", &[Value::from(vec![])]);
         return self.in_array(currency.clone(), fiatCurrencies.clone());
 
     Value::Null
@@ -5794,7 +5794,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
-            let mut errors: Value = self.safe_value_k(response.clone(), "errors", &[]);
+            let mut errors: Value = self.safe_dict_k(response.clone(), "errors", &[]);
             // {"code":10,"message":"Unauthorized request."}
             let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
             // For these cases where we have a generic code variable error key

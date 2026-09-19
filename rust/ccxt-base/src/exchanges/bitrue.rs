@@ -1413,7 +1413,7 @@ impl BitrueCore {
         }
         }
         let mut promises: Value = promise_all(&promisesRaw).await;
-        let mut spotMarkets: Value = self.safe_value(self.safe_value(promises.clone(), Value::Int(0), &[]), Value::Str("symbols".to_string()), &[Value::from(vec![])]);
+        let mut spotMarkets: Value = self.safe_list(self.safe_dict(promises.clone(), Value::Int(0), &[]), Value::Str("symbols".to_string()), &[Value::from(vec![])]);
         let mut futureMarkets: Value = self.safe_value(promises.clone(), Value::Int(1), &[]);
         let mut deliveryMarkets: Value = self.safe_value(promises.clone(), Value::Int(2), &[]);
         let mut markets: Value = spotMarkets.clone();
@@ -2689,8 +2689,8 @@ impl BitrueCore {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("volume".to_string(), self.parse_to_numeric(amount.clone())); }
             }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("positionType".to_string(), Value::Int(1)); }
-            let mut reduceOnly: Value = self.safe_value2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("open".to_string(), (if (is_equal(&reduceOnly, &Value::Bool(true))) { Value::Str("CLOSE".to_string()) } else { Value::Str("OPEN".to_string()) })); }
+            let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("open".to_string(), (if is_true(&(reduceOnly.as_bool() == Some(true))) { Value::Str("CLOSE".to_string()) } else { Value::Str("OPEN".to_string()) })); }
             let mut leverage: Value = self.safe_string_k(params.clone(), "leverage", &[Value::Str("1".to_string())]);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("leverage".to_string(), self.parse_to_numeric(leverage.clone())); }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("leverage".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("timeInForce".to_string())]), &[]);
@@ -2717,7 +2717,7 @@ impl BitrueCore {
                 params = self.omit(params.clone(), Value::from(vec![Value::Str("newClientOrderId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newClientOrderId".to_string(), clientOrderId.clone()); }
             }
-            let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
+            let mut triggerPrice: Value = self.safe_number2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
             if (triggerPrice != Value::Null) {
                 params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
@@ -2757,7 +2757,7 @@ impl BitrueCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut origClientOrderId: Value = self.safe_value2(params.clone(), Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
+        let mut origClientOrderId: Value = self.safe_string2(params.clone(), Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Map({
@@ -2932,7 +2932,7 @@ impl BitrueCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut origClientOrderId: Value = self.safe_value2(params.clone(), Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
+        let mut origClientOrderId: Value = self.safe_string2(params.clone(), Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Map({
@@ -4046,7 +4046,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
+        return self.safe_number_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }

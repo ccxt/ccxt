@@ -394,7 +394,7 @@ impl WooCore {
 }
 
     pub fn request_id(&self, mut url: Value) -> Value {
-        let mut options: Value = self.safe_value_k(self.options.clone(), "requestId", &[Value::Map({
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -642,7 +642,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit.clone()]);
             let mut params: Value = self.safe_value_k(subscription, "params", &[]);
             let mut snapshot: Value = self.fetch_rest_order_book_safe(symbol.clone(), &[limit.clone(), params.clone()]).await;
-            if (self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]) == Value::Null) {
+            if (self.safe_dict(self.orderbooks.clone(), symbol.clone(), &[]) == Value::Null) {
                 return Value::Null;
             }
             let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
@@ -676,8 +676,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
 
     pub fn handle_order_book_message(&self, mut client: Value, mut message: Value, mut orderbook: Value) -> Value {
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
-        self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), self.safe_value_k(data.clone(), "asks", &[Value::from(vec![])]));
-        self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), self.safe_value_k(data, "bids", &[Value::from(vec![])]));
+        self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
+        self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), self.safe_list_k(data, "bids", &[Value::from(vec![])]));
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
@@ -1165,7 +1165,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
         let mut topic: Value = self.safe_value_k(message.clone(), "topic", &[]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1173,11 +1173,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut interval: Value = self.safe_string_k(data.clone(), "type", &[]);
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
         let mut parsed: Value = Value::from(vec![self.safe_integer_k(data.clone(), "startTime", &[]), self.safe_float_k(data.clone(), "open", &[]), self.safe_float_k(data.clone(), "high", &[]), self.safe_float_k(data.clone(), "low", &[]), self.safe_float_k(data.clone(), "close", &[]), self.safe_float_k(data.clone(), "volume", &[])]);
-        { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+        { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
-        let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
+        let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
@@ -1270,7 +1270,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1754,11 +1754,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 self.orders = ArrayCacheBySymbolById::new(limit.clone());
             }
             let mut cachedOrders: Value = self.orders.clone();
-            let mut orders: Value = self.safe_value(cachedOrders.hashmap(), symbol.clone(), &[Value::Map({
+            let mut orders: Value = self.safe_dict(cachedOrders.hashmap(), symbol.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut order: Value = self.safe_value(orders.clone(), orderId.clone(), &[]);
+            let mut order: Value = self.safe_dict(orders.clone(), orderId.clone(), &[]);
             if (order != Value::Null) {
                 let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                 if (fee != Value::Null) {
@@ -1956,7 +1956,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //        }
         //    }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2313,7 +2313,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
         let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
-        let mut subscription: Value = self.safe_value(subscriptionsById.clone(), id.clone(), &[Value::Map({
+        let mut subscription: Value = self.safe_dict(subscriptionsById.clone(), id.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2335,8 +2335,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        let mut success: Value = self.safe_value_k(message.clone(), "success", &[]);
-        if is_equal(&success, &Value::Bool(true)) {
+        let mut success: Value = self.safe_bool_k(message.clone(), "success", &[]);
+        if (success.as_bool() == Some(true)) {
             // client.resolve (message, messageHash);
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticated".to_string()), &[]);
             future.resolve(&[Value::Bool(true)]);

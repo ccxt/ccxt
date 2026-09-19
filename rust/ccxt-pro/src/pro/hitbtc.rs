@@ -545,7 +545,7 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: Value = self.safe_value_k(self.options.clone(), "watchOrderBook", &[]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("orderbook/full".to_string())]);
         let mut name: Value = self.safe_string2(params.clone(), Value::Str("method".to_string()), Value::Str("defaultMethod".to_string()), &[defaultMethod.clone()]);
         let mut depth: Value = self.safe_string_k(params.clone(), "depth", &[Value::Str("20".to_string())]);
@@ -707,7 +707,7 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut options: Value = self.safe_value_k(self.options.clone(), "watchTicker", &[]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchTicker", &[]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("ticker/{speed}/batch".to_string())]);
         let mut method: Value = self.safe_string2(params.clone(), Value::Str("method".to_string()), Value::Str("defaultMethod".to_string()), &[defaultMethod.clone()]);
         let mut speed: Value = self.safe_string_k(params.clone(), "speed", &[Value::Str("1s".to_string())]);
@@ -903,7 +903,7 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
-        let mut options: Value = self.safe_value_k(self.options.clone(), "watchBidsAsks", &[]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBidsAsks", &[]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("orderbook/top/{speed}/batch".to_string())]);
         let mut method: Value = self.safe_string2(params.clone(), Value::Str("method".to_string()), Value::Str("defaultMethod".to_string()), &[defaultMethod.clone()]);
         let mut speed: Value = self.safe_string_k(params.clone(), "speed", &[Value::Str("100ms".to_string())]);
@@ -1276,7 +1276,7 @@ impl HitbtcCore {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+            { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
@@ -1969,9 +1969,9 @@ impl HitbtcCore {
         //        "result": true
         //    }
         //
-        let mut success: Value = self.safe_value_k(message.clone(), "result", &[]);
+        let mut success: Value = self.safe_bool_k(message.clone(), "result", &[]);
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        if is_equal(&success, &Value::Bool(true)) {
+        if (success.as_bool() == Some(true)) {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
@@ -1998,7 +1998,7 @@ impl HitbtcCore {
         //        id: 1700228604325
         //    }
         //
-        let mut error: Value = self.safe_value_k(message.clone(), "error", &[]);
+        let mut error: Value = self.safe_dict_k(message.clone(), "error", &[]);
         if (error != Value::Null) {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut code: Value = self.safe_value_k(error.clone(), "code", &[]);

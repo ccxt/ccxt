@@ -1151,7 +1151,7 @@ impl AsterCore {
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut trades: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_6, messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
-            let mut first: Value = self.safe_value(trades.clone(), Value::Int(0), &[]);
+            let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first.clone(), "symbol", &[]);
             limit = trades.get_limit(tradeSymbol.clone(), limit.clone());
         }
@@ -1851,7 +1851,7 @@ impl AsterCore {
         if (timeframe == Value::Null) {
             return;
         }
-        let mut ohlcvsByTimeframe: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]);
+        let mut ohlcvsByTimeframe: Value = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]);
         if (ohlcvsByTimeframe == Value::Null) {
             add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2057,7 +2057,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &type_var)) && (in_op(&self.balance, &type_var)) {
             return;
         }
-        let mut options: Value = self.safe_value_k(self.options.clone(), "watchBalance", &[]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if (fetchBalanceSnapshot.as_bool() == Some(true)) {
             let mut messageHash: Value = add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()));
@@ -2080,7 +2080,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         let mut response: Value = self.fetch_balance(&[params.clone()]).await;
-        let __ws_arg_12 = self.safe_value(self.balance.clone(), type_var.clone(), &[Value::Map({
+        let __ws_arg_12 = self.safe_dict(self.balance.clone(), type_var.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2551,21 +2551,21 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if (orderId != Value::Null) && (tradeFee != Value::Null) && (symbol != Value::Null) {
                 let mut cachedOrders: Value = self.orders.clone();
                 if (cachedOrders != Value::Null) {
-                    let mut orders: Value = self.safe_value(cachedOrders.hashmap(), symbol.clone(), &[Value::Map({
+                    let mut orders: Value = self.safe_dict(cachedOrders.hashmap(), symbol.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
                     })]);
-                    let mut order: Value = self.safe_value(orders.clone(), orderId.clone(), &[]);
+                    let mut order: Value = self.safe_dict(orders.clone(), orderId.clone(), &[]);
                     if (order != Value::Null) {
                         // accumulate order fees
-                        let mut fees: Value = self.safe_value_k(order.clone(), "fees", &[]);
-                        let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
+                        let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[Value::from(vec![])]);
+                        let mut fee: Value = self.safe_dict_k(order.clone(), "fee", &[]);
                         if !is_true(&self.is_empty(fees.clone())) {
                             let mut insertNewFeeCurrency: bool = true;
                             {
                                                                 let mut i: Value = Value::Int(0);
                                 let mut __for_first_37: bool = true;
-                                while { if !__for_first_37 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_37 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&fees).as_f64().unwrap_or(f64::NAN) } {
+                                while { if !__for_first_37 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_37 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
                                 let mut orderFee: Value = get_value(&fees, &i);
                                 let mut orderFee: Value = get_value(&fees, &i);
                                 if is_equal(&crate::value::get_value_k(&orderFee, "currency"), &tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null)) {
@@ -2581,11 +2581,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                 crate::runtime::append_to_object_array(&mut order, &Value::Str("fees".to_string()), tradeFee.clone());
                             }
                         }  else if (fee != Value::Null) {
-                            if is_equal(&crate::value::get_value_k(&fee, "currency"), &tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null)) {
-                                let mut feeCost: Value = self.sum(&[crate::value::get_value_k(&fee, "cost"), tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null)]);
+                            if is_equal(&fee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), &tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null)) {
+                                let mut feeCost: Value = self.sum(&[fee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null)]);
                                 let mut feeCostString: Value = self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost.clone(), &[]);
                                 add_element_to_object(get_value_mut(&mut order, &Value::Str("fee".to_string())), &Value::Str("cost".to_string()), (if is_true(&(feeCostString == Value::Null)) { Value::Null } else { (match &feeCostString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }) }));
-                            }  else if (crate::value::get_value_k(&fee, "currency") == Value::Null) {
+                            }  else if (fee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null) == Value::Null) {
                                 add_element_to_object(&mut order, &Value::Str("fee".to_string()), tradeFee.clone());
                             }  else {
                                 add_element_to_object(&mut order, &Value::Str("fees".to_string()), Value::from(vec![fee.clone(), tradeFee.clone()]));

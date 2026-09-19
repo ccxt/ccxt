@@ -579,7 +579,7 @@ impl BingxCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1262,7 +1262,7 @@ impl BingxCore {
 })])]);
         }
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+        { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
@@ -1342,11 +1342,11 @@ impl BingxCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV is not supported for ".to_string()))), marketType)), Value::Str(" markets.".to_string()))));
         }
-        let mut options: Value = self.safe_value(self.options.clone(), marketType.clone(), &[Value::Map({
+        let mut options: Value = self.safe_dict(self.options.clone(), marketType.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframes: Value = self.safe_value_k(options, "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_dict_k(options, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1404,11 +1404,11 @@ impl BingxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut options: Value = self.safe_value(self.options.clone(), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), &[Value::Map({
+        let mut options: Value = self.safe_dict(self.options.clone(), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframes: Value = self.safe_value_k(options, "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_dict_k(options, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1680,7 +1680,7 @@ impl BingxCore {
                 m.insert("subType".to_string(), subType.clone());
             m
         })]).await;
-        let __ws_arg_5 = self.safe_value(self.balance.clone(), type_var.clone(), &[Value::Map({
+        let __ws_arg_5 = self.safe_dict(self.balance.clone(), type_var.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2185,7 +2185,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut isSpot: bool = in_op(&message, &Value::Str("dataType".to_string()));
-        let mut data: Value = self.safe_value2(message.clone(), Value::Str("data".to_string()), Value::Str("o".to_string()), &[Value::Map({
+        let mut data: Value = self.safe_dict2(message.clone(), Value::Str("data".to_string()), Value::Str("o".to_string()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2388,7 +2388,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         if Value::Int(dataType.as_str().and_then(|__s| __s.find("executionReport")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+            let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2406,7 +2406,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if (e.as_deref() == Some("ORDER_TRADE_UPDATE")) {
             self.handle_order(client.clone(), message.clone());
-            let mut data: Value = self.safe_value_k(message.clone(), "o", &[Value::Map({
+            let mut data: Value = self.safe_dict_k(message.clone(), "o", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2416,7 +2416,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.handle_my_trades(client.clone(), message.clone());
             }
         }
-        let mut msgData: Value = self.safe_value_k(message.clone(), "data", &[]);
+        let mut msgData: Value = self.safe_dict_k(message.clone(), "data", &[]);
         let mut msgEvent: Option<String> = self.safe_string_k(msgData.clone(), "e", &[]).as_str().map(str::to_owned);
         if (msgEvent.as_deref() == Some("24hTicker")) {
             self.handle_ticker(client.clone(), message.clone());

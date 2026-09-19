@@ -5724,8 +5724,8 @@ impl OkxCore {
         let mut slOrdPx: Value = self.safe_number_k(params.clone(), "slOrdPx", &[price.clone()]);
         let mut slTriggerPxType: Value = self.safe_string_k(params.clone(), "slTriggerPxType", &[Value::Str("last".to_string())]);
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
-        let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
+        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRatio".to_string()), &[]);
@@ -6099,8 +6099,8 @@ impl OkxCore {
             }
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[Value::Str("".to_string())]);
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
-            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
-            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6176,8 +6176,8 @@ impl OkxCore {
         let mut takeProfitTriggerPrice: Value = self.safe_number2(params.clone(), Value::Str("takeProfitPrice".to_string()), Value::Str("newTpTriggerPx".to_string()), &[]);
         let mut takeProfitPrice: Value = self.safe_number_k(params.clone(), "newTpOrdPx", &[]);
         let mut takeProfitTriggerPriceType: Value = self.safe_string_k(params.clone(), "newTpTriggerPxType", &[Value::Str("last".to_string())]);
-        let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
+        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
         if is_true(&isAlgoOrder) {

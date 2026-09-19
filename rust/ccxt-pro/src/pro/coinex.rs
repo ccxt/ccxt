@@ -684,7 +684,7 @@ impl CoinexCore {
         }
         let mut messageHash: Value = Value::Null;
         if (account != Value::Null) {
-            if (self.safe_value(self.balance.clone(), account.clone(), &[]) == Value::Null) {
+            if (self.safe_dict(self.balance.clone(), account.clone(), &[]) == Value::Null) {
                 add_element_to_object(&mut self.balance, &account, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -728,7 +728,7 @@ impl CoinexCore {
         if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
         if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "frozen", &[])); }
         if (accountType != Value::Null) {
-            if (self.safe_value(self.balance.clone(), accountType.clone(), &[]) == Value::Null) {
+            if (self.safe_dict(self.balance.clone(), accountType.clone(), &[]) == Value::Null) {
                 add_element_to_object(&mut self.balance, &accountType, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -964,7 +964,7 @@ impl CoinexCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "created_at", &[]);
-        let mut isSpot: bool = in_op(&trade, &Value::Str("margin_market".to_string()));
+        let mut isSpot: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("margin_market"));
         let mut defaultType: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         let mut marketId: Value = self.safe_string_k(trade.clone(), "market", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, defaultType.clone()]);
@@ -1692,7 +1692,7 @@ impl CoinexCore {
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "created_at", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "market", &[]);
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
-        let mut isSpot: bool = in_op(&order, &Value::Str("margin_market".to_string()));
+        let mut isSpot: bool = matches!(&order, Value::Dict(__d) if __d.contains_key("margin_market"));
         let mut defaultType: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, defaultType.clone()]);
         let mut fee: Value = Value::Null;
@@ -1967,7 +1967,7 @@ impl CoinexCore {
 
     pub fn handle_subscription_status(&self, mut client: Value, mut message: Value) {
         let mut id: Value = self.safe_integer_k(message.clone(), "id", &[]);
-        let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), id.clone(), &[]);
+        let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), id.clone(), &[]);
         if (subscription != Value::Null) {
             let mut futureIndex: Value = self.safe_string_k(subscription.clone(), "future", &[]);
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), futureIndex.clone(), &[]);

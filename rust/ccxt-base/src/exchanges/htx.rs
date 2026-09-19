@@ -3610,10 +3610,10 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: Value = self.safe_value_k(self.options.clone(), "fetchTime", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchTime", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".to_string())]);
         let mut type_var: Value = self.safe_string_k(options.clone(), "type", &[defaultType.clone()]);
         type_var = self.safe_string_k(params.clone(), "type", &[type_var.clone()]);
@@ -3694,11 +3694,11 @@ impl HtxCore {
         //         "success":true
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_value(data.clone(), Value::Int(0), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_trading_fee(first.clone(), &[market.clone()]);
 
     Value::Null
@@ -3761,7 +3761,7 @@ impl HtxCore {
         });
         let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.spot_public_get_v1_common_exchange(&[__ws_arg_1]).await;
-        return self.parse_trading_limits(self.safe_value_k(response.clone(), "data", &[Value::Map({
+        return self.parse_trading_limits(self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[]);
@@ -4241,14 +4241,14 @@ impl HtxCore {
             while { if !__for_first_766 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_766 = false; i.as_f64().unwrap_or(f64::NAN) < ((futureMarkets.len() as i64) as f64) } {
             let mut market: Value = get_value(&futureMarkets, &i);
             let mut market: Value = get_value(&futureMarkets, &i);
-            let mut info: Value = self.safe_value_k(market.clone(), "info", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut info: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut contractType: Value = self.safe_string_k(info.clone(), "contract_type", &[]);
-            let mut contractSuffix: Value = self.safe_value(futuresCharsMaps.clone(), contractType.clone(), &[]);
+            let mut contractSuffix: Value = self.safe_string(futuresCharsMaps.clone(), contractType.clone(), &[]);
             // see comment on formats a bit above
-            let mut constructedId: Value = (if (is_equal(&market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { add(&Value::Str(format!("{}{}", add(&add(&market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), &Value::Str("-".to_string())), &market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)), Value::Str("-".to_string()))), &contractSuffix) } else { add(&add(&market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), &Value::Str("_".to_string())), &contractSuffix) });
+            let mut constructedId: Value = (if (is_equal(&market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&add(&market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), &Value::Str("-".to_string())), &market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)), Value::Str("-".to_string()))), contractSuffix)) } else { Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), &Value::Str("_".to_string())), contractSuffix)) });
             if (constructedId.as_str() == symbolOrMarketId.as_str()) {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("futureMarketIdsForSymbols".to_string())), &symbolOrMarketId, symbol.clone());
@@ -4456,10 +4456,10 @@ impl HtxCore {
         //         "ts":1637502670059
         //     }
         //
-        let mut tick: Value = self.safe_value_k(response.clone(), "tick", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut tick: Value = self.safe_dict_k(response.clone(), "tick", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut ticker: Value = self.parse_ticker(tick.clone(), &[market.clone()]);
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "ts", &[]);
         add_element_to_object(&mut ticker, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -4633,10 +4633,10 @@ impl HtxCore {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLastPrices() does not support ".to_string()))), type_var)), Value::Str(" markets yet".to_string()))));
         }
-        let mut tick: Value = self.safe_value_k(response.clone(), "tick", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut tick: Value = self.safe_dict_k(response.clone(), "tick", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut data: Value = self.safe_list_k(tick, "data", &[Value::from(vec![])]);
         return self.parse_last_prices(data.clone(), &[symbols.clone()]);
 
@@ -4757,7 +4757,7 @@ impl HtxCore {
             if is_true(&(response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null)) || is_true(&(response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() returned empty response: ".to_string()))), json_stringify(&response))));
             }
-            let mut tick: Value = self.safe_value_k(response.clone(), "tick", &[]);
+            let mut tick: Value = self.safe_dict_k(response.clone(), "tick", &[]);
             let mut timestamp: Value = self.safe_integer_k(tick.clone(), "ts", &[self.safe_integer(response.clone(), Value::Str("ts".to_string()), &[])]);
             let mut result: Value = self.parse_order_book(tick.clone(), symbol.clone(), &[timestamp.clone()]);
             add_element_to_object(&mut result, &Value::Str("nonce".to_string()), self.safe_integer_k(tick.clone(), "version", &[]));
@@ -5535,10 +5535,10 @@ impl HtxCore {
         //     }
         //
         let mut typeId: Value = self.safe_string_k(account.clone(), "type", &[]);
-        let mut accountsById: Value = self.safe_value_k(self.options.clone(), "accountsById", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut accountsById: Value = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut type_var: Value = self.safe_value(accountsById.clone(), typeId.clone(), &[typeId.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5592,7 +5592,7 @@ impl HtxCore {
             while { if !__for_first_769 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_769 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
-            let mut info: Value = self.safe_value_k(account.clone(), "info", &[]);
+            let mut info: Value = self.safe_dict_k(account.clone(), "info", &[]);
             let mut subtype: Value = self.safe_string_k(info.clone(), "subtype", &[]);
             let mut typeFromAccount: Value = self.safe_string_k(account.clone(), "type", &[]);
             if (type_var.as_str() == Some("margin")) {
@@ -5604,10 +5604,10 @@ impl HtxCore {
             }
         }
         }
-        let mut defaultAccount: Value = self.safe_value(accounts.clone(), Value::Int(0), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut defaultAccount: Value = self.safe_dict(accounts.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.safe_string_k(defaultAccount.clone(), "id", &[]);
 
     Value::Null
@@ -6532,11 +6532,11 @@ impl HtxCore {
         });
         let mut response: Value = Value::Null;
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut stopLossTakeProfit: Value = self.safe_value_k(params.clone(), "stopLossTakeProfit", &[]);
+        let mut stopLossTakeProfit: Value = self.safe_bool_k(params.clone(), "stopLossTakeProfit", &[]);
         let mut stopLoss: Value = self.safe_bool_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_bool_k(params.clone(), "takeProfit", &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isAlgo: bool = is_true(&(trigger.as_bool() == Some(true))) || is_true(&(stopLoss.as_bool() == Some(true))) || is_true(&(takeProfit.as_bool() == Some(true))) || (is_equal(&stopLossTakeProfit, &Value::Bool(true))) || is_true(&(trailing.as_bool() == Some(true)));
+        let mut isAlgo: bool = is_true(&(trigger.as_bool() == Some(true))) || is_true(&(stopLoss.as_bool() == Some(true))) || is_true(&(takeProfit.as_bool() == Some(true))) || is_true(&(stopLossTakeProfit.as_bool() == Some(true))) || is_true(&(trailing.as_bool() == Some(true)));
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("stopLossTakeProfit".to_string()), Value::Str("trailing".to_string()), Value::Str("trigger".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_time".to_string()), since.clone());
@@ -6556,7 +6556,7 @@ impl HtxCore {
                     add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("trigger".to_string()));
                 }  else if (trailing.as_bool() == Some(true)) {
                     add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("trailing_stop".to_string()));
-                }  else if is_equal(&stopLossTakeProfit, &Value::Bool(true)) {
+                }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                     add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("tpsl".to_string()));
                 }  else if (stopLoss.as_bool() == Some(true)) {
                     add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("sl".to_string()));
@@ -6578,7 +6578,7 @@ impl HtxCore {
                 if (trigger.as_bool() == Some(true)) {
                     let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
                     response = self.contract_private_post_swap_api_v1_swap_trigger_hisorders(&[__ws_arg_58]).await;
-                }  else if is_equal(&stopLossTakeProfit, &Value::Bool(true)) {
+                }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                     let __ws_arg_59 = self.extend(request.clone(), &[params.clone()]);
                     response = self.contract_private_post_swap_api_v1_swap_tpsl_hisorders(&[__ws_arg_59]).await;
                 }  else if (trailing.as_bool() == Some(true)) {
@@ -6593,7 +6593,7 @@ impl HtxCore {
                 if (trigger.as_bool() == Some(true)) {
                     let __ws_arg_62 = self.extend(request.clone(), &[params.clone()]);
                     response = self.contract_private_post_api_v1_contract_trigger_hisorders(&[__ws_arg_62]).await;
-                }  else if is_equal(&stopLossTakeProfit, &Value::Bool(true)) {
+                }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                     let __ws_arg_63 = self.extend(request.clone(), &[params.clone()]);
                     response = self.contract_private_post_api_v1_contract_tpsl_hisorders(&[__ws_arg_63]).await;
                 }  else if (trailing.as_bool() == Some(true)) {
@@ -6607,7 +6607,7 @@ impl HtxCore {
         }
         let mut orders: Value = self.safe_value_k(response.clone(), "data", &[]);
         if !is_true(&(matches!(&orders, Value::Arr(_)))) {
-            orders = self.safe_value_k(orders.clone(), "orders", &[Value::from(vec![])]);
+            orders = self.safe_list_k(orders.clone(), "orders", &[Value::from(vec![])]);
         }
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -6635,11 +6635,11 @@ impl HtxCore {
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-            let mut stopLossTakeProfit: Value = self.safe_value_k(params.clone(), "stopLossTakeProfit", &[]);
+            let mut stopLossTakeProfit: Value = self.safe_bool_k(params.clone(), "stopLossTakeProfit", &[]);
             let mut stopLoss: Value = self.safe_bool_k(params.clone(), "stopLoss", &[]);
             let mut takeProfit: Value = self.safe_bool_k(params.clone(), "takeProfit", &[]);
             let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-            let mut isAlgo: bool = is_true(&(trigger.as_bool() == Some(true))) || is_true(&(stopLoss.as_bool() == Some(true))) || is_true(&(takeProfit.as_bool() == Some(true))) || (is_equal(&stopLossTakeProfit, &Value::Bool(true))) || is_true(&(trailing.as_bool() == Some(true)));
+            let mut isAlgo: bool = is_true(&(trigger.as_bool() == Some(true))) || is_true(&(stopLoss.as_bool() == Some(true))) || is_true(&(takeProfit.as_bool() == Some(true))) || is_true(&(stopLossTakeProfit.as_bool() == Some(true))) || is_true(&(trailing.as_bool() == Some(true)));
             if (isAlgo) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("states".to_string(), Value::Str("effective".to_string())); }
             }  else {
@@ -6758,11 +6758,11 @@ impl HtxCore {
             });
             if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true)) {
                 let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-                let mut stopLossTakeProfit: Value = self.safe_value_k(params.clone(), "stopLossTakeProfit", &[]);
+                let mut stopLossTakeProfit: Value = self.safe_bool_k(params.clone(), "stopLossTakeProfit", &[]);
                 let mut stopLoss: Value = self.safe_bool_k(params.clone(), "stopLoss", &[]);
                 let mut takeProfit: Value = self.safe_bool_k(params.clone(), "takeProfit", &[]);
                 let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-                let mut isAlgo: bool = is_true(&(trigger.as_bool() == Some(true))) || is_true(&(stopLoss.as_bool() == Some(true))) || is_true(&(takeProfit.as_bool() == Some(true))) || (is_equal(&stopLossTakeProfit, &Value::Bool(true))) || is_true(&(trailing.as_bool() == Some(true)));
+                let mut isAlgo: bool = is_true(&(trigger.as_bool() == Some(true))) || is_true(&(stopLoss.as_bool() == Some(true))) || is_true(&(takeProfit.as_bool() == Some(true))) || is_true(&(stopLossTakeProfit.as_bool() == Some(true))) || is_true(&(trailing.as_bool() == Some(true)));
                 if (isAlgo) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("states".to_string(), Value::Str("canceled".to_string())); }
                 }  else {
@@ -7232,7 +7232,7 @@ impl HtxCore {
         //
         let mut orders: Value = self.safe_value_k(response.clone(), "data", &[]);
         if !is_true(&(matches!(&orders, Value::Arr(_)))) {
-            orders = self.safe_value_k(orders.clone(), "orders", &[Value::from(vec![])]);
+            orders = self.safe_list_k(orders.clone(), "orders", &[Value::from(vec![])]);
         }
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -7684,10 +7684,10 @@ impl HtxCore {
         });
         let mut orderType: Value = replace_str(&type_var, &Value::Str("buy-".to_string()), &Value::Str("".to_string()));
         orderType = replace_str(&orderType, &Value::Str("sell-".to_string()), &Value::Str("".to_string()));
-        let mut options: Value = self.safe_value(self.options.clone(), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut options: Value = self.safe_dict(self.options.clone(), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stop-price".to_string())]), &[]);
         if (triggerPrice == Value::Null) {
             let mut stopOrderTypes: Value = self.safe_dict_k(options.clone(), "stopOrderTypes", &[Value::Map({
@@ -7722,10 +7722,10 @@ impl HtxCore {
         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", side, Value::Str("-".to_string()))), orderType))); }
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client-order-id".to_string()), &[]); // must be 64 chars max and unique within 24 hours
         if (clientOrderId == Value::Null) {
-            let mut broker: Value = self.safe_value_k(self.options.clone(), "broker", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut broker: Value = self.safe_dict_k(self.options.clone(), "broker", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut brokerId: Value = self.safe_string_k(broker.clone(), "id", &[]);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("client-order-id".to_string(), Value::Str(format!("{}{}", brokerId, self.uuid(&[])))); }
         }  else {
@@ -7976,10 +7976,10 @@ impl HtxCore {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("lever_rate".to_string(), self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("leverRate".to_string()), Value::Str("lever_rate".to_string()), Value::Str("leverage".to_string())]), &[Value::Int(1)])); }
             }
         }
-        let mut broker: Value = self.safe_value_k(self.options.clone(), "broker", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut broker: Value = self.safe_dict_k(self.options.clone(), "broker", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut brokerId: Value = self.safe_string_k(broker.clone(), "id", &[]);
         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("channel_code".to_string(), brokerId.clone()); }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("reduceOnly".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("triggerType".to_string()), Value::Str("leverRate".to_string()), Value::Str("timeInForce".to_string()), Value::Str("leverage".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trailingTriggerPrice".to_string()), Value::Str("hedged".to_string())]), &[]);
@@ -8200,28 +8200,28 @@ impl HtxCore {
     m
 })]);
         }  else if isStopLossTriggerOrder {
-            data = self.safe_value_k(response.clone(), "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            result = self.safe_value_k(data.clone(), "sl_order", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            result = self.safe_dict_k(data.clone(), "sl_order", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         }  else if isTakeProfitTriggerOrder {
-            data = self.safe_value_k(response.clone(), "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            result = self.safe_value_k(data.clone(), "tp_order", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            result = self.safe_dict_k(data.clone(), "tp_order", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         }  else {
-            result = self.safe_value_k(response.clone(), "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            result = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         }
         if (result == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" parseOrder() returned empty response".to_string()))));
@@ -8273,10 +8273,10 @@ impl HtxCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_value_k(rawOrder, "params", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrders".to_string()), &[orderParams.clone()]);
             let mut currentMarginMode: Value = marginResult.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             if (currentMarginMode != Value::Null) {
@@ -8384,18 +8384,18 @@ impl HtxCore {
         //
         let mut result: Value = Value::Null;
         if (self.safe_bool_k(market.clone(), "spot", &[]).as_bool() == Some(true)) {
-            result = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+            result = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else {
             let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
             if is_true(&(matches!(&data, Value::Arr(_)))) {
                 result = data.clone();
             }  else {
-                let mut batchData: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]);
-                let mut success: Value = self.safe_value_k(batchData.clone(), "success", &[Value::from(vec![])]);
-                let mut errors: Value = self.safe_value_k(batchData, "errors", &[Value::from(vec![])]);
+                let mut batchData: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+                let mut success: Value = self.safe_list_k(batchData.clone(), "success", &[Value::from(vec![])]);
+                let mut errors: Value = self.safe_list_k(batchData, "errors", &[Value::from(vec![])]);
                 result = self.array_concat(success.clone(), errors.clone());
             }
         }
@@ -8641,7 +8641,7 @@ impl HtxCore {
             m
         });
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut stopLossTakeProfit: Value = self.safe_value_k(params.clone(), "stopLossTakeProfit", &[]);
+        let mut stopLossTakeProfit: Value = self.safe_bool_k(params.clone(), "stopLossTakeProfit", &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("stopLossTakeProfit".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (marketType.as_str() == Some("spot")) {
@@ -8699,7 +8699,7 @@ impl HtxCore {
                     if (trigger.as_bool() == Some(true)) {
                         let __ws_arg_94 = self.extend(request.clone(), &[params.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_trigger_cancel(&[__ws_arg_94]).await;
-                    }  else if is_equal(&stopLossTakeProfit, &Value::Bool(true)) {
+                    }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                         let __ws_arg_95 = self.extend(request.clone(), &[params.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_tpsl_cancel(&[__ws_arg_95]).await;
                     }  else {
@@ -8710,7 +8710,7 @@ impl HtxCore {
                     if (trigger.as_bool() == Some(true)) {
                         let __ws_arg_97 = self.extend(request.clone(), &[params.clone()]);
                         response = self.contract_private_post_api_v1_contract_trigger_cancel(&[__ws_arg_97]).await;
-                    }  else if is_equal(&stopLossTakeProfit, &Value::Bool(true)) {
+                    }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                         let __ws_arg_98 = self.extend(request.clone(), &[params.clone()]);
                         response = self.contract_private_post_api_v1_contract_tpsl_cancel(&[__ws_arg_98]).await;
                     }  else {
@@ -8795,7 +8795,7 @@ impl HtxCore {
         //         "ts": 1780822053167
         //     }
         //
-        if is_true(&(self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true))) && is_true(&(trigger.as_bool() != Some(true))) && (!is_equal(&stopLossTakeProfit, &Value::Bool(true))) {
+        if is_true(&(self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true))) && is_true(&(trigger.as_bool() != Some(true))) && is_true(&(stopLossTakeProfit.as_bool() != Some(true))) {
             return self.parse_cancel_orders(response.clone());
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
@@ -8980,7 +8980,7 @@ impl HtxCore {
             }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("contract_code".to_string(), self.safe_string_k(market.clone(), "id", &[])); }
             let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-            let mut stopLossTakeProfit: Value = self.safe_value_k(params.clone(), "stopLossTakeProfit", &[]);
+            let mut stopLossTakeProfit: Value = self.safe_bool_k(params.clone(), "stopLossTakeProfit", &[]);
             let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
             params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("stopLossTakeProfit".to_string()), Value::Str("trailing".to_string()), Value::Str("trigger".to_string())]), &[]);
             if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true)) {
@@ -8991,7 +8991,7 @@ impl HtxCore {
                     if (trigger.as_bool() == Some(true)) {
                         let __ws_arg_102 = self.extend(request.clone(), &[params.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_trigger_cancelall(&[__ws_arg_102]).await;
-                    }  else if is_equal(&stopLossTakeProfit, &Value::Bool(true)) {
+                    }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                         let __ws_arg_103 = self.extend(request.clone(), &[params.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_tpsl_cancelall(&[__ws_arg_103]).await;
                     }  else if (trailing.as_bool() == Some(true)) {
@@ -9005,7 +9005,7 @@ impl HtxCore {
                     if (trigger.as_bool() == Some(true)) {
                         let __ws_arg_106 = self.extend(request.clone(), &[params.clone()]);
                         response = self.contract_private_post_api_v1_contract_trigger_cancelall(&[__ws_arg_106]).await;
-                    }  else if is_equal(&stopLossTakeProfit, &Value::Bool(true)) {
+                    }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                         let __ws_arg_107 = self.extend(request.clone(), &[params.clone()]);
                         response = self.contract_private_post_api_v1_contract_tpsl_cancelall(&[__ws_arg_107]).await;
                     }  else if (trailing.as_bool() == Some(true)) {
@@ -9029,7 +9029,7 @@ impl HtxCore {
             //         "ts": "1683435723755"
             //     }
             //
-            if is_true(&(self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true))) && (is_true(&(trigger.as_bool() != Some(true))) && is_true(&(trailing.as_bool() != Some(true))) && (!is_equal(&stopLossTakeProfit, &Value::Bool(true)))) {
+            if is_true(&(self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true))) && (is_true(&(trigger.as_bool() != Some(true))) && is_true(&(trailing.as_bool() != Some(true))) && is_true(&(stopLossTakeProfit.as_bool() != Some(true)))) {
                 return self.parse_cancel_orders(response.clone());
             }
             let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
@@ -9141,7 +9141,7 @@ impl HtxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut parsed: Value = self.parse_deposit_addresses(data.clone(), &[Value::from(vec![currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]), Value::Bool(false)]);
         return self.index_by(parsed.clone(), Value::Str("network".to_string()));
 
@@ -9208,7 +9208,7 @@ impl HtxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut allAddresses: Value = self.parse_deposit_addresses(data.clone(), &[Value::from(vec![currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]), Value::Bool(false)]);
         let mut addresses: Value = Value::from(vec![]);
         {
@@ -9554,19 +9554,19 @@ impl HtxCore {
             amountPrecision = Value::Str("0".to_string());
         }
         amount = (match &amountPrecision { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
-        let mut withdrawOptions: Value = self.safe_value_k(self.options.clone(), "withdraw", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         if matches!(self.safe_bool_k(withdrawOptions, "includeFee", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut fee: Value = self.safe_number_k(params.clone(), "fee", &[]);
             if (fee == Value::Null) {
                 let mut currencies: Value = self.fetch_currencies(&[]).await;
                 { let __t = self.map_to_safe_map(self.deep_extend(self.currencies.clone(), &[currencies.clone()])); self.currencies = __t; }
-                let mut targetNetwork: Value = self.safe_value(currency.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkCode.clone(), &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]);
+                let mut targetNetwork: Value = self.safe_dict(currency.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkCode.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
                 fee = self.safe_number_k(targetNetwork, "fee", &[]);
                 if (fee == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with \"exchange.load_markets(&[true.clone()])\", or provide the \"fee\" parameter".to_string()))));
@@ -9898,7 +9898,7 @@ impl HtxCore {
         //     ]
         // }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_isolated_borrow_rates(data.clone());
 
     Value::Null
@@ -9931,9 +9931,9 @@ impl HtxCore {
         //
         let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut currencies: Value = self.safe_value_k(info.clone(), "currencies", &[Value::from(vec![])]);
-        let mut baseData: Value = self.safe_value(currencies.clone(), Value::Int(0), &[]);
-        let mut quoteData: Value = self.safe_value(currencies.clone(), Value::Int(1), &[]);
+        let mut currencies: Value = self.safe_list_k(info.clone(), "currencies", &[Value::from(vec![])]);
+        let mut baseData: Value = self.safe_dict(currencies.clone(), Value::Int(0), &[]);
+        let mut quoteData: Value = self.safe_dict(currencies.clone(), Value::Int(1), &[]);
         let mut baseId: Value = self.safe_string_k(baseData.clone(), "currency", &[]);
         let mut quoteId: Value = self.safe_string_k(quoteData.clone(), "currency", &[]);
         return Value::Map({
@@ -10187,10 +10187,10 @@ impl HtxCore {
     m
 })]);
         }  else {
-            result = self.safe_value_k(response.clone(), "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            result = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         }
         return self.parse_funding_rate(result.clone(), &[market.clone()]);
 
@@ -10256,7 +10256,7 @@ impl HtxCore {
         //         "ts": 1643346173103
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_funding_rates(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -10526,10 +10526,10 @@ impl HtxCore {
             }  else if (access.as_deref() == Some("private")) {
                 self.check_required_credentials(&[]);
                 if (method.as_str() == Some("POST")) {
-                    let mut options: Value = self.safe_value_k(self.options.clone(), "broker", &[Value::Map({
-                        let mut m = indexmap::IndexMap::new();
-                        m
-                    })]);
+                    let mut options: Value = self.safe_dict_k(self.options.clone(), "broker", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
                     let mut id: Value = self.safe_string_k(options.clone(), "id", &[Value::Str("AA03022abc".to_string())]);
                     if !isArrayParams {
                         if is_true(&(Value::Int(pathString.as_str().and_then(|__s| __s.find("cancel")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Value::Int(-1).as_f64())) && (ends_with(&pathString, &Value::Str("order".to_string()))) {
@@ -10922,7 +10922,7 @@ impl HtxCore {
         market = self.safe_market(&[self.safe_string_k(position.clone(), "contract_code", &[])]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut contracts: Value = self.safe_string_k(position.clone(), "volume", &[]);
-        let mut contractSize: Value = self.safe_value_k(market.clone(), "contractSize", &[]);
+        let mut contractSize: Value = self.safe_number_k(market.clone(), "contractSize", &[]);
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
         let mut entryPrice: Value = self.safe_number2(position.clone(), Value::Str("cost_open".to_string()), Value::Str("open_avg_price".to_string()), &[]);
         let mut initialMargin: Value = self.safe_string2(position.clone(), Value::Str("position_margin".to_string()), Value::Str("initial_margin".to_string()), &[]);
@@ -11145,7 +11145,7 @@ impl HtxCore {
         if (marginMode.as_str() == Some("cross")) {
             account = data.clone();
         }  else {
-            account = self.safe_value(data.clone(), Value::Int(0), &[]);
+            account = self.safe_dict(data.clone(), Value::Int(0), &[]);
         }
         let mut omitted: Value = self.omit(account.clone(), Value::from(vec![Value::Str("positions".to_string())]), &[]);
         let mut positions: Value = self.safe_value_k(account.clone(), "positions", &[]);
@@ -11164,7 +11164,7 @@ impl HtxCore {
             }
             }
         }  else {
-            position = self.safe_value(positions.clone(), Value::Int(0), &[]);
+            position = self.safe_dict(positions.clone(), Value::Int(0), &[]);
         }
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "ts", &[]);
         let __ws_arg_140 = self.extend(position.clone(), &[omitted.clone()]);
@@ -11326,7 +11326,7 @@ impl HtxCore {
         //         "ok": true
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_ledger(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -11556,7 +11556,7 @@ impl HtxCore {
         //        "ts": 1648227062944
         //    }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         let mut tick: Value = self.safe_list_k(data.clone(), "tick", &[]);
         return self.parse_open_interests_history(tick.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -11946,7 +11946,7 @@ impl HtxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "Data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::from(vec![])]);
         let mut loan: Value = self.safe_value(data.clone(), Value::Int(0), &[]);
         let mut transaction: Value = self.parse_margin_loan(loan.clone(), &[currency.clone()]);
         return self.extend(transaction, &[Value::Map({
@@ -11999,7 +11999,7 @@ impl HtxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "Data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::from(vec![])]);
         let mut loan: Value = self.safe_value(data.clone(), Value::Int(0), &[]);
         let mut transaction: Value = self.parse_margin_loan(loan.clone(), &[currency.clone()]);
         return self.extend(transaction, &[Value::Map({
@@ -12185,7 +12185,7 @@ impl HtxCore {
             let mut settlementsLinear: Value = self.parse_settlements(dataLinear.clone(), market.clone());
             return self.sort_by(settlementsLinear.clone(), Value::Str("timestamp".to_string()), &[]);
         }
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         let mut settlementRecord: Value = self.safe_value_k(data.clone(), "settlement_record", &[]);
         let mut settlements: Value = self.parse_settlements(settlementRecord.clone(), market.clone());
         return self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -12395,7 +12395,7 @@ impl HtxCore {
             while { if !__for_first_791 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_791 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&settlements).as_f64().unwrap_or(f64::NAN) } {
             let mut settlement: Value = get_value(&settlements, &i);
             let mut settlement: Value = get_value(&settlements, &i);
-            let mut list: Value = self.safe_value_k(settlement.clone(), "list", &[]);
+            let mut list: Value = self.safe_list_k(settlement.clone(), "list", &[]);
             if is_equal(&crate::value::get_value_k(&market, "linear"), &Value::Bool(true)) {
                 let mut parsedSettlement: Value = self.parse_settlement(settlement.clone(), market.clone());
                 append_to_array(&mut result, parsedSettlement.clone());
@@ -12410,7 +12410,7 @@ impl HtxCore {
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_790: bool = true;
-                    while { if !__for_first_790 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_790 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&list).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_790 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_790 = false; j.as_f64().unwrap_or(f64::NAN) < ((list.len() as i64) as f64) } {
                     let mut item: Value = get_value(&list, &j);
                     let mut item: Value = get_value(&list, &j);
                     let mut parsedSettlement: Value = self.parse_settlement(item.clone(), market.clone());

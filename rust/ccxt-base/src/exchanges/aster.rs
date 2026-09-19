@@ -4594,7 +4594,7 @@ impl AsterCore {
         }
         let mut entryPriceString: Value = self.safe_string_k(position.clone(), "entryPrice", &[]);
         let mut entryPrice: Value = self.parse_number(entryPriceString.clone(), &[]);
-        let mut contractSize: Value = self.safe_value_k(market.clone(), "contractSize", &[]);
+        let mut contractSize: Value = self.safe_number_k(market.clone(), "contractSize", &[]);
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
         // as oppose to notionalValue
         let mut linear: bool = in_op(&position, &Value::Str("notional".to_string()));
@@ -4968,7 +4968,7 @@ impl AsterCore {
         let mut percentage: Value = Value::Null;
         let mut liquidationPriceStringRaw: Value = Value::Null;
         let mut liquidationPrice: Value = Value::Null;
-        let mut contractSize: Value = self.safe_value_k(market.clone(), "contractSize", &[]);
+        let mut contractSize: Value = self.safe_number_k(market.clone(), "contractSize", &[]);
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
         if is_true(&crate::precise::Precise::stringEquals(&notionalString, &Value::Str("0".to_string()))) {
             entryPrice = Value::Null;

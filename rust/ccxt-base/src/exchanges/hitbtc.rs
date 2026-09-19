@@ -1694,7 +1694,7 @@ impl HitbtcCore {
         });
         let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]);
         if is_true(&(network != Value::Null)) && is_true(&(code.as_str() == Some("USDT"))) {
-            let mut networks: Value = self.safe_value_k(self.options.clone(), "networks", &[]);
+            let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
             let mut parsedNetwork: Value = self.safe_string(networks.clone(), network.clone(), &[]);
             if (parsedNetwork != Value::Null) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), parsedNetwork.clone()); }
@@ -1745,7 +1745,7 @@ impl HitbtcCore {
         });
         let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]);
         if is_true(&(network != Value::Null)) && is_true(&(code.as_str() == Some("USDT"))) {
-            let mut networks: Value = self.safe_value_k(self.options.clone(), "networks", &[]);
+            let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
             let mut parsedNetwork: Value = self.safe_string(networks.clone(), network.clone(), &[]);
             if (parsedNetwork != Value::Null) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), parsedNetwork.clone()); }
@@ -1757,7 +1757,7 @@ impl HitbtcCore {
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
         //
-        let mut firstAddress: Value = self.safe_value(response.clone(), Value::Int(0), &[]);
+        let mut firstAddress: Value = self.safe_dict(response.clone(), Value::Int(0), &[]);
         let mut address: Value = self.safe_string_k(firstAddress.clone(), "address", &[]);
         let mut currencyId: Value = self.safe_string_k(firstAddress.clone(), "currency", &[]);
         let mut tag: Value = self.safe_string_k(firstAddress.clone(), "payment_id", &[]);
@@ -2182,18 +2182,18 @@ impl HitbtcCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut fee: Value = Value::Null;
         let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
-        let mut taker: Value = self.safe_value_k(trade.clone(), "taker", &[]);
+        let mut taker: Value = self.safe_bool_k(trade.clone(), "taker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (taker != Value::Null) {
-            takerOrMaker = (if (is_equal(&taker, &Value::Bool(true))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+            takerOrMaker = (if is_true(&(taker.as_bool() == Some(true))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         }  else {
             takerOrMaker = Value::Str("taker".to_string()); // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
         if (feeCostString != Value::Null) {
-            let mut info: Value = self.safe_value_k(market.clone(), "info", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut info: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut feeCurrency: Value = self.safe_string_k(info.clone(), "fee_currency", &[]);
             let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrency.clone(), &[]);
             fee = Value::Map({
@@ -2328,10 +2328,10 @@ impl HitbtcCore {
         let mut updated: Value = self.parse8601(self.safe_string_k(transaction.clone(), "updated_at", &[]));
         let mut type_var: Value = self.parse_transaction_type(self.safe_string_k(transaction.clone(), "type", &[]));
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
-        let mut native: Value = self.safe_value_k(transaction.clone(), "native", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut native: Value = self.safe_dict_k(transaction.clone(), "native", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut currencyId: Value = self.safe_string_k(native.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut txhash: Value = self.safe_string_k(native.clone(), "hash", &[]);
@@ -3350,7 +3350,7 @@ impl HitbtcCore {
     m
 }));
         let mut isLimit: bool = type_var.as_str() == Some("limit");
-        let mut reduceOnly: Value = self.safe_value_k(params.clone(), "reduceOnly", &[]);
+        let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string())]), &[]);
         let mut isPostOnly: Value = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Null, &[params.clone()]);
@@ -3367,7 +3367,7 @@ impl HitbtcCore {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support reduce_only for ".to_string()))), &market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)), Value::Str(" orders, reduce_only orders are supported for swap and margin markets only".to_string()))));
             }
         }
-        if is_equal(&reduceOnly, &Value::Bool(true)) {
+        if (reduceOnly.as_bool() == Some(true)) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reduce_only".to_string(), reduceOnly.clone()); }
         }
         if is_true(&isPostOnly) {
@@ -3631,10 +3631,10 @@ impl HitbtcCore {
         }
         let mut currency: Value = self.currency(code.clone());
         let mut requestAmount: Value = self.currency_to_precision(code.clone(), amount.clone(), &[]);
-        let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "accountsByType", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         fromAccount = to_lower(&fromAccount);
         toAccount = to_lower(&toAccount);
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
@@ -3750,10 +3750,10 @@ impl HitbtcCore {
         if (tag != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("payment_id".to_string(), tag.clone()); }
         }
-        let mut networks: Value = self.safe_value_k(self.options.clone(), "networks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]);
         if is_true(&(network != Value::Null)) && is_true(&(code.as_str() == Some("USDT"))) {
             let mut parsedNetwork: Value = self.safe_string(networks.clone(), network.clone(), &[]);
@@ -3762,10 +3762,10 @@ impl HitbtcCore {
             }
             params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         }
-        let mut withdrawOptions: Value = self.safe_value_k(self.options.clone(), "withdraw", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut includeFee: Value = self.safe_bool_k(withdrawOptions, "includeFee", &[Value::Bool(false)]);
         if (includeFee.as_bool() == Some(true)) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("include_fee".to_string(), Value::Bool(true)); }
@@ -4510,8 +4510,8 @@ impl HitbtcCore {
         //         "positions": null
         //     }
         //
-        let mut currencies: Value = self.safe_value_k(data.clone(), "currencies", &[Value::from(vec![])]);
-        let mut currencyInfo: Value = self.safe_value(currencies.clone(), Value::Int(0), &[]);
+        let mut currencies: Value = self.safe_list_k(data.clone(), "currencies", &[Value::from(vec![])]);
+        let mut currencyInfo: Value = self.safe_dict(currencies.clone(), Value::Int(0), &[]);
         let mut datetime: Value = self.safe_string_k(data.clone(), "updated_at", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4758,14 +4758,14 @@ impl HitbtcCore {
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             networkCode = (if is_true(&(networkCode != Value::Null)) { to_upper(&networkCode) } else { Value::Null });
             let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "payout_fee", &[]);
-            let mut isDefault: Value = self.safe_value_k(networkEntry, "default", &[]);
+            let mut isDefault: Value = self.safe_bool_k(networkEntry, "default", &[]);
             let mut withdrawResult: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("fee".to_string(), withdrawFee.clone());
                     m.insert("percentage".to_string(), (if is_true(&(withdrawFee != Value::Null)) { Value::Bool(false) } else { Value::Null }));
                 m
             });
-            if is_equal(&isDefault, &Value::Bool(true)) {
+            if (isDefault.as_bool() == Some(true)) {
                 add_element_to_object(&mut result, &Value::Str("withdraw".to_string()), withdrawResult.clone());
             }
             if (networkCode != Value::Null) {
@@ -4869,7 +4869,7 @@ impl HitbtcCore {
         //       }
         //     }
         //
-        let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
+        let mut error: Value = self.safe_dict_k(response.clone(), "error", &[]);
         let mut errorCode: Value = self.safe_string_k(error.clone(), "code", &[]);
         if (errorCode != Value::Null) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));

@@ -1403,13 +1403,13 @@ impl IndependentreserveCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            let mut fee: Value = self.safe_value(fees.clone(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut fee: Value = self.safe_dict(fees.clone(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), self.safe_value_k(fee.clone(), "info", &[]));
+        m.insert("info".to_string(), self.safe_dict_k(fee.clone(), "info", &[]));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "fee", &[]));
         m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "fee", &[]));

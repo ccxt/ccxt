@@ -975,12 +975,12 @@ impl BlofinCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
+        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
-        let mut channel: Value = (if (is_equal(&trigger, &Value::Bool(true))) { Value::Str("orders-algo".to_string()) } else { Value::Str("orders".to_string()) });
+        let mut channel: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("orders-algo".to_string()) } else { Value::Str("orders".to_string()) });
         let mut orders: Value = self.watch_multiple_wrapper(Value::Bool(false), channel.clone(), Value::Str("watchOrdersForSymbols".to_string()), &[symbols.clone(), params.clone()]).await;
         if is_true(&self.newUpdates) {
-            let mut first: Value = self.safe_value(orders.clone(), Value::Int(0), &[]);
+            let mut first: Value = self.safe_dict(orders.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first.clone(), "symbol", &[]);
             limit = orders.get_limit(tradeSymbol.clone(), limit.clone());
         }

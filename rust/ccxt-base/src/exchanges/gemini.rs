@@ -1160,7 +1160,7 @@ impl GeminiCore {
         //    }
         //
         { let __be_tmp = self.safe_list_k(data.clone(), "tradingPairs", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tradingPairs".to_string(), __be_tmp); } }
-        let mut currenciesArray: Value = self.safe_value_k(data, "currencies", &[Value::from(vec![])]);
+        let mut currenciesArray: Value = self.safe_list_k(data, "currencies", &[Value::from(vec![])]);
         return self.parse_currencies(currenciesArray.clone());
 
     Value::Null
@@ -1260,8 +1260,8 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut method: Value = self.safe_value_k(self.options.clone(), "fetchMarketsMethod", &[Value::Str("fetch_markets_from_api".to_string())]);
-        if (method.as_str() == Some("fetch_markets_from_web")) {
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchMarketsMethod", &[Value::Str("fetch_markets_from_api".to_string())]).as_str().map(str::to_owned);
+        if (method.as_deref() == Some("fetch_markets_from_web")) {
             let mut promises: Value = Value::from(vec![]);
             append_to_array(&mut promises, self.fetch_markets_from_web(&[params.clone()]).await); // get usd markets
             append_to_array(&mut promises, self.fetch_usdt_markets(&[params.clone()]).await); // get usdt markets
@@ -1841,11 +1841,11 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut method: Value = self.safe_value_k(self.options.clone(), "fetchTickerMethod", &[Value::Str("fetchTickerV1".to_string())]);
-        if (method.as_str() == Some("fetchTickerV1")) {
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTickerMethod", &[Value::Str("fetchTickerV1".to_string())]).as_str().map(str::to_owned);
+        if (method.as_deref() == Some("fetchTickerV1")) {
             return self.fetch_ticker_v1(symbol.clone(), &[params.clone()]).await;
         }
-        if (method.as_str() == Some("fetchTickerV2")) {
+        if (method.as_deref() == Some("fetchTickerV2")) {
             return self.fetch_ticker_v2(symbol.clone(), &[params.clone()]).await;
         }
         return self.fetch_ticker_v1_and_v2(symbol.clone(), &[params.clone()]).await;
@@ -1891,10 +1891,10 @@ impl GeminiCore {
         //         "ask":"9115.87"
         //     }
         //
-        let mut volume: Value = self.safe_value_k(ticker.clone(), "volume", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut volume: Value = self.safe_dict_k(ticker.clone(), "volume", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut timestamp: Value = self.safe_integer_k(volume.clone(), "timestamp", &[]);
         let mut symbol: Value = Value::Null;
         let mut marketId: Value = self.safe_string_lower(ticker.clone(), Value::Str("pair".to_string()), &[]);
@@ -2361,7 +2361,7 @@ impl GeminiCore {
         let mut id: Value = self.safe_string_k(order.clone(), "order_id", &[]);
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "client_order_id", &[]);
-        let mut optionsArray: Value = self.safe_value_k(order.clone(), "options", &[Value::from(vec![])]);
+        let mut optionsArray: Value = self.safe_list_k(order.clone(), "options", &[Value::from(vec![])]);
         let mut option: Option<String> = self.safe_string(optionsArray.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut timeInForce: Value = Value::Str("GTC".to_string());
         let mut postOnly: Value = Value::Bool(false);

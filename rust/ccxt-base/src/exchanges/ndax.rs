@@ -1239,7 +1239,7 @@ impl NdaxCore {
         let mut base: Value = self.safe_currency_code(self.safe_string_k(market.clone(), "Product1Symbol", &[]), &[]);
         let mut quote: Value = self.safe_currency_code(self.safe_string_k(market.clone(), "Product2Symbol", &[]), &[]);
         let mut sessionStatus: Option<String> = self.safe_string_k(market.clone(), "SessionStatus", &[]).as_str().map(str::to_owned);
-        let mut isDisable: Value = self.safe_value_k(market.clone(), "IsDisable", &[]);
+        let mut isDisable: Value = self.safe_bool_k(market.clone(), "IsDisable", &[]);
         let mut sessionRunning: bool = sessionStatus.as_deref() == Some("Running");
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1257,7 +1257,7 @@ impl NdaxCore {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool((sessionRunning && (!is_equal(&isDisable, &Value::Bool(true))))));
+        m.insert("active".to_string(), (Value::Bool(sessionRunning && is_true(&(isDisable.as_bool() != Some(true))))));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -3039,7 +3039,7 @@ impl NdaxCore {
         let mut statuses: Value = (if is_true(&(type_var == Value::Null)) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { self.safe_value(statusesByType.clone(), type_var.clone(), &[Value::Map({
+}) } else { self.safe_dict(statusesByType.clone(), type_var.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
@@ -3219,8 +3219,8 @@ impl NdaxCore {
         //         ]
         //     }
         //
-        let mut templateTypes: Value = self.safe_value_k(withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]);
-        let mut firstTemplateType: Value = self.safe_value(templateTypes.clone(), Value::Int(0), &[]);
+        let mut templateTypes: Value = self.safe_list_k(withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]);
+        let mut firstTemplateType: Value = self.safe_dict(templateTypes.clone(), Value::Int(0), &[]);
         if (firstTemplateType == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".to_string()))), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));
         }
@@ -3231,7 +3231,7 @@ impl NdaxCore {
                 m.insert("AccountId".to_string(), accountId.clone());
                 m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("TemplateType".to_string(), templateName.clone());
-                m.insert("AccountProviderId".to_string(), crate::value::get_value_k(&firstTemplateType, "AccountProviderId"));
+                m.insert("AccountProviderId".to_string(), firstTemplateType.as_map().and_then(|__m| __m.get("AccountProviderId")).cloned().unwrap_or(Value::Null));
             m
         });
         let mut withdrawTemplateResponse: Value = self.private_get_get_withdraw_template(&[withdrawTemplateRequest.clone()]).await;

@@ -1090,7 +1090,7 @@ impl BydfiCore {
         }
         let mut orders: Value = self.watch_private(messageHashes.clone(), &[params.clone()]).await;
         if is_true(&self.newUpdates) {
-            let mut first: Value = self.safe_value(orders.clone(), Value::Int(0), &[]);
+            let mut first: Value = self.safe_dict(orders.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first.clone(), "symbol", &[]);
             limit = orders.get_limit(tradeSymbol.clone(), limit.clone());
         }
@@ -1441,7 +1441,7 @@ impl BydfiCore {
 }
 
     pub fn fetch_balance_snapshot(&mut self, mut client: Value) {
-        let mut options: Value = self.safe_value_k(self.options.clone(), "watchBalance", &[]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if (fetchBalanceSnapshot.as_bool() == Some(true)) {
             let mut messageHash: Value = Value::Str("fetchBalanceSnapshot".to_string());

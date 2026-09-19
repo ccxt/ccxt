@@ -356,11 +356,11 @@ impl LbankCore {
         let mut market: Value = self.market(symbol.clone());
         self.check_contract_market(market.clone(), Value::Str("fetchOHLCVWs".to_string()));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut watchOHLCVOptions: Value = self.safe_value_k(self.options.clone(), "watchOHLCV", &[Value::Map({
+        let mut watchOHLCVOptions: Value = self.safe_dict_k(self.options.clone(), "watchOHLCV", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframes: Value = self.safe_value_k(watchOHLCVOptions, "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_dict_k(watchOHLCVOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -412,11 +412,11 @@ impl LbankCore {
         }
         let mut market: Value = self.market(symbol.clone());
         self.check_contract_market(market.clone(), Value::Str("watchOHLCV".to_string()));
-        let mut watchOHLCVOptions: Value = self.safe_value_k(self.options.clone(), "watchOHLCV", &[Value::Map({
+        let mut watchOHLCVOptions: Value = self.safe_dict_k(self.options.clone(), "watchOHLCV", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframes: Value = self.safe_value_k(watchOHLCVOptions, "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_dict_k(watchOHLCVOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -495,21 +495,21 @@ impl LbankCore {
         //
         let mut marketId: Value = self.safe_string_k(message.clone(), "pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("_".to_string())]);
-        let mut watchOHLCVOptions: Value = self.safe_value_k(self.options.clone(), "watchOHLCV", &[Value::Map({
+        let mut watchOHLCVOptions: Value = self.safe_dict_k(self.options.clone(), "watchOHLCV", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframes: Value = self.safe_value_k(watchOHLCVOptions, "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_dict_k(watchOHLCVOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut records: Value = self.safe_value_k(message.clone(), "records", &[]);
+        let mut records: Value = self.safe_list_k(message.clone(), "records", &[]);
         if (records != Value::Null) {
-            let mut rawOHLCV: Value = self.safe_value(records.clone(), Value::Int(0), &[Value::from(vec![])]);
+            let mut rawOHLCV: Value = self.safe_list(records.clone(), Value::Int(0), &[Value::from(vec![])]);
             let mut parsed: Value = Value::from(vec![self.safe_integer(rawOHLCV.clone(), Value::Int(0), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(1), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(2), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(3), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(4), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(5), &[])]);
             let mut timeframeId: Value = self.safe_string_k(message.clone(), "kbar", &[]);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[timeframes.clone()]);
-            { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+            { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
@@ -523,7 +523,7 @@ impl LbankCore {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fetchOHLCV:".to_string()), symbol)), Value::Str(":".to_string()))), timeframeId));
             client.resolve(&[stored.clone(), messageHash.clone()]);
         }  else {
-            let mut rawOHLCV: Value = self.safe_value_k(message, "kbar", &[Value::Map({
+            let mut rawOHLCV: Value = self.safe_dict_k(message, "kbar", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -531,7 +531,7 @@ impl LbankCore {
             let mut datetime: Value = self.safe_string_k(rawOHLCV.clone(), "t", &[]);
             let mut parsed: Value = Value::from(vec![self.parse8601(datetime.clone()), self.safe_number_k(rawOHLCV.clone(), "o", &[]), self.safe_number_k(rawOHLCV.clone(), "h", &[]), self.safe_number_k(rawOHLCV.clone(), "l", &[]), self.safe_number_k(rawOHLCV.clone(), "c", &[]), self.safe_number_k(rawOHLCV, "v", &[])]);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[timeframes.clone()]);
-            { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+            { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
@@ -675,7 +675,7 @@ impl LbankCore {
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         let mut datetime: Value = self.safe_string_k(ticker.clone(), "TS", &[]);
-        let mut tickerData: Value = self.safe_value_k(ticker.clone(), "tick", &[]);
+        let mut tickerData: Value = self.safe_dict_k(ticker.clone(), "tick", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -824,11 +824,11 @@ impl LbankCore {
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut rawTrade: Value = self.safe_value_k(message.clone(), "trade", &[]);
-        let mut rawTrades: Value = self.safe_value_k(message, "trades", &[Value::from(vec![rawTrade.clone()])]);
+        let mut rawTrades: Value = self.safe_list_k(message, "trades", &[Value::from(vec![rawTrade.clone()])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_474: bool = true;
-            while { if !__for_first_474 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_474 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&rawTrades).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_474 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_474 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
             let mut trade: Value = self.parse_ws_trade(get_value(&rawTrades, &i), &[market.clone()]);
             add_element_to_object(&mut trade, &Value::Str("symbol".to_string()), symbol.clone());
             stored.append(trade.clone());
@@ -1019,7 +1019,7 @@ impl LbankCore {
         //         "TS": "2024-01-19T23:05:18.548"
         //     }
         //
-        let mut orderUpdate: Value = self.safe_value_k(order.clone(), "orderUpdate", &[Value::Map({
+        let mut orderUpdate: Value = self.safe_dict_k(order.clone(), "orderUpdate", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1401,14 +1401,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut future: Value = client.reusable_future(messageHash.clone());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("authenticated".to_string()), &[]);
+            let mut authenticated: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("authenticated".to_string()), &[]);
             if (authenticated == Value::Null) {
                 let mut response: Value = self.parent.spot_private_post_subscribe_get_key(&[params.clone()]).await;
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                let mut result: Value = self.safe_value_k(response.clone(), "result", &[]);
-                if !is_equal(&result, &Value::Bool(true)) {
+                let mut result: Value = self.safe_bool_k(response.clone(), "result", &[]);
+                if (result.as_bool() != Some(true)) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to get subscribe key".to_string()))));
                 }
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string()), Value::Map({
@@ -1422,7 +1422,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if expires.as_f64().unwrap_or(f64::NAN) < now.as_f64().unwrap_or(f64::NAN) {
                     let mut request: Value = Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("subscribeKey".to_string(), crate::value::get_value_k(&authenticated, "key"));
+                            m.insert("subscribeKey".to_string(), authenticated.as_map().and_then(|__m| __m.get("key")).cloned().unwrap_or(Value::Null));
                         m
                     });
                     let __ws_arg_0 = self.extend(request, &[params.clone()]);

@@ -1193,7 +1193,7 @@ impl KrakenfuturesCore {
             orders = ArrayCacheBySymbolById::new(limit.clone());
             self.orders = orders.clone();
         }
-        let mut order: Value = self.safe_value_k(message.clone(), "order", &[]);
+        let mut order: Value = self.safe_dict_k(message.clone(), "order", &[]);
         if (order != Value::Null) {
             let mut marketId: Value = self.safe_string_k(order.clone(), "instrument", &[]);
             let mut feed: Value = self.safe_string_k(message.clone(), "feed", &[]);
@@ -1203,11 +1203,11 @@ impl KrakenfuturesCore {
             }
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
             let mut orderId: Value = self.safe_string_k(order.clone(), "order_id", &[]);
-            let mut previousOrders: Value = self.safe_value(orders.hashmap(), symbol.clone(), &[Value::Map({
+            let mut previousOrders: Value = self.safe_dict(orders.hashmap(), symbol.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut previousOrder: Value = self.safe_value(previousOrders.clone(), orderId.clone(), &[]);
+            let mut previousOrder: Value = self.safe_dict(previousOrders.clone(), orderId.clone(), &[]);
             let mut reason: Value = self.safe_string_k(message.clone(), "reason", &[]);
             if is_true(&(previousOrder == Value::Null)) || is_true(&(reason.as_str() == Some("edited_by_user"))) {
                 let mut parsed: Value = self.parse_ws_order(order.clone(), &[]);
@@ -1216,14 +1216,14 @@ impl KrakenfuturesCore {
                 client.resolve(&[orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol))]);
             }  else {
                 let mut trade: Value = self.parse_ws_trade(order.clone(), &[]);
-                if (crate::value::get_value_k(&previousOrder, "trades") == Value::Null) {
+                if (previousOrder.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     add_element_to_object(&mut previousOrder, &Value::Str("trades".to_string()), Value::from(vec![]));
                 }
                 crate::runtime::append_to_object_array(&mut previousOrder, &Value::Str("trades".to_string()), trade.clone());
                 add_element_to_object(&mut previousOrder, &Value::Str("lastTradeTimestamp".to_string()), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null));
                 let mut totalCost: Value = Value::Str("0".to_string());
                 let mut totalAmount: Value = Value::Str("0".to_string());
-                let mut trades: Value = crate::value::get_value_k(&previousOrder, "trades");
+                let mut trades: Value = previousOrder.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_443: bool = true;
@@ -1245,7 +1245,7 @@ impl KrakenfuturesCore {
                 let mut prevAmountString: Value = self.safe_string_k(previousOrder.clone(), "amount", &[]);
                 let mut remaining: Value = crate::precise::Precise::stringSub(&prevAmountString, &totalFilled);
                 add_element_to_object(&mut previousOrder, &Value::Str("remaining".to_string()), remaining.clone());
-                if (crate::value::get_value_k(&previousOrder, "fee") == Value::Null) {
+                if (previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     add_element_to_object(&mut previousOrder, &Value::Str("fee".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), Value::Null);
@@ -1254,8 +1254,8 @@ impl KrakenfuturesCore {
     m
 }));
                 }
-                if is_true(&(crate::value::get_value_k(&crate::value::get_value_k(&previousOrder, "fee"), "cost") != Value::Null)) && is_true(&(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]) != Value::Null)) {
-                    let mut stringOrderCost: Value = self.number_to_string(crate::value::get_value_k(&crate::value::get_value_k(&previousOrder, "fee"), "cost"));
+                if is_true(&(crate::value::get_value_k(&previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), "cost") != Value::Null)) && is_true(&(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]) != Value::Null)) {
+                    let mut stringOrderCost: Value = self.number_to_string(crate::value::get_value_k(&previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), "cost"));
                     let mut stringTradeCost: Value = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]));
                     add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".to_string())), &Value::Str("cost".to_string()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
                 }
@@ -1265,8 +1265,8 @@ impl KrakenfuturesCore {
                 client.resolve(&[orders.clone(), messageHash.clone()]);
             }
         }  else {
-            let mut isCancel: Value = self.safe_value_k(message.clone(), "is_cancel", &[]);
-            if is_equal(&isCancel, &Value::Bool(true)) {
+            let mut isCancel: Value = self.safe_bool_k(message.clone(), "is_cancel", &[]);
+            if (isCancel.as_bool() == Some(true)) {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
                 // mapping every removal to canceled. Preserve reason on info
@@ -1448,12 +1448,12 @@ impl KrakenfuturesCore {
         //        "reduce_only": false
         //    }
         //
-        let mut isCancelled: Value = self.safe_value_k(order.clone(), "is_cancel", &[]);
+        let mut isCancelled: Value = self.safe_bool_k(order.clone(), "is_cancel", &[]);
         let mut unparsedOrder: Value = order.clone();
         let mut status: Value = Value::Null;
         if (isCancelled != Value::Null) {
             unparsedOrder = self.safe_value_k(order.clone(), "order", &[]);
-            if is_equal(&isCancelled, &Value::Bool(true)) {
+            if (isCancelled.as_bool() == Some(true)) {
                 status = Value::Str("cancelled".to_string());
             }
         }
@@ -1917,9 +1917,9 @@ impl KrakenfuturesCore {
         //        "seq": 2
         //    }
         //
-        let mut holding: Value = self.safe_value_k(message.clone(), "holding", &[]);
-        let mut futures: Value = self.safe_value_k(message.clone(), "futures", &[]);
-        let mut flexFutures: Value = self.safe_value_k(message.clone(), "flex_futures", &[]);
+        let mut holding: Value = self.safe_dict_k(message.clone(), "holding", &[]);
+        let mut futures: Value = self.safe_dict_k(message.clone(), "futures", &[]);
+        let mut flexFutures: Value = self.safe_dict_k(message.clone(), "flex_futures", &[]);
         let mut messageHash: Value = Value::Str("balances".to_string());
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         if (holding != Value::Null) {
@@ -1966,7 +1966,7 @@ impl KrakenfuturesCore {
                 let mut key: Value = get_value(&futuresKeys, &i);
                 let mut symbol: Value = self.safe_symbol(key.clone(), &[]);
                 let mut newAccount: Value = self.account();
-                let mut future: Value = self.safe_value(futures.clone(), key.clone(), &[]);
+                let mut future: Value = self.safe_dict(futures.clone(), key.clone(), &[]);
                 let mut currencyId: Value = self.safe_string_k(future.clone(), "unit", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 add_element_to_object(&mut newAccount, &Value::Str("free".to_string()), self.safe_string_k(future.clone(), "available", &[]));
@@ -2004,7 +2004,7 @@ impl KrakenfuturesCore {
                 while { if !__for_first_451 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_451 = false; i.as_f64().unwrap_or(f64::NAN) < ((flexFuturesKeys.len() as i64) as f64) } {
                 let mut key: Value = get_value(&flexFuturesKeys, &i);
                 let mut key: Value = get_value(&flexFuturesKeys, &i);
-                let mut flexFuture: Value = self.safe_value(flexFutureCurrencies.clone(), key.clone(), &[]);
+                let mut flexFuture: Value = self.safe_dict(flexFutureCurrencies.clone(), key.clone(), &[]);
                 let mut code: Value = self.safe_currency_code(key.clone(), &[]);
                 let mut newAccount: Value = self.account();
                 add_element_to_object(&mut newAccount, &Value::Str("free".to_string()), self.safe_string_k(flexFuture.clone(), "available", &[]));
@@ -2109,7 +2109,7 @@ impl KrakenfuturesCore {
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "time", &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "instrument", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut isBuy: Value = self.safe_value_k(trade.clone(), "buy", &[]);
+        let mut isBuy: Value = self.safe_bool_k(trade.clone(), "buy", &[]);
         let mut feeCurrencyId: Value = self.safe_string_k(trade.clone(), "fee_currency", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2120,7 +2120,7 @@ impl KrakenfuturesCore {
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
-        m.insert("side".to_string(), (if (is_equal(&isBuy, &Value::Bool(true))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
+        m.insert("side".to_string(), (if is_true(&(isBuy.as_bool() == Some(true))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
         m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "fill_type", &[]));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "qty", &[]));
@@ -2291,9 +2291,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
         //    }
         //
-        let mut event: Value = self.safe_value_k(message.clone(), "event", &[]);
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
         let mut messageHash: Value = Value::Str("challenge".to_string());
-        if (event.as_str() != Some("error")) {
+        if (event.as_deref() != Some("error")) {
             let mut challenge: Value = self.safe_value_k(message.clone(), "message", &[]);
             let mut hashedChallenge: Value = self.hash(self.encode(challenge.clone()), Value::Str("sha256".to_string()), &[Value::Str("binary".to_string())]);
             let mut base64Secret: Value = self.base64_to_binary(self.secret.clone(), &[]);

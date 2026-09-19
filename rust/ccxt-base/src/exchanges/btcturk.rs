@@ -873,7 +873,7 @@ impl BtcturkCore {
             self.load_markets(&[]).await;
         }
         let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
-        return self.safe_value(tickers.clone(), symbol.clone(), &[]);
+        return self.safe_dict(tickers.clone(), symbol.clone(), &[]);
 
     Value::Null
 }
@@ -1043,7 +1043,7 @@ impl BtcturkCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("resolution".to_string(), self.safe_value(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[self.milliseconds()]);

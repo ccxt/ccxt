@@ -1274,7 +1274,7 @@ impl ExtendedCore {
         let mut candleType: Value = self.safe_string_k(subscription.clone(), "candleType", &[]);
         let mut cacheKey: Value = (if is_true(&(candleType.as_str() == Some("trades"))) { timeframe.clone() } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", timeframe, Value::Str(":".to_string()))), candleType)) });
         let mut messageHash: Value = self.safe_string_k(subscription.clone(), "messageHash", &[]);
-        { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+        { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
@@ -1327,7 +1327,7 @@ impl ExtendedCore {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
-        let mut error: Value = self.safe_value_k(message.clone(), "error", &[]);
+        let mut error: Value = self.safe_dict_k(message.clone(), "error", &[]);
         if (error == Value::Null) {
             return Value::Bool(false);
         }

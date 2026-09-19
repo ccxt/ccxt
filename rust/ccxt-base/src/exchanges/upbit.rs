@@ -803,30 +803,30 @@ impl UpbitCore {
         //         }
         //     }
         //
-        let mut memberInfo: Value = self.safe_value_k(response.clone(), "member_level", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut currencyInfo: Value = self.safe_value_k(response.clone(), "currency", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut withdrawLimits: Value = self.safe_value_k(response.clone(), "withdraw_limit", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut canWithdraw: Value = self.safe_value_k(withdrawLimits.clone(), "can_withdraw", &[]);
+        let mut memberInfo: Value = self.safe_dict_k(response.clone(), "member_level", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut currencyInfo: Value = self.safe_dict_k(response.clone(), "currency", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut withdrawLimits: Value = self.safe_dict_k(response.clone(), "withdraw_limit", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut canWithdraw: Value = self.safe_bool_k(withdrawLimits.clone(), "can_withdraw", &[]);
         let mut walletState: Option<String> = self.safe_string_k(currencyInfo.clone(), "wallet_state", &[]).as_str().map(str::to_owned);
-        let mut walletLocked: Value = self.safe_value_k(memberInfo.clone(), "wallet_locked", &[]);
-        let mut locked: Value = self.safe_value_k(memberInfo, "locked", &[]);
+        let mut walletLocked: Value = self.safe_bool_k(memberInfo.clone(), "wallet_locked", &[]);
+        let mut locked: Value = self.safe_bool_k(memberInfo, "locked", &[]);
         let mut active: Value = Value::Bool(true);
-        if is_true(&(canWithdraw != Value::Null)) && (!is_equal(&canWithdraw, &Value::Bool(true))) {
+        if is_true(&(canWithdraw != Value::Null)) && is_true(&(canWithdraw.as_bool() != Some(true))) {
             active = Value::Bool(false);
         }  else if (walletState.as_deref() != Some("working")) {
             active = Value::Bool(false);
-        }  else if is_true(&(walletLocked != Value::Null)) && (is_equal(&walletLocked, &Value::Bool(true))) {
+        }  else if is_true(&(walletLocked != Value::Null)) && is_true(&(walletLocked.as_bool() == Some(true))) {
             active = Value::Bool(false);
-        }  else if is_true(&(locked != Value::Null)) && (is_equal(&locked, &Value::Bool(true))) {
+        }  else if is_true(&(locked != Value::Null)) && is_true(&(locked.as_bool() == Some(true))) {
             active = Value::Bool(false);
         }
         let mut maxOnetimeWithdrawal: Value = self.safe_string_k(withdrawLimits.clone(), "onetime", &[]);
@@ -927,9 +927,9 @@ impl UpbitCore {
         //         }
         //     }
         //
-        let mut marketInfo: Value = self.safe_value_k(response.clone(), "market", &[]);
-        let mut bid: Value = self.safe_value_k(marketInfo.clone(), "bid", &[]);
-        let mut ask: Value = self.safe_value_k(marketInfo.clone(), "ask", &[]);
+        let mut marketInfo: Value = self.safe_dict_k(response.clone(), "market", &[]);
+        let mut bid: Value = self.safe_dict_k(marketInfo.clone(), "bid", &[]);
+        let mut ask: Value = self.safe_dict_k(marketInfo.clone(), "ask", &[]);
         let mut marketId: Value = self.safe_string_k(marketInfo.clone(), "id", &[]);
         let mut baseId: Value = self.safe_string_k(ask.clone(), "currency", &[]);
         let mut quoteId: Value = self.safe_string_k(bid.clone(), "currency", &[]);
@@ -1822,11 +1822,11 @@ impl UpbitCore {
     m
 }));
         let mut quoteAmount: Value = Value::Null;
-        let mut createMarketBuyOrderRequiresPrice: Value = self.safe_value_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[]);
+        let mut createMarketBuyOrderRequiresPrice: Value = self.safe_bool_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[]);
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         if (cost != Value::Null) {
             quoteAmount = self.cost_to_precision(symbol.clone(), cost.clone());
-        }  else if is_equal(&createMarketBuyOrderRequiresPrice, &Value::Bool(true)) {
+        }  else if (createMarketBuyOrderRequiresPrice.as_bool() == Some(true)) {
             if (price == Value::Null) || (amount == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".to_string()))));
             }
@@ -2537,10 +2537,10 @@ impl UpbitCore {
                 let mut trade: Value = get_value(&trades, &i);
                 cost = crate::precise::Precise::stringAdd(&cost, &self.safe_string_k(trade.clone(), "cost", &[]));
                 if getFeesFromTrades {
-                    let mut tradeFee: Value = self.safe_value_k(get_value(&trades, &i), "fee", &[Value::Map({
-                        let mut m = indexmap::IndexMap::new();
-                        m
-                    })]);
+                    let mut tradeFee: Value = self.safe_dict_k(get_value(&trades, &i), "fee", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
                     let mut tradeFeeCost: Value = self.safe_string_k(tradeFee.clone(), "cost", &[]);
                     if (tradeFeeCost != Value::Null) {
                         feeCost = crate::precise::Precise::stringAdd(&feeCost, &tradeFeeCost);
@@ -3040,7 +3040,7 @@ impl UpbitCore {
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        let mut error: Value = self.safe_value_k(response, "error", &[]);
+        let mut error: Value = self.safe_dict_k(response, "error", &[]);
         if (error != Value::Null) {
             let mut message: Value = self.safe_string_k(error.clone(), "message", &[]);
             let mut name: Value = self.safe_string_k(error.clone(), "name", &[]);

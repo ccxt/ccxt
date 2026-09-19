@@ -1605,8 +1605,8 @@ impl BigoneCore {
 
     pub fn parse_contract_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
-        let mut responseBids: Value = self.safe_value_k(orderbook.clone(), "bids", &[]);
-        let mut responseAsks: Value = self.safe_value_k(orderbook, "asks", &[]);
+        let mut responseBids: Value = self.safe_dict_k(orderbook.clone(), "bids", &[]);
+        let mut responseAsks: Value = self.safe_dict_k(orderbook, "asks", &[]);
         let mut bids: Value = self.parse_contract_bids_asks(responseBids.clone());
         let mut asks: Value = self.parse_contract_bids_asks(responseAsks.clone());
         return Value::Map({

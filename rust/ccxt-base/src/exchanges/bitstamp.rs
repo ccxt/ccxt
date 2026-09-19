@@ -2143,10 +2143,10 @@ impl BitstampCore {
 }));
         // this method is now redundant
         // currencies are now fetched before markets
-        let mut options: Value = self.safe_value_k(self.options.clone(), "fetchMarkets", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut timestamp: Value = self.safe_integer_k(options.clone(), "timestamp", &[]);
         let mut expires: Value = self.safe_integer_k(options.clone(), "expires", &[Value::Int(1000)]);
         let mut now: Value = self.milliseconds();
@@ -2733,10 +2733,10 @@ impl BitstampCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut ohlc: Value = self.safe_list_k(data, "ohlc", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(ohlc.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
@@ -2955,10 +2955,10 @@ impl BitstampCore {
             while { if !__for_first_417 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_417 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
-            let mut fees: Value = self.safe_value(response.clone(), i.clone(), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut fees: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
             if is_true(&(codes != Value::Null)) && !is_true(&self.in_array(code.clone(), codes.clone())) {
                 continue;
@@ -3466,7 +3466,7 @@ impl BitstampCore {
         //         ]
         //     }
         //
-        let mut values: Value = self.safe_value_k(response.clone(), "funding_rate_history", &[Value::from(vec![])]);
+        let mut values: Value = self.safe_list_k(response.clone(), "funding_rate_history", &[Value::from(vec![])]);
         return self.parse_funding_rate_histories(values.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3827,7 +3827,7 @@ impl BitstampCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("/".to_string())]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
-        let mut transactions: Value = self.safe_value_k(order.clone(), "transactions", &[Value::from(vec![])]);
+        let mut transactions: Value = self.safe_list_k(order.clone(), "transactions", &[Value::from(vec![])]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();

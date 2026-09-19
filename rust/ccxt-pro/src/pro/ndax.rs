@@ -304,7 +304,7 @@ impl NdaxCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
-        let mut payload: Value = self.safe_value_k(message, "o", &[Value::Map({
+        let mut payload: Value = self.safe_dict_k(message, "o", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -559,7 +559,7 @@ impl NdaxCore {
     m
 }));
             }
-            { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+            { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
@@ -634,7 +634,7 @@ impl NdaxCore {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), timeframe)), Value::Str(":".to_string()))), marketId));
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[Value::from(vec![])]);
+                let mut stored: Value = self.safe_list(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[Value::from(vec![])]);
                 client.resolve(&[stored.clone(), messageHash.clone()]);
             }
             }
@@ -727,7 +727,7 @@ impl NdaxCore {
         //         0,   // 9 Side
         //     ],
         //
-        let mut firstBidAsk: Value = self.safe_value(payload.clone(), Value::Int(0), &[Value::from(vec![])]);
+        let mut firstBidAsk: Value = self.safe_list(payload.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut marketId: Value = self.safe_string(firstBidAsk.clone(), Value::Int(7), &[]);
         if (marketId == Value::Null) {
             return;
@@ -797,7 +797,7 @@ impl NdaxCore {
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        let mut payload: Value = self.safe_value_k(message, "o", &[Value::from(vec![])]);
+        let mut payload: Value = self.safe_list_k(message, "o", &[Value::from(vec![])]);
         //
         //     [
         //         [
@@ -836,7 +836,7 @@ impl NdaxCore {
         //
         let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
         let mut id: Value = self.safe_integer_k(message.clone(), "i", &[]);
-        let mut subscription: Value = (if is_true(&(id == Value::Null)) { Value::Null } else { self.safe_value(subscriptionsById.clone(), id.clone(), &[]) });
+        let mut subscription: Value = (if is_true(&(id == Value::Null)) { Value::Null } else { self.safe_dict(subscriptionsById.clone(), id.clone(), &[]) });
         if (subscription != Value::Null) {
             let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
             if (method != Value::Null) {

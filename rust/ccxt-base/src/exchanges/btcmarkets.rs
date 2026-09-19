@@ -909,7 +909,7 @@ impl BtcmarketsCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-        let mut fees: Value = self.safe_value(self.safe_dict_k(self.options.clone(), "fees", &[Value::Map({
+        let mut fees: Value = self.safe_dict(self.safe_dict_k(self.options.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), quote.clone(), &[self.fees.clone()]);
@@ -941,8 +941,8 @@ impl BtcmarketsCore {
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
-        m.insert("taker".to_string(), crate::value::get_value_k(&fees, "taker"));
-        m.insert("maker".to_string(), crate::value::get_value_k(&fees, "maker"));
+        m.insert("taker".to_string(), fees.as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null));
+        m.insert("maker".to_string(), fees.as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1406,15 +1406,15 @@ impl BtcmarketsCore {
             m
         });
         let mut lowercaseType: Value = to_lower(&type_var);
-        let mut orderTypes: Value = self.safe_value_k(self.options.clone(), "orderTypes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("limit".to_string(), Value::Str("Limit".to_string()));
-                m.insert("market".to_string(), Value::Str("Market".to_string()));
-                m.insert("stop".to_string(), Value::Str("Stop".to_string()));
-                m.insert("stop limit".to_string(), Value::Str("Stop Limit".to_string()));
-                m.insert("take profit".to_string(), Value::Str("Take Profit".to_string()));
-            m
-        })]);
+        let mut orderTypes: Value = self.safe_dict_k(self.options.clone(), "orderTypes", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("limit".to_string(), Value::Str("Limit".to_string()));
+        m.insert("market".to_string(), Value::Str("Market".to_string()));
+        m.insert("stop".to_string(), Value::Str("Stop".to_string()));
+        m.insert("stop limit".to_string(), Value::Str("Stop Limit".to_string()));
+        m.insert("take profit".to_string(), Value::Str("Take Profit".to_string()));
+    m
+})]);
         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), self.safe_string(orderTypes.clone(), lowercaseType.clone(), &[type_var.clone()])); }
         let mut priceIsRequired: bool = false;
         let mut triggerPriceIsRequired: bool = false;

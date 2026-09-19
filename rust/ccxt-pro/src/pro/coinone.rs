@@ -349,7 +349,7 @@ impl CoinoneCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -366,8 +366,8 @@ impl CoinoneCore {
             orderbook.reset0();
         }
         add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
-        let mut asks: Value = self.safe_value_k(data.clone(), "asks", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_value_k(data, "bids", &[Value::from(vec![])]);
+        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks.clone());
         self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids.clone());
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -450,7 +450,7 @@ impl CoinoneCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -585,7 +585,7 @@ impl CoinoneCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -622,10 +622,10 @@ impl CoinoneCore {
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         market = self.safe_market(&[symbol.clone(), market.clone()]);
-        let mut isSellerMaker: Value = self.safe_value_k(trade.clone(), "is_seller_maker", &[]);
+        let mut isSellerMaker: Value = self.safe_bool_k(trade.clone(), "is_seller_maker", &[]);
         let mut side: Value = Value::Null;
         if (isSellerMaker != Value::Null) {
-            side = (if (is_equal(&isSellerMaker, &Value::Bool(true))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if is_true(&(isSellerMaker.as_bool() == Some(true))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "qty", &[]);

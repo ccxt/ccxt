@@ -433,11 +433,11 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_value_k(message, "params", &[Value::Map({
+        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_value_k(params, "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -594,11 +594,11 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_value_k(message, "params", &[Value::Map({
+        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_value_k(params.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -813,7 +813,7 @@ impl DeribitCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut trades: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
-        if (self.safe_value(self.trades.clone(), symbol.clone(), &[]) == Value::Null) {
+        if (self.safe_dict(self.trades.clone(), symbol.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
         }
@@ -914,12 +914,12 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_value_k(message, "params", &[Value::Map({
+        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".to_string())]);
-        let mut trades: Value = self.safe_value_k(params, "data", &[Value::from(vec![])]);
+        let mut trades: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
         let mut cachedTrades: Value = self.myTrades.clone();
         if (cachedTrades == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -1052,11 +1052,11 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_value_k(message, "params", &[Value::Map({
+        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_value_k(params.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1233,7 +1233,7 @@ impl DeribitCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
-        let mut params: Value = self.safe_value_k(message, "params", &[Value::Map({
+        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1367,7 +1367,7 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
-        if (self.safe_value(get_value(&self.ohlcvs, &symbol), unifiedTimeframe.clone(), &[]) == Value::Null) {
+        if (self.safe_dict(get_value(&self.ohlcvs, &symbol), unifiedTimeframe.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &unifiedTimeframe, ArrayCacheByTimestamp::new(limit.clone()));
         }
@@ -1520,7 +1520,7 @@ impl DeribitCore {
         if (error != Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&error))));
         }
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[]);
+        let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
         if (channel != Value::Null) {
             let mut parts: Value = split(&channel, &Value::Str(".".to_string()));
@@ -1549,7 +1549,7 @@ impl DeribitCore {
             }
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no handler found for this message ".to_string()))), json_stringify(&message))));
         }
-        let mut result: Value = self.safe_value_k(message.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(message.clone(), "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

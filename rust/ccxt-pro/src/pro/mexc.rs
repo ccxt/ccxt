@@ -949,7 +949,7 @@ impl MexcCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timeframes: Value = self.safe_value_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1056,13 +1056,13 @@ impl MexcCore {
             timeframe = self.find_timeframe(timeframeId.clone(), &[self.options.as_map().and_then(|__m| __m.get("timeframes")).cloned().unwrap_or(Value::Null)]);
             parsed = self.parse_ws_ohlcv(data.clone(), &[self.safe_market(&[symbol.clone()])]);
         }  else {
-            let mut d: Value = self.safe_value2(message.clone(), Value::Str("d".to_string()), Value::Str("data".to_string()), &[Value::Map({
+            let mut d: Value = self.safe_dict2(message.clone(), Value::Str("d".to_string()), Value::Str("data".to_string()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut rawOhlcv: Value = self.safe_value_k(d.clone(), "k", &[d.clone()]);
+            let mut rawOhlcv: Value = self.safe_dict_k(d.clone(), "k", &[d.clone()]);
             let mut timeframeId: Value = self.safe_string2(rawOhlcv.clone(), Value::Str("i".to_string()), Value::Str("interval".to_string()), &[]);
-            let mut timeframes: Value = self.safe_value_k(self.options.clone(), "timeframes", &[Value::Map({
+            let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1073,7 +1073,7 @@ impl MexcCore {
             parsed = self.parse_ws_ohlcv(rawOhlcv.clone(), &[market.clone()]);
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), symbol)), Value::Str(":".to_string()))), timeframe));
-        let mut symbolOhlcvs: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+        let mut symbolOhlcvs: Value = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1208,7 +1208,7 @@ impl MexcCore {
     pub fn get_cache_index(&self, mut orderbook: Value, mut cache: Value) -> Value {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
-        let mut firstDelta: Value = self.safe_value(cache.clone(), Value::Int(0), &[]);
+        let mut firstDelta: Value = self.safe_dict(cache.clone(), Value::Int(0), &[]);
         let mut firstDeltaNonce: Value = self.safe_integer_n(firstDelta.clone(), Value::from(vec![Value::Str("r".to_string()), Value::Str("version".to_string()), Value::Str("fromVersion".to_string())]), &[]);
         if is_true(&(nonce == Value::Null)) || is_true(&(firstDeltaNonce == Value::Null)) {
             return Value::Int(-1);
@@ -1307,7 +1307,7 @@ impl MexcCore {
         let mut marketId: Value = self.safe_string2(message.clone(), Value::Str("s".to_string()), Value::Str("symbol".to_string()), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol));
-        let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
+        let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
@@ -2382,7 +2382,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timeframes: Value = self.safe_value_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

@@ -583,10 +583,10 @@ impl MercadoCore {
         //     ]
         //
         let mut result: Value = Value::from(vec![]);
-        let mut amountLimits: Value = self.safe_value_k(self.options.clone(), "limits", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut amountLimits: Value = self.safe_dict_k(self.options.clone(), "limits", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut coins: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
@@ -772,10 +772,10 @@ impl MercadoCore {
         });
         let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_coin_ticker(&[__ws_arg_1]).await;
-        let mut ticker: Value = self.safe_value_k(response, "ticker", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut ticker: Value = self.safe_dict_k(response, "ticker", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_ticker(ticker.clone(), &[market.clone()]);
 
     Value::Null
@@ -868,10 +868,10 @@ impl MercadoCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut data: Value = self.safe_value_k(response.clone(), "response_data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "response_data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut balances: Value = self.safe_dict_k(data, "balance", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -890,10 +890,10 @@ impl MercadoCore {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (in_op(&balances, &currencyId)) {
-                let mut balance: Value = self.safe_value(balances.clone(), currencyId.clone(), &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]);
+                let mut balance: Value = self.safe_dict(balances.clone(), currencyId.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "total", &[])); }
@@ -1047,10 +1047,10 @@ impl MercadoCore {
         //         "server_unix_timestamp": "1536956499"
         //     }
         //
-        let mut responseData: Value = self.safe_value_k(response, "response_data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut responseData: Value = self.safe_dict_k(response, "response_data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut order: Value = self.safe_dict_k(responseData, "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1122,7 +1122,7 @@ impl MercadoCore {
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "executed_quantity", &[]);
         let mut lastTradeTimestamp: Value = self.safe_timestamp(order.clone(), Value::Str("updated_timestamp".to_string()), &[]);
-        let mut rawTrades: Value = self.safe_value_k(order.clone(), "operations", &[Value::from(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(order.clone(), "operations", &[Value::from(vec![])]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1183,10 +1183,10 @@ impl MercadoCore {
         });
         let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_order(&[__ws_arg_10]).await;
-        let mut responseData: Value = self.safe_value_k(response, "response_data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut responseData: Value = self.safe_dict_k(response, "response_data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut order: Value = self.safe_dict_k(responseData, "order", &[]);
         return self.parse_order(order.clone(), &[market.clone()]);
 
@@ -1264,10 +1264,10 @@ impl MercadoCore {
         //         "server_unix_timestamp": "1453912088"
         //     }
         //
-        let mut responseData: Value = self.safe_value_k(response, "response_data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut responseData: Value = self.safe_dict_k(response, "response_data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut withdrawal: Value = self.safe_dict_k(responseData, "withdrawal", &[]);
         return self.parse_transaction(withdrawal.clone(), &[currency.clone()]);
 
@@ -1403,10 +1403,10 @@ impl MercadoCore {
         });
         let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_list_orders(&[__ws_arg_13]).await;
-        let mut responseData: Value = self.safe_value_k(response, "response_data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut responseData: Value = self.safe_dict_k(response, "response_data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut orders: Value = self.safe_list_k(responseData, "orders", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1446,10 +1446,10 @@ impl MercadoCore {
         });
         let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_list_orders(&[__ws_arg_14]).await;
-        let mut responseData: Value = self.safe_value_k(response, "response_data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut responseData: Value = self.safe_dict_k(response, "response_data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut orders: Value = self.safe_list_k(responseData, "orders", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1489,11 +1489,11 @@ impl MercadoCore {
         });
         let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_list_orders(&[__ws_arg_15]).await;
-        let mut responseData: Value = self.safe_value_k(response, "response_data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut ordersRaw: Value = self.safe_value_k(responseData, "orders", &[Value::from(vec![])]);
+        let mut responseData: Value = self.safe_dict_k(response, "response_data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut ordersRaw: Value = self.safe_list_k(responseData, "orders", &[Value::from(vec![])]);
         let mut orders: Value = self.parse_orders(ordersRaw.clone(), &[market.clone(), since.clone(), limit.clone()]);
         let mut trades: Value = self.orders_to_trades(orders.clone());
         return self.filter_by_symbol_since_limit(trades.clone(), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since.clone(), limit.clone()]);

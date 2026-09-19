@@ -395,7 +395,7 @@ impl ApexCore {
         }
         let mut trades: Value = self.watch_topics(url.clone(), messageHashes.clone(), topics.clone(), &[params.clone()]).await;
         if is_true(&self.newUpdates) {
-            let mut first: Value = self.safe_value(trades.clone(), Value::Int(0), &[]);
+            let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first.clone(), "symbol", &[]);
             limit = trades.get_limit(tradeSymbol.clone(), limit.clone());
         }
@@ -1448,10 +1448,10 @@ impl ApexCore {
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg.clone(), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
-            let mut success: Value = self.safe_value_k(message.clone(), "success", &[]);
-            if is_true(&(success != Value::Null)) && (!is_equal(&success, &Value::Bool(true))) {
+            let mut success: Value = self.safe_bool_k(message.clone(), "success", &[]);
+            if is_true(&(success != Value::Null)) && is_true(&(success.as_bool() != Some(true))) {
                 let mut ret_msg: Value = self.safe_string_k(message.clone(), "ret_msg", &[]);
-                let mut request: Value = self.safe_value_k(message.clone(), "request", &[Value::Map({
+                let mut request: Value = self.safe_dict_k(message.clone(), "request", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -1628,10 +1628,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        let mut success: Value = self.safe_value_k(message.clone(), "success", &[]);
+        let mut success: Value = self.safe_bool_k(message.clone(), "success", &[]);
         let mut code: Option<i64> = self.safe_integer_k(message.clone(), "retCode", &[]).as_i64();
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        if (is_equal(&success, &Value::Bool(true))) || is_true(&(code == Some(0))) {
+        if is_true(&(success.as_bool() == Some(true))) || is_true(&(code == Some(0))) {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {

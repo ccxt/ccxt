@@ -2044,7 +2044,7 @@ impl BitfinexCore {
         //
         let mut result: Value = self.safe_list_k(transfer, "result", &[]);
         let mut timestamp: Value = self.safe_integer(result.clone(), Value::Int(0), &[]);
-        let mut info: Value = self.safe_value(result.clone(), Value::Int(4), &[]);
+        let mut info: Value = self.safe_list(result.clone(), Value::Int(4), &[]);
         let mut fromAccount: Value = self.safe_string(info.clone(), Value::Int(1), &[]);
         let mut toAccount: Value = self.safe_string(info.clone(), Value::Int(2), &[]);
         let mut currencyId: Value = self.safe_string(info.clone(), Value::Int(5), &[]);
@@ -2085,9 +2085,9 @@ impl BitfinexCore {
         //   "id": "fUSTF0",
         //   "code": "USTF0",
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
-        let mut info: Value = self.safe_value_k(currency, "info", &[]);
+        let mut info: Value = self.safe_list_k(currency, "info", &[]);
         let mut transferId: Value = self.safe_string(info.clone(), Value::Int(0), &[]);
-        let mut underlying: Value = self.safe_value(info.clone(), Value::Int(4), &[Value::from(vec![])]);
+        let mut underlying: Value = self.safe_list(info.clone(), Value::Int(4), &[Value::from(vec![])]);
         let mut currencyId: Value = Value::Null;
         if (type_var.as_str() == Some("derivatives")) {
             currencyId = self.safe_string(underlying.clone(), Value::Int(0), &[transferId.clone()]);
@@ -2619,7 +2619,7 @@ impl BitfinexCore {
                 m.insert("5120".to_string(), Value::from(vec![Value::Str("reduceOnly".to_string()), Value::Str("postOnly".to_string())]));
             m
         });
-        return self.safe_value(flagValues.clone(), flags.clone(), &[Value::Null]);
+        return self.safe_list(flagValues.clone(), flags.clone(), &[Value::Null]);
 
     Value::Null
 }
@@ -2652,7 +2652,7 @@ impl BitfinexCore {
         let mut amount: Value = crate::precise::Precise::stringAbs(&signedAmount);
         let mut side: Value = (if is_true(&crate::precise::Precise::stringLt(&signedAmount, &Value::Str("0".to_string()))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         let mut orderType: Value = self.safe_string(orderList.clone(), Value::Int(8), &[]);
-        let mut type_var: Value = self.safe_string(self.safe_value_k(self.options.clone(), "exchangeTypes", &[]), orderType.clone(), &[]);
+        let mut type_var: Value = self.safe_string(self.safe_dict_k(self.options.clone(), "exchangeTypes", &[]), orderType.clone(), &[]);
         let mut timeInForce: Value = self.parse_time_in_force(orderType.clone());
         let mut rawFlags: Value = self.safe_string(orderList.clone(), Value::Int(12), &[]);
         let mut flags: Value = self.parse_order_flags(rawFlags.clone());
@@ -2661,7 +2661,7 @@ impl BitfinexCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_323: bool = true;
-                while { if !__for_first_323 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_323 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&flags).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_323 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_323 = false; i.as_f64().unwrap_or(f64::NAN) < ((flags.len() as i64) as f64) } {
                 if (get_value(&flags, &i).as_str() == Some("postOnly")) {
                     postOnly = Value::Bool(true);
                 }
@@ -3648,11 +3648,11 @@ impl BitfinexCore {
         let mut currency: Value = self.currency(code.clone());
         // if not provided explicitly we will try to match using the currency name
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
-        let mut currencyNetworks: Value = self.safe_value_k(currency.clone(), "networks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut currencyNetwork: Value = self.safe_value(currencyNetworks.clone(), network.clone(), &[]);
+        let mut currencyNetworks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut currencyNetwork: Value = self.safe_dict(currencyNetworks.clone(), network.clone(), &[]);
         let mut networkId: Value = self.safe_string_k(currencyNetwork.clone(), "id", &[]);
         if (networkId == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() could not find a network for '".to_string()))), code)), Value::Str("'. You can specify it by providing the 'network' value inside params".to_string()))));
@@ -3687,7 +3687,7 @@ impl BitfinexCore {
         //         "success", // TEXT Text of the notification
         //     ]
         //
-        let mut result: Value = self.safe_value(response.clone(), Value::Int(4), &[Value::from(vec![])]);
+        let mut result: Value = self.safe_list(response.clone(), Value::Int(4), &[Value::from(vec![])]);
         let mut poolAddress: Value = self.safe_string(result.clone(), Value::Int(5), &[]);
         let mut address: Value = (if is_true(&(poolAddress == Value::Null)) { self.safe_string(result.clone(), Value::Int(4), &[]) } else { poolAddress.clone() });
         let mut tag: Value = (if is_true(&(poolAddress == Value::Null)) { Value::Null } else { self.safe_string(result.clone(), Value::Int(4), &[]) });
@@ -3794,7 +3794,7 @@ impl BitfinexCore {
         let mut network: Value = Value::Null;
         let mut comment: Value = Value::Null;
         if (transactionLength == 8.0) {
-            let mut data: Value = self.safe_value(transaction.clone(), Value::Int(4), &[Value::from(vec![])]);
+            let mut data: Value = self.safe_list(transaction.clone(), Value::Int(4), &[Value::from(vec![])]);
             timestamp = self.safe_integer(transaction.clone(), Value::Int(0), &[]);
             if (currency != Value::Null) {
                 code = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
@@ -3966,9 +3966,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut feeData: Value = self.safe_value(response.clone(), Value::Int(4), &[Value::from(vec![])]);
-        let mut makerData: Value = self.safe_value(feeData.clone(), Value::Int(0), &[Value::from(vec![])]);
-        let mut takerData: Value = self.safe_value(feeData.clone(), Value::Int(1), &[Value::from(vec![])]);
+        let mut feeData: Value = self.safe_list(response.clone(), Value::Int(4), &[Value::from(vec![])]);
+        let mut makerData: Value = self.safe_list(feeData.clone(), Value::Int(0), &[Value::from(vec![])]);
+        let mut takerData: Value = self.safe_list(feeData.clone(), Value::Int(1), &[Value::from(vec![])]);
         let mut makerFee: Value = self.safe_number(makerData.clone(), Value::Int(0), &[]);
         let mut makerFeeFiat: Value = self.safe_number(makerData.clone(), Value::Int(2), &[]);
         let mut makerFeeDeriv: Value = self.safe_number(makerData.clone(), Value::Int(5), &[]);
@@ -4084,11 +4084,11 @@ impl BitfinexCore {
         // if not provided explicitly we will try to match using the currency name
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
-        let mut currencyNetworks: Value = self.safe_value_k(currency.clone(), "networks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut currencyNetwork: Value = self.safe_value(currencyNetworks.clone(), network.clone(), &[]);
+        let mut currencyNetworks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut currencyNetwork: Value = self.safe_dict(currencyNetworks.clone(), network.clone(), &[]);
         let mut networkId: Value = self.safe_string_k(currencyNetwork.clone(), "id", &[]);
         if (networkId == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a network for '".to_string()))), code)), Value::Str("'. You can specify it by providing the 'network' value inside params".to_string()))));
@@ -4106,10 +4106,10 @@ impl BitfinexCore {
         if (tag != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("payment_id".to_string(), tag.clone()); }
         }
-        let mut withdrawOptions: Value = self.safe_value_k(self.options.clone(), "withdraw", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut includeFee: Value = self.safe_bool_k(withdrawOptions, "includeFee", &[Value::Bool(false)]);
         if (includeFee.as_bool() == Some(true)) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("fee_deduct".to_string(), Value::Int(1)); }

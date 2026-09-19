@@ -6673,7 +6673,7 @@ impl BinanceCore {
                     while { if !__for_first_247 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_247 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&markets).as_f64().unwrap_or(f64::NAN) } {
                     let mut market: Value = get_value(&markets, &i);
                     let mut market: Value = get_value(&markets, &i);
-                    if is_equal(&self.safe_value(market.clone(), defaultType.clone(), &[]), &Value::Bool(true)) {
+                    if (self.safe_bool(market.clone(), defaultType.clone(), &[]).as_bool() == Some(true)) {
                         return market;
                     }
                 }
@@ -8157,9 +8157,9 @@ impl BinanceCore {
             let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
             response = self.eapi_public_get_depth(&[__ws_arg_11]).await;
         }  else if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let mut rpi: Value = self.safe_value_k(params.clone(), "rpi", &[Value::Bool(false)]);
+            let mut rpi: Value = self.safe_bool_k(params.clone(), "rpi", &[Value::Bool(false)]);
             params = self.omit(params.clone(), Value::Str("rpi".to_string()), &[]);
-            if is_equal(&rpi, &Value::Bool(true)) {
+            if (rpi.as_bool() == Some(true)) {
                 // rpi limit only supports 1000
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), Value::Int(1000)); }
                 let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
@@ -9744,7 +9744,7 @@ impl BinanceCore {
         }  else {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newClientOrderId".to_string(), clientOrderId.clone()); }
         }
-        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newOrderRespType".to_string(), self.safe_value(self.options.as_map().and_then(|__m| __m.get("newOrderRespType")).cloned().unwrap_or(Value::Null), type_var.clone(), &[Value::Str("RESULT".to_string())])); } // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newOrderRespType".to_string(), self.safe_string(self.options.as_map().and_then(|__m| __m.get("newOrderRespType")).cloned().unwrap_or(Value::Null), type_var.clone(), &[Value::Str("RESULT".to_string())])); } // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         let mut timeInForceIsRequired: bool = false;
         let mut priceIsRequired: bool = false;
         let mut triggerPriceIsRequired: bool = false;
@@ -11220,7 +11220,7 @@ impl BinanceCore {
         if (uppercaseType.as_str() == Some("MARKET")) {
             if (stock.as_bool() == Some(true)) {
                 if (upperCaseSide.as_str() == Some("BUY")) {
-                    let mut precision: Value = self.safe_value(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("price".to_string()), &[]);
+                    let mut precision: Value = self.safe_number(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("price".to_string()), &[]);
                     let mut quoteOrderQtyNew: Value = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".to_string()), Value::Str("cost".to_string()), &[]);
                     let mut notional: Value = Value::Null;
                     if (quoteOrderQtyNew != Value::Null) {
@@ -11252,7 +11252,7 @@ impl BinanceCore {
                 let mut quoteOrderQty: Value = self.handle_option(Value::Str("createOrder".to_string()), Value::Str("quoteOrderQty".to_string()), &[Value::Bool(true)]);
                 if (quoteOrderQty.as_bool() == Some(true)) {
                     let mut quoteOrderQtyNew: Value = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".to_string()), Value::Str("cost".to_string()), &[]);
-                    let mut precision: Value = self.safe_value(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("price".to_string()), &[]);
+                    let mut precision: Value = self.safe_number(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("price".to_string()), &[]);
                     if (quoteOrderQtyNew != Value::Null) {
                         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quoteOrderQty".to_string(), self.decimal_to_precision(quoteOrderQtyNew.clone(), Value::Int(crate::runtime::TRUNCATE), precision.clone(), &[self.precisionMode.clone()])); }
                     }  else if (price != Value::Null) {
@@ -13843,8 +13843,8 @@ impl BinanceCore {
 })]);
         if (type_var != Value::Null) {
             let mut parts: Value = split(&type_var, &Value::Str("_".to_string()));
-            fromAccount = self.safe_value(parts.clone(), Value::Int(0), &[]);
-            toAccount = self.safe_value(parts.clone(), Value::Int(1), &[]);
+            fromAccount = self.safe_string(parts.clone(), Value::Int(0), &[]);
+            toAccount = self.safe_string(parts.clone(), Value::Int(1), &[]);
             fromAccount = self.safe_string(accountsById.clone(), fromAccount.clone(), &[fromAccount.clone()]);
             toAccount = self.safe_string(accountsById.clone(), toAccount.clone(), &[toAccount.clone()]);
         }
@@ -15374,7 +15374,7 @@ impl BinanceCore {
         let mut percentage: Value = Value::Null;
         let mut liquidationPriceStringRaw: Value = Value::Null;
         let mut liquidationPrice: Value = Value::Null;
-        let mut contractSize: Value = self.safe_value_k(market.clone(), "contractSize", &[]);
+        let mut contractSize: Value = self.safe_number_k(market.clone(), "contractSize", &[]);
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
         if is_true(&crate::precise::Precise::stringEquals(&notionalString, &Value::Str("0".to_string()))) {
             entryPrice = Value::Null;
@@ -15598,7 +15598,7 @@ impl BinanceCore {
         }
         let mut entryPriceString: Value = self.safe_string_k(position.clone(), "entryPrice", &[]);
         let mut entryPrice: Value = self.parse_number(entryPriceString.clone(), &[]);
-        let mut contractSize: Value = self.safe_value_k(market.clone(), "contractSize", &[]);
+        let mut contractSize: Value = self.safe_number_k(market.clone(), "contractSize", &[]);
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
         // as oppose to notionalValue
         let mut linear: bool = in_op(&position, &Value::Str("notional".to_string()));
@@ -17617,7 +17617,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
+        return self.safe_number_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }

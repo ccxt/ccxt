@@ -1999,11 +1999,11 @@ impl LunoCore {
             }
             currency = self.currency(code.clone());
             let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("currency".to_string()));
-            let mut account: Value = self.safe_value(accountsByCurrencyCode.clone(), code.clone(), &[]);
+            let mut account: Value = self.safe_dict(accountsByCurrencyCode.clone(), code.clone(), &[]);
             if (account == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".to_string()))), code)));
             }
-            id = crate::value::get_value_k(&account, "id");
+            id = account.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         }
         if (min_row == Value::Null) && (max_row == Value::Null) {
             max_row = Value::Int(0); // Default to most recent transactions
@@ -2030,7 +2030,7 @@ impl LunoCore {
         });
         let __ws_arg_13 = self.extend(params.clone(), &[request.clone()]);
         let mut response: Value = self.private_get_accounts_id_transactions(&[__ws_arg_13]).await;
-        let mut entries: Value = self.safe_value_k(response, "transactions", &[Value::from(vec![])]);
+        let mut entries: Value = self.safe_list_k(response, "transactions", &[Value::from(vec![])]);
         return self.parse_ledger(entries.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null

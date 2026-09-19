@@ -2928,7 +2928,7 @@ impl WoofiproCore {
         let mut amount: Value = self.safe_string2(order.clone(), Value::Str("order_quantity".to_string()), Value::Str("quantity".to_string()), &[]); // This is base amount
         let mut cost: Value = self.safe_string2(order.clone(), Value::Str("order_amount".to_string()), Value::Str("amount".to_string()), &[]); // This is quote amount
         let mut orderType: Value = self.safe_string_lower2(order.clone(), Value::Str("order_type".to_string()), Value::Str("type".to_string()), &[]);
-        let mut status: Value = self.safe_value2(order.clone(), Value::Str("status".to_string()), Value::Str("algoStatus".to_string()), &[]);
+        let mut status: Value = self.safe_string2(order.clone(), Value::Str("status".to_string()), Value::Str("algoStatus".to_string()), &[]);
         let mut success: Value = self.safe_bool_k(order.clone(), "success", &[]);
         if (success != Value::Null) {
             status = (if is_true(&(success)) { Value::Str("NEW".to_string()) } else { Value::Str("REJECTED".to_string()) });
@@ -2943,14 +2943,14 @@ impl WoofiproCore {
         let mut triggerPrice: Value = self.safe_number_k(order.clone(), "triggerPrice", &[]);
         let mut takeProfitPrice: Value = Value::Null;
         let mut stopLossPrice: Value = Value::Null;
-        let mut childOrders: Value = self.safe_value_k(order.clone(), "childOrders", &[]);
+        let mut childOrders: Value = self.safe_list_k(order.clone(), "childOrders", &[]);
         if (childOrders != Value::Null) {
-            let mut first: Value = self.safe_value(childOrders.clone(), Value::Int(0), &[]);
+            let mut first: Value = self.safe_dict(childOrders.clone(), Value::Int(0), &[]);
             let mut innerChildOrders: Value = self.safe_list_k(first, "childOrders", &[Value::from(vec![])]);
             let mut innerChildOrdersLength: f64 = ((innerChildOrders.len() as i64) as f64);
             if innerChildOrdersLength > ((0i64) as f64) {
-                let mut takeProfitOrder: Value = self.safe_value(innerChildOrders.clone(), Value::Int(0), &[]);
-                let mut stopLossOrder: Value = self.safe_value(innerChildOrders.clone(), Value::Int(1), &[]);
+                let mut takeProfitOrder: Value = self.safe_dict(innerChildOrders.clone(), Value::Int(0), &[]);
+                let mut stopLossOrder: Value = self.safe_dict(innerChildOrders.clone(), Value::Int(1), &[]);
                 takeProfitPrice = self.safe_number_k(takeProfitOrder, "triggerPrice", &[]);
                 stopLossPrice = self.safe_number_k(stopLossOrder, "triggerPrice", &[]);
             }
@@ -3081,8 +3081,8 @@ impl WoofiproCore {
             m
         });
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-        let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
+        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
         let mut algoType: Option<String> = self.safe_string_k(params.clone(), "algoType", &[]).as_str().map(str::to_owned);
@@ -3201,9 +3201,9 @@ impl WoofiproCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]).as_str().map(str::to_owned);
-        let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
-        let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || is_true(&(self.safe_value_k(params, "childOrders", &[]) != Value::Null));
+        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
+        let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || is_true(&(self.safe_list_k(params, "childOrders", &[]) != Value::Null));
         let mut response: Value = Value::Null;
         if isConditional {
             response = self.v1_private_post_algo_order(&[request.clone()]).await;
@@ -3256,9 +3256,9 @@ impl WoofiproCore {
     m
 })]);
             let mut triggerPrice: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]).as_str().map(str::to_owned);
-            let mut stopLoss: Value = self.safe_value_k(orderParams.clone(), "stopLoss", &[]);
-            let mut takeProfit: Value = self.safe_value_k(orderParams.clone(), "takeProfit", &[]);
-            let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || is_true(&(self.safe_value_k(orderParams.clone(), "childOrders", &[]) != Value::Null));
+            let mut stopLoss: Value = self.safe_dict_k(orderParams.clone(), "stopLoss", &[]);
+            let mut takeProfit: Value = self.safe_dict_k(orderParams.clone(), "takeProfit", &[]);
+            let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || is_true(&(self.safe_list_k(orderParams.clone(), "childOrders", &[]) != Value::Null));
             if isConditional {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() only support non-stop order".to_string()))));
             }
@@ -3794,7 +3794,7 @@ impl WoofiproCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[response.clone()]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         let mut orders: Value = self.safe_list_k(data, "rows", &[]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 

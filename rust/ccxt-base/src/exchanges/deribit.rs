@@ -1572,13 +1572,13 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut defaultCode: Value = self.safe_value_k(self.options.clone(), "code", &[Value::Str("BTC".to_string())]);
-        let mut options: Value = self.safe_value(self.options.clone(), methodName.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut code: Value = self.safe_value_k(options, "code", &[defaultCode.clone()]);
-        return self.safe_value_k(params, "code", &[code.clone()]);
+        let mut defaultCode: Value = self.safe_string_k(self.options.clone(), "code", &[Value::Str("BTC".to_string())]);
+        let mut options: Value = self.safe_dict(self.options.clone(), methodName.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut code: Value = self.safe_string_k(options.clone(), "code", &[defaultCode.clone()]);
+        return self.safe_string_k(params.clone(), "code", &[code.clone()]);
 
     Value::Null
 }
@@ -1609,7 +1609,7 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
         let mut locked: Option<String> = self.safe_string_k(result.clone(), "locked", &[]).as_str().map(str::to_owned);
         let mut updateTime: Value = self.safe_integer_product(response.clone(), Value::Str("usIn".to_string()), Value::Float(0.001), &[self.milliseconds()]);
         return Value::Map({
@@ -1676,7 +1676,7 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::from(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
         return self.parse_accounts(result.clone(), &[]);
 
     Value::Null
@@ -1856,8 +1856,8 @@ impl DeribitCore {
                 let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
                 let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
                 let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-                let mut settlementPeriod: Value = self.safe_value_k(market.clone(), "settlement_period", &[]);
-                let mut swap: Value = (Value::Bool(settlementPeriod.as_str() == Some("perpetual")));
+                let mut settlementPeriod: Option<String> = self.safe_string_k(market.clone(), "settlement_period", &[]).as_str().map(str::to_owned);
+                let mut swap: Value = (Value::Bool(settlementPeriod.as_deref() == Some("perpetual")));
                 if (kind == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".to_string()))));
                 }
@@ -1925,7 +1925,7 @@ impl DeribitCore {
                         m.insert("swap".to_string(), swap.clone());
                         m.insert("future".to_string(), future.clone());
                         m.insert("option".to_string(), option.clone());
-                        m.insert("active".to_string(), self.safe_value_k(market.clone(), "is_active", &[]));
+                        m.insert("active".to_string(), self.safe_bool_k(market.clone(), "is_active", &[]));
                         m.insert("contract".to_string(), Value::Bool(!is_true(&isSpot)));
                         m.insert("linear".to_string(), linear.clone());
                         m.insert("inverse".to_string(), inverse.clone());
@@ -1990,7 +1990,7 @@ impl DeribitCore {
             m
         });
         let mut summaries: Value = Value::from(vec![]);
-        if (in_op(&balance, &Value::Str("summaries".to_string()))) {
+        if is_true(&(matches!(&balance, Value::Dict(__d) if __d.contains_key("summaries")))) {
             summaries = self.safe_list_k(balance.clone(), "summaries", &[Value::from(vec![])]);
         }  else {
             summaries = Value::from(vec![balance.clone()]);
@@ -2139,10 +2139,10 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut address: Value = self.safe_string_k(result.clone(), "address", &[]);
         self.check_address(&[address.clone()]);
         return Value::Map({
@@ -2200,10 +2200,10 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut address: Value = self.safe_string_k(result.clone(), "address", &[]);
         self.check_address(&[address.clone()]);
         return Value::Map({
@@ -2271,7 +2271,7 @@ impl DeribitCore {
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "instrument_name", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("last_price".to_string()), Value::Str("last".to_string()), &[]);
-        let mut stats: Value = self.safe_value_k(ticker.clone(), "stats", &[ticker.clone()]);
+        let mut stats: Value = self.safe_dict_k(ticker.clone(), "stats", &[ticker.clone()]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -2739,10 +2739,10 @@ impl DeribitCore {
         //          "testnet":false
         //      }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut trades: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2824,10 +2824,10 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut fees: Value = self.safe_list_k(result, "fees", &[Value::from(vec![])]);
         let mut perpetualFee: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2981,10 +2981,10 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut timestamp: Value = self.safe_integer_k(result.clone(), "timestamp", &[]);
         let mut nonce: Value = self.safe_integer_k(result.clone(), "change_id", &[]);
         let mut orderbook: Value = self.parse_order_book(result.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp.clone()]);
@@ -3108,9 +3108,9 @@ impl DeribitCore {
         let mut rawType: Value = self.safe_string_k(order.clone(), "order_type", &[]);
         let mut type_var: Value = self.parse_order_type(rawType.clone());
         // injected in createOrder
-        let mut trades: Value = self.safe_value_k(order.clone(), "trades", &[]);
+        let mut trades: Value = self.safe_list_k(order.clone(), "trades", &[]);
         let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(order.clone(), "time_in_force", &[]));
-        let mut postOnly: Value = self.safe_value_k(order.clone(), "post_only", &[]);
+        let mut postOnly: Value = self.safe_bool_k(order.clone(), "post_only", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -3374,12 +3374,12 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut order: Value = self.safe_value_k(result.clone(), "order", &[]);
-        let mut trades: Value = self.safe_value_k(result, "trades", &[Value::from(vec![])]);
+        let mut trades: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
         add_element_to_object(&mut order, &Value::Str("trades".to_string()), trades.clone());
         return self.parse_order(order.clone(), &[market.clone()]);
 
@@ -3431,12 +3431,12 @@ impl DeribitCore {
         }
         let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_edit(&[__ws_arg_14]).await;
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut order: Value = self.safe_value_k(result.clone(), "order", &[]);
-        let mut trades: Value = self.safe_value_k(result, "trades", &[Value::from(vec![])]);
+        let mut trades: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
         add_element_to_object(&mut order, &Value::Str("trades".to_string()), trades.clone());
         return self.parse_order(order.clone(), &[]);
 
@@ -3780,10 +3780,10 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut trades: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -3846,10 +3846,10 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut data: Value = self.safe_list_k(result, "data", &[Value::from(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
@@ -3916,10 +3916,10 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut data: Value = self.safe_list_k(result, "data", &[Value::from(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
@@ -4353,10 +4353,10 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut transfers: Value = self.safe_list_k(result, "data", &[Value::from(vec![])]);
         return self.parse_transfers(transfers.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
@@ -4395,10 +4395,10 @@ impl DeribitCore {
         let mut method: Value = self.safe_string_k(params.clone(), "method", &[]);
         params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
         if (method == Value::Null) {
-            let mut transferOptions: Value = self.safe_value_k(self.options.clone(), "transfer", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut transferOptions: Value = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             method = self.safe_string_k(transferOptions.clone(), "method", &[Value::Str("privateGetSubmitTransferToSubaccount".to_string())]);
         }
         let mut response: Value = Value::Null;
@@ -4855,12 +4855,12 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut cursor: Value = self.safe_string_k(result.clone(), "continuation", &[]);
-        let mut settlements: Value = self.safe_value_k(result, "settlements", &[Value::from(vec![])]);
+        let mut settlements: Value = self.safe_list_k(result, "settlements", &[Value::from(vec![])]);
         let mut settlementsWithCursor: Value = self.add_pagination_cursor_to_result(cursor.clone(), settlements.clone());
         return self.parse_liquidations(settlementsWithCursor.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -4951,10 +4951,10 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut settlements: Value = self.safe_list_k(result, "settlements", &[Value::from(vec![])]);
         return self.parse_liquidations(settlements.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -5064,10 +5064,10 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_greeks(result.clone(), &[market.clone()]);
 
     Value::Null
@@ -5117,10 +5117,10 @@ impl DeribitCore {
         let mut timestamp: Value = self.safe_integer_k(greeks.clone(), "timestamp", &[]);
         let mut marketId: Value = self.safe_string_k(greeks.clone(), "instrument_name", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut stats: Value = self.safe_value_k(greeks.clone(), "greeks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut stats: Value = self.safe_dict_k(greeks.clone(), "greeks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -5524,7 +5524,7 @@ impl DeribitCore {
         //         "usDiff": 36
         //     }
         //
-        let mut error: Value = self.safe_value_k(response, "error", &[]);
+        let mut error: Value = self.safe_dict_k(response, "error", &[]);
         if (error != Value::Null) {
             let mut errorCode: Value = self.safe_string_k(error.clone(), "code", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));

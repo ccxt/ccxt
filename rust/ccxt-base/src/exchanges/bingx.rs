@@ -5851,7 +5851,7 @@ impl BingxCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut clientOrderIds: Value = self.safe_value_k(params.clone(), "clientOrderIds", &[]);
+        let mut clientOrderIds: Value = self.safe_list_k(params.clone(), "clientOrderIds", &[]);
         params = self.omit(params.clone(), Value::Str("clientOrderIds".to_string()), &[]);
         let mut idsToParse: Value = ids.clone();
         let mut areClientOrderIds: bool = clientOrderIds != Value::Null;
@@ -6963,7 +6963,7 @@ impl BingxCore {
         //
         // parse withdraw-type output first...
         //
-        let mut data: Value = self.safe_value_k(transaction.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(transaction.clone(), "data", &[]);
         let mut dataId: Value = (if is_true(&(data == Value::Null)) { Value::Null } else { self.safe_string_k(data.clone(), "id", &[]) });
         let mut id: Value = self.safe_string_k(transaction.clone(), "id", &[dataId.clone()]);
         let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);

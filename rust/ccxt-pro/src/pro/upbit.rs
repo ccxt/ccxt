@@ -440,7 +440,7 @@ impl UpbitCore {
 }));
         let mut trades: Value = self.watch_public_multiple(symbols.clone(), Value::Str("trade".to_string()), &[]).await;
         if is_true(&self.newUpdates) {
-            let mut first: Value = self.safe_value(trades.clone(), Value::Int(0), &[]);
+            let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first.clone(), "symbol", &[]);
             limit = trades.get_limit(tradeSymbol.clone(), limit.clone());
         }
@@ -570,7 +570,7 @@ impl UpbitCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "code", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
         let mut type_var: Option<String> = self.safe_string_k(message.clone(), "stream_type", &[]).as_str().map(str::to_owned);
-        let mut options: Value = self.safe_value_k(self.options.clone(), "watchOrderBook", &[Value::Map({
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1019,11 +1019,11 @@ impl UpbitCore {
         let mut orders: Value = (if is_true(&(symbol == Value::Null)) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { self.safe_value(cachedOrders.hashmap(), symbol.clone(), &[Value::Map({
+}) } else { self.safe_dict(cachedOrders.hashmap(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
-        let mut order: Value = (if is_true(&(orderId == Value::Null)) { Value::Null } else { self.safe_value(orders.clone(), orderId.clone(), &[]) });
+        let mut order: Value = (if is_true(&(orderId == Value::Null)) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone(), &[]) });
         if (order != Value::Null) {
             let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
             if (fee != Value::Null) {

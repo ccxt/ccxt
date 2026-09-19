@@ -722,18 +722,18 @@ impl IndodaxCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Value = self.safe_value_k(response.clone(), "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut balances: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut free: Value = self.safe_dict_k(balances.clone(), "balance", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut used: Value = self.safe_value_k(balances.clone(), "balance_hold", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut used: Value = self.safe_dict_k(balances.clone(), "balance_hold", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut timestamp: Value = self.safe_timestamp(balances.clone(), Value::Str("server_time".to_string()), &[]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1437,10 +1437,10 @@ impl IndodaxCore {
         }
         let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
         let mut result: Value = self.private_post_trade(&[__ws_arg_8]).await;
-        let mut data: Value = self.safe_value_k(result.clone(), "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(result.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut id: Value = self.safe_string_k(data.clone(), "order_id", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1548,10 +1548,10 @@ impl IndodaxCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1701,10 +1701,10 @@ impl IndodaxCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response, "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response, "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut withdraw: Value = self.safe_dict_k(data.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1738,8 +1738,8 @@ impl IndodaxCore {
             }
         }  else {
             currency = self.currency(code.clone());
-            let mut withdraws: Value = self.safe_value(withdraw.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]);
-            let mut deposits: Value = self.safe_value(deposit.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]);
+            let mut withdraws: Value = self.safe_list(withdraw.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]);
+            let mut deposits: Value = self.safe_list(deposit.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]);
             transactions = self.array_concat(withdraws.clone(), deposits.clone());
         }
         return self.parse_transactions(transactions.clone(), &[currency.clone(), since.clone(), limit.clone()]);
@@ -2081,7 +2081,7 @@ impl IndodaxCore {
         if is_true(&(matches!(&response, Value::Arr(_)))) {
             return Value::Null;
         }
-        let mut error: Value = self.safe_value_k(response.clone(), "error", &[Value::Str("".to_string())]);
+        let mut error: Value = self.safe_string_k(response.clone(), "error", &[Value::Str("".to_string())]);
         if !(in_op(&response, &Value::Str("success".to_string()))) && (error.as_str() == Some("")) {
             return Value::Null;
         }

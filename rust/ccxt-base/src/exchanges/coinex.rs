@@ -2616,7 +2616,7 @@ impl CoinexCore {
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut market: Value = Value::Null;
         if (symbols != Value::Null) {
-            let mut symbol: Value = self.safe_value(symbols.clone(), Value::Int(0), &[]);
+            let mut symbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
             market = self.market(symbol);
         }
         let mut marketTypequeryVariable = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]);
@@ -2982,7 +2982,7 @@ impl CoinexCore {
 
     pub fn parse_trading_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Value = self.safe_value_k(fee.clone(), "market", &[]);
+        let mut marketId: Value = self.safe_string_k(fee.clone(), "market", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3897,12 +3897,12 @@ impl CoinexCore {
             }
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
-            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
-            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_value_k(rawOrder, "params", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             if (type_var.as_str() != Some("limit")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".to_string()))), type_var)), Value::Str(" orders, only limit orders are accepted".to_string()))));
             }
@@ -4188,8 +4188,8 @@ impl CoinexCore {
                 append_to_array(&mut orderSymbols, marketId.clone());
             }
             let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
-            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
-            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5740,7 +5740,7 @@ impl CoinexCore {
         });
         let mut market: Value = Value::Null;
         if (symbols != Value::Null) {
-            let mut symbol: Value = self.safe_value(symbols.clone(), Value::Int(0), &[]);
+            let mut symbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
             market = self.market(symbol);
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() supports swap contracts only".to_string()))));
@@ -6162,10 +6162,10 @@ impl CoinexCore {
         let mut currencyId: Value = self.safe_string_k(transfer.clone(), "ccy", &[]);
         let mut fromId: Value = self.safe_string_k(transfer.clone(), "from_account_type", &[]);
         let mut toId: Value = self.safe_string_k(transfer.clone(), "to_account_type", &[]);
-        let mut accountsById: Value = self.safe_value_k(self.options.clone(), "accountsById", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut accountsById: Value = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
@@ -6559,7 +6559,7 @@ impl CoinexCore {
         //         "message": "OK"
         //     }
         //
-        let mut rows: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut rows: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut interest: Value = self.parse_borrow_interests(rows.clone(), &[market.clone()]);
         return self.filter_by_currency_since_limit(interest.clone(), &[code.clone(), since.clone(), limit.clone()]);
 

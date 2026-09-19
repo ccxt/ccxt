@@ -1102,7 +1102,7 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut first: Value = self.safe_value(tradingFeeRate.clone(), Value::Int(0), &[]);
+        let mut first: Value = self.safe_dict(tradingFeeRate.clone(), Value::Int(0), &[]);
         //
         //     {
         //         "tradingFeeRate":[
@@ -1534,7 +1534,7 @@ impl BitoproCore {
         }
         if (orderType.as_str() == Some("STOP_LIMIT")) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
-            let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
+            let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
             params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
             if (triggerPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter for ".to_string()))), orderType)), Value::Str(" orders".to_string()))));

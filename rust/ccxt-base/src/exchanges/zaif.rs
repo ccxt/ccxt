@@ -635,11 +635,11 @@ impl ZaifCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Value = self.safe_value_k(response.clone(), "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut deposit: Value = self.safe_value_k(balances.clone(), "deposit", &[]);
+        let mut balances: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut deposit: Value = self.safe_dict_k(balances.clone(), "deposit", &[]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -1230,7 +1230,7 @@ impl ZaifCore {
         //
         currency = self.safe_currency(Value::Null, &[currency.clone()]);
         let mut fee: Value = Value::Null;
-        let mut feeCost: Value = self.safe_value_k(transaction.clone(), "fee", &[]);
+        let mut feeCost: Value = self.safe_number_k(transaction.clone(), "fee", &[]);
         if (feeCost != Value::Null) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();

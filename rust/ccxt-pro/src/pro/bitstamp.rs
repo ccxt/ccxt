@@ -451,8 +451,8 @@ impl BitstampCore {
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut storedOrderBook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
-        let mut nonce: Value = self.safe_value_k(storedOrderBook.clone(), "nonce", &[]);
-        let mut delta: Value = self.safe_value_k(message, "data", &[]);
+        let mut nonce: Value = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]);
+        let mut delta: Value = self.safe_dict_k(message, "data", &[]);
         let mut deltaNonce: Value = self.safe_integer_k(delta.clone(), "microtimestamp", &[]);
         if (deltaNonce == Value::Null) {
             return;
@@ -471,7 +471,7 @@ impl BitstampCore {
             }
             crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".to_string()), delta.clone());
             return;
-        }  else if is_greater_than_or_equal(&nonce, &deltaNonce) {
+        }  else if nonce.as_f64().unwrap_or(f64::NAN) >= deltaNonce.as_f64().unwrap_or(f64::NAN) {
             return;
         }
         self.handle_delta(storedOrderBook.clone(), delta.clone());
@@ -483,8 +483,8 @@ impl BitstampCore {
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(delta.clone(), "microtimestamp", &[]));
-        let mut bids: Value = self.safe_value_k(delta.clone(), "bids", &[Value::from(vec![])]);
-        let mut asks: Value = self.safe_value_k(delta, "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(delta.clone(), "bids", &[Value::from(vec![])]);
+        let mut asks: Value = self.safe_list_k(delta, "asks", &[Value::from(vec![])]);
         let mut storedBids: Value = crate::value::get_value_k(&orderbook, "bids");
         let mut storedAsks: Value = crate::value::get_value_k(&orderbook, "asks");
         self.handle_bid_asks(storedBids.clone(), bids.clone());
@@ -1325,7 +1325,7 @@ impl BitstampCore {
         let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
         if (event.as_deref() == Some("bts:error")) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)));
-            let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+            let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

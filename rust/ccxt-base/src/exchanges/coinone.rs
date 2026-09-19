@@ -862,7 +862,7 @@ impl CoinoneCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_576: bool = true;
             while { if !__for_first_576 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_576 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_value(tickers.clone(), i.clone(), &[]);
+            let mut entry: Value = self.safe_dict(tickers.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_k(entry.clone(), "id", &[]);
             let mut baseId: Value = self.safe_string_upper(entry.clone(), Value::Str("target_currency".to_string()), &[]);
             let mut quoteId: Value = self.safe_string_upper(entry.clone(), Value::Str("quote_currency".to_string()), &[]);
@@ -1830,10 +1830,10 @@ impl CoinoneCore {
                 continue;
             }
             let mut parts: Value = split(&key, &Value::Str("_".to_string()));
-            let mut currencyId: Value = self.safe_value(parts.clone(), Value::Int(0), &[]);
-            let mut secondPart: Value = self.safe_value(parts.clone(), Value::Int(1), &[]);
+            let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
+            let mut secondPart: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut depositAddress: Value = self.safe_value(result.clone(), code.clone(), &[]);
+            let mut depositAddress: Value = self.safe_dict(result.clone(), code.clone(), &[]);
             if (depositAddress == Value::Null) {
                 depositAddress = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1849,7 +1849,7 @@ impl CoinoneCore {
             self.check_address(&[address.clone()]);
             add_element_to_object(&mut depositAddress, &Value::Str("address".to_string()), address.clone());
             add_element_to_object(&mut depositAddress, &Value::Str("info".to_string()), address.clone());
-            if is_true(&((secondPart.as_str() == Some("tag")) || (secondPart.as_str() == Some("memo")))) {
+            if is_true(&((secondPart.as_deref() == Some("tag")) || (secondPart.as_deref() == Some("memo")))) {
                 add_element_to_object(&mut depositAddress, &Value::Str("tag".to_string()), value.clone());
                 add_element_to_object(&mut depositAddress, &Value::Str("info".to_string()), Value::from(vec![address.clone(), value.clone()]));
             }

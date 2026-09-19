@@ -1216,9 +1216,15 @@ impl BtseCore {
                 type_var = Value::Str("swap".to_string());
             }
         }
-        let mut fees: Value = self.safe_value_k(self.fees.clone(), "contract", &[]);
+        let mut fees: Value = self.safe_dict_k(self.fees.clone(), "contract", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         if is_true(&isSpot) {
-            fees = self.safe_value_k(self.fees.clone(), "spot", &[]);
+            fees = self.safe_dict_k(self.fees.clone(), "spot", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1240,8 +1246,8 @@ impl BtseCore {
         m.insert("contract".to_string(), Value::Bool(is_true(&isSwap) || is_true(&isFuture)));
         m.insert("linear".to_string(), (if is_true(&isSpot) { Value::Null } else { Value::Bool(true) }));
         m.insert("inverse".to_string(), (if is_true(&isSpot) { Value::Null } else { Value::Bool(false) }));
-        m.insert("taker".to_string(), crate::value::get_value_k(&fees, "taker"));
-        m.insert("maker".to_string(), crate::value::get_value_k(&fees, "maker"));
+        m.insert("taker".to_string(), fees.as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null));
+        m.insert("maker".to_string(), fees.as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), self.iso8601(expiry.clone()));

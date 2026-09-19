@@ -1299,10 +1299,10 @@ impl BitvavoCore {
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("fillId".to_string()), &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "market", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("-".to_string())]);
-        let mut taker: Value = self.safe_value_k(trade.clone(), "taker", &[]);
+        let mut taker: Value = self.safe_bool_k(trade.clone(), "taker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (taker != Value::Null) {
-            takerOrMaker = (if (is_equal(&taker, &Value::Bool(true))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+            takerOrMaker = (if is_true(&(taker.as_bool() == Some(true))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         }
         let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
@@ -1371,7 +1371,7 @@ impl BitvavoCore {
         //         }
         //     }
         //
-        let mut feesValue: Value = self.safe_value_k(fees.clone(), "fees", &[]);
+        let mut feesValue: Value = self.safe_dict_k(fees.clone(), "fees", &[]);
         let mut maker: Value = self.safe_number_k(feesValue.clone(), "maker", &[]);
         let mut taker: Value = self.safe_number_k(feesValue, "taker", &[]);
         let mut result: Value = Value::Map({
@@ -1967,8 +1967,8 @@ impl BitvavoCore {
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerAmount".to_string())]), &[]);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(false), &[params.clone()]);
-        let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[]); // trigger when price crosses from above to below this value
-        let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]); // trigger when price crosses from below to above this value
+        let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]); // trigger when price crosses from above to below this value
+        let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]); // trigger when price crosses from below to above this value
         params = self.omit(params.clone(), Value::from(vec![Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
         if is_true(&isMarketOrder) {
             let mut cost: Value = Value::Null;
@@ -2538,7 +2538,7 @@ impl BitvavoCore {
                 m
             });
         }
-        let mut rawTrades: Value = self.safe_value_k(order.clone(), "fills", &[Value::from(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         let mut postOnly: Value = self.safe_value_k(order.clone(), "postOnly", &[]);
         return self.safe_order(Value::Map({
@@ -3103,8 +3103,8 @@ impl BitvavoCore {
 }));
             m
         });
-        let mut networks: Value = self.safe_value_k(fee, "networks", &[]);
-        let mut networkId: Value = self.safe_value(networks.clone(), Value::Int(0), &[]); // Bitvavo currently only supports one network per currency
+        let mut networks: Value = self.safe_list_k(fee, "networks", &[]);
+        let mut networkId: Value = self.safe_string(networks.clone(), Value::Int(0), &[]); // Bitvavo currently only supports one network per currency
         let mut currencyCode: Value = self.safe_string_k(currency.clone(), "code", &[]);
         if (networkId.as_str() == Some("Mainnet")) {
             networkId = currencyCode.clone();
@@ -3232,7 +3232,7 @@ impl BitvavoCore {
         if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noMarket")))) && !(in_op(&params, &Value::Str("market".to_string()))) {
             return config.as_map().and_then(|__m| __m.get("noMarket")).cloned().unwrap_or(Value::Null);
         }
-        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
+        return self.safe_number_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }

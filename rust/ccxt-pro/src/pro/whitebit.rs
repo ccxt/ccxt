@@ -356,7 +356,7 @@ impl WhitebitCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timeframes: Value = self.safe_value_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -457,7 +457,7 @@ impl WhitebitCore {
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".to_string()), Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
         let mut method: Value = Value::Str("depth_subscribe".to_string());
-        let mut options: Value = self.safe_value_k(self.options.clone(), "watchOrderBook", &[Value::Map({
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -509,12 +509,12 @@ impl WhitebitCore {
         //     "id":null
         //  }
         //
-        let mut params: Value = self.safe_value_k(message, "params", &[Value::from(vec![])]);
+        let mut params: Value = self.safe_list_k(message, "params", &[Value::from(vec![])]);
         let mut isSnapshot: Value = self.safe_value(params.clone(), Value::Int(0), &[]);
         let mut marketId: Value = self.safe_string(params.clone(), Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut data: Value = self.safe_value(params.clone(), Value::Int(1), &[]);
+        let mut data: Value = self.safe_dict(params.clone(), Value::Int(1), &[]);
         let mut timestamp: Value = self.safe_timestamp(data.clone(), Value::Str("timestamp".to_string()), &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
             let mut ob: Value = self.order_book(&[]);
@@ -527,8 +527,8 @@ impl WhitebitCore {
             let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[]);
             orderbook.reset(snapshot.clone());
         }  else {
-            let mut asks: Value = self.safe_value_k(data.clone(), "asks", &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_value_k(data, "bids", &[Value::from(vec![])]);
+            let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
+            let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
         }
@@ -645,11 +645,11 @@ impl WhitebitCore {
         //       "id": null
         //   }
         //
-        let mut tickers: Value = self.safe_value_k(message.clone(), "params", &[Value::from(vec![])]);
+        let mut tickers: Value = self.safe_list_k(message.clone(), "params", &[Value::from(vec![])]);
         let mut marketId: Value = self.safe_string(tickers.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut rawTicker: Value = self.safe_value(tickers.clone(), Value::Int(1), &[Value::Map({
+        let mut rawTicker: Value = self.safe_dict(tickers.clone(), Value::Int(1), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -745,7 +745,7 @@ impl WhitebitCore {
         //        ]
         //    }
         //
-        let mut params: Value = self.safe_value_k(message, "params", &[Value::from(vec![])]);
+        let mut params: Value = self.safe_list_k(message, "params", &[Value::from(vec![])]);
         let mut marketId: Value = self.safe_string(params.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -755,7 +755,7 @@ impl WhitebitCore {
             stored = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: Value = self.safe_value(params.clone(), Value::Int(1), &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list(params.clone(), Value::Int(1), &[Value::from(vec![])]);
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);
@@ -979,8 +979,8 @@ impl WhitebitCore {
         //     "id": null
         // }
         //
-        let mut params: Value = self.safe_value_k(message, "params", &[Value::from(vec![])]);
-        let mut data: Value = self.safe_value(params.clone(), Value::Int(1), &[]);
+        let mut params: Value = self.safe_list_k(message, "params", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_dict(params.clone(), Value::Int(1), &[]);
         if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());

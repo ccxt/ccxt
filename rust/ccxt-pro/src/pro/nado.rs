@@ -1873,7 +1873,7 @@ impl NadoCore {
             m
         });
         if (market != Value::Null) {
-            add_element_to_object(&mut stream, &Value::Str("product_id".to_string()), self.parse_to_int(crate::value::get_value_k(&market, "id")));
+            add_element_to_object(&mut stream, &Value::Str("product_id".to_string()), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2774,7 +2774,7 @@ impl NadoCore {
         }
         let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
         let mut hasResult: bool = in_op(&message, &Value::Str("result".to_string()));
-        let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(message.clone(), "result", &[]);
         let mut method: Option<String> = self.safe_string_k(result.clone(), "method", &[]).as_str().map(str::to_owned);
         if (method.as_deref() == Some("pong")) {
             // pong replies carry both 'id' and 'result' so they must be routed
@@ -2789,12 +2789,12 @@ impl NadoCore {
             return;
         }
         if is_true(&(id != Value::Null)) && hasResult {
-            let mut authentication: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str(format!("{}{}", Value::Str("authentication:".to_string()), id)), &[]);
-            if (authentication != Value::Null) {
+            let mut authentication: Option<String> = self.safe_string(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str(format!("{}{}", Value::Str("authentication:".to_string()), id)), &[]).as_str().map(str::to_owned);
+            if (authentication.is_some()) {
                 self.handle_authentication(client.clone(), message.clone());
                 return;
             }
-            let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str(format!("{}{}", Value::Str("subscription:".to_string()), id)), &[]);
+            let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str(format!("{}{}", Value::Str("subscription:".to_string()), id)), &[]);
             if (subscription != Value::Null) {
                 self.handle_subscription(client.clone(), message.clone());
                 return;

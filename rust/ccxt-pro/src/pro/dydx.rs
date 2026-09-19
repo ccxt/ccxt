@@ -694,7 +694,7 @@ impl DydxCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol));
         let mut ohlcv: Value = self.safe_dict(candles.clone(), Value::Int(0), &[content.clone()]);
         let mut parsed: Value = self.parse_ohlcv(ohlcv.clone(), &[market.clone()]);
-        { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+        { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };

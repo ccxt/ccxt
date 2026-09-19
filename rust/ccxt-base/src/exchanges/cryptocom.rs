@@ -2174,7 +2174,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut data: Value = self.safe_list_k(result, "data", &[Value::from(vec![])]);
-        let mut orderBook: Value = self.safe_value(data.clone(), Value::Int(0), &[]);
+        let mut orderBook: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         let mut timestamp: Value = self.safe_integer_k(orderBook.clone(), "t", &[]);
         return self.parse_order_book(orderBook.clone(), symbol.clone(), &[timestamp.clone()]);
 
@@ -3715,14 +3715,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut created: Value = self.safe_integer_k(order.clone(), "create_time", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "instrument_name", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut execInst: Value = self.safe_value_k(order.clone(), "exec_inst", &[]);
+        let mut execInst: Value = self.safe_list_k(order.clone(), "exec_inst", &[]);
         let mut postOnly: Value = Value::Null;
         if (execInst != Value::Null) {
             postOnly = Value::Bool(false);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_600: bool = true;
-                while { if !__for_first_600 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_600 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&execInst).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_600 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_600 = false; i.as_f64().unwrap_or(f64::NAN) < ((execInst.len() as i64) as f64) } {
                 let mut inst: Value = get_value(&execInst, &i);
                 let mut inst: Value = get_value(&execInst, &i);
                 if (inst.as_str() == Some("POST_ONLY")) {
@@ -4028,7 +4028,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.v1_private_post_private_get_currency_networks(&[params.clone()]).await;
-        let mut data: Value = self.safe_value_k(response, "result", &[]);
+        let mut data: Value = self.safe_dict_k(response, "result", &[]);
         let mut currencyMap: Value = self.safe_list_k(data, "currency_map", &[]);
         return self.parse_deposit_withdraw_fees(currencyMap.clone(), &[codes.clone(), Value::Str("full_name".to_string())]);
 

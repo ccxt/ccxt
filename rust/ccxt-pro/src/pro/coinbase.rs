@@ -1157,7 +1157,7 @@ impl CoinbaseCore {
         if (events == Value::Null) {
             return;
         }
-        let mut event: Value = self.safe_value(events.clone(), Value::Int(0), &[]);
+        let mut event: Value = self.safe_dict(events.clone(), Value::Int(0), &[]);
         let mut trades: Value = self.safe_list_k(event, "trades", &[]);
         let mut trade: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "product_id", &[]);
@@ -1398,7 +1398,7 @@ impl CoinbaseCore {
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("level2::".to_string()), symbol));
-            let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[Value::Map({
+            let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

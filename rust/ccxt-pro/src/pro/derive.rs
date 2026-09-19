@@ -307,7 +307,7 @@ impl DeriveCore {
 }
 
     pub fn request_id(&self, mut url: Value) -> Value {
-        let mut options: Value = self.safe_value_k(self.options.clone(), "requestId", &[Value::Map({
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1009,11 +1009,11 @@ impl DeriveCore {
                     self.orders = ArrayCacheBySymbolById::new(limit.clone());
                 }
                 let mut cachedOrders: Value = self.orders.clone();
-                let mut orders: Value = self.safe_value(cachedOrders.hashmap(), symbol.clone(), &[Value::Map({
+                let mut orders: Value = self.safe_dict(cachedOrders.hashmap(), symbol.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut order: Value = (if is_true(&(orderId == Value::Null)) { Value::Null } else { self.safe_value(orders.clone(), orderId.clone(), &[]) });
+                let mut order: Value = (if is_true(&(orderId == Value::Null)) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone(), &[]) });
                 if (order != Value::Null) {
                     let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                     if (fee != Value::Null) {
@@ -1125,7 +1125,7 @@ impl DeriveCore {
         //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
-        if !(in_op(&message, &Value::Str("error".to_string()))) {
+        if !is_true(&(matches!(&message, Value::Dict(__d) if __d.contains_key("error")))) {
             return Value::Bool(false);
         }
         let mut errorMessage: Value = self.safe_dict_k(message.clone(), "error", &[]);
@@ -1190,20 +1190,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
         }
-        if (in_op(&message, &Value::Str("id".to_string()))) {
+        if is_true(&(matches!(&message, Value::Dict(__d) if __d.contains_key("id")))) {
             let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
             let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
             let mut subscription: Value = (if is_true(&(id == Value::Null)) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { self.safe_value(subscriptionsById.clone(), id.clone(), &[Value::Map({
+}) } else { self.safe_dict(subscriptionsById.clone(), id.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
-            if (in_op(&subscription, &Value::Str("method".to_string()))) {
-                if (crate::value::get_value_k(&subscription, "method").as_str() == Some("public/login")) {
+            if is_true(&(matches!(&subscription, Value::Dict(__d) if __d.contains_key("method")))) {
+                if (subscription.as_map().and_then(|__m| __m.get("method")).cloned().unwrap_or(Value::Null).as_str() == Some("public/login")) {
                     self.handle_auth(client.clone(), message.clone());
-                }  else if (crate::value::get_value_k(&subscription, "method").as_str() == Some("unsubscribe")) {
+                }  else if (subscription.as_map().and_then(|__m| __m.get("method")).cloned().unwrap_or(Value::Null).as_str() == Some("unsubscribe")) {
                     self.handle_un_subscribe(client.clone(), message.clone());
                 }
             }

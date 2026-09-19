@@ -1267,10 +1267,10 @@ impl DigifinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: Value = self.safe_value_k(self.options.clone(), "fetchMarkets", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut method: Option<String> = self.safe_string_k(options.clone(), "method", &[Value::Str("fetch_markets_v2".to_string())]).as_str().map(str::to_owned);
         if (method.as_deref() == Some("fetch_markets_v2")) {
             return self.fetch_markets_v2(&[params.clone()]).await;
@@ -1351,8 +1351,8 @@ impl DigifinexCore {
         //         ]
         //     }
         //
-        let mut spotData: Value = self.safe_value_k(spotMarkets, "symbol_list", &[Value::from(vec![])]);
-        let mut swapData: Value = self.safe_value_k(swapMarkets, "data", &[Value::from(vec![])]);
+        let mut spotData: Value = self.safe_list_k(spotMarkets, "symbol_list", &[Value::from(vec![])]);
+        let mut swapData: Value = self.safe_list_k(swapMarkets, "data", &[Value::from(vec![])]);
         let mut response: Value = self.array_concat(spotData.clone(), swapData.clone());
         let mut result: Value = Value::from(vec![]);
         {
@@ -1389,10 +1389,10 @@ impl DigifinexCore {
             if is_true(&swap) {
                 type_var = Value::Str("swap".to_string());
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
-                isInverse = self.safe_value_k(market.clone(), "is_inverse", &[]);
+                isInverse = self.safe_bool_k(market.clone(), "is_inverse", &[]);
                 isLinear = (if is_true(&(isInverse.as_bool() != Some(true))) { Value::Bool(true) } else { Value::Bool(false) });
-                let mut isTrading: Value = self.safe_value_k(market.clone(), "isTrading", &[]);
-                if is_equal(&isTrading, &Value::Bool(true)) {
+                let mut isTrading: Value = self.safe_bool_k(market.clone(), "isTrading", &[]);
+                if (isTrading.as_bool() == Some(true)) {
                     isAllowed = Value::Int(1);
                 }
             }
@@ -1699,7 +1699,7 @@ impl DigifinexCore {
         //     }
         //
         let mut balanceRequest: Value = (if is_true(&(marketType.as_str() == Some("swap"))) { Value::Str("data".to_string()) } else { Value::Str("list".to_string()) });
-        let mut balances: Value = self.safe_value(response.clone(), balanceRequest.clone(), &[Value::from(vec![])]);
+        let mut balances: Value = self.safe_list(response.clone(), balanceRequest.clone(), &[Value::from(vec![])]);
         return self.parse_balance(balances.clone());
 
     Value::Null
@@ -1787,10 +1787,10 @@ impl DigifinexCore {
         let mut timestamp: Value = Value::Null;
         let mut orderBook: Value = Value::Null;
         if (marketType.as_str() == Some("swap")) {
-            orderBook = self.safe_value_k(response.clone(), "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            orderBook = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             timestamp = self.safe_integer_k(orderBook.clone(), "timestamp", &[]);
         }  else {
             orderBook = response.clone();
@@ -1994,15 +1994,15 @@ impl DigifinexCore {
         //     }
         //
         let mut date: Value = self.safe_integer_k(response.clone(), "date", &[]);
-        let mut tickers: Value = self.safe_value_k(response.clone(), "ticker", &[Value::from(vec![])]);
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut firstTicker: Value = self.safe_value(tickers.clone(), Value::Int(0), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut tickers: Value = self.safe_list_k(response.clone(), "ticker", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut firstTicker: Value = self.safe_dict(tickers.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut result: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             result = data.clone();
@@ -2215,8 +2215,8 @@ impl DigifinexCore {
             if (type_var == Value::Null) {
                 type_var = Value::Str("limit".to_string());
             }
-            let mut isMaker: Value = self.safe_value_k(trade.clone(), "is_maker", &[]);
-            takerOrMaker = (if (is_equal(&isMaker, &Value::Bool(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            let mut isMaker: Value = self.safe_bool_k(trade.clone(), "is_maker", &[]);
+            takerOrMaker = (if is_true(&(isMaker.as_bool() == Some(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut fee: Value = Value::Null;
         let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
@@ -2521,13 +2521,13 @@ impl DigifinexCore {
         //
         let mut candles: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            candles = self.safe_value_k(data.clone(), "candles", &[Value::from(vec![])]);
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            candles = self.safe_list_k(data.clone(), "candles", &[Value::from(vec![])]);
         }  else {
-            candles = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+            candles = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
@@ -2644,10 +2644,10 @@ impl DigifinexCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_value_k(rawOrder.clone(), "params", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrders".to_string()), &[orderParams.clone()]);
             let mut currentMarginMode: Value = marginResult.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             if (currentMarginMode != Value::Null) {
@@ -2700,9 +2700,9 @@ impl DigifinexCore {
         //
         let mut data: Value = Value::from(vec![]);
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            data = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+            data = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else {
-            data = self.safe_value_k(response.clone(), "order_ids", &[Value::from(vec![])]);
+            data = self.safe_list_k(response.clone(), "order_ids", &[Value::from(vec![])]);
         }
         let mut result: Value = Value::from(vec![]);
         {
@@ -3855,13 +3855,13 @@ impl DigifinexCore {
         //
         let mut ledger: Value = Value::Null;
         if (marketType.as_str() == Some("swap")) {
-            ledger = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+            ledger = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else {
-            let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            ledger = self.safe_value_k(data.clone(), "finance", &[Value::from(vec![])]);
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            ledger = self.safe_list_k(data.clone(), "finance", &[Value::from(vec![])]);
         }
         return self.parse_ledger(ledger.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -3933,7 +3933,7 @@ impl DigifinexCore {
         //         "code":200
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut addresses: Value = self.parse_deposit_addresses(data.clone(), &[Value::from(vec![currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])]);
         let mut address: Value = self.safe_value(addresses.clone(), code.clone(), &[]);
         if (address == Value::Null) {
@@ -4237,10 +4237,10 @@ impl DigifinexCore {
         }
         let mut currency: Value = self.currency(code.clone());
         let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-        let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "accountsByType", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
         let mut toId: Value = self.safe_string(accountsByType.clone(), toAccount.clone(), &[toAccount.clone()]);
         let mut request: Value = Value::Map({
@@ -4375,7 +4375,7 @@ impl DigifinexCore {
         //         "unrealized_pnl": "-0.049158102631998504"
         //     }
         //
-        let mut rows: Value = self.safe_value_k(response.clone(), "positions", &[]);
+        let mut rows: Value = self.safe_list_k(response.clone(), "positions", &[]);
         let mut interest: Value = self.parse_borrow_interests(rows.clone(), &[market.clone()]);
         return self.filter_by_currency_since_limit(interest.clone(), &[code.clone(), since.clone(), limit.clone()]);
 
@@ -4514,7 +4514,7 @@ impl DigifinexCore {
         //         "equity": 45.133305540922
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "list", &[Value::from(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "list", &[Value::from(vec![])]);
         return self.parse_borrow_rates(result.clone(), Value::Str("currency".to_string()));
 
     Value::Null
@@ -4761,10 +4761,10 @@ impl DigifinexCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut result: Value = self.safe_list_k(data.clone(), "funding_rates", &[Value::from(vec![])]);
         let mut rates: Value = Value::from(vec![]);
         {
@@ -4831,10 +4831,10 @@ impl DigifinexCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_trading_fee(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -5360,7 +5360,7 @@ impl DigifinexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         symbols = self.market_symbols(&[symbols.clone()]);
         return self.parse_leverage_tiers(data.clone(), &[symbols.clone(), Value::Str("instrument_id".to_string())]);
 
@@ -5422,10 +5422,10 @@ impl DigifinexCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_market_leverage_tiers(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -5753,10 +5753,10 @@ impl DigifinexCore {
         //
         let mut code: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
         let mut status: Value = (if is_true(&(code == Some(0))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let __ws_arg_48 = self.parse_margin_modification(data.clone(), &[market.clone()]);
         return self.extend(__ws_arg_48, &[Value::Map({
     let mut m = indexmap::IndexMap::new();

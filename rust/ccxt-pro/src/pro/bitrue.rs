@@ -428,7 +428,7 @@ impl BitrueCore {
         //      "u": 2285311
         //    }
         //
-        let mut balances: Value = self.safe_value_k(message, "B", &[Value::from(vec![])]);
+        let mut balances: Value = self.safe_list_k(message, "B", &[Value::from(vec![])]);
         self.parse_ws_balances(balances.clone());
         let mut messageHash: Value = Value::Str("balance".to_string());
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
@@ -725,7 +725,7 @@ impl BitrueCore {
         }
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-        let mut tick: Value = self.safe_value_k(message, "tick", &[Value::Map({
+        let mut tick: Value = self.safe_dict_k(message, "tick", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -891,7 +891,7 @@ impl BitrueCore {
             return;
         }
         let mut symbol: Value = crate::value::get_value_k(&market, "symbol");
-        let mut tick: Value = self.safe_value_k(message, "tick", &[Value::Map({
+        let mut tick: Value = self.safe_dict_k(message, "tick", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1043,7 +1043,7 @@ impl BitrueCore {
             m
         })]);
         let mut timeframe: Value = self.find_timeframe(wsInterval.clone(), &[futuresTimeframes.clone()]);
-        let mut tick: Value = self.safe_value_k(message, "tick", &[]);
+        let mut tick: Value = self.safe_dict_k(message, "tick", &[]);
         if (tick == Value::Null) {
             return;
         }
@@ -1150,7 +1150,7 @@ impl BitrueCore {
             return;
         }
         let mut symbol: Value = crate::value::get_value_k(&market, "symbol");
-        let mut tick: Value = self.safe_value_k(message.clone(), "tick", &[]);
+        let mut tick: Value = self.safe_dict_k(message.clone(), "tick", &[]);
         if (tick == Value::Null) {
             return;
         }
@@ -1283,8 +1283,8 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut listenKey: Value = self.safe_value_k(self.options.clone(), "listenKey", &[]);
-        if (listenKey == Value::Null) {
+        let mut listenKey: Option<String> = self.safe_string_k(self.options.clone(), "listenKey", &[]).as_str().map(str::to_owned);
+        if (listenKey.is_none()) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: the key rides the
             // stream url, so racing fetches mint several listenKeys and the
@@ -1315,7 +1315,7 @@ impl BitrueCore {
                 //         }
                 //     }
                 //
-                let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
+                let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);

@@ -2807,7 +2807,7 @@ impl DeriveCore {
         //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
         // }
         //
-        let mut data: Value = self.safe_value_k(response, "result", &[]);
+        let mut data: Value = self.safe_dict_k(response, "result", &[]);
         let mut page: Value = self.safe_integer_k(params.clone(), "page", &[]);
         if (page != Value::Null) {
             let mut pagination: Value = self.safe_dict_k(data.clone(), "pagination", &[]);

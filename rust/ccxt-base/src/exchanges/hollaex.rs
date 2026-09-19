@@ -718,7 +718,7 @@ impl HollaexCore {
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), self.safe_value_k(market.clone(), "active", &[]));
+                    m.insert("active".to_string(), self.safe_bool_k(market.clone(), "active", &[]));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
@@ -934,7 +934,7 @@ impl HollaexCore {
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), self.safe_value(withdrawalLimits.clone(), Value::Int(0), &[]));
+        m.insert("max".to_string(), self.safe_number(withdrawalLimits.clone(), Value::Int(0), &[]));
     m
 }));
     m
@@ -1039,7 +1039,7 @@ impl HollaexCore {
         //         // ...
         //     }
         //
-        let mut orderbook: Value = self.safe_value(response.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
+        let mut orderbook: Value = self.safe_dict(response.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(orderbook.clone(), "timestamp", &[]));
         return self.parse_order_book(orderbook.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp.clone()]);
 
@@ -1351,22 +1351,22 @@ impl HollaexCore {
         //         ...
         //     }
         //
-        let mut firstTier: Value = self.safe_value_k(response, "1", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut fees: Value = self.safe_value_k(firstTier, "fees", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut makerFees: Value = self.safe_value_k(fees.clone(), "maker", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut takerFees: Value = self.safe_value_k(fees.clone(), "taker", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut firstTier: Value = self.safe_dict_k(response, "1", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut fees: Value = self.safe_dict_k(firstTier, "fees", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut makerFees: Value = self.safe_dict_k(fees.clone(), "maker", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut takerFees: Value = self.safe_dict_k(fees.clone(), "taker", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1792,10 +1792,10 @@ impl HollaexCore {
         let mut amount: Value = self.safe_string_k(order.clone(), "size", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "filled", &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
-        let mut meta: Value = self.safe_value_k(order.clone(), "meta", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut meta: Value = self.safe_dict_k(order.clone(), "meta", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut postOnly: Value = self.safe_bool_k(meta, "post_only", &[Value::Bool(false)]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1860,10 +1860,10 @@ impl HollaexCore {
             m
         });
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stop".to_string())]), &[]);
-        let mut meta: Value = self.safe_value_k(params.clone(), "meta", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut meta: Value = self.safe_dict_k(params.clone(), "meta", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut exchangeSpecificParam: Value = self.safe_bool_k(meta.clone(), "post_only", &[Value::Bool(false)]);
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), exchangeSpecificParam.clone(), &[params.clone()]);
@@ -2116,7 +2116,7 @@ impl HollaexCore {
         //         ]
         //     }
         //
-        let mut wallet: Value = self.safe_value_k(response, "wallet", &[Value::from(vec![])]);
+        let mut wallet: Value = self.safe_list_k(response, "wallet", &[Value::from(vec![])]);
         let mut addresses: Value = (if is_true(&(network == Value::Null)) { wallet.clone() } else { self.filter_by(wallet.clone(), Value::Str("network".to_string()), network.clone(), &[]) });
         return self.parse_deposit_addresses(addresses.clone(), &[codes.clone(), Value::Bool(false)]);
 
@@ -2245,7 +2245,7 @@ impl HollaexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut transaction: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2378,13 +2378,13 @@ impl HollaexCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut status: Value = self.safe_value_k(transaction.clone(), "status", &[]);
-        let mut dismissed: Value = self.safe_value_k(transaction.clone(), "dismissed", &[]);
-        let mut rejected: Value = self.safe_value_k(transaction.clone(), "rejected", &[]);
+        let mut dismissed: Value = self.safe_bool_k(transaction.clone(), "dismissed", &[]);
+        let mut rejected: Value = self.safe_bool_k(transaction.clone(), "rejected", &[]);
         if is_equal(&status, &Value::Bool(true)) {
             status = Value::Str("ok".to_string());
-        }  else if is_equal(&dismissed, &Value::Bool(true)) {
+        }  else if (dismissed.as_bool() == Some(true)) {
             status = Value::Str("canceled".to_string());
-        }  else if is_equal(&rejected, &Value::Bool(true)) {
+        }  else if (rejected.as_bool() == Some(true)) {
             status = Value::Str("failed".to_string());
         }  else {
             status = Value::Str("pending".to_string());
@@ -2529,8 +2529,8 @@ impl HollaexCore {
 }));
             m
         });
-        let mut allowWithdrawal: Value = self.safe_value_k(fee.clone(), "allow_withdrawal", &[]);
-        if is_equal(&allowWithdrawal, &Value::Bool(true)) {
+        let mut allowWithdrawal: Value = self.safe_bool_k(fee.clone(), "allow_withdrawal", &[]);
+        if (allowWithdrawal.as_bool() == Some(true)) {
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number_k(fee.clone(), "withdrawal_fee", &[]));
@@ -2538,7 +2538,7 @@ impl HollaexCore {
     m
 })); }
         }
-        let mut withdrawalFees: Value = self.safe_value_k(fee, "withdrawal_fees", &[]);
+        let mut withdrawalFees: Value = self.safe_dict_k(fee, "withdrawal_fees", &[]);
         if (withdrawalFees != Value::Null) {
             let mut keys: Value = object_keys(&withdrawalFees);
             let mut keysLength: f64 = ((keys.len() as i64) as f64);

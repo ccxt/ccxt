@@ -1239,11 +1239,11 @@ impl BtcboxCore {
         if httpCode.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
             return Value::Null;
         }
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[]);
-        if (result == Value::Null) || is_equal(&result, &Value::Bool(true)) {
+        let mut result: Value = self.safe_bool_k(response.clone(), "result", &[]);
+        if (result == Value::Null) || (result.as_bool() == Some(true)) {
             return Value::Null;
         }
-        let mut code: Value = self.safe_value_k(response, "code", &[]);
+        let mut code: Value = self.safe_string_k(response.clone(), "code", &[]);
         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
         self.throw_exactly_matched_exception(self.exceptions.clone(), code.clone(), feedback.clone());
         panic!("{}", crate::exchange_errors::exchange_error(feedback));

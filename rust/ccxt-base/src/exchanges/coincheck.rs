@@ -724,7 +724,7 @@ impl CoincheckCore {
             market = self.market(symbol);
         }
         let mut response: Value = self.private_get_exchange_orders_opens(&[params.clone()]).await;
-        let mut rawOrders: Value = self.safe_value_k(response, "orders", &[Value::from(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(rawOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);
         let mut result: Value = Value::from(vec![]);
         {
@@ -958,10 +958,10 @@ impl CoincheckCore {
             }  else if (self.safe_string_k(trade.clone(), "liquidity", &[]).as_str() == Some("M")) {
                 takerOrMaker = Value::Str("maker".to_string());
             }
-            let mut funds: Value = self.safe_value_k(trade.clone(), "funds", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut funds: Value = self.safe_dict_k(trade.clone(), "funds", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             amountString = self.safe_string(funds.clone(), baseId.clone(), &[]);
             costString = self.safe_string(funds.clone(), quoteId.clone(), &[]);
             fee = Value::Map({
@@ -1141,10 +1141,10 @@ impl CoincheckCore {
         //         }
         //     }
         //
-        let mut fees: Value = self.safe_value_k(response, "exchange_fees", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut fees: Value = self.safe_dict_k(response, "exchange_fees", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1160,10 +1160,10 @@ impl CoincheckCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            let mut fee: Value = self.safe_value(fees.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut fee: Value = self.safe_dict(fees.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());

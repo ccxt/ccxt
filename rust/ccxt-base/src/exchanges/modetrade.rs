@@ -2459,29 +2459,29 @@ impl ModetradeCore {
         let mut amount: Value = self.safe_string2(order.clone(), Value::Str("order_quantity".to_string()), Value::Str("quantity".to_string()), &[]); // This is base amount
         let mut cost: Value = self.safe_string2(order.clone(), Value::Str("order_amount".to_string()), Value::Str("amount".to_string()), &[]); // This is quote amount
         let mut orderType: Value = self.safe_string_lower2(order.clone(), Value::Str("order_type".to_string()), Value::Str("type".to_string()), &[]);
-        let mut status: Value = self.safe_value2(order.clone(), Value::Str("status".to_string()), Value::Str("algoStatus".to_string()), &[]);
+        let mut status: Value = self.safe_string2(order.clone(), Value::Str("status".to_string()), Value::Str("algoStatus".to_string()), &[]);
         let mut success: Value = self.safe_bool_k(order.clone(), "success", &[]);
         if (success != Value::Null) {
             status = (if is_true(&(success)) { Value::Str("NEW".to_string()) } else { Value::Str("REJECTED".to_string()) });
         }
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
-        let mut filled: Value = self.omit_zero(self.safe_value2(order.clone(), Value::Str("executed".to_string()), Value::Str("totalExecutedQuantity".to_string()), &[]));
+        let mut filled: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("executed".to_string()), Value::Str("totalExecutedQuantity".to_string()), &[]));
         let mut average: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("average_executed_price".to_string()), Value::Str("averageExecutedPrice".to_string()), &[]));
         let mut remaining: Value = crate::precise::Precise::stringSub(&cost, &filled);
-        let mut fee: Value = self.safe_value2(order.clone(), Value::Str("total_fee".to_string()), Value::Str("totalFee".to_string()), &[]);
+        let mut fee: Value = self.safe_number2(order.clone(), Value::Str("total_fee".to_string()), Value::Str("totalFee".to_string()), &[]);
         let mut feeCurrency: Value = self.safe_string2(order.clone(), Value::Str("fee_asset".to_string()), Value::Str("feeAsset".to_string()), &[]);
         let mut transactions: Value = self.safe_value_k(order.clone(), "Transactions", &[]);
         let mut triggerPrice: Value = self.safe_number_k(order.clone(), "triggerPrice", &[]);
         let mut takeProfitPrice: Value = Value::Null;
         let mut stopLossPrice: Value = Value::Null;
-        let mut childOrders: Value = self.safe_value_k(order.clone(), "childOrders", &[]);
+        let mut childOrders: Value = self.safe_list_k(order.clone(), "childOrders", &[]);
         if (childOrders != Value::Null) {
-            let mut first: Value = self.safe_value(childOrders.clone(), Value::Int(0), &[]);
+            let mut first: Value = self.safe_dict(childOrders.clone(), Value::Int(0), &[]);
             let mut innerChildOrders: Value = self.safe_list_k(first, "childOrders", &[Value::from(vec![])]);
             let mut innerChildOrdersLength: f64 = ((innerChildOrders.len() as i64) as f64);
             if innerChildOrdersLength > ((0i64) as f64) {
-                let mut takeProfitOrder: Value = self.safe_value(innerChildOrders.clone(), Value::Int(0), &[]);
-                let mut stopLossOrder: Value = self.safe_value(innerChildOrders.clone(), Value::Int(1), &[]);
+                let mut takeProfitOrder: Value = self.safe_dict(innerChildOrders.clone(), Value::Int(0), &[]);
+                let mut stopLossOrder: Value = self.safe_dict(innerChildOrders.clone(), Value::Int(1), &[]);
                 takeProfitPrice = self.safe_number_k(takeProfitOrder, "triggerPrice", &[]);
                 stopLossPrice = self.safe_number_k(stopLossOrder, "triggerPrice", &[]);
             }
@@ -2802,8 +2802,8 @@ impl ModetradeCore {
     m
 })]);
             let mut triggerPrice: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]).as_str().map(str::to_owned);
-            let mut stopLoss: Value = self.safe_value_k(orderParams.clone(), "stopLoss", &[]);
-            let mut takeProfit: Value = self.safe_value_k(orderParams.clone(), "takeProfit", &[]);
+            let mut stopLoss: Value = self.safe_dict_k(orderParams.clone(), "stopLoss", &[]);
+            let mut takeProfit: Value = self.safe_dict_k(orderParams.clone(), "takeProfit", &[]);
             let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || is_true(&(self.safe_value_k(orderParams.clone(), "childOrders", &[]) != Value::Null));
             if isConditional {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() only support non-stop order".to_string()))));
@@ -3331,7 +3331,7 @@ impl ModetradeCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[response.clone()]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         let mut orders: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 

@@ -3015,10 +3015,10 @@ impl WooCore {
             let __ws_arg_13 = self.extend(request, &[params.clone()]);
             response = self.v3_private_get_trade_orders(&[__ws_arg_13]).await;
         }
-        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut orders: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -3218,7 +3218,7 @@ impl WooCore {
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]); // This is base amount
         let mut cost: Value = self.safe_string_k(order.clone(), "amount", &[]); // This is quote amount
         let mut orderType: Value = self.safe_string_lower(order.clone(), Value::Str("type".to_string()), &[]);
-        let mut status: Value = self.safe_value2(order.clone(), Value::Str("status".to_string()), Value::Str("algoStatus".to_string()), &[]);
+        let mut status: Value = self.safe_string2(order.clone(), Value::Str("status".to_string()), Value::Str("algoStatus".to_string()), &[]);
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
         let mut filled: Value = self.safe_string2(order.clone(), Value::Str("executed".to_string()), Value::Str("totalExecutedQuantity".to_string()), &[]);
         let mut average: Value = self.omit_zero(self.safe_string_k(order.clone(), "averageExecutedPrice", &[]));
@@ -6304,7 +6304,7 @@ impl WooCore {
             }
         }
         }
-        return self.safe_value(networkKeys.clone(), Value::Int(0), &[]);
+        return self.safe_string(networkKeys.clone(), Value::Int(0), &[]);
 
     Value::Null
 }

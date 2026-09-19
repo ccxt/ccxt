@@ -857,7 +857,7 @@ impl WeexCore {
         }
         let mut trades: Value = self.subscribe_public(messageHashes.clone(), channels.clone(), &[isContract.clone(), params.clone()]).await;
         if is_true(&self.newUpdates) {
-            let mut first: Value = self.safe_value(trades.clone(), Value::Int(0), &[]);
+            let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first.clone(), "symbol", &[]);
             limit = trades.get_limit(tradeSymbol.clone(), limit.clone());
         }
@@ -2331,7 +2331,7 @@ impl WeexCore {
             m
         });
         let mut response: Value = self.fetch_balance(&[params.clone()]).await;
-        let __ws_arg_2 = self.safe_value(self.balance.clone(), type_var.clone(), &[Value::Map({
+        let __ws_arg_2 = self.safe_dict(self.balance.clone(), type_var.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

@@ -1037,10 +1037,10 @@ impl LatokenCore {
         let mut maxTimestamp: Value = Value::Null;
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
         let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
-        let mut types: Value = self.safe_value_k(self.options.clone(), "types", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut types: Value = self.safe_dict_k(self.options.clone(), "types", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut accountType: Value = self.safe_string(types.clone(), type_var.clone(), &[type_var.clone()]);
         let mut balancesByType: Value = self.group_by(response.clone(), Value::Str("type".to_string()), &[]);
         let mut balances: Value = self.safe_list(balancesByType.clone(), accountType.clone(), &[Value::from(vec![])]);
@@ -1316,10 +1316,10 @@ impl LatokenCore {
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "quantity", &[]);
         let mut costString: Value = self.safe_string_k(trade.clone(), "cost", &[]);
-        let mut makerBuyer: Value = self.safe_value_k(trade.clone(), "makerBuyer", &[]);
+        let mut makerBuyer: Value = self.safe_bool_k(trade.clone(), "makerBuyer", &[]);
         let mut side: Value = self.safe_string_k(trade.clone(), "direction", &[]);
         if (side == Value::Null) {
-            side = (if (is_equal(&makerBuyer, &Value::Bool(true))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if is_true(&(makerBuyer.as_bool() == Some(true))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }  else {
             if (side.as_str() == Some("TRADE_DIRECTION_BUY")) {
                 side = Value::Str("buy".to_string());
@@ -1328,7 +1328,7 @@ impl LatokenCore {
             }
         }
         let mut isBuy: bool = side.as_str() == Some("buy");
-        let mut isMaker: bool = (is_equal(&makerBuyer, &Value::Bool(true))) && isBuy;
+        let mut isMaker: bool = is_true(&(makerBuyer.as_bool() == Some(true))) && isBuy;
         let mut takerOrMaker: Value = (if isMaker { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         let mut baseId: Value = self.safe_string_k(trade.clone(), "baseCurrency", &[]);
         let mut quoteId: Value = self.safe_string_k(trade.clone(), "quoteCurrency", &[]);
@@ -1424,10 +1424,10 @@ impl LatokenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: Value = self.safe_value_k(self.options.clone(), "fetchTradingFee", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchTradingFee", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("fetchPrivateTradingFee".to_string())]);
         let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
@@ -1727,7 +1727,7 @@ impl LatokenCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = Value::Null;
-        let mut isTrigger: Value = self.safe_value2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
+        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
         params = self.omit(params.clone(), Value::Str("stop".to_string()), &[]);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         let mut market: Value = self.market(symbol);
@@ -1737,7 +1737,7 @@ impl LatokenCore {
                 m.insert("quote".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             m
         });
-        if is_equal(&isTrigger, &Value::Bool(true)) {
+        if (isTrigger.as_bool() == Some(true)) {
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_auth_stop_order_pair_currency_quote_active(&[__ws_arg_7]).await;
         }  else {
@@ -1780,7 +1780,7 @@ impl LatokenCore {
             m
         });
         let mut market: Value = Value::Null;
-        let mut isTrigger: Value = self.safe_value2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
+        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         if (limit != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 100
@@ -1790,7 +1790,7 @@ impl LatokenCore {
             market = self.market(symbol);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quote".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
-            if is_equal(&isTrigger, &Value::Bool(true)) {
+            if (isTrigger.as_bool() == Some(true)) {
                 let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_auth_stop_order_pair_currency_quote(&[__ws_arg_9]).await;
             }  else {
@@ -1798,7 +1798,7 @@ impl LatokenCore {
                 response = self.private_get_auth_order_pair_currency_quote(&[__ws_arg_10]).await;
             }
         }  else {
-            if is_equal(&isTrigger, &Value::Bool(true)) {
+            if (isTrigger.as_bool() == Some(true)) {
                 let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_auth_stop_order(&[__ws_arg_11]).await;
             }  else {
@@ -1837,10 +1837,10 @@ impl LatokenCore {
                 m.insert("id".to_string(), id.clone());
             m
         });
-        let mut isTrigger: Value = self.safe_value2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
+        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut response: Value = Value::Null;
-        if is_equal(&isTrigger, &Value::Bool(true)) {
+        if (isTrigger.as_bool() == Some(true)) {
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_auth_stop_order_get_order_id(&[__ws_arg_13]).await;
         }  else {
@@ -1942,10 +1942,10 @@ impl LatokenCore {
                 m.insert("id".to_string(), id.clone());
             m
         });
-        let mut isTrigger: Value = self.safe_value2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
+        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut response: Value = Value::Null;
-        if is_equal(&isTrigger, &Value::Bool(true)) {
+        if (isTrigger.as_bool() == Some(true)) {
             let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_auth_stop_order_cancel(&[__ws_arg_17]).await;
         }  else {
@@ -1982,14 +1982,14 @@ impl LatokenCore {
             m
         });
         let mut market: Value = Value::Null;
-        let mut isTrigger: Value = self.safe_value2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
+        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quote".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
-            if is_equal(&isTrigger, &Value::Bool(true)) {
+            if (isTrigger.as_bool() == Some(true)) {
                 let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_post_auth_stop_order_cancel_all_currency_quote(&[__ws_arg_19]).await;
             }  else {
@@ -1997,7 +1997,7 @@ impl LatokenCore {
                 response = self.private_post_auth_order_cancel_all_currency_quote(&[__ws_arg_20]).await;
             }
         }  else {
-            if is_equal(&isTrigger, &Value::Bool(true)) {
+            if (isTrigger.as_bool() == Some(true)) {
                 let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_post_auth_stop_order_cancel_all(&[__ws_arg_21]).await;
             }  else {

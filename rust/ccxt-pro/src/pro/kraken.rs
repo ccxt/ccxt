@@ -1002,7 +1002,7 @@ impl KrakenCore {
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("ohlcv".to_string()), &[Value::Null, symbol.clone()]);
         let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
-        { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+        { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
@@ -1290,7 +1290,7 @@ impl KrakenCore {
     m
 }));
         let mut markets: Value = self.parent.load_markets(&[reload.clone(), params.clone()]).await;
-        let mut marketsByWsName: Value = self.safe_value_k(self.options.clone(), "marketsByWsName", &[]);
+        let mut marketsByWsName: Value = self.safe_dict_k(self.options.clone(), "marketsByWsName", &[]);
         if is_true(&(marketsByWsName == Value::Null)) || is_true(&reload) {
             marketsByWsName = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1305,7 +1305,7 @@ impl KrakenCore {
                     let mut symbol: Value = get_value(&symbols, &i);
                     let mut symbol: Value = get_value(&symbols, &i);
                     let mut market: Value = self.market(symbol);
-                    let mut info: Value = self.safe_value_k(market.clone(), "info", &[Value::Map({
+                    let mut info: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
                     })]);
@@ -1431,7 +1431,7 @@ impl KrakenCore {
         })]);
         let mut symbol: Value = self.safe_string_k(first.clone(), "symbol", &[]);
         let mut a: Value = self.safe_list_k(first.clone(), "asks", &[Value::from(vec![])]);
-        let mut b: Value = self.safe_value_k(first.clone(), "bids", &[Value::from(vec![])]);
+        let mut b: Value = self.safe_list_k(first.clone(), "bids", &[Value::from(vec![])]);
         let mut c: Value = self.safe_integer_k(first.clone(), "checksum", &[]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[Value::Null, symbol.clone()]);
         let mut orderbook: Value = Value::Null;
@@ -1917,8 +1917,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut id: Value = self.safe_string_k(order.clone(), "order_id", &[]);
                 let mut parsed: Value = self.parse_ws_order(order.clone(), &[]);
                 let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-                let mut previousOrders: Value = self.safe_value(stored.hashmap(), symbol.clone(), &[]);
-                let mut previousOrder: Value = self.safe_value(previousOrders.clone(), id.clone(), &[]);
+                let mut previousOrders: Value = self.safe_dict(stored.hashmap(), symbol.clone(), &[]);
+                let mut previousOrder: Value = self.safe_dict(previousOrders.clone(), id.clone(), &[]);
                 let mut newOrder: Value = parsed.clone();
                 if (previousOrder != Value::Null) {
                     let mut newRawOrder: Value = self.extend(crate::value::get_value_k(&previousOrder, "info"), &[crate::value::get_value_k(&newOrder, "info")]);
@@ -2157,7 +2157,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut type_var: Value = Value::Str("spot".to_string());
         let mut balance: Value = self.safe_balance(result.clone());
-        let mut oldBalance: Value = self.safe_value(self.balance.clone(), type_var.clone(), &[Value::Map({
+        let mut oldBalance: Value = self.safe_dict(self.balance.clone(), type_var.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

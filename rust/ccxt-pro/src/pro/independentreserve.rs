@@ -317,7 +317,7 @@ impl IndependentreserveCore {
         //        "Event": "Trade"
         //    }
         //
-        let mut data: Value = self.safe_value_k(message, "Data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "Data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -450,7 +450,7 @@ impl IndependentreserveCore {
             m
         })]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol)), Value::Str(":".to_string()))), depth));
-        let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[Value::Map({
+        let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

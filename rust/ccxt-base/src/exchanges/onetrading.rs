@@ -938,10 +938,10 @@ impl OnetradingCore {
         let mut method: Value = self.safe_string_k(params.clone(), "method", &[]);
         params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
         if (method == Value::Null) {
-            let mut options: Value = self.safe_value_k(self.options.clone(), "fetchTradingFees", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchTradingFees", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             method = self.safe_string_k(options.clone(), "method", &[Value::Str("fetchPrivateTradingFees".to_string())]);
         }
         if (method.as_str() == Some("fetchPrivateTradingFees")) {
@@ -1433,7 +1433,7 @@ impl OnetradingCore {
         //         "last_sequence":461123
         //     }
         //
-        let mut granularity: Value = self.safe_value_k(ohlcv.clone(), "granularity", &[]);
+        let mut granularity: Value = self.safe_dict_k(ohlcv.clone(), "granularity", &[]);
         let mut unit: Value = self.safe_string_k(granularity.clone(), "unit", &[]);
         let mut period: Value = self.safe_string_k(granularity.clone(), "period", &[]);
         let mut units: Value = Value::Map({
@@ -1457,10 +1457,10 @@ impl OnetradingCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOHLCV() missing timestamp".to_string()))));
         }
         let mut alignedTimestamp: Value = (match (&(duration), &(self.parse_to_int((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut options: Value = self.safe_value_k(self.options.clone(), "fetchOHLCV", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchOHLCV", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut volumeField: Value = self.safe_string_k(options.clone(), "volume", &[Value::Str("total_amount".to_string())]);
         return Value::from(vec![alignedTimestamp.clone(), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number(ohlcv.clone(), volumeField.clone(), &[])]);
 
@@ -1573,10 +1573,10 @@ impl OnetradingCore {
         //         }
         //     }
         //
-        let mut feeInfo: Value = self.safe_value_k(trade.clone(), "fee", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut feeInfo: Value = self.safe_dict_k(trade.clone(), "fee", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         trade = self.safe_value_k(trade.clone(), "trade", &[trade.clone()]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "trade_timestamp", &[]);
         if (timestamp == Value::Null) {
@@ -1777,8 +1777,8 @@ impl OnetradingCore {
         let mut side: Value = self.safe_string_lower(rawOrder.clone(), Value::Str("side".to_string()), &[]);
         let mut type_var: Value = self.safe_string_lower(rawOrder.clone(), Value::Str("type".to_string()), &[]);
         let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(rawOrder.clone(), "time_in_force", &[]));
-        let mut postOnly: Value = self.safe_value_k(rawOrder.clone(), "is_post_only", &[]);
-        let mut rawTrades: Value = self.safe_value_k(order.clone(), "trades", &[Value::from(vec![])]);
+        let mut postOnly: Value = self.safe_bool_k(rawOrder.clone(), "is_post_only", &[]);
+        let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -2270,7 +2270,7 @@ impl OnetradingCore {
         //         "cursor": "string"
         //     }
         //
-        let mut tradeHistory: Value = self.safe_value_k(response, "trade_history", &[Value::from(vec![])]);
+        let mut tradeHistory: Value = self.safe_list_k(response, "trade_history", &[Value::from(vec![])]);
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);

@@ -1047,7 +1047,7 @@ impl ParadexCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(message.clone(), "result", &[]);
         if (result != Value::Null) {
             self.handle_authentication_message(client.clone(), message.clone());
             return;

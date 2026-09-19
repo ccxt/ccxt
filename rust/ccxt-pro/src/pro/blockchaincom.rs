@@ -465,11 +465,11 @@ impl BlockchaincomCore {
             let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol));
-            let mut request: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
+            let mut request: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
             let mut timeframeId: Value = self.safe_string_k(request.clone(), "granularity", &[]);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
-            let mut ohlcv: Value = self.safe_value_k(message.clone(), "price", &[Value::from(vec![])]);
-            { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+            let mut ohlcv: Value = self.safe_list_k(message.clone(), "price", &[Value::from(vec![])]);
+            { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
@@ -559,7 +559,7 @@ impl BlockchaincomCore {
         }  else if (event.as_deref() == Some("snapshot")) {
             ticker = self.parse_ticker(message.clone(), &[market.clone()]);
         }  else if (event.as_deref() == Some("updated")) {
-            let mut lastTicker: Value = self.safe_value(self.tickers.clone(), symbol.clone(), &[]);
+            let mut lastTicker: Value = self.safe_dict(self.tickers.clone(), symbol.clone(), &[]);
             ticker = self.parse_ws_updated_ticker(message.clone(), &[lastTicker.clone(), market.clone()]);
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
@@ -603,7 +603,7 @@ impl BlockchaincomCore {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string_k(lastTicker.clone(), "baseVolume", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
-        let __ws_arg_0 = self.safe_value_k(lastTicker, "info", &[Value::Map({
+        let __ws_arg_0 = self.safe_dict_k(lastTicker, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

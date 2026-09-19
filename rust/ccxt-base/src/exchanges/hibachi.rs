@@ -1149,15 +1149,15 @@ impl HibachiCore {
             remainingString = crate::precise::Precise::stringSub(&totalQuantity, &filled);
         }
         let mut timeInForce: Value = Value::Str("GTC".to_string());
-        let mut orderFlags: Value = self.safe_value_k(order.clone(), "orderFlags", &[]);
+        let mut orderFlags: Option<String> = self.safe_string_k(order.clone(), "orderFlags", &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = Value::Bool(false);
         let mut reduceOnly: Value = Value::Bool(false);
-        if (orderFlags.as_str() == Some("POST_ONLY")) {
+        if (orderFlags.as_deref() == Some("POST_ONLY")) {
             timeInForce = Value::Str("PO".to_string());
             postOnly = Value::Bool(true);
-        }  else if (orderFlags.as_str() == Some("IOC")) {
+        }  else if (orderFlags.as_deref() == Some("IOC")) {
             timeInForce = Value::Str("IOC".to_string());
-        }  else if (orderFlags.as_str() == Some("REDUCE_ONLY")) {
+        }  else if (orderFlags.as_deref() == Some("REDUCE_ONLY")) {
             reduceOnly = Value::Bool(true);
         }
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "createdAt", &[]);
@@ -1473,8 +1473,8 @@ impl HibachiCore {
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
-            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
-            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1620,8 +1620,8 @@ impl HibachiCore {
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
-            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
-            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

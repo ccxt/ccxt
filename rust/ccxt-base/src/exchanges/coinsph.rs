@@ -1336,18 +1336,18 @@ impl CoinsphCore {
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut limits: Value = self.index_by(self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]), Value::Str("filterType".to_string()));
-            let mut amountLimits: Value = self.safe_value_k(limits.clone(), "LOT_SIZE", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            let mut priceLimits: Value = self.safe_value_k(limits.clone(), "PRICE_FILTER", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            let mut costLimits: Value = self.safe_value_k(limits.clone(), "NOTIONAL", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut amountLimits: Value = self.safe_dict_k(limits.clone(), "LOT_SIZE", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            let mut priceLimits: Value = self.safe_dict_k(limits.clone(), "PRICE_FILTER", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            let mut costLimits: Value = self.safe_dict_k(limits.clone(), "NOTIONAL", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -2060,10 +2060,10 @@ impl CoinsphCore {
                 m.insert("side".to_string(), orderSide.clone());
             m
         });
-        let mut options: Value = self.safe_value_k(self.options.clone(), "createOrder", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "createOrder", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut newOrderRespType: Value = self.safe_value_k(options.clone(), "newOrderRespType", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2677,7 +2677,7 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: Value = self.safe_value_k(self.options.clone(), "withdraw", &[]);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[]);
         let mut warning: Value = self.safe_bool_k(options.clone(), "warning", &[Value::Bool(true)]);
         if (warning.as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account".to_string()))));

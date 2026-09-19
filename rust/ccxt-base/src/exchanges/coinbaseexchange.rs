@@ -1263,7 +1263,7 @@ impl CoinbaseexchangeCore {
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
             let __ws_arg_4 = crate::value::get_value_k(&self.fees, "trading");
-            let __ws_arg_0 = self.safe_value_k(market.clone(), "margin_enabled", &[]);
+            let __ws_arg_0 = self.safe_bool_k(market.clone(), "margin_enabled", &[]);
             let __ws_arg_1 = self.safe_number_k(market.clone(), "base_increment", &[]);
             let __ws_arg_2 = self.safe_number_k(market.clone(), "quote_increment", &[]);
             let __ws_arg_3 = self.safe_number_k(market.clone(), "min_market_funds", &[]);
@@ -1555,7 +1555,7 @@ impl CoinbaseexchangeCore {
             last = self.safe_string(ticker.clone(), Value::Int(4), &[]);
             timestamp = self.milliseconds();
         }  else {
-            timestamp = self.parse8601(self.safe_value_k(ticker.clone(), "time", &[]));
+            timestamp = self.parse8601(self.safe_string_k(ticker.clone(), "time", &[]));
             bid = self.safe_string_k(ticker.clone(), "bid", &[]);
             ask = self.safe_string_k(ticker.clone(), "ask", &[]);
             high = self.safe_string_k(ticker.clone(), "high", &[]);
@@ -1649,8 +1649,8 @@ impl CoinbaseexchangeCore {
             while { if !__for_first_538 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_538 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
-            let mut entry: Value = self.safe_value(response.clone(), marketId.clone(), &[Value::from(vec![])]);
-            let mut first: Value = self.safe_value(entry.clone(), Value::Int(0), &[Value::from(vec![])]);
+            let mut entry: Value = self.safe_list(response.clone(), marketId.clone(), &[Value::from(vec![])]);
+            let mut first: Value = self.safe_list(entry.clone(), Value::Int(0), &[Value::from(vec![])]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, delimiter.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             add_element_to_object(&mut result, &symbol, self.parse_ticker(first.clone(), &[market.clone()]));
@@ -2086,7 +2086,7 @@ impl CoinbaseexchangeCore {
         let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "time_in_force", &[]);
-        let mut postOnly: Value = self.safe_value_k(order.clone(), "post_only", &[]);
+        let mut postOnly: Value = self.safe_bool_k(order.clone(), "post_only", &[]);
         let mut triggerPrice: Value = self.safe_number_k(order.clone(), "stop_price", &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "client_oid", &[]);
         return self.safe_order(Value::Map({
@@ -2356,8 +2356,8 @@ impl CoinbaseexchangeCore {
         if (timeInForce != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("time_in_force".to_string(), timeInForce.clone()); }
         }
-        let mut postOnly: Value = self.safe_value2(params.clone(), Value::Str("postOnly".to_string()), Value::Str("post_only".to_string()), &[Value::Bool(false)]);
-        if is_equal(&postOnly, &Value::Bool(true)) {
+        let mut postOnly: Value = self.safe_bool2(params.clone(), Value::Str("postOnly".to_string()), Value::Str("post_only".to_string()), &[Value::Bool(false)]);
+        if (postOnly.as_bool() == Some(true)) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("post_only".to_string(), Value::Bool(true)); }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_oid".to_string()), Value::Str("postOnly".to_string()), Value::Str("post_only".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
@@ -2595,13 +2595,13 @@ impl CoinbaseexchangeCore {
         let mut amount: Value = self.parse_number(amountString, &[]);
         let mut after: Value = self.parse_number(afterString, &[]);
         let mut before: Value = self.parse_number(beforeString, &[]);
-        let mut timestamp: Value = self.parse8601(self.safe_value_k(item.clone(), "created_at", &[]));
+        let mut timestamp: Value = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[]));
         let mut type_var: Value = self.parse_ledger_entry_type(self.safe_string_k(item.clone(), "type", &[]));
         let mut code: Value = self.safe_currency_code(Value::Null, &[currency.clone()]);
-        let mut details: Value = self.safe_value_k(item.clone(), "details", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut details: Value = self.safe_dict_k(item.clone(), "details", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut account: Value = Value::Null;
         let mut referenceAccount: Value = Value::Null;
         let mut referenceId: Value = Value::Null;
@@ -2666,13 +2666,13 @@ impl CoinbaseexchangeCore {
         self.load_accounts(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("code".to_string()));
-        let mut account: Value = self.safe_value(accountsByCurrencyCode.clone(), code.clone(), &[]);
+        let mut account: Value = self.safe_dict(accountsByCurrencyCode.clone(), code.clone(), &[]);
         if (account == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".to_string()))), code)));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), crate::value::get_value_k(&account, "id"));
+                m.insert("id".to_string(), account.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
@@ -2732,11 +2732,11 @@ impl CoinbaseexchangeCore {
             if (code != Value::Null) {
                 currency = self.currency(code.clone());
                 let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("code".to_string()));
-                let mut account: Value = self.safe_value(accountsByCurrencyCode.clone(), code.clone(), &[]);
+                let mut account: Value = self.safe_dict(accountsByCurrencyCode.clone(), code.clone(), &[]);
                 if (account == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositsWithdrawals() could not find account id for ".to_string()))), code)));
                 }
-                id = crate::value::get_value_k(&account, "id");
+                id = account.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             }
         }
         let mut request: Value = Value::Map({
@@ -2787,7 +2787,7 @@ impl CoinbaseexchangeCore {
                 let mut __for_first_541: bool = true;
                 while { if !__for_first_541 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_541 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
                 let mut account_id: Value = self.safe_string_k(get_value(&response, &i), "account_id", &[]);
-                let mut account: Value = self.safe_value(self.accountsById.clone(), account_id.clone(), &[]);
+                let mut account: Value = self.safe_dict(self.accountsById.clone(), account_id.clone(), &[]);
                 let mut codeInner: Value = self.safe_string_k(account.clone(), "code", &[]);
                 add_element_to_object(get_value_mut(&mut response, &i), &Value::Str("currency".to_string()), codeInner.clone());
             }
@@ -2945,10 +2945,10 @@ impl CoinbaseexchangeCore {
         //        }
         //    ]
         //
-        let mut details: Value = self.safe_value_k(transaction.clone(), "details", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut details: Value = self.safe_dict_k(transaction.clone(), "details", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[]));
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
@@ -3029,13 +3029,13 @@ impl CoinbaseexchangeCore {
             { let __be_tmp = self.index_by(accounts.clone(), Value::Str("currency".to_string())); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("coinbaseAccountsByCurrencyId".to_string(), __be_tmp); } }
         }
         let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-        let mut account: Value = self.safe_value(self.options.as_map().and_then(|__m| __m.get("coinbaseAccountsByCurrencyId")).cloned().unwrap_or(Value::Null), currencyId.clone(), &[]);
+        let mut account: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("coinbaseAccountsByCurrencyId")).cloned().unwrap_or(Value::Null), currencyId.clone(), &[]);
         if (account == Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() could not find currency code ".to_string()))), code)), Value::Str(" with id = ".to_string()))), currencyId)), Value::Str(" in this.options['coinbaseAccountsByCurrencyId']".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), crate::value::get_value_k(&account, "id"));
+                m.insert("id".to_string(), account.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         let __ws_arg_30 = self.extend(request, &[params.clone()]);

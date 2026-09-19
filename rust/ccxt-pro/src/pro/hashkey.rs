@@ -1141,7 +1141,7 @@ impl HashkeyCore {
                 m.insert("type".to_string(), type_var.clone());
             m
         })]).await;
-        let __ws_arg_1 = self.safe_value(self.balance.clone(), type_var.clone(), &[Value::Map({
+        let __ws_arg_1 = self.safe_dict(self.balance.clone(), type_var.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

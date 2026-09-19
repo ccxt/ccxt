@@ -729,7 +729,7 @@ impl BitvavoCore {
         let mut message: Value = self.extend(request, &[params.clone()]);
         let mut trades: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
-            let mut first: Value = self.safe_value(trades.clone(), Value::Int(0), &[]);
+            let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first.clone(), "symbol", &[]);
             limit = trades.get_limit(tradeSymbol.clone(), limit.clone());
         }
@@ -864,7 +864,7 @@ impl BitvavoCore {
         //        ]
         //    }
         //
-        let mut response: Value = self.safe_value_k(message.clone(), "response", &[]);
+        let mut response: Value = self.safe_list_k(message.clone(), "response", &[]);
         let mut ohlcv: Value = self.parse_ohlc_vs(response.clone(), &[Value::Null, Value::Null, Value::Null]);
         let mut messageHash: Value = self.safe_string_k(message.clone(), "requestId", &[]);
         client.resolve(&[ohlcv.clone(), messageHash.clone()]);
@@ -896,7 +896,7 @@ impl BitvavoCore {
         // use a reverse lookup in a static map instead
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".to_string()))), marketId)), Value::Str("_".to_string()))), interval));
-        let mut candles: Value = self.safe_value_k(message, "candle", &[]);
+        let mut candles: Value = self.safe_list_k(message, "candle", &[Value::from(vec![])]);
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -910,7 +910,7 @@ impl BitvavoCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_170: bool = true;
-            while { if !__for_first_170 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_170 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&candles).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_170 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_170 = false; i.as_f64().unwrap_or(f64::NAN) < ((candles.len() as i64) as f64) } {
             let mut candle: Value = get_value(&candles, &i);
             let mut candle: Value = get_value(&candles, &i);
             let mut parsed: Value = self.parse_ohlcv(candle.clone(), &[market.clone()]);
@@ -1306,8 +1306,8 @@ impl BitvavoCore {
         //
         let mut nonce: Value = self.safe_integer_k(message.clone(), "nonce", &[]);
         if nonce.as_f64().unwrap_or(f64::NAN) > crate::value::get_value_k(&orderbook, "nonce").as_f64().unwrap_or(f64::NAN) {
-            self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), self.safe_value_k(message.clone(), "asks", &[Value::from(vec![])]));
-            self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), self.safe_value_k(message, "bids", &[Value::from(vec![])]));
+            self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), self.safe_list_k(message.clone(), "asks", &[Value::from(vec![])]));
+            self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), self.safe_list_k(message, "bids", &[Value::from(vec![])]));
             add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), nonce.clone());
         }
         return orderbook;
@@ -1346,11 +1346,11 @@ impl BitvavoCore {
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
             let mut flagKey: Value = Value::Str(format!("{}{}", Value::Str("watchingOrderBookSnapshot@".to_string()), marketId));
-            let mut watchingOrderBookSnapshot: Value = self.safe_value(subscription.clone(), flagKey.clone(), &[]);
+            let mut watchingOrderBookSnapshot: Value = self.safe_bool(subscription.clone(), flagKey.clone(), &[]);
             if (watchingOrderBookSnapshot == Value::Null) {
                 add_element_to_object(&mut subscription, &flagKey, Value::Bool(true));
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash, subscription.clone());
-                let mut options: Value = self.safe_value_k(self.options.clone(), "watchOrderBookSnapshot", &[Value::Map({
+                let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBookSnapshot", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -1366,7 +1366,7 @@ impl BitvavoCore {
 }
 
     pub async fn watch_order_book_snapshot(&mut self, mut client: Value, mut message: Value, mut subscription: Value) -> Value {
-        let mut params: Value = self.safe_value_k(subscription.clone(), "params", &[]);
+        let mut params: Value = self.safe_dict_k(subscription.clone(), "params", &[]);
         // multi-symbol watches share one subscription object without a marketId,
         // in that case the buffered delta message identifies the market
         let mut marketId: Value = self.safe_string2(subscription.clone(), Value::Str("marketId".to_string()), Value::Str("market".to_string()), &[self.safe_string_k(message.clone(), "market", &[])]);
@@ -1410,7 +1410,7 @@ impl BitvavoCore {
         //         }
         //     }
         //
-        let mut response: Value = self.safe_value_k(message, "response", &[]);
+        let mut response: Value = self.safe_dict_k(message, "response", &[]);
         if (response == Value::Null) {
             return;
         }
@@ -2055,7 +2055,10 @@ impl BitvavoCore {
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
         let mut messageHash: Value = self.safe_string_k(message.clone(), "requestId", &[]);
-        let mut response: Value = self.safe_value_k(message, "response", &[]);
+        let mut response: Value = self.safe_dict_k(message, "response", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut withdraw: Value = self.parse_transaction(response.clone(), &[]);
         client.resolve(&[withdraw.clone(), messageHash.clone()]);
 }
@@ -2195,7 +2198,7 @@ impl BitvavoCore {
         //        ]
         //    }
         //
-        let mut response: Value = self.safe_value_k(message.clone(), "response", &[]);
+        let mut response: Value = self.safe_list_k(message.clone(), "response", &[Value::from(vec![])]);
         let mut deposits: Value = self.parse_transactions(response.clone(), &[Value::Null, Value::Null, Value::Null, Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("deposit".to_string()));
@@ -2288,7 +2291,7 @@ impl BitvavoCore {
         //    }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "requestId", &[]);
-        let mut response: Value = self.safe_value_k(message, "response", &[]);
+        let mut response: Value = self.safe_list_k(message, "response", &[]);
         let mut currencies: Value = self.parse_currencies(response.clone());
         client.resolve(&[currencies.clone(), messageHash.clone()]);
 }
@@ -2307,7 +2310,7 @@ impl BitvavoCore {
         //    }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "requestId", &[]);
-        let mut response: Value = self.safe_value_k(message, "response", &[]);
+        let mut response: Value = self.safe_dict_k(message, "response", &[]);
         let mut fees: Value = self.parent.parse_trading_fees(response.clone(), &[]);
         client.resolve(&[fees.clone(), messageHash.clone()]);
 }
@@ -2348,7 +2351,7 @@ impl BitvavoCore {
         //    }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "requestId", &[]);
-        let mut response: Value = self.safe_value_k(message, "response", &[Value::from(vec![])]);
+        let mut response: Value = self.safe_list_k(message, "response", &[Value::from(vec![])]);
         let mut balance: Value = self.parse_balance(response.clone());
         client.resolve(&[balance.clone(), messageHash.clone()]);
 }
@@ -2382,7 +2385,7 @@ impl BitvavoCore {
         //        }
         //    }
         //
-        let mut response: Value = self.safe_value_k(message.clone(), "response", &[Value::Map({
+        let mut response: Value = self.safe_dict_k(message.clone(), "response", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2411,10 +2414,7 @@ impl BitvavoCore {
         //        ]
         //    }
         //
-        let mut response: Value = self.safe_value_k(message.clone(), "response", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut response: Value = self.safe_list_k(message.clone(), "response", &[Value::from(vec![])]);
         let mut markets: Value = self.parse_markets(response.clone());
         let mut messageHash: Value = self.safe_string_k(message.clone(), "requestId", &[]);
         client.resolve(&[markets.clone(), messageHash.clone()]);

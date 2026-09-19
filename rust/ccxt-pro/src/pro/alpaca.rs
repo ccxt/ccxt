@@ -811,11 +811,11 @@ impl AlpacaCore {
         //        }
         //      }
         //
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawOrder: Value = self.safe_value_k(data, "order", &[Value::Map({
+        let mut rawOrder: Value = self.safe_dict_k(data, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -878,7 +878,7 @@ impl AlpacaCore {
         //        }
         //      }
         //
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -886,7 +886,7 @@ impl AlpacaCore {
         if (event.as_deref() != Some("fill")) && (event.as_deref() != Some("partial_fill")) {
             return;
         }
-        let mut rawOrder: Value = self.safe_value_k(data, "order", &[Value::Map({
+        let mut rawOrder: Value = self.safe_dict_k(data, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1127,7 +1127,7 @@ impl AlpacaCore {
         //    }
         //
         let mut T: Option<String> = self.safe_string_k(message.clone(), "T", &[]).as_str().map(str::to_owned);
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

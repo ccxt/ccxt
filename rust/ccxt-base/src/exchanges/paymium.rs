@@ -894,11 +894,11 @@ impl PaymiumCore {
         let mut currencyId: Value = self.safe_string_k(transfer.clone(), "currency", &[]);
         let mut updatedAt: Value = self.safe_string_k(transfer.clone(), "updated_at", &[]);
         let mut timetstamp: Value = self.parse_date(updatedAt.clone(), &[]);
-        let mut accountOperations: Value = self.safe_value_k(transfer.clone(), "account_operations", &[]);
-        let mut firstOperation: Value = self.safe_value(accountOperations.clone(), Value::Int(0), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut accountOperations: Value = self.safe_list_k(transfer.clone(), "account_operations", &[]);
+        let mut firstOperation: Value = self.safe_dict(accountOperations.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut status: Value = self.safe_string_k(transfer.clone(), "state", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

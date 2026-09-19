@@ -1332,8 +1332,8 @@ impl BitmexCore {
             }
         }
         }
-        let mut currencyEnabled: Value = self.safe_value_k(currency.clone(), "enabled", &[]);
-        let mut currencyActive: Value = Value::Bool((is_equal(&currencyEnabled, &Value::Bool(true))) || (is_true(&depositEnabled) || is_true(&withdrawEnabled)));
+        let mut currencyEnabled: Value = self.safe_bool_k(currency.clone(), "enabled", &[]);
+        let mut currencyActive: Value = Value::Bool(is_true(&(currencyEnabled.as_bool() == Some(true))) || (is_true(&depositEnabled) || is_true(&withdrawEnabled)));
         let mut minWithdrawalString: Value = self.safe_string_k(currency.clone(), "minWithdrawalAmount", &[]);
         let mut minWithdrawal: Value = self.parse_number(crate::precise::Precise::stringMul(&minWithdrawalString, &precisionString), &[]);
         let mut maxWithdrawalString: Value = self.safe_string_k(currency.clone(), "maxWithdrawalAmount", &[]);
@@ -1408,8 +1408,8 @@ impl BitmexCore {
     pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Value {
         symbol = self.safe_symbol(symbol.clone(), &[]);
         let mut market: Value = self.market(symbol.clone());
-        let mut oldPrecision: Value = self.safe_value_k(self.options.clone(), "oldPrecision", &[]);
-        if is_true(&(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && (!is_equal(&oldPrecision, &Value::Bool(true))) {
+        let mut oldPrecision: Value = self.safe_bool_k(self.options.clone(), "oldPrecision", &[]);
+        if is_true(&(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&(oldPrecision.as_bool() != Some(true))) {
             amount = self.convert_from_real_amount(market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), amount.clone());
         }
         return self.super_amount_to_precision(symbol.clone(), amount.clone());
@@ -1419,7 +1419,7 @@ impl BitmexCore {
 
     pub fn convert_from_raw_quantity(&self, mut symbol: Value, mut rawQuantity: Value, optional_args: &[Value]) -> Value {
         let mut currencySide = get_arg(optional_args, 0, Value::Str("base".to_string()));
-        if is_equal(&self.safe_value_k(self.options.clone(), "oldPrecision", &[]), &Value::Bool(true)) {
+        if (self.safe_bool_k(self.options.clone(), "oldPrecision", &[]).as_bool() == Some(true)) {
             return self.parse_number(rawQuantity.clone(), &[]);
         }
         symbol = self.safe_symbol(symbol.clone(), &[]);
@@ -2336,7 +2336,7 @@ impl BitmexCore {
         });
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_instrument(&[__ws_arg_4]).await;
-        let mut ticker: Value = self.safe_value(response.clone(), Value::Int(0), &[]);
+        let mut ticker: Value = self.safe_dict(response.clone(), Value::Int(0), &[]);
         if (ticker == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() symbol ".to_string()))), symbol)), Value::Str(" not found".to_string()))));
         }
@@ -3073,10 +3073,10 @@ impl BitmexCore {
         }
         let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_delete_order(&[__ws_arg_9]).await;
-        let mut order: Value = self.safe_value(response.clone(), Value::Int(0), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut order: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
         if (error != Value::Null) {
             if Value::Int(error.as_str().and_then(|__s| __s.find("Unable to cancel order due to existing state")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
@@ -3455,8 +3455,8 @@ impl BitmexCore {
         market = self.safe_market(&[self.safe_string_k(position.clone(), "symbol", &[]), market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut datetime: Value = self.safe_string_k(position.clone(), "timestamp", &[]);
-        let mut crossMargin: Value = self.safe_value_k(position.clone(), "crossMargin", &[]);
-        let mut marginMode: Value = (if (is_equal(&crossMargin, &Value::Bool(true))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
+        let mut crossMargin: Value = self.safe_bool_k(position.clone(), "crossMargin", &[]);
+        let mut marginMode: Value = (if is_true(&(crossMargin.as_bool() == Some(true))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
         let mut notionalString: Value = crate::precise::Precise::stringAbs(&self.safe_string2(position.clone(), Value::Str("foreignNotional".to_string()), Value::Str("homeNotional".to_string()), &[]));
         let mut settleCurrencyCode: Value = self.safe_string_k(market.clone(), "settle", &[]);
         let mut maintenanceMargin: Value = self.convert_to_real_amount(settleCurrencyCode.clone(), self.safe_string_k(position.clone(), "maintMargin", &[]));
@@ -4459,10 +4459,10 @@ impl BitmexCore {
             panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body)));
         }
         if code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
-            let mut error: Value = self.safe_value_k(response, "error", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut error: Value = self.safe_dict_k(response, "error", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut message: Value = self.safe_string_k(error.clone(), "message", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());

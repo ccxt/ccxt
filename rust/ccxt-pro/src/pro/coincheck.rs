@@ -322,7 +322,7 @@ impl CoincheckCore {
         //     ]
         //
         let mut symbol: Value = self.symbol(self.safe_string(message.clone(), Value::Int(0), &[]));
-        let mut data: Value = self.safe_value(message.clone(), Value::Int(1), &[Value::Map({
+        let mut data: Value = self.safe_dict(message.clone(), Value::Int(1), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -396,7 +396,7 @@ impl CoincheckCore {
         //         ]
         //     ]
         //
-        let mut first: Value = self.safe_value(message.clone(), Value::Int(0), &[Value::from(vec![])]);
+        let mut first: Value = self.safe_list(message.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut symbol: Value = self.symbol(self.safe_string(first.clone(), Value::Int(2), &[]));
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {

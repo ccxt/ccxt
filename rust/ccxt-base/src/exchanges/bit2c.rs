@@ -870,7 +870,7 @@ impl Bit2cCore {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
-            let mut fee: Value = self.safe_value(fees.clone(), marketId.clone(), &[]);
+            let mut fee: Value = self.safe_dict(fees.clone(), marketId.clone(), &[]);
             let mut makerString: Value = self.safe_string_k(fee.clone(), "FeeMaker", &[]);
             let mut takerString: Value = self.safe_string_k(fee.clone(), "FeeTaker", &[]);
             let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString, &Value::Str("100".to_string())), &[]);
@@ -1005,11 +1005,11 @@ impl Bit2cCore {
         });
         let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_order_my_orders(&[__ws_arg_8]).await;
-        let mut orders: Value = self.safe_value(response.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut asks: Value = self.safe_value_k(orders.clone(), "ask", &[Value::from(vec![])]);
+        let mut orders: Value = self.safe_dict(response.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut asks: Value = self.safe_list_k(orders.clone(), "ask", &[Value::from(vec![])]);
         let mut bids: Value = self.safe_list_k(orders, "bid", &[Value::from(vec![])]);
         return self.parse_orders(self.array_concat(asks.clone(), bids.clone()), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1323,9 +1323,9 @@ impl Bit2cCore {
             let mut marketId: Value = self.safe_string_k(trade.clone(), "pair", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone()]);
             market = self.safe_market(&[reference_parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), market.clone()]);
-            let mut isMaker: Value = self.safe_value_k(trade.clone(), "isMaker", &[]);
-            makerOrTaker = (if (is_equal(&isMaker, &Value::Bool(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
-            orderId = (if (is_equal(&isMaker, &Value::Bool(true))) { reference_parts.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null) } else { reference_parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) });
+            let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
+            makerOrTaker = (if is_true(&(isMaker.as_bool() == Some(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            orderId = (if is_true(&(isMaker.as_bool() == Some(true))) { reference_parts.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null) } else { reference_parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) });
             let mut action: Option<i64> = self.safe_integer_k(trade.clone(), "action", &[]).as_i64();
             if (action == Some(0)) {
                 side = Value::Str("buy".to_string());

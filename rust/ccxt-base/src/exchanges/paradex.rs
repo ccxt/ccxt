@@ -4876,19 +4876,19 @@ impl ParadexCore {
             });
             // TODO: optimize
             if (path.as_str() == Some("auth")) {
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-ACCOUNT".to_string()), crate::value::get_value_k(&query, "account"));
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-SIGNATURE".to_string()), crate::value::get_value_k(&query, "signature"));
+                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-ACCOUNT".to_string()), query.as_map().and_then(|__m| __m.get("account")).cloned().unwrap_or(Value::Null));
+                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-SIGNATURE".to_string()), query.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null));
                 add_element_to_object(&mut headers, &Value::Str("PARADEX-TIMESTAMP".to_string()), to_string_val(&get_value(&query, &Value::Str("timestamp".to_string()))));
                 add_element_to_object(&mut headers, &Value::Str("PARADEX-SIGNATURE-EXPIRATION".to_string()), to_string_val(&get_value(&query, &Value::Str("expiration".to_string()))));
             }  else if (path.as_str() == Some("onboarding")) {
                 add_element_to_object(&mut headers, &Value::Str("PARADEX-ETHEREUM-ACCOUNT".to_string()), self.walletAddress.clone());
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-ACCOUNT".to_string()), crate::value::get_value_k(&query, "account"));
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-SIGNATURE".to_string()), crate::value::get_value_k(&query, "signature"));
+                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-ACCOUNT".to_string()), query.as_map().and_then(|__m| __m.get("account")).cloned().unwrap_or(Value::Null));
+                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-SIGNATURE".to_string()), query.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null));
                 add_element_to_object(&mut headers, &Value::Str("PARADEX-TIMESTAMP".to_string()), to_string_val(&self.nonce()));
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
                 body = json_stringify(&Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public_key".to_string(), crate::value::get_value_k(&query, "public_key"));
+        m.insert("public_key".to_string(), query.as_map().and_then(|__m| __m.get("public_key")).cloned().unwrap_or(Value::Null));
     m
 }));
             }  else {

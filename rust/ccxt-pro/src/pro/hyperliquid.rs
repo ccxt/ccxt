@@ -1728,8 +1728,8 @@ impl HyperliquidCore {
                 m
             });
         }
-        let mut topic: Value = self.safe_value_k(message.clone(), "channel", &[]);
-        let mut messageHash: Value = add(&topic, &Value::Str("::balance".to_string()));
+        let mut topic: Value = self.safe_string_k(message.clone(), "channel", &[]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", topic, Value::Str("::balance".to_string())));
         let mut info: Value = Value::Null;
         let mut rawBalances: Value = Value::from(vec![]);
         let mut account: Value = Value::Null;

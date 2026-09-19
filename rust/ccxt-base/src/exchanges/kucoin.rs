@@ -5679,7 +5679,7 @@ impl KucoinCore {
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()), version.clone());
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         if (data == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again".to_string()))));
         }
@@ -6919,10 +6919,10 @@ impl KucoinCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_value_k(rawOrder, "params", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut orderRequest: Value = self.create_spot_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
         }
@@ -7024,10 +7024,10 @@ impl KucoinCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_value_k(rawOrder, "params", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut orderRequest: Value = self.create_contract_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
         }
@@ -8783,11 +8783,11 @@ impl KucoinCore {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        let mut isActive: Value = self.safe_value_k(order.clone(), "isActive", &[]);
+        let mut isActive: Value = self.safe_bool_k(order.clone(), "isActive", &[]);
         let mut cancelExist: Value = self.safe_bool_k(order.clone(), "cancelExist", &[Value::Bool(false)]);
         let mut status: Value = Value::Null;
         if (isActive != Value::Null) {
-            status = (if (is_equal(&isActive, &Value::Bool(true))) { Value::Str("open".to_string()) } else { Value::Str("closed".to_string()) });
+            status = (if is_true(&(isActive.as_bool() == Some(true))) { Value::Str("open".to_string()) } else { Value::Str("closed".to_string()) });
         }
         status = (if is_true(&(cancelExist.as_bool() == Some(true))) { Value::Str("canceled".to_string()) } else { status.clone() });
         let mut fee: Value = Value::Null;
@@ -8801,8 +8801,8 @@ impl KucoinCore {
         }
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOid", &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
-        let mut postOnly: Value = self.safe_value_k(order.clone(), "postOnly", &[]);
-        let mut reduceOnly: Value = self.safe_value_k(order.clone(), "reduceOnly", &[]);
+        let mut postOnly: Value = self.safe_bool_k(order.clone(), "postOnly", &[]);
+        let mut reduceOnly: Value = self.safe_bool_k(order.clone(), "reduceOnly", &[]);
         let mut lastUpdateTimestamp: Value = self.safe_integer_k(order.clone(), "updatedAt", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11078,10 +11078,10 @@ impl KucoinCore {
         }
         // only fetches one balance at a time
         let mut defaultCode: Value = self.safe_string_k(self.options.clone(), "code", &[]);
-        let mut fetchBalanceOptions: Value = self.safe_value_k(self.options.clone(), "fetchBalance", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut fetchBalanceOptions: Value = self.safe_dict_k(self.options.clone(), "fetchBalance", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         defaultCode = self.safe_string_k(fetchBalanceOptions.clone(), "code", &[defaultCode.clone()]);
         let mut code: Value = self.safe_string_k(params.clone(), "code", &[defaultCode.clone()]);
         if (code == Value::Null) {
@@ -11117,7 +11117,7 @@ impl KucoinCore {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
         let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut account: Value = self.account();
@@ -13530,7 +13530,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             //        }
             //    }
             //
-            let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
             dataList = self.safe_list_k(data.clone(), "dataList", &[Value::from(vec![])]);
         }
         let mut fees: Value = Value::from(vec![]);
@@ -14004,11 +14004,11 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut initialMarginPercentage: Value = crate::precise::Precise::stringDiv(&initialMargin, &notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         let mut unrealisedPnl: Value = self.safe_string2(position.clone(), Value::Str("unrealisedPnl".to_string()), Value::Str("unrealizedPnL".to_string()), &[]);
-        let mut crossMode: Value = self.safe_value_k(position.clone(), "crossMode", &[]);
+        let mut crossMode: Value = self.safe_bool_k(position.clone(), "crossMode", &[]);
         // currently crossMode is always set to false and only isolated positions are supported
         let mut marginMode: Value = self.safe_string_lower(position.clone(), Value::Str("marginMode".to_string()), &[]);
         if (crossMode != Value::Null) {
-            marginMode = (if (is_equal(&crossMode, &Value::Bool(true))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
+            marginMode = (if is_true(&(crossMode.as_bool() == Some(true))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
         }
         let mut lastUpdateTimestamp: Value = self.safe_integer_k(position.clone(), "closeTime", &[]);
         if (lastUpdateTimestamp == Value::Null) {
@@ -14262,7 +14262,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         //        "msg":"Position does not exist"
         //    }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         let __ws_arg_142 = self.parse_margin_modification(data.clone(), &[market.clone()]);
         let __ws_arg_143 = self.amount_to_precision(symbol.clone(), amount.clone());
         return self.extend(__ws_arg_142, &[Value::Map({
@@ -14380,8 +14380,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut id: Value = self.safe_string_k(info.clone(), "id", &[]);
         market = self.safe_market(&[id.clone(), market.clone()]);
         let mut currencyId: Value = self.safe_string_k(info.clone(), "settleCurrency", &[]);
-        let mut crossMode: Value = self.safe_value_k(info.clone(), "crossMode", &[]);
-        let mut mode: Value = (if (is_equal(&crossMode, &Value::Bool(true))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
+        let mut crossMode: Value = self.safe_bool_k(info.clone(), "crossMode", &[]);
+        let mut mode: Value = (if is_true(&(crossMode.as_bool() == Some(true))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
         let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut timestamp: Value = self.safe_integer_k(info.clone(), "currentTimestamp", &[]);
         return Value::Map({

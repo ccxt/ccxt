@@ -425,7 +425,7 @@ impl BitoproCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str(":".to_string()))), symbol));
-        let mut rawData: Value = self.safe_value_k(message, "data", &[Value::from(vec![])]);
+        let mut rawData: Value = self.safe_list_k(message, "data", &[Value::from(vec![])]);
         let mut trades: Value = self.parse_trades(rawData.clone(), &[market.clone()]);
         let mut tradesCache: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (tradesCache == Value::Null) {
@@ -506,7 +506,7 @@ impl BitoproCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -579,10 +579,10 @@ impl BitoproCore {
                 m
             });
         }
-        let mut isMaker: Value = self.safe_value_k(trade.clone(), "isMaker", &[]);
+        let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker != Value::Null) {
-            if is_equal(&isMaker, &Value::Bool(true)) {
+            if (isMaker.as_bool() == Some(true)) {
                 takerOrMaker = Value::Str("maker".to_string());
             }  else {
                 takerOrMaker = Value::Str("taker".to_string());
@@ -761,7 +761,10 @@ impl BitoproCore {
         //     }
         //
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         let mut datetime: Value = self.safe_string_k(message.clone(), "datetime", &[]);
         let mut currencies: Value = object_keys(&data);
@@ -777,7 +780,10 @@ impl BitoproCore {
             let mut __for_first_153: bool = true;
             while { if !__for_first_153 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_153 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
             let mut currency: Value = self.safe_string(currencies.clone(), i.clone(), &[]);
-            let mut balance: Value = self.safe_value(data.clone(), currency.clone(), &[]);
+            let mut balance: Value = self.safe_dict(data.clone(), currency.clone(), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
