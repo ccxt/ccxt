@@ -4193,7 +4193,7 @@ public partial class aster : Exchange
         double? collateral = this.parseNumber(collateralString);
         double? markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         Int64? timestamp = this.safeInteger(position, "updateTime");
-        if (isEqual(timestamp, 0))
+        if ((timestamp == 0))
         {
             timestamp = null;
         }
@@ -4465,7 +4465,7 @@ public partial class aster : Exchange
         string? unrealizedPnlString = this.safeString(position, "unrealizedProfit");
         double? unrealizedPnl = this.parseNumber(unrealizedPnlString);
         Int64? timestamp = this.safeInteger(position, "updateTime");
-        if (isEqual(timestamp, 0))
+        if ((timestamp == 0))
         {
             timestamp = null;
         }

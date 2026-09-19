@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
                 testCurrency(exchange, skippedProperties, method, currency);
                 // detailed check for deposit/withdraw
                 bool? active = exchange.safeBool(currency, "active");
-                if (isEqual(active, false))
+                if ((active == false))
                 {
                     numInactiveCurrencies = add(numInactiveCurrencies, 1);
                 }
@@ -46,10 +46,10 @@ public partial class testMainClass : BaseTest
                 bool? withdraw = exchange.safeBool(currency, "withdraw");
                 bool? deposit = exchange.safeBool(currency, "deposit");
                 bool? isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
-                bool skipUsdtForMica = (isEqual(isMicaCompliant, true)) && ((code == "USDT"));
+                bool skipUsdtForMica = ((isMicaCompliant == true)) && ((code == "USDT"));
                 if (isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && ((skipUsdtForMica != true)))
                 {
-                    assert((isEqual(withdraw, true)) && (isEqual(deposit, true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
+                    assert(((withdraw == true)) && ((deposit == true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active

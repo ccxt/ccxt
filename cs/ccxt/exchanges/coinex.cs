@@ -2574,7 +2574,7 @@ public partial class coinex : Exchange
         string? rawStatus = this.safeString(order, "status");
         Int64? timestamp = this.safeInteger(order, "created_at");
         Int64? updatedTimestamp = this.safeInteger(order, "updated_at");
-        if (isEqual(updatedTimestamp, 0))
+        if ((updatedTimestamp == 0))
         {
             updatedTimestamp = timestamp;
         }

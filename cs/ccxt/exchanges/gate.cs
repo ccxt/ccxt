@@ -2565,7 +2565,7 @@ public partial class gate : Exchange
                 string? minPrice = Precise.stringMul(minMultiplier, markPrice);
                 string? maxPrice = Precise.stringMul(maxMultiplier, markPrice);
                 Int64? createdTs = this.safeTimestamp(market, "create_time");
-                if (isEqual(createdTs, 0))
+                if ((createdTs == 0))
                 {
                     createdTs = null;
                 }
@@ -5713,7 +5713,7 @@ public partial class gate : Exchange
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         string? timeInForce = this.handleTimeInForce(parameters);
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             timeInForce = "poc";
         }
@@ -6392,7 +6392,7 @@ public partial class gate : Exchange
         string? cost = this.safeString(order, "filled_total");
         double? triggerPrice = this.safeNumber(trigger, "price");
         double? average = this.safeNumber2(order, "avg_deal_price", "fill_price");
-        if ((!isEqual(triggerPrice, null)) && (!isEqual(triggerPrice, 0)))
+        if ((!isEqual(triggerPrice, null)) && ((triggerPrice != 0)))
         {
             remainingString = amount;
             cost = "0";
@@ -6765,7 +6765,7 @@ public partial class gate : Exchange
         var requestparametersVariable = ((bool) spot) ? this.multiOrderSpotPrepareRequest(market, trigger, parameters) : this.prepareRequest(market, type, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (spot && (isEqual(trigger, true)))
+        if (spot && ((trigger == true)))
         {
             request = this.omit(request, "account");
         }
@@ -7699,7 +7699,7 @@ public partial class gate : Exchange
             collateral = Precise.stringAdd(marginBalance, unrealisedPnl);
         }
         Int64? timestamp = this.safeTimestamp2(position, "open_time", "first_open_time");
-        if (isEqual(timestamp, 0))
+        if ((timestamp == 0))
         {
             timestamp = null;
         }

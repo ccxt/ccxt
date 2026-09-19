@@ -615,7 +615,7 @@ public partial class bitso : Exchange
                 double? makerFee = this.safeNumber(tier, "maker");
                 ((IList<object>)takerFees).Add(new List<object>() {volume, takerFee});
                 ((IList<object>)makerFees).Add(new List<object>() {volume, makerFee});
-                if (isEqual(j, 0))
+                if ((j == 0))
                 {
                     ((IDictionary<string,object>)fee)["taker"] = takerFee;
                     ((IDictionary<string,object>)fee)["maker"] = makerFee;
@@ -2226,7 +2226,7 @@ public partial class bitso : Exchange
                     success = false;
                 }
             }
-            if (!isEqual(success, true))
+            if ((success != true))
             {
                 string feedback = ((this.id + " ") + this.json(response));
                 IDictionary<string, object> error = this.safeDict(response, "error");

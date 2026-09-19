@@ -1144,7 +1144,7 @@ public partial class bitmex : Exchange
         } else if (contract)
         {
             symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-            if (isEqual(linear, true))
+            if ((linear == true))
             {
                 string? multiplierString = this.safeString2(market, "underlyingToPositionMultiplier", "underlyingToSettleMultiplier");
                 contractSize = Precise.stringAbs(Precise.stringDiv("1", multiplierString));

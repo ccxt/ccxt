@@ -1072,8 +1072,8 @@ public partial class cryptocom : Exchange
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                 contract = true;
             }
-            bool? isLinear = ((bool) (isEqual(contract, true))) ? true : null;
-            bool? isInverse = ((bool) (isEqual(contract, true))) ? false : null;
+            bool? isLinear = ((bool) ((contract == true))) ? true : null;
+            bool? isInverse = ((bool) ((contract == true))) ? false : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "symbol") },
                 { "symbol", symbol },

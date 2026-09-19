@@ -4415,7 +4415,7 @@ public partial class woo : Exchange
         market = this.safeMarket(marketId, market);
         string? marginMode = this.safeStringLower(leverage, "marginMode");
         Int64? spotLeverage = this.safeInteger(leverage, "leverage");
-        if (isEqual(spotLeverage, 0))
+        if ((spotLeverage == 0))
         {
             spotLeverage = null;
         }

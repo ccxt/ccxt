@@ -1305,7 +1305,7 @@ public partial class weex : Exchange
             symbolsLength = getArrayLength(symbols);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (isEqual(symbolsLength, 1))
+        if ((symbolsLength == 1))
         {
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
@@ -2137,7 +2137,7 @@ public partial class weex : Exchange
             symbolsLength = getArrayLength(symbols);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (isEqual(symbolsLength, 1))
+        if ((symbolsLength == 1))
         {
             object market = this.getMarketFromSymbols(symbols);
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
@@ -2686,7 +2686,7 @@ public partial class weex : Exchange
         {
             reduceOnly = true;
         }
-        bool isReduceOnly = (isEqual(reduceOnly, true));
+        bool isReduceOnly = ((reduceOnly == true));
         string positionSide = "LONG";
         if (isReduceOnly)
         {

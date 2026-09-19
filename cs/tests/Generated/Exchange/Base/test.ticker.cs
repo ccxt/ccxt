@@ -130,7 +130,7 @@ public partial class testMainClass : BaseTest
             // far above baseVolume * high), so the spot-derived invariant does not hold there,
             // see https://github.com/ccxt/ccxt/pull/29563
             bool? isInverse = exchange.safeBool(market, "inverse", false);
-            if (((baseVolume != null)) && ((quoteVolume != null)) && ((high != null)) && ((low != null)) && (!isEqual(isInverse, true)))
+            if (((baseVolume != null)) && ((quoteVolume != null)) && ((high != null)) && ((low != null)) && ((isInverse != true)))
             {
                 string? baseLow = Precise.stringMul(baseVolume, low);
                 string? baseHigh = Precise.stringMul(baseVolume, high);
@@ -281,7 +281,7 @@ public partial class testMainClass : BaseTest
             {
                 // - should be above -100 and (for non-options) below MAX
                 assert(Precise.stringGe(percentage, "-100"), ("percentage should be above -100% " + (logText)));
-                if (!isEqual(isOptionMarket, true))
+                if ((isOptionMarket != true))
                 {
                     assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), ((("percentage should be below " + maxIncrease) + "00% ") + (logText)));
                 }
@@ -294,7 +294,7 @@ public partial class testMainClass : BaseTest
             {
                 // - should be above -price and (for non-options) below +price*maxIncrease
                 assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), ("change should be above -price " + (logText)));
-                if (!isEqual(isOptionMarket, true))
+                if ((isOptionMarket != true))
                 {
                     assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), ((("change should be below " + maxIncrease) + "x price ") + (logText)));
                 }

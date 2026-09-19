@@ -2089,8 +2089,8 @@ public partial class coinbase : Exchange
         }
         double? takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
         double? makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
-        double? taker = ((bool) (!isEqual(takerFeeRate, null) && !isEqual(takerFeeRate, null) && !isEqual(takerFeeRate, 0))) ? takerFeeRate : this.parseNumber("0.06");
-        double? maker = ((bool) (!isEqual(makerFeeRate, null) && !isEqual(makerFeeRate, null) && !isEqual(makerFeeRate, 0))) ? makerFeeRate : this.parseNumber("0.04");
+        double? taker = ((bool) (!isEqual(takerFeeRate, null) && !isEqual(takerFeeRate, null) && (takerFeeRate != 0))) ? takerFeeRate : this.parseNumber("0.06");
+        double? maker = ((bool) (!isEqual(makerFeeRate, null) && !isEqual(makerFeeRate, null) && (makerFeeRate != 0))) ? makerFeeRate : this.parseNumber("0.04");
         return ((Dictionary<string, object>)((object)(this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },

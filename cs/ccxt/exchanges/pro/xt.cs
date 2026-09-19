@@ -1757,7 +1757,7 @@ public partial class xt : ccxt.xt
         {
             IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
             unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            if (isEqual(unsubscribe, true))
+            if ((unsubscribe == true))
             {
                 this.handleUnSubscription(client as WebSocketClient, subscription);
             }

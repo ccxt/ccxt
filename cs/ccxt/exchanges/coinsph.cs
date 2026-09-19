@@ -2550,7 +2550,7 @@ public partial class coinsph : Exchange
             string? key = ((string)keys[i]);
             if (((getValue(query, key) is IList<object>) || (getValue(query, key).GetType().IsGenericType && getValue(query, key).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                if (!isEqual(i, 0))
+                if ((i != 0))
                 {
                     encodedArrayParams = add(encodedArrayParams, "&");
                 }

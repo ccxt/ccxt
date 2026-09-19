@@ -1042,7 +1042,7 @@ public partial class bitrue : Exchange
             List<object> symbolSplit = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             baseId = this.safeString(symbolSplit, 1);
             quoteId = this.safeString(symbolSplit, 2);
-            if (isEqual(isLinear, true))
+            if ((isLinear == true))
             {
                 settleId = quoteId;
             } else

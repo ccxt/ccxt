@@ -2028,7 +2028,7 @@ public partial class toobit : Exchange
         IList<object> isPostOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
         isPostOnly = (bool?)((IList<object>)isPostOnlyparametersVariable)[0];
         parameters = ((IList<object>)isPostOnlyparametersVariable)[1];
-        if (isEqual(isPostOnly, true))
+        if ((isPostOnly == true))
         {
             ((IDictionary<string,object>)request)["type"] = "LIMIT_MAKER";
         } else
@@ -2060,10 +2060,10 @@ public partial class toobit : Exchange
         parameters = ((IList<object>)reduceOnlyparametersVariable)[1];
         if (isEqual(side, "buy"))
         {
-            side = ((bool) (isEqual(reduceOnly, true))) ? "BUY_CLOSE" : "BUY_OPEN";
+            side = ((bool) ((reduceOnly == true))) ? "BUY_CLOSE" : "BUY_OPEN";
         } else if (isEqual(side, "sell"))
         {
-            side = ((bool) (isEqual(reduceOnly, true))) ? "SELL_CLOSE" : "SELL_OPEN";
+            side = ((bool) ((reduceOnly == true))) ? "SELL_CLOSE" : "SELL_OPEN";
         }
         ((IDictionary<string,object>)request)["side"] = side;
         if ((price != null))
@@ -2083,7 +2083,7 @@ public partial class toobit : Exchange
         IList<object> isPostOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
         isPostOnly = (bool?)((IList<object>)isPostOnlyparametersVariable)[0];
         parameters = ((IList<object>)isPostOnlyparametersVariable)[1];
-        if (isEqual(isPostOnly, true))
+        if ((isPostOnly == true))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "LIMIT_MAKER";
         }

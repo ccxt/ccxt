@@ -1605,7 +1605,7 @@ public partial class dydx : Exchange
         IList<object> goodTillBlockTimeInSecondsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         goodTillBlockTimeInSeconds = ((IList<object>)goodTillBlockTimeInSecondsparametersVariable)[0];
         parameters = ((IList<object>)goodTillBlockTimeInSecondsparametersVariable)[1]; // default is 30 days
-        if (isEqual(orderFlag, 0))
+        if ((orderFlag == 0))
         {
             if (isEqual(goodTillBlock, null))
             {

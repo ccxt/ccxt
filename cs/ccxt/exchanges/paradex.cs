@@ -883,14 +883,14 @@ public partial class paradex : Exchange
         if (isOption)
         {
             string optionTypeSuffix = ((bool) ((optionType == "CALL"))) ? "C" : "P";
-            string deliveryValue = ((bool) (isEqual(expiry, 0))) ? "" : (this.yymmdd(expiry) + "-");
+            string deliveryValue = ((bool) ((expiry == 0))) ? "" : (this.yymmdd(expiry) + "-");
             symbol = add(add(add(add(add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
         {
             expiry = null;
         }
-        string? expireDatetime = ((bool) (isEqual(expiry, 0))) ? null : this.iso8601(expiry);
+        string? expireDatetime = ((bool) ((expiry == 0))) ? null : this.iso8601(expiry);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -2135,7 +2135,7 @@ public partial class paradex : Exchange
             ((IDictionary<string,object>)request)["trigger_price"] = stopPrice;
         }
         ((IDictionary<string,object>)request)["size"] = sizeString;
-        if (isEqual(reduceOnly, true))
+        if ((reduceOnly == true))
         {
             ((IDictionary<string,object>)request)["flags"] = new List<object>() {"REDUCE_ONLY"};
         }

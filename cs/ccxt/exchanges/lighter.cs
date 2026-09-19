@@ -752,7 +752,7 @@ public partial class lighter : Exchange
         {
             throw new BadRequest ((string)(this.id + " pow() requires m > 0.")) ;
         }
-        if (isEqual(c, 0))
+        if ((c == 0))
         {
             return "1";
         }

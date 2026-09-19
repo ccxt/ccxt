@@ -418,7 +418,7 @@ public partial class lighter : ccxt.lighter
         {
             symbolsLength = getArrayLength(symbols);
         }
-        if (((symbols == null)) || (isEqual(symbolsLength, 0)))
+        if (((symbols == null)) || ((symbolsLength == 0)))
         {
             ((IList<object>)messageHashes).Add(this.getMessageHash("ticker"));
         } else

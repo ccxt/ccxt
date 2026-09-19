@@ -2965,7 +2965,7 @@ public partial class lbank : Exchange
         }
         bool isAuthorized = this.checkRequiredCredentials(false);
         object result = null;
-        if (isEqual(isAuthorized, true))
+        if ((isAuthorized == true))
         {
             IDictionary<string, object> options = this.safeDict(this.options, "fetchTransactionFees", new Dictionary<string, object>() {});
             string? defaultMethod = this.safeString(options, "method", "fetchPrivateTransactionFees");
@@ -3147,7 +3147,7 @@ public partial class lbank : Exchange
         }
         bool isAuthorized = this.checkRequiredCredentials(false);
         object response = null;
-        if (isEqual(isAuthorized, true))
+        if ((isAuthorized == true))
         {
             IDictionary<string, object> options = this.safeDict(this.options, "fetchDepositWithdrawFees", new Dictionary<string, object>() {});
             string? defaultMethod = this.safeString(options, "method", "fetchPrivateDepositWithdrawFees");

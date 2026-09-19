@@ -1691,7 +1691,7 @@ public partial class kalshi : PredictionExchange
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
             object trade = trades[i];
-            if (((wantedOutcome == null)) || (isEqual(this.safeString(trade, "outcome"), wantedOutcome)))
+            if (((wantedOutcome == null)) || ((this.safeString(trade, "outcome") == wantedOutcome)))
             {
                 ((IList<object>)result).Add(trade);
             }
@@ -1858,7 +1858,7 @@ public partial class kalshi : PredictionExchange
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
         object parsed = this.parsePredictionPositions(positions);
-        if (isEqual(outcomesLength, 0))
+        if ((outcomesLength == 0))
         {
             return ccxt.BaseExchange.ToPredictionPositionList(parsed);
         }
@@ -1931,7 +1931,7 @@ public partial class kalshi : PredictionExchange
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
             Dictionary<string, object> settlement = ((Dictionary<string, object>)parsed[i]);
-            if (((wantedOutcome == null)) || (isEqual(this.safeString(settlement, "outcome"), wantedOutcome)))
+            if (((wantedOutcome == null)) || ((this.safeString(settlement, "outcome") == wantedOutcome)))
             {
                 ((IList<object>)result).Add(settlement);
             }
@@ -2395,7 +2395,7 @@ public partial class kalshi : PredictionExchange
         if (isEqual((order != null && ((IDictionary<string, object>)order).ContainsKey("status") ? ((IDictionary<string, object>)order)["status"] : null), null))
         {
             string resolvedStatus = "open";
-            if ((!isEqual(remainingCount, null)) && (isEqual(remainingCount, 0)))
+            if ((!isEqual(remainingCount, null)) && ((remainingCount == 0)))
             {
                 resolvedStatus = "closed";
             }
