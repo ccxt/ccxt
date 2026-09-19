@@ -817,7 +817,7 @@ public partial class cryptocom : Exchange
             response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
         } catch(Exception e)
         {
-            object erString = this.exceptionMessage(e);
+            string? erString = ((string)this.exceptionMessage(e));
             if (getIndexOf(erString, "SYS_ERROR") >= 0)
             {
                 // sub-accounts can't access this endpoint

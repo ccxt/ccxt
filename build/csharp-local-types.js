@@ -2985,12 +2985,181 @@ function parseReturnDeclarationProves (csharp, declaration, mapped) {
     return proved;
 }
 
+// ===== D-23: scalar return annotations (`: Str` / `: string` / `: number` / `: Int` / `: Bool`) =====
+//
+// The same two proofs as the collection arm above, for the SCALAR box the batch-C annotation
+// names: the checker's return type of the declaration the call binds maps to string? / Int64? /
+// double? / bool?, and EVERY declaration of the name in the program proves that box on every
+// return path, so no virtual dispatch can hand back another box. `x = this.parseX (...)` then
+// names the callee's scalar box behind the exact cast back (string? -> `((string)x)`).
+// A return path only proves a box it really holds at runtime:
+//   string? — a string literal, null/undefined, a call or local this module already types
+//             string/string?, or a `+` whose printed LEFT operand is a proven string (the
+//             add(string, *) overload returns a string for every right operand)
+//   Int64?  — null/undefined, a call or local already typed Int64/Int64?; an int box or a
+//             numeric literal boxes an Int32 and would throw the caller's hard unbox
+//   double? — null/undefined, a call or local already typed double/double?
+//   bool?   — a bool literal, null/undefined, a call or local already typed bool/bool?
+// An async declaration is never part of the family: the call site reads a Task<...>, not the box
+// (the printer's own Task fallback for a valueless return path stays the printer's business).
+
+// the scalar box candidates a TS type permits, or undefined when the type is not a scalar
+// (any/unknown, a collection, a structure, a union the arms of which disagree)
+function parseScalarKindOf (type) {
+    const flags = type.flags;
+    if ((flags & ts.TypeFlags.StringLike) !== 0) {
+        return 'string';
+    }
+    if ((flags & ts.TypeFlags.NumberLike) !== 0) {
+        return 'number';
+    }
+    if ((flags & ts.TypeFlags.BooleanLike) !== 0) {
+        return 'boolean';
+    }
+    return undefined;
+}
+
+function parseScalarKinds (checker, type) {
+    if (type === undefined) {
+        return undefined;
+    }
+    const flags = type.flags;
+    if ((flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.Never)) !== 0) {
+        return undefined;
+    }
+    let kind;
+    if ((flags & ts.TypeFlags.Union) !== 0) {
+        const arms = (type.types ?? []).filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null | ts.TypeFlags.Void)) === 0);
+        if (arms.length === 0) {
+            return undefined;
+        }
+        for (const arm of arms) {
+            const own = (arm.flags & ts.TypeFlags.Union) !== 0 ? undefined : parseScalarKindOf (arm);
+            if (own === undefined || (kind !== undefined && kind !== own)) {
+                return undefined;
+            }
+            kind = own;
+        }
+    } else {
+        kind = parseScalarKindOf (type);
+    }
+    if (kind === 'string') {
+        return [ 'string?' ]; // the nullable spelling never converts a value the value does not have
+    }
+    if (kind === 'boolean') {
+        return [ 'bool?' ];
+    }
+    if (kind === 'number') {
+        return [ 'Int64?', 'double?' ]; // the numeric box (Int64 vs double) is proved per return path
+    }
+    return undefined;
+}
+
+function parseScalarBoxCompatible (mapped, other) {
+    if (other === undefined) {
+        return false;
+    }
+    if (mapped === 'string?') {
+        return other === 'string' || other === 'string?';
+    }
+    if (mapped === 'bool?') {
+        return other === 'bool' || other === 'bool?';
+    }
+    if (mapped === 'Int64?') {
+        return other === 'Int64' || other === 'Int64?';
+    }
+    if (mapped === 'double?') {
+        return other === 'double' || other === 'double?';
+    }
+    return false;
+}
+
+function parseScalarExpressionProves (csharp, expression, mapped, depth) {
+    if (expression === undefined || depth > 4) {
+        return false;
+    }
+    let node = expression;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    switch (node?.kind) {
+    case ts.SyntaxKind.NullKeyword:
+        return true; // a null box unboxes to null under the reference cast
+    case ts.SyntaxKind.Identifier:
+        return (node.escapedText === 'undefined') || parseScalarBoxCompatible (mapped, identifierType (csharp, node));
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        return mapped === 'string?';
+    case ts.SyntaxKind.TrueKeyword:
+    case ts.SyntaxKind.FalseKeyword:
+        return mapped === 'bool?';
+    case ts.SyntaxKind.AsExpression:
+    case ts.SyntaxKind.TypeAssertionExpression: {
+        const target = node.type;
+        if (target?.kind !== ts.SyntaxKind.AnyKeyword && target?.kind !== ts.SyntaxKind.TypeReference) {
+            return false; // `x as string` prints `((string)x)`, a conversion — not an identity wrapper
+        }
+        return parseScalarExpressionProves (csharp, node.expression, mapped, depth + 1);
+    }
+    case ts.SyntaxKind.ConditionalExpression:
+        return parseScalarExpressionProves (csharp, node.whenTrue, mapped, depth + 1)
+            && parseScalarExpressionProves (csharp, node.whenFalse, mapped, depth + 1);
+    case ts.SyntaxKind.CallExpression:
+        return parseScalarBoxCompatible (mapped, callReturnType (csharp, node));
+    case ts.SyntaxKind.BinaryExpression:
+        // a `+` that prints through add(string, *): the overload returns a string for every
+        // right operand, so the box is the mapped string. A numeric `+` boxes an Int64 OR a
+        // double depending on the operands — never a nameable single box.
+        return node.operatorToken?.kind === ts.SyntaxKind.PlusToken && mapped === 'string?'
+            && isProvablyStringOperand (csharp, node.left);
+    default:
+        return false;
+    }
+}
+
+function parseScalarReturnPathsProve (csharp, declaration, mapped) {
+    let proved = true;
+    const visit = (node) => {
+        if (!proved || (node !== declaration && typeof ts.isFunctionLike === 'function' && ts.isFunctionLike (node))) {
+            return; // a return inside a nested callback belongs to that callback
+        }
+        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+            // a body with no return statement at all (a `throw new NotSupported (...)` stub)
+            // hands back null/undefined, which the reference cast passes through
+            if (!parseScalarExpressionProves (csharp, node.expression, mapped, 0)) {
+                proved = false;
+            }
+            return;
+        }
+        ts.forEachChild (node, visit);
+    };
+    ts.forEachChild (declaration, visit);
+    return proved;
+}
+
+// one declaration of the name: non-async, every return path proves the box, and an explicit
+// annotation of its own names the same family (Int64? and double? are both `: number`), so a
+// same-named method in another class with a different annotation cannot be mis-read
+function parseScalarDeclarationProves (csharp, declaration, mapped, checker) {
+    if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (declaration)) {
+        return false;
+    }
+    if (declaration.type !== undefined) {
+        const own = parseScalarKinds (checker, checker.getTypeFromTypeNode (declaration.type));
+        if (own === undefined || own.indexOf (mapped) < 0) {
+            return false;
+        }
+    }
+    return parseScalarReturnPathsProve (csharp, declaration, mapped);
+}
+
 // this.parse<X>(...) -> the box the callee's TS return type names, proven over every declaration
 // of the name in the program; undefined keeps the printer's `object`. Cached per (program, name).
 function parseReturnCastType (csharp, call, methodName) {
-    if (typeof methodName !== 'string' || !methodName.startsWith ('parse') || methodName.length <= 5) {
+    if (typeof methodName !== 'string' || methodName.length < 4) {
         return undefined;
     }
+    const isParse = methodName.startsWith ('parse') && methodName.length > 5;
     const tables = parseReturnTables (csharp);
     if (tables === undefined) {
         return undefined;
@@ -3008,11 +3177,22 @@ function parseReturnCastType (csharp, call, methodName) {
             const type = (declaration.type !== undefined)
                 ? checker.getTypeFromTypeNode (declaration.type)
                 : (signature !== undefined ? checker.getReturnTypeOfSignature (signature) : undefined);
-            box = parseCollectionBox (checker, type);
-            if (box !== undefined) {
-                const declarations = parseReturnDeclarations (tables, methodName);
-                if (declarations.length === 0 || !declarations.every ((d) => parseReturnDeclarationProves (csharp, d, box))) {
+            const declarations = parseReturnDeclarations (tables, methodName);
+            if (isParse) {
+                box = parseCollectionBox (checker, type);
+                if (box !== undefined && (declarations.length === 0 || !declarations.every ((d) => parseReturnDeclarationProves (csharp, d, box)))) {
                     box = undefined;
+                }
+            }
+            if (box === undefined) {
+                const candidates = parseScalarKinds (checker, type);
+                if (candidates !== undefined && declarations.length > 0) {
+                    for (const candidate of candidates) {
+                        if (declarations.every ((d) => parseScalarDeclarationProves (csharp, d, candidate, checker))) {
+                            box = candidate;
+                            break;
+                        }
+                    }
                 }
             }
         }
