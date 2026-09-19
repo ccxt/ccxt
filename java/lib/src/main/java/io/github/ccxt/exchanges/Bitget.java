@@ -6623,7 +6623,7 @@ final Object finalMinNotional = minNotional;
                 String marketId = this.safeString(entry, "symbol");
                 String symbol = this.safeSymbol(marketId, null, null, marketType);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (entry), market);
+                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (entry), market);
                 ((Map<String, Object>)result).put((String)symbol, fee);
             }
             return result;
@@ -6631,7 +6631,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseTradingFee(Map<String, Object> data, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> data, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(data, "symbol");
@@ -12177,7 +12177,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseFundingHistory(Map<String, Object> contract, Object... optionalArgs)
+    public Map<String, Object> parseFundingHistory(Map<String, Object> contract, Object... optionalArgs)
     {
         //
         //     {
@@ -13257,7 +13257,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
     {
         //
         // isolated: borrowMargin

@@ -11802,7 +11802,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseDustTrade(Object trade, Object... optionalArgs)
+    public Map<String, Object> parseDustTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -13079,7 +13079,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         // spot
@@ -13323,7 +13323,7 @@ public class Binance extends BinanceApi
                 List<Object> fees = this.toArray(response);
                 for (var i = 0; i < ((List<?>)fees).size(); i++)
                 {
-                    Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))));
+                    Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))));
                     Object symbol = ((Map<String, Object>)fee).get("symbol");
                     if (!java.util.Objects.equals(symbol, null))
                     {
@@ -13792,7 +13792,7 @@ public class Binance extends BinanceApi
                 if (balances.containsKey(code))
                 {
                     final Object finalCode = code;
-                    Object parsed = this.parseAccountPosition(this.extend(position, new HashMap<String, Object>() {{
+                    Map<String, Object> parsed = this.parseAccountPosition(this.extend(position, new HashMap<String, Object>() {{
                         put( "crossMargin", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossMargin") );
                         put( "crossWalletBalance", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossWalletBalance") );
                     }}), market);
@@ -13803,7 +13803,7 @@ public class Binance extends BinanceApi
         return result;
     }
 
-    public Object parseAccountPosition(Object position, Object... optionalArgs)
+    public Map<String, Object> parseAccountPosition(Object position, Object... optionalArgs)
     {
         //
         // usdm
@@ -15723,7 +15723,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseSettlement(Object settlement, Object market)
+    public Map<String, Object> parseSettlement(Object settlement, Object market)
     {
         //
         // fetchSettlementHistory
@@ -16063,7 +16063,7 @@ final Object finalMarket = market;
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public String parseLedgerEntryType(Object type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "FEE", "fee" );
@@ -17353,7 +17353,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseMarginLoan(Object info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Object info, Object... optionalArgs)
     {
         //
         //     {

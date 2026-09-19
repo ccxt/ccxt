@@ -3104,7 +3104,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         ((io.github.ccxt.ws.Future)future).resolve(true);
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    { event: "error", code: 30015, msg: "Invalid sign" }
@@ -3294,13 +3294,13 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         return "ping";
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
         return message;
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -3463,7 +3463,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         this.cleanUnsubscription(client, subMessageHash, messageHash);
     }
 
-    public Object handleUnSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleUnSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //  {
