@@ -647,7 +647,7 @@ public class Luno extends LunoApi
             List<Object> markets = (List<Object>) this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "market_id");
                 String baseId = this.safeString(market, "base_currency");
                 String quoteId = this.safeString(market, "counter_currency");
@@ -764,7 +764,7 @@ public class Luno extends LunoApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)wallets).size(); i++)
             {
-                Object account = Helpers.GetValue(wallets, i);
+                Object account = (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i));
                 String accountId = this.safeString(account, "account_id");
                 String currencyId = this.safeString(account, "asset");
                 String code = this.safeCurrencyCode(currencyId);
@@ -790,7 +790,7 @@ public class Luno extends LunoApi
         }};
         for (var i = 0; i < ((List<?>)wallets).size(); i++)
         {
-            Object wallet = Helpers.GetValue(wallets, i);
+            Object wallet = (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i));
             String currencyId = this.safeString(wallet, "asset");
             String code = this.safeCurrencyCode(currencyId);
             String reserved = this.safeString(wallet, "reserved");

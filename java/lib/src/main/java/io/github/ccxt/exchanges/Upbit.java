@@ -917,7 +917,7 @@ public class Upbit extends UpbitApi
             List<Object> orderbooks = this.toArray(response);
             for (var i = 0; i < ((List<?>)orderbooks).size(); i++)
             {
-                Object orderbook = Helpers.GetValue(orderbooks, i);
+                Object orderbook = (orderbooks == null || i < 0 || i >= orderbooks.size() ? null : orderbooks.get(i));
                 String marketId = this.safeString(orderbook, "market");
                 String symbol = this.safeSymbol(marketId, null, "-");
                 Long timestamp = this.safeInteger(orderbook, "timestamp");
@@ -1052,7 +1052,7 @@ public class Upbit extends UpbitApi
                 List<Object> marketSymbols = this.symbols;
                 for (var i = 0; i < ((List<?>)marketSymbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(marketSymbols, i));
+                    Map<String, Object> market = (Map<String, Object>) this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
                     Object quoteId = ((Map<String, Object>)market).get("quoteId");
                     if (!this.inArray(quoteId, quoteIds))
                     {
@@ -2409,11 +2409,11 @@ public class Upbit extends UpbitApi
             cost = "0";
             for (var i = 0; Helpers.isLessThan(i, numTrades); i++)
             {
-                Object trade = Helpers.GetValue(trades, i);
+                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (Boolean.TRUE.equals(getFeesFromTrades))
                 {
-                    Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(Helpers.GetValue(trades, i), "fee", new HashMap<String, Object>() {{}});
+                    Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "fee", new HashMap<String, Object>() {{}});
                     String tradeFeeCost = this.safeString(tradeFee, "cost");
                     if (!java.util.Objects.equals(tradeFeeCost, null))
                     {

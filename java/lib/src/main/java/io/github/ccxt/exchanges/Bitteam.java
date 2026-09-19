@@ -978,7 +978,7 @@ public class Bitteam extends BitteamApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
+            Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1589,7 +1589,7 @@ public class Bitteam extends BitteamApi
         }}, market);
     }
 
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "accepted", "open" );
@@ -1685,8 +1685,8 @@ public class Bitteam extends BitteamApi
             }
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
-                Object rawTicker = Helpers.GetValue(rawTickers, i);
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker);
+                Object rawTicker = (rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i));
+                Object ticker = this.parseTicker(rawTicker);
                 ((List<Object>)tickers).add(ticker);
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
@@ -2470,7 +2470,7 @@ public class Bitteam extends BitteamApi
         List<Object> rawCurrencyIds = Helpers.objectKeys(balanceByCurrencies);
         for (var i = 0; i < ((List<?>)rawCurrencyIds).size(); i++)
         {
-            Object rawCurrencyId = Helpers.GetValue(rawCurrencyIds, i);
+            Object rawCurrencyId = (rawCurrencyIds == null || i < 0 || i >= rawCurrencyIds.size() ? null : rawCurrencyIds.get(i));
             Map<String, Object> currencyBalance = (Map<String, Object>) this.safeDict(result, rawCurrencyId);
             String free = this.safeString(currencyBalance, "free");
             String used = this.safeString(currencyBalance, "used");
@@ -2723,7 +2723,7 @@ public class Bitteam extends BitteamApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public String parseTransactionStatus(String status)
+    public String parseTransactionStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "approving", "pending" );

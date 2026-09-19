@@ -1553,7 +1553,7 @@ public class Mexc extends MexcApi
         List<Object> chains = (List<Object>) this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString2(chain, "netWork", "network");
             Object network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
@@ -1690,7 +1690,7 @@ public class Mexc extends MexcApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object market = Helpers.GetValue(data, i);
+                Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
@@ -1833,7 +1833,7 @@ public class Mexc extends MexcApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object market = Helpers.GetValue(data, i);
+                Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseCoin");
                 String quoteId = this.safeString(market, "quoteCoin");
@@ -4514,7 +4514,7 @@ public class Mexc extends MexcApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object account = Helpers.GetValue(data, i);
+                Object account = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String currencyId = this.safeString2(account, "asset", "currency");
                 String code = this.safeCurrencyCode(currencyId);
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -5253,7 +5253,7 @@ public class Mexc extends MexcApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)resultList).size(); i++)
             {
-                Object entry = Helpers.GetValue(resultList, i);
+                Object entry = (resultList == null || i < 0 || i >= resultList.size() ? null : resultList.get(i));
                 Long timestamp = this.safeInteger(entry, "settleTime");
     final Object finalSymbol = symbol;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -5458,7 +5458,7 @@ public class Mexc extends MexcApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object entry = Helpers.GetValue(result, i);
+                Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 String symbolInner = this.safeSymbol(marketId);
                 Long timestamp = this.safeInteger(entry, "settleTime");
@@ -6960,7 +6960,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
         {
-            Object networkEntry = Helpers.GetValue(networkList, j);
+            Object networkEntry = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             String networkId = this.safeString(networkEntry, "network");
             String networkCode = this.safeString(((Map<String, Object>)this.options).get("networks"), networkId, networkId);
             Double fee = this.safeNumber(networkEntry, "withdrawFee");
@@ -7057,7 +7057,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
         {
-            Object networkEntry = Helpers.GetValue(networkList, j);
+            Object networkEntry = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             String networkId = this.safeString(networkEntry, "network");
             Object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
             if (!java.util.Objects.equals(networkCode, null))

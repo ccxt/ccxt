@@ -467,7 +467,7 @@ public class Foxbit extends FoxbitApi
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networks).size(); j++)
         {
-            Object network = Helpers.GetValue(networks, j);
+            Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             String networkId = this.safeString(network, "code");
             Object networkCode = this.networkIdToCode(networkId, code);
             Map<String, Object> networkWithdrawInfo = (Map<String, Object>) this.safeDict(network, "withdraw_info");
@@ -789,7 +789,7 @@ public class Foxbit extends FoxbitApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "market_symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1009,7 +1009,7 @@ public class Foxbit extends FoxbitApi
             }};
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
-                Object account = Helpers.GetValue(accounts, i);
+                Object account = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
                 String currencyId = this.safeString(account, "currency_symbol");
                 String currencyCode = this.safeCurrencyCode(currencyId);
                 String total = this.safeString(account, "balance");
@@ -2536,7 +2536,7 @@ public class Foxbit extends FoxbitApi
             }
             for (var i = 0; i < ((List<?>)paramKeys).size(); i++)
             {
-                Object key = Helpers.GetValue(paramKeys, i);
+                Object key = (paramKeys == null || i < 0 || i >= paramKeys.size() ? null : paramKeys.get(i));
                 String value = this.safeString(parameters, key);
                 if (!java.util.Objects.equals(value, null))
                 {
@@ -2598,7 +2598,7 @@ public class Foxbit extends FoxbitApi
         {
             for (var i = 0; i < ((List<?>)details).size(); i++)
             {
-                detailsString = (Helpers.add(detailsString, Helpers.GetValue(details, i)) + " ");
+                detailsString = (Helpers.add(detailsString, (details == null || i < 0 || i >= details.size() ? null : details.get(i))) + " ");
             }
         }
         if (!java.util.Objects.equals(error, null))

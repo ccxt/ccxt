@@ -606,7 +606,7 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                Object marketType = Helpers.GetValue(types, i);
+                Object marketType = (types == null || i < 0 || i >= types.size() ? null : types.get(i));
                 if (java.util.Objects.equals(marketType, "swap"))
                 {
                     ((List<Object>)rawPromises).add(this.fetchSwapMarkets(parameters));
@@ -1315,7 +1315,7 @@ public class Hyperliquid extends HyperliquidApi
                 }};
                 for (var i = 0; i < ((List<?>)balances).size(); i++)
                 {
-                    Object balance = Helpers.GetValue(balances, i);
+                    Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                     String unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"));
                     Object code = (((java.util.Objects.equals(isSpot, true)))) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                     Object account = this.account();
@@ -2656,7 +2656,7 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> ordersToBeParsed = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)statuses).size(); i++)
             {
-                Object order = Helpers.GetValue(statuses, i);
+                Object order = (statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i));
                 if (java.util.Objects.equals(order, "waitingForTrigger"))
                 {
     final Object finalOrder = order;
@@ -3000,7 +3000,7 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)statuses).size(); i++)
             {
-                Object status = Helpers.GetValue(statuses, i);
+                Object status = (statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i));
                 ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", status );
                     put( "status", status );
@@ -4612,7 +4612,7 @@ final Object finalClientOrderId = clientOrderId;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition(Helpers.GetValue(data, i)));
+                ((List<Object>)result).add(this.parsePosition((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -6116,7 +6116,7 @@ final Object finalClientOrderId = clientOrderId;
             List<Object> statuses = (List<Object>) this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)statuses).size(); i++)
             {
-                message = this.safeString(Helpers.GetValue(statuses, i), "error");
+                message = this.safeString((statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i)), "error");
                 if (!java.util.Objects.equals(message, null))
                 {
                     break;

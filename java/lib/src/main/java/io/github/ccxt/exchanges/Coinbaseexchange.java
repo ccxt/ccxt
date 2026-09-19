@@ -750,7 +750,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         List<Object> supportedNetworks = (List<Object>) this.safeList(rawCurrency, "supported_networks", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)supportedNetworks).size(); j++)
         {
-            Object network = Helpers.GetValue(supportedNetworks, j);
+            Object network = (supportedNetworks == null || j < 0 || j >= supportedNetworks.size() ? null : supportedNetworks.get(j));
             String networkId = this.safeString(network, "id");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -868,7 +868,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             List<Object> rawMarkets = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
             {
-                Object market = Helpers.GetValue(rawMarkets, i);
+                Object market = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                 String id = this.safeString(market, "id");
                 var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);

@@ -733,7 +733,7 @@ public class Backpack extends BackpackApi
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networks).size(); j++)
         {
-            Object network = Helpers.GetValue(networks, j);
+            Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             String networkId = this.safeString(network, "blockchain");
             String networkIdLowerCase = this.safeStringLower(network, "blockchain");
             Object networkCode = this.networkIdToCode(networkIdLowerCase, code);
@@ -1463,7 +1463,7 @@ public class Backpack extends BackpackApi
             List<Object> rawRates = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawRates).size(); i++)
             {
-                Object rate = Helpers.GetValue(rawRates, i);
+                Object rate = (rawRates == null || i < 0 || i >= rawRates.size() ? null : rawRates.get(i));
                 String datetime = this.safeString(rate, "intervalEndTimestamp");
                 Long timestamp = this.parse8601(datetime);
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
@@ -1776,7 +1776,7 @@ public class Backpack extends BackpackApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
         {
-            Object id = Helpers.GetValue(balanceKeys, i);
+            Object id = (balanceKeys == null || i < 0 || i >= balanceKeys.size() ? null : balanceKeys.get(i));
             String code = this.safeCurrencyCode(id);
             Object balance = Helpers.GetValue(response, id);
             Object account = this.account();

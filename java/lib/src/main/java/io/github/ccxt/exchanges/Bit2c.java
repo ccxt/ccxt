@@ -374,7 +374,7 @@ public class Bit2c extends Bit2cApi
         List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
-            Object code = Helpers.GetValue(codes, i);
+            Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Object account = this.account();
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object uppercase = ((String)((Map<String, Object>)currency).get("id")).toUpperCase();
@@ -493,7 +493,7 @@ public class Bit2c extends Bit2cApi
             List<Object> asks = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawBids).size(); i++)
             {
-                Object bidRow = Helpers.GetValue(rawBids, i);
+                Object bidRow = (rawBids == null || i < 0 || i >= rawBids.size() ? null : rawBids.get(i));
                 String bidAmount = this.safeString(bidRow, 1);
                 if (Precise.stringGt(bidAmount, "0"))
                 {
@@ -502,7 +502,7 @@ public class Bit2c extends Bit2cApi
             }
             for (var i = 0; i < ((List<?>)rawAsks).size(); i++)
             {
-                Object askRow = Helpers.GetValue(rawAsks, i);
+                Object askRow = (rawAsks == null || i < 0 || i >= rawAsks.size() ? null : rawAsks.get(i));
                 String askAmount = this.safeString(askRow, 1);
                 if (Precise.stringGt(askAmount, "0"))
                 {

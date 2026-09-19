@@ -292,7 +292,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object t = Helpers.GetValue(data, i);
+            Object t = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String s = this.safeString(t, "s");
             if (java.util.Objects.equals(s, null))
             {

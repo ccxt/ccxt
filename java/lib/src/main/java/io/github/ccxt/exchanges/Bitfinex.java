@@ -935,7 +935,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object pairObj = Helpers.GetValue(markets, i);
+                Object pairObj = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeStringUpper(pairObj, 0);
                 Object market = this.safeValue(pairObj, 1, new HashMap<String, Object>() {{}});
                 Boolean spot = true;
@@ -1194,7 +1194,7 @@ public class Bitfinex extends BitfinexApi
         List<Object> arr = this.toArray(allowedIds);
         for (var i = 0; i < ((List<?>)arr).size(); i++)
         {
-            Object parsed = this.parseCurrencyCustom(Helpers.GetValue(arr, i), indexed, indexedNetworks);
+            Object parsed = this.parseCurrencyCustom((arr == null || i < 0 || i >= arr.size() ? null : arr.get(i)), indexed, indexedNetworks);
             Object code = ((Map<String, Object>)parsed).get("code");
             Helpers.addElementToObject(result, code, parsed);
         }
@@ -1318,7 +1318,7 @@ public class Bitfinex extends BitfinexApi
             }};
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object balance = Helpers.GetValue(balances, i);
+                Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 Object account = this.account();
                 String interest = this.safeString(balance, 3);
                 if (!java.util.Objects.equals(interest, "0"))
@@ -1567,7 +1567,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> orders = this.toArray(orderbook);
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = Helpers.GetValue(orders, i);
+                Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 Double price = this.safeNumber(order, priceIndex);
                 String signedAmount = this.safeString(order, 2);
                 String amount = Precise.stringAbs(signedAmount);
@@ -2484,7 +2484,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> data = (List<Object>) this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Object individualOrder = Helpers.GetValue(entry, 4);
                 ((List<Object>)results).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(individualOrder, 0) );
@@ -4210,7 +4210,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawRatesData).size(); i++)
             {
-                Object fr = Helpers.GetValue(rawRatesData, i);
+                Object fr = (rawRatesData == null || i < 0 || i >= rawRatesData.size() ? null : rawRatesData.get(i));
                 Object rate = this.parseFundingRateHistory(fr, market);
                 ((List<Object>)rates).add(rate);
             }

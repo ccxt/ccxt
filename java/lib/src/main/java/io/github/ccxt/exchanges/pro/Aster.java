@@ -519,7 +519,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //
         String marketType = this.getAccountTypeFromUrl(client.url);
         Object ticker = message;
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(ticker, marketType);
+        Object parsed = this.parseWsTicker(ticker, marketType);
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
         String messageHash = Helpers.add("ticker:", symbol);
         if (!java.util.Objects.equals(symbol, null))
@@ -1310,7 +1310,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a");
+        Object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         String messageHash = (("orderbook" + ":") + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -1678,7 +1678,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 List<Object> messageHashes = Helpers.objectKeys(client.futures);
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
                 {
-                    Object messageHash = Helpers.GetValue(messageHashes, i);
+                    Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                     client.reject(error, messageHash);
                 }
                 Helpers.addElementToObject(Helpers.GetValue(this.options, "listenKey"), type, null);
@@ -1859,7 +1859,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String wallet = this.safeString(this.options, "wallet", "wb");
         for (var i = 0; i < ((List<?>)B).size(); i++)
         {
-            Object entry = Helpers.GetValue(B, i);
+            Object entry = (B == null || i < 0 || i >= B.size() ? null : B.get(i));
             String currencyId = this.safeString(entry, "a");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -2033,8 +2033,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition);
+            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
+            Object position = this.parseWsPosition(rawPosition);
             Long timestamp = this.safeInteger(message, "E");
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
@@ -2046,7 +2046,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             for (var i = 0; i < ((List<?>)newPositions).size(); i++)
             {
-                Object position = Helpers.GetValue(newPositions, i);
+                Object position = (newPositions == null || i < 0 || i >= newPositions.size() ? null : newPositions.get(i));
                 Object symbol = Helpers.GetValue(position, "symbol");
                 Object symbolMessageHash = Helpers.add((messageHash + "::"), symbol);
                 client.resolve(position, symbolMessageHash);
@@ -2273,7 +2273,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                             Boolean insertNewFeeCurrency = true;
                             for (var i = 0; i < ((List<?>)fees).size(); i++)
                             {
-                                Object orderFee = Helpers.GetValue(fees, i);
+                                Object orderFee = (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
                                 if (Helpers.isEqual(Helpers.GetValue(orderFee, "currency"), ((Map<String, Object>)tradeFee).get("currency")))
                                 {
                                     Object feeCost = this.sum(((Map<String, Object>)tradeFee).get("cost"), Helpers.GetValue(orderFee, "cost"));
@@ -2410,7 +2410,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object cache = this.orders;
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, market);
+        Object parsed = this.parseWsOrder(message, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Helpers.callDynamically(cache, "append", new Object[]{parsed});
         Object messageHashes = this.findMessageHashes(client, messageHash);
@@ -2455,7 +2455,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }};
         }
         String rawStatus = this.safeString(order, "X");
-        String status = this.parseOrderStatus((String) (rawStatus));
+        String status = this.parseOrderStatus(rawStatus);
         String clientOrderId = this.safeString2(order, "C", "caid");
         if ((java.util.Objects.equals(clientOrderId, null)) || ((clientOrderId.length() == 0)))
         {

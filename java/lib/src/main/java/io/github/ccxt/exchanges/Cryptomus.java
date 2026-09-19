@@ -1086,7 +1086,7 @@ public class Cryptomus extends CryptomusApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object order = Helpers.GetValue(result, i);
+                Object order = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 ((List<Object>)orders).add(this.parseOrder(order, market));
             }
             return orders;
@@ -1370,7 +1370,7 @@ public class Cryptomus extends CryptomusApi
             }
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 final Object finalMakerFee = makerFee;
                 final Object finalTakerFee = takerFee;
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{

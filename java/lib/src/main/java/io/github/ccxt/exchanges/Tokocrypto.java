@@ -889,7 +889,7 @@ public class Tokocrypto extends TokocryptoApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)list).size(); i++)
             {
-                Object market = Helpers.GetValue(list, i);
+                Object market = (list == null || i < 0 || i >= list.size() ? null : list.get(i));
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
                 String id = this.safeString(market, "symbol");
@@ -906,7 +906,7 @@ public class Tokocrypto extends TokocryptoApi
                 List<Object> permissions = (List<Object>) this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)permissions).size(); j++)
                 {
-                    if (java.util.Objects.equals(Helpers.GetValue(permissions, j), "TRD_GRP_003"))
+                    if (java.util.Objects.equals((permissions == null || j < 0 || j >= permissions.size() ? null : permissions.get(j)), "TRD_GRP_003"))
                     {
                         active = false;
                         break;
@@ -1826,7 +1826,7 @@ public class Tokocrypto extends TokocryptoApi
         List<Object> balances = (List<Object>) this.safeList(data, "accountAssets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -3228,7 +3228,7 @@ public class Tokocrypto extends TokocryptoApi
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
-                Object entry = Helpers.GetValue(byLimit, i);
+                Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
                 if (Helpers.isLessThanOrEqual(limit, Helpers.GetValue(entry, 0)))
                 {
                     return Helpers.GetValue(entry, 1);

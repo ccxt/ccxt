@@ -347,12 +347,12 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                ((List<Object>)tickers).add(this.parsePerpetualTicker(Helpers.GetValue(data, i)));
+                ((List<Object>)tickers).add(this.parsePerpetualTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
             }
         }
         for (var i = 0; i < ((List<?>)tickers).size(); i++)
         {
-            Object ticker = Helpers.GetValue(tickers, i);
+            Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             Object symbol = Helpers.GetValue(ticker, "symbol");
             String messageHash = Helpers.add("ticker:", symbol);
             Long timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
@@ -523,7 +523,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         List<Object> parsed = this.parseTrades(trades, market);
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsed, i)});
+            Helpers.callDynamically(stored, "append", new Object[]{(parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i))});
         }
         client.resolve(stored, messageHash);
     }
@@ -582,7 +582,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
             {
-                Object candle = Helpers.GetValue(ohlcvs, i);
+                Object candle = (ohlcvs == null || i < 0 || i >= ohlcvs.size() ? null : ohlcvs.get(i));
                 Helpers.callDynamically(stored, "append", new Object[]{candle});
             }
             client.resolve(stored, messageHash);
@@ -1109,7 +1109,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object rawTrade = Helpers.GetValue(message, i);
             String marketId = this.safeString(rawTrade, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(rawTrade);
+            Object parsed = this.parseTrade(rawTrade);
             Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (java.util.Objects.equals(type, null))
@@ -1363,8 +1363,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             trades = this.safeList(message, "fills", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder);
+                Object rawOrder = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
+                Object parsedOrder = this.parseOrder(rawOrder);
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
         } else
@@ -1398,7 +1398,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Object stored = this.orders;
         for (var i = 0; i < ((List<?>)parsedOrders).size(); i++)
         {
-            Object parsed = Helpers.GetValue(parsedOrders, i);
+            Object parsed = (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(parsed, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);

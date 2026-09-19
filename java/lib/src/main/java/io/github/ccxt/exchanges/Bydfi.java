@@ -798,9 +798,9 @@ public class Bydfi extends BydfiApi
             {
                 throw new ArgumentsRequired((this.id + " getClosestLimit() requires a limit argument")) ;
             }
-            if (Helpers.isLessThanOrEqual(limit, Helpers.GetValue(limits, i)))
+            if (Helpers.isLessThanOrEqual(limit, (limits == null || i < 0 || i >= limits.size() ? null : limits.get(i))))
             {
-                result = Helpers.GetValue(limits, i);
+                result = (limits == null || i < 0 || i >= limits.size() ? null : limits.get(i));
                 break;
             }
         }

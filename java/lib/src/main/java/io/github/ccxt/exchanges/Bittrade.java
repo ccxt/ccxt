@@ -699,14 +699,14 @@ public class Bittrade extends BittradeApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
+                ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById(this.marketId(symbol), parameters)).join());
             }
             return result;
         });
 
     }
 
-    public CompletableFuture<Object> fetchTradingLimitsById(String id, Object... optionalArgs)
+    public CompletableFuture<Object> fetchTradingLimitsById(Object id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -835,7 +835,7 @@ public class Bittrade extends BittradeApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String baseId = this.safeString(market, "base-currency");
                 String quoteId = this.safeString(market, "quote-currency");
                 String base = this.safeCurrencyCode(baseId);
@@ -1069,7 +1069,7 @@ public class Bittrade extends BittradeApi
                 }
                 Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick");
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
-                Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp);
+                Object result = this.parseOrderBook(tick, symbol, timestamp);
                 ((Map<String, Object>)result).put("nonce", this.safeInteger(tick, "version"));
                 return result;
             }
@@ -1122,7 +1122,7 @@ public class Bittrade extends BittradeApi
             //     }
             //
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
+            Object ticker = this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -1157,10 +1157,10 @@ public class Bittrade extends BittradeApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                String marketId = this.safeString(Helpers.GetValue(tickers, i), "symbol");
+                String marketId = this.safeString((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(tickers, i), market);
+                Object ticker = this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
                 Helpers.addElementToObject(ticker, "timestamp", timestamp);
                 Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
                 ((Map<String, Object>)result).put((String)symbol, ticker);
@@ -1402,10 +1402,10 @@ public class Bittrade extends BittradeApi
             Object result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                List<Object> trades = (List<Object>) this.safeList(Helpers.GetValue(data, i), "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> trades = (List<Object>) this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "data", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)trades).size(); j++)
                 {
-                    Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(trades, j), market);
+                    Object trade = this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
                     ((List<Object>)result).add(trade);
                 }
             }
@@ -1622,7 +1622,7 @@ public class Bittrade extends BittradeApi
         }};
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = null;
@@ -1942,7 +1942,7 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "partial-filled", "open" );
@@ -2354,7 +2354,7 @@ public class Bittrade extends BittradeApi
         }
         for (var i = 0; i < ((List<?>)failed).size(); i++)
         {
-            Object order = Helpers.GetValue(failed, i);
+            Object order = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Bittrade.this.safeString2(order, "order-id", "order_id") );
@@ -2632,7 +2632,7 @@ public class Bittrade extends BittradeApi
         }};
     }
 
-    public String parseTransactionStatus(String status)
+    public String parseTransactionStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "unknown", "failed" );

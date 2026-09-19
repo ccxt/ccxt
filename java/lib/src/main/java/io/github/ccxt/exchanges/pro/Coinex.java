@@ -183,7 +183,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
         {
-            Object entry = Helpers.GetValue(rawTickers, i);
+            Object entry = (rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i));
             String marketId = this.safeString(entry, "market");
             String symbol = this.safeSymbol(marketId, null, null, defaultType);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
@@ -646,7 +646,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         }
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            Object trade = Helpers.GetValue(trades, i);
+            Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             Object parsed = this.parseWsTrade(trade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }

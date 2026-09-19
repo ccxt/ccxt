@@ -621,7 +621,7 @@ public class Coinspot extends CoinspotApi
                 List<Object> currencyIds = Helpers.objectKeys(currencies);
                 for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                 {
-                    Object currencyId = Helpers.GetValue(currencyIds, j);
+                    Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                     Object balance = Helpers.GetValue(currencies, currencyId);
                     String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
@@ -637,7 +637,7 @@ public class Coinspot extends CoinspotApi
             List<Object> currencyIds = Helpers.objectKeys(balances);
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
-                Object currencyId = Helpers.GetValue(currencyIds, i);
+                Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 ((Map<String, Object>)account).put("total", this.safeString(balances, currencyId));

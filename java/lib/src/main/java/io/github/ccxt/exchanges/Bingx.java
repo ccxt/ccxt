@@ -1370,7 +1370,7 @@ public class Bingx extends BingxApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
         {
-            Object rawNetwork = Helpers.GetValue(networkList, j);
+            Object rawNetwork = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             String network = this.safeString(rawNetwork, "network");
             Object networkCode = this.networkIdToCode(network, code);
             Map<String, Object> limits = new HashMap<String, Object>() {{
@@ -3334,7 +3334,7 @@ public class Bingx extends BingxApi
         {
             for (var i = 0; i < ((List<?>)contractBalances).size(); i++)
             {
-                Object balance = Helpers.GetValue(contractBalances, i);
+                Object balance = (contractBalances == null || i < 0 || i >= contractBalances.size() ? null : contractBalances.get(i));
                 String currencyId = this.safeString(balance, "asset");
                 if (java.util.Objects.equals(currencyId, null))
                 {
@@ -3354,7 +3354,7 @@ public class Bingx extends BingxApi
         {
             for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
             {
-                Object balance = Helpers.GetValue(spotBalances, i);
+                Object balance = (spotBalances == null || i < 0 || i >= spotBalances.size() ? null : spotBalances.get(i));
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();

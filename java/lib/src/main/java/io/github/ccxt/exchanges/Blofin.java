@@ -1453,7 +1453,7 @@ public class Blofin extends BlofinApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object rate = Helpers.GetValue(data, i);
+                Object rate = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Long timestamp = this.safeInteger(rate, "fundingTime");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", rate );
@@ -1605,7 +1605,7 @@ public class Blofin extends BlofinApi
         List<Object> details = (List<Object>) this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)details).size(); i++)
         {
-            Object balance = Helpers.GetValue(details, i);
+            Object balance = (details == null || i < 0 || i >= details.size() ? null : details.get(i));
             String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -1651,7 +1651,7 @@ public class Blofin extends BlofinApi
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object balance = Helpers.GetValue(data, i);
+            Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();

@@ -155,7 +155,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)parameters).size(); i++)
         {
-            Object data = Helpers.GetValue(parameters, i);
+            Object data = (parameters == null || i < 0 || i >= parameters.size() ? null : parameters.get(i));
             String marketId = this.safeString(data, 7);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -410,7 +410,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         List<Object> messageHashes = Helpers.objectKeys(client.futures);
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object currentMessageHash = Helpers.GetValue(messageHashes, i);
+            Object currentMessageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             if (((String)currentMessageHash).indexOf("tickers") >= 0 && ((String)currentMessageHash).indexOf(((String)symbol)) >= 0)
             {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
@@ -507,7 +507,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; j < ((List<?>)parsedTrades).size(); j++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
+            Helpers.callDynamically(stored, "append", new Object[]{(parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j))});
         }
         String messageHash = ("trades:" + ((Map<String, Object>)market).get("symbol"));
         client.resolve(stored, messageHash);

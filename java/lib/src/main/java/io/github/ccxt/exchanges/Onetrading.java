@@ -797,7 +797,7 @@ public class Onetrading extends OnetradingApi
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Map<String, Object> tierObject = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? firstSpotTier : firstFuturesTier;
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
@@ -874,7 +874,7 @@ public class Onetrading extends OnetradingApi
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String makerFee = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? spotMakerFee : futuresMakerFee;
                 String takerFee = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? spotTakerFee : futuresTakerFee;
@@ -1063,7 +1063,7 @@ public class Onetrading extends OnetradingApi
             List<Object> rawTickers = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(rawTickers, i));
+                Object ticker = this.parseTicker((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i)));
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -1380,7 +1380,7 @@ public class Onetrading extends OnetradingApi
         }};
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -1434,7 +1434,7 @@ public class Onetrading extends OnetradingApi
 
     }
 
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "OPEN", "open" );
@@ -1560,7 +1560,7 @@ public class Onetrading extends OnetradingApi
         }}, market);
     }
 
-    public String parseTimeInForce(String timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "GOOD_TILL_CANCELLED", "GTC" );

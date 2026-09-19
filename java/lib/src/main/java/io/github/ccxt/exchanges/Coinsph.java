@@ -800,7 +800,7 @@ public class Coinsph extends CoinsphApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
         {
-            Object networkItem = Helpers.GetValue(networkList, j);
+            Object networkItem = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             String network = this.safeString(networkItem, "network");
             Object networkCode = this.networkIdToCode(network, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -862,7 +862,7 @@ public class Coinsph extends CoinsphApi
             List<Object> byNumberOfSymbols = (List<Object>) this.safeList(config, "byNumberOfSymbols", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byNumberOfSymbols).size(); i++)
             {
-                Object entry = Helpers.GetValue(byNumberOfSymbols, i);
+                Object entry = (byNumberOfSymbols == null || i < 0 || i >= byNumberOfSymbols.size() ? null : byNumberOfSymbols.get(i));
                 if (Helpers.isGreaterThanOrEqual(symbolsAmount, Helpers.GetValue(entry, 0)))
                 {
                     return Helpers.GetValue(entry, 1);
@@ -874,7 +874,7 @@ public class Coinsph extends CoinsphApi
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
-                Object entry = Helpers.GetValue(byLimit, i);
+                Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
                 if (Helpers.isGreaterThanOrEqual(limit, Helpers.GetValue(entry, 0)))
                 {
                     return Helpers.GetValue(entry, 1);
@@ -1011,7 +1011,7 @@ public class Coinsph extends CoinsphApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
@@ -1303,7 +1303,7 @@ public class Coinsph extends CoinsphApi
             //         ]
             //     }
             //
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol);
+            Object orderbook = this.parseOrderBook(response, symbol);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1691,7 +1691,7 @@ public class Coinsph extends CoinsphApi
         }};
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -2322,7 +2322,7 @@ public class Coinsph extends CoinsphApi
             List<Object> fees = this.toArray(response);
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(fees, i));
+                Object fee = this.parseTradingFee((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i)));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

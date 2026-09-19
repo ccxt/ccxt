@@ -531,7 +531,7 @@ public class Coinmate extends CoinmateApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object market = Helpers.GetValue(data, i);
+                Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(market, "name");
                 String baseId = this.safeString(market, "firstCurrency");
                 String quoteId = this.safeString(market, "secondCurrency");

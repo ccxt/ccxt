@@ -933,7 +933,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)portfolios).size(); i++)
             {
-                Object portfolio = Helpers.GetValue(portfolios, i);
+                Object portfolio = (portfolios == null || i < 0 || i >= portfolios.size() ? null : portfolios.get(i));
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", Coinbase.this.safeString(portfolio, "uuid") );
                     put( "type", Coinbase.this.safeString(portfolio, "type") );
@@ -1759,7 +1759,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     for (var j = 0; j < ((List<?>)data).size(); j++)
                     {
-                        Object quoteCurrency = Helpers.GetValue(data, j);
+                        Object quoteCurrency = (data == null || j < 0 || j >= data.size() ? null : data.get(j));
                         String quoteId = this.safeString(quoteCurrency, "id");
                         String quote = this.safeCurrencyCode(quoteId);
     final Object finalBaseId = baseId;
@@ -1964,22 +1964,22 @@ public class Coinbase extends CoinbaseApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                ((List<Object>)result).add(this.parseSpotMarket(Helpers.GetValue(data, i), feeTier));
+                ((List<Object>)result).add(this.parseSpotMarket((data == null || i < 0 || i >= data.size() ? null : data.get(i)), feeTier));
             }
             List<Object> futureData = (List<Object>) this.safeList(expiringFutures, "products", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)futureData).size(); i++)
             {
-                ((List<Object>)result).add(this.parseContractMarket(Helpers.GetValue(futureData, i), expiringFeeTier));
+                ((List<Object>)result).add(this.parseContractMarket((futureData == null || i < 0 || i >= futureData.size() ? null : futureData.get(i)), expiringFeeTier));
             }
             List<Object> perpetualData = (List<Object>) this.safeList(perpetualFutures, "products", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)perpetualData).size(); i++)
             {
-                ((List<Object>)result).add(this.parseContractMarket(Helpers.GetValue(perpetualData, i), perpetualFeeTier));
+                ((List<Object>)result).add(this.parseContractMarket((perpetualData == null || i < 0 || i >= perpetualData.size() ? null : perpetualData.get(i)), perpetualFeeTier));
             }
             List<Object> newMarkets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object market = Helpers.GetValue(result, i);
+                Object market = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                 List<Object> realMarketIds = (List<Object>) this.safeList(info, "alias_to", new ArrayList<Object>(Arrays.asList()));
                 Object length = ((List<?>)realMarketIds).size();
@@ -2411,7 +2411,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> networksById = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
-                Object currency = Helpers.GetValue(currencies, i);
+                Object currency = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
                 String assetId = this.safeString(currency, "asset_id");
                 String id = this.safeString2(currency, "id", "code");
                 String code = this.safeCurrencyCode(id);
@@ -2641,7 +2641,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "product_id");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
                 Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -2926,7 +2926,7 @@ public class Coinbase extends CoinbaseApi
         }};
         for (var b = 0; b < ((List<?>)balances).size(); b++)
         {
-            Object balance = Helpers.GetValue(balances, b);
+            Object balance = (balances == null || b < 0 || b >= balances.size() ? null : balances.get(b));
             String type = this.safeString(balance, "type");
             if (this.inArray(type, accounts))
             {
@@ -4207,7 +4207,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Boolean success = (Boolean) this.safeBool(Helpers.GetValue(orders, i), "success");
+                Boolean success = (Boolean) this.safeBool((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)), "success");
                 if (!java.util.Objects.equals(success, true))
                 {
                     throw new BadRequest((this.id + " cancelOrders() has failed, check your arguments and parameters")) ;
@@ -6287,7 +6287,7 @@ public class Coinbase extends CoinbaseApi
         List<Object> parsedPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)spotPositions).size(); i++)
         {
-            Object position = Helpers.GetValue(spotPositions, i);
+            Object position = (spotPositions == null || i < 0 || i >= spotPositions.size() ? null : spotPositions.get(i));
             String currencyCode = this.safeString(position, "asset", "Unknown");
             String availableBalanceStr = this.safeString(position, "available_to_trade_fiat", "0");
             Object availableBalance = this.parseNumber(availableBalanceStr);

@@ -362,7 +362,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object order = Helpers.GetValue(results, i);
+                Object order = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 String error = this.safeString(order, "error");
                 Boolean success = (Boolean) this.safeBool(order, "success", false);
                 String marketId = this.safeString(order, "symbol");
@@ -661,7 +661,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             put( "asks", Pacifica.this.safeList(levels, 1, new ArrayList<Object>(Arrays.asList())) );
         }};
         Long timestamp = this.safeInteger(entry, "t");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a");
+        Object snapshot = this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a");
         Long nonce = this.safeInteger(entry, "li");
         if ((!java.util.Objects.equals(nonce, null)) && (!Helpers.isEqual(nonce, 0)))
         {
@@ -908,11 +908,11 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object info = Helpers.GetValue(data, i);
+            Object info = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(info, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(info, market);
+            Object ticker = this.parseWsTicker(info, market);
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             ((List<Object>)parsedTickers).add(ticker);
         }
@@ -968,7 +968,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object rawTrade = Helpers.GetValue(data, i);
+            Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object parsed = this.parseWsTrade(rawTrade);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -1341,7 +1341,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             ohlcv = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             ((Map<String, Object>)symbolOhlcvs).put((String)timeframe, ohlcv);
         }
-        List<Object> parsed = (List<Object>) this.parseOHLCV(data);
+        Object parsed = this.parseOHLCV(data);
         Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
         String messageHash = ((("candles:" + timeframe) + ":") + symbol);
         client.resolve(ohlcv, messageHash);
@@ -1498,8 +1498,8 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         Map<String, Object> marketSymbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object rawOrder = Helpers.GetValue(data, i);
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder);
+            Object rawOrder = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Object order = this.parseOrder(rawOrder);
             Helpers.callDynamically(stored, "append", new Object[]{order});
             String symbol = this.safeString(order, "symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -1578,7 +1578,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         List<Object> symbols = Helpers.objectKeys(this.tickers);
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            ((Map<String,Object>)this.tickers).remove((String)Helpers.GetValue(symbols, i));
+            ((Map<String,Object>)this.tickers).remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
         }
     }
 

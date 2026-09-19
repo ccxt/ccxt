@@ -119,7 +119,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
-                Object currencyCode = Helpers.GetValue(currencies, i);
+                Object currencyCode = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
                 ((List<Object>)channels).add(Helpers.add("user.portfolio.", currencyCode));
             }
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -136,7 +136,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     }
 
-    public void handleBalance(Client client, Map<String, Object> message)
+    public void handleBalance(Client client, Object message)
     {
         //
         // subscription
@@ -186,7 +186,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Helpers.addElementToObject(this.balance, "info", data);
         String currencyId = this.safeString(data, "currency");
         String currencyCode = this.safeCurrencyCode(currencyId);
-        Map<String, Object> balance = (Map<String, Object>) this.parseBalance(data);
+        Object balance = this.parseBalance(data);
         if (!java.util.Objects.equals(currencyCode, null))
         {
             Helpers.addElementToObject(this.balance, currencyCode, balance);
@@ -303,7 +303,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     }
 
-    public void handleTicker(Client client, Map<String, Object> message)
+    public void handleTicker(Client client, Object message)
     {
         //
         //     {
@@ -338,7 +338,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "instrument_name");
         String symbol = this.safeSymbol(marketId);
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data);
+        Object ticker = this.parseTicker(data);
         String messageHash = this.safeString(parameters, "channel");
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, messageHash);
@@ -393,7 +393,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     }
 
-    public void handleBidAsk(Client client, Map<String, Object> message)
+    public void handleBidAsk(Client client, Object message)
     {
         //
         //     {
@@ -414,14 +414,14 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Object ticker = this.parseWsBidAsk((Map<String, Object>) (data));
+        Object ticker = this.parseWsBidAsk(data);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
         String messageHash = this.safeString(parameters, "channel");
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "instrument_name");
@@ -493,7 +493,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.authenticate()).join();
             }
-            Object trades = (this.watchMultipleWrapper("trades", (String) (interval), symbols, parameters)).join();
+            Object trades = (this.watchMultipleWrapper("trades", interval, symbols, parameters)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -505,7 +505,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     }
 
-    public void handleTrades(Client client, Map<String, Object> message)
+    public void handleTrades(Client client, Object message)
     {
         //
         //     {
@@ -544,8 +544,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            Object trade = Helpers.GetValue(trades, i);
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade, market);
+            Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+            Object parsed = this.parseTrade(trade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
@@ -599,7 +599,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     }
 
-    public void handleMyTrades(Client client, Map<String, Object> message)
+    public void handleMyTrades(Client client, Object message)
     {
         //
         //     {
@@ -646,7 +646,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
-            Object trade = Helpers.GetValue(parsed, i);
+            Object trade = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             Helpers.callDynamically(cachedTrades, "append", new Object[]{trade});
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             ((Map<String, Object>)marketIds).put((String)((String)symbol), true);
@@ -723,13 +723,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 descriptor = interval;
             }
-            Object orderbook = (this.watchMultipleWrapper("book", (String) (descriptor), symbols, parameters)).join();
+            Object orderbook = (this.watchMultipleWrapper("book", descriptor, symbols, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
     }
 
-    public void handleOrderBook(Client client, Map<String, Object> message)
+    public void handleOrderBook(Client client, Object message)
     {
         //
         //  snapshot
@@ -815,19 +815,19 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public Object cleanOrderBook(Map<String, Object> data)
+    public Object cleanOrderBook(Object data)
     {
         List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
         List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> cleanedBids = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bids).size(); i++)
         {
-            ((List<Object>)cleanedBids).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(Helpers.GetValue(bids, i), 1), Helpers.GetValue(Helpers.GetValue(bids, i), 2))));
+            ((List<Object>)cleanedBids).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue((bids == null || i < 0 || i >= bids.size() ? null : bids.get(i)), 1), Helpers.GetValue((bids == null || i < 0 || i >= bids.size() ? null : bids.get(i)), 2))));
         }
         List<Object> cleanedAsks = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)asks).size(); i++)
         {
-            ((List<Object>)cleanedAsks).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(Helpers.GetValue(asks, i), 1), Helpers.GetValue(Helpers.GetValue(asks, i), 2))));
+            ((List<Object>)cleanedAsks).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue((asks == null || i < 0 || i >= asks.size() ? null : asks.get(i)), 1), Helpers.GetValue((asks == null || i < 0 || i >= asks.size() ? null : asks.get(i)), 2))));
         }
         ((Map<String, Object>)data).put("bids", cleanedBids);
         ((Map<String, Object>)data).put("asks", cleanedAsks);
@@ -909,7 +909,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     }
 
-    public void handleOrders(Client client, Map<String, Object> message)
+    public void handleOrders(Client client, Object message)
     {
         // Does not return a snapshot of current orders
         //
@@ -959,7 +959,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             orders = this.parseOrders(data);
         } else
         {
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(data);
+            Object order = this.parseOrder(data);
             orders = new ArrayList<Object>(Arrays.asList(order));
         }
         Object cachedOrders = this.orders;
@@ -1026,7 +1026,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
-            var symboltimeframecandlesVariable = (this.watchMultipleWrapper("chart.trades", (String) (null), symbolsAndTimeframes, parameters)).join();
+            var symboltimeframecandlesVariable = (this.watchMultipleWrapper("chart.trades", null, symbolsAndTimeframes, parameters)).join();
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
@@ -1040,7 +1040,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     }
 
-    public void handleOHLCV(Client client, Map<String, Object> message)
+    public void handleOHLCV(Client client, Object message)
     {
         //
         //     {
@@ -1104,7 +1104,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
     }
 
-    public CompletableFuture<Object> watchMultipleWrapper(Object channelName2, String channelDescriptor2, Object... optionalArgs)
+    public CompletableFuture<Object> watchMultipleWrapper(Object channelName2, Object channelDescriptor2, Object... optionalArgs)
     {
         final Object channelName3 = channelName2;
         final Object channelDescriptor3 = channelDescriptor2;
@@ -1140,7 +1140,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                     market = this.market(Helpers.GetValue(current, 0));
                     Object unifiedTf = Helpers.GetValue(current, 1);
                     String rawTf = this.safeString(this.timeframes, unifiedTf, unifiedTf);
-                    channelDescriptor = (String) (rawTf);
+                    channelDescriptor = rawTf;
                 } else
                 {
                     market = this.market(current);
@@ -1266,11 +1266,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String accessToken = this.safeString(result, "access_token");
         if (!java.util.Objects.equals(accessToken, null))
         {
-            this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
+            this.handleAuthenticationMessage(client, message);
         }
     }
 
-    public Object handleAuthenticationMessage(Client client, Map<String, Object> message)
+    public Object handleAuthenticationMessage(Client client, Object message)
     {
         //
         //     {

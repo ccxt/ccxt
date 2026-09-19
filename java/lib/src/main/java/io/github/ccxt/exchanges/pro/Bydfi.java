@@ -1251,7 +1251,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }};
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object balance = Helpers.GetValue(balances, i);
+                Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(balance, "a");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -1293,7 +1293,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object unsubHash = Helpers.GetValue(messageHashes, i);
+            Object unsubHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             Object subHash = Helpers.replace(((String)unsubHash), "unsubscribe::", "");
             this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
         }

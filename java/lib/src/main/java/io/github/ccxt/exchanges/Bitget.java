@@ -4450,7 +4450,7 @@ public class Bitget extends BitgetApi
         }
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "chain");
             Object network = this.networkIdToCode(networkId, code);
             if (java.util.Objects.equals(network, null))
@@ -6505,7 +6505,7 @@ final Object finalMinNotional = minNotional;
                 Map<String, Object> utaResult = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < ((List<?>)rows).size(); i++)
                 {
-                    Object entry = Helpers.GetValue(rows, i);
+                    Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                     String entryMarketId = this.safeString(entry, "symbol");
                     if ((java.util.Objects.equals(entryMarketId, null)) || (java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(entryMarketId)))
                     {
@@ -6619,7 +6619,7 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 String symbol = this.safeSymbol(marketId, null, null, marketType);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -12989,7 +12989,7 @@ final Object finalMinNotional = minNotional;
         }};
         for (var i = 0; Helpers.isLessThan(i, chainsLength); i++)
         {
-            Object chain = Helpers.GetValue(chains, i);
+            Object chain = (chains == null || i < 0 || i >= chains.size() ? null : chains.get(i));
             String networkId = this.safeString(chain, "chain");
             String currencyCode = this.safeString(currency, "code");
             Object networkCode = this.networkIdToCode(networkId, currencyCode);
@@ -14505,7 +14505,7 @@ final Object finalMinNotional = minNotional;
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(entry, "coin");
                 String code = this.safeCurrencyCode(id);
                 if (!java.util.Objects.equals(code, null))

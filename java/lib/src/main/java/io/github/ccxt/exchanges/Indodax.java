@@ -443,7 +443,7 @@ public class Indodax extends IndodaxApi
             List<Object> rawMarkets = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
             {
-                Object market = Helpers.GetValue(rawMarkets, i);
+                Object market = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                 String id = this.safeString(market, "id");
                 String baseId = this.safeString(market, "traded_currency");
                 String quoteId = this.safeString(market, "base_currency");
@@ -1111,7 +1111,7 @@ public class Indodax extends IndodaxApi
             Object exchangeOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Object marketOrders = Helpers.GetValue(rawOrders, marketId);
                 market = this.safeMarket(marketId);
                 List<Object> parsedOrders = this.parseOrders(marketOrders, market, since, limit);

@@ -568,7 +568,7 @@ public class Zebpay extends ZebpayApi
         Object withdraw = false;
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "chainId");
             Object networkCode = this.networkIdToCode(networkId, code);
             Object depositAllowed = java.util.Objects.equals(this.safeBool(chain, "isDepositEnabled"), true);
@@ -765,7 +765,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(fees, i));
+                Object fee = this.parseTradingFee((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i)));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -828,7 +828,7 @@ public class Zebpay extends ZebpayApi
                 response = (this.publicSwapGetV1MarketOrderBook(this.extend(request, parameters))).join();
             }
             Map<String, Object> bookData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(bookData, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", 0, 1);
+            Object orderbook = this.parseOrderBook(bookData, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", 0, 1);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(bookData, "nonce"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1546,7 +1546,7 @@ public class Zebpay extends ZebpayApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(data);
+            Object parsedOrder = this.parseOrder(data);
             return new ArrayList<Object>(Arrays.asList(parsedOrder));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2091,7 +2091,7 @@ public class Zebpay extends ZebpayApi
             List<Object> markets = (List<Object>) this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
@@ -2179,7 +2179,7 @@ public class Zebpay extends ZebpayApi
             List<Object> markets = (List<Object>) this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
@@ -2238,7 +2238,7 @@ public class Zebpay extends ZebpayApi
         List<Object> currencyList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)currencyList).size(); i++)
         {
-            Object entry = Helpers.GetValue(currencyList, i);
+            Object entry = (currencyList == null || i < 0 || i >= currencyList.size() ? null : currencyList.get(i));
             Object account = this.account();
             ((Map<String, Object>)account).put("total", this.safeString(entry, "total"));
             ((Map<String, Object>)account).put("free", this.safeString(entry, "free"));

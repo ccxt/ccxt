@@ -2691,7 +2691,7 @@ public class Bybit extends BybitApi
             String url = null;
             for (var i = 0; i < ((List<?>)list).size(); i++)
             {
-                Object eventVar = Helpers.GetValue(list, i);
+                Object eventVar = (list == null || i < 0 || i >= list.size() ? null : list.get(i));
                 String state = this.safeString(eventVar, "state");
                 if (java.util.Objects.equals(state, "ongoing"))
                 {
@@ -2820,7 +2820,7 @@ public class Bybit extends BybitApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "chain");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -2928,7 +2928,7 @@ public class Bybit extends BybitApi
                     List<Object> optionsCurrencies = (List<Object>) this.safeList(fetchMarketsOptions, "options", new ArrayList<Object>(Arrays.asList("BTC", "ETH", "SOL")));
                     for (var j = 0; j < ((List<?>)optionsCurrencies).size(); j++)
                     {
-                        Object currency = Helpers.GetValue(optionsCurrencies, j);
+                        Object currency = (optionsCurrencies == null || j < 0 || j >= optionsCurrencies.size() ? null : optionsCurrencies.get(j));
                         ((List<Object>)promisesUnresolved).add(this.fetchOptionMarkets(new HashMap<String, Object>() {{
                             put( "baseCoin", currency );
                         }}));
@@ -3017,7 +3017,7 @@ public class Bybit extends BybitApi
             Object makerFee = this.parseNumber("0.001");
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseCoin");
                 String quoteId = this.safeString(market, "quoteCoin");
@@ -4280,7 +4280,7 @@ public class Bybit extends BybitApi
             List<Object> resultList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)resultList).size(); i++)
             {
-                Object entry = Helpers.GetValue(resultList, i);
+                Object entry = (resultList == null || i < 0 || i >= resultList.size() ? null : resultList.get(i));
                 Long timestamp = this.safeInteger(entry, "fundingRateTimestamp");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
@@ -4844,7 +4844,7 @@ public class Bybit extends BybitApi
         {
             for (var i = 0; i < ((List<?>)currencyList).size(); i++)
             {
-                Object entry = Helpers.GetValue(currencyList, i);
+                Object entry = (currencyList == null || i < 0 || i >= currencyList.size() ? null : currencyList.get(i));
                 String accountType = this.safeString(entry, "accountType");
                 if (java.util.Objects.equals(accountType, "UNIFIED") || java.util.Objects.equals(accountType, "CONTRACT") || java.util.Objects.equals(accountType, "SPOT"))
                 {
@@ -4852,7 +4852,7 @@ public class Bybit extends BybitApi
                     for (var j = 0; j < ((List<?>)coins).size(); j++)
                     {
                         Object account = this.account();
-                        Object coinEntry = Helpers.GetValue(coins, j);
+                        Object coinEntry = (coins == null || j < 0 || j >= coins.size() ? null : coins.get(j));
                         String loan = this.safeString(coinEntry, "borrowAmount");
                         String interest = this.safeString(coinEntry, "accruedInterest");
                         if ((!java.util.Objects.equals(loan, null)) && (!java.util.Objects.equals(interest, null)))
@@ -5967,11 +5967,11 @@ public class Bybit extends BybitApi
             // extend the error with the unsuccessful orders
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
-                Object code = Helpers.GetValue(codes, i);
+                Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Long retCode = this.safeInteger(code, "code");
                 if (!Helpers.isEqual(retCode, 0))
                 {
-                    Helpers.addElementToObject(data, i, this.extend(Helpers.GetValue(data, i), code));
+                    Helpers.addElementToObject(data, i, this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), code));
                 }
             }
             //
@@ -6225,11 +6225,11 @@ public class Bybit extends BybitApi
             // extend the error with the unsuccessful orders
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
-                Object code = Helpers.GetValue(codes, i);
+                Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Long retCode = this.safeInteger(code, "code");
                 if (!Helpers.isEqual(retCode, 0))
                 {
-                    Helpers.addElementToObject(data, i, this.extend(Helpers.GetValue(data, i), code));
+                    Helpers.addElementToObject(data, i, this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), code));
                 }
             }
             //
@@ -10292,7 +10292,7 @@ public class Bybit extends BybitApi
         {
             for (var i = 0; Helpers.isLessThan(i, chainsLength); i++)
             {
-                Object chain = Helpers.GetValue(chains, i);
+                Object chain = (chains == null || i < 0 || i >= chains.size() ? null : chains.get(i));
                 String networkId = this.safeString(chain, "chain");
                 String currencyCode = this.safeString(currency, "code");
                 Object networkCode = this.networkIdToCode(networkId, currencyCode);
@@ -11737,7 +11737,7 @@ final Object finalMarket = market;
             List<Object> coins = (List<Object>) this.safeList(data, "coins", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)coins).size(); i++)
             {
-                Object entry = Helpers.GetValue(coins, i);
+                Object entry = (coins == null || i < 0 || i >= coins.size() ? null : coins.get(i));
                 String id = this.safeString(entry, "coin");
                 Boolean disableFrom = (Boolean) this.safeBool(entry, "disableFrom");
                 Boolean disableTo = (Boolean) this.safeBool(entry, "disableTo");

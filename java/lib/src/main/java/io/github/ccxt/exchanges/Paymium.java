@@ -240,7 +240,7 @@ public class Paymium extends PaymiumApi
         List<Object> currencies = Helpers.objectKeys(this.currencies);
         for (var i = 0; i < ((List<?>)currencies).size(); i++)
         {
-            Object code = Helpers.GetValue(currencies, i);
+            Object code = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object currencyId = ((Map<String, Object>)currency).get("id");
             String free = ("balance_" + currencyId);

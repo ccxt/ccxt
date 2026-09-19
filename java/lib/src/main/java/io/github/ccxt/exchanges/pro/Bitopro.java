@@ -235,7 +235,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            Helpers.callDynamically(tradesCache, "append", new Object[]{Helpers.GetValue(trades, i)});
+            Helpers.callDynamically(tradesCache, "append", new Object[]{(trades == null || i < 0 || i >= trades.size() ? null : trades.get(i))});
         }
         Helpers.addElementToObject(this.trades, symbol, tradesCache);
         client.resolve(tradesCache, messageHash);

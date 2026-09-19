@@ -651,7 +651,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         List<Object> sorted = this.sortBy(newTrades, "timestamp");
         for (var j = 0; j < ((List<?>)sorted).size(); j++)
         {
-            Object sortedTrade = Helpers.GetValue(sorted, j);
+            Object sortedTrade = (sorted == null || j < 0 || j >= sorted.size() ? null : sorted.get(j));
             Helpers.callDynamically(tradesArray, "append", new Object[]{sortedTrade});
         }
         Helpers.addElementToObject(this.trades, symbol, tradesArray);

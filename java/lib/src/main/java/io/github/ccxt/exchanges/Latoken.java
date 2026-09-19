@@ -561,7 +561,7 @@ public class Latoken extends LatokenApi
             List<Object> rawMarkets = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
             {
-                Object market = Helpers.GetValue(rawMarkets, i);
+                Object market = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                 String id = this.safeString(market, "id");
                 // the exchange shows them inverted
                 String baseId = this.safeString(market, "baseCurrency");
@@ -778,7 +778,7 @@ public class Latoken extends LatokenApi
             List<Object> balances = (List<Object>) this.safeList(balancesByType, accountType, new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object balance = Helpers.GetValue(balances, i);
+                Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(balance, "currency");
                 Long timestamp = this.safeInteger(balance, "timestamp");
                 if (!java.util.Objects.equals(timestamp, null))
@@ -868,7 +868,7 @@ public class Latoken extends LatokenApi
             List<Object> bids = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawAsks).size(); i++)
             {
-                Object askEntry = Helpers.GetValue(rawAsks, i);
+                Object askEntry = (rawAsks == null || i < 0 || i >= rawAsks.size() ? null : rawAsks.get(i));
                 String askQuantity = this.safeString(askEntry, "quantity");
                 if (Precise.stringGt(askQuantity, "0"))
                 {
@@ -877,7 +877,7 @@ public class Latoken extends LatokenApi
             }
             for (var i = 0; i < ((List<?>)rawBids).size(); i++)
             {
-                Object bidEntry = Helpers.GetValue(rawBids, i);
+                Object bidEntry = (rawBids == null || i < 0 || i >= rawBids.size() ? null : rawBids.get(i));
                 String bidQuantity = this.safeString(bidEntry, "quantity");
                 if (Precise.stringGt(bidQuantity, "0"))
                 {

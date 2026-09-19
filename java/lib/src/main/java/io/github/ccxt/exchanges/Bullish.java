@@ -1820,7 +1820,7 @@ public class Bullish extends BullishApi
             List<Object> result = this.toArray(response);
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object entry = Helpers.GetValue(result, i);
+                Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String datetime = this.safeString(entry, "updatedAtDatetime");
     final Object finalSymbol = symbol;
                             ((List<Object>)rates).add(new HashMap<String, Object>() {{
@@ -2810,7 +2810,7 @@ public class Bullish extends BullishApi
                 List<Object> accounts = this.toArray(response);
                 for (var i = 0; i < ((List<?>)accounts).size(); i++)
                 {
-                    Object account = Helpers.GetValue(accounts, i);
+                    Object account = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
                     String name = this.safeString(account, "tradingAccountName");
                     if (java.util.Objects.equals(name, "Primary Account"))
                     {

@@ -58,7 +58,7 @@ public class TestAfterConstruct extends BaseTest {
             List<Object> collectedNetworkIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
             {
-                Object networkCode = Helpers.GetValue(networkCodes, i);
+                Object networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
                 Object networkId = Helpers.GetValue(((Map<String, Object>)exchange.options).get("networks"), networkCode);
                 if (!Helpers.isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
@@ -70,14 +70,14 @@ public class TestAfterConstruct extends BaseTest {
             List<Object> collectedNetworkCodes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
             {
-                Object networkCodeLower = ((String)(Helpers.GetValue(networkCodes, i))).toLowerCase();
-                Assert(!Helpers.isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"" + Helpers.GetValue(networkCodes, i)) + "\" in different uppercase/lowercase format"));
+                Object networkCodeLower = ((String)((networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i)))).toLowerCase();
+                Assert(!Helpers.isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"" + (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i))) + "\" in different uppercase/lowercase format"));
                 ((List<Object>)collectedNetworkCodes).add(networkCodeLower);
             }
             // 5) test networkCodeToId & networkIdToCode
             for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
             {
-                Object networkCode = Helpers.GetValue(networkCodes, i);
+                Object networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
                 Object networkId = Helpers.GetValue(((Map<String, Object>)exchange.options).get("networks"), networkCode);
                 // check networkCodeToId
                 Object networkIdConverted = exchange.networkCodeToId(networkCode);

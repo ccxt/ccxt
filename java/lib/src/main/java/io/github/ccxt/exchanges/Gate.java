@@ -2181,7 +2181,7 @@ public class Gate extends GateApi
             List<Object> types = (List<Object>) this.safeList(fetchMarketsOptions, "types", new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")));
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                Object marketType = Helpers.GetValue(types, i);
+                Object marketType = (types == null || i < 0 || i >= types.size() ? null : types.get(i));
                 if (java.util.Objects.equals(marketType, "spot"))
                 {
                     // if (!sandboxMode) {
@@ -3004,7 +3004,7 @@ public class Gate extends GateApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "name");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -3522,7 +3522,7 @@ public class Gate extends GateApi
         List<Object> symbols = this.symbols;
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object symbol = Helpers.GetValue(symbols, i);
+            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(response, market));
         }
@@ -4577,7 +4577,7 @@ public class Gate extends GateApi
                 List<Object> keys = Helpers.objectKeys(balances);
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
-                    Object currencyId = Helpers.GetValue(keys, i);
+                    Object currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                     Object content = Helpers.GetValue(balances, currencyId);
                     Helpers.addElementToObject(content, "currency", currencyId);
                     ((List<Object>)flatBalances).add(content);

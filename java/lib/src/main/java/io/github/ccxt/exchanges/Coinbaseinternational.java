@@ -1123,11 +1123,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         List<Object> networksArray = this.toArray(networks);
         for (var i = 0; i < ((List<?>)networksArray).size(); i++)
         {
-            Object info = Helpers.GetValue(Helpers.GetValue(networksArray, i), "info");
+            Object info = Helpers.GetValue((networksArray == null || i < 0 || i >= networksArray.size() ? null : networksArray.get(i)), "info");
             Boolean is_default = (Boolean) this.safeBool(info, "is_default", false);
             if (java.util.Objects.equals(is_default, true))
             {
-                return Helpers.GetValue(networksArray, i);
+                return (networksArray == null || i < 0 || i >= networksArray.size() ? null : networksArray.get(i));
             }
         }
         return (networksArray == null || 0 >= ((List<?>)networksArray).size() ? null : ((List<?>)networksArray).get(0));
@@ -2001,7 +2001,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object instrument = Helpers.GetValue(rows, i);
+                Object instrument = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String marketId = this.safeString(instrument, "symbol");
                 String symbol = this.safeSymbol(marketId);
                 Map<String, Object> quote = (Map<String, Object>) this.safeDict(instrument, "quote", new HashMap<String, Object>() {{}});

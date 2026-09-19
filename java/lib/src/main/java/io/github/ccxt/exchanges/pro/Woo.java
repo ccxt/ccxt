@@ -1811,7 +1811,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(ts));
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = Helpers.GetValue(balances, key);
             String code = this.safeCurrencyCode(key);
             Object account = this.account();
@@ -1948,8 +1948,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         List<Object> unsubMessageHashes = (List<Object>) this.safeList(subscription, "unsubMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)subMessageHashes).size(); i++)
         {
-            Object subHash = Helpers.GetValue(subMessageHashes, i);
-            Object unsubHash = Helpers.GetValue(unsubMessageHashes, i);
+            Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
+            Object unsubHash = (unsubMessageHashes == null || i < 0 || i >= unsubMessageHashes.size() ? null : unsubMessageHashes.get(i));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

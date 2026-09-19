@@ -2339,7 +2339,7 @@ public class Alpaca extends AlpacaApi
                 }
                 for (var i = 0; i < ((List<?>)ledger).size(); i++)
                 {
-                    Object entry = Helpers.GetValue(ledger, i);
+                    Object entry = (ledger == null || i < 0 || i >= ledger.size() ? null : ledger.get(i));
                     String activityType = this.safeString(entry, "activity_type");
                     String amount = this.safeString(entry, "net_amount");
                     Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Precise.stringLt(amount, "0"));
@@ -2377,7 +2377,7 @@ public class Alpaca extends AlpacaApi
             }
             for (var i = 0; i < ((List<?>)transfers).size(); i++)
             {
-                Object entry = Helpers.GetValue(transfers, i);
+                Object entry = (transfers == null || i < 0 || i >= transfers.size() ? null : transfers.get(i));
                 String direction = this.safeString(entry, "direction");
                 if (java.util.Objects.equals(direction, type))
                 {
@@ -2746,7 +2746,7 @@ public class Alpaca extends AlpacaApi
         }
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
-            Object position = Helpers.GetValue(positions, i);
+            Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             String positionSymbol = this.safeString(position, "symbol");
             if (java.util.Objects.equals(positionSymbol, null))
             {

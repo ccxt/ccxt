@@ -973,7 +973,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         }};
         for (var i = 0; i < ((List<?>)entries).size(); i++)
         {
-            Object entry = Helpers.GetValue(entries, i);
+            Object entry = (entries == null || i < 0 || i >= entries.size() ? null : entries.get(i));
             Map<String, Object> entryData = (Map<String, Object>) this.safeDict(entry, "d", new HashMap<String, Object>() {{}});
             String side = this.safeString(entryData, "D");
             Double price = this.safeNumber(entryData, "P");

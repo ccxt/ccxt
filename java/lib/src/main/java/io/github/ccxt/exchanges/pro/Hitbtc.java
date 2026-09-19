@@ -812,7 +812,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)tradesArray).size(); i++)
         {
-            Map<String, Object> trade = this.extend(this.parseWsTrade(Helpers.GetValue(tradesArray, i), market), parameters);
+            Map<String, Object> trade = this.extend(this.parseWsTrade((tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i)), market), parameters);
             ((List<Object>)result).add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");

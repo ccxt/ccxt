@@ -817,7 +817,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i), market);
+            Object parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         String messageHash = null;
@@ -1720,7 +1720,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
+            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             String marketId = this.safeString2(rawPosition, "instId", "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
@@ -2122,7 +2122,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Map<String, Object> marketSymbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object order = Helpers.GetValue(data, i);
+            Object order = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString2(order, "instId", "symbol", argInstId);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, market);
@@ -2665,7 +2665,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         String instType = this.safeStringLower(arg, "instType");
         for (var i = 0; Helpers.isLessThan(i, length); i++)
         {
-            Object trade = Helpers.GetValue(data, i);
+            Object trade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object market = null;
             if (java.util.Objects.equals(instType, "uta"))
             {
@@ -2870,13 +2870,13 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object rawBalance = Helpers.GetValue(data, i);
+            Object rawBalance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             if (java.util.Objects.equals(instType, "uta"))
             {
                 List<Object> coins = (List<Object>) this.safeList(rawBalance, "coin", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)coins).size(); j++)
                 {
-                    Object entry = Helpers.GetValue(coins, j);
+                    Object entry = (coins == null || j < 0 || j >= coins.size() ? null : coins.get(j));
                     String currencyId = this.safeString(entry, "coin");
                     String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
@@ -3491,7 +3491,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         for (var i = 0; i < ((List<?>)argsList).size(); i++)
         {
-            Object arg = Helpers.GetValue(argsList, i);
+            Object arg = (argsList == null || i < 0 || i >= argsList.size() ? null : argsList.get(i));
             String channel = this.safeString2(arg, "channel", "topic", "");
             if (((String)channel).indexOf("books") >= 0)
             {

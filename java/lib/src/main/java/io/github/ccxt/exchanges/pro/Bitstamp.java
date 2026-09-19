@@ -1033,7 +1033,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         List<Object> entries = this.toArray(cache);
         for (var i = 0; i < ((List<?>)entries).size(); i++)
         {
-            Object entry = Helpers.GetValue(entries, i);
+            Object entry = (entries == null || i < 0 || i >= entries.size() ? null : entries.get(i));
             String entrySymbol = this.safeString(entry, "symbol");
             if (!this.inArray(entrySymbol, symbols))
             {

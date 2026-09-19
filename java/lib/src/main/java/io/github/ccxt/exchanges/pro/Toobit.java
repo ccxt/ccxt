@@ -469,7 +469,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i), market);
+            Object parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         String messageHash = Helpers.add((("ohlcv::" + symbol) + "::"), timeframe);
@@ -493,7 +493,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //             }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
+        Object parsed = this.parseOHLCV(ohlcv, market);
         return parsed;
     }
 
@@ -620,8 +620,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object ticker = Helpers.GetValue(data, i);
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(ticker);
+            Object ticker = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Object parsed = this.parseWsTicker(ticker);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -756,7 +756,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object entry = Helpers.GetValue(data, i);
+            Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String messageHash = ((("orderBook::" + symbol) + "::") + "diffDepth");
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
@@ -777,7 +777,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     public void handleDelta(Object bookside, Object delta)
     {
-        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta);
+        Object bidAsk = this.parseOrderBookBidAsk(delta);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
@@ -818,7 +818,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }
         for (var i = 0; Helpers.isLessThan(i, length); i++)
         {
-            Object entry = Helpers.GetValue(data, i);
+            Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(entry, "s");
             String symbol = this.safeSymbol(marketId);
             String messageHash = ((("orderBook::" + symbol) + "::") + channel);
@@ -829,7 +829,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Long timestamp = this.safeInteger(entry, "t");
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(entry, symbol, timestamp, "b", "a");
+            Object snapshot = this.parseOrderBook(entry, symbol, timestamp, "b", "a");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             client.resolve(orderbook, messageHash);
         }
@@ -945,7 +945,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "datetime", this.iso8601(timestamp));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object balance = Helpers.GetValue(data, i);
+            Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -1070,7 +1070,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(message);
+        Object order = this.parseWsOrder(message);
         Helpers.callDynamically(orders, "append", new Object[]{order});
         String messageHash = "orders";
         client.resolve(orders, messageHash);
@@ -1393,7 +1393,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         for (var i = 0; i < Helpers.getArrayLength(rawPositions); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition);
+            Object position = this.parseWsPosition(rawPosition);
             Long timestamp = this.safeInteger(rawPosition, "E");
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
@@ -1537,7 +1537,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 List<Object> messageHashes = Helpers.objectKeys(client.futures);
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
                 {
-                    Object messageHash = Helpers.GetValue(messageHashes, i);
+                    Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                     client.reject(error, messageHash);
                 }
                 Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "listenKey", null);

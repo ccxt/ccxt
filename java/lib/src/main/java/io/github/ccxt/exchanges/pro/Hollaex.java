@@ -221,7 +221,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; j < ((List<?>)parsedTrades).size(); j++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
+            Helpers.callDynamically(stored, "append", new Object[]{(parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j))});
         }
         Object messageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
         client.resolve(stored, messageHash);
@@ -531,7 +531,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("_"))));
             String currencyId = this.safeString(parts, 0);
             String code = this.safeCurrencyCode(currencyId);

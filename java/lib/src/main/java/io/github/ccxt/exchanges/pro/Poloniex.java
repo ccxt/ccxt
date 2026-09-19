@@ -443,8 +443,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object order = Helpers.GetValue(data, i);
-            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(order);
+            Object order = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Object parsedOrder = this.parseWsOrder(order);
             ((List<Object>)orders).add(parsedOrder);
         }
         client.resolve(orders, messageHash);
@@ -861,7 +861,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object item = Helpers.GetValue(data, i);
+            Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(item, "symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
@@ -1082,7 +1082,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 String clientOrderId = this.safeString(order, "clientOrderId", "");
                 if (java.util.Objects.equals(eventType, "place") || java.util.Objects.equals(eventType, "canceled"))
                 {
-                    Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order);
+                    Object parsed = this.parseWsOrder(order);
                     Helpers.callDynamically(orders, "append", new Object[]{parsed});
                 } else
                 {
@@ -1093,7 +1093,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     if (java.util.Objects.equals(previousOrder, null))
                     {
                         // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
-                        Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(order);
+                        Object parsedOrder = this.parseWsOrder(order);
                         Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
                         ((List<Object>)marketIds).add(marketId);
                         continue;
@@ -1157,7 +1157,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = Helpers.GetValue(marketIds, i);
+            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orders::" + symbol);
@@ -1270,11 +1270,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object item = Helpers.GetValue(data, i);
+            Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(item, "symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(item);
+                Object ticker = this.parseTicker(item);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -1358,7 +1358,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Boolean update = java.util.Objects.equals(type, "update");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object item = Helpers.GetValue(data, i);
+            Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(item, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");

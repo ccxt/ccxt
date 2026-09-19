@@ -380,7 +380,7 @@ public class Coincheck extends CoincheckApi
         List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
-            Object code = Helpers.GetValue(codes, i);
+            Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object currencyId = ((Map<String, Object>)currency).get("id");
             if (((Map<?, ?>)response).containsKey(currencyId))
@@ -431,7 +431,7 @@ public class Coincheck extends CoincheckApi
             Object updated = null;
             for (var i = 0; i < ((List<?>)exchangeStatuses).size(); i++)
             {
-                Object exchangeStatus = Helpers.GetValue(exchangeStatuses, i);
+                Object exchangeStatus = (exchangeStatuses == null || i < 0 || i >= exchangeStatuses.size() ? null : exchangeStatuses.get(i));
                 String rawStatus = this.safeString(exchangeStatus, "status");
                 if (java.util.Objects.equals(updated, null))
                 {
@@ -515,7 +515,7 @@ public class Coincheck extends CoincheckApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)parsedOrders).size(); i++)
             {
-                ((List<Object>)result).add(this.extend(Helpers.GetValue(parsedOrders, i), new HashMap<String, Object>() {{
+                ((List<Object>)result).add(this.extend((parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i)), new HashMap<String, Object>() {{
                     put( "status", "open" );
                 }}));
             }
@@ -938,7 +938,7 @@ public class Coincheck extends CoincheckApi
             }
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, ((Map<String, Object>)market).get("id"), new HashMap<String, Object>() {{}});
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{

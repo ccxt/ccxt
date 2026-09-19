@@ -1237,7 +1237,7 @@ public class Deribit extends DeribitApi
                 List<Object> currenciesResult = (List<Object>) this.safeList(currenciesResponse, "result", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)currenciesResult).size(); i++)
                 {
-                    String currencyId = this.safeString(Helpers.GetValue(currenciesResult, i), "currency");
+                    String currencyId = this.safeString((currenciesResult == null || i < 0 || i >= currenciesResult.size() ? null : currenciesResult.get(i)), "currency");
                     Map<String, Object> request = new HashMap<String, Object>() {{
                         put( "currency", currencyId );
                     }};
@@ -1320,10 +1320,10 @@ public class Deribit extends DeribitApi
             }
             for (var i = 0; i < ((List<?>)instrumentsResponses).size(); i++)
             {
-                List<Object> instrumentsResult = (List<Object>) this.safeList(Helpers.GetValue(instrumentsResponses, i), "result", new ArrayList<Object>(Arrays.asList()));
+                List<Object> instrumentsResult = (List<Object>) this.safeList((instrumentsResponses == null || i < 0 || i >= instrumentsResponses.size() ? null : instrumentsResponses.get(i)), "result", new ArrayList<Object>(Arrays.asList()));
                 for (var k = 0; k < ((List<?>)instrumentsResult).size(); k++)
                 {
-                    Object market = Helpers.GetValue(instrumentsResult, k);
+                    Object market = (instrumentsResult == null || k < 0 || k >= instrumentsResult.size() ? null : instrumentsResult.get(k));
                     String kind = this.safeString(market, "kind");
                     Boolean isSpot = (java.util.Objects.equals(kind, "spot"));
                     String id = this.safeString(market, "instrument_name");
@@ -1924,7 +1924,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(result, i));
+                Object ticker = this.parseTicker((result == null || i < 0 || i >= result.size() ? null : result.get(i)));
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2295,7 +2295,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> optionFee = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = Helpers.GetValue(fees, i);
+                Object fee = (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
                 String instrumentType = this.safeString(fee, "instrument_type");
                 if (java.util.Objects.equals(instrumentType, "future"))
                 {
@@ -2324,7 +2324,7 @@ public class Deribit extends DeribitApi
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object fee = new HashMap<String, Object>() {{
                     put( "info", market );
@@ -2423,14 +2423,14 @@ public class Deribit extends DeribitApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "timestamp");
             Long nonce = this.safeInteger(result, "change_id");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, ((Map<String, Object>)market).get("symbol"), timestamp);
+            Object orderbook = this.parseOrderBook(result, ((Map<String, Object>)market).get("symbol"), timestamp);
             ((Map<String, Object>)orderbook).put("nonce", nonce);
             return orderbook;
         }).thenApply(OrderBook::new);
 
     }
 
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "open", "open" );
@@ -2442,7 +2442,7 @@ public class Deribit extends DeribitApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTimeInForce(String timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "good_til_cancelled", "GTC" );
@@ -3374,7 +3374,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public String parseTransactionStatus(String status)
+    public String parseTransactionStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "completed", "ok" );
@@ -3692,12 +3692,12 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            return this.parseVolatilityHistory((Map<String, Object>) (response));
+            return this.parseVolatilityHistory(response);
         });
 
     }
 
-    public Object parseVolatilityHistory(Map<String, Object> volatility)
+    public Object parseVolatilityHistory(Object volatility)
     {
         //
         //     {
@@ -3717,8 +3717,8 @@ public class Deribit extends DeribitApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)volatilityResult).size(); i++)
         {
-            Long timestamp = this.safeInteger(Helpers.GetValue(volatilityResult, i), 0);
-            Double volatilityObj = this.safeNumber(Helpers.GetValue(volatilityResult, i), 1);
+            Long timestamp = this.safeInteger((volatilityResult == null || i < 0 || i >= volatilityResult.size() ? null : volatilityResult.get(i)), 0);
+            Double volatilityObj = this.safeNumber((volatilityResult == null || i < 0 || i >= volatilityResult.size() ? null : volatilityResult.get(i)), 1);
             ((List<Object>)result).add(new HashMap<String, Object>() {{
                 put( "info", volatilityObj );
                 put( "timestamp", timestamp );
@@ -3908,7 +3908,7 @@ public class Deribit extends DeribitApi
         }};
     }
 
-    public String parseTransferStatus(String status)
+    public String parseTransferStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "prepared", "pending" );
@@ -4180,8 +4180,8 @@ public class Deribit extends DeribitApi
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object fr = Helpers.GetValue(result, i);
-                Map<String, Object> rate = (Map<String, Object>) this.parseFundingRate(fr, market);
+                Object fr = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
+                Object rate = this.parseFundingRate(fr, market);
                 ((List<Object>)rates).add(rate);
             }
             return this.filterBySymbolSinceLimit(rates, symbol, since, limit);

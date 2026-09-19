@@ -893,7 +893,7 @@ public class Digifinex extends DigifinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object market = Helpers.GetValue(response, i);
+                Object market = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                 String id = this.safeString2(market, "symbol", "instrument_id");
                 String baseId = this.safeString2(market, "base_asset", "base_currency");
                 String quoteId = this.safeString2(market, "quote_asset", "quote_currency");
@@ -1019,7 +1019,7 @@ public class Digifinex extends DigifinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "market");
                 if (java.util.Objects.equals(id, null))
                 {
@@ -1410,8 +1410,8 @@ public class Digifinex extends DigifinexApi
             {
                 Map<String, Object> rawTicker = this.extend(new HashMap<String, Object>() {{
                     put( "date", date );
-                }}, Helpers.GetValue(tickers, i));
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker);
+                }}, (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)));
+                Object ticker = this.parseTicker(rawTicker);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2103,7 +2103,7 @@ public class Digifinex extends DigifinexApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marginResult = this.handleMarginModeAndParams("createOrder", parameters);
             Object marginMode = ((List<Object>)marginResult).get(0);
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -2137,7 +2137,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new NullResponse((this.id + " createOrder() returned empty response")) ;
             }
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
+            Object order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "symbol", ((Map<String, Object>)market).get("symbol"));
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
@@ -2266,7 +2266,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2558,7 +2558,7 @@ public class Digifinex extends DigifinexApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)success).size(); i++)
         {
-            Object order = Helpers.GetValue(success, i);
+            Object order = (success == null || i < 0 || i >= success.size() ? null : success.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
@@ -2567,7 +2567,7 @@ public class Digifinex extends DigifinexApi
         }
         for (var i = 0; i < ((List<?>)error).size(); i++)
         {
-            Object order = Helpers.GetValue(error, i);
+            Object order = (error == null || i < 0 || i >= error.size() ? null : error.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Digifinex.this.safeString2(order, "order-id", "order_id") );
@@ -2624,7 +2624,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "open" );
@@ -3674,7 +3674,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public String parseTransactionStatus(String status)
+    public String parseTransactionStatus(Object status)
     {
         // deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
         // withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
@@ -3760,7 +3760,7 @@ public class Digifinex extends DigifinexApi
         }};
     }
 
-    public String parseTransferStatus(String status)
+    public String parseTransferStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "ok" );
@@ -4081,7 +4081,7 @@ public class Digifinex extends DigifinexApi
             Object result = null;
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if (java.util.Objects.equals(this.safeString(entry, "currency"), code))
                 {
                     result = entry;
@@ -4174,7 +4174,7 @@ public class Digifinex extends DigifinexApi
             Object item = Helpers.GetValue(info, i);
             String currency = this.safeString(item, codeKey);
             String code = this.safeCurrencyCode(currency);
-            Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item);
+            Object borrowRate = this.parseBorrowRate(item);
             if (!java.util.Objects.equals(code, null))
             {
                 ((Map<String, Object>)result).put((String)code, borrowRate);
@@ -4366,7 +4366,7 @@ public class Digifinex extends DigifinexApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object entry = Helpers.GetValue(result, i);
+                Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String marketId = this.safeString(data, "instrument_id");
                 String symbolInner = this.safeSymbol(marketId);
                 Long timestamp = this.safeInteger(entry, "time");
@@ -4423,12 +4423,12 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (data), market);
+            return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Object parseTradingFee(Object fee, Object... optionalArgs)
     {
         //
         //     {
@@ -4576,7 +4576,7 @@ public class Digifinex extends DigifinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition(Helpers.GetValue(positions, i), market));
+                ((List<Object>)result).add(this.parsePosition((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)), market));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -4682,7 +4682,7 @@ public class Digifinex extends DigifinexApi
             //
             String dataRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "data" : "positions";
             List<Object> data = (List<Object>) this.safeList(response, dataRequest, new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
+            Object position = this.parsePosition((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 return position;

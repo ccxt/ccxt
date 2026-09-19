@@ -193,7 +193,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Long timestamp = this.safeInteger(message, "ts");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
+        Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, topic);
     }
@@ -294,7 +294,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(message, "ts");
         ((Map<String, Object>)data).put("date", timestamp);
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
+        Object ticker = this.parseWsTicker(data, market);
         Helpers.addElementToObject(ticker, "symbol", ((Map<String, Object>)market).get("symbol"));
         Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
         client.resolve(ticker, topic);
@@ -362,9 +362,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            String marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
+            String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend(Helpers.GetValue(data, i), new HashMap<String, Object>() {{
+            Object ticker = this.parseWsTicker(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "date", timestamp );
             }}), market);
             Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
@@ -430,7 +430,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object ticker = this.parseWsBidAsk(this.extend(Helpers.GetValue(data, i), new HashMap<String, Object>() {{
+            Object ticker = this.parseWsBidAsk(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "ts", timestamp );
             }}));
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
@@ -1343,10 +1343,10 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
+            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             String marketId = this.safeString(rawPosition, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
+            Object position = this.parseWsPosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
             String messageHash = ("positions::" + ((Map<String, Object>)market).get("symbol"));

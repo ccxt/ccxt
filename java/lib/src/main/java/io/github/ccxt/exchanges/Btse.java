@@ -1303,7 +1303,7 @@ public class Btse extends BtseApi
                 List<Object> inUse = (List<Object>) this.safeList(row, "assetsInUse", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)inUse).size(); j++)
                 {
-                    Object usedRow = Helpers.GetValue(inUse, j);
+                    Object usedRow = (inUse == null || j < 0 || j >= inUse.size() ? null : inUse.get(j));
                     String usedCode = this.safeCurrencyCode(this.safeString(usedRow, "currency"));
                     if (java.util.Objects.equals(usedCode, null))
                     {
@@ -1313,7 +1313,7 @@ public class Btse extends BtseApi
                 }
                 for (var j = 0; j < ((List<?>)assets).size(); j++)
                 {
-                    Object assetRow = Helpers.GetValue(assets, j);
+                    Object assetRow = (assets == null || j < 0 || j >= assets.size() ? null : assets.get(j));
                     String code = this.safeCurrencyCode(this.safeString(assetRow, "currency"));
                     if (java.util.Objects.equals(code, null))
                     {
@@ -1406,7 +1406,7 @@ public class Btse extends BtseApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1416,7 +1416,7 @@ public class Btse extends BtseApi
                     List<Object> tiers = new ArrayList<Object>(Arrays.asList());
                     for (var j = 0; j < ((List<?>)levels).size(); j++)
                     {
-                        Object level = Helpers.GetValue(levels, j);
+                        Object level = (levels == null || j < 0 || j >= levels.size() ? null : levels.get(j));
                         // the endpoint only reports the notional ladder, the
                         // per-tier leverage and margin rates are not available
                         ((List<Object>)tiers).add(new HashMap<String, Object>() {{
@@ -1687,7 +1687,7 @@ public class Btse extends BtseApi
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object row = Helpers.GetValue(data, i);
+                Object row = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 // spot rows do not carry an open interest
                 if (!java.util.Objects.equals(this.safeString(row, "openInterest"), null))
                 {
@@ -1778,7 +1778,7 @@ public class Btse extends BtseApi
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object row = Helpers.GetValue(data, i);
+                Object row = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 // spot rows do not carry a funding rate
                 if (!java.util.Objects.equals(this.safeString(row, "fundingRate"), null))
                 {
@@ -1920,7 +1920,7 @@ public class Btse extends BtseApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
-                Object trade = Helpers.GetValue(trades, i);
+                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 Long timestamp = this.safeInteger(trade, "timestamp");
                 if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isLessThanOrEqual(timestamp, until)))
                 {
@@ -3382,7 +3382,7 @@ public class Btse extends BtseApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)responseList).size(); i++)
             {
-                Object feeInfo = Helpers.GetValue(responseList, i);
+                Object feeInfo = (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i));
                 String marketId = this.safeString(feeInfo, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -3486,7 +3486,7 @@ public class Btse extends BtseApi
             Map<String, Object> allowed = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)typesList).size(); i++)
             {
-                Object historyType = Helpers.GetValue(typesList, i);
+                Object historyType = (typesList == null || i < 0 || i >= typesList.size() ? null : typesList.get(i));
                 Helpers.addElementToObject(allowed, historyType, true);
                 ((Map<String, Object>)allowed).put((String)this.capitalize(((String)historyType).toLowerCase()), true);
             }
@@ -4382,7 +4382,7 @@ public class Btse extends BtseApi
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)safeResponse).size(); i++)
             {
-                Object entrty = Helpers.GetValue(safeResponse, i);
+                Object entrty = (safeResponse == null || i < 0 || i >= safeResponse.size() ? null : safeResponse.get(i));
                 Long leverageValue = this.safeInteger(entrty, "leverage");
                 String positionDirection = this.safeString(entrty, "positionDirection");
                 marginMode = this.safeStringLower(entrty, "marginMode");

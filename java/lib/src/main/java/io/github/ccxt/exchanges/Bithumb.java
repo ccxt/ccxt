@@ -617,7 +617,7 @@ public class Bithumb extends BithumbApi
                 //
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    Object entry = Helpers.GetValue(response, i);
+                    Object entry = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                     String marketId = this.safeString(entry, "market");
                     Object baseId = null;
                     Object quoteId = null;
@@ -824,7 +824,7 @@ public class Bithumb extends BithumbApi
             List<Object> codes = Helpers.objectKeys(this.currencies);
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
-                Object code = Helpers.GetValue(codes, i);
+                Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Object account = this.account();
                 Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 String lowerCurrencyId = this.safeStringLower(currency, "id");
@@ -954,7 +954,7 @@ public class Bithumb extends BithumbApi
                 List<Object> asks = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)orderBookUnits).size(); i++)
                 {
-                    Object entry = Helpers.GetValue(orderBookUnits, i);
+                    Object entry = (orderBookUnits == null || i < 0 || i >= orderBookUnits.size() ? null : orderBookUnits.get(i));
                     ((List<Object>)bids).add(new HashMap<String, Object>() {{
                         put( "price", Bithumb.this.safeString(entry, "bid_price") );
                         put( "quantity", Bithumb.this.safeString(entry, "bid_size") );
@@ -1289,7 +1289,7 @@ public class Bithumb extends BithumbApi
                             List<Object> ids = Helpers.objectKeys(response);
                             for (var j = 0; j < ((List<?>)ids).size(); j++)
                             {
-                                Object id = Helpers.GetValue(ids, j);
+                                Object id = (ids == null || j < 0 || j >= ids.size() ? null : ids.get(j));
                                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, id);
                                 if (!java.util.Objects.equals(ticker, null))
                                 {
@@ -1357,7 +1357,7 @@ public class Bithumb extends BithumbApi
                     List<Object> currencyIds = Helpers.objectKeys(tickers);
                     for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                     {
-                        Object currencyId = Helpers.GetValue(currencyIds, j);
+                        Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                         Object ticker = Helpers.GetValue(data, currencyId);
                         String base = this.safeCurrencyCode(currencyId);
                         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);

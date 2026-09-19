@@ -110,7 +110,7 @@ public class TestSharedMethods extends BaseTest {
             List<Object> keys = Helpers.objectKeys(format);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = Helpers.GetValue(keys, i);
+                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 if (Helpers.inOp(skippedProperties, key))
                 {
                     continue;

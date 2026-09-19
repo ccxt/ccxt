@@ -683,7 +683,7 @@ public class Mudrex extends MudrexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)aggregated).size(); i++)
             {
-                ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(aggregated, i)));
+                ((List<Object>)result).add(this.parseMarket((aggregated == null || i < 0 || i >= aggregated.size() ? null : aggregated.get(i))));
             }
             return result;
         });
@@ -1302,7 +1302,7 @@ public class Mudrex extends MudrexApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                ((List<Object>)orders).add(this.parseOrder(Helpers.GetValue(rows, i), market));
+                ((List<Object>)orders).add(this.parseOrder((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), market));
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         });
@@ -1416,7 +1416,7 @@ public class Mudrex extends MudrexApi
             List<Object> outPos = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object p = Helpers.GetValue(rows, i);
+                Object p = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String symRaw = this.safeString(p, "symbol");
                 Map<String, Object> m = (Map<String, Object>) this.safeMarket(symRaw);
                 Map<String, Object> pos = (Map<String, Object>) this.parsePosition(p, m);
@@ -1753,7 +1753,7 @@ public class Mudrex extends MudrexApi
                 Object dataLength = ((List<?>)data).size();
                 for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
                 {
-                    Object entry = Helpers.GetValue(data, i);
+                    Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                     ((List<Object>)allRows).add(entry);
                     if (java.util.Objects.equals(this.safeString(entry, "fee_type"), "TRANSACTION"))
                     {
@@ -1781,7 +1781,7 @@ public class Mudrex extends MudrexApi
             List<Object> transactionKeys = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allRows).size(); i++)
             {
-                Object entry = Helpers.GetValue(allRows, i);
+                Object entry = (allRows == null || i < 0 || i >= allRows.size() ? null : allRows.get(i));
                 String feeType = this.safeString(entry, "fee_type");
                 String pairKey = ((((this.safeString(entry, "symbol", "") + ":") + this.safeString(entry, "created_at", "")) + ":") + this.safeString(entry, "transaction_amount", ""));
                 if (java.util.Objects.equals(feeType, "TRANSACTION"))
@@ -1800,9 +1800,9 @@ public class Mudrex extends MudrexApi
                 Object rebate = null;
                 for (var j = 0; j < ((List<?>)rebateKeys).size(); j++)
                 {
-                    if (java.util.Objects.equals(Helpers.GetValue(rebateKeys, j), Helpers.GetValue(transactionKeys, i)))
+                    if (java.util.Objects.equals((rebateKeys == null || j < 0 || j >= rebateKeys.size() ? null : rebateKeys.get(j)), (transactionKeys == null || i < 0 || i >= transactionKeys.size() ? null : transactionKeys.get(i))))
                     {
-                        rebate = Helpers.GetValue(rebateAmounts, j);
+                        rebate = (rebateAmounts == null || j < 0 || j >= rebateAmounts.size() ? null : rebateAmounts.get(j));
                         // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                         Helpers.addElementToObject(rebateKeys, j, null);
                         break;
@@ -1810,11 +1810,11 @@ public class Mudrex extends MudrexApi
                 }
                 if (java.util.Objects.equals(rebate, null))
                 {
-                    ((List<Object>)rows).add(Helpers.GetValue(transactions, i));
+                    ((List<Object>)rows).add((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)));
                 } else
                 {
     final Object finalRebate = rebate;
-                                    ((List<Object>)rows).add(this.extend(Helpers.GetValue(transactions, i), new HashMap<String, Object>() {{
+                                    ((List<Object>)rows).add(this.extend((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)), new HashMap<String, Object>() {{
                         put( "rebate_amount", finalRebate );
                     }}));
                 }

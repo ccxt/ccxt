@@ -546,7 +546,7 @@ public class Extended extends ExtendedApi
         List<Object> keys = Helpers.objectKeys(input);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object item = Helpers.GetValue(input, key);
             String numericIdString = this.safeString(item, "numericId");
             if (java.util.Objects.equals(numericIdString, null))
@@ -1050,7 +1050,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object marketData = Helpers.GetValue(data, i);
+                Object marketData = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(marketData, "name");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Map<String, Object> stats = (Map<String, Object>) this.safeDict(marketData, "marketStats", new HashMap<String, Object>() {{}});
@@ -1310,7 +1310,7 @@ public class Extended extends ExtendedApi
             Object dataLength = ((List<?>)data).size();
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
                     final Object finalCursor = cursor;
@@ -1402,7 +1402,7 @@ public class Extended extends ExtendedApi
             Object dataLength = ((List<?>)data).size();
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
                     final Object finalCursor = cursor;
@@ -1713,7 +1713,7 @@ public class Extended extends ExtendedApi
             Object dataLength = ((List<?>)data).size();
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
                     final Object finalCursor = cursor;
@@ -2065,7 +2065,7 @@ public class Extended extends ExtendedApi
             Object dataLength = ((List<?>)data).size();
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
                     final Object finalCursor = cursor;
@@ -2208,7 +2208,7 @@ public class Extended extends ExtendedApi
             Object dataLength = ((List<?>)data).size();
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
                     final Object finalCursor = cursor;
@@ -2409,7 +2409,7 @@ public class Extended extends ExtendedApi
             Object dataLength = ((List<?>)data).size();
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
                     final Object finalCursor = cursor;
@@ -3028,7 +3028,7 @@ public class Extended extends ExtendedApi
             Object dataLength = ((List<?>)data).size();
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
                     final Object finalCursor = cursor;
@@ -4091,7 +4091,7 @@ public class Extended extends ExtendedApi
             Object dataLength = ((List<?>)data).size();
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
                     final Object finalCursor = cursor;

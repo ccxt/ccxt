@@ -2502,7 +2502,7 @@ public class Kraken extends KrakenApi
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Object rawTrade = Helpers.GetValue(rawTrades, i);
+            Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
             if ((rawTrade instanceof String))
             {
 final Object finalId = id;
@@ -3027,7 +3027,7 @@ final Object finalId = id;
                 List<Object> ids = Helpers.objectKeys(rawTrades);
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(rawTrades, Helpers.GetValue(ids, i)), "id", Helpers.GetValue(ids, i));
+                    Helpers.addElementToObject(Helpers.GetValue(rawTrades, (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i))), "id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
                 }
                 List<Object> trades = this.parseTrades(rawTrades, null, since, limit);
                 Object tradesFilteredBySymbol = this.filterBySymbol(trades, symbol);
@@ -4525,7 +4525,7 @@ final Object finalId = id;
                         List<Object> orders = (List<Object>) this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
                         for (var i = 0; i < ((List<?>)orders).size(); i++)
                         {
-                            Object order = Helpers.GetValue(orders, i);
+                            Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                             String error = this.safeString(order, "error");
                             if (!java.util.Objects.equals(error, null))
                             {

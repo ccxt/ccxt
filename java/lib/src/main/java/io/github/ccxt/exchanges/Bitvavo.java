@@ -752,7 +752,7 @@ final Object finalBase = base;
         // btw, absolutely all of them have 1 network atm
         for (var j = 0; j < ((List<?>)networksArray).size(); j++)
         {
-            Object networkId = Helpers.GetValue(networksArray, j);
+            Object networkId = (networksArray == null || j < 0 || j >= networksArray.size() ? null : networksArray.get(j));
             Object networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {

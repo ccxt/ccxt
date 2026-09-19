@@ -144,7 +144,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         List<Object> balances = (List<Object>) this.safeList(message, "balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object entry = Helpers.GetValue(balances, i);
+            Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -644,13 +644,13 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             List<Object> orders = (List<Object>) this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = Helpers.GetValue(orders, i);
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(order);
+                Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
+                Object parsedOrder = this.parseWsOrder(order);
                 Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
             }
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
-            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(message);
+            Object parsedOrder = this.parseWsOrder(message);
             Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
         }
         this.orders = cachedOrders;
@@ -841,7 +841,7 @@ final Object finalTradeId = tradeId;
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(eventVar, "snapshot"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
+            Object snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
@@ -860,7 +860,7 @@ final Object finalTradeId = tradeId;
 
     public void handleDelta(Object bookside, Object delta)
     {
-        List<Object> bookArray = (List<Object>) this.parseOrderBookBidAsk(delta, "px", "qty", "num");
+        Object bookArray = this.parseOrderBookBidAsk(delta, "px", "qty", "num");
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bookArray});
     }
 

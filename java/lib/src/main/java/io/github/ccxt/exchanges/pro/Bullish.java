@@ -240,7 +240,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            Helpers.callDynamically(tradesArray, "append", new Object[]{Helpers.GetValue(trades, i)});
+            Helpers.callDynamically(tradesArray, "append", new Object[]{(trades == null || i < 0 || i >= trades.size() ? null : trades.get(i))});
         }
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
         String messageHash = ("trades::" + ((Map<String, Object>)market).get("symbol"));

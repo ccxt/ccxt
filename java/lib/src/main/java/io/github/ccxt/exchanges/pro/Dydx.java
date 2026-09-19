@@ -167,7 +167,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         List<Object> parsedTrades = this.parseTrades(rawTrades, market);
         for (var i = 0; i < ((List<?>)parsedTrades).size(); i++)
         {
-            Object parsed = Helpers.GetValue(parsedTrades, i);
+            Object parsed = (parsedTrades == null || i < 0 || i >= parsedTrades.size() ? null : parsedTrades.get(i));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         String messageHash = (("trade" + ":") + symbol);

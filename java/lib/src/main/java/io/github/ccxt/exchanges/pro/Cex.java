@@ -197,7 +197,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 List<Object> subscriptionKeys = Helpers.objectKeys(client.subscriptions);
                 for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
                 {
-                    Object subscriptionKey = Helpers.GetValue(subscriptionKeys, i);
+                    Object subscriptionKey = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
                     if (java.util.Objects.equals(subscriptionKey, subscriptionHash))
                     {
                         continue;
@@ -1113,7 +1113,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
-            Object rawOrder = Helpers.GetValue(rawOrders, i);
+            Object rawOrder = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "status", "open");
@@ -1358,7 +1358,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         List<Object> sorted = this.sortBy(data, 0);
         for (var i = 0; i < ((List<?>)sorted).size(); i++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{this.parseOHLCV(Helpers.GetValue(sorted, i), market)});
+            Helpers.callDynamically(stored, "append", new Object[]{this.parseOHLCV((sorted == null || i < 0 || i >= sorted.size() ? null : sorted.get(i)), market)});
         }
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
@@ -1426,7 +1426,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Object stored = ((Map<String, Object>)Helpers.GetValue(this.ohlcvs, symbol)).get("unknown");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            List<Object> ohlcv = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(Helpers.GetValue(data, i), 0), this.safeNumber(Helpers.GetValue(data, i), 1), this.safeNumber(Helpers.GetValue(data, i), 2), this.safeNumber(Helpers.GetValue(data, i), 3), this.safeNumber(Helpers.GetValue(data, i), 4), this.safeNumber(Helpers.GetValue(data, i), 5)));
+            List<Object> ohlcv = new ArrayList<Object>(Arrays.asList(this.safeTimestamp((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 0), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 1), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 2), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 3), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 4), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 5)));
             Helpers.callDynamically(stored, "append", new Object[]{ohlcv});
         }
         Object dataLength = ((List<?>)data).size();
