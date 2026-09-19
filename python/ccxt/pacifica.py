@@ -6,12 +6,13 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -1476,6 +1477,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at(optional provide takeProfitCloid)
         :param str [params.timeInForce]: "GTC", "IOC", or "PO" or "ALO" or "PO_TOB"(or "TOB" - PO by top of book)
         :param boolean [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
+        :param str [params.slippage]: the slippage for market orders in percent, defaults to options.defaultSlippage(0.5)
         :param str [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -1485,8 +1487,9 @@ class pacifica(Exchange, ImplicitAPI):
         self.initialize_client()
         request, operationType = self.create_order_request(symbol, type, side, amount, price, params)
         params = self.omit(params, [
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ])
         response = None
         if operationType == 'create_market_order':
@@ -1538,6 +1541,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at(optional provide takeProfitCloid)
         :param str [params.timeInForce]: "GTC", "IOC", or "PO" or "ALO" or "PO_TOB"(or "TOB" - PO by top of book)
         :param boolean [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
+        :param str [params.slippage]: the slippage for market orders in percent, defaults to options.defaultSlippage(0.5)
         :param str [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an [order structure]
@@ -2828,10 +2832,11 @@ class pacifica(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         symbols = self.market_symbols(symbols)
-        swapMarkets = self.fetch_swap_markets()
-        return self.parse_open_interests(swapMarkets, symbols)
+        response = self.publicGetInfoPrices(params)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_open_interests(data, symbols)
 
-    def fetch_open_interest(self, symbol: str, params={}):
+    def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
         """
         retrieves the open interest of a contract trading pair
 
@@ -2841,11 +2846,14 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
         """
-        symbol = self.symbol(symbol)
         if self.markets is None:
             self.load_markets()
+        symbol = self.symbol(symbol)
         ois = self.fetch_open_interests([symbol], params)
-        return ois[symbol]
+        oi = self.safe_dict(ois, symbol)
+        if oi is None:
+            raise BadSymbol(self.id + ' fetchOpenInterest() could not find open interest for ' + symbol)
+        return oi
 
     def parse_open_interest(self, interest: object, market: Market = None):
         #

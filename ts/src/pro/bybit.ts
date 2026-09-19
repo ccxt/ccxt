@@ -6,7 +6,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableList } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableList, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -2377,13 +2377,55 @@ export default class bybit extends bybitRest {
     }
 
     async watchTopics (url: any, messageHashes: any, topics: any, params = {}) {
-        const request: Dict = {
-            'op': 'subscribe',
-            'req_id': this.requestId (),
-            'args': topics,
-        };
-        const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        const client = this.client (url);
+        const newTopics: string[] = [];
+        const topicsLength = topics.length;
+        const messageHashesLength = messageHashes.length;
+        if (topicsLength === messageHashesLength) {
+            for (let i = 0; i < topicsLength; i++) {
+                const messageHash = messageHashes[i];
+                if (!(messageHash in client.subscriptions)) {
+                    newTopics.push (topics[i]);
+                }
+            }
+        } else {
+            // watchOrders spot: two topics, one hash. Collect topics already
+            // recorded on any subscription so a later call with a new hash
+            // does not resend already-subscribed topics.
+            const subscribedTopics: Dict = {};
+            const subscriptionHashes = Object.keys (client.subscriptions);
+            for (let i = 0; i < subscriptionHashes.length; i++) {
+                const existing = this.safeDict (client.subscriptions, subscriptionHashes[i], {});
+                const recordedTopics = this.safeList (existing, 'topics', []);
+                const recordedLength = recordedTopics.length;
+                for (let j = 0; j < recordedLength; j++) {
+                    subscribedTopics[recordedTopics[j]] = true;
+                }
+            }
+            for (let i = 0; i < topicsLength; i++) {
+                const topic = topics[i];
+                if (!(topic in subscribedTopics)) {
+                    newTopics.push (topic);
+                }
+            }
+        }
+        let message: NullableDict = undefined;
+        let subscription: NullableDict = undefined;
+        const newTopicsLength = newTopics.length;
+        if (newTopicsLength > 0) {
+            const reqId = this.requestId ();
+            const request: Dict = {
+                'op': 'subscribe',
+                'req_id': reqId,
+                'args': newTopics,
+            };
+            message = this.extend (request, params);
+            subscription = {
+                'id': reqId,
+                'topics': newTopics,
+            };
+        }
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
     }
 
     async unWatchTopics (url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params = {}, subExtension = {}) {
@@ -2494,28 +2536,47 @@ export default class bybit extends bybitRest {
             }
             return false;
         } catch (error) {
-            const messageHash = this.safeString2 (message, 'req_id', 'reqId');
-            if (messageHash !== undefined) {
-                client.reject (error, messageHash);
-            } else if (error instanceof AuthenticationError) {
-                const authenticatedHash = 'authenticated';
-                client.reject (error, authenticatedHash);
-                if (authenticatedHash in client.subscriptions) {
-                    delete client.subscriptions[authenticatedHash];
+            const reqId = this.safeString2 (message, 'req_id', 'reqId');
+            let foundSubscription = false;
+            if (reqId !== undefined) {
+                const keys = Object.keys (client.subscriptions);
+                for (let i = 0; i < keys.length; i++) {
+                    const messageHash = keys[i];
+                    if (!(messageHash in client.subscriptions)) {
+                        continue;
+                    }
+                    const subscription = this.safeDict (client.subscriptions, messageHash);
+                    const subId = this.safeString (subscription, 'id');
+                    if (reqId === subId) {
+                        foundSubscription = true;
+                        delete client.subscriptions[messageHash];
+                        client.reject (error, messageHash);
+                    }
                 }
-                const op = this.safeString (message, 'op');
-                if ((op !== undefined) && (op !== 'auth')) {
-                    // an operation response that carries no reqId, e.g. bybit
-                    // omits it on some permission rejections of trade ops,
-                    // would leave the awaiting future pending forever, and
-                    // since nothing on this client can proceed without
-                    // authentication, reject everything pending, mirroring the
-                    // behavior of unattributable non auth errors, see
-                    // https://github.com/ccxt/ccxt/issues/29361
-                    client.reject (error);
+            }
+            if (!foundSubscription) {
+                if (reqId !== undefined) {
+                    client.reject (error, reqId);
+                } else if (error instanceof AuthenticationError) {
+                    const authenticatedHash = 'authenticated';
+                    client.reject (error, authenticatedHash);
+                    if (authenticatedHash in client.subscriptions) {
+                        delete client.subscriptions[authenticatedHash];
+                    }
+                    const op = this.safeString (message, 'op');
+                    if ((op !== undefined) && (op !== 'auth')) {
+                        // an operation response that carries no reqId, e.g. bybit
+                        // omits it on some permission rejections of trade ops,
+                        // would leave the awaiting future pending forever, and
+                        // since nothing on this client can proceed without
+                        // authentication, reject everything pending, mirroring the
+                        // behavior of unattributable non auth errors, see
+                        // https://github.com/ccxt/ccxt/issues/29361
+                        client.reject (error);
+                    }
+                } else {
+                    client.reject (error, reqId);
                 }
-            } else {
-                client.reject (error, messageHash);
             }
             return true;
         }

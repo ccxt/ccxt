@@ -19,22 +19,22 @@ func testFeaturesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropertie
 	var keys []string = ObjectKeys(features)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		AssertInArray(exchange, skippedProperties, "features", keys, i, marketTypes)
-		var marketType any = GetValue(keys, i)
+		var marketType string = GetValue(keys, i).(string)
 		var value any = GetValue(features, marketType)
 		// Assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
-		if IsTrue(IsEqual(value, nil)) {
+		if IsEqual(value, nil) {
 			continue
 		}
-		if IsTrue(IsEqual(marketType, "spot")) {
+		if marketType == "spot" {
 			TestFeaturesInner(exchange, skippedProperties, value)
 		} else {
 			var subKeys []string = ObjectKeys(value)
 			for j := 0; IsLessThan(j, GetArrayLength(subKeys)); j++ {
-				var subKey any = GetValue(subKeys, j)
+				var subKey string = GetValue(subKeys, j).(string)
 				AssertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes)
 				var subValue any = GetValue(value, subKey)
 				// sometimes it might not be available for exchange, eg. future>inverse)
-				if IsTrue(!IsEqual(subValue, nil)) {
+				if !IsEqual(subValue, nil) {
 					TestFeaturesInner(exchange, skippedProperties, subValue)
 				}
 			}

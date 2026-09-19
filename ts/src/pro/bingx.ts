@@ -267,7 +267,11 @@ export default class bingx extends bingxRest {
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const ticker = this.parseWsTicker (data, market);
+        // the Coin-M stream is a distinct endpoint, so it identifies an inverse
+        // ticker even when the market id could not be resolved
+        const inverseUrl = this.safeString (this.urls['api']['ws'], 'inverse');
+        const isInverse = (inverseUrl !== undefined) && (client.url.indexOf (inverseUrl) === 0);
+        const ticker = this.parseWsTicker (data, market, isInverse);
         this.tickers[symbol] = ticker;
         client.resolve (ticker, this.getMessageHash ('ticker', symbol));
         if (this.safeString (message, 'dataType') === 'all@ticker') {
@@ -275,7 +279,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    parseWsTicker (message: any, market: Market = undefined) {
+    parseWsTicker (message: any, market: Market = undefined, isInverse: Bool = undefined) {
         //
         //     {
         //         "e": "24hTicker",
@@ -302,6 +306,11 @@ export default class bingx extends bingxRest {
         const marketId = this.safeString (message, 's');
         market = this.safeMarket (marketId, market);
         const close = this.safeString (message, 'c');
+        // Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        // prefer the caller's stream-derived flag so an unresolved market id on
+        // the Coin-M endpoint does not silently fall back to the contract count
+        const inverse = (isInverse === undefined) ? (market['inverse'] === true) : isInverse;
+        const baseVolumeKey = inverse ? 'm' : 'v';
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -320,7 +329,7 @@ export default class bingx extends bingxRest {
             'change': this.safeString (message, 'p'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (message, 'v'),
+            'baseVolume': this.safeString (message, baseVolumeKey),
             'quoteVolume': this.safeString (message, 'q'),
             'info': message,
         }, market);
@@ -1622,6 +1631,28 @@ export default class bingx extends bingxRest {
         }
         const stored = this.orders;
         const parsedOrder = this.parseOrder (data);
+        if (!isSpot) {
+            // The envelope T is the order update time; o.T is the trade time.
+            const updateTimestamp = this.safeInteger (message, 'T');
+            if ((updateTimestamp !== undefined) && (updateTimestamp > 0)) {
+                const orderId = this.safeString (parsedOrder, 'id');
+                if (orderId !== undefined) {
+                    // Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
+                    // Match both id and symbol: several cached orders can share a symbol.
+                    for (let i = 0; i < stored.length; i++) {
+                        const previousOrder = stored[i];
+                        if ((previousOrder['id'] === orderId) && (previousOrder['symbol'] === parsedOrder['symbol'])) {
+                            const previousTimestamp = this.safeInteger (previousOrder, 'lastUpdateTimestamp');
+                            if ((previousTimestamp !== undefined) && (updateTimestamp < previousTimestamp)) {
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                }
+                parsedOrder['lastUpdateTimestamp'] = updateTimestamp;
+            }
+        }
         stored.append (parsedOrder);
         const symbol = parsedOrder['symbol'];
         const spotHash = 'spot:order';

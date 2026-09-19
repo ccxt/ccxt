@@ -615,12 +615,16 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        this.handleBidAsk (client, message);
         const arg = this.safeValue (message, 'arg', {});
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
         const channel = this.safeString (arg, 'channel');
+        if (channel === 'tickers') {
+            // of the five feeds routed here, only the plain one carries bidPx/askPx —
+            // mark-price and index frames lack them and must not overwrite the bid-ask cache
+            this.handleBidAsk (client, message);
+        }
         const data = this.safeList (message, 'data', []);
         const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
@@ -1435,6 +1439,7 @@ export default class okx extends okxRest {
                 delete this.orderbooks[symbol];
             }
             client.reject (error, messageHash);
+            return orderbook;
         }
         const timestamp = this.safeInteger (message, 'ts');
         orderbook['nonce'] = seqId;
@@ -1552,7 +1557,10 @@ export default class okx extends okxRest {
                 const orderbook = this.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
                 orderbook['symbol'] = symbol;
-                this.handleOrderBookMessage (client, update, orderbook, messageHash);
+                this.handleOrderBookMessage (client, update, orderbook, messageHash, market);
+                if (!(messageHash in client.subscriptions)) {
+                    break;
+                }
                 client.resolve (orderbook, messageHash);
             }
         } else if (action === 'update') {
@@ -1561,6 +1569,11 @@ export default class okx extends okxRest {
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
                     this.handleOrderBookMessage (client, update, orderbook, messageHash, market);
+                    if (!(messageHash in client.subscriptions)) {
+                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
+                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        break;
+                    }
                     client.resolve (orderbook, messageHash);
                 }
             }

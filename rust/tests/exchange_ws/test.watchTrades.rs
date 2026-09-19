@@ -33,9 +33,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1489: bool = true;
-                while { if !__for_first_1489 { i = add(&i, &Value::Int(1)); } __for_first_1489 = false; is_less_than(&i, &get_array_length(&response)) } {
-                testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), symbol.clone(), now.clone());
+                let mut __for_first_1491: bool = true;
+                while { if !__for_first_1491 { i = add(&i, &Value::Int(1)); } __for_first_1491 = false; is_less_than(&i, &get_array_length(&response)) } {
+                testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), symbol.clone(), now.clone(), Value::Bool(true));
             }
             }
             if is_greater_than(&(subtract(&now, &startTime)), &maxIdleTime) {

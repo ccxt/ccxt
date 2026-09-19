@@ -3333,6 +3333,9 @@ class bithumb extends Exchange {
         $queryKeysLength = count($queryKeys);
         $hasQuery = ($queryKeysLength > 0);
         if ($api === 'public') {
+            $headers = array(
+                'OPEN-API-PARTNER' => 'CCXT',
+            );
             if ($hasQuery) {
                 $url .= '?' . $this->urlencode($query);
             }
@@ -3342,6 +3345,7 @@ class bithumb extends Exchange {
             if ($isVersionedApi) {
                 $headers = array(
                     'Accept' => 'application/json',
+                    'OPEN-API-PARTNER' => 'CCXT',
                 );
                 $request = array(
                     'access_key' => $this->apiKey,
@@ -3383,6 +3387,7 @@ class bithumb extends Exchange {
                     'Api-Key' => $this->apiKey,
                     'Api-Sign' => $signature64,
                     'Api-Nonce' => $nonce,
+                    'OPEN-API-PARTNER' => 'CCXT',
                 );
             }
         }

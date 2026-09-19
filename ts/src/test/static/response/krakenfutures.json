@@ -3,6 +3,277 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "funding payments without a symbol, the market is resolved from the lower case contract id of the account log",
+                "method": "fetchFundingHistory",
+                "input": [],
+                "httpResponse": {
+                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                    "logs": [
+                        {
+                            "asset": "usd",
+                            "contract": "pf_dogeusd",
+                            "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "collateral": null,
+                            "date": "2026-09-17T12:00:00.000Z",
+                            "execution": null,
+                            "fee": 0,
+                            "funding_rate": 9.288451412e-7,
+                            "id": 16,
+                            "info": "funding rate change",
+                            "margin_account": "flex",
+                            "mark_price": null,
+                            "new_average_entry_price": null,
+                            "new_balance": 0,
+                            "old_average_entry_price": null,
+                            "old_balance": 0.0002,
+                            "realized_funding": -0.0002,
+                            "realized_pnl": null,
+                            "trade_price": null,
+                            "conversion_spread_percentage": null,
+                            "liquidation_fee": null,
+                            "position_uid": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "asset": "usd",
+                            "contract": "pf_dogeusd",
+                            "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "collateral": null,
+                            "date": "2026-09-17T12:00:00.000Z",
+                            "execution": null,
+                            "fee": 0,
+                            "funding_rate": 9.288451412e-7,
+                            "id": 16,
+                            "info": "funding rate change",
+                            "margin_account": "flex",
+                            "mark_price": null,
+                            "new_average_entry_price": null,
+                            "new_balance": 0,
+                            "old_average_entry_price": null,
+                            "old_balance": 0.0002,
+                            "realized_funding": -0.0002,
+                            "realized_pnl": null,
+                            "trade_price": null,
+                            "conversion_spread_percentage": null,
+                            "liquidation_fee": null,
+                            "position_uid": null
+                        },
+                        "symbol": "DOGE/USD:USD",
+                        "code": "USD",
+                        "timestamp": 1789646400000,
+                        "datetime": "2026-09-17T12:00:00.000Z",
+                        "id": "16",
+                        "amount": -0.0002
+                    }
+                ]
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "index price candles map to the spot price type",
+                "method": "fetchIndexOHLCV",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "httpResponse": {
+                    "candles": [
+                        {
+                            "time": 1650002400000,
+                            "open": "40143.65",
+                            "high": "40168.14",
+                            "low": "39979.49",
+                            "close": "40046.87",
+                            "volume": "0"
+                        },
+                        {
+                            "time": 1650006000000,
+                            "open": "40046.87",
+                            "high": "40439.78",
+                            "low": "39972.28",
+                            "close": "40260.22",
+                            "volume": "0"
+                        },
+                        {
+                            "time": 1650009600000,
+                            "open": "40260.22",
+                            "high": "40389.05",
+                            "low": "40114.01",
+                            "close": "40157.03",
+                            "volume": "0"
+                        }
+                    ],
+                    "more_candles": false
+                },
+                "parsedResponse": [
+                    [
+                        1650002400000,
+                        40143.65,
+                        40168.14,
+                        39979.49,
+                        40046.87,
+                        0
+                    ],
+                    [
+                        1650006000000,
+                        40046.87,
+                        40439.78,
+                        39972.28,
+                        40260.22,
+                        0
+                    ],
+                    [
+                        1650009600000,
+                        40260.22,
+                        40389.05,
+                        40114.01,
+                        40157.03,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "mark price candles",
+                "method": "fetchMarkOHLCV",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "httpResponse": {
+                    "candles": [
+                        {
+                            "time": 1650002400000,
+                            "open": "40141.5",
+                            "high": "40167.5",
+                            "low": "39976.5",
+                            "close": "40047.5",
+                            "volume": "0"
+                        },
+                        {
+                            "time": 1650006000000,
+                            "open": "40047.5",
+                            "high": "40438.5",
+                            "low": "39969.5",
+                            "close": "40239",
+                            "volume": "0"
+                        },
+                        {
+                            "time": 1650009600000,
+                            "open": "40239",
+                            "high": "40392",
+                            "low": "40107.5",
+                            "close": "40158",
+                            "volume": "0"
+                        }
+                    ],
+                    "more_candles": false
+                },
+                "parsedResponse": [
+                    [
+                        1650002400000,
+                        40141.5,
+                        40167.5,
+                        39976.5,
+                        40047.5,
+                        0
+                    ],
+                    [
+                        1650006000000,
+                        40047.5,
+                        40438.5,
+                        39969.5,
+                        40239,
+                        0
+                    ],
+                    [
+                        1650009600000,
+                        40239,
+                        40392,
+                        40107.5,
+                        40158,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "trade price candles by default",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "httpResponse": {
+                    "candles": [
+                        {
+                            "time": 1650002400000,
+                            "open": "40154",
+                            "high": "40160",
+                            "low": "39969",
+                            "close": "40032",
+                            "volume": "22.2079"
+                        },
+                        {
+                            "time": 1650006000000,
+                            "open": "40032",
+                            "high": "40428",
+                            "low": "39988",
+                            "close": "40208",
+                            "volume": "24.1811"
+                        },
+                        {
+                            "time": 1650009600000,
+                            "open": "40208",
+                            "high": "40339",
+                            "low": "40108",
+                            "close": "40145",
+                            "volume": "3.095000000000001"
+                        }
+                    ],
+                    "more_candles": false
+                },
+                "parsedResponse": [
+                    [
+                        1650002400000,
+                        40154,
+                        40160,
+                        39969,
+                        40032,
+                        22.2079
+                    ],
+                    [
+                        1650006000000,
+                        40032,
+                        40428,
+                        39988,
+                        40208,
+                        24.1811
+                    ],
+                    [
+                        1650009600000,
+                        40208,
+                        40339,
+                        40108,
+                        40145,
+                        3.095000000000001
+                    ]
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetch a single ticker",

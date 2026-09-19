@@ -14,14 +14,14 @@ func testWatchTickerBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "watchTicker"
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	var maxIdleTime int = 5000
 	var idle bool = false
-	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+	for (IsLessThan(now, ends)) && !idle {
 		var response any = nil
 		var success bool = true
-		var startTime any = exchange.Milliseconds()
+		var startTime int64 = exchange.Milliseconds()
 
 		{
 			func() (ret_ any) {
@@ -32,7 +32,7 @@ func testWatchTickerBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							success = false
@@ -49,10 +49,10 @@ func testWatchTickerBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 
 		}
 		now = exchange.Milliseconds()
-		if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
+		if (success == true) && (!IsEqual(response, nil)) {
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dictionary. "), exchange.Json(response)))
 			TestTicker(exchange, skippedProperties, method, response, symbol)
-			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
 				idle = true
 			}
 		}

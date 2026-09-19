@@ -1154,7 +1154,7 @@ public class Bingx extends BingxApi
                         put( "trailing", true );
                         put( "leverage", false );
                         put( "marketBuyRequiresPrice", false );
-                        put( "marketBuyByCost", true );
+                        put( "marketBuyByCost", false );
                         put( "selfTradePrevention", false );
                         put( "iceberg", false );
                     }} );
@@ -1225,6 +1225,7 @@ public class Bingx extends BingxApi
                         put( "private", true );
                     }} );
                     put( "createOrder", new HashMap<String, Object>() {{
+                        put( "marketBuyByCost", true );
                         put( "triggerPriceType", null );
                         put( "attachedStopLossTakeProfit", null );
                         put( "trailing", false );
@@ -2123,10 +2124,23 @@ public class Bingx extends BingxApi
             // safeTrade applies contractSize when calculating inverse cost.
             amount = this.safeString(trade, "volume");
         }
+        String price = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("price", "p", "tradePrice")));
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))) && Helpers.isTrue((Helpers.isEqual(this.safeString(trade, "x"), "TRADE")))))
+        {
+            String lastAmount = this.safeString(trade, "l");
+            String lastPrice = this.safeString(trade, "L");
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(lastAmount, null))) && Helpers.isTrue((!Helpers.isEqual(lastPrice, null)))))
+            {
+                // Linear WS l/L describe the last fill, not the original order's q/p.
+                amount = lastAmount;
+                price = lastPrice;
+            }
+        }
         final Object finalTime = time;
         final Object finalMarket = market;
         final Object finalSide = side;
         final Object finalTakeOrMaker = takeOrMaker;
+        final Object finalPrice = price;
         final Object finalAmount = amount;
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Bingx.this.safeString2(trade, "id", "t") );
@@ -2138,7 +2152,7 @@ public class Bingx extends BingxApi
             put( "type", Bingx.this.safeStringLower(trade, "o") );
             put( "side", Bingx.this.parseOrderSide(finalSide) );
             put( "takerOrMaker", finalTakeOrMaker );
-            put( "price", Bingx.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("price", "p", "tradePrice"))) );
+            put( "price", finalPrice );
             put( "amount", finalAmount );
             put( "cost", cost );
             put( "fee", new HashMap<String, Object>() {{
@@ -2399,12 +2413,22 @@ public class Bingx extends BingxApi
         //         "markPrice": "16884.5",
         //         "indexPrice": "16886.9",
         //         "lastFundingRate": "0.0001",
-        //         "nextFundingTime": 1672041600000
+        //         "nextFundingTime": 1672041600000,
+        //         "fundingIntervalHours": 8,
+        //         "updateTime": 1672012800000
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
+        Long timestamp = this.safeInteger(contract, "updateTime");
+        String interval = this.safeString(contract, "fundingIntervalHours");
+        Object intervalString = null;
+        if (Helpers.isTrue(!Helpers.isEqual(interval, null)))
+        {
+            intervalString = Helpers.add(interval, "h");
+        }
+        final Object finalIntervalString = intervalString;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", Bingx.this.safeSymbol(marketId, market, "-", "swap") );
@@ -2412,8 +2436,8 @@ public class Bingx extends BingxApi
             put( "indexPrice", Bingx.this.safeNumber(contract, "indexPrice") );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
-            put( "timestamp", null );
-            put( "datetime", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Bingx.this.iso8601(timestamp) );
             put( "fundingRate", Bingx.this.safeNumber(contract, "lastFundingRate") );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
@@ -2423,7 +2447,7 @@ public class Bingx extends BingxApi
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", null );
+            put( "interval", finalIntervalString );
         }};
     }
 

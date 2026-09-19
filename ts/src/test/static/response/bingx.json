@@ -965,6 +965,346 @@
                     "previousFundingDatetime": null,
                     "interval": null
                 }
+            },
+            {
+                "description": "linear funding metadata 1h",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 1,
+                        "updateTime": 1749801600000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 1,
+                        "updateTime": 1749801600000
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1749801600000,
+                    "datetime": "2025-06-13T08:00:00.000Z",
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "1h"
+                }
+            },
+            {
+                "description": "linear funding metadata 2h",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 2,
+                        "updateTime": 1749801600000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 2,
+                        "updateTime": 1749801600000
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1749801600000,
+                    "datetime": "2025-06-13T08:00:00.000Z",
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "2h"
+                }
+            },
+            {
+                "description": "linear funding metadata 4h",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 4,
+                        "updateTime": 1749801600000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 4,
+                        "updateTime": 1749801600000
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1749801600000,
+                    "datetime": "2025-06-13T08:00:00.000Z",
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "4h"
+                }
+            },
+            {
+                "description": "linear funding metadata 8h",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 8,
+                        "updateTime": 1749801600000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 8,
+                        "updateTime": 1749801600000
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1749801600000,
+                    "datetime": "2025-06-13T08:00:00.000Z",
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            },
+            {
+                "description": "linear funding metadata only fundingIntervalHours",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": "4"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": "4"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "4h"
+                }
+            },
+            {
+                "description": "linear funding metadata only updateTime",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "updateTime": "1749801600000"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "updateTime": "1749801600000"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1749801600000,
+                    "datetime": "2025-06-13T08:00:00.000Z",
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "multiple funding rates preserve metadata",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC-USDT",
+                            "markPrice": "104701.1",
+                            "indexPrice": "104748.9",
+                            "lastFundingRate": "0.00004900",
+                            "nextFundingTime": "1749830400000",
+                            "fundingIntervalHours": 1,
+                            "updateTime": 1749801600000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "markPrice": "104701.1",
+                            "indexPrice": "104748.9",
+                            "lastFundingRate": "0.00004900",
+                            "nextFundingTime": "1749830400000",
+                            "fundingIntervalHours": 1,
+                            "updateTime": 1749801600000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "markPrice": 104701.1,
+                        "indexPrice": 104748.9,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1749801600000,
+                        "datetime": "2025-06-13T08:00:00.000Z",
+                        "fundingRate": 4.9e-05,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1749830400000,
+                        "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "1h"
+                    }
+                }
             }
         ],
         "fetchOpenInterest": [

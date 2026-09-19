@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\pacifica as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadSymbol;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -1589,6 +1590,7 @@ class pacifica extends Exchange {
          * @param {float} [$params->takeProfitPrice] the $price that a take profit $order is triggered at (optional provide takeProfitCloid)
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [$params->reduceOnly] Ensures that the executed $order does not flip the opened position.
+         * @param {string} [$params->slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [$params->clientOrderId] client $order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
@@ -1599,8 +1601,9 @@ class pacifica extends Exchange {
         Async\await($this->initialize_client());
         list($request, $operationType) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $params = $this->omit($params, array(
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ));
         $response = null;
         if ($operationType === 'create_market_order') {
@@ -1657,6 +1660,7 @@ class pacifica extends Exchange {
          * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [$params->slippage] the $slippage for $market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [$params->clientOrderId] client order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an [order structure]
@@ -3133,11 +3137,12 @@ class pacifica extends Exchange {
             Async\await($this->load_markets());
         }
         $symbols = $this->market_symbols($symbols);
-        $swapMarkets = Async\await($this->fetch_swap_markets());
-        return $this->parse_open_interests($swapMarkets, $symbols);
+        $response = Async\await($this->publicGetInfoPrices($params));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_open_interests($data, $symbols);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -3151,12 +3156,16 @@ class pacifica extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
          */
-        $symbol = $this->symbol($symbol);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $symbol = $this->symbol($symbol);
         $ois = Async\await($this->fetch_open_interests(array( $symbol ), $params));
-        return $ois[$symbol];
+        $oi = $this->safe_dict($ois, $symbol);
+        if ($oi === null) {
+            throw new BadSymbol($this->id . ' fetchOpenInterest() could not find open interest for ' . $symbol);
+        }
+        return $oi;
     }
 
     public function parse_open_interest(mixed $interest, ?array $market = null) {

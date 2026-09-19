@@ -3,6 +3,89 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "since maps to since with ascending sort and until maps to before",
+                "disabledGO": true,
+                "method": "fetchFundingHistory",
+                "url": "https://futures.kraken.com/api/history/v3/account-log?info=funding%20rate%20change&since=1789000000000&sort=asc&before=1790000000000",
+                "input": [
+                    null,
+                    1789000000000,
+                    null,
+                    {
+                        "until": 1790000000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "no count with a symbol, the contract filter runs on the client side after the page is fetched",
+                "disabledGO": true,
+                "method": "fetchFundingHistory",
+                "url": "https://futures.kraken.com/api/history/v3/account-log?info=funding%20rate%20change",
+                "input": [
+                    "DOGE/USD:USD",
+                    null,
+                    5
+                ],
+                "output": null
+            },
+            {
+                "description": "limit maps to count when no symbol filter is applied",
+                "disabledGO": true,
+                "method": "fetchFundingHistory",
+                "url": "https://futures.kraken.com/api/history/v3/account-log?info=funding%20rate%20change&count=5",
+                "input": [
+                    null,
+                    null,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "index price candles map to the spot price type",
+                "method": "fetchIndexOHLCV",
+                "url": "https://futures.kraken.com/api/charts/v1/spot/PF_XBTUSD/1h?from=1650000000&to=1650010799",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "mark price candles",
+                "method": "fetchMarkOHLCV",
+                "url": "https://futures.kraken.com/api/charts/v1/mark/PF_XBTUSD/1h?from=1650000000&to=1650010799",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "trade price candles by default",
+                "method": "fetchOHLCV",
+                "url": "https://futures.kraken.com/api/charts/v1/trade/PF_XBTUSD/1h?from=1650000000&to=1650010799",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "output": null
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetch a single ticker",

@@ -21,7 +21,7 @@ func testFetchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	//
 	// test structure
 	//
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	var isPublicTrade bool = true
 	for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
 		TestTrade(exchange, skippedProperties, method, GetValue(trades, i), symbol, now, isPublicTrade)
@@ -30,20 +30,20 @@ func testFetchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	// test if both sides are being returned
 	//
 	var minTradesForBothSidesCheck int = 99
-	if IsTrue(!IsTrue((InOp(skippedProperties, "requireBothSides"))) && IsTrue(IsGreaterThan(GetArrayLength(trades), minTradesForBothSidesCheck))) {
+	if !(InOp(skippedProperties, "requireBothSides")) && IsGreaterThan(GetArrayLength(trades), minTradesForBothSidesCheck) {
 		//
 		//  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
 		//  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
 		//
-		var grouped any = exchange.GroupBy(trades, "side")
+		var grouped map[string]any = exchange.GroupBy(trades, "side")
 		var msg any = Add("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue", LogTemplate(exchange, method, trades))
 		Assert((InOp(grouped, "buy")), msg)
 		Assert((InOp(grouped, "sell")), msg)
 	}
-	if !IsTrue((InOp(skippedProperties, "timestampSort"))) {
+	if !(InOp(skippedProperties, "timestampSort")) {
 		AssertTimestampOrder(exchange, method, symbol, trades)
 	}
-	if IsTrue(!IsTrue((InOp(skippedProperties, "side"))) && !IsTrue((InOp(skippedProperties, "sideSequence")))) {
+	if !(InOp(skippedProperties, "side")) && !(InOp(skippedProperties, "sideSequence")) {
 
 		retRes378 := (<-HelperTestFetchTradesSideSequenceAsync(exchange, skippedProperties, symbol, method, trades))
 		PanicOnError(retRes378)
@@ -76,6 +76,7 @@ func helperTestFetchTradesSideSequenceBody(ch chan any, exchange ccxt.ICoreExcha
 	var lastTs any = nil
 	var lastPrice any = nil
 	var lastSide any = nil
+	var lastTrade any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
 		var trade any = GetValue(trades, i)
 		var ts any = GetValue(trade, "timestamp")
@@ -86,18 +87,23 @@ func helperTestFetchTradesSideSequenceBody(ch chan any, exchange ccxt.ICoreExcha
 		var isSamePrice bool = ccxt.Precise.StringEq(price, lastPrice)
 		var isSameSide bool = IsEqual(side, lastSide)
 		// we are only interested in trades that have: same timestamp, same side, but different(!) price
-		if IsTrue(IsTrue(IsTrue(isSameTs) && IsTrue(isSameSide)) && !IsTrue(isSamePrice)) {
+		if isSameTs && isSameSide && !isSamePrice {
+			var pair map[string]any = map[string]any{
+				"previous": lastTrade,
+				"current":  trade,
+			}
 			var priceIncreasing bool = ccxt.Precise.StringGt(price, lastPrice)
 			var priceDecreasing bool = ccxt.Precise.StringLt(price, lastPrice)
-			if IsTrue(priceIncreasing) {
-				Assert(IsEqual(side, "buy"), Add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, trade)))
-			} else if IsTrue(priceDecreasing) {
-				Assert(IsEqual(side, "sell"), Add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, trade)))
+			if priceIncreasing {
+				Assert(IsEqual(side, "buy"), Add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, pair)))
+			} else if priceDecreasing {
+				Assert(IsEqual(side, "sell"), Add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, pair)))
 			}
 		}
 		lastPrice = price
 		lastTs = ts
 		lastSide = side
+		lastTrade = trade
 	}
 
 	ch <- true

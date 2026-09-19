@@ -2292,7 +2292,7 @@ impl AlpacaCore {
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "client_order_id", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), datetime.clone());
-        m.insert("lastTradeTimeStamp".to_string(), Value::Null);
+        m.insert("lastTradeTimestamp".to_string(), self.parse8601(self.safe_string_k(order.clone(), "filled_at", &[])));
         m.insert("status".to_string(), status.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("type".to_string(), orderType.clone());
@@ -2320,10 +2320,22 @@ impl AlpacaCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("pending_new".to_string(), Value::Str("open".to_string()));
                 m.insert("accepted".to_string(), Value::Str("open".to_string()));
+                m.insert("accepted_for_bidding".to_string(), Value::Str("open".to_string()));
                 m.insert("new".to_string(), Value::Str("open".to_string()));
                 m.insert("partially_filled".to_string(), Value::Str("open".to_string()));
                 m.insert("activated".to_string(), Value::Str("open".to_string()));
+                m.insert("done_for_day".to_string(), Value::Str("open".to_string()));
+                m.insert("stopped".to_string(), Value::Str("open".to_string()));
+                m.insert("suspended".to_string(), Value::Str("open".to_string()));
+                m.insert("held".to_string(), Value::Str("open".to_string()));
+                m.insert("pending_replace".to_string(), Value::Str("open".to_string()));
+                m.insert("pending_cancel".to_string(), Value::Str("canceling".to_string()));
                 m.insert("filled".to_string(), Value::Str("closed".to_string()));
+                m.insert("calculated".to_string(), Value::Str("closed".to_string()));
+                m.insert("canceled".to_string(), Value::Str("canceled".to_string()));
+                m.insert("replaced".to_string(), Value::Str("canceled".to_string()));
+                m.insert("expired".to_string(), Value::Str("expired".to_string()));
+                m.insert("rejected".to_string(), Value::Str("rejected".to_string()));
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
@@ -2883,8 +2895,11 @@ impl AlpacaCore {
  * @name alpaca#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.alpaca.markets/reference/getaccount-1
+ * @see https://docs.alpaca.markets/reference/getallopenpositions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}. note that `info` is
+ * the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+ * before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
  */
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -2894,25 +2909,144 @@ impl AlpacaCore {
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut response: Value = self.trader_private_get_v2_account(&[params.clone()]).await;
+        // the two calls stay sequential deliberately — the static request harness records one request per case,
+        // and concurrent calls make the recorded url nondeterministic per language
+        let mut account: Value = self.trader_private_get_v2_account(&[params.clone()]).await;
+        let mut positions: Value = self.trader_private_get_v2_positions(&[]).await;
+        //
+        //     {
+        //         "id": "43a01bde-4eb1-64fssc26adb5",
+        //         "admin_configurations": {
+        //             "allow_instant_ach": true,
+        //             "max_margin_multiplier": "4"
+        //         },
+        //         "user_configurations": {
+        //             "fractional_trading": true,
+        //             "max_margin_multiplier": "4"
+        //         },
+        //         "account_number": "744873727",
+        //         "status": "ACTIVE",
+        //         "crypto_status": "ACTIVE",
+        //         "currency": "USD",
+        //         "buying_power": "5.92",
+        //         "regt_buying_power": "5.92",
+        //         "daytrading_buying_power": "0",
+        //         "effective_buying_power": "5.92",
+        //         "non_marginable_buying_power": "5.92",
+        //         "bod_dtbp": "0",
+        //         "cash": "5.92",
+        //         "accrued_fees": "0",
+        //         "portfolio_value": "48.6",
+        //         "pattern_day_trader": false,
+        //         "trading_blocked": false,
+        //         "transfers_blocked": false,
+        //         "account_blocked": false,
+        //         "created_at": "2022-06-13T14:59:18.318096Z",
+        //         "trade_suspended_by_user": false,
+        //         "multiplier": "1",
+        //         "shorting_enabled": false,
+        //         "equity": "48.6",
+        //         "last_equity": "48.8014266",
+        //         "long_market_value": "42.68",
+        //         "short_market_value": "0",
+        //         "position_market_value": "42.68",
+        //         "initial_margin": "0",
+        //         "maintenance_margin": "0",
+        //         "last_maintenance_margin": "0",
+        //         "sma": "5.92",
+        //         "daytrade_count": 0,
+        //         "balance_asof": "2024-12-10",
+        //         "crypto_tier": 1,
+        //         "intraday_adjustments": "0",
+        //         "pending_reg_taf_fees": "0"
+        //     }
+        //
+        let mut response: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("account".to_string(), account.clone());
+                m.insert("positions".to_string(), positions.clone());
+            m
+        });
         return self.parse_balance(response.clone());
 
     Value::Null
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
+        //
+        // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
+        //
+        //     "positions": [
+        //         {
+        //             "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+        //             "symbol": "BTCUSD",
+        //             "exchange": "CRYPTO",
+        //             "asset_class": "crypto",
+        //             "asset_marginable": false,
+        //             "qty": "0.000207296",
+        //             "avg_entry_price": "80037",
+        //             "side": "long",
+        //             "market_value": "16.592345",
+        //             "cost_basis": "16.59135",
+        //             "unrealized_pl": "0.000995",
+        //             "unrealized_plpc": "0.00006",
+        //             "current_price": "80041.8",
+        //             "qty_available": "0.000207296"
+        //         }
+        //     ]
+        //
+        let mut account: Value = self.safe_dict_k(response.clone(), "account", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut positions: Value = self.safe_list_k(response.clone(), "positions", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut account: Value = self.account();
-        let mut currencyId: Value = self.safe_string_k(response.clone(), "currency", &[]);
+        let mut currencyId: Value = self.safe_string_k(account.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(response.clone(), "cash", &[]));
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(response.clone(), "equity", &[]));
         if !is_equal(&code, &Value::Null) {
-            add_element_to_object(&mut result, &code, account.clone());
+            let mut cashAccount: Value = self.account();
+            add_element_to_object(&mut cashAccount, &Value::Str("free".to_string()), self.safe_string_k(account.clone(), "cash", &[])); // cash already excludes the amounts held for open orders, verified live 2026-09-16
+            let mut equity: Value = self.safe_string_k(account.clone(), "equity", &[]);
+            let mut positionsValue: Value = self.safe_string_k(account.clone(), "position_market_value", &[]);
+            add_element_to_object(&mut cashAccount, &Value::Str("total".to_string()), crate::precise::Precise::stringSub(&equity, &positionsValue)); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            add_element_to_object(&mut result, &code, cashAccount.clone());
+        }
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_216: bool = true;
+            while { if !__for_first_216 { i = add(&i, &Value::Int(1)); } __for_first_216 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut position: Value = get_value(&positions, &i);
+            let mut position: Value = get_value(&positions, &i);
+            let mut positionSymbol: Value = self.safe_string_k(position.clone(), "symbol", &[]);
+            if is_equal(&positionSymbol, &Value::Null) {
+                continue;
+            }
+            let mut baseId: Value = Value::Null;
+            if is_greater_than_or_equal(&get_index_of(&positionSymbol, &Value::Str("/".to_string())), &Value::Int(0)) {
+                let mut parts: Value = split(&positionSymbol, &Value::Str("/".to_string()));
+                baseId = self.safe_string(parts.clone(), Value::Int(0), &[]);
+            }  else {
+                // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
+                let mut baseLength: Value = subtract(&get_array_length(&positionSymbol), &Value::Int(3));
+                if is_true(&(is_greater_than(&baseLength, &Value::Int(0)))) && is_true(&(is_equal(&slice(&positionSymbol, &baseLength, &Value::Null), &Value::Str("USD".to_string())))) {
+                    baseId = slice(&positionSymbol, &Value::Int(0), &baseLength);
+                }
+            }
+            if is_equal(&baseId, &Value::Null) {
+                continue;
+            }
+            let mut positionCode: Value = self.safe_currency_code(baseId.clone(), &[]);
+            if is_true(&(!is_equal(&positionCode, &Value::Null))) && !is_true(&(Value::Bool(in_op(&result, &positionCode)))) {
+                let mut positionAccount: Value = self.account();
+                add_element_to_object(&mut positionAccount, &Value::Str("free".to_string()), self.safe_string_k(position.clone(), "qty_available", &[]));
+                add_element_to_object(&mut positionAccount, &Value::Str("total".to_string()), self.safe_string_k(position.clone(), "qty", &[]));
+                add_element_to_object(&mut result, &positionCode, positionAccount.clone());
+            }
+        }
         }
         return self.safe_balance(result.clone());
 

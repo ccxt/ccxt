@@ -86,7 +86,7 @@ public partial class poloniex : ccxt.poloniex
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string? timestamp = this.numberToString(this.milliseconds());
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
         string messageHash = "authenticated";
         var client = this.client(url);
         var future = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
@@ -186,7 +186,7 @@ public partial class poloniex : ccxt.poloniex
     public async virtual Task<object> tradeRequest(object name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
         string messageHash = ((object)this.nonce()).ToString();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", messageHash },
@@ -374,7 +374,7 @@ public partial class poloniex : ccxt.poloniex
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = getValue(data, i);
-            object parsedOrder = this.parseWsOrder(order);
+            Dictionary<string, object> parsedOrder = ((Dictionary<string, object>)this.parseWsOrder(order));
             ((IList<object>)orders).Add(parsedOrder);
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
@@ -427,7 +427,7 @@ public partial class poloniex : ccxt.poloniex
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -502,7 +502,7 @@ public partial class poloniex : ccxt.poloniex
         }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         string name = "trades";
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         IList<object> marketIds = this.marketIds(symbols);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -567,7 +567,7 @@ public partial class poloniex : ccxt.poloniex
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -602,7 +602,7 @@ public partial class poloniex : ccxt.poloniex
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -694,7 +694,7 @@ public partial class poloniex : ccxt.poloniex
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> market = this.safeMarket(symbol);
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
-        object timeframe = this.findTimeframe(channel, timeframes);
+        string? timeframe = this.findTimeframe(channel, timeframes);
         object messageHash = add(add(channel, "::"), symbol);
         object parsed = this.parseWsOHLCV(data, market);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -742,10 +742,10 @@ public partial class poloniex : ccxt.poloniex
             string? marketId = this.safeString(item, "symbol");
             if (isTrue(!isEqual(marketId, null)))
             {
-                object trade = this.parseWsTrade(item);
+                Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(item));
                 object symbol = getValue(trade, "symbol");
                 string type = "trades";
-                object messageHash = add(add(type, "::"), symbol);
+                string messageHash = add(add(type, "::"), symbol);
                 object tradesArray = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
                 if (isTrue(isEqual(tradesArray, null)))
                 {
@@ -956,18 +956,18 @@ public partial class poloniex : ccxt.poloniex
                 string? clientOrderId = this.safeString(order, "clientOrderId", "");
                 if (isTrue(isTrue(isEqual(eventType, "place")) || isTrue(isEqual(eventType, "canceled"))))
                 {
-                    object parsed = this.parseWsOrder(order);
+                    Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(order));
                     callDynamically(orders, "append", new object[] {parsed});
                 } else
                 {
-                    object previousOrders = this.safeValue((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+                    Dictionary<string, object> previousOrders = ((Dictionary<string, object>)this.safeValue((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {}));
                     object previousOrder = this.safeValue2(previousOrders, orderId, clientOrderId);
-                    object trade = this.parseWsTrade(order);
+                    Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(order));
                     this.handleMyTrades(client as WebSocketClient, trade);
                     if (isTrue(isEqual(previousOrder, null)))
                     {
                         // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
-                        object parsedOrder = this.parseWsOrder(order);
+                        Dictionary<string, object> parsedOrder = ((Dictionary<string, object>)this.parseWsOrder(order));
                         callDynamically(orders, "append", new object[] {parsedOrder});
                         ((IList<object>)marketIds).Add(marketId);
                         continue;
@@ -1031,9 +1031,9 @@ public partial class poloniex : ccxt.poloniex
         }
         for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.market(marketId);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             string messageHash = add("orders::", symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
         }
@@ -1081,7 +1081,7 @@ public partial class poloniex : ccxt.poloniex
         if (!isTrue(Precise.stringEq(filledAmount, "0")))
         {
             trades = new List<object>() {};
-            object trade = this.parseWsOrderTrade(order);
+            Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsOrderTrade(order));
             ((IList<object>)trades).Add(trade);
         }
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1146,7 +1146,7 @@ public partial class poloniex : ccxt.poloniex
             string? marketId = this.safeString(item, "symbol");
             if (isTrue(!isEqual(marketId, null)))
             {
-                object ticker = this.parseTicker(item);
+                Dictionary<string, object> ticker = this.parseTicker(item);
                 object symbol = getValue(ticker, "symbol");
                 if (isTrue(!isEqual(symbol, null)))
                 {
@@ -1233,9 +1233,9 @@ public partial class poloniex : ccxt.poloniex
             object item = getValue(data, i);
             string? marketId = this.safeString(item, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             string name = "book_lv2";
-            object messageHash = add(add(name, "::"), symbol);
+            string messageHash = add(add(name, "::"), symbol);
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
             Int64? limit = this.safeInteger(subscription, "limit");
             Int64? timestamp = this.safeInteger(item, "ts");
@@ -1359,7 +1359,7 @@ public partial class poloniex : ccxt.poloniex
         object trades = this.myTrades;
         callDynamically(trades, "append", new object[] {parsedTrade});
         callDynamically(client as WebSocketClient, "resolve", new object[] {trades, messageHash});
-        object symbolMessageHash = add(add(messageHash, ":"), symbol);
+        string symbolMessageHash = add(add(messageHash, ":"), symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {trades, symbolMessageHash});
     }
 

@@ -708,7 +708,7 @@ class bingx extends Exchange {
                         'trailing' => true,
                         'leverage' => false,
                         'marketBuyRequiresPrice' => false,
-                        'marketBuyByCost' => true,
+                        'marketBuyByCost' => false,
                         'selfTradePrevention' => false,
                         'iceberg' => false,
                     ),
@@ -780,6 +780,7 @@ class bingx extends Exchange {
                         'private' => true,
                     ),
                     'createOrder' => array(
+                        'marketBuyByCost' => true,
                         'triggerPriceType' => null,
                         'attachedStopLossTakeProfit' => null,
                         'trailing' => false,
@@ -1565,6 +1566,16 @@ class bingx extends Exchange {
             // safeTrade applies contractSize when calculating inverse cost.
             $amount = $this->safe_string($trade, 'volume');
         }
+        $price = $this->safe_string_n($trade, array( 'price', 'p', 'tradePrice' ));
+        if (($market !== null) && ($market['linear'] === true) && ($this->safe_string($trade, 'x') === 'TRADE')) {
+            $lastAmount = $this->safe_string($trade, 'l');
+            $lastPrice = $this->safe_string($trade, 'L');
+            if (($lastAmount !== null) && ($lastPrice !== null)) {
+                // Linear WS l/L describe the last fill, not the original order's q/p.
+                $amount = $lastAmount;
+                $price = $lastPrice;
+            }
+        }
         return $this->safe_trade(array(
             'id' => $this->safe_string_2($trade, 'id', 't'),
             'info' => $trade,
@@ -1575,7 +1586,7 @@ class bingx extends Exchange {
             'type' => $this->safe_string_lower($trade, 'o'),
             'side' => $this->parse_order_side($side),
             'takerOrMaker' => $takeOrMaker,
-            'price' => $this->safe_string_n($trade, array( 'price', 'p', 'tradePrice' )),
+            'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => array(
@@ -1788,11 +1799,19 @@ class bingx extends Exchange {
         //         "markPrice": "16884.5",
         //         "indexPrice": "16886.9",
         //         "lastFundingRate": "0.0001",
-        //         "nextFundingTime": 1672041600000
+        //         "nextFundingTime": 1672041600000,
+        //         "fundingIntervalHours": 8,
+        //         "updateTime": 1672012800000
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
         $nextFundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
+        $timestamp = $this->safe_integer($contract, 'updateTime');
+        $interval = $this->safe_string($contract, 'fundingIntervalHours');
+        $intervalString = null;
+        if ($interval !== null) {
+            $intervalString = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
@@ -1800,8 +1819,8 @@ class bingx extends Exchange {
             'indexPrice' => $this->safe_number($contract, 'indexPrice'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $this->safe_number($contract, 'lastFundingRate'),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
@@ -1811,7 +1830,7 @@ class bingx extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 

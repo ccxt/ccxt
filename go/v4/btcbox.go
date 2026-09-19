@@ -284,15 +284,15 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var marketIds []string = ObjectKeys(response1)
 	var markets any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
-		var marketId any = GetValue(marketIds, i)
+		var marketId string = GetValue(marketIds, i).(string)
 		var symbolParts []string = Split(marketId, "_")
-		var baseCurr any = this.SafeString(symbolParts, 0, "")
-		var quote any = this.SafeString(symbolParts, 1, "")
+		var baseCurr *string = this.SafeString(symbolParts, 0, "")
+		var quote *string = this.SafeString(symbolParts, 1, "")
 		var quoteId string = ToLower(quote)
 		var id string = ToLower(baseCurr)
 		var res any = this.SafeDict(response1, marketId, map[string]any{})
 		var symbol any = Add(Add(baseCurr, "/"), quote)
-		var fee any = Ternary(IsTrue((IsEqual(id, "BTC"))), this.ParseNumber("0.0005"), this.ParseNumber("0.0010"))
+		var fee any = Ternary((id == "BTC"), this.ParseNumber("0.0005"), this.ParseNumber("0.0010"))
 		var details any = this.SafeDict(result2Data, id, map[string]any{})
 		var tradeDetails any = this.SafeDict(details, "trade", map[string]any{})
 		AppendToArray(&markets, this.SafeMarketStructure(map[string]any{
@@ -353,10 +353,10 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Btcbox) ParseMarket(market any) any {
-	var baseId any = this.SafeString(market, "base")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quoteId any = this.SafeString(market, "quote")
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var baseId *string = this.SafeString(market, "base")
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quoteId *string = this.SafeString(market, "quote")
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             this.SafeString(market, "symbol"),
@@ -415,11 +415,11 @@ func (this *Btcbox) ParseBalance(response any) any {
 	}
 	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
-		var code any = GetValue(codes, i)
+		var code string = GetValue(codes, i).(string)
 		var currency any = this.Currency(code)
 		var currencyId any = GetValue(currency, "id")
 		var free any = Add(currencyId, "_balance")
-		if IsTrue(InOp(response, free)) {
+		if InOp(response, free) {
 			var account any = this.Account()
 			var used any = Add(currencyId, "_lock")
 			AddElementToObject(account, "free", this.SafeString(response, free))
@@ -448,7 +448,7 @@ func (this *Btcbox) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes40712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes40712)
@@ -483,7 +483,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes42512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes42512)
@@ -491,7 +491,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var numSymbols int = GetArrayLength(this.Symbols)
-	if IsTrue(IsGreaterThan(numSymbols, 1)) {
+	if IsGreaterThan(numSymbols, 1) {
 		AddElementToObject(request, "coin", GetValue(market, "baseId"))
 	}
 
@@ -504,8 +504,8 @@ func (this *Btcbox) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 func (this *Btcbox) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
-	var last any = this.SafeString(ticker, "last")
+	var symbol *string = this.SafeSymbol(nil, market)
+	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -549,7 +549,7 @@ func (this *Btcbox) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes47512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes47512)
@@ -557,7 +557,7 @@ func (this *Btcbox) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var numSymbols int = GetArrayLength(this.Symbols)
-	if IsTrue(IsGreaterThan(numSymbols, 1)) {
+	if IsGreaterThan(numSymbols, 1) {
 		AddElementToObject(request, "coin", GetValue(market, "baseId"))
 	}
 
@@ -588,7 +588,7 @@ func (this *Btcbox) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes49712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes49712)
@@ -614,13 +614,13 @@ func (this *Btcbox) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeTimestamp(trade, "date")
+	var timestamp *int64 = this.SafeTimestamp(trade, "date")
 	market = this.SafeMarket(nil, market)
-	var id any = this.SafeString(trade, "tid")
-	var priceString any = this.SafeString(trade, "price")
-	var amountString any = this.SafeString(trade, "amount")
+	var id *string = this.SafeString(trade, "tid")
+	var priceString *string = this.SafeString(trade, "price")
+	var amountString *string = this.SafeString(trade, "amount")
 	var typeVar any = nil
-	var side any = this.SafeString(trade, "type")
+	var side *string = this.SafeString(trade, "type")
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
@@ -663,7 +663,7 @@ func (this *Btcbox) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes55212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes55212)
@@ -671,7 +671,7 @@ func (this *Btcbox) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var numSymbols int = GetArrayLength(this.Symbols)
-	if IsTrue(IsGreaterThan(numSymbols, 1)) {
+	if IsGreaterThan(numSymbols, 1) {
 		AddElementToObject(request, "coin", GetValue(market, "baseId"))
 	}
 
@@ -718,7 +718,7 @@ func (this *Btcbox) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes59012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes59012)
@@ -766,13 +766,13 @@ func (this *Btcbox) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes62112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes62112)
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		symbol = "BTC/JPY"
 	}
 	var market any = this.Market(symbol)
@@ -790,7 +790,7 @@ func (this *Btcbox) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Btcbox) ParseOrderStatus(status any) any {
+func (this *Btcbox) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"part":      "open",
 		"all":       "closed",
@@ -798,7 +798,7 @@ func (this *Btcbox) ParseOrderStatus(status any) any {
 		"closed":    "closed",
 		"no":        "closed",
 	}
-	if IsTrue(IsEqual(status, nil)) {
+	if IsEqual(status, nil) {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -818,26 +818,26 @@ func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id any = this.SafeString(order, "id")
-	var datetimeString any = this.SafeString(order, "datetime")
-	var timestamp any = nil
-	if IsTrue(!IsEqual(datetimeString, nil)) {
+	var id *string = this.SafeString(order, "id")
+	var datetimeString *string = this.SafeString(order, "datetime")
+	var timestamp *int64 = nil
+	if datetimeString != nil {
 		timestamp = this.Parse8601(Add(GetValue(order, "datetime"), "+09:00")) // Tokyo time
 	}
-	var amount any = this.SafeString(order, "amount_original")
-	var remaining any = this.SafeString(order, "amount_outstanding")
-	var price any = this.SafeString(order, "price")
+	var amount *string = this.SafeString(order, "amount_original")
+	var remaining *string = this.SafeString(order, "amount_outstanding")
+	var price *string = this.SafeString(order, "price")
 	// status is set by fetchOrder method only
 	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
 	// fetchOrders do not return status, use heuristic
-	if IsTrue(IsEqual(status, nil)) {
-		if IsTrue(Precise.StringEquals(remaining, "0")) {
+	if IsEqual(status, nil) {
+		if Precise.StringEquals(remaining, "0") {
 			status = "closed"
 		}
 	}
 	var trades any = nil // todo: this.parseTrades (order['trades']);
 	market = this.SafeMarket(nil, market)
-	var side any = this.SafeString(order, "type")
+	var side *string = this.SafeString(order, "type")
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      nil,
@@ -885,13 +885,13 @@ func (this *Btcbox) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes72412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes72412)
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		symbol = "BTC/JPY"
 	}
 	var market any = this.Market(symbol)
@@ -934,13 +934,13 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan any, typeVar any, optionalArgs
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes75312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes75312)
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		symbol = "BTC/JPY"
 	}
 	var market any = this.Market(symbol)
@@ -966,7 +966,7 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan any, typeVar any, optionalArgs
 	var orders any = this.ParseOrders(response, market, since, limit)
 	// status (open/closed/canceled) is undefined
 	// btcbox does not return status, but we know it's 'open' as we queried for open orders
-	if IsTrue(IsEqual(typeVar, "open")) {
+	if IsEqual(typeVar, "open") {
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			AddElementToObject(GetValue(orders, i), "status", "open")
 		}
@@ -1058,11 +1058,11 @@ func (this *Btcbox) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.Version), "/"), path)
-	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
+	if IsEqual(api, "public") {
+		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
-	} else if IsTrue(IsEqual(api, "webApi")) {
+	} else if IsEqual(api, "webApi") {
 		url = Add(Add(GetValue(this.Urls, "www"), "/"), path)
 	} else {
 		this.CheckRequiredCredentials()
@@ -1087,15 +1087,15 @@ func (this *Btcbox) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *Btcbox) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsTrue(IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // resort to defaultErrorHandler
 	}
 	// typical error response: {"result":false,"code":"401"}
-	if IsTrue(IsGreaterThanOrEqual(httpCode, 400)) {
+	if IsGreaterThanOrEqual(httpCode, 400) {
 		return nil // resort to defaultErrorHandler
 	}
 	var result any = this.SafeValue(response, "result")
-	if IsTrue(IsTrue(IsEqual(result, nil)) || IsTrue(IsEqual(result, true))) {
+	if IsEqual(result, nil) || IsEqual(result, true) {
 		return nil // either public API (no error codes expected) or success
 	}
 	var code any = this.SafeValue(response, "code")
@@ -1126,10 +1126,10 @@ func (this *Btcbox) requestBody(ch chan any, path any, optionalArgs ...any) any 
 
 	response := (<-this.Fetch2Async(path, api, method, params, headers, body, config))
 	PanicOnError(response)
-	if IsTrue(IsString(response)) {
+	if IsString(response) {
 		// sometimes the exchange returns whitespace prepended to json
 		response = this.Strip(response)
-		if !IsTrue(this.IsJsonEncodedObject(response)) {
+		if !EvalTruthy(this.IsJsonEncodedObject(response)) {
 			panic(ExchangeError(Add(Add(this.Id, " "), response)))
 		}
 		response = JsonParse(response)
@@ -1153,6 +1153,7 @@ func (this *Btcbox) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name btcbox#fetchMarkets

@@ -64,6 +64,7 @@ public partial class testMainClass : BaseTest
         object lastTs = null;
         string? lastPrice = null;
         object lastSide = null;
+        object lastTrade = null;
         for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
@@ -77,19 +78,24 @@ public partial class testMainClass : BaseTest
             // we are only interested in trades that have: same timestamp, same side, but different(!) price
             if (isTrue(isTrue(isTrue(isSameTs) && isTrue(isSameSide)) && !isTrue(isSamePrice)))
             {
+                Dictionary<string, object> pair = new Dictionary<string, object>() {
+                    { "previous", lastTrade },
+                    { "current", trade },
+                };
                 bool priceIncreasing = Precise.stringGt(price, lastPrice);
                 bool priceDecreasing = Precise.stringLt(price, lastPrice);
                 if (isTrue(priceIncreasing))
                 {
-                    assert(isEqual(side, "buy"), add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", testSharedMethods.logTemplate(exchange, method, trade)));
+                    assert(isEqual(side, "buy"), add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", testSharedMethods.logTemplate(exchange, method, pair)));
                 } else if (isTrue(priceDecreasing))
                 {
-                    assert(isEqual(side, "sell"), add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", testSharedMethods.logTemplate(exchange, method, trade)));
+                    assert(isEqual(side, "sell"), add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", testSharedMethods.logTemplate(exchange, method, pair)));
                 }
             }
             lastPrice = price;
             lastTs = ts;
             lastSide = side;
+            lastTrade = trade;
         }
         return true;
     }

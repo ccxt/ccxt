@@ -91,6 +91,8 @@ jobs:
       - name: Transpile prediction to Go
         if: env.prediction_modified == 'true'
         run: npm run transpile-prediction-go
+      - name: Check emitted Go is gofmt-clean
+        run: tsx build/goTranspiler.ts --check-gofmt
       - name: Build
         run: go build -C go ./v4
       - name: Run Go Unit Tests

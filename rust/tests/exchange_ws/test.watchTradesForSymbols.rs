@@ -11,8 +11,9 @@ use super::*;
 
 pub async fn testWatchTradesForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbols: Value) -> Value {
     let mut method: Value = Value::Str("watchTradesForSymbols".to_string());
+    let mut logText: Value = add(&add(&add(&add(&add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" ".to_string())), &method), &Value::Str(" [symbols: ".to_string())), &exchange.json(symbols.clone())), &Value::Str("] ".to_string()));
     let mut now: Value = exchange.milliseconds();
-    let mut ends: Value = add(&now, &Value::Int(15000));
+    let mut ends: Value = add(&now, &Value::Int(30000));
     let mut maxIdleTime: Value = Value::Int(5000);
     let mut idle: Value = Value::Bool(false);
     let mut returnedSymbols: Value = Value::List(vec![]);
@@ -30,30 +31,29 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success = Value::Bool(false);
         }
         now = exchange.milliseconds();
+        let mut elapsedMs: Value = subtract(&now, &startTime);
         if is_true(&(is_equal(&success, &Value::Bool(true)))) && is_true(&(!is_equal(&response, &Value::Null))) {
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&response)))));
-            let mut symbol: Value = Value::Null;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1490: bool = true;
-                while { if !__for_first_1490 { i = add(&i, &Value::Int(1)); } __for_first_1490 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_1492: bool = true;
+                while { if !__for_first_1492 { i = add(&i, &Value::Int(1)); } __for_first_1492 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut trade: Value = get_value(&response, &i);
-                symbol = get_value(&trade, &Value::Str("symbol".to_string()));
-                if is_equal(&symbol, &Value::Null) {
-                    continue;
-                }
-                testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trade.clone(), symbol.clone(), now.clone());
+                let mut symbol: Value = get_value(&trade, &Value::Str("symbol".to_string()));
+                assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&symbol, &Value::Null)))));
+                testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trade.clone(), symbol.clone(), now.clone(), Value::Bool(true));
                 crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), trade.clone(), Value::Str("symbol".to_string()).clone(), symbols.clone()]);
                 if !is_true(&exchange.in_array(symbol.clone(), returnedSymbols.clone())) {
                     append_to_array(&mut returnedSymbols, symbol.clone());
                 }
             }
             }
-            if is_greater_than(&(subtract(&now, &startTime)), &maxIdleTime) {
+            if is_greater_than(&elapsedMs, &maxIdleTime) {
                 idle = Value::Bool(true);
             }
         }
     }
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&returnedSymbols), &get_array_length(&symbols))))));
     return Value::Bool(true);
 
     Value::Null

@@ -833,6 +833,45 @@ const COLLECTION_RETURN_DICT_METHODS: string[] = [
     'parseCurrencies',
 ];
 
+// Uses of a `typeCoreArgs` shadow local (`object nameVar = name;`, inserted when the body assigns
+// to the narrowed parameter `name`) that cannot change the resolved C# code when the shadow is
+// declared with the parameter's own type: the copy is the same box (Nullable<T> boxes as T) and
+// every proven use is an identity cast `((T)nameVar)`, a cast to `object` (same box), a bare
+// argument to a callee whose parameter there is `object` (same overload, same box), a direct
+// element of an object-valued initializer, an `IDictionary<string, object>` element assignment,
+// `return nameVar;` from an object-returning method, or a write whose right hand side is a literal
+// (string/bool/real only) or a cast/helper returning that same type. An integer literal is not one
+// of them for `Int64?`: `Int64? x = 1000` converts the literal, so the box becomes an Int64 where
+// the `object` spelling boxes an Int32. Everything else keeps `object` -- notably `add (...)`,
+// whose add(string, string) overload would win and differs from add(object, object).
+const CORE_ARG_SHADOW_TYPES = [ 'string', 'Int64?', 'double?', 'bool?' ];
+
+// Callees where every definition in cs/** (base, generated and ws tiers) declares `object` in the
+// position an argument lands in, so an `object` argument and a `string`/nullable-numeric argument
+// select the same overload and hand it the same box. `subtract`/`multiply`/`divide`/`sum` only add
+// int/Int64/double overloads, which no nullable numeric or string converts to implicitly.
+const CORE_ARG_SHADOW_CALLEES = [
+    'parseTimeframe', 'safeString', 'safeString2', 'safeStringN', 'safeBool', 'safeInteger',
+    'safeNumber', 'safeDict', 'safeValue', 'safeList', 'safeTicker', 'safeOrder', 'safeTrade',
+    'safeSymbol', 'getValue', 'isEqual', 'isTrue', 'isGreaterThan', 'isLessThan',
+    'isGreaterThanOrEqual', 'isLessThanOrEqual', 'mathMin', 'mathMax', 'subtract', 'multiply',
+    'divide', 'sum', 'filterBySymbolSinceLimit', 'filterBySinceLimit', 'filterBySymbol',
+    'handleWithdrawTagAndParams', 'fetchPaginatedCallIncremental', 'fetchPaginatedCallCursor',
+    'fetchPaginatedCallDynamic', 'fetchPaginatedCallDeterministic', 'unWatchOHLCVForSymbols',
+    'WatchOHLCVForSymbols', 'checkAddress', 'ToInt64Arg', 'ToDoubleArg', 'ToDoubleArgRequired',
+    'ToOHLCVList', 'ToTradeList', 'ToOrderList', 'ToTransactionList', 'ToFundingRateHistoryList',
+    'ToOpenInterestList', 'ToTransferEntryList', 'FromOHLCVDict', 'FromOHLCVList',
+    'FromOpenInterests', 'symbol', 'market', 'marketId', 'parseToInt', 'parseOHLCVs', 'parseOrders',
+    'parseTrades', 'parseTransactions', 'findNearestCeiling',
+];
+
+// parseOHLCVs/fetchPaginatedCallDeterministic carry a narrowed `string timeframe` inside an
+// otherwise `object` parameter list; a bare argument in those positions would not convert.
+const CORE_ARG_SHADOW_SKIP_POSITIONS: Record<string, number[]> = {
+    'parseOHLCVs': [ 2 ],
+    'fetchPaginatedCallDeterministic': [ 4 ],
+};
+
 const CORE_STRING_ARGS: Record<string, number[]> = {
     'addMargin': [ 0 ],
     'borrowCrossMargin': [ 0 ],
@@ -2322,6 +2361,279 @@ class NewTranspiler {
         return -1;
     }
 
+    // right hand side whose C# static type is exactly the shadow's type
+    coreArgShadowRhsIsTyped (rhs: string, targetType: string): boolean {
+        if (targetType === 'string') {
+            if (/^"(?:[^"\\]|\\.)*"$/.test (rhs)) {
+                return true;
+            }
+            if (/^this\.(?:safeString|symbol)\s*\(/.test (rhs)) {
+                return true;
+            }
+            if (/^\(\(string\)[\w.]+\)\.(?:ToLower|ToUpper|Trim)\s*\(\s*\)$/.test (rhs)) {
+                return true;
+            }
+        } else if (targetType === 'bool?') {
+            if (/^(?:true|false)$/.test (rhs)) {
+                return true;
+            }
+        } else if (targetType === 'double?') {
+            // an integer literal would be converted (int -> double), boxing a Double instead of
+            // the Int32 the `object` spelling boxes -- a real literal needs no conversion
+            if (/^-?\d+\.\d*(?:[eE][-+]?\d+)?$/.test (rhs) || /^-?\d+[eE][-+]?\d+$/.test (rhs)) {
+                return true;
+            }
+        }
+        const cast = /^\(\(([^()]*)\)/.exec (rhs) || /^\(([\w<>, ?\[\].]+)\)/.exec (rhs);
+        if (cast) {
+            const inner = cast[1].trim ();
+            if (inner === targetType) {
+                return true;
+            }
+        }
+        if (targetType !== 'string') {
+            if (/^(?:this|ccxt\.BaseExchange)\.(?:safeInteger|safeFloat|safeNumber|parseToInt|ToInt64Arg|ToDoubleArg)\s*\(/.test (rhs)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // `((T)x)` / `(T)x` immediately wrapping the occurrence at `at`, or null
+    coreArgShadowCastBefore (line: string, at: number): string | null {
+        let m = /\(\(([^()]*)\)$/.exec (line.slice (0, at));
+        if (m !== null) {
+            return m[1].trim ();
+        }
+        m = /(?:^|[^\w(])\(([\w<>, ?\[\].]+)\)$/.exec (line.slice (0, at));
+        return m === null ? null : m[1].trim ();
+    }
+
+    // innermost call whose argument list holds `at`; returns [ name, openParen ]. The scan stops
+    // at a `;` or at a `{` that does not open a `new List/object[]/Dictionary` initializer, so it
+    // never walks out of the statement the occurrence belongs to.
+    coreArgShadowCallee (line: string, at: number): [ string, number ] | null {
+        let depth = 0;
+        let i = at - 1;
+        while (i >= 0) {
+            const ch = line[i];
+            if (ch === ')') {
+                depth += 1;
+            } else if (ch === '(') {
+                depth -= 1;
+                if (depth < 0) {
+                    const name = /([\w.]+)\s*$/.exec (line.slice (0, i));
+                    return name === null ? null : [ name[1], i ];
+                }
+            } else if (ch === ';' || (ch === '}' && depth === 0)) {
+                return null;
+            } else if (ch === '{' && depth === 0) {
+                if (!/(?:new List<object>|new object\[\]|new Dictionary<string, object>)\s*\(?\s*\)?\s*$/.test (line.slice (0, i))) {
+                    return null;
+                }
+            }
+            i -= 1;
+        }
+        return null;
+    }
+
+    coreArgShadowCalleeAllows (callee: string, line: string, at: number, openParen: number): boolean {
+        const name = callee.split ('.').pop () as string;
+        if (CORE_ARG_SHADOW_CALLEES.indexOf (name) === -1) {
+            return false;
+        }
+        const skips = CORE_ARG_SHADOW_SKIP_POSITIONS[name];
+        if (skips === undefined) {
+            return true;
+        }
+        let depth = 0;
+        let index = 0;
+        for (let i = openParen + 1; i < at; i++) {
+            const ch = line[i];
+            if (ch === '(') { depth += 1; } else if (ch === ')') { depth -= 1; } else if (ch === ',' && depth === 0) { index += 1; }
+        }
+        return skips.indexOf (index) === -1;
+    }
+
+    // classification of one occurrence: 'write', 'read', or '' when not provable
+    coreArgShadowUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean): string {
+        const pre = line.slice (0, at);
+        const post = line.slice (at + alias.length);
+        const postl = post.replace (/^\s+/, '');
+        if (/(?:ref|out)\s+$/.test (pre)) {
+            return '';
+        }
+        if (pre.trim () === '') {
+            const m = /^\s*(\?\?=|\+=|-=|\*=|%=|\/=|=(?!=))\s*(.*?);?\s*$/.exec (post);
+            if (m !== null) {
+                const op = m[1];
+                const rhs = m[2].trim ();
+                if ((op === '??=' || op === '=') && this.coreArgShadowRhsIsTyped (rhs, targetType)) {
+                    return 'write';
+                }
+                return '';
+            }
+        }
+        const cast = this.coreArgShadowCastBefore (line, at);
+        if (cast !== null) {
+            // an identity cast, or a cast to object (boxes the same value / null)
+            return (cast === targetType || cast === 'object') ? 'read' : '';
+        }
+        if (pre.trim () === 'return' && postl.trim () === ';') {
+            return methodReturnType.includes ('object') ? 'read' : '';
+        }
+        if (postl.trim () === ';' && /[\}\]]\s*=\s*$/.test (pre) && /I?Dictionary<string,\s*object>/.test (pre)) {
+            return 'read';
+        }
+        if (/[{,]\s*$/.test (pre) && /(?:new List<object>|new object\[\]|new Dictionary<string, object>)\s*\(?\s*\)?\s*\{[^{}]*$/.test (pre)) {
+            return 'read';
+        }
+        if (inDictInit && /^\s*\{\s*"(?:[^"\\]|\\.)*"\s*,\s*$/.test (pre)) {
+            return 'read';
+        }
+        if (postl.charAt (0) === ',' || postl.charAt (0) === ')') {
+            const callee = this.coreArgShadowCallee (line, at);
+            if (callee !== null && this.coreArgShadowCalleeAllows (callee[0], line, at, callee[1])) {
+                return 'read';
+            }
+            return '';
+        }
+        if (postl.charAt (0) === '}' && /\{\s*"[^"]*"\s*,\s*$/.test (pre)) {
+            return 'read';
+        }
+        return '';
+    }
+
+    // True when the shadow `alias` (copy of the narrowed parameter, targetType its type) is used
+    // only in the proven ways above and is read at least once (a write-only local is CS0219).
+    coreArgShadowIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine = -1): boolean {
+        if (CORE_ARG_SHADOW_TYPES.indexOf (targetType) === -1) {
+            return false;
+        }
+        // strip `//` and block comments, then track the brace depth so a `{ "key", x }` entry is
+        // only accepted inside a `Dictionary<string, object>` initializer
+        const lines: string[] = [];
+        const dictInits: boolean[] = [];
+        const frames: number[][] = [];
+        let inBlock = false;
+        let depth = 0;
+        for (const raw of bodyLines) {
+            let line = raw;
+            if (inBlock) {
+                const end = line.indexOf ('*/');
+                if (end === -1) { line = ''; } else { line = line.slice (end + 2); inBlock = false; }
+            }
+            const open = line.indexOf ('/*');
+            if (open !== -1) {
+                const end = line.indexOf ('*/', open);
+                if (end === -1) { line = line.slice (0, open); inBlock = true; } else { line = line.slice (0, open) + line.slice (end + 2); }
+            }
+            const slash = this.coreArgShadowCommentAt (line);
+            if (slash !== -1) {
+                line = line.slice (0, slash);
+            }
+            while (frames.length > 0 && frames[frames.length - 1][0] > depth) {
+                frames.pop ();
+            }
+            dictInits.push (frames.some ((frame) => frame[1] === 1));
+            if (/(?:new Dictionary<string, object>|new List<object>|new object\[\])\s*\(?\s*\)?\s*\{/.test (line)) {
+                const isDict = /new Dictionary<string, object>\s*\(?\s*\)?\s*\{/.test (line);
+                frames.push ([ depth + this.coreArgShadowBraceDelta (line), isDict ? 1 : 0 ]);
+            }
+            depth += this.coreArgShadowBraceDelta (line);
+            lines.push (line);
+        }
+        let reads = 0;
+        for (let k = 0; k < lines.length; k++) {
+            if (k === skipLine) {
+                continue;
+            }
+            const line = lines[k];
+            for (const at of this.coreArgShadowOccurrences (line, alias)) {
+                const kind = this.coreArgShadowUseKind (line, at, alias, targetType, methodReturnType, dictInits[k]);
+                if (kind === '') {
+                    return false;
+                }
+                if (kind === 'read') {
+                    reads += 1;
+                }
+            }
+        }
+        return reads > 0;
+    }
+
+    // index of the `//` comment start outside string/char literals, or -1
+    coreArgShadowCommentAt (line: string): number {
+        let i = 0;
+        while (i < line.length) {
+            const ch = line[i];
+            if (ch === '"' || ch === '\'') {
+                i = this.coreArgShadowSkipLiteral (line, i);
+                continue;
+            }
+            if (ch === '/' && line[i + 1] === '/') {
+                return i;
+            }
+            i += 1;
+        }
+        return -1;
+    }
+
+    // first index past the string/char literal that starts at `start`
+    coreArgShadowSkipLiteral (line: string, start: number): number {
+        const quote = line[start];
+        let i = start + 1;
+        while (i < line.length) {
+            if (line[i] === '\\') { i += 2; continue; }
+            if (line[i] === quote) { return i + 1; }
+            i += 1;
+        }
+        return i;
+    }
+
+    // net `{` minus `}` outside string/char literals
+    coreArgShadowBraceDelta (line: string): number {
+        let delta = 0;
+        let i = 0;
+        while (i < line.length) {
+            const ch = line[i];
+            if (ch === '"' || ch === '\'') {
+                i = this.coreArgShadowSkipLiteral (line, i);
+                continue;
+            }
+            if (ch === '{') { delta += 1; } else if (ch === '}') { delta -= 1; }
+            i += 1;
+        }
+        return delta;
+    }
+
+    // positions of `alias` outside string/char literals and `//` comments
+    coreArgShadowOccurrences (line: string, alias: string): number[] {
+        const out: number[] = [];
+        let i = 0;
+        while (i <= line.length - alias.length) {
+            const ch = line[i];
+            if (ch === '"' || ch === '\'') {
+                i = this.coreArgShadowSkipLiteral (line, i);
+                continue;
+            }
+            if (ch === '/' && line[i + 1] === '/') {
+                break;
+            }
+            if (line.startsWith (alias, i)) {
+                const before = i === 0 ? '' : line[i - 1];
+                const after = i + alias.length < line.length ? line[i + alias.length] : '';
+                if (!/[\w.]/.test (before) && !/\w/.test (after)) {
+                    out.push (i);
+                    i += alias.length;
+                    continue;
+                }
+            }
+            i += 1;
+        }
+        return out;
+    }
+
     // narrows the `object` parameters listed in CORE_STRING_ARGS to `string` on every
     // generated declaration. Positional, because the prediction tier renames the first
     // parameter (`symbol` -> `outcome`) while C# invariance is on types only.
@@ -2448,6 +2760,70 @@ class NewTranspiler {
             lines[i] = `${indent}public ${asyncKw || ''}${modifier} ${returnType} ${methodName}(${params.join (',')})`;
             if (shadows.length) {
                 lines[bodyStart] = lines[bodyStart] + '\n' + shadows.join ('\n');
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // Copies of a `typeCoreArgs`-narrowed parameter -- `object symbol2 = symbol;` and the
+    // `object nameVar = name;` shadow that pass inserts for a reassigned parameter -- may name the
+    // parameter's own type instead: the copy is the same box (Nullable<T> boxes as T, a reference
+    // copy stays a reference). Runs after typeCoreArgs so the narrowed signature is visible;
+    // coreArgShadowIsProvable then decides from the printed body whether every other use of the
+    // local keeps the same overload resolution, box and control flow. Only the declaration line
+    // changes.
+    retypeCoreArgCopies (content: string): string {
+        if (!/^\s*object \w+ = \w+;/m.test (content)) {
+            return content;
+        }
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            const [ , indent, , , returnType, , plist ] = sig;
+            const types: Record<string, string> = {};
+            for (const param of this.splitCsharpParams (plist)) {
+                const parts = param.split ('=')[0].trim ().split (/\s+/);
+                if (parts.length >= 2) {
+                    types[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
+                }
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const bodyLines = lines.slice (bodyStart + 1, bodyEnd);
+            let changed = false;
+            for (let k = 0; k < bodyLines.length; k++) {
+                const decl = /^(\s*)object (\w+) = (\w+);\s*$/.exec (bodyLines[k]);
+                if (decl === null) {
+                    continue;
+                }
+                const [ , dindent, alias, source ] = decl;
+                const type = types[source];
+                if (type === undefined || type === 'object' || CORE_ARG_SHADOW_TYPES.indexOf (type) === -1) {
+                    continue;
+                }
+                if (this.coreArgShadowIsProvable (bodyLines, alias, type, returnType, k)) {
+                    bodyLines[k] = dindent + type + ' ' + alias + ' = ' + source + ';';
+                    changed = true;
+                }
+            }
+            if (changed) {
+                for (let k = 0; k < bodyLines.length; k++) {
+                    lines[bodyStart + 1 + k] = bodyLines[k];
+                }
             }
             i = bodyEnd;
         }
@@ -3114,7 +3490,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false)))), false)) + "\n";
+            const file = fileHeader + this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))), false)) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -3122,7 +3498,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false)))), false) + "\n}\n";
+                const tradingFile = tradingHeader + this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))), false) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -3170,7 +3546,7 @@ class NewTranspiler {
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
-            const file = fileHeader + fields + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true)))), true) + "\n";
+            const file = fileHeader + fields + this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))), true) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -3510,7 +3886,7 @@ class NewTranspiler {
                 this.venueParents[this.currentVenue] = parent;
             }
         }
-        content = this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))));
+        content = this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))));
         this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;

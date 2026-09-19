@@ -5861,7 +5861,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&Value::Bool(in_op(&mapping, &key))) {
             return get_value(&mapping, &key);
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &key), &Value::Str(" does not have a value in mapping".to_string()))));
+            let mut keys: Value = object_keys(&mapping);
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &key), &Value::Str(" does not have a value in mapping".to_string())), &Value::Str(", must be one of ".to_string())), &join(&keys, &Value::Str(", ".to_string())))));
         }
 
     Value::Null

@@ -80,10 +80,10 @@ func (this *Pacifica) SetupApiKeyHeaders(optionalArgs ...any) {
 	key := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = key
 	var headers map[string]any = map[string]any{}
-	if ccxt.IsTrue(!ccxt.IsEqual(key, nil)) {
+	if !ccxt.IsEqual(key, nil) {
 		ccxt.AddElementToObject(headers, "PF-API-KEY", key)
 	} else {
-		if ccxt.IsTrue(!ccxt.IsEqual(this.HandleOption("setupApiKeyHeaders", "apiKey"), nil)) {
+		if !ccxt.IsEqual(this.HandleOption("setupApiKeyHeaders", "apiKey"), nil) {
 			ccxt.AddElementToObject(headers, "PF-API-KEY", ccxt.GetValue(this.Options, "apiKey"))
 		}
 	}
@@ -125,7 +125,7 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes10712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes10712)
@@ -135,13 +135,13 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	operationType := ccxt.GetValue(requestoperationTypeVariable, 1)
 	params = this.Omit(params, []any{"reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "agentAddress", "originAddress"})
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var wsRequest any = this.WrapAsPostAction(operationType, request)
-	var requestId any = this.SafeString(wsRequest, "id")
-	if ccxt.IsTrue(ccxt.IsEqual(operationType, "create_stop_order")) {
+	var requestId *string = this.SafeString(wsRequest, "id")
+	if ccxt.IsEqual(operationType, "create_stop_order") {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " createOrderWs() do not support stop order type of order. Check provided arguments correctly!")))
-	} else if ccxt.IsTrue(ccxt.IsEqual(operationType, "set_position_tpsl")) {
+	} else if ccxt.IsEqual(operationType, "set_position_tpsl") {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!")))
 	}
 
@@ -174,20 +174,20 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	//   "type": "create_order"
 	// }
 	//
-	var code any = this.SafeInteger(response, "code")
+	var code *int64 = this.SafeInteger(response, "code")
 	var success bool = false
-	if ccxt.IsTrue(ccxt.IsEqual(code, 200)) {
+	if code != nil && *code == 200 {
 		success = true
 	}
-	var status any = nil
-	if !ccxt.IsTrue(success) {
+	var status string
+	if !success {
 		status = "rejected"
 	} else {
 		status = "open"
 	}
 	var order any = this.SafeDict(response, "data", map[string]any{})
-	var orderId any = this.SafeString(order, "i")
-	var clientOrderId any = this.SafeString(order, "I")
+	var orderId *string = this.SafeString(order, "i")
+	var clientOrderId *string = this.SafeString(order, "I")
 
 	ch <- this.SafeOrder(map[string]any{
 		"id":            orderId,
@@ -232,7 +232,7 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id any, symbol any, typeVar a
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var batchOperationType string = "edit_order"
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes19012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes19012)
@@ -241,10 +241,10 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id any, symbol any, typeVar a
 	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
 	params = this.Omit(params, []any{"originAddress", "agentAddress", "expiryWindow", "clientOrderId"})
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var wsRequest any = this.WrapAsPostAction(batchOperationType, request)
-	var requestId any = this.SafeString(wsRequest, "id")
+	var requestId *string = this.SafeString(wsRequest, "id")
 
 	response := (<-this.Watch(url, requestId, wsRequest, requestId))
 	ccxt.PanicOnError(response)
@@ -259,20 +259,20 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id any, symbol any, typeVar a
 	//   "t": 1749223026150,
 	//   "type": "edit_order"
 	// }
-	var code any = this.SafeInteger(response, "code")
+	var code *int64 = this.SafeInteger(response, "code")
 	var success bool = false
-	if ccxt.IsTrue(ccxt.IsEqual(code, 200)) {
+	if code != nil && *code == 200 {
 		success = true
 	}
-	var status any = nil
-	if !ccxt.IsTrue(success) {
+	var status string
+	if !success {
 		status = "rejected"
 	} else {
 		status = "open"
 	}
 	var order any = this.SafeDict(response, "data", map[string]any{})
-	var orderId any = this.SafeString(order, "i")
-	var clientOrderId any = this.SafeString(order, "I")
+	var orderId *string = this.SafeString(order, "i")
+	var clientOrderId *string = this.SafeString(order, "I")
 
 	ch <- this.SafeOrder(map[string]any{
 		"id":            orderId,
@@ -312,21 +312,21 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var batchOperationType string = "batch_orders"
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes24712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes24712)
 	}
-	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+	if ccxt.IsEqual(symbol, nil) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, "cancelOrders() requires a \"symbol\" argument!")))
 	}
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
 	params = this.Omit(params, []any{"originAddress", "agentAddress", "expiryWindow", "clientOrderIds"})
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var wsRequest any = this.WrapAsPostAction(batchOperationType, request)
-	var requestId any = this.SafeString(wsRequest, "id")
+	var requestId *string = this.SafeString(wsRequest, "id")
 
 	response := (<-this.Watch(url, requestId, wsRequest, requestId))
 	ccxt.PanicOnError(response)
@@ -358,14 +358,14 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	var ordersToReturn any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(results)); i++ {
 		var order any = ccxt.GetValue(results, i)
-		var error any = this.SafeString(order, "error")
-		var success any = this.SafeBool(order, "success", false)
-		var marketId any = this.SafeString(order, "symbol")
+		var error *string = this.SafeString(order, "error")
+		var success *bool = this.SafeBool(order, "success", false)
+		var marketId *string = this.SafeString(order, "symbol")
 		var market any = this.SafeMarket(marketId)
-		var orderId any = this.SafeString(order, "i")
-		var clientOrderId any = this.SafeString(order, "I")
-		var status any = nil
-		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(error, nil))) || ccxt.IsTrue((!ccxt.IsEqual(success, true)))) {
+		var orderId *string = this.SafeString(order, "i")
+		var clientOrderId *string = this.SafeString(order, "I")
+		var status string
+		if (error != nil) || (success == nil || *success != true) {
 			status = "closed"
 		} else {
 			status = "canceled"
@@ -411,21 +411,21 @@ func (this *Pacifica) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var operationType string = "cancel_order"
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes32312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes32312)
 	}
-	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+	if ccxt.IsEqual(symbol, nil) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " cancelOrderWs() requires a symbol argument")))
 	}
 	var request any = this.CancelOrderRequest(id, symbol, params)
 	params = this.Omit(params, []any{"originAddress", "agentAddress", "expiryWindow", "trigger", "stop", "clientOrderId"})
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var wsRequest any = this.WrapAsPostAction(operationType, request)
-	var requestId any = this.SafeString(wsRequest, "id")
+	var requestId *string = this.SafeString(wsRequest, "id")
 
 	response := (<-this.Watch(url, requestId, wsRequest, requestId))
 	ccxt.PanicOnError(response)
@@ -442,20 +442,20 @@ func (this *Pacifica) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any
 	//   "type": "cancel_order"
 	// }
 	//
-	var code any = this.SafeInteger(response, "code")
+	var code *int64 = this.SafeInteger(response, "code")
 	var success bool = false
-	if ccxt.IsTrue(ccxt.IsEqual(code, 200)) {
+	if code != nil && *code == 200 {
 		success = true
 	}
-	var status any = nil
-	if !ccxt.IsTrue(success) {
+	var status string
+	if !success {
 		status = "rejected"
 	} else {
 		status = "open"
 	}
 	var order any = this.SafeDict(response, "data", map[string]any{})
-	var orderId any = this.SafeString(order, "i")
-	var clientOrderId any = this.SafeString(order, "I")
+	var orderId *string = this.SafeString(order, "i")
+	var clientOrderId *string = this.SafeString(order, "I")
 
 	ch <- this.SafeOrder(map[string]any{
 		"id":            orderId,
@@ -492,7 +492,7 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes38112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes38112)
@@ -501,10 +501,10 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
 	var request any = this.CancelAllOrdersRequest(symbol, params)
 	params = this.Omit(params, []any{"excludeReduceOnly", "agentAddress", "originAddress", "expiryWindow"})
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var wsRequest any = this.WrapAsPostAction(operationType, request)
-	var requestId any = this.SafeString(wsRequest, "id")
+	var requestId *string = this.SafeString(wsRequest, "id")
 
 	response := (<-this.Watch(url, requestId, wsRequest, requestId))
 	ccxt.PanicOnError(response)
@@ -549,19 +549,19 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.SetupApiKeyHeaders()
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes42312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes42312)
 	}
 	var market any = this.Market(symbol)
 	var aggLevel any = nil
-	aggLevelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
+	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
 	aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 	params = ccxt.GetValue(aggLevelparamsVariable, 1)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -600,20 +600,20 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes45712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes45712)
 	}
 	var market any = this.Market(symbol)
 	var aggLevel any = nil
-	aggLevelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
+	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
 	aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 	params = ccxt.GetValue(aggLevelparamsVariable, 1)
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -665,7 +665,7 @@ func (this *Pacifica) HandleOrderBook(client any, message any) {
 	// }
 	//
 	var entry any = this.SafeDict(message, "data", map[string]any{})
-	var marketId any = this.SafeString(entry, "s")
+	var marketId *string = this.SafeString(entry, "s")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var levels any = this.SafeList(entry, "l", []any{})
@@ -673,14 +673,14 @@ func (this *Pacifica) HandleOrderBook(client any, message any) {
 		"bids": this.SafeList(levels, 0, []any{}),
 		"asks": this.SafeList(levels, 1, []any{}),
 	}
-	var timestamp any = this.SafeInteger(entry, "t")
+	var timestamp *int64 = this.SafeInteger(entry, "t")
 	var snapshot any = this.ParseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a")
-	var nonce any = this.SafeInteger(entry, "li")
-	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(nonce, nil))) && ccxt.IsTrue((!ccxt.IsEqual(nonce, 0)))) {
+	var nonce *int64 = this.SafeInteger(entry, "li")
+	if (nonce != nil) && (nonce == nil || *nonce != 0) {
 		ccxt.AddElementToObject(snapshot, "nonce", nonce)
 	}
-	if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
-		var ob any = this.OrderBook(snapshot)
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
@@ -738,7 +738,7 @@ func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.SetupApiKeyHeaders()
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes56412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes56412)
@@ -746,7 +746,7 @@ func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, true)
 	var messageHash string = "tickers"
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -757,7 +757,7 @@ func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	tickers := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
 	ccxt.PanicOnError(tickers)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 
 		ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)
 		return nil
@@ -788,16 +788,16 @@ func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes59512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes59512)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true)
 	var subMessageHash string = "tickers"
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messageHash string = "unsubscribe:" + subMessageHash
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -844,18 +844,18 @@ func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("watchMyTrades", params)
 	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
 	params = ccxt.GetValue(userAddressparamsVariable, 1)
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes62812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes62812)
 	}
 	var messageHash any = "myTrades"
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		symbol = this.Symbol(symbol)
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -868,7 +868,7 @@ func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -898,12 +898,12 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes66512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes66512)
 	}
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")))
 	}
 	var userAddress any = nil
@@ -912,7 +912,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	params = ccxt.GetValue(userAddressparamsVariable, 1)
 	var messageHash string = "unsubscribe:myTrades"
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -953,7 +953,7 @@ func (this *Pacifica) HandleWsTickers(client any, message any) any {
 	var data any = this.SafeList(message, "data", []any{})
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var info any = ccxt.GetValue(data, i)
-		var marketId any = this.SafeString(info, "symbol")
+		var marketId *string = this.SafeString(info, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var ticker any = this.ParseWsTicker(info, market)
@@ -994,22 +994,22 @@ func (this *Pacifica) HandleMyTrades(client any, message any) {
 	//   ]
 	// }
 	//
-	if ccxt.IsTrue(ccxt.IsEqual(this.MyTrades, nil)) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if ccxt.IsEqual(this.MyTrades, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var trades any = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	var data any = this.SafeList(message, "data", []any{})
 	var dataLength int = ccxt.GetArrayLength(data)
-	if ccxt.IsTrue(ccxt.IsEqual(dataLength, 0)) {
+	if dataLength == 0 {
 		return
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var rawTrade any = ccxt.GetValue(data, i)
 		var parsed any = this.ParseWsTrade(rawTrade)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		if !ccxt.IsEqual(symbol, nil) {
 			ccxt.AddElementToObject(symbols, symbol, true)
 		}
 		trades.(ccxt.Appender).Append(parsed)
@@ -1049,7 +1049,7 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes79612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes79612)
@@ -1058,7 +1058,7 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trade:", symbol)
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1071,7 +1071,7 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1098,7 +1098,7 @@ func (this *Pacifica) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes83012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes83012)
@@ -1108,7 +1108,7 @@ func (this *Pacifica) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var subMessageHash any = ccxt.Add("trade:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -1144,12 +1144,12 @@ func (this *Pacifica) HandleTrades(client any, message any) {
 	//
 	var entry any = this.SafeList(message, "data", []any{})
 	var first any = this.SafeDict(entry, 0, map[string]any{})
-	var marketId any = this.SafeString(first, "s")
+	var marketId *string = this.SafeString(first, "s")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	if !ccxt.IsTrue((ccxt.InOp(this.Trades, symbol))) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		var stored any = ccxt.NewArrayCache(limit)
+	if !(ccxt.InOp(this.Trades, symbol)) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
+		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var trades any = ccxt.GetValue(this.Trades, symbol)
@@ -1198,32 +1198,32 @@ func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeInteger(trade, "t")
-	var price any = this.SafeString(trade, "p")
-	var amount any = this.SafeString(trade, "a")
-	var marketId any = this.SafeString(trade, "s")
+	var timestamp *int64 = this.SafeInteger(trade, "t")
+	var price *string = this.SafeString(trade, "p")
+	var amount *string = this.SafeString(trade, "a")
+	var marketId *string = this.SafeString(trade, "s")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var id any = this.SafeString(trade, "h")
-	var fee any = this.SafeString(trade, "f")
-	var side any = this.SafeString2(trade, "ts", "d")
-	if ccxt.IsTrue(ccxt.IsEqual(side, "open_long")) {
+	var id *string = this.SafeString(trade, "h")
+	var fee *string = this.SafeString(trade, "f")
+	var side any = ccxt.DerefScalar(this.SafeString2(trade, "ts", "d"))
+	if ccxt.IsEqual(side, "open_long") {
 		side = "buy"
-	} else if ccxt.IsTrue(ccxt.IsEqual(side, "close_long")) {
+	} else if ccxt.IsEqual(side, "close_long") {
 		side = "sell"
-	} else if ccxt.IsTrue(ccxt.IsEqual(side, "open_short")) {
+	} else if ccxt.IsEqual(side, "open_short") {
 		side = "sell"
-	} else if ccxt.IsTrue(ccxt.IsEqual(side, "close_short")) {
+	} else if ccxt.IsEqual(side, "close_short") {
 		side = "buy"
 	}
-	var eventType any = this.SafeString(trade, "te")
+	var eventType *string = this.SafeString(trade, "te")
 	var takerOrMaker any = nil
-	if ccxt.IsTrue(!ccxt.IsEqual(eventType, nil)) {
-		takerOrMaker = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(eventType, "fulfill_maker"))), "maker", "taker")
+	if eventType != nil {
+		takerOrMaker = ccxt.Ternary((eventType != nil && *eventType == "fulfill_maker"), "maker", "taker")
 	}
-	var orderId any = this.SafeString(trade, "i")
+	var orderId *string = this.SafeString(trade, "i")
 	// public trades have no orderId
-	if ccxt.IsTrue(ccxt.IsEqual(orderId, nil)) {
+	if orderId == nil {
 		takerOrMaker = nil
 	}
 	return this.SafeTrade(map[string]any{
@@ -1274,7 +1274,7 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes98212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes98212)
@@ -1282,8 +1282,8 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var isTestnet any = this.IsSandboxModeEnabled
-	var parsedTf any = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var parsedTf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1298,7 +1298,7 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 	ohlcv := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -1328,7 +1328,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	_ = timeframe
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes101912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes101912)
@@ -1336,7 +1336,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -1374,20 +1374,20 @@ func (this *Pacifica) HandleOHLCV(client any, message any) {
 	// }
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var marketId any = this.SafeString(data, "s")
+	var marketId *string = this.SafeString(data, "s")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var timeframe any = this.SafeString(data, "i")
-	if ccxt.IsTrue(ccxt.IsEqual(timeframe, nil)) {
+	var timeframe *string = this.SafeString(data, "i")
+	if timeframe == nil {
 		return
 	}
-	if !ccxt.IsTrue((ccxt.InOp(this.Ohlcvs, symbol))) {
+	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
 	var symbolOhlcvs any = this.SafeValue(this.Ohlcvs, symbol, map[string]any{})
 	var ohlcv any = this.SafeValue(symbolOhlcvs, timeframe)
-	if ccxt.IsTrue(ccxt.IsEqual(ohlcv, nil)) {
-		var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
+	if ccxt.IsEqual(ohlcv, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		ohlcv = ccxt.NewArrayCacheByTimestamp(limit)
 		ccxt.AddElementToObject(symbolOhlcvs, timeframe, ohlcv)
 	}
@@ -1425,7 +1425,7 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes109612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes109612)
@@ -1436,13 +1436,13 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.GetValue(userAddressparamsVariable, 1)
 	var market any = nil
 	var messageHash any = "order"
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1455,7 +1455,7 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(orders)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1485,17 +1485,17 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes113712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes113712)
 	}
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")))
 	}
 	var messageHash string = "unsubscribe:order"
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
+	var urlKey string = ccxt.Ternary(ccxt.EvalTruthy((isTestnet)), "test", "api").(string)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("unWatchOrders", params)
@@ -1544,12 +1544,12 @@ func (this *Pacifica) HandleOrder(client any, message any) {
 	//   ]
 	// }
 	var data any = this.SafeList(message, "data", []any{})
-	if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
-		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
+	if ccxt.IsEqual(this.Orders, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var dataLength int = ccxt.GetArrayLength(data)
-	if ccxt.IsTrue(ccxt.IsEqual(dataLength, 0)) {
+	if dataLength == 0 {
 		return
 	}
 	var stored any = this.Orders
@@ -1559,14 +1559,14 @@ func (this *Pacifica) HandleOrder(client any, message any) {
 		var rawOrder any = ccxt.GetValue(data, i)
 		var order any = this.ParseOrder(rawOrder)
 		stored.(ccxt.Appender).Append(order)
-		var symbol any = this.SafeString(order, "symbol")
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		var symbol *string = this.SafeString(order, "symbol")
+		if symbol != nil {
 			ccxt.AddElementToObject(marketSymbols, symbol, true)
 		}
 	}
 	var keys []string = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
-		var symbol any = ccxt.GetValue(keys, i)
+		var symbol string = ccxt.GetValue(keys, i).(string)
 		var innerMessageHash any = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 		client.(ccxt.ClientInterface).Resolve(stored, innerMessageHash)
 	}
@@ -1577,11 +1577,11 @@ func (this *Pacifica) HandleErrorMessage(client any, message any) any {
 	// 'rl' key is present only when a rate-limited API key is used
 	// {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
 	//
-	var error any = this.SafeString(message, "err", "")
-	var postType any = this.SafeString(message, "type", "")
+	var error *string = this.SafeString(message, "err", "")
+	var postType *string = this.SafeString(message, "type", "")
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var id any = this.SafeString(message, "id")
-	if ccxt.IsTrue(ccxt.IsEqual(id, nil)) {
+	var id *string = this.SafeString(message, "id")
+	if id == nil {
 		id = this.SafeString(data, "id")
 	}
 
@@ -1609,30 +1609,30 @@ func (this *Pacifica) HandleErrorMessage(client any, message any) any {
 	return false
 }
 func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription any) {
-	var marketId any = this.SafeString2(subscription, "symbol", "s")
+	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.IsTrue(ccxt.InOp(this.Orderbooks, symbol)) {
+	if ccxt.InOp(this.Orderbooks, symbol) {
 		ccxt.Remove(this.Orderbooks, symbol)
 	}
 }
 func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
-	var marketId any = this.SafeString2(subscription, "symbol", "s")
+	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var subMessageHash any = ccxt.Add("trade:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.IsTrue(ccxt.InOp(this.Trades, symbol)) {
+	if ccxt.InOp(this.Trades, symbol) {
 		ccxt.Remove(this.Trades, symbol)
 	}
 }
 func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) {
 	var subMessageHash string = "tickers"
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	var symbols []string = ccxt.ObjectKeys(this.Tickers)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -1640,26 +1640,26 @@ func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) 
 	}
 }
 func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
-	var marketId any = this.SafeString2(subscription, "symbol", "s")
+	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var interval any = this.SafeString(subscription, "interval")
+	var interval *string = this.SafeString(subscription, "interval")
 	var timeframe any = this.FindTimeframe(interval)
-	if ccxt.IsTrue(ccxt.IsEqual(timeframe, nil)) {
+	if ccxt.IsEqual(timeframe, nil) {
 		return
 	}
 	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbol, nil))) && ccxt.IsTrue((ccxt.InOp(this.Ohlcvs, symbol)))) {
-		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(timeframe, nil))) && ccxt.IsTrue((ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)))) {
+	if (!ccxt.IsEqual(symbol, nil)) && (ccxt.InOp(this.Ohlcvs, symbol)) {
+		if (!ccxt.IsEqual(timeframe, nil)) && (ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 			ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		}
 	}
 }
 func (this *Pacifica) HandleOrderUnsubscription(client any, subscription any) {
 	var subHash string = "order"
-	var unSubHash any = ccxt.Add("unsubscribe:", subHash)
+	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
 	var topicStructure map[string]any = map[string]any{
 		"topic": "orders",
@@ -1668,7 +1668,7 @@ func (this *Pacifica) HandleOrderUnsubscription(client any, subscription any) {
 }
 func (this *Pacifica) HandleMyTradesUnsubscription(client any, subscription any) {
 	var subHash string = "myTrades"
-	var unSubHash any = ccxt.Add("unsubscribe:", subHash)
+	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
 	var topicStructure map[string]any = map[string]any{
 		"topic": "myTrades",
@@ -1695,21 +1695,21 @@ func (this *Pacifica) HandleSubscriptionResponse(client any, message any) {
 	//  }
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var method any = this.SafeString(message, "channel")
-	if ccxt.IsTrue(ccxt.IsEqual(method, "unsubscribe")) {
+	var method *string = this.SafeString(message, "channel")
+	if method != nil && *method == "unsubscribe" {
 		var subscription any = this.SafeDict(data, "data", map[string]any{})
-		var typeVar any = this.SafeString(subscription, "source")
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "book")) {
+		var typeVar *string = this.SafeString(subscription, "source")
+		if typeVar != nil && *typeVar == "book" {
 			this.HandleOrderBookUnsubscription(client, subscription)
-		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "trades")) {
+		} else if typeVar != nil && *typeVar == "trades" {
 			this.HandleTradesUnsubscription(client, subscription)
-		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "prices")) {
+		} else if typeVar != nil && *typeVar == "prices" {
 			this.HandleTickersUnsubscription(client, subscription)
-		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "candle")) {
+		} else if typeVar != nil && *typeVar == "candle" {
 			this.HandleOHLCVUnsubscription(client, subscription)
-		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "account_order_updates")) {
+		} else if typeVar != nil && *typeVar == "account_order_updates" {
 			this.HandleOrderUnsubscription(client, subscription)
-		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "account_trades")) {
+		} else if typeVar != nil && *typeVar == "account_trades" {
 			this.HandleMyTradesUnsubscription(client, subscription)
 		}
 	}
@@ -1729,11 +1729,11 @@ func (this *Pacifica) HandleMessage(client any, message any) {
 	//     }
 	// }
 	//
-	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
+	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
 		return
 	}
-	var postType any = this.SafeString(message, "type")
-	var topic any = this.SafeString(message, "channel", "")
+	var postType *string = this.SafeString(message, "type")
+	var topic *string = this.SafeString(message, "channel", "")
 	var methods map[string]any = map[string]any{
 		"pong":                  this.HandlePong,
 		"trades":                this.HandleTrades,
@@ -1746,18 +1746,18 @@ func (this *Pacifica) HandleMessage(client any, message any) {
 		"unsubscribe":           this.HandleSubscriptionResponse,
 	}
 	var exacMethod any = this.SafeValue(methods, topic)
-	if ccxt.IsTrue(!ccxt.IsEqual(exacMethod, nil)) {
+	if !ccxt.IsEqual(exacMethod, nil) {
 		ccxt.CallDynamically(exacMethod, client, message)
 		return
 	}
-	if ccxt.IsTrue(!ccxt.IsEqual(postType, nil)) {
+	if postType != nil {
 		this.HandleWsPost(client, message)
 		return
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
-		var key any = ccxt.GetValue(keys, i)
-		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)), 0)) {
+		var key string = ccxt.GetValue(keys, i).(string)
+		if ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)), 0) {
 			var method any = ccxt.GetValue(methods, key)
 			ccxt.CallDynamically(method, client, message)
 			return
@@ -1782,7 +1782,7 @@ func (this *Pacifica) RequestId() any {
 	return this.Uuid() // uuid v4
 }
 func (this *Pacifica) WrapAsPostAction(operationType any, request any) any {
-	if ccxt.IsTrue(ccxt.IsEqual(operationType, nil)) {
+	if ccxt.IsEqual(operationType, nil) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, "postAction() requires a \"operationType\" argument!")))
 	}
 	var requestId any = this.RequestId()
@@ -1821,7 +1821,7 @@ func (this *Pacifica) HandleWsPost(client any, message any) {
 	//   "type": "create_order"
 	// }
 	//
-	var id any = this.SafeString(message, "id")
+	var id *string = this.SafeString(message, "id")
 	client.(ccxt.ClientInterface).Resolve(message, id)
 }
 
@@ -1838,6 +1838,7 @@ func (this *Pacifica) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name pacifica#createOrderWs
