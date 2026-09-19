@@ -982,7 +982,7 @@ public class Grvt extends GrvtApi
             //            ...
             //
             List<Object> promises = new ArrayList<Object>(Arrays.asList(marketsPromise));
-            if (!Helpers.isTrue(this.isEmptyString(this.apiKey)) || !Helpers.isTrue(this.isEmptyString(this.privateKey)))
+            if (!Boolean.TRUE.equals(this.isEmptyString(this.apiKey)) || !Boolean.TRUE.equals(this.isEmptyString(this.privateKey)))
             {
                 ((List<Object>)promises).add(this.signIn());
             }

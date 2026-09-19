@@ -3225,7 +3225,7 @@ public class Aster extends AsterApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(this.isLinear(marketType, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(marketType, subType)))
             {
                 response = (this.fapiPrivateGetV3OpenOrders(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
@@ -5440,7 +5440,7 @@ public class Aster extends AsterApi
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(values, key);
-            Boolean isObj = (value instanceof List) || Helpers.isTrue(this.isDictionary(value));
+            Boolean isObj = (value instanceof List) || Boolean.TRUE.equals(this.isDictionary(value));
             Object valueJsonified = ((Boolean.TRUE.equals(isObj))) ? this.json(value) : String.valueOf(value);
             Object encoded = this.encodeURIComponent(valueJsonified);
             encodedString = (encodedString + (((key + "=") + encoded) + "&"));
@@ -5487,9 +5487,9 @@ public class Aster extends AsterApi
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(this.isEmptyString(this.privateKey)))
+            if (Boolean.TRUE.equals(this.isEmptyString(this.privateKey)))
             {
-                if (!Helpers.isTrue(this.isEmptyString(this.apiKey)) || !Helpers.isTrue(this.isEmptyString(this.secret)))
+                if (!Boolean.TRUE.equals(this.isEmptyString(this.apiKey)) || !Boolean.TRUE.equals(this.isEmptyString(this.secret)))
                 {
                     throw new NotSupported((this.id + "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
                 }

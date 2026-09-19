@@ -2877,10 +2877,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
                 // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
                 rawMarketType = ((Boolean.TRUE.equals(isOptionMarkPrice))) ? "optionMarket" : "option";
-            } else if (Helpers.isTrue(this.isLinear(marketType, subType)))
+            } else if (Boolean.TRUE.equals(this.isLinear(marketType, subType)))
             {
                 rawMarketType = "future";
-            } else if (Helpers.isTrue(this.isInverse(marketType, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(marketType, subType)))
             {
                 rawMarketType = "delivery";
             } else if (java.util.Objects.equals(marketType, "spot"))
@@ -3820,10 +3820,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // subType alone and would flip 'stock' to 'future' - the stock branch
                 // below would never run, and the bucket lookup would renew the
                 // FUTURES listen key while the stock key silently expires
-                if (Helpers.isTrue(this.isLinear(type, subType)))
+                if (Boolean.TRUE.equals(this.isLinear(type, subType)))
                 {
                     type = "future";
-                } else if (Helpers.isTrue(this.isInverse(type, subType)))
+                } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
                 {
                     type = "delivery";
                 }
@@ -4519,10 +4519,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         parameters = ((List<Object>) subTypeparametersVariable).get(1);
         if (!java.util.Objects.equals(type, "option") && !java.util.Objects.equals(type, "stock"))
         {
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 type = "future";
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
                 type = "delivery";
             }
@@ -4543,10 +4543,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams(method, market, parameters);
         subType = ((List<Object>) subTypeparametersVariable).get(0);
         parameters = ((List<Object>) subTypeparametersVariable).get(1);
-        if (Helpers.isTrue(this.isLinear(type, subType)))
+        if (Boolean.TRUE.equals(this.isLinear(type, subType)))
         {
             type = "future";
-        } else if (Helpers.isTrue(this.isInverse(type, subType)))
+        } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
         {
             type = "delivery";
         }

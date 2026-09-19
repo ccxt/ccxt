@@ -1708,7 +1708,7 @@ public class Lighter extends LighterApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetAssetDetails(parameters)).join();
-            if (Helpers.isTrue(this.checkRequiredCredentials(false)))
+            if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 (this.preLoadLighterLibrary()).join();
             }

@@ -1883,7 +1883,7 @@ public class Coinbase extends CoinbaseApi
             //        num_products: '646'
             //    }
             //
-            if (Helpers.isTrue(this.checkRequiredCredentials(false)))
+            if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 ((List<Object>)spotUnresolvedPromises).add(this.v3PrivateGetBrokerageTransactionSummary(parameters));
             }
@@ -6424,7 +6424,7 @@ public class Coinbase extends CoinbaseApi
             if (!java.util.Objects.equals(authorization, null))
             {
                 authorizationString = authorization;
-            } else if ((!java.util.Objects.equals(this.token, "")) && !Helpers.isTrue(this.checkRequiredCredentials(false)))
+            } else if ((!java.util.Objects.equals(this.token, "")) && !Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 authorizationString = ("Bearer " + this.token);
             } else

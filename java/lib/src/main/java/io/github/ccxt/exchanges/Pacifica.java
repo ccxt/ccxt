@@ -4458,7 +4458,7 @@ public class Pacifica extends PacificaApi
 
     public Object sortJsonKeys(Object value)
     {
-        if (Helpers.isTrue(this.isDictionary(value)))
+        if (Boolean.TRUE.equals(this.isDictionary(value)))
         {
             Object result = new HashMap<String, Object>() {{}};
             List<Object> keys = Helpers.objectKeys(value);

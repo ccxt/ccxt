@@ -3076,7 +3076,7 @@ public class Okx extends OkxApi
             // and fallback to generating the currencies from the markets
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            if (!Helpers.isTrue(this.checkRequiredCredentials(false)) || (java.util.Objects.equals(isSandboxMode, true)))
+            if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)) || (java.util.Objects.equals(isSandboxMode, true)))
             {
                 return new HashMap<String, Object>() {{}};
             }

@@ -2146,7 +2146,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     public void handleMessage(Client client, Object message)
     {
-        if (!Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (!Boolean.TRUE.equals(this.handleErrorMessage(client, message)))
         {
             return;
         }

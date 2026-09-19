@@ -1497,7 +1497,7 @@ public class Mexc extends MexcApi
             // therefore we check the keys here
             // and fallback to generating the currencies from the markets
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (!Helpers.isTrue(this.checkRequiredCredentials(false)))
+            if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 return new HashMap<String, Object>() {{}};
             }

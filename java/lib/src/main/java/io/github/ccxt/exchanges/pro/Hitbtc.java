@@ -1605,7 +1605,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleError(client, message)))
+        if (Boolean.TRUE.equals(this.handleError(client, message)))
         {
             return;
         }
