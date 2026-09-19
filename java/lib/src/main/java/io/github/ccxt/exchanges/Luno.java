@@ -690,7 +690,7 @@ public class Luno extends LunoApi
                 final Object finalStatus = status;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "taker", finalTaker );
                     put( "maker", finalMaker );
                     put( "base", finalBase );

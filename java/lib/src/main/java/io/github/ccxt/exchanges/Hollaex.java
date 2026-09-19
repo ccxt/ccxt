@@ -2437,7 +2437,7 @@ public class Hollaex extends HollaexApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object query = this.omit(parameters, this.extractParams(path));
-        path = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        path = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)

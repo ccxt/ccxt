@@ -780,7 +780,7 @@ public class Bigone extends BigoneApi
                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", Bigone.this.safeString(market, "name") );
                     put( "uuid", Bigone.this.safeString(market, "id") );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -844,7 +844,7 @@ public class Bigone extends BigoneApi
                 final Object finalInverse = inverse;
                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", marketId );
-                    put( "symbol", Helpers.add((Helpers.add(Helpers.add(finalBase, "/"), quote) + ":"), settle) );
+                    put( "symbol", ((((finalBase + "/") + quote) + ":") + settle) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", settle );
@@ -2335,7 +2335,7 @@ public class Bigone extends BigoneApi
                 body = this.json(query);
             }
         }
-        ((Map<String, Object>)headers).put("User-Agent", Helpers.add((("ccxt/" + this.id) + "-"), this.version));
+        ((Map<String, Object>)headers).put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         final Object finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;

@@ -859,7 +859,7 @@ public class Bittrade extends BittradeApi
                 final Object finalState = state;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", Helpers.add(finalBaseId, finalQuoteId) );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -2110,14 +2110,14 @@ public class Bittrade extends BittradeApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account-id", ((Map<String, Object>)(Bittrade.this.accounts == null || 0 >= ((List<?>)Bittrade.this.accounts).size() ? null : ((List<?>)Bittrade.this.accounts).get(0))).get("id") );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "type", Helpers.add(Helpers.add(finalSide, "-"), finalType) );
+                put( "type", Helpers.add((finalSide + "-"), finalType) );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
             if (java.util.Objects.equals(clientOrderId, null))
             {
                 Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
                 String brokerId = this.safeString(broker, "id");
-                ((Map<String, Object>)request).put("client-order-id", Helpers.add(brokerId, this.uuid()));
+                ((Map<String, Object>)request).put("client-order-id", (brokerId + this.uuid()));
             } else
             {
                 ((Map<String, Object>)request).put("client-order-id", clientOrderId);

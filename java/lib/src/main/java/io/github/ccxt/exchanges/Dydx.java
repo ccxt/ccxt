@@ -664,7 +664,7 @@ public class Dydx extends DydxApi
         String quote = this.safeCurrencyCode(quoteId);
         String settleId = "USDC";
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+        Object symbol = ((((base + "/") + quote) + ":") + settle);
         Boolean contract = true;
         Boolean swap = true;
         String amountPrecisionStr = this.safeString(market, "stepSize");
@@ -1065,7 +1065,7 @@ public class Dydx extends DydxApi
         {
             return new ArrayList<Object>(Arrays.asList(this.walletAddress, parameters));
         }
-        throw new ArgumentsRequired((Helpers.add((this.id + " "), methodName) + "() requires a user parameter inside 'params' or the walletAddress set")) ;
+        throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a user parameter inside 'params' or the walletAddress set")) ;
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)

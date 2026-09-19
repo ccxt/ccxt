@@ -93,7 +93,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String messageHash = Helpers.add(("orderbook" + ":"), ((Map<String, Object>)market).get("id"));
+            String messageHash = (("orderbook" + ":") + ((Map<String, Object>)market).get("id"));
             Object orderbook = (this.watchPublic(messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
@@ -149,7 +149,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         }
-        Object messageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
+        Object messageHash = Helpers.add((channel + ":"), marketId);
         client.resolve(orderbook, messageHash);
     }
 
@@ -178,7 +178,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            String messageHash = Helpers.add(("trade" + ":"), ((Map<String, Object>)market).get("id"));
+            String messageHash = (("trade" + ":") + ((Map<String, Object>)market).get("id"));
             Object trades = (this.watchPublic(messageHash, parameters)).join();
             if (this.newUpdates)
             {
@@ -223,7 +223,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
         }
-        Object messageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
+        Object messageHash = Helpers.add((channel + ":"), marketId);
         client.resolve(stored, messageHash);
         client.resolve(stored, channel);
     }
@@ -258,7 +258,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             {
                 market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
-                messageHash = (messageHash + Helpers.add(":", ((Map<String, Object>)market).get("id")));
+                messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("id")));
             }
             Object trades = (this.watchPrivate(messageHash, parameters)).join();
             if (this.newUpdates)
@@ -330,7 +330,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);
-            Object messageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
+            Object messageHash = Helpers.add((channel + ":"), marketId);
             client.resolve(this.myTrades, messageHash);
         }
     }
@@ -365,7 +365,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             {
                 market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
-                messageHash = (messageHash + Helpers.add(":", ((Map<String, Object>)market).get("id")));
+                messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("id")));
             }
             Object orders = (this.watchPrivate(messageHash, parameters)).join();
             if (this.newUpdates)
@@ -479,7 +479,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);
-            Object messageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
+            Object messageHash = Helpers.add((channel + ":"), marketId);
             client.resolve(this.orders, messageHash);
         }
     }

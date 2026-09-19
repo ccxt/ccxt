@@ -202,7 +202,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Object parsed = this.parseWsOHLCV(candle, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        String messageHash = Helpers.add((("ohlcv:" + symbol) + ":"), timeframe);
+        String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }
 
@@ -286,7 +286,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object ticker = this.parseTicker(this.safeDict(data, 0));
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
-        String messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = ("ticker:" + symbol);
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
     }
@@ -547,7 +547,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String messageHash = "orders";
         client.resolve(orders, messageHash);
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
-        Object symbolSpecificMessageHash = Helpers.add((messageHash + ":"), symbol);
+        Object symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
     }
 
@@ -683,7 +683,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String messageHash = "myTrades";
         client.resolve(tradesArray, messageHash);
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
-        Object symbolSpecificMessageHash = Helpers.add((messageHash + ":"), symbol);
+        Object symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(tradesArray, symbolSpecificMessageHash);
     }
 
@@ -838,7 +838,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String messageHash = "positions";
         client.resolve(parsed, messageHash);
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
-        client.resolve(parsed, Helpers.add((messageHash + ":"), symbol));
+        client.resolve(parsed, ((messageHash + ":") + symbol));
     }
 
     public Object parseWsPosition(Object position, Object... optionalArgs)
@@ -1006,7 +1006,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Helpers.addElementToObject(Helpers.GetValue(this.balance, type), code, account);
         }
         Helpers.addElementToObject(this.balance, type, this.safeBalance(Helpers.GetValue(this.balance, type)));
-        String messageHash = Helpers.add("balance:", type);
+        String messageHash = ("balance:" + type);
         client.resolve(Helpers.GetValue(this.balance, type), messageHash);
     }
 

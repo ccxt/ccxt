@@ -81,7 +81,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            String subscriptionHash = Helpers.add("/stream/", ((Map<String, Object>)market).get("id"));
+            String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
             final Object finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
@@ -203,7 +203,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            String subscriptionHash = Helpers.add("/stream/", ((Map<String, Object>)market).get("id"));
+            String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
             final Object finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );

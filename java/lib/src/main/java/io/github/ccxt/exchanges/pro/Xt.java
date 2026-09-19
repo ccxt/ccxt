@@ -118,17 +118,17 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
                 // concurrent callers each minted their own token, last write won, and the losers
                 // carried an orphaned token into name + '@' + listenKey so their streams went dead
-                String messageHash = Helpers.add("authenticate:", tradeType);
+                String messageHash = ("authenticate:" + tradeType);
                 if (((Map<?, ?>)client.futures).containsKey(messageHash))
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the token is then in the bucket
-                    client.future((String)messageHash).getFuture().join();
+                    client.future(messageHash).getFuture().join();
                     return ((Map)client.subscriptions).get("token");
                 }
                 // client.futures is the same registry Exchange.watch () dedupes on, so registering
                 // the flight here, before any suspension point, makes concurrent callers wait
-                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
                 try
                 {
                     String listenKey = null;
@@ -278,7 +278,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 ((Map<String, Object>)subscribe).put("params", new ArrayList<Object>(Arrays.asList(name)));
             }
             String tradeType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
-            Object messageHash = Helpers.add((name + "::"), tradeType);
+            Object messageHash = ((name + "::") + tradeType);
             if (!java.util.Objects.equals(symbols, null))
             {
                 messageHash = ((messageHash + "::") + String.join(",", (List<String>)symbols));
@@ -354,7 +354,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 ((Map<String, Object>)unsubscribe).put("params", new ArrayList<Object>(Arrays.asList(name)));
             }
             String tradeType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
-            Object subMessageHash = Helpers.add((name + "::"), tradeType);
+            Object subMessageHash = ((name + "::") + tradeType);
             Map<String, Object> request = this.extend(unsubscribe, parameters);
             Object tail = access;
             if (Boolean.TRUE.equals(isContract))
@@ -406,7 +406,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTicker");
             String defaultMethod = this.safeString(options, "method", "ticker");
             String method = this.safeString(parameters, "method", defaultMethod);
-            Object name = Helpers.add((method + "@"), ((Map<String, Object>)market).get("id"));
+            Object name = ((method + "@") + ((Map<String, Object>)market).get("id"));
             return (this.subscribe(name, "public", "watchTicker", market, null, parameters)).join();
         }).thenApply(Ticker::new);
 
@@ -437,7 +437,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "unWatchTicker");
             Object defaultMethod = this.safeString(options, "method", "ticker");
             String method = this.safeString(parameters, "method", defaultMethod);
-            Object name = Helpers.add((method + "@"), ((Map<String, Object>)market).get("id"));
+            Object name = ((method + "@") + ((Map<String, Object>)market).get("id"));
             String messageHash = ("unsubscribe::" + name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, null, parameters)).join();
         });
@@ -551,7 +551,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            String name = ((Helpers.add("kline@", ((Map<String, Object>)market).get("id")) + ",") + timeframe);
+            String name = ((("kline@" + ((Map<String, Object>)market).get("id")) + ",") + timeframe);
             Object ohlcv = (this.subscribe(name, "public", "watchOHLCV", market, null, parameters)).join();
             if (this.newUpdates)
             {
@@ -585,7 +585,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            String name = ((Helpers.add("kline@", ((Map<String, Object>)market).get("id")) + ",") + timeframe);
+            String name = ((("kline@" + ((Map<String, Object>)market).get("id")) + ",") + timeframe);
             String messageHash = ("unsubscribe::" + name);
             List<Object> symbolsAndTimeframes = new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe))));
             return (this.unSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, new ArrayList<Object>(Arrays.asList(symbol)), parameters, new HashMap<String, Object>() {{
@@ -620,7 +620,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object name = Helpers.add("trade@", ((Map<String, Object>)market).get("id"));
+            Object name = ("trade@" + ((Map<String, Object>)market).get("id"));
             Object trades = (this.subscribe(name, "public", "watchTrades", market, null, parameters)).join();
             if (this.newUpdates)
             {
@@ -652,7 +652,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object name = Helpers.add("trade@", ((Map<String, Object>)market).get("id"));
+            Object name = ("trade@" + ((Map<String, Object>)market).get("id"));
             String messageHash = ("unsubscribe::" + name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchTrades", "trades", market, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
@@ -687,10 +687,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object market = this.market(symbol);
             String levels = this.safeString(parameters, "levels");
             parameters = this.omit(parameters, "levels");
-            Object name = Helpers.add("depth_update@", ((Map<String, Object>)market).get("id"));
+            Object name = ("depth_update@" + ((Map<String, Object>)market).get("id"));
             if (!java.util.Objects.equals(levels, null))
             {
-                name = ((Helpers.add("depth@", ((Map<String, Object>)market).get("id")) + ",") + levels);
+                name = ((("depth@" + ((Map<String, Object>)market).get("id")) + ",") + levels);
             }
             Object orderbook = (this.subscribe(name, "public", "watchOrderBook", market, null, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -724,10 +724,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object market = this.market(symbol);
             String levels = this.safeString(parameters, "levels");
             parameters = this.omit(parameters, "levels");
-            Object name = Helpers.add("depth_update@", ((Map<String, Object>)market).get("id"));
+            Object name = ("depth_update@" + ((Map<String, Object>)market).get("id"));
             if (!java.util.Objects.equals(levels, null))
             {
-                name = ((Helpers.add("depth@", ((Map<String, Object>)market).get("id")) + ",") + levels);
+                name = ((("depth@" + ((Map<String, Object>)market).get("id")) + ",") + levels);
             }
             String messageHash = ("unsubscribe::" + name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -912,7 +912,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 throw new NotSupported((this.id + " watchFundingRate() supports swap contracts only")) ;
             }
-            Object name = Helpers.add("fund_rate@", ((Map<String, Object>)market).get("id"));
+            Object name = ("fund_rate@" + ((Map<String, Object>)market).get("id"));
             return (this.subscribe(name, "public", "watchFundingRate", market, null, parameters)).join();
         }).thenApply(FundingRate::new);
 
@@ -942,7 +942,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 throw new NotSupported((this.id + " unWatchFundingRate() supports swap contracts only")) ;
             }
-            Object name = Helpers.add("fund_rate@", ((Map<String, Object>)market).get("id"));
+            Object name = ("fund_rate@" + ((Map<String, Object>)market).get("id"));
             String messageHash = ("unsubscribe::" + name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, null, parameters)).join();
         });
@@ -978,7 +978,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
             Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
             String eventVar = this.safeString(message, "event");
-            Object messageHash = Helpers.add(eventVar, "::contract");
+            Object messageHash = (eventVar + "::contract");
             client.resolve(fundingRate, messageHash);
         }
         return message;
@@ -1163,7 +1163,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             String eventVar = this.safeString(message, "event");
             String messageHashTail = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
-            Object messageHash = Helpers.add(Helpers.add(eventVar, "::"), messageHashTail);
+            Object messageHash = ((eventVar + "::") + messageHashTail);
             client.resolve(ticker, messageHash);
         }
         return message;
@@ -1254,7 +1254,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             ((List<Object>)newTickers).add(ticker);
         }
-        Object messageHashStart = Helpers.add(Helpers.add(this.safeString(message, "topic"), "::"), tradeType);
+        Object messageHashStart = ((this.safeString(message, "topic") + "::") + tradeType);
         Object messageHashes = this.findMessageHashes(client, (messageHashStart + "::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
@@ -1332,7 +1332,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             String eventVar = this.safeString(message, "event");
-            Object messageHash = Helpers.add(Helpers.add(eventVar, "::"), tradeType);
+            Object messageHash = ((eventVar + "::") + tradeType);
             client.resolve(stored, messageHash);
         }
         return message;
@@ -1388,7 +1388,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 Helpers.addElementToObject(this.trades, symbol, tradesArray);
             }
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
-            Object messageHash = Helpers.add(Helpers.add(eventVar, "::"), tradeType);
+            Object messageHash = ((eventVar + "::") + tradeType);
             client.resolve(tradesArray, messageHash);
         }
         return message;
@@ -1722,7 +1722,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object parsed = this.parseWsOrder(order, market);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
-            client.resolve(orders, Helpers.add("order::", tradeType));
+            client.resolve(orders, ("order::" + tradeType));
         }
         return message;
     }
@@ -1776,7 +1776,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }
         this.balance = this.safeBalance(this.balance);
         String tradeType = (((data.containsKey("coin")))) ? "contract" : "spot";
-        client.resolve(this.balance, Helpers.add("balance::", tradeType));
+        client.resolve(this.balance, ("balance::" + tradeType));
     }
 
     public void handleMyTrades(Client client, Object message)
@@ -1832,7 +1832,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Map<String, Object> market = (Map<String, Object>) this.market(tradeSymbol);
         Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
         String tradeType = (((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)))) ? "contract" : "spot";
-        client.resolve(stored, Helpers.add("trade::", tradeType));
+        client.resolve(stored, ("trade::" + tradeType));
     }
 
     public void handleMessage(Client client, Object message)

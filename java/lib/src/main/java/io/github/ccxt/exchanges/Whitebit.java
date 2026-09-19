@@ -836,7 +836,7 @@ public class Whitebit extends WhitebitApi
         Object type = null;
         Object settle = null;
         Object settleId = null;
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Boolean swap = (java.util.Objects.equals(typeId, "futures")) || (java.util.Objects.equals(typeId, "tradfiFutures"));
         Boolean margin = (java.util.Objects.equals(isCollateral, true)) && !Boolean.TRUE.equals(swap);
         Boolean contract = false;
@@ -847,7 +847,7 @@ public class Whitebit extends WhitebitApi
         {
             settleId = quoteId;
             settle = this.safeCurrencyCode(settleId);
-            symbol = Helpers.add((symbol + ":"), settle);
+            symbol = ((symbol + ":") + settle);
             type = "swap";
             contract = true;
             linear = true;
@@ -5336,7 +5336,7 @@ public class Whitebit extends WhitebitApi
         {
             headers = new HashMap<String, Object>() {{}};
         }
-        ((Map<String, Object>)headers).put("User-Agent", Helpers.add((("ccxt/" + this.id) + "-"), this.version));
+        ((Map<String, Object>)headers).put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         String pathWithParams = ("/" + this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), version), accessibility), pathWithParams);
         if (java.util.Objects.equals(accessibility, "public"))

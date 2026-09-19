@@ -883,7 +883,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 final Object finalStatus = status;
                             ((List<Object>)result).add(this.extend(Helpers.GetValue(this.fees, "trading"), new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -2815,7 +2815,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             if (java.util.Objects.equals(Helpers.GetValue(body, 0), "{"))
             {
                 String message = this.safeString(response, "message");
-                Object feedback = Helpers.add((this.id + " "), message);
+                Object feedback = ((this.id + " ") + message);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
                 throw new ExchangeError((String)feedback) ;

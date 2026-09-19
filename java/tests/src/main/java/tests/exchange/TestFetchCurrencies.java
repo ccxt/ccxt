@@ -62,7 +62,7 @@ public class TestFetchCurrencies extends BaseTest {
                 Boolean skipUsdtForMica = (java.util.Objects.equals(isMicaCompliant, true)) && (java.util.Objects.equals(code, "USDT"));
                 if (Helpers.isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !Boolean.TRUE.equals(skipMajorCurrencyCheck) && (!java.util.Objects.equals(skipUsdtForMica, true)))
                 {
-                    Assert((java.util.Objects.equals(withdraw, true)) && (java.util.Objects.equals(deposit, true)), ((Helpers.add("Major currency ", code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
+                    Assert((java.util.Objects.equals(withdraw, true)) && (java.util.Objects.equals(deposit, true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active

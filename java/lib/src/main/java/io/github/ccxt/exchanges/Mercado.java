@@ -1296,13 +1296,13 @@ public class Mercado extends MercadoApi
         } else
         {
             this.checkRequiredCredentials();
-            url = Helpers.add(url, Helpers.add(this.version, "/"));
+            url = Helpers.add(url, (this.version + "/"));
             Object nonce = this.nonce();
             body = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );
             }}, parameters));
-            String auth = (((Helpers.add("/tapi/", this.version) + "/") + "?") + body);
+            String auth = (((("/tapi/" + this.version) + "/") + "?") + body);
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "TAPI-ID", Mercado.this.apiKey );

@@ -138,12 +138,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
         if (Boolean.TRUE.equals(isBusiness) || (Helpers.isGreaterThan(((String)channel).indexOf("candle"), -1)) || (java.util.Objects.equals(channel, "orders-algo")))
         {
-            return Helpers.add(Helpers.add(url, "/business"), sandboxSuffix);
+            return (Helpers.add(url, "/business") + sandboxSuffix);
         } else if (Boolean.TRUE.equals(isPublic))
         {
-            return Helpers.add(Helpers.add(url, "/public"), sandboxSuffix);
+            return (Helpers.add(url, "/public") + sandboxSuffix);
         }
-        return Helpers.add(Helpers.add(url, "/private"), sandboxSuffix);
+        return (Helpers.add(url, "/private") + sandboxSuffix);
     }
 
     public CompletableFuture<Object> subscribeMultiple(Object access, Object channel2, Object... optionalArgs)
@@ -216,7 +216,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                messageHash = Helpers.add(messageHash, Helpers.add(":", ((Map<String, Object>)market).get("id")));
+                messageHash = Helpers.add(messageHash, (":" + ((Map<String, Object>)market).get("id")));
                 ((Map<String, Object>)firstArgument).put("instId", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -447,7 +447,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object trade = this.parseTrade(Helpers.GetValue(data, i));
-            Object messageHash = Helpers.add(Helpers.add(channel, ":"), symbol);
+            Object messageHash = Helpers.add((channel + ":"), symbol);
             Object stored = this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(stored, null))
             {
@@ -573,7 +573,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
             }
-            client.resolve(fundingRate, Helpers.add(("funding-rate" + ":"), ((Map<String, Object>)fundingRate).get("symbol")));
+            client.resolve(fundingRate, (("funding-rate" + ":") + ((Map<String, Object>)fundingRate).get("symbol")));
         }
     }
 
@@ -819,7 +819,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             ((Map<String, Object>)newTickers).put((String)symbol, ticker);
         }
-        Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
+        Object messageHash = Helpers.add((channel + "::"), symbol);
         client.resolve(newTickers, messageHash);
     }
 
@@ -933,7 +933,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
         }
-        String messageHash = Helpers.add("bidask::", symbol);
+        String messageHash = ("bidask::" + symbol);
         client.resolve(parsedTicker, messageHash);
     }
 
@@ -1094,7 +1094,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object cache = this.liquidations;
             Helpers.callDynamically(cache, "append", new Object[]{liquidation});
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), "liquidations");
-            client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), Helpers.add("liquidations::", symbol));
+            client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("liquidations::" + symbol));
         }
     }
 
@@ -1214,7 +1214,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object cache = this.liquidations;
             Helpers.callDynamically(cache, "append", new Object[]{liquidation});
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), "myLiquidations");
-            client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), Helpers.add("myLiquidations::", symbol));
+            client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("myLiquidations::" + symbol));
         }
     }
 
@@ -1532,7 +1532,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 }
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
-            Object messageHash = Helpers.add((channel + ":"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = ((channel + ":") + ((Map<String, Object>)market).get("id"));
             client.resolve(stored, messageHash);
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
@@ -1919,7 +1919,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             put( "books50-l2-tbt", 50 );
         }};
         Long limit = this.safeInteger(depths, channel);
-        Object messageHash = Helpers.add(Helpers.add(channel, ":"), symbol);
+        Object messageHash = Helpers.add((channel + ":"), symbol);
         if (java.util.Objects.equals(action, "snapshot"))
         {
             for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -2220,7 +2220,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "access", access );
             }})).join();
             Object channel = (((java.util.Objects.equals(isTrigger, true)))) ? "orders-algo" : "orders";
-            Object messageHash = Helpers.add(channel, "::myTrades");
+            Object messageHash = (channel + "::myTrades");
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2586,7 +2586,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             client.resolve(stored, channel);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object messageHash = Helpers.add(Helpers.add(channel, ":"), Helpers.GetValue(marketIds, i));
+                Object messageHash = Helpers.add((channel + ":"), Helpers.GetValue(marketIds, i));
                 client.resolve(stored, messageHash);
             }
         }
@@ -2686,7 +2686,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 ((Map<String, Object>)symbols).put((String)symbol, true);
             }
         }
-        Object messageHash = Helpers.add(channel, "::myTrades");
+        Object messageHash = (channel + "::myTrades");
         client.resolve(this.myTrades, messageHash);
         Object tradeSymbols = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)tradeSymbols).size(); i++)

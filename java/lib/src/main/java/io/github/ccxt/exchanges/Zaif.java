@@ -369,7 +369,7 @@ public class Zaif extends ZaifApi
         var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
@@ -1047,10 +1047,10 @@ public class Zaif extends ZaifApi
         Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/");
         if (java.util.Objects.equals(api, "public"))
         {
-            url = (url + ((Helpers.add("api/", this.version) + "/") + this.implodeParams(path, parameters)));
+            url = (url + ((("api/" + this.version) + "/") + this.implodeParams(path, parameters)));
         } else if (java.util.Objects.equals(api, "fapi"))
         {
-            url = (url + ((Helpers.add("fapi/", this.version) + "/") + this.implodeParams(path, parameters)));
+            url = (url + ((("fapi/" + this.version) + "/") + this.implodeParams(path, parameters)));
         } else
         {
             this.checkRequiredCredentials();

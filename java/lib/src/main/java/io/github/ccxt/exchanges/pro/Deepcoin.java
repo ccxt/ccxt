@@ -786,7 +786,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Object ohlcv = this.parseWsOHLCV(data, market);
             Helpers.callDynamically(stored, "append", new Object[]{ohlcv});
         }
-        String messageHash = Helpers.add(((("ohlcv" + "::") + symbol) + "::"), timeframe);
+        String messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
         client.resolve(stored, messageHash);
     }
 
@@ -902,7 +902,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Double tickSize = this.safeNumber(precision, "price");
             if (java.util.Objects.equals(tickSize, null))
             {
-                throw new BadRequest((Helpers.add((((this.id + " ") + methodName) + "() requires a params[\"aggregation\"] price level for "), symbol) + " because the market has no price precision")) ;
+                throw new BadRequest((((((this.id + " ") + methodName) + "() requires a params[\"aggregation\"] price level for ") + symbol) + " because the market has no price precision")) ;
             }
             aggregation = this.numberToString(tickSize);
         }
@@ -1550,7 +1550,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Long subId = this.safeInteger(data, "L");
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, subId, new HashMap<String, Object>() {{}}); // original watch subscription
             String subHash = this.safeString(subscription, "subHash");
-            String unsubHash = Helpers.add("unsubscribe::", subHash);
+            String unsubHash = ("unsubscribe::" + subHash);
             Map<String, Object> unsubsciption = (Map<String, Object>) this.safeDict(client.subscriptions, unsubHash, new HashMap<String, Object>() {{}}); // unWatch subscription
             this.handleUnSubscription(client, unsubsciption);
         }

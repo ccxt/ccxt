@@ -94,7 +94,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         // see https://github.com/ccxt/ccxt/issues/26864
         if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)))
         {
-            throw new NotSupported((Helpers.add((((this.id + " ") + methodName) + "() does not support "), ((Map<String, Object>)market).get("type")) + " markets yet")) ;
+            throw new NotSupported((((((this.id + " ") + methodName) + "() does not support ") + ((Map<String, Object>)market).get("type")) + " markets yet")) ;
         }
     }
 
@@ -273,7 +273,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
-            String messageHash = Helpers.add((("fetchOHLCV:" + symbol) + ":"), timeframeId);
+            String messageHash = ((("fetchOHLCV:" + symbol) + ":") + timeframeId);
             client.resolve(stored, messageHash);
         } else
         {
@@ -291,7 +291,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
-            String messageHash = Helpers.add((("ohlcv:" + symbol) + ":"), timeframeId);
+            String messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
             client.resolve(stored, messageHash);
         }
     }

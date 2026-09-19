@@ -81,7 +81,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String name = "SubscribeLevel1";
-            Object messageHash = Helpers.add((name + ":"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -137,7 +137,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Helpers.addElementToObject(this.tickers, symbol, ticker);
         }
         String name = "SubscribeLevel1";
-        Object messageHash = Helpers.add((name + ":"), ((Map<String, Object>)market).get("id"));
+        Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
         client.resolve(ticker, messageHash);
     }
 
@@ -168,7 +168,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String name = "SubscribeTrades";
-            Object messageHash = Helpers.add((name + ":"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -243,7 +243,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         {
             Object symbol = Helpers.GetValue(symbols, i);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object messageHash = Helpers.add((name + ":"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             Object tradesArray = this.safeValue(this.trades, symbol);
             client.resolve(tradesArray, messageHash);
         }
@@ -278,7 +278,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String name = "SubscribeTicker";
-            Object messageHash = Helpers.add((((name + ":") + timeframe) + ":"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = ((((name + ":") + timeframe) + ":") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -447,7 +447,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String name = "SubscribeLevel2";
-            Object messageHash = Helpers.add((name + ":"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
             limit = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;

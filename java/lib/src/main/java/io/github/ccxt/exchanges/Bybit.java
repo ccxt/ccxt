@@ -2525,8 +2525,8 @@ public class Bybit extends BybitApi
         final Object finalAmountPrecision = amountPrecision;
         final Object finalPricePrecision = pricePrecision;
         return new HashMap<String, Object>() {{
-            put( "id", Helpers.add((Helpers.add((Helpers.add(Helpers.add(finalBase, "-"), convertedExpireDate) + "-"), strike) + "-"), finalOptionType) );
-            put( "symbol", Helpers.add((Helpers.add((Helpers.add((Helpers.add((Helpers.add(Helpers.add(finalBase, "/"), finalQuote) + ":"), finalSettle) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
+            put( "id", ((((Helpers.add((finalBase + "-"), convertedExpireDate) + "-") + strike) + "-") + finalOptionType) );
+            put( "symbol", ((((((((Helpers.add((finalBase + "/"), finalQuote) + ":") + finalSettle) + "-") + finalExpiry) + "-") + strike) + "-") + finalOptionType) );
             put( "base", finalBase );
             put( "quote", finalQuote );
             put( "settle", finalSettle );
@@ -3023,7 +3023,7 @@ public class Bybit extends BybitApi
                 String quoteId = this.safeString(market, "quoteCoin");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 String status = this.safeString(market, "status");
                 Boolean active = (java.util.Objects.equals(status, "Trading"));
                 Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(market, "lotSizeFilter");
@@ -3217,7 +3217,7 @@ public class Bybit extends BybitApi
                 {
                     settle = this.safeCurrencyCode(settleId);
                 }
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(market, "lotSizeFilter", new HashMap<String, Object>() {{}});
                 Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(market, "priceFilter", new HashMap<String, Object>() {{}});
                 Map<String, Object> leverage = (Map<String, Object>) this.safeDict(market, "leverageFilter", new HashMap<String, Object>() {{}});
@@ -3243,7 +3243,7 @@ public class Bybit extends BybitApi
                     }
                 }
                 String expiryDatetime = this.iso8601(expiry);
-                symbol = Helpers.add((symbol + ":"), settle);
+                symbol = ((symbol + ":") + settle);
                 if (!java.util.Objects.equals(expiry, null))
                 {
                     symbol = ((symbol + "-") + this.yymmdd(expiry));
@@ -3430,7 +3430,7 @@ public class Bybit extends BybitApi
                     final Object finalIsActive = isActive;
                                     ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                         put( "id", finalId );
-                        put( "symbol", Helpers.add((Helpers.add((((Helpers.add((Helpers.add(Helpers.add(finalBase, "/"), quote) + ":"), settle) + "-") + Bybit.this.yymmdd(expiry)) + "-"), strike) + "-"), optionLetter) );
+                        put( "symbol", ((((((((((finalBase + "/") + quote) + ":") + settle) + "-") + Bybit.this.yymmdd(expiry)) + "-") + strike) + "-") + optionLetter) );
                         put( "base", finalBase );
                         put( "quote", quote );
                         put( "settle", settle );
@@ -6755,7 +6755,7 @@ public class Bybit extends BybitApi
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-                throw new OrderNotFound(Helpers.add((("Order " + String.valueOf(id)) + " was not found."), extra)) ;
+                throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             if (Helpers.isGreaterThan(length, 1))
             {
@@ -6881,7 +6881,7 @@ public class Bybit extends BybitApi
             if (java.util.Objects.equals(innerListLength, 0))
             {
                 String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-                throw new OrderNotFound(Helpers.add((("Order " + String.valueOf(id)) + " was not found."), extra)) ;
+                throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             Map<String, Object> order = (Map<String, Object>) this.safeDict(innerList, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
@@ -7057,7 +7057,7 @@ public class Bybit extends BybitApi
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-                throw new OrderNotFound(Helpers.add((("Order " + String.valueOf(id)) + " was not found."), extra)) ;
+                throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             if (Helpers.isGreaterThan(length, 1))
             {
@@ -7105,7 +7105,7 @@ public class Bybit extends BybitApi
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-                throw new OrderNotFound(Helpers.add((("Order " + String.valueOf(id)) + " was not found."), extra)) ;
+                throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             if (Helpers.isGreaterThan(length, 1))
             {
@@ -12542,7 +12542,7 @@ final Object finalMarket = market;
                 } else
                 {
                     url = (url + ("?" + this.rawencode(sortedQuery, true)));
-                    url = Helpers.add(url, Helpers.add("&sign=", signature));
+                    url = Helpers.add(url, ("&sign=" + signature));
                 }
             }
         }

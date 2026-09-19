@@ -133,7 +133,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //
         Object ticker = this.parseTicker(message);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
-        String messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = ("ticker:" + symbol);
         if (!java.util.Objects.equals(symbol, null))
         {
             Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -589,7 +589,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         Helpers.callDynamically(orders, "append", new Object[]{order});
         String messageHash = "orders";
         client.resolve(orders, messageHash);
-        messageHash = Helpers.add("orders:", ((Map<String, Object>)order).get("symbol"));
+        messageHash = ("orders:" + ((Map<String, Object>)order).get("symbol"));
         client.resolve(orders, messageHash);
     }
 
@@ -659,7 +659,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             return;
         }
         Helpers.callDynamically(myTrades, "append", new Object[]{trade});
-        String messageHash = Helpers.add("myTrades:", ((Map<String, Object>)trade).get("symbol"));
+        String messageHash = ("myTrades:" + ((Map<String, Object>)trade).get("symbol"));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
@@ -782,7 +782,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //
         String code = this.safeString(message, "code");
         Object msg = this.safeValue(message, "msg", new HashMap<String, Object>() {{}});
-        throw new ExchangeError((String)Helpers.add((Helpers.add((this.id + " code: "), code) + " message: "), msg)) ;
+        throw new ExchangeError((String)Helpers.add((((this.id + " code: ") + code) + " message: "), msg)) ;
     }
 
     public Object handleConnected(Client client, Object message)

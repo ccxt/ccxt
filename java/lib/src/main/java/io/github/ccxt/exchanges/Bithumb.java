@@ -576,7 +576,7 @@ public class Bithumb extends BithumbApi
         }
         String quoteId = this.safeString2(market, "quoteId", "quote");
         String baseId = this.safeString2(market, "baseId", "base");
-        return Helpers.add(Helpers.add(quoteId, "-"), baseId);
+        return ((quoteId + "-") + baseId);
     }
 
     /**
@@ -735,7 +735,7 @@ public class Bithumb extends BithumbApi
                         final Object finalActive = active;
                         Map<String, Object> entry = this.deepExtend(new HashMap<String, Object>() {{
                             put( "id", finalCurrencyId );
-                            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
+                            put( "symbol", Helpers.add((finalBase + "/"), finalQuote) );
                             put( "base", finalBase );
                             put( "quote", finalQuote );
                             put( "settle", null );
@@ -828,9 +828,9 @@ public class Bithumb extends BithumbApi
                 Object account = this.account();
                 Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 String lowerCurrencyId = this.safeStringLower(currency, "id");
-                ((Map<String, Object>)account).put("total", this.safeString(balances, Helpers.add("total_", lowerCurrencyId)));
-                ((Map<String, Object>)account).put("used", this.safeString(balances, Helpers.add("in_use_", lowerCurrencyId)));
-                ((Map<String, Object>)account).put("free", this.safeString(balances, Helpers.add("available_", lowerCurrencyId)));
+                ((Map<String, Object>)account).put("total", this.safeString(balances, ("total_" + lowerCurrencyId)));
+                ((Map<String, Object>)account).put("used", this.safeString(balances, ("in_use_" + lowerCurrencyId)));
+                ((Map<String, Object>)account).put("free", this.safeString(balances, ("available_" + lowerCurrencyId)));
                 ((Map<String, Object>)result).put((String)code, account);
             }
         } else
@@ -1360,7 +1360,7 @@ public class Bithumb extends BithumbApi
                         Object currencyId = Helpers.GetValue(currencyIds, j);
                         Object ticker = Helpers.GetValue(data, currencyId);
                         String base = this.safeCurrencyCode(currencyId);
-                        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                        Object symbol = Helpers.add((base + "/"), quote);
                         Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
                         Helpers.addElementToObject(ticker, "date", timestamp);
                         ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
@@ -1986,7 +1986,7 @@ public class Bithumb extends BithumbApi
             sideRequest = "ask";
         } else
         {
-            throw new InvalidOrder(Helpers.add((this.id + " createOrder() invalid side "), side)) ;
+            throw new InvalidOrder(((this.id + " createOrder() invalid side ") + side)) ;
         }
         ((Map<String, Object>)request).put("side", sideRequest);
         String timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force");
@@ -3189,7 +3189,7 @@ public class Bithumb extends BithumbApi
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("destination", "secondary_address")));
                 if ((java.util.Objects.equals(tag, null)) && (java.util.Objects.equals(destination, null)))
                 {
-                    throw new ArgumentsRequired((Helpers.add((this.id + " "), code) + " withdraw() requires a tag argument or an extra destination param")) ;
+                    throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a tag argument or an extra destination param")) ;
                 } else if (!java.util.Objects.equals(tag, null))
                 {
                     destinationRequest = tag;
@@ -4055,7 +4055,7 @@ public class Bithumb extends BithumbApi
         {
             String errorName = this.safeString(error, "name");
             String message = this.safeString(error, "message");
-            Object feedback = Helpers.add((this.id + " "), message);
+            Object feedback = ((this.id + " ") + message);
             if (!java.util.Objects.equals(errorName, null))
             {
                 this.throwExactlyMatchedException(this.exceptions, errorName, feedback);
@@ -4084,7 +4084,7 @@ public class Bithumb extends BithumbApi
                     // https://github.com/ccxt/ccxt/issues/9017
                     return null;  // no error
                 }
-                Object feedback = Helpers.add((this.id + " "), message);
+                Object feedback = ((this.id + " ") + message);
                 this.throwExactlyMatchedException(this.exceptions, status, feedback);
                 this.throwExactlyMatchedException(this.exceptions, message, feedback);
                 throw new ExchangeError((String)feedback) ;

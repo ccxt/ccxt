@@ -935,7 +935,7 @@ public class Hitbtc extends HitbtcApi
                 String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
                 String settleId = null;
                 Object settle = null;
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 String type = "spot";
                 Object contractSize = null;
                 Object linear = null;
@@ -947,7 +947,7 @@ public class Hitbtc extends HitbtcApi
                     settle = this.safeCurrencyCode(settleId);
                     linear = ((!java.util.Objects.equals(quote, null)) && (java.util.Objects.equals(quote, settle)));
                     inverse = !Helpers.isTrue(linear);
-                    symbol = Helpers.add((symbol + ":"), settle);
+                    symbol = ((symbol + ":") + settle);
                     if (Boolean.TRUE.equals(future))
                     {
                         symbol = Helpers.add((symbol + "-"), expiry);

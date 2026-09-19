@@ -847,10 +847,10 @@ public class Blofin extends BlofinApi
         String settle = this.safeCurrencyCode(settleId);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(swap))
         {
-            symbol = Helpers.add((symbol + ":"), settle);
+            symbol = ((symbol + ":") + settle);
         }
         Object expiry = null;
         Object strikePrice = null;
@@ -3413,7 +3413,7 @@ public class Blofin extends BlofinApi
                 Map<String, Object> entryMarket = (Map<String, Object>) this.market(entry);
                 if (Helpers.isGreaterThan(i, 0))
                 {
-                    instIds = Helpers.add((instIds + ","), ((Map<String, Object>)entryMarket).get("id"));
+                    instIds = ((instIds + ",") + ((Map<String, Object>)entryMarket).get("id"));
                 } else
                 {
                     instIds = Helpers.add(instIds, ((Map<String, Object>)entryMarket).get("id"));
@@ -3997,7 +3997,7 @@ public class Blofin extends BlofinApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object request = ((Helpers.add("/api/", this.version) + "/") + this.implodeParams(path, parameters));
+        Object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), request);
         // const type = this.getPathAuthenticationType (path);

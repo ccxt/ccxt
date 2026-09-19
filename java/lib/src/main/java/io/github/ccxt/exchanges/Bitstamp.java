@@ -1233,7 +1233,7 @@ public class Bitstamp extends BitstampApi
                 String quote = this.safeCurrencyCode(quoteId);
                 Object settleId = null;
                 String marketTypeRaw = this.safeString(market, "market_type");
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 String type = null;
                 String subType = null;
                 if (java.util.Objects.equals(marketTypeRaw, "SPOT"))
@@ -1243,7 +1243,7 @@ public class Bitstamp extends BitstampApi
                 {
                     type = "swap";
                     settleId = quoteId;
-                    symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settleId);
+                    symbol = ((((base + "/") + quote) + ":") + settleId);
                     String payoffType = this.safeString(market, "payoff_type");
                     if (java.util.Objects.equals(payoffType, "Linear"))
                     {
@@ -1813,7 +1813,7 @@ public class Bitstamp extends BitstampApi
         // this endpoint is not aligned with "markets" endpoint
         String baseIdLower = this.safeStringLower(market, "baseId");
         String quoteIdLower = this.safeStringLower(market, "quoteId");
-        Object dashedIdLower = Helpers.add(Helpers.add(baseIdLower, "_"), quoteIdLower);
+        Object dashedIdLower = ((baseIdLower + "_") + quoteIdLower);
         if (java.util.Objects.equals(priceString, null))
         {
             priceString = this.safeString(trade, dashedIdLower);
@@ -3734,7 +3734,7 @@ public class Bitstamp extends BitstampApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/");
-        url = Helpers.add(url, Helpers.add(this.version, "/"));
+        url = Helpers.add(url, (this.version + "/"));
         url = Helpers.add(url, this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(api, "public"))

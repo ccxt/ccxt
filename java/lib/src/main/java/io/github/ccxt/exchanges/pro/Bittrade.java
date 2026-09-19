@@ -95,7 +95,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
-            String messageHash = (Helpers.add("market.", ((Map<String, Object>)market).get("id")) + ".detail");
+            String messageHash = (("market." + ((Map<String, Object>)market).get("id")) + ".detail");
             String api = this.safeString(this.options, "api", "api");
             Map<String, Object> hostname = new HashMap<String, Object>() {{
                 put( "hostname", Bittrade.this.hostname );
@@ -181,7 +181,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
-            String messageHash = (Helpers.add("market.", ((Map<String, Object>)market).get("id")) + ".trade.detail");
+            String messageHash = (("market." + ((Map<String, Object>)market).get("id")) + ".trade.detail");
             String api = this.safeString(this.options, "api", "api");
             Map<String, Object> hostname = new HashMap<String, Object>() {{
                 put( "hostname", Bittrade.this.hostname );
@@ -285,7 +285,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            String messageHash = ((Helpers.add("market.", ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
+            String messageHash = ((("market." + ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
             String api = this.safeString(this.options, "api", "api");
             Map<String, Object> hostname = new HashMap<String, Object>() {{
                 put( "hostname", Bittrade.this.hostname );
@@ -385,7 +385,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             symbol = ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
             limit = (((java.util.Objects.equals(limit, null)))) ? 150 : limit;
-            String messageHash = ((Helpers.add("market.", ((Map<String, Object>)market).get("id")) + ".mbp.") + String.valueOf(limit));
+            String messageHash = ((("market." + ((Map<String, Object>)market).get("id")) + ".mbp.") + String.valueOf(limit));
             String api = this.safeString(this.options, "api", "api");
             Map<String, Object> hostname = new HashMap<String, Object>() {{
                 put( "hostname", Bittrade.this.hostname );

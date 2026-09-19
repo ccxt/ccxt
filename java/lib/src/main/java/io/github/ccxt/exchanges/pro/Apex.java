@@ -580,7 +580,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Helpers.addElementToObject(parsed, "timestamp", timestamp);
         Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.tickers, ((String)symbol), parsed);
-        String messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = ("ticker:" + symbol);
         client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
     }
 
@@ -646,7 +646,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 symbolString = ((Map<String, Object>)market).get("id2");
                 String unfiedTimeframe = this.safeString(data, 1, "1");
                 String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-                ((List<Object>)rawHashes).add(Helpers.add((("candle." + timeframeId) + "."), symbolString));
+                ((List<Object>)rawHashes).add(((("candle." + timeframeId) + ".") + symbolString));
                 ((List<Object>)messageHashes).add(((("ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + unfiedTimeframe));
             }
             var symboltimeframestoredVariable = (this.watchTopics(url, messageHashes, rawHashes, parameters)).join();
@@ -713,7 +713,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        String messageHash = Helpers.add((("ohlcv::" + symbol) + "::"), timeframe);
+        String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
@@ -1207,10 +1207,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 }
                 if (java.util.Objects.equals(op, "auth"))
                 {
-                    throw new AuthenticationError(Helpers.add("Authentication failed: ", ret_msg)) ;
+                    throw new AuthenticationError(("Authentication failed: " + ret_msg)) ;
                 } else
                 {
-                    throw new ExchangeError((String)Helpers.add((this.id + " "), ret_msg)) ;
+                    throw new ExchangeError(((this.id + " ") + ret_msg)) ;
                 }
             }
             return false;

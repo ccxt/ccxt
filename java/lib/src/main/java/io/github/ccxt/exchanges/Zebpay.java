@@ -2097,7 +2097,7 @@ public class Zebpay extends ZebpayApi
                 String quoteId = this.safeString(market, "quoteAsset");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -2187,13 +2187,13 @@ public class Zebpay extends ZebpayApi
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(quoteId);
                 String status = this.safeString(market, "status");
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
     final Object finalSymbol = symbol;
                 final Object finalBase = base;
                 final Object finalStatus = status;
                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", Helpers.add((finalSymbol + ":"), settle) );
+                    put( "symbol", ((finalSymbol + ":") + settle) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "baseId", baseId );
@@ -2499,7 +2499,7 @@ public class Zebpay extends ZebpayApi
         //
         String errorCode = this.safeString2(response, "code", "statusCode");
         String message = this.safeString2(response, "msg", "statusDescription");
-        Object feedback = Helpers.add((this.id + " "), message);
+        Object feedback = ((this.id + " ") + message);
         this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);

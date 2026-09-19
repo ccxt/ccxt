@@ -1398,7 +1398,7 @@ public class Aster extends AsterApi
             swap = true;
             settleId = this.safeString(market, "marginAsset");
             settle = this.safeCurrencyCode(settleId);
-            symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+            symbol = ((((base + "/") + quote) + ":") + settle);
             linear = java.util.Objects.equals(settle, quote);
             inverse = java.util.Objects.equals(settle, base);
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
@@ -1406,7 +1406,7 @@ public class Aster extends AsterApi
         {
             spot = true;
             swap = false;
-            symbol = Helpers.add(Helpers.add(base, "/"), quote);
+            symbol = ((base + "/") + quote);
         }
         // filters
         List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
@@ -3383,7 +3383,7 @@ public class Aster extends AsterApi
             Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                throw new NotSupported((Helpers.add((this.id + " createOrders() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " createOrders() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "batchOrders", ordersRequests );

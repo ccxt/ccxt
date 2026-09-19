@@ -1111,7 +1111,7 @@ public class Woo extends WooApi
         String quote = this.safeCurrencyCode(quoteId);
         String settleId = null;
         Object settle = null;
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Object contractSize = null;
         Object linear = null;
         Object inverse = null;
@@ -1122,7 +1122,7 @@ public class Woo extends WooApi
             margin = false;
             settleId = this.safeString(parts, 2);
             settle = this.safeCurrencyCode(settleId);
-            symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+            symbol = ((((base + "/") + quote) + ":") + settle);
             contractSize = this.parseNumber("1");
             linear = true;
             inverse = false;
@@ -3671,7 +3671,7 @@ public class Woo extends WooApi
             String currencyId = this.safeString(parts, 1, firstPart);
             if (Helpers.isGreaterThan(partsLength, 2))
             {
-                currencyId = Helpers.add(currencyId, Helpers.add("_", this.safeString(parts, 2)));
+                currencyId = (currencyId + ("_" + this.safeString(parts, 2)));
             }
             currency = this.safeCurrency(currencyId);
         }
@@ -4792,7 +4792,7 @@ public class Woo extends WooApi
                 response = (this.v3PrivateGetFuturesLeverage(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchLeverage() is not supported for "), ((Map<String, Object>)market).get("type")) + " markets")) ;
+                throw new NotSupported((((this.id + " fetchLeverage() is not supported for ") + ((Map<String, Object>)market).get("type")) + " markets")) ;
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
@@ -4889,7 +4889,7 @@ public class Woo extends WooApi
                 return (this.v3PrivatePutFuturesLeverage(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchLeverage() is not supported for "), this.safeString(market, "type")) + " markets")) ;
+                throw new NotSupported((((this.id + " fetchLeverage() is not supported for ") + this.safeString(market, "type")) + " markets")) ;
             }
         });
 

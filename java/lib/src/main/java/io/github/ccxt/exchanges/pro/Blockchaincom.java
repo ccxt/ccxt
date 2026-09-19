@@ -831,7 +831,7 @@ final Object finalTradeId = tradeId;
         String type = this.safeString(message, "channel");
         String marketId = this.safeString(message, "symbol");
         String symbol = this.safeSymbol(marketId);
-        String messageHash = Helpers.add((("orderbook:" + symbol) + ":"), type);
+        String messageHash = ((("orderbook:" + symbol) + ":") + type);
         String datetime = this.safeString(message, "timestamp");
         Long timestamp = this.parse8601(datetime);
         if (java.util.Objects.equals(this.safeValue(this.orderbooks, symbol), null))
@@ -853,7 +853,7 @@ final Object finalTradeId = tradeId;
             Helpers.addElementToObject(orderbook, "datetime", datetime);
         } else
         {
-            throw new NotSupported((Helpers.add((this.id + " watchOrderBook() does not support "), eventVar) + " yet")) ;
+            throw new NotSupported((((this.id + " watchOrderBook() does not support ") + eventVar) + " yet")) ;
         }
         client.resolve(orderbook, messageHash);
     }

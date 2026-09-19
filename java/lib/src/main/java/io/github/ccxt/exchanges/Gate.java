@@ -2090,8 +2090,8 @@ public class Gate extends GateApi
         final Object finalExpiry = expiry;
         final Object finalOptionType = optionType;
         return new HashMap<String, Object>() {{
-            put( "id", Helpers.add((Helpers.add((Helpers.add((((Helpers.add(finalBase, "_") + quote) + "-") + "20"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
-            put( "symbol", Helpers.add((Helpers.add((Helpers.add(((((Helpers.add(finalBase, "/") + quote) + ":") + settle) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
+            put( "id", (((((((((finalBase + "_") + quote) + "-") + "20") + finalExpiry) + "-") + strike) + "-") + finalOptionType) );
+            put( "symbol", ((((((((((finalBase + "/") + quote) + ":") + settle) + "-") + finalExpiry) + "-") + strike) + "-") + finalOptionType) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", settle );
@@ -2280,7 +2280,7 @@ public class Gate extends GateApi
                 final Object finalMargin = margin;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -2515,11 +2515,11 @@ public class Gate extends GateApi
         String marketType = "swap";
         if (!java.util.Objects.equals(date, null))
         {
-            symbol = ((Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle) + "-") + this.yymmdd(expiry, ""));
+            symbol = ((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry, ""));
             marketType = "future";
         } else
         {
-            symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+            symbol = ((((base + "/") + quote) + ":") + settle);
         }
         String priceDeviate = this.safeString(market, "order_price_deviate");
         String markPrice = this.safeString(market, "mark_price");
@@ -2655,13 +2655,13 @@ public class Gate extends GateApi
                     String quoteId = this.safeString(parts, 1);
                     String base = this.safeCurrencyCode(baseId);
                     String quote = this.safeCurrencyCode(quoteId);
-                    Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                    Object symbol = ((base + "/") + quote);
                     Object expiry = this.safeTimestamp(market, "expiration_time");
                     String strike = this.safeString(market, "strike_price");
                     Boolean isCall = (Boolean) this.safeBool(market, "is_call");
                     String optionLetter = (((java.util.Objects.equals(isCall, true)))) ? "C" : "P";
                     String optionType = (((java.util.Objects.equals(isCall, true)))) ? "call" : "put";
-                    symbol = Helpers.add((Helpers.add((((Helpers.add((symbol + ":"), quote) + "-") + this.yymmdd(expiry)) + "-"), strike) + "-"), optionLetter);
+                    symbol = ((((((((symbol + ":") + quote) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + optionLetter);
                     String priceDeviate = this.safeString(market, "order_price_deviate");
                     String markPrice = this.safeString(market, "mark_price");
                     String minMultiplier = Precise.stringSub("1", priceDeviate);
@@ -4694,7 +4694,7 @@ public class Gate extends GateApi
                 Boolean isIndex = (java.util.Objects.equals(price, "index"));
                 if (Boolean.TRUE.equals(isMark) || Boolean.TRUE.equals(isIndex))
                 {
-                    ((Map<String, Object>)request).put("contract", Helpers.add(Helpers.add(price, "_"), ((Map<String, Object>)market).get("id")));
+                    ((Map<String, Object>)request).put("contract", Helpers.add((price + "_"), ((Map<String, Object>)market).get("id")));
                     parameters = this.omit(parameters, "price");
                 }
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
@@ -9139,7 +9139,7 @@ final Object finalI = i;
             Object nonce = this.nonce();
             Long timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
             Object timestampString = String.valueOf(timestamp);
-            Object signaturePath = Helpers.add(Helpers.add("/api/", this.version), entirePath);
+            Object signaturePath = Helpers.add(("/api/" + this.version), entirePath);
             Object payloadArray = new ArrayList<Object>(Arrays.asList(((String)method).toUpperCase(), signaturePath, rawQueryString, bodySignature, timestampString));
             // eslint-disable-next-line quotes
             Object payload = String.join("\n", (List<String>)payloadArray);
@@ -10160,7 +10160,7 @@ final Object finalI = i;
                 response = (this.privateOptionsGetPositionClose(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchMyLiquidations() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " fetchMyLiquidations() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
             //
             // swap and future
@@ -10487,7 +10487,7 @@ final Object finalI = i;
                 response = (this.privateUnifiedGetAccounts(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchLeverage() does not support "), this.safeString(market, "type")) + " markets")) ;
+                throw new NotSupported((((this.id + " fetchLeverage() does not support ") + this.safeString(market, "type")) + " markets")) ;
             }
             return this.parseLeverage(response, market);
         }).thenApply(Leverage::new);

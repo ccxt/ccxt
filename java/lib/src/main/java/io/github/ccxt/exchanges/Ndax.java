@@ -896,7 +896,7 @@ public class Ndax extends NdaxApi
         final Object finalIsDisable = isDisable;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+            put( "symbol", ((finalBase + "/") + quote) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", null );

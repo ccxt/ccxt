@@ -373,7 +373,7 @@ public class Hibachi extends HibachiApi
         String quote = this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(market, "settlementSymbol");
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+        Object symbol = ((((base + "/") + quote) + ":") + settle);
         Long created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -1024,8 +1024,8 @@ public class Hibachi extends HibachiApi
         Object amountStr = this.amountToPrecision(this.safeString(market, "symbol"), amount);
         Object feeRateStr = this.numberToString(feeRate);
         Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info");
-        String underlying = Helpers.add("1e", this.safeString(info, "underlyingDecimals"));
-        String settlement = Helpers.add("1e", this.safeString(info, "settlementDecimals"));
+        String underlying = ("1e" + this.safeString(info, "underlyingDecimals"));
+        String settlement = ("1e" + this.safeString(info, "settlementDecimals"));
         String one = "1";
         String feeRateFactor = "100000000"; // 10^8
         String priceFactor = "4294967296"; // 2^32

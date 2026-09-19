@@ -429,7 +429,7 @@ public class Cryptomus extends CryptomusApi
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalMarketId );
-            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+            put( "symbol", ((finalBase + "/") + quote) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "baseId", baseId );

@@ -1027,7 +1027,7 @@ public class Grvt extends GrvtApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+        Object symbol = ((((base + "/") + quote) + ":") + settle);
         String type = null;
         String typeRaw = this.safeString(market, "kind");
         if (java.util.Objects.equals(typeRaw, "PERPETUAL"))

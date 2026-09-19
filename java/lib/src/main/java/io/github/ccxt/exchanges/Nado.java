@@ -541,7 +541,7 @@ public class Nado extends NadoApi
                 String directionSuffix = (((java.util.Objects.equals(triggerDirection, "ascending")))) ? "above" : "below";
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)priceRequirement).put((String)Helpers.add("oracle_price_", directionSuffix), triggerPriceX18);
+                ((Map<String, Object>)priceRequirement).put((String)("oracle_price_" + directionSuffix), triggerPriceX18);
                 Map<String, Object> trigger = new HashMap<String, Object>() {{
                     put( "price_trigger", new HashMap<String, Object>() {{
                         put( "price_requirement", priceRequirement );
@@ -2014,10 +2014,10 @@ public class Nado extends NadoApi
                 String quoteId = this.safeString(quoteAsset, "product_id", rawQuoteId);
                 String settleId = ((Boolean.TRUE.equals(contract))) ? quoteId : null;
                 String settle = ((Boolean.TRUE.equals(contract))) ? quote : null;
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 if (Boolean.TRUE.equals(contract))
                 {
-                    symbol = Helpers.add(symbol, Helpers.add(":", settle));
+                    symbol = Helpers.add(symbol, (":" + settle));
                 }
                 String tradingStatus = this.safeString(market, "trading_status");
                 Boolean active = (!java.util.Objects.equals(tradingStatus, "not_tradable"));

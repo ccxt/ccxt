@@ -397,12 +397,12 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                     selectedTimeframe = rawTimeframe;
                 }
                 ((List<Object>)marketIds).add(marketId);
-                ((List<Object>)messageHashes).add(((Helpers.add("ohlcv::", symbolStr) + "::") + unfiedTimeframe));
+                ((List<Object>)messageHashes).add(((("ohlcv::" + symbolStr) + "::") + unfiedTimeframe));
             }
             final Object finalSelectedTimeframe = selectedTimeframe;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", String.join(",", (List<String>)marketIds) );
-                put( "topic", Helpers.add("kline_", finalSelectedTimeframe) );
+                put( "topic", ("kline_" + finalSelectedTimeframe) );
                 put( "event", "sub" );
             }};
             var symboltimeframestoredVariable = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
@@ -472,7 +472,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        String messageHash = Helpers.add((("ohlcv::" + symbol) + "::"), timeframe);
+        String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
@@ -631,7 +631,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 ((Map<String, Object>)newTickers).put((String)symbol, parsed);
             }
-            String messageHash = Helpers.add("ticker::", symbol);
+            String messageHash = ("ticker::" + symbol);
             client.resolve(parsed, messageHash);
         }
         client.resolve(newTickers, "tickers");
@@ -874,7 +874,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Object url = this.getUserStreamUrl();
             Client client = this.client(url);
             this.setBalanceCache(client, marketType, subscriptionHash, parameters);
-            client.future(Helpers.add(type, ":fetchBalanceSnapshot"));
+            client.future((type + ":fetchBalanceSnapshot"));
             return (this.watch(url, messageHash, parameters, subscriptionHash, null)).join();
         }).thenApply(Balances::new);
 
@@ -889,7 +889,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             return;
         }
         String type = (((java.util.Objects.equals(marketType, "spot")))) ? "spot" : "contract";
-        Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
+        Object messageHash = (type + ":fetchBalanceSnapshot");
         if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
         {
             client.future((String)messageHash);
@@ -958,7 +958,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
         }
         Helpers.addElementToObject(this.balance, type, this.safeBalance(Helpers.GetValue(this.balance, type)));
-        client.resolve(Helpers.GetValue(this.balance, type), Helpers.add(type, ":balance"));
+        client.resolve(Helpers.GetValue(this.balance, type), (type + ":balance"));
     }
 
     public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash2, Object marketType2)
@@ -979,8 +979,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
-                client.resolve(Helpers.GetValue(this.balance, type), Helpers.add(type, ":fetchBalanceSnapshot"));
-                client.resolve(Helpers.GetValue(this.balance, type), Helpers.add(type, ":balance")); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+                client.resolve(Helpers.GetValue(this.balance, type), (type + ":fetchBalanceSnapshot"));
+                client.resolve(Helpers.GetValue(this.balance, type), (type + ":balance")); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
             }
             return null;
         });
@@ -1074,7 +1074,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Helpers.callDynamically(orders, "append", new Object[]{order});
         String messageHash = "orders";
         client.resolve(orders, messageHash);
-        messageHash = Helpers.add("orders:", this.safeString(order, "symbol"));
+        messageHash = ("orders:" + this.safeString(order, "symbol"));
         client.resolve(orders, messageHash);
     }
 
@@ -1203,7 +1203,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }
         Object trade = this.parseMyTrade(message);
         Helpers.callDynamically(myTrades, "append", new Object[]{trade});
-        String messageHash = Helpers.add("myTrades:", ((Map<String, Object>)trade).get("symbol"));
+        String messageHash = ("myTrades:" + ((Map<String, Object>)trade).get("symbol"));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
@@ -1569,7 +1569,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         if (!java.util.Objects.equals(code, null))
         {
             String desc = this.safeString(message, "desc");
-            Object msg = Helpers.add((((this.id + " code: ") + code) + " message: "), desc);
+            Object msg = ((((this.id + " code: ") + code) + " message: ") + desc);
             var exception = new ExchangeError(((String)msg)); // c# fix
             client.reject(exception);
             return true;

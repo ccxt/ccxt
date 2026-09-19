@@ -384,7 +384,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(channel, timeframes);
         String symbol = this.safeString(market, "symbol");
-        Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
+        Object messageHash = Helpers.add((channel + "::"), symbol);
         Object parsed = this.parseOHLCV(data, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
@@ -441,7 +441,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Object trade = this.parseTrade(item, market);
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
         }
-        String messageHash = Helpers.add("deals::", symbol);
+        String messageHash = ("deals::" + symbol);
         client.resolve(tradesArray, messageHash);
         return message;
     }
@@ -502,7 +502,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
-        Object messageHash = Helpers.add(Helpers.add(messageHashStart, "::"), symbol);
+        Object messageHash = Helpers.add((messageHashStart + "::"), symbol);
         client.resolve(ticker, messageHash);
         return message;
     }

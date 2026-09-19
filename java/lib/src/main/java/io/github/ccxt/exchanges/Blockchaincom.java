@@ -423,7 +423,7 @@ public class Blockchaincom extends BlockchaincomApi
                     put( "info", market );
                     put( "id", marketId );
                     put( "numericId", numericId );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -773,7 +773,7 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 if (java.util.Objects.equals(triggerPrice, null))
                 {
-                    throw new ArgumentsRequired((Helpers.add((this.id + " createOrder() requires a stopPx or triggerPrice param for a "), uppercaseOrderType) + " order")) ;
+                    throw new ArgumentsRequired((((this.id + " createOrder() requires a stopPx or triggerPrice param for a ") + uppercaseOrderType) + " order")) ;
                 }
             }
             if (!java.util.Objects.equals(triggerPrice, null))

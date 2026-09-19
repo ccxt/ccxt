@@ -1030,7 +1030,7 @@ public class Derive extends DeriveApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String marketId = this.safeString(market, "instrument_name");
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         String settleId = null;
         Object settle = null;
         Object expiry = null;
@@ -1046,7 +1046,7 @@ public class Derive extends DeriveApi
             margin = false;
             settleId = "USDC";
             settle = this.safeCurrencyCode(settleId);
-            symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+            symbol = ((((base + "/") + quote) + ":") + settle);
             swap = true;
             linear = true;
             inverse = false;
@@ -1062,7 +1062,7 @@ public class Derive extends DeriveApi
             expiry = this.safeTimestamp(optionDetails, "expiry");
             strike = this.safeInteger(optionDetails, "strike");
             optionLetter = this.safeString(optionDetails, "option_type");
-            symbol = Helpers.add((Helpers.add((((Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle) + "-") + this.yymmdd(expiry)) + "-"), this.numberToString(strike)) + "-"), optionLetter);
+            symbol = ((((((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + this.numberToString(strike)) + "-") + optionLetter);
             if (java.util.Objects.equals(optionLetter, "P"))
             {
                 optionType = "put";

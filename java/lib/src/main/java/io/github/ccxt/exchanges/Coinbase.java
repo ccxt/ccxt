@@ -1634,7 +1634,7 @@ public class Coinbase extends CoinbaseApi
             {
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                symbol = ((base + "/") + quote);
             }
         }
         Boolean sizeInQuote = (Boolean) this.safeBool(trade, "size_in_quote");
@@ -1765,8 +1765,8 @@ public class Coinbase extends CoinbaseApi
     final Object finalBaseId = baseId;
                         final Object finalBase = base;
                                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
-                            put( "id", Helpers.add((finalBaseId + "-"), quoteId) );
-                            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                            put( "id", ((finalBaseId + "-") + quoteId) );
+                            put( "symbol", ((finalBase + "/") + quote) );
                             put( "base", finalBase );
                             put( "quote", quote );
                             put( "settle", null );
@@ -2047,7 +2047,7 @@ public class Coinbase extends CoinbaseApi
         final Object finalTradingDisabled = tradingDisabled;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+            put( "symbol", ((finalBase + "/") + quote) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", null );
@@ -2230,16 +2230,16 @@ public class Coinbase extends CoinbaseApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Boolean tradingDisabled = (Boolean) this.safeBool(market, "is_disabled");
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         String type = null;
         if (Boolean.TRUE.equals(isSwap))
         {
             type = "swap";
-            symbol = Helpers.add((symbol + ":"), quote);
+            symbol = ((symbol + ":") + quote);
         } else
         {
             type = "future";
-            symbol = ((Helpers.add((symbol + ":"), quote) + "-") + this.yymmdd(expireTimestamp));
+            symbol = ((((symbol + ":") + quote) + "-") + this.yymmdd(expireTimestamp));
         }
         Object takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
         Object makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
@@ -2553,7 +2553,7 @@ public class Coinbase extends CoinbaseApi
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {
                 Object baseId = Helpers.GetValue(baseIds, i);
-                Object marketId = Helpers.add((baseId + delimiter), quoteId);
+                Object marketId = ((baseId + delimiter) + quoteId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, delimiter);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 ((Map<String, Object>)result).put((String)symbol, this.parseTicker(Helpers.GetValue(rates, baseId), market));
@@ -6339,7 +6339,7 @@ public class Coinbase extends CoinbaseApi
         Object uri = null;
         if (!java.util.Objects.equals(url, null))
         {
-            uri = Helpers.add(Helpers.add(method, " "), Helpers.replace(((String)url), "https://", ""));
+            uri = Helpers.add((method + " "), Helpers.replace(((String)url), "https://", ""));
             Object quesPos = ((String)uri).indexOf("?");
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
@@ -6406,7 +6406,7 @@ public class Coinbase extends CoinbaseApi
         Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 1), "private");
         Boolean isV3 = java.util.Objects.equals(version, "v3");
         String pathPart = ((Boolean.TRUE.equals(isV3))) ? "api/v3" : "v2";
-        String fullPath = ((Helpers.add("/", pathPart) + "/") + this.implodeParams(path, parameters));
+        String fullPath = ((("/" + pathPart) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object savedPath = fullPath;
         if (java.util.Objects.equals(method, "GET"))

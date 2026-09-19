@@ -492,8 +492,8 @@ public class Delta extends DeltaApi
         final Object finalBase = base;
         final Object finalExpiry = expiry;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", Helpers.add((Helpers.add((Helpers.add(Helpers.add(finalOptionType, "-"), finalBase) + "-"), strike) + "-"), finalExpiry) );
-            put( "symbol", Helpers.add((Helpers.add((Helpers.add(((((Helpers.add(finalBase, "/") + quote) + ":") + settle) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
+            put( "id", ((((Helpers.add((finalOptionType + "-"), finalBase) + "-") + strike) + "-") + finalExpiry) );
+            put( "symbol", ((((((((((finalBase + "/") + quote) + ":") + settle) + "-") + finalExpiry) + "-") + strike) + "-") + finalOptionType) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", settle );
@@ -1070,10 +1070,10 @@ public class Delta extends DeltaApi
                 }
                 Object linear = (java.util.Objects.equals(settle, quote));
                 String optionType = null;
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 if (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future) || Boolean.TRUE.equals(option))
                 {
-                    symbol = Helpers.add((symbol + ":"), settle);
+                    symbol = ((symbol + ":") + settle);
                     if (Boolean.TRUE.equals(future) || Boolean.TRUE.equals(option))
                     {
                         symbol = ((symbol + "-") + this.yymmdd(expiry));
@@ -1091,7 +1091,7 @@ public class Delta extends DeltaApi
                                 letter = "M";
                                 optionType = "move";
                             }
-                            symbol = ((Helpers.add((symbol + "-"), strike) + "-") + letter);
+                            symbol = ((((symbol + "-") + strike) + "-") + letter);
                         } else
                         {
                             type = "future";
@@ -1925,7 +1925,7 @@ public class Delta extends DeltaApi
             String price = this.safeString(parameters, "price");
             if (java.util.Objects.equals(price, "mark"))
             {
-                ((Map<String, Object>)request).put("symbol", Helpers.add("MARK:", ((Map<String, Object>)market).get("id")));
+                ((Map<String, Object>)request).put("symbol", ("MARK:" + ((Map<String, Object>)market).get("id")));
             } else if (java.util.Objects.equals(price, "index"))
             {
                 ((Map<String, Object>)request).put("symbol", Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)market).get("info"), "spot_index"), "symbol"));
@@ -4709,7 +4709,7 @@ public class Delta extends DeltaApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        String requestPath = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), requestPath);
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(api, "public"))

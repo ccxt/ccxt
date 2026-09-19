@@ -140,7 +140,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String quoteId = this.safeStringUpper(data, "quote_currency");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        String symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        String symbol = this.symbol(Helpers.add((base + "/"), quote));
         Long timestamp = this.safeInteger(data, "timestamp");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
@@ -239,7 +239,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         Object ticker = this.parseWsTicker(data);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
-        String messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = ("ticker:" + symbol);
         client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
     }
 
@@ -277,7 +277,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String quoteId = this.safeString(ticker, "quote_currency");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        String symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        String symbol = this.symbol(Helpers.add((base + "/"), quote));
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -375,7 +375,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
         Helpers.callDynamically(stored, "append", new Object[]{trade});
-        String messageHash = Helpers.add("trade:", symbol);
+        String messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -397,7 +397,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String quoteId = this.safeStringUpper(trade, "quote_currency");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = Helpers.add((base + "/"), quote);
         Long timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);
         Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker");

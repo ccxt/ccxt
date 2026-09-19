@@ -278,7 +278,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                String channelName = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + topic);
+                String channelName = ((((Map<String, Object>)market).get("id") + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)channels).add(channelName);
@@ -348,7 +348,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                String channelName = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + topic);
+                String channelName = ((((Map<String, Object>)market).get("id") + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
                 ((List<Object>)subHashes).add(messageHash);
@@ -519,7 +519,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                String channelName = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + topic);
+                String channelName = ((((Map<String, Object>)market).get("id") + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)channels).add(channelName);
@@ -588,7 +588,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                String channelName = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + topic);
+                String channelName = ((((Map<String, Object>)market).get("id") + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
                 ((List<Object>)subHashes).add(messageHash);
@@ -782,7 +782,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 symbolString = ((Map<String, Object>)market).get("symbol");
                 String unifiedTimeframe = this.safeString(data, 1, "1");
                 String interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-                String channel = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@kline_"), interval) + "_") + priceType);
+                String channel = ((Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), interval) + "_") + priceType);
                 String messageHash = ((("ohlcv::" + symbolString) + "::") + unifiedTimeframe);
                 ((List<Object>)channels).add(channel);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -873,7 +873,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 symbolString = ((Map<String, Object>)market).get("symbol");
                 String unifiedTimeframe = this.safeString(data, 1, "1");
                 String interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-                String channel = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@kline_"), interval) + "_") + priceType);
+                String channel = ((Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), interval) + "_") + priceType);
                 String messageHash = ((("ohlcv::" + symbolString) + "::") + unifiedTimeframe);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
                 ((List<Object>)channels).add(channel);
@@ -949,7 +949,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object parsed = this.parseWsOHLCV(entry);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        String messageHash = Helpers.add((("ohlcv::" + symbol) + "::"), timeframe);
+        String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
@@ -1041,7 +1041,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String messageHash = ("orderbook::" + symbol);
-                Object channel = Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@depth"), depth);
+                Object channel = Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depth);
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)channels).add(channel);
             }
@@ -1115,7 +1115,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String messageHash = ("orderbook::" + symbol);
-                Object channel = Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@depth"), depth);
+                Object channel = Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depth);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
                 ((List<Object>)subHashes).add(messageHash);
                 ((List<Object>)channels).add(channel);
@@ -1228,7 +1228,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                String channelName = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + "bookTicker");
+                String channelName = ((((Map<String, Object>)market).get("id") + "@") + "bookTicker");
                 String messageHash = ("bidask::" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)channels).add(channelName);
@@ -1278,7 +1278,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                String channelName = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + "bookTicker");
+                String channelName = ((((Map<String, Object>)market).get("id") + "@") + "bookTicker");
                 String messageHash = ("bidask::" + symbol);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
                 ((List<Object>)subHashes).add(messageHash);
@@ -1323,7 +1323,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             Helpers.addElementToObject(this.bidsasks, symbol, ticker);
         }
-        String messageHash = Helpers.add("bidask::", symbol);
+        String messageHash = ("bidask::" + symbol);
         client.resolve(ticker, messageHash);
     }
 
@@ -1426,7 +1426,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
             String subHash = ((Boolean.TRUE.equals(isContract))) ? "myContractTrades" : "myTrades";
-            Object unSubHash = Helpers.add("unsubscribe::", subHash);
+            Object unSubHash = ("unsubscribe::" + subHash);
             Object channel = "fill";
             Object subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
@@ -1677,7 +1677,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
             String subHash = ((Boolean.TRUE.equals(isContract))) ? "contractOrders" : "orders";
-            Object unSubHash = Helpers.add("unsubscribe::", subHash);
+            Object unSubHash = ("unsubscribe::" + subHash);
             Object channel = "orders";
             Object subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );

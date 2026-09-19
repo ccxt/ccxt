@@ -515,7 +515,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(market, null))
             {
-                messageHash = (messageHash + Helpers.add(":", symbol));
+                messageHash = (messageHash + (":" + symbol));
                 ((List<Object>)subscribedSymbols).add(((Map<String, Object>)market).get("id"));
             } else
             {
@@ -573,7 +573,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("myTrades:" + symbol);
-        String messageWithType = Helpers.add("myTrades:", ((Map<String, Object>)market).get("type"));
+        String messageWithType = ("myTrades:" + ((Map<String, Object>)market).get("type"));
         Object stored = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -1318,9 +1318,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object orders = this.orders;
         Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
         Object messageHash = "orders";
-        Object messageWithType = Helpers.add((messageHash + ":"), ((Map<String, Object>)market).get("type"));
+        Object messageWithType = ((messageHash + ":") + ((Map<String, Object>)market).get("type"));
         client.resolve(this.orders, messageWithType);
-        messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
+        messageHash = Helpers.add(messageHash, (":" + symbol));
         client.resolve(this.orders, messageHash);
     }
 
@@ -1554,7 +1554,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object parsedTicker = this.parseWsBidAsk(data);
         Object symbol = ((Map<String, Object>)parsedTicker).get("symbol");
         Helpers.addElementToObject(this.bidsasks, ((String)symbol), parsedTicker);
-        String messageHash = Helpers.add("bidsasks:", symbol);
+        String messageHash = ("bidsasks:" + symbol);
         client.resolve(parsedTicker, messageHash);
     }
 

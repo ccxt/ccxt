@@ -1128,7 +1128,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object parsed = this.parseOrder(order);
         Helpers.callDynamically(orders, "append", new Object[]{parsed});
         client.resolve(orders, messageHash);
-        client.resolve(orders, Helpers.add(Helpers.add(messageHash, "::"), symbol));
+        client.resolve(orders, Helpers.add((messageHash + "::"), symbol));
     }
 
     public Object parseWsOrderTrade(Object trade, Object... optionalArgs)
@@ -1714,7 +1714,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 Object code = this.safeValue(error, "code");
                 String errorMessage = this.safeString(error, "message");
                 String description = this.safeString(error, "description");
-                Object feedback = Helpers.add((this.id + " "), description);
+                Object feedback = ((this.id + " ") + description);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
                 throw new ExchangeError((String)feedback) ;

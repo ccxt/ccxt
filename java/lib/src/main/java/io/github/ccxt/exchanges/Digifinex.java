@@ -916,13 +916,13 @@ public class Digifinex extends DigifinexApi
                 Boolean spot = java.util.Objects.equals(settle, null);
                 Boolean swap = !Boolean.TRUE.equals(spot);
                 Object margin = (((!java.util.Objects.equals(marginMode, null)))) ? true : null;
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 Object isInverse = null;
                 Object isLinear = null;
                 if (Boolean.TRUE.equals(swap))
                 {
                     type = "swap";
-                    symbol = ((Helpers.add(Helpers.add(base, "/"), quote) + ":") + settle);
+                    symbol = ((((base + "/") + quote) + ":") + settle);
                     isInverse = this.safeBool(market, "is_inverse");
                     isLinear = (((!java.util.Objects.equals(isInverse, true)))) ? true : false;
                     Boolean isTrading = (Boolean) this.safeBool(market, "isTrading");
@@ -1034,7 +1034,7 @@ public class Digifinex extends DigifinexApi
                 final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", finalId );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -5518,7 +5518,7 @@ final Object finalI = i;
         Object endpoint = Helpers.GetValue(api, 1);
         Object pathPart = (((java.util.Objects.equals(endpoint, "spot")))) ? "/v3" : "/swap/v2";
         String request = ("/" + this.implodeParams(path, parameters));
-        Object payload = Helpers.add(pathPart, request);
+        Object payload = (pathPart + request);
         Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), payload);
         Object query = this.omit(parameters, this.extractParams(path));
         Object urlencoded = null;

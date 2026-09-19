@@ -1094,7 +1094,7 @@ public class Cryptocom extends CryptocomApi
                 Boolean marginSellEnabled = (Boolean) this.safeBool(market, "margin_sell_enabled");
                 Object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
                 Object expiry = (((!java.util.Objects.equals(expiryString, null)))) ? Helpers.parseInt(expiryString) : null;
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 String type = null;
                 Object contract = null;
                 if (java.util.Objects.equals(inst_type, "CCY_PAIR"))
@@ -1104,18 +1104,18 @@ public class Cryptocom extends CryptocomApi
                 } else if (java.util.Objects.equals(inst_type, "PERPETUAL_SWAP"))
                 {
                     type = "swap";
-                    symbol = Helpers.add((symbol + ":"), quote);
+                    symbol = ((symbol + ":") + quote);
                     contract = true;
                 } else if (java.util.Objects.equals(inst_type, "FUTURE"))
                 {
                     type = "future";
-                    symbol = ((Helpers.add((symbol + ":"), quote) + "-") + this.yymmdd(expiry));
+                    symbol = ((((symbol + ":") + quote) + "-") + this.yymmdd(expiry));
                     contract = true;
                 } else if (java.util.Objects.equals(inst_type, "WARRANT"))
                 {
                     type = "option";
                     String symbolOptionType = (((java.util.Objects.equals(optionType, "call")))) ? "C" : "P";
-                    symbol = Helpers.add((Helpers.add((((Helpers.add((symbol + ":"), quote) + "-") + this.yymmdd(expiry)) + "-"), strike) + "-"), symbolOptionType);
+                    symbol = ((((((((symbol + ":") + quote) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + symbolOptionType);
                     contract = true;
                 }
                 Object isLinear = (((java.util.Objects.equals(contract, true)))) ? true : null;

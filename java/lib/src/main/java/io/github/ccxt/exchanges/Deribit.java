@@ -843,7 +843,7 @@ public class Deribit extends DeribitApi
             expiry = this.safeString(optionParts, 1);
             if (Helpers.isGreaterThan(((String)symbol).indexOf("USDC"), -1))
             {
-                base = Helpers.add(base, "_USDC");
+                base = (base + "_USDC");
             }
         } else
         {
@@ -872,8 +872,8 @@ public class Deribit extends DeribitApi
         String optionType = this.safeString(optionParts, 3);
         Object datetime = this.convertExpireDate(expiry);
         Long timestamp = this.parse8601(datetime);
-        Object id = Helpers.add((Helpers.add((Helpers.add((base + "-"), this.convertExpireDateToMarketIdDate(expiry)) + "-"), strike) + "-"), optionType);
-        Object symbolExpired = Helpers.add((Helpers.add((Helpers.add((Helpers.add(((Helpers.add(splitBase, "/") + quote) + ":"), settle) + "-"), expiry) + "-"), strike) + "-"), optionType);
+        Object id = ((((((base + "-") + this.convertExpireDateToMarketIdDate(expiry)) + "-") + strike) + "-") + optionType);
+        Object symbolExpired = ((((((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType);
         final Object finalBase = base;
         final Object finalQuote = quote;
         final Object finalSettle = settle;
@@ -1369,10 +1369,10 @@ public class Deribit extends DeribitApi
                     Object linear = null;
                     if (Boolean.TRUE.equals(isSpot))
                     {
-                        symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                        symbol = ((base + "/") + quote);
                     } else if (!Boolean.TRUE.equals(isComboMarket))
                     {
-                        symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+                        symbol = ((((base + "/") + quote) + ":") + settle);
                         if (Boolean.TRUE.equals(option) || Boolean.TRUE.equals(future))
                         {
                             symbol = ((symbol + "-") + this.yymmdd(expiry, ""));
@@ -1381,7 +1381,7 @@ public class Deribit extends DeribitApi
                                 strike = this.safeNumber(market, "strike");
                                 optionType = this.safeString(market, "option_type");
                                 String letter = (((java.util.Objects.equals(optionType, "call")))) ? "C" : "P";
-                                symbol = Helpers.add((Helpers.add((symbol + "-"), this.numberToString(strike)) + "-"), letter);
+                                symbol = ((((symbol + "-") + this.numberToString(strike)) + "-") + letter);
                             }
                         }
                         inverse = (!java.util.Objects.equals(quote, settle));
@@ -4270,7 +4270,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchLiquidations() does not support "), ((Map<String, Object>)market).get("type")) + " markets")) ;
+                throw new NotSupported((((this.id + " fetchLiquidations() does not support ") + ((Map<String, Object>)market).get("type")) + " markets")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
@@ -4367,7 +4367,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchMyLiquidations() does not support "), ((Map<String, Object>)market).get("type")) + " markets")) ;
+                throw new NotSupported((((this.id + " fetchMyLiquidations() does not support ") + ((Map<String, Object>)market).get("type")) + " markets")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
@@ -4898,7 +4898,7 @@ public class Deribit extends DeribitApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object request = Helpers.add((Helpers.add((Helpers.add(("/" + "api/"), this.version) + "/"), api) + "/"), path);
+        Object request = Helpers.add((Helpers.add(((("/" + "api/") + this.version) + "/"), api) + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
             if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)

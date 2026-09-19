@@ -1231,12 +1231,12 @@ public class Toobit extends ToobitApi
         Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
         Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
         Map<String, Object> minNotionalFilter = (Map<String, Object>) this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Boolean isContract = (((Map<?, ?>)market).containsKey("contractMultiplier"));
         Object inverse = this.safeBool2(market, "isInverse", "inverse");
         if (Boolean.TRUE.equals(isContract))
         {
-            symbol = Helpers.add(symbol, Helpers.add(":", settle));
+            symbol = Helpers.add(symbol, (":" + settle));
         }
         final Object finalSymbol = symbol;
         final Object finalBase = base;

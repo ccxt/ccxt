@@ -622,7 +622,7 @@ public class Krakenfutures extends KrakenfuturesApi
                         inverse = false;
                     }
                     linear = !Helpers.isTrue(inverse);
-                    symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+                    symbol = ((((base + "/") + quote) + ":") + settle);
                     if (Boolean.TRUE.equals(future))
                     {
                         symbol = ((symbol + "-") + this.yymmdd(expiry));
@@ -4115,10 +4115,10 @@ final Object finalI = i;
             Object splitId = new ArrayList<Object>(Arrays.asList(((String)((String)marketId)).split(java.util.regex.Pattern.quote("_"))));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
-                return Helpers.add("fi_", this.safeString(splitId, 1));
+                return ("fi_" + this.safeString(splitId, 1));
             } else
             {
-                return Helpers.add("fv_", this.safeString(splitId, 1));
+                return ("fv_" + this.safeString(splitId, 1));
             }
         } else
         {
@@ -4400,7 +4400,7 @@ final Object finalI = i;
         Map<String, Object> apiAccess = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("access"), api, new HashMap<String, Object>() {{}});
         Map<String, Object> methodAccess = (Map<String, Object>) this.safeDict(apiAccess, method, new HashMap<String, Object>() {{}});
         String access = this.safeString(methodAccess, path, "public");
-        Object endpoint = Helpers.add(Helpers.add(version, "/"), this.implodeParams(path, parameters));
+        Object endpoint = Helpers.add((version + "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         Object query = endpoint;
         Object postData = "";

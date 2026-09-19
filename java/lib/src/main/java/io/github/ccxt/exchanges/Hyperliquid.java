@@ -416,7 +416,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 String unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
                 String quote = this.safeString(symbolParts, 1);
-                Object newSymbol = Helpers.add(Helpers.add(this.safeCurrencyCode(unifiedBaseName), "/"), quote);
+                Object newSymbol = ((this.safeCurrencyCode(unifiedBaseName) + "/") + quote);
                 if (((Map<?, ?>)this.markets).containsKey(newSymbol))
                 {
                     return Helpers.GetValue(this.markets, newSymbol);
@@ -1016,7 +1016,7 @@ public class Hyperliquid extends HyperliquidApi
                 String mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
                 String mappedBase = this.safeCurrencyCode(mappedBaseName);
                 String mappedQuote = this.safeCurrencyCode(mappedQuoteId);
-                Object mappedSymbol = Helpers.add(Helpers.add(mappedBase, "/"), mappedQuote);
+                Object mappedSymbol = ((mappedBase + "/") + mappedQuote);
                 Object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
                 // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
                 String amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
@@ -1129,14 +1129,14 @@ public class Hyperliquid extends HyperliquidApi
         String quote = this.safeCurrencyCode(quoteId);
         String baseId = this.safeString(market, "baseId");
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = Helpers.add((base + "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Boolean contract = true;
         Boolean swap = true;
         if (Boolean.TRUE.equals(contract))
         {
             if (Boolean.TRUE.equals(swap))
             {
-                symbol = Helpers.add((symbol + ":"), settle);
+                symbol = ((symbol + ":") + settle);
             }
         }
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, "swap", new HashMap<String, Object>() {{}});
@@ -1869,7 +1869,7 @@ public class Hyperliquid extends HyperliquidApi
         // became zero after rounding, never an explicitly requested zero
         if (Precise.stringEq(result, "0") && Precise.stringGt(this.numberToString(amount), "0"))
         {
-            throw new InvalidOrder(Helpers.add((((this.id + " amount of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum amount precision of "), this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount")))) ;
+            throw new InvalidOrder(((((this.id + " amount of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount")))) ;
         }
         return result;
     }
@@ -5019,7 +5019,7 @@ final Object finalClientOrderId = clientOrderId;
                 if (!java.util.Objects.equals(vaultAddress, null))
                 {
                     vaultAddress = this.formatVaultAddress(vaultAddress);
-                    strAmount = Helpers.add((strAmount + " subaccount:"), vaultAddress);
+                    strAmount = ((strAmount + " subaccount:") + vaultAddress);
                 }
                 Object strAmountFinal = strAmount; // java req
                 Boolean toPerp = (java.util.Objects.equals(toAccount, "perp")) || (java.util.Objects.equals(toAccount, "swap"));
@@ -5108,7 +5108,7 @@ final Object finalClientOrderId = clientOrderId;
                 Map<String, Object> currencyInfo = (Map<String, Object>) this.safeDict(currency, "info", new HashMap<String, Object>() {{}});
                 String tokenName = this.safeString(currencyInfo, "name");
                 String tokenId = this.safeString(currencyInfo, "tokenId");
-                Object token = Helpers.add(Helpers.add(tokenName, ":"), tokenId);
+                Object token = ((tokenName + ":") + tokenId);
                 final Object finalSubAccountAddress_2 = subAccountAddress;
                 final Object finalIsDeposit_2 = isDeposit;
                 Map<String, Object> action = new HashMap<String, Object>() {{
@@ -6078,7 +6078,7 @@ final Object finalClientOrderId = clientOrderId;
         {
             coin = Helpers.replace(((String)coin), ":", "-"); // hip3
         }
-        return Helpers.add(this.safeCurrencyCode(coin), "/USDC:USDC");
+        return (this.safeCurrencyCode(coin) + "/USDC:USDC");
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

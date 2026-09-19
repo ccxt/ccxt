@@ -418,7 +418,7 @@ public class Btcturk extends BtcturkApi
         final Object finalMinCost = minCost;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+            put( "symbol", ((finalBase + "/") + quote) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", null );

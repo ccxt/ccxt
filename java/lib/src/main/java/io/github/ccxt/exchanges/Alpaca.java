@@ -782,7 +782,7 @@ public class Alpaca extends AlpacaApi
         {
             quote = "USD";
         }
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         String status = this.safeString(asset, "status");
         Boolean active = (java.util.Objects.equals(status, "active"));
         Double minAmount = this.safeNumber(asset, "min_order_size");
@@ -2518,7 +2518,7 @@ public class Alpaca extends AlpacaApi
         {
             String netAmount = this.safeString(transaction, "net_amount");
             Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Precise.stringLt(netAmount, "0"));
-            timestamp = this.parse8601(Helpers.add(this.safeString(transaction, "date"), "T00:00:00Z"));
+            timestamp = this.parse8601((this.safeString(transaction, "date") + "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
             type = ((Boolean.TRUE.equals(isIncoming))) ? "deposit" : "withdrawal";
             amount = this.parseNumber(Precise.stringAbs(netAmount));

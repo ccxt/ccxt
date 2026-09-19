@@ -679,7 +679,7 @@ public class Btcmarkets extends BtcmarketsApi
         String id = this.safeString(market, "marketId");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Object fees = this.safeDict(this.safeDict(this.options, "fees", new HashMap<String, Object>() {{}}), quote, this.fees);
         Object pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
         Double minAmount = this.safeNumber(market, "minOrderAmount");
@@ -1783,7 +1783,7 @@ public class Btcmarkets extends BtcmarketsApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        String request = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        String request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Map<String, Object> query = this.keysort(this.omit(parameters, this.extractParams(path)));
         if (java.util.Objects.equals(api, "private"))
         {

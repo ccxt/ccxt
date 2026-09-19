@@ -364,7 +364,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", "v4_candles" );
-                put( "id", Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "/"), resolution) );
+                put( "id", Helpers.add((((Map<String, Object>)market).get("id") + "/"), resolution) );
             }};
             Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
@@ -405,7 +405,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
                 put( "channel", "v4_candles" );
-                put( "id", Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "/"), resolution) );
+                put( "id", Helpers.add((((Map<String, Object>)market).get("id") + "/"), resolution) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
         });
@@ -494,7 +494,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         try
         {
             String msg = this.safeString(message, "message");
-            throw new ExchangeError((String)Helpers.add((this.id + " "), msg)) ;
+            throw new ExchangeError(((this.id + " ") + msg)) ;
         } catch(Exception e)
         {
             client.reject(e);

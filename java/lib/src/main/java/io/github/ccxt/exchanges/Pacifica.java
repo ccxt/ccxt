@@ -949,10 +949,10 @@ public class Pacifica extends PacificaApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(isSwap))
         {
-            symbol = Helpers.add((symbol + ":"), settle);
+            symbol = ((symbol + ":") + settle);
         }
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, type, new HashMap<String, Object>() {{}});
         Double taker = this.safeNumber(fees, "taker");
@@ -4408,7 +4408,7 @@ public class Pacifica extends PacificaApi
         Object isTestnet = this.isSandboxModeEnabled;
         String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
         String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), api));
-        String url = ((Helpers.add((host + "/api/"), this.version) + "/") + this.implodeParams(path, parameters));
+        String url = ((((host + "/api/") + this.version) + "/") + this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         Object paramsLen = ((List<?>)Helpers.objectKeys(parameters)).size();
         headers = new HashMap<String, Object>() {{
@@ -4556,7 +4556,7 @@ public class Pacifica extends PacificaApi
         parameters = ((List<Object>) originAddressparametersVariable).get(1);
         if (java.util.Objects.equals(originAddress, null))
         {
-            throw new ArgumentsRequired((Helpers.add((this.id + " action: "), operationType) + " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
+            throw new ArgumentsRequired((((this.id + " action: ") + operationType) + " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
         }
         ((Map<String, Object>)finalHeaders).put("account", originAddress);
         if (!java.util.Objects.equals(agentAddress, null))

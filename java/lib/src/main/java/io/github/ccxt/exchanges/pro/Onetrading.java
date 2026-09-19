@@ -468,7 +468,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             this.handleDeltas(orderbook, changes);
         } else
         {
-            throw new NotSupported((String)Helpers.add((this.id + " watchOrderBook() did not recognize message type "), type)) ;
+            throw new NotSupported(((this.id + " watchOrderBook() did not recognize message type ") + type)) ;
         }
         Helpers.addElementToObject(orderbook, "nonce", timestamp);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -626,7 +626,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         Object order = this.parseTradingOrder(message);
         Object orders = this.orders;
         Helpers.callDynamically(orders, "append", new Object[]{order});
-        client.resolve(this.orders, Helpers.add("orders:", ((Map<String, Object>)order).get("symbol")));
+        client.resolve(this.orders, ("orders:" + ((Map<String, Object>)order).get("symbol")));
         client.resolve(this.orders, "orders");
     }
 
@@ -1118,7 +1118,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             symbol = this.safeString(parsed, "symbol", "");
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
-        client.resolve(this.orders, Helpers.add("orders:", symbol));
+        client.resolve(this.orders, ("orders:" + symbol));
         client.resolve(this.orders, "orders");
         // update balance
         List<Object> balanceKeys = new ArrayList<Object>(Arrays.asList("locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"));
@@ -1320,7 +1320,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         Map<String, Object> timeframeId = (Map<String, Object>) this.safeDict(message, "granularity");
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(timeframeId, timeframes);
-        Object channel = Helpers.add((("ohlcv." + symbol) + "."), timeframe);
+        Object channel = ((("ohlcv." + symbol) + ".") + timeframe);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(dateTime), this.safeNumber(message, "open"), this.safeNumber(message, "high"), this.safeNumber(message, "low"), this.safeNumber(message, "close"), this.safeNumber(message, "volume")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
