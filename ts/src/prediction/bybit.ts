@@ -547,7 +547,7 @@ export default class bybit extends Exchange {
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.omitZero (this.safeString (order, 'orderLinkId'));
         const symbol = this.safeString (order, 'symbol');
-        const outcomeObj = this.safeOutcome (undefined, market);
+        const outcomeObj = this.safeOutcome (symbol, market);
         const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
         const side = this.safeStringLower (order, 'side');
         const price = this.safeString2 (order, 'payoutRatio', 'orderAvgPayoutRatio');
@@ -664,7 +664,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const symbol = this.safeString (trade, 'symbol');
-        const outcomeObj = this.safeOutcome (undefined, market);
+        const outcomeObj = this.safeOutcome (symbol, market);
         const id = this.safeString (trade, 'execId');
         const orderId = this.safeString (trade, 'orderId');
         const side = this.safeStringLower (trade, 'side');
