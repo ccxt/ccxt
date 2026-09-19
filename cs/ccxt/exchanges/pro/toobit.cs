@@ -215,7 +215,7 @@ public partial class toobit : ccxt.toobit
             ((IList<object>)subParams).Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
-        object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "common"), "/quote/ws/v1");
+        object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "common"), "/quote/ws/v1");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", String.Join(",", ((IList<object>)marketIds).ToArray()) },
             { "topic", "trade" },
@@ -324,7 +324,7 @@ public partial class toobit : ccxt.toobit
         {
             await this.loadMarkets();
         }
-        object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "common"), "/quote/ws/v1");
+        object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "common"), "/quote/ws/v1");
         List<object> messageHashes = new List<object>() {};
         IDictionary<string, object> timeframes = this.safeDict((this.options.ContainsKey("ws") ? this.options["ws"] : null), "timeframes", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>() {};
@@ -493,7 +493,7 @@ public partial class toobit : ccxt.toobit
             ((IList<object>)subParams).Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
-        object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "common"), "/quote/ws/v1");
+        object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "common"), "/quote/ws/v1");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", String.Join(",", ((IList<object>)marketIds).ToArray()) },
             { "topic", "realtimes" },
@@ -556,7 +556,7 @@ public partial class toobit : ccxt.toobit
         {
             object ticker = data[i];
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTicker(ticker));
-            string? symbol = ((string)getValue(parsed, "symbol"));
+            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
@@ -631,7 +631,7 @@ public partial class toobit : ccxt.toobit
             ((IList<object>)subParams).Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
-        object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "common"), "/quote/ws/v1");
+        object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "common"), "/quote/ws/v1");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", String.Join(",", ((IList<object>)marketIds).ToArray()) },
             { "topic", channel },
@@ -1409,7 +1409,7 @@ public partial class toobit : ccxt.toobit
 
     public virtual object getUserStreamUrl()
     {
-        return add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "common"), "/api/v1/ws/"), getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKey"));
+        return add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "common"), "/api/v1/ws/"), getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKey"));
     }
 
     public virtual bool? handleErrorMessage(WebSocketClient client, object message)

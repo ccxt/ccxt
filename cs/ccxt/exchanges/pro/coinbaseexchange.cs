@@ -73,7 +73,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             messageHash = add(messageHash, (":" + ((market.ContainsKey("id") ? market["id"] : null))));
             ((IList<object>)productIds).Add((market.ContainsKey("id") ? market["id"] : null));
         }
-        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
@@ -107,7 +107,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             ((IList<object>)productIds).Add((market.ContainsKey("id") ? market["id"] : null));
             ((IList<object>)messageHashes).Add(add(add(messageHashStart, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
-        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
@@ -402,7 +402,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             object marketId = getValue(marketIds, i);
             ((IList<object>)messageHashes).Add(((name + ":") + (marketId)));
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", marketIds },
@@ -441,7 +441,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
@@ -479,7 +479,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if ((marketId != null))
         {
             Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(message));
-            string? symbol = ((string)getValue(trade, "symbol"));
+            string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
             // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
@@ -752,7 +752,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                             ((IDictionary<string,object>)previousOrder)["trades"] = new List<object>() {};
                         }
                         ((IList<object>)getValue(previousOrder, "trades")).Add(trade);
-                        ((IDictionary<string,object>)previousOrder)["lastTradeTimestamp"] = getValue(trade, "timestamp");
+                        ((IDictionary<string,object>)previousOrder)["lastTradeTimestamp"] = (trade != null && ((IDictionary<string, object>)trade).ContainsKey("timestamp") ? ((IDictionary<string, object>)trade)["timestamp"] : null);
                         string? totalCost = "0";
                         string? totalAmount = "0";
                         object trades = getValue(previousOrder, "trades");
@@ -780,12 +780,12 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         {
                             ((IDictionary<string,object>)previousOrder)["fee"] = new Dictionary<string, object>() {
                                 { "cost", 0 },
-                                { "currency", this.safeString(getValue(trade, "fee"), "currency") },
+                                { "currency", this.safeString((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "currency") },
                             };
                         }
-                        if ((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber(getValue(trade, "fee"), "cost"), null)))
+                        if ((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"), null)))
                         {
-                            ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.sum(getValue(getValue(previousOrder, "fee"), "cost"), this.safeNumber(getValue(trade, "fee"), "cost"));
+                            ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.sum(getValue(getValue(previousOrder, "fee"), "cost"), this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"));
                             IDictionary<string, object> previousOrderFee = this.safeDict(previousOrder, "fee");
                             IDictionary<string, object> tradeFee = this.safeDict(trade, "fee");
                             ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));
@@ -899,7 +899,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if ((marketId != null))
         {
             Dictionary<string, object> ticker = this.parseTicker(message);
-            string? symbol = ((string)getValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;

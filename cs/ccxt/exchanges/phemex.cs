@@ -5354,7 +5354,7 @@ public partial class phemex : Exchange
             string auth = (((requestPath + queryString) + expiryString) + payload);
             ((IDictionary<string,object>)headers)["x-phemex-request-signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         }
-        url = (this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + url);
+        url = (this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + url);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -6407,8 +6407,8 @@ public partial class phemex : Exchange
         if (((errorCode != null)) && ((errorCode != "0")))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

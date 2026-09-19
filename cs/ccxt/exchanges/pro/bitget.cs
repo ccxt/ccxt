@@ -228,7 +228,7 @@ public partial class bitget : ccxt.bitget
             string topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
             string symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
             ((IDictionary<string,object>)args)[(string)topicOrChannel] = "ticker";
-            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(marketInner, "id");
+            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = (marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("id") ? ((IDictionary<string, object>)marketInner)["id"] : null);
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(("ticker:" + (symbol)));
         }
@@ -301,7 +301,7 @@ public partial class bitget : ccxt.bitget
         //
         this.handleBidAsk(client as WebSocketClient, message);
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(message));
-        string? symbol = ((string)getValue(ticker, "symbol"));
+        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -487,7 +487,7 @@ public partial class bitget : ccxt.bitget
             string topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
             string symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
             ((IDictionary<string,object>)args)[(string)topicOrChannel] = "ticker";
-            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(marketInner, "id");
+            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = (marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("id") ? ((IDictionary<string, object>)marketInner)["id"] : null);
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(("bidask:" + (symbol)));
         }
@@ -504,7 +504,7 @@ public partial class bitget : ccxt.bitget
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(message));
-        string? symbol = ((string)getValue(ticker, "symbol"));
+        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
@@ -1989,7 +1989,7 @@ public partial class bitget : ccxt.bitget
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(order, market));
             callDynamically(stored, "append", new object[] {parsed});
-            string? symbol = ((string)getValue(parsed, "symbol"));
+            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)marketSymbols)[(string)symbol] = true;
@@ -2527,7 +2527,7 @@ public partial class bitget : ccxt.bitget
             }
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));
             callDynamically(stored, "append", new object[] {parsed});
-            string? symbol = ((string)getValue(parsed, "symbol"));
+            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             string symbolSpecificMessageHash = ("myTrades:" + symbol);
             (client as WebSocketClient).resolve(stored, symbolSpecificMessageHash);
         }
@@ -2772,7 +2772,7 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPublic(object uta, object messageHash, object args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = ((bool) (isEqual(uta, true))) ? getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        object url = ((bool) (isEqual(uta, true))) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
@@ -2781,10 +2781,10 @@ public partial class bitget : ccxt.bitget
             {
                 if (isEqual(uta, true))
                 {
-                    url = getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPublic");
+                    url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPublic");
                 } else
                 {
-                    url = getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "public");
+                    url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "public");
                 }
             }
         }
@@ -2799,7 +2799,7 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> unWatchPublic(object uta, object messageHash, object args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = ((bool) (isEqual(uta, true))) ? getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        object url = ((bool) (isEqual(uta, true))) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
@@ -2808,10 +2808,10 @@ public partial class bitget : ccxt.bitget
             {
                 if (isEqual(uta, true))
                 {
-                    url = getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPublic");
+                    url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPublic");
                 } else
                 {
-                    url = getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "public");
+                    url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "public");
                 }
             }
         }
@@ -2826,7 +2826,7 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPublicMultiple(object uta, object messageHashes, object argsArray, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = ((bool) (isEqual(uta, true))) ? getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        object url = ((bool) (isEqual(uta, true))) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
@@ -2834,7 +2834,7 @@ public partial class bitget : ccxt.bitget
             string? instType = this.safeString(argsArrayFirst, "instType");
             if (((instType != "SCOIN-FUTURES")) && ((instType != "SUSDT-FUTURES")) && ((instType != "SUSDC-FUTURES")))
             {
-                url = ((bool) (isEqual(uta, true))) ? getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPublic") : getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "public");
+                url = ((bool) (isEqual(uta, true))) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "public");
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2878,7 +2878,7 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPrivate(object uta, object messageHash, object subscriptionHash, object args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = ((bool) (isEqual(uta, true))) ? getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPrivate") : getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        object url = ((bool) (isEqual(uta, true))) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPrivate") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
@@ -2887,10 +2887,10 @@ public partial class bitget : ccxt.bitget
             {
                 if (isEqual(uta, true))
                 {
-                    url = getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPrivate");
+                    url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPrivate");
                 } else
                 {
-                    url = getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "private");
+                    url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "private");
                 }
             }
         }
@@ -2927,9 +2927,9 @@ public partial class bitget : ccxt.bitget
             {
                 string? code = this.safeString(message, "code");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue(getValue(this.exceptions, "ws"), "exact"), code, feedback);
+                this.throwExactlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), code, feedback);
                 string? msg = this.safeString(message, "msg", "");
-                this.throwBroadlyMatchedException(getValue(getValue(this.exceptions, "ws"), "broad"), msg, feedback);
+                this.throwBroadlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "broad"), msg, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
             return ((bool?)((object)(false)));

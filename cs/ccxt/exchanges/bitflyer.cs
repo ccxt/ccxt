@@ -1409,7 +1409,7 @@ public partial class bitflyer : Exchange
                 request = add(request, ("?" + this.urlencode(parameters)));
             }
         }
-        object baseUrl = this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"));
+        object baseUrl = this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"));
         object url = add(baseUrl, request);
         if (isEqual(api, "private"))
         {
@@ -1452,7 +1452,7 @@ public partial class bitflyer : Exchange
         Int64? statusCode = this.safeInteger(response, "status");
         if ((errorMessage != null))
         {
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), statusCode, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), statusCode, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

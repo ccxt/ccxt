@@ -50,7 +50,7 @@ public partial class upbit : ccxt.upbit
             symbols = new List<object>() {};
         }
         IList<object> marketIds = this.marketIds(symbols);
-        string? url = this.implodeParams(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), new Dictionary<string, object>() {
+        string? url = this.implodeParams(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         var client = this.client(url);
@@ -248,7 +248,7 @@ public partial class upbit : ccxt.upbit
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
         Dictionary<string, object> ticker = this.parseTicker(message);
-        string? symbol = ((string)getValue(ticker, "symbol"));
+        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -332,7 +332,7 @@ public partial class upbit : ccxt.upbit
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         Dictionary<string, object> trade = this.parseTrade(message);
-        string? symbol = ((string)getValue(trade, "symbol"));
+        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         if ((symbol == null))
         {
             return;
@@ -393,7 +393,7 @@ public partial class upbit : ccxt.upbit
             };
             ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
         }
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/private");
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/private");
         var client = this.client(url);
         return client;
     }
@@ -415,7 +415,7 @@ public partial class upbit : ccxt.upbit
             ((IDictionary<string,object>)request)["codes"] = marketIds;
             messageHash = add(add(messageHash, ":"), symbol);
         }
-        object url = this.implodeParams(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), new Dictionary<string, object>() {
+        object url = this.implodeParams(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         url = add(url, "/private");
@@ -667,7 +667,7 @@ public partial class upbit : ccxt.upbit
         callDynamically(myTrades, "append", new object[] {trade});
         string messageHash = "myTrades";
         (client as WebSocketClient).resolve(myTrades, messageHash);
-        messageHash = ("myTrades:" + (getValue(trade, "symbol")));
+        messageHash = ("myTrades:" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
         (client as WebSocketClient).resolve(myTrades, messageHash);
     }
 

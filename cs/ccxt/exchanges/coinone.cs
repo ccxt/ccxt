@@ -1477,17 +1477,17 @@ public partial class coinone : Exchange
         parameters ??= new Dictionary<string, object>();
         string? request = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), "/");
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), "/");
         if (isEqual(api, "v2Public"))
         {
-            url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Public"), "/");
+            url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Public"), "/");
             api = "public";
         } else if (isEqual(api, "v2Private"))
         {
-            url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Private"), "/");
+            url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Private"), "/");
         } else if (isEqual(api, "v2_1Private"))
         {
-            url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2_1Private"), "/");
+            url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2_1Private"), "/");
         }
         if (isEqual(api, "public"))
         {

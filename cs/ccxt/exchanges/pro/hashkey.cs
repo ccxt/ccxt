@@ -58,7 +58,7 @@ public partial class hashkey : ccxt.hashkey
             { "topic", topic },
             { "event", "sub" },
         };
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
@@ -71,7 +71,7 @@ public partial class hashkey : ccxt.hashkey
 
     public virtual object getPrivateUrl(object listenKey)
     {
-        return add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), listenKey);
+        return add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), listenKey);
     }
 
     /**
@@ -240,7 +240,7 @@ public partial class hashkey : ccxt.hashkey
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> ticker = this.parseTicker(this.safeDict(data, 0));
-        string? symbol = ((string)getValue(ticker, "symbol"));
+        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         string messageHash = ("ticker:" + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
@@ -485,7 +485,7 @@ public partial class hashkey : ccxt.hashkey
         callDynamically(orders, "append", new object[] {parsed});
         string messageHash = "orders";
         (client as WebSocketClient).resolve(orders, messageHash);
-        string? symbol = ((string)getValue(parsed, "symbol"));
+        string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         (client as WebSocketClient).resolve(orders, symbolSpecificMessageHash);
     }
@@ -608,7 +608,7 @@ public partial class hashkey : ccxt.hashkey
         this.myTrades = tradesArray;
         string messageHash = "myTrades";
         (client as WebSocketClient).resolve(tradesArray, messageHash);
-        string? symbol = ((string)getValue(parsed, "symbol"));
+        string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         (client as WebSocketClient).resolve(tradesArray, symbolSpecificMessageHash);
     }
@@ -751,7 +751,7 @@ public partial class hashkey : ccxt.hashkey
         callDynamically(positions, "append", new object[] {parsed});
         string messageHash = "positions";
         (client as WebSocketClient).resolve(parsed, messageHash);
-        string? symbol = ((string)getValue(parsed, "symbol"));
+        string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         (client as WebSocketClient).resolve(parsed, ((messageHash + ":") + symbol));
     }
 

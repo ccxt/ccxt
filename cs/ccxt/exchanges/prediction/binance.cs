@@ -1965,7 +1965,7 @@ public partial class binance : PredictionExchange
         }
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "accountType", "cost"});
         Dictionary<string, object> quoteRequest = this.extend(commonRequest, new Dictionary<string, object>() {
-            { "tokenId", getValue(outcomeObj, "id") },
+            { "tokenId", (outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("id") ? ((IDictionary<string, object>)outcomeObj)["id"] : null) },
             { "side", sideUpper },
             { "amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000") },
         });
@@ -2115,8 +2115,8 @@ public partial class binance : PredictionExchange
         {
             string? message = this.safeString(response, "msg", "");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;
@@ -2141,7 +2141,7 @@ public partial class binance : PredictionExchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiGroup = ((bool) (api is string)) ? api : getValue(api, 0);
-        object baseUrls = (((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+        object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "sapi")));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));

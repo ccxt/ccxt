@@ -2729,7 +2729,7 @@ public partial class coinbaseinternational : Exchange
                 fullPath = fullPath + ("?" + this.urlencodeWithArrayRepeat(query));
             }
         }
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), fullPath);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), fullPath);
         if (signed)
         {
             this.checkRequiredCredentials();
@@ -2776,8 +2776,8 @@ public partial class coinbaseinternational : Exchange
         string? errMsg = this.safeString(response, "title");
         if ((errMsg != null))
         {
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errMsg, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errMsg, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errMsg, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errMsg, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

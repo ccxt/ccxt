@@ -2698,9 +2698,9 @@ public partial class grvt : Exchange
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
-            ((IList<object>)getValue(request, "base")).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("base") ? ((IDictionary<string, object>)request)["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
-            ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
+            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("quote") ? ((IDictionary<string, object>)request)["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         if ((limit != null))
         {
@@ -2778,8 +2778,8 @@ public partial class grvt : Exchange
                 {
                     throw new BadRequest ((string)(this.id + " fetchPositions() supports contract markets only")) ;
                 }
-                ((IList<object>)getValue(request, "base")).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
-                ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
+                ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("base") ? ((IDictionary<string, object>)request)["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+                ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("quote") ? ((IDictionary<string, object>)request)["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
             }
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1Positions(this.extend(request, parameters));
@@ -3053,9 +3053,9 @@ public partial class grvt : Exchange
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
-            ((IList<object>)getValue(request, "base")).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("base") ? ((IDictionary<string, object>)request)["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
-            ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
+            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("quote") ? ((IDictionary<string, object>)request)["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         if ((limit != null))
         {
@@ -3140,9 +3140,9 @@ public partial class grvt : Exchange
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
-            ((IList<object>)getValue(request, "base")).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("base") ? ((IDictionary<string, object>)request)["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
-            ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
+            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("quote") ? ((IDictionary<string, object>)request)["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         if ((limit != null))
         {
@@ -3587,9 +3587,9 @@ public partial class grvt : Exchange
         {
             Dictionary<string, object> market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
-            ((IList<object>)getValue(request, "base")).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("base") ? ((IDictionary<string, object>)request)["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
-            ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
+            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("quote") ? ((IDictionary<string, object>)request)["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1CancelAllOrders(this.extend(request, parameters));
         //
@@ -3727,9 +3727,9 @@ public partial class grvt : Exchange
         string? secretOrPrivkey = ((bool) usesPrivKey) ? this.privateKey : this.secret;
         object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Dictionary<string, object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
-        ((IDictionary<string,object>)getValue(request, "signature"))["r"] = this.formatSignatureRS(getValue(signature, "r"));
-        ((IDictionary<string,object>)getValue(request, "signature"))["s"] = this.formatSignatureRS(getValue(signature, "s"));
-        ((IDictionary<string,object>)getValue(request, "signature"))["v"] = this.sum(27, getValue(signature, "v"));
+        ((IDictionary<string,object>)getValue(request, "signature"))["r"] = this.formatSignatureRS((signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
+        ((IDictionary<string,object>)getValue(request, "signature"))["s"] = this.formatSignatureRS((signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
+        ((IDictionary<string,object>)getValue(request, "signature"))["v"] = this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null));
         ((IDictionary<string,object>)getValue(request, "signature"))["signer"] = ((bool) ((signerAddress == null))) ? this.ethGetAddressFromPrivateKey(("0x" + (privateKeyWithoutZero))) : signerAddress;
         return request;
     }
@@ -3785,7 +3785,7 @@ public partial class grvt : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), path);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), path);
         string queryString = "";
         if (isEqual(method, "GET"))
         {
@@ -3869,7 +3869,7 @@ public partial class grvt : Exchange
             if ((errorCode != null))
             {
                 string feedback = ((this.id + " ") + (body));
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
                 throw new ExchangeError ((string)feedback) ;
             } else
             {
@@ -3877,7 +3877,7 @@ public partial class grvt : Exchange
                 if ((message != null))
                 {
                     string feedback = ((this.id + " ") + (body));
-                    this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
                     throw new ExchangeError ((string)feedback) ;
                 } else
                 {

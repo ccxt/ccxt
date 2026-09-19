@@ -3007,7 +3007,7 @@ public partial class bitvavo : Exchange
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         }
-        url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), url);
+        url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), url);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -3032,8 +3032,8 @@ public partial class bitvavo : Exchange
         if ((errorCode != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

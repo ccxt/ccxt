@@ -978,13 +978,13 @@ public partial class bitopro : Exchange
         if ((since == null))
         {
             ((IDictionary<string,object>)request)["to"] = this.seconds();
-            ((IDictionary<string,object>)request)["from"] = subtract(getValue(request, "to"), (multiply(limitVar, timeframeInSeconds)));
+            ((IDictionary<string,object>)request)["from"] = subtract((request != null && ((IDictionary<string, object>)request).ContainsKey("to") ? ((IDictionary<string, object>)request)["to"] : null), (multiply(limitVar, timeframeInSeconds)));
         } else
         {
             Int64 timeframeInMilliseconds = multiply(timeframeInSeconds, 1000);
             alignedSince = multiply((Math.Floor(Double.Parse((divide(since, timeframeInMilliseconds)).ToString()))), timeframeInMilliseconds);
             ((IDictionary<string,object>)request)["from"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
-            ((IDictionary<string,object>)request)["to"] = this.sum(getValue(request, "from"), multiply(limitVar, timeframeInSeconds));
+            ((IDictionary<string,object>)request)["to"] = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), multiply(limitVar, timeframeInSeconds));
         }
         Dictionary<string, object> response = await this.publicGetTradingHistoryPair(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
@@ -2105,7 +2105,7 @@ public partial class bitopro : Exchange
                 url = add(url, ("?" + this.urlencode(query)));
             }
         }
-        url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), url);
+        url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), url);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -2126,8 +2126,8 @@ public partial class bitopro : Exchange
         }
         string feedback = ((this.id + " ") + (body));
         string? error = this.safeString(response, "error");
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
-        this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
         throw new ExchangeError ((string)feedback) ;
     }
 }

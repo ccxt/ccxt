@@ -1323,11 +1323,11 @@ public partial class myriad : PredictionExchange
         byte[] encoded = this.ethEncodeStructuredData(domain, types, message);
         object digest = this.hash(encoded, keccak, "hex");
         Dictionary<string, object> signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1, null);
-        string? rRaw = ((string)getValue(signature, "r"));
-        string? sRaw = ((string)getValue(signature, "s"));
+        string? rRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
+        string? sRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
-        object v = this.sum(27, getValue(signature, "v"));
+        object v = this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null));
         string sigHex = ((("0x" + (r)) + (s)) + this.intToBase16(v));
         return ((string)sigHex).ToLower();
     }
@@ -2577,8 +2577,8 @@ public partial class myriad : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
-        string? networkId = this.safeString(getValue(outcomeObj, "info"), "networkId");
-        string? marketId = this.safeString(getValue(outcomeObj, "info"), "marketId");
+        string? networkId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "networkId");
+        string? marketId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketId");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", marketId },
             { "network_id", networkId },
@@ -2849,10 +2849,10 @@ public partial class myriad : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
-        string? networkId = this.safeString(getValue(outcomeObj, "info"), "networkId");
-        string? marketId = this.safeString(getValue(outcomeObj, "info"), "marketId");
-        string? outcomeId = this.safeString(getValue(outcomeObj, "info"), "outcomeId");
-        string? tradingModel = this.safeString(getValue(outcomeObj, "info"), "tradingModel", "amm");
+        string? networkId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "networkId");
+        string? marketId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketId");
+        string? outcomeId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "outcomeId");
+        string? tradingModel = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "tradingModel", "amm");
         if ((tradingModel == "ob"))
         {
             Dictionary<string, object> obRequest = new Dictionary<string, object>() {
@@ -3055,8 +3055,8 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
-        string? networkId = this.safeString(getValue(outcomeObj, "info"), "networkId");
-        string? marketId = this.safeString(getValue(outcomeObj, "info"), "marketId");
+        string? networkId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "networkId");
+        string? marketId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketId");
         string? outcomeId = this.safeString(outcomeInfo, "outcomeId", this.safeString(outcomeInfo, "id"));
         string? outcomeTitle = this.safeString(outcomeInfo, "outcomeLabel", this.safeString(outcomeInfo, "label", this.safeString(outcomeInfo, "title")));
         string? bucketKey = this.safeString(this.timeframes, timeframeVar, "30d");
@@ -3637,7 +3637,7 @@ public partial class myriad : PredictionExchange
     public async virtual Task<object> subscribeMyriadChannel(object messageHash, object channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = this.safeString((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         // finish the connect handshake first so the subscribe frame is sent after the connect reply
         await this.connectCentrifugo(url);
         Int64 requestId = ((Int64)this.requestId(url));
@@ -3741,7 +3741,7 @@ public partial class myriad : PredictionExchange
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         string channel = ((("orderbook:" + networkId) + ":") + marketId);
         string messageHash = ("orderbook::" + sym);
-        string? url = this.safeString((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         await this.connectCentrifugo(url);
         var client = this.client(url);
@@ -4041,7 +4041,7 @@ public partial class myriad : PredictionExchange
             throw new ArgumentsRequired ((string)(this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
         }
         int symbolsLength = getArrayLength(outcomes);
-        string? url = this.safeString((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         await this.connectCentrifugo(url);
         await this.loadOutcomes(outcomes);
         var client = this.client(url);
@@ -4259,7 +4259,7 @@ public partial class myriad : PredictionExchange
         string? networkId = this.safeString(this.options, "defaultNetworkId", "56");
         string channel = ((("positions:" + networkId) + ":") + trader);
         string messageHash = "positions";
-        string? url = this.safeString((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         await this.connectCentrifugo(url);
         var client = this.client(url);
         bool isNewSubscription = isEqual(this.safeValue(((WebSocketClient)client).subscriptions, channel), null);
@@ -4391,8 +4391,8 @@ public partial class myriad : PredictionExchange
             return null;
         }
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
-        this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
         throw new ExchangeError ((string)feedback) ;
     }
 
@@ -4415,7 +4415,7 @@ public partial class myriad : PredictionExchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiGroup = ((bool) (api is string)) ? api : getValue(api, 0);
-        object baseUrls = (((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+        object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "myriad"));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));

@@ -75,7 +75,7 @@ public partial class xt : ccxt.xt
     {
         this.checkRequiredCredentials();
         string tradeType = ((bool) isTrue(isContract)) ? "contract" : "spot";
-        object url = getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType);
+        object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType);
         if (!isTrue(isContract))
         {
             url = add(url, "/private");
@@ -252,7 +252,7 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", id },
         };
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType), "/"), tail);
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType), "/"), tail);
         return await this.watch(url, messageHash, request, messageHash, subscription);
     }
 
@@ -312,7 +312,7 @@ public partial class xt : ccxt.xt
         {
             tail = ((bool) privateAccess) ? "user" : "market";
         }
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType), "/"), tail);
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType), "/"), tail);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
             { "id", id },
@@ -737,7 +737,7 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "contract"), "/"), "user");
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "contract"), "/"), "user");
         var client = this.client(url);
         this.setPositionsCache(client);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -1008,7 +1008,7 @@ public partial class xt : ccxt.xt
             string? cv = this.safeString(data, "cv");
             bool isSpot = (cv != null);
             Dictionary<string, object> ticker = this.parseTicker(data);
-            string? symbol = ((string)getValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1099,7 +1099,7 @@ public partial class xt : ccxt.xt
         {
             object tickerData = data[i];
             Dictionary<string, object> ticker = this.parseTicker(tickerData);
-            string? symbol = ((string)getValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1672,7 +1672,7 @@ public partial class xt : ccxt.xt
             this.myTrades = stored;
         }
         Dictionary<string, object> parsedTrade = this.parseTrade(data);
-        string? tradeSymbol = ((string)getValue(parsedTrade, "symbol"));
+        string? tradeSymbol = ((string)(parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTrade)["symbol"] : null));
         if ((tradeSymbol == null))
         {
             return;

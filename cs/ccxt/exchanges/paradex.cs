@@ -1715,9 +1715,9 @@ public partial class paradex : Exchange
     public virtual object signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-        string? r = ((string)getValue(signature, "r"));
-        string? s = ((string)getValue(signature, "s"));
-        string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
+        string? r = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
+        string? s = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
+        string v = this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)));
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
@@ -1774,14 +1774,14 @@ public partial class paradex : Exchange
         {
             Dictionary<string, object> l1D = new Dictionary<string, object>() {
                 { "name", "Paradex" },
-                { "chainId", getValue(systemConfig, "l1_chain_id") },
+                { "chainId", (systemConfig != null && ((IDictionary<string, object>)systemConfig).ContainsKey("l1_chain_id") ? ((IDictionary<string, object>)systemConfig)["l1_chain_id"] : null) },
                 { "version", "1" },
             };
             return l1D;
         }
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Paradex" },
-            { "chainId", getValue(systemConfig, "starknet_chain_id") },
+            { "chainId", (systemConfig != null && ((IDictionary<string, object>)systemConfig).ContainsKey("starknet_chain_id") ? ((IDictionary<string, object>)systemConfig)["starknet_chain_id"] : null) },
             { "version", 1 },
         };
         return domain;
@@ -1808,7 +1808,7 @@ public partial class paradex : Exchange
         };
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
         object signature = this.signMessage(msg, this.privateKey);
-        object account = this.retrieveStarkAccount(signature, getValue(systemConfig, "paraclear_account_hash"), getValue(systemConfig, "paraclear_account_proxy_hash"));
+        object account = this.retrieveStarkAccount(signature, (systemConfig != null && ((IDictionary<string, object>)systemConfig).ContainsKey("paraclear_account_hash") ? ((IDictionary<string, object>)systemConfig)["paraclear_account_hash"] : null), (systemConfig != null && ((IDictionary<string, object>)systemConfig).ContainsKey("paraclear_account_proxy_hash") ? ((IDictionary<string, object>)systemConfig)["paraclear_account_proxy_hash"] : null));
         ((IDictionary<string,object>)this.options)["paradexAccount"] = account;
         return account;
     }
@@ -4020,7 +4020,7 @@ public partial class paradex : Exchange
             version = "v2";
             path = ((string)path).Replace((string)"v2/", (string)"");
         }
-        string url = ((this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), ((string)version))) + "/") + this.implodeParams(path, parameters));
+        string url = ((this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), ((string)version))) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
@@ -4090,8 +4090,8 @@ public partial class paradex : Exchange
         if ((errorCode != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

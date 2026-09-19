@@ -801,7 +801,7 @@ public partial class btcturk : Exchange
             if ((since != null))
             {
                 object to = add(this.parseToInt(divide(since, 1000)), limitSeconds);
-                ((IDictionary<string,object>)request)["to"] = mathMin(getValue(request, "to"), to);
+                ((IDictionary<string,object>)request)["to"] = mathMin((request != null && ((IDictionary<string, object>)request).ContainsKey("to") ? ((IDictionary<string, object>)request)["to"] : null), to);
             } else
             {
                 ((IDictionary<string,object>)request)["from"] = subtract(this.parseToInt(divide(0, 1000)), limitSeconds);
@@ -1179,7 +1179,7 @@ public partial class btcturk : Exchange
         {
             throw new ExchangeError ((string)(this.id + " is an abstract base API for BTCExchange, BTCTurk")) ;
         }
-        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), path);
+        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), path);
         if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -1216,7 +1216,7 @@ public partial class btcturk : Exchange
         string? errorCode = this.safeString(response, "code", "0");
         string? message = this.safeString(response, "message");
         object output = ((bool) ((message == null))) ? body : message;
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, ((this.id + " ") + (output)));
+        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, ((this.id + " ") + (output)));
         if (((errorCode != "0")) && ((errorCode != "SUCCESS")))
         {
             throw new ExchangeError ((string)((this.id + " ") + (output))) ;

@@ -3688,7 +3688,7 @@ public partial class bithumb : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        string url = (this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + endpoint);
+        string url = (this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + endpoint);
         object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryKeysLength = queryKeys.Count;

@@ -246,10 +246,10 @@ public partial class testMainClass : BaseTest
             {
                 // check by code
                 Dictionary<string, object> currencyByCode = exchange.currency(((string)currencyCode));
-                assert(isEqual(getValue(currencyByCode, "id"), currencyId), ((((("currencyId \"" + (stringValue(currencyId))) + "\" does not match currency id from instance: \"") + (stringValue(getValue(currencyByCode, "id")))) + "\"") + (logText)));
+                assert(isEqual((currencyByCode != null && ((IDictionary<string, object>)currencyByCode).ContainsKey("id") ? ((IDictionary<string, object>)currencyByCode)["id"] : null), currencyId), ((((("currencyId \"" + (stringValue(currencyId))) + "\" does not match currency id from instance: \"") + (stringValue((currencyByCode != null && ((IDictionary<string, object>)currencyByCode).ContainsKey("id") ? ((IDictionary<string, object>)currencyByCode)["id"] : null)))) + "\"") + (logText)));
                 // check by id
                 Dictionary<string, object> currencyById = exchange.safeCurrency(currencyId);
-                assert(isEqual(getValue(currencyById, "code"), currencyCode), (((("currencyCode " + (stringValue(currencyCode))) + " does not match currency of id: ") + (stringValue(currencyId))) + (logText)));
+                assert(isEqual((currencyById != null && ((IDictionary<string, object>)currencyById).ContainsKey("code") ? ((IDictionary<string, object>)currencyById)["code"] : null), currencyCode), (((("currencyCode " + (stringValue(currencyCode))) + " does not match currency of id: ") + (stringValue(currencyId))) + (logText)));
             }
         }
         public void assertSymbol(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object expectedSymbol = null, object allowNull = null)

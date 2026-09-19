@@ -63,7 +63,7 @@ public partial class coincheck : ccxt.coincheck
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", add((market.ContainsKey("id") ? market["id"] : null), "-orderbook") },
@@ -136,7 +136,7 @@ public partial class coincheck : ccxt.coincheck
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", add((market.ContainsKey("id") ? market["id"] : null), "-trades") },

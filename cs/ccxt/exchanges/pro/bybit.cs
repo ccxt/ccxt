@@ -190,7 +190,7 @@ public partial class bybit : ccxt.bybit
         bool? isSpot = null;
         object type = null;
         IDictionary<string, object> market = null;
-        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -285,7 +285,7 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, true);
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "trade");
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "trade");
         await this.authenticate(url);
         string requestId = ((object)this.requestId()).ToString();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -333,7 +333,7 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         Dictionary<string, object> orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "trade");
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "trade");
         await this.authenticate(url);
         string requestId = ((object)this.requestId()).ToString();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -373,7 +373,7 @@ public partial class bybit : ccxt.bybit
             throw new ArgumentsRequired ((string)(this.id + " cancelOrderWs() requires a symbol argument")) ;
         }
         Dictionary<string, object> orderRequest = this.cancelOrderRequest(id, symbol, parameters);
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "trade");
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "trade");
         await this.authenticate(url);
         string requestId = ((object)this.requestId()).ToString();
         if (orderRequest.ContainsKey("orderFilter"))
@@ -1044,7 +1044,7 @@ public partial class bybit : ccxt.bybit
         } else
         {
             Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
-            limit = ((bool) (((getValue(firstMarket, "spot") as bool?) == true))) ? 50 : 500;
+            limit = ((bool) ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("spot") ? ((IDictionary<string, object>)firstMarket)["spot"] : null) as bool?) == true))) ? 50 : 500;
         }
         channel = channel + ((object)limit).ToString();
         List<object> subMessageHashes = new List<object>() {};
@@ -2254,7 +2254,7 @@ public partial class bybit : ccxt.bybit
             // } else {
             //     parsed = this.parseOrder (rawOrders[i]);
             // }
-            string? symbol = ((string)getValue(parsed, "symbol"));
+            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((symbol == null))
             {
                 continue;
@@ -2780,9 +2780,9 @@ public partial class bybit : ccxt.bybit
             if ((code != null) && (code != "0"))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
                 string? msg = this.safeString2(message, "retMsg", "ret_msg");
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), msg, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), msg, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
             bool? success = this.safeBool(message, "success");

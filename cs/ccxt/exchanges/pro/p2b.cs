@@ -72,7 +72,7 @@ public partial class p2b : ccxt.p2b
     public async virtual Task<object> subscribe(object name, object messageHash, object request, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", name },
             { "params", request },
@@ -186,7 +186,7 @@ public partial class p2b : ccxt.p2b
             ((IList<object>)messageHashes).Add(add(add(name, "::"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
             ((IList<object>)args).Add((market.ContainsKey("id") ? market["id"] : null));
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", add(name, ".subscribe") },
             { "params", args },
@@ -242,7 +242,7 @@ public partial class p2b : ccxt.p2b
             }
         }
         IList<object> marketIds = this.marketIds(symbols);
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", "deals.subscribe" },
             { "params", marketIds },

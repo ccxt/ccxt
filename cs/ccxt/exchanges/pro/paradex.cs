@@ -51,7 +51,7 @@ public partial class paradex : ccxt.paradex
     public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture("authenticated");
@@ -121,7 +121,7 @@ public partial class paradex : ccxt.paradex
         {
             messageHash = add(messageHash, "ALL");
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -160,7 +160,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTrade = this.parseTrade(data);
-        string? symbol = ((string)getValue(parsedTrade, "symbol"));
+        string? symbol = ((string)(parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTrade)["symbol"] : null));
         string? messageHash = this.safeString(parameters, "channel");
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
@@ -192,7 +192,7 @@ public partial class paradex : ccxt.paradex
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = (("order_book." + ((market.ContainsKey("id") ? market["id"] : null))) + ".snapshot@15@100ms");
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -291,7 +291,7 @@ public partial class paradex : ccxt.paradex
         }
         symbolVar = this.symbol(symbolVar);
         string channel = "markets_summary";
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -321,7 +321,7 @@ public partial class paradex : ccxt.paradex
         }
         symbols = this.marketSymbols(symbols);
         string channel = "markets_summary";
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -384,7 +384,7 @@ public partial class paradex : ccxt.paradex
         {
             channel = add(channel, "ALL");
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -507,7 +507,7 @@ public partial class paradex : ccxt.paradex
         }
         symbolVar = this.symbol(symbolVar);
         string channel = "funding_data";
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -537,7 +537,7 @@ public partial class paradex : ccxt.paradex
         }
         symbols = this.marketSymbols(symbols);
         string channel = "funding_data";
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -669,11 +669,11 @@ public partial class paradex : ccxt.paradex
             if ((errorCode != null))
             {
                 string feedback = ((this.id + " ") + this.json(error));
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), "-32600", feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), "-32600", feedback);
                 object messageString = this.safeValue(error, "message");
                 if ((messageString != null))
                 {
-                    this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
+                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
                 }
             }
             return ((bool?)((object)(false)));

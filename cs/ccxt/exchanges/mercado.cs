@@ -1028,11 +1028,11 @@ public partial class mercado : Exchange
         if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
-            ((IDictionary<string,object>)request)["to"] = this.sum(getValue(request, "from"), multiply(limitVar, this.parseTimeframe(timeframeVar)));
+            ((IDictionary<string,object>)request)["to"] = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), multiply(limitVar, this.parseTimeframe(timeframeVar)));
         } else
         {
             ((IDictionary<string,object>)request)["to"] = this.seconds();
-            ((IDictionary<string,object>)request)["from"] = subtract(getValue(request, "to"), (multiply(limitVar, this.parseTimeframe(timeframeVar))));
+            ((IDictionary<string,object>)request)["from"] = subtract((request != null && ((IDictionary<string, object>)request).ContainsKey("to") ? ((IDictionary<string, object>)request)["to"] : null), (multiply(limitVar, this.parseTimeframe(timeframeVar))));
         }
         Dictionary<string, object> response = await this.v4PublicNetGetCandles(this.extend(request, parameters));
         // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
@@ -1156,7 +1156,7 @@ public partial class mercado : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/");
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/");
         object query = this.omit(parameters, this.extractParams(path));
         if ((isEqual(api, "public")) || (isEqual(api, "v4Public")) || (isEqual(api, "v4PublicNet")))
         {

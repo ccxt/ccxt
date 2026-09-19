@@ -98,7 +98,7 @@ public partial class bydfi : ccxt.bydfi
     {
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 id = ((Int64)this.requestId());
         Dictionary<string, object> subscriptionParams = new Dictionary<string, object>() {
             { "id", id },
@@ -124,7 +124,7 @@ public partial class bydfi : ccxt.bydfi
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string subHash = "private";
         var client = this.client(url);
         object privateSubscription = this.safeValue(((WebSocketClient)client).subscriptions, subHash);
@@ -291,7 +291,7 @@ public partial class bydfi : ccxt.bydfi
 
     public virtual List<object> getMessageHashesForTickersUnsubscription()
     {
-        object url = getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         var client = this.client(url);
         IDictionary<string, object> subscriptions = ((WebSocketClient)client).subscriptions;
         List<object> messageHashes = new List<object>() {};
@@ -322,7 +322,7 @@ public partial class bydfi : ccxt.bydfi
         //     }
         //
         Dictionary<string, object> ticker = this.parseTicker(message);
-        string? symbol = ((string)getValue(ticker, "symbol"));
+        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         string messageHash = ("ticker::" + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
@@ -1008,7 +1008,7 @@ public partial class bydfi : ccxt.bydfi
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         var client = this.client(url);
         this.fetchBalanceSnapshot(client);
         IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
@@ -1177,9 +1177,9 @@ public partial class bydfi : ccxt.bydfi
         string? code = this.safeString(message, "code");
         string? msg = this.safeString(message, "msg");
         string feedback = ((this.id + " ") + this.json(message));
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), msg, feedback);
-        this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), msg, feedback);
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), msg, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), msg, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
         throw new ExchangeError ((string)feedback) ;
     }
 

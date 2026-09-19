@@ -92,7 +92,7 @@ public partial class bitmex : ccxt.bitmex
         }
         symbols = this.marketSymbols(symbols, null, true);
         string name = "instrument";
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         List<object> messageHashes = new List<object>() {};
         List<object> rawSubscriptions = new List<object>() {};
         if ((symbols != null))
@@ -427,7 +427,7 @@ public partial class bitmex : ccxt.bitmex
                 ((IList<object>)messageHashes).Add(("liquidations::" + (symbol)));
             }
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", subscriptionHashes },
@@ -510,7 +510,7 @@ public partial class bitmex : ccxt.bitmex
         }
         await this.authenticate();
         string messageHash = "margin";
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {messageHash} },
@@ -732,7 +732,7 @@ public partial class bitmex : ccxt.bitmex
     public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
@@ -799,7 +799,7 @@ public partial class bitmex : ccxt.bitmex
             symbols = this.marketSymbols(symbols);
             messageHash = ("positions::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {subscriptionHash} },
@@ -1042,7 +1042,7 @@ public partial class bitmex : ccxt.bitmex
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + (":" + (symbolVar));
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {subscriptionHash} },
@@ -1231,7 +1231,7 @@ public partial class bitmex : ccxt.bitmex
                 }
                 Dictionary<string, object> order = this.parseOrder(rawOrder);
                 callDynamically(stored, "append", new object[] {order});
-                string? symbol = ((string)getValue(order, "symbol"));
+                string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
                 ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             }
             (client as WebSocketClient).resolve(this.orders, messageHash);
@@ -1273,7 +1273,7 @@ public partial class bitmex : ccxt.bitmex
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + (":" + (symbolVar));
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {subscriptionHash} },
@@ -1435,7 +1435,7 @@ public partial class bitmex : ccxt.bitmex
             object messageHash = add(add(table, ":"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", topics },
@@ -1476,7 +1476,7 @@ public partial class bitmex : ccxt.bitmex
             string messageHash = ((table + ":") + (symbol));
             ((IList<object>)messageHashes).Add(messageHash);
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", topics },
@@ -1518,7 +1518,7 @@ public partial class bitmex : ccxt.bitmex
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string table = ("tradeBin" + this.safeString(this.timeframes, timeframeVar, timeframeVar));
         string messageHash = ((table + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {messageHash} },
@@ -1639,7 +1639,7 @@ public partial class bitmex : ccxt.bitmex
             await this.loadMarkets();
         }
         string eventVar = "heartbeat";
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         return await this.watch(url, eventVar);
     }
 
@@ -1838,7 +1838,7 @@ public partial class bitmex : ccxt.bitmex
             if (numArgs > 0)
             {
                 object messageHash = (args != null && 0 < args.Count ? args[0] : null);
-                object broad = getValue(getValue(this.exceptions, "ws"), "broad");
+                object broad = getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "broad");
                 string? broadKey = this.findBroadlyMatchedKey(broad, error);
                 object exception = null;
                 if ((broadKey == null))

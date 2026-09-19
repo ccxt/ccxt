@@ -2410,7 +2410,7 @@ public partial class gemini : Exchange
                 url = add(url, ("?" + this.urlencode(query)));
             }
         }
-        url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), url);
+        url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), url);
         if ((isEqual(method, "POST")) || (isEqual(method, "DELETE")))
         {
             body = this.json(query);
@@ -2430,7 +2430,7 @@ public partial class gemini : Exchange
             if ((body is string))
             {
                 string feedback = ((this.id + " ") + (body));
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
             }
             return null;  // fallback to default error handler
         }
@@ -2447,9 +2447,9 @@ public partial class gemini : Exchange
             string? reasonInner = this.safeString(response, "reason");
             string? message = this.safeString(response, "message");
             string feedback = ((this.id + " ") + message);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), reasonInner, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), reasonInner, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

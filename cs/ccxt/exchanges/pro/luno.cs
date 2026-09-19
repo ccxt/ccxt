@@ -61,7 +61,7 @@ public partial class luno : ccxt.luno
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subscriptionHash);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subscriptionHash);
         string messageHash = ("trades:" + (symbolVar));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
@@ -176,7 +176,7 @@ public partial class luno : ccxt.luno
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subscriptionHash);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subscriptionHash);
         string messageHash = ("orderbook:" + (symbolVar));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },

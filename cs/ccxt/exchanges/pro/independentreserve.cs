@@ -57,7 +57,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        object url = add(add(add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "?subscribe=ticker-"), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
+        object url = add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "?subscribe=ticker-"), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
         string messageHash = ("trades:" + (symbolVar));
         object trades = await this.watch(url, messageHash, null, messageHash);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
@@ -158,7 +158,7 @@ public partial class independentreserve : ccxt.independentreserve
             limitVar = 100;
         }
         string? limitString = this.numberToString(limitVar);
-        object url = add(add(add(add(add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/orderbook/"), limitString), "?subscribe="), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
+        object url = add(add(add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/orderbook/"), limitString), "?subscribe="), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
         string messageHash = ((("orderbook:" + (symbolVar)) + ":") + limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },

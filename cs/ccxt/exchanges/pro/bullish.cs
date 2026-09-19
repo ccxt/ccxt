@@ -98,7 +98,7 @@ public partial class bullish : ccxt.bullish
             { "params", request },
             { "id", id },
         };
-        object fullUrl = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), url);
+        object fullUrl = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), url);
         return await this.watch(fullUrl, messageHash, this.deepExtend(message, parameters), messageHash);
     }
 
@@ -106,7 +106,7 @@ public partial class bullish : ccxt.bullish
     {
         request ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         object token = await this.handleToken();
         Dictionary<string, object> cookies = new Dictionary<string, object>() {
             { "JWT_COOKIE", token },
@@ -225,7 +225,7 @@ public partial class bullish : ccxt.bullish
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), "/trading-api/v1/market-data/tick/"), (market.ContainsKey("id") ? market["id"] : null));
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), "/trading-api/v1/market-data/tick/"), (market.ContainsKey("id") ? market["id"] : null));
         string messageHash = ("ticker::" + (symbolVar));
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, parameters, messageHash));  // no need to send a subscribe message, the server sends a ticker update on connect
     }
@@ -861,8 +861,8 @@ public partial class bullish : ccxt.bullish
         {
             string? errorCode = this.safeString(data, "errorCode");
             string? errorCodeName = this.safeString(data, "errorCodeName");
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorCodeName, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorCodeName, feedback);
             throw new ExchangeError ((string)feedback) ;
         } catch(Exception e)
         {

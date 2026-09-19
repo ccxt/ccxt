@@ -95,7 +95,7 @@ public partial class lbank : ccxt.lbank
         }
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "fetchOHLCVWs");
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         IDictionary<string, object> watchOHLCVOptions = this.safeDict(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         IDictionary<string, object> timeframes = this.safeDict(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
@@ -147,7 +147,7 @@ public partial class lbank : ccxt.lbank
         IDictionary<string, object> timeframes = this.safeDict(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
         string messageHash = ((("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + timeframeId);
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "kbar" },
@@ -277,7 +277,7 @@ public partial class lbank : ccxt.lbank
         }
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "fetchTickerWs");
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("fetchTicker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
@@ -307,7 +307,7 @@ public partial class lbank : ccxt.lbank
         }
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "watchTicker");
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -423,7 +423,7 @@ public partial class lbank : ccxt.lbank
         }
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "fetchTradesWs");
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("fetchTrades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         if ((limit == null))
         {
@@ -460,7 +460,7 @@ public partial class lbank : ccxt.lbank
         }
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "watchTrades");
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("trades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -593,7 +593,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object key = await this.authenticate(parameters);
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string? messageHash = null;
         string pair = "all";
         if ((symbolVar == null))
@@ -772,7 +772,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object key = await this.authenticate(parameters);
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = "balance";
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -839,7 +839,7 @@ public partial class lbank : ccxt.lbank
         }
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "fetchOrderBookWs");
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("fetchOrderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         if ((limit == null))
         {
@@ -876,7 +876,7 @@ public partial class lbank : ccxt.lbank
         }
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "watchOrderBook");
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         parameters = this.omit(parameters, "aggregation");
         if ((limitVar == null))
@@ -1045,7 +1045,7 @@ public partial class lbank : ccxt.lbank
         // a key that is not a messageHash, and settles via client.resolve / ((WebSocketClient)client).reject only
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         var client = this.client(url);
         Int64 now = this.milliseconds();
         string messageHash = "authenticateFlight";

@@ -69,7 +69,7 @@ public partial class gemini : ccxt.gemini
 }} },
         };
         string subscribeHash = ("l2:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v2/marketdata");
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v2/marketdata");
         object trades = await this.watch(url, messageHash, request, subscribeHash);
         if (this.newUpdates)
         {
@@ -178,7 +178,7 @@ public partial class gemini : ccxt.gemini
         //     }
         //
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(message));
-        string? symbol = ((string)getValue(trade, "symbol"));
+        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
@@ -322,7 +322,7 @@ public partial class gemini : ccxt.gemini
 }} },
         };
         string messageHash = ((("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + timeframeId);
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v2/marketdata");
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v2/marketdata");
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (this.newUpdates)
         {
@@ -427,7 +427,7 @@ public partial class gemini : ccxt.gemini
 }} },
         };
         string subscribeHash = ("l2:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v2/marketdata");
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v2/marketdata");
         object orderbook = await this.watch(url, messageHash, request, subscribeHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -584,7 +584,7 @@ public partial class gemini : ccxt.gemini
         }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
-        if ((((getValue(firstMarket, "spot") as bool?) != true)) && (((getValue(firstMarket, "linear") as bool?) != true)))
+        if (((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("spot") ? ((IDictionary<string, object>)firstMarket)["spot"] : null) as bool?) != true)) && ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) != true)))
         {
             throw new NotSupported ((string)(this.id + " watchMultiple supports only spot or linear-swap symbols")) ;
         }
@@ -599,7 +599,7 @@ public partial class gemini : ccxt.gemini
             ((IList<object>)marketIds).Add((market.ContainsKey("id") ? market["id"] : null));
         }
         string queryStr = String.Join(",", ((IList<object>)marketIds).ToArray());
-        object url = add(add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v1/multimarketdata?symbols="), queryStr), "&heartbeat=true&");
+        object url = add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v1/multimarketdata?symbols="), queryStr), "&heartbeat=true&");
         if (isEqual(itemHashName, "orderbook"))
         {
             url = add(url, "trades=false&bids=true&offers=true");
@@ -725,7 +725,7 @@ public partial class gemini : ccxt.gemini
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1040,7 +1040,7 @@ public partial class gemini : ccxt.gemini
             return;
         }
         this.checkRequiredCredentials();
-        int startIndex = getArrayLength(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        int startIndex = getArrayLength(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         int urlParamsIndex = ((string)url).IndexOf("?", StringComparison.Ordinal);
         int urlLength = ((string)url).Length;
         int endIndex = ((bool) (urlParamsIndex >= 0)) ? urlParamsIndex : urlLength;

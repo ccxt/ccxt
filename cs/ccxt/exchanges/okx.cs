@@ -8097,7 +8097,7 @@ public partial class okx : Exchange
         bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         string request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        string url = (this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest")) + request);
+        string url = (this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest")) + request);
         // const type = this.getPathAuthenticationType (path);
         if (isEqual(api, "public"))
         {
@@ -8462,7 +8462,7 @@ public partial class okx : Exchange
             }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", entry },
-                { "symbol", getValue(marketInner, "symbol") },
+                { "symbol", (marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("symbol") ? ((IDictionary<string, object>)marketInner)["symbol"] : null) },
                 { "code", code },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
@@ -9026,11 +9026,11 @@ public partial class okx : Exchange
         string? amount = Precise.stringAbs(amountRaw);
         string? marketId = this.safeString(data, "instId");
         Dictionary<string, object> responseMarket = this.safeMarket(marketId, market);
-        object code = ((bool) (((getValue(responseMarket, "inverse") as bool?) == true))) ? getValue(responseMarket, "base") : getValue(responseMarket, "quote");
+        object code = ((bool) ((((responseMarket != null && ((IDictionary<string, object>)responseMarket).ContainsKey("inverse") ? ((IDictionary<string, object>)responseMarket)["inverse"] : null) as bool?) == true))) ? (responseMarket != null && ((IDictionary<string, object>)responseMarket).ContainsKey("base") ? ((IDictionary<string, object>)responseMarket)["base"] : null) : (responseMarket != null && ((IDictionary<string, object>)responseMarket).ContainsKey("quote") ? ((IDictionary<string, object>)responseMarket)["quote"] : null);
         Int64? timestamp = this.safeInteger(data, "ts");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(responseMarket, "symbol") },
+            { "symbol", (responseMarket != null && ((IDictionary<string, object>)responseMarket).ContainsKey("symbol") ? ((IDictionary<string, object>)responseMarket)["symbol"] : null) },
             { "type", type },
             { "marginMode", "isolated" },
             { "amount", this.parseNumber(amount) },
@@ -10854,10 +10854,10 @@ public partial class okx : Exchange
                 object error = data[i];
                 string? errorCode = this.safeString(error, "sCode");
                 string? message = this.safeString(error, "sMsg");
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             }
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

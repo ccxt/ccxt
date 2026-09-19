@@ -3368,9 +3368,9 @@ public partial class nado : Exchange
             throw new ArgumentsRequired ((string)(this.id + " signHash() requires privateKey")) ;
         }
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
-        string? r = ((string)getValue(signature, "r"));
-        string? s = ((string)getValue(signature, "s"));
-        string v = ((string)this.intToBase16(this.sum(27, getValue(signature, "v")))).ToLower();
+        string? r = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
+        string? s = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
+        string v = ((string)this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)))).ToLower();
         return ((("0x" + this.padHex(r, 64)) + this.padHex(s, 64)) + v);
     }
 
@@ -3397,7 +3397,7 @@ public partial class nado : Exchange
         {
             endpoint = api;
         }
-        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint);
+        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint);
         if (!isEqual(path, ""))
         {
             url = add(url, ("/" + this.implodeParams(path, parameters)));
@@ -3448,8 +3448,8 @@ public partial class nado : Exchange
         if (((status == "failure")) || ((errorCode != null)) || ((error != null)))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

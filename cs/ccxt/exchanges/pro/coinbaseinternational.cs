@@ -109,7 +109,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             messageHash = add(add(name, "::"), (market.ContainsKey("symbol") ? market["symbol"] : null));
             productIds = new List<object>() {((string)(market.ContainsKey("id") ? market["id"] : null))};
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         if ((url == null))
         {
             throw new NotSupported ((string)(this.id + " is not supported in sandbox environment")) ;
@@ -170,7 +170,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         if ((url == null))
         {
             throw new NotSupported ((string)(this.id + " is not supported in sandbox environment")) ;
@@ -337,7 +337,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsInstrument(message));
         object channel = this.safeString(message, "channel");
         (client as WebSocketClient).resolve(ticker, channel);
-        (client as WebSocketClient).resolve(ticker, add(add(channel, "::"), getValue(ticker, "symbol")));
+        (client as WebSocketClient).resolve(ticker, add(add(channel, "::"), (ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null)));
     }
 
     public virtual object parseWsInstrument(object ticker, object market = null)
@@ -450,7 +450,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(message));
         object channel = this.safeString(message, "channel");
         (client as WebSocketClient).resolve(ticker, channel);
-        (client as WebSocketClient).resolve(ticker, add(add(channel, "::"), getValue(ticker, "symbol")));
+        (client as WebSocketClient).resolve(ticker, add(add(channel, "::"), (ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null)));
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)
@@ -633,7 +633,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //    }
         //
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(message));
-        string? symbol = ((string)getValue(trade, "symbol"));
+        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         object channel = this.safeString(message, "channel");
         if (!(((IDictionary<string, object>)this.trades).ContainsKey(((string)symbol))))
         {
@@ -645,7 +645,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         callDynamically(tradesArray, "append", new object[] {trade});
         ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArray;
         (client as WebSocketClient).resolve(tradesArray, channel);
-        (client as WebSocketClient).resolve(tradesArray, add(add(channel, "::"), getValue(trade, "symbol")));
+        (client as WebSocketClient).resolve(tradesArray, add(add(channel, "::"), (trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
         return message;
     }
 
@@ -876,8 +876,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         try
         {
             string feedback = (((this.id + " ") + errMsg) + reason);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), reason, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), reason, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), reason, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), reason, feedback);
             throw new ExchangeError ((string)feedback) ;
         } catch(Exception e)
         {

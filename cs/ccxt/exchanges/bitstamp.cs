@@ -1288,7 +1288,7 @@ public partial class bitstamp : Exchange
             { "active", true },
             { "deposit", null },
             { "withdraw", null },
-            { "fee", this.safeNumber(getValue(getValue(getValue(description, "fees"), "funding"), "withdraw"), code) },
+            { "fee", this.safeNumber(getValue(getValue((description != null && ((IDictionary<string, object>)description).ContainsKey("fees") ? ((IDictionary<string, object>)description)["fees"] : null), "funding"), "withdraw"), code) },
             { "precision", tickSize },
             { "limits", new Dictionary<string, object>() {
                 { "amount", new Dictionary<string, object>() {
@@ -1911,9 +1911,9 @@ public partial class bitstamp : Exchange
             { "step", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         int duration = this.parseTimeframe(timeframeVar);
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
-            if ((since == null))
+            if (isEqual(since, null))
             {
                 ((IDictionary<string,object>)request)["limit"] = 1000; // we need to specify an allowed amount of `limitVar` if no `since` is set and there is no default limitVar by exchange
             } else
@@ -1926,7 +1926,7 @@ public partial class bitstamp : Exchange
             }
         } else
         {
-            if ((since != null))
+            if (!isEqual(since, null))
             {
                 Int64? start = this.parseToInt(divide(since, 1000));
                 ((IDictionary<string,object>)request)["start"] = start;
@@ -2076,8 +2076,8 @@ public partial class bitstamp : Exchange
         };
         for (int i = 0; i < getArrayLength(fees); i++)
         {
-            IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(getValue(fees, i)));
-            string? symbol = ((string)getValue(fee, "symbol"));
+            object fee = this.parseTradingFee(getValue(fees, i));
+            object symbol = getValue(fee, "symbol");
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = fee;
@@ -2223,7 +2223,7 @@ public partial class bitstamp : Exchange
             };
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("networks") ? ((IDictionary<string, object>)result)["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", withdrawFee },
                         { "percentage", null },
@@ -2276,7 +2276,7 @@ public partial class bitstamp : Exchange
         }
         Dictionary<string, object> response = null;
         string capitalizedSide = this.capitalize(side);
-        if ((type == "market"))
+        if (isEqual(type, "market"))
         {
             if ((capitalizedSide == "Buy"))
             {
@@ -2285,7 +2285,7 @@ public partial class bitstamp : Exchange
             {
                 response = await this.privatePostSellMarketPair(this.extend(request, parameters));
             }
-        } else if ((type == "instant"))
+        } else if (isEqual(type, "instant"))
         {
             if ((capitalizedSide == "Buy"))
             {
@@ -2549,7 +2549,7 @@ public partial class bitstamp : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2601,14 +2601,14 @@ public partial class bitstamp : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["since_timestamp"] = Math.Round(Convert.ToDouble(divide(since, 1000)));
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("until_timestamp", request, parameters, 0.001);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2665,7 +2665,7 @@ public partial class bitstamp : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2724,7 +2724,7 @@ public partial class bitstamp : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["timedelta"] = subtract(this.milliseconds(), since);
         } else
@@ -3075,33 +3075,33 @@ public partial class bitstamp : Exchange
             {
                 market = this.getMarketFromTrade(item);
             }
-            string direction = ((bool) (((getValue(parsedTrade, "side") as string) == "buy"))) ? "in" : "out";
+            string direction = ((bool) ((((parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("side") ? ((IDictionary<string, object>)parsedTrade)["side"] : null) as string) == "buy"))) ? "in" : "out";
             return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
-                { "id", getValue(parsedTrade, "id") },
-                { "timestamp", getValue(parsedTrade, "timestamp") },
-                { "datetime", getValue(parsedTrade, "datetime") },
+                { "id", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("id") ? ((IDictionary<string, object>)parsedTrade)["id"] : null) },
+                { "timestamp", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("timestamp") ? ((IDictionary<string, object>)parsedTrade)["timestamp"] : null) },
+                { "datetime", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("datetime") ? ((IDictionary<string, object>)parsedTrade)["datetime"] : null) },
                 { "direction", direction },
                 { "account", null },
-                { "referenceId", getValue(parsedTrade, "order") },
+                { "referenceId", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("order") ? ((IDictionary<string, object>)parsedTrade)["order"] : null) },
                 { "referenceAccount", null },
                 { "type", type },
                 { "currency", this.safeString(market, "base") },
-                { "amount", getValue(parsedTrade, "amount") },
+                { "amount", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("amount") ? ((IDictionary<string, object>)parsedTrade)["amount"] : null) },
                 { "before", null },
                 { "after", null },
                 { "status", "ok" },
-                { "fee", getValue(parsedTrade, "fee") },
+                { "fee", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("fee") ? ((IDictionary<string, object>)parsedTrade)["fee"] : null) },
             }, currency);
         } else
         {
-            IDictionary<string, object> parsedTransaction = ((IDictionary<string, object>)this.parseTransaction(item, currency));
+            object parsedTransaction = this.parseTransaction(item, currency);
             string? direction = null;
             if ((item != null && ((IDictionary<string, object>)item).ContainsKey("amount")))
             {
                 string? amount = this.safeString(item, "amount");
                 direction = ((bool) Precise.stringGt(amount, "0")) ? "in" : "out";
-            } else if ((parsedTransaction.ContainsKey("currency")) && !isEqual(getValue(parsedTransaction, "currency"), null))
+            } else if ((inOp(parsedTransaction, "currency")) && !isEqual(getValue(parsedTransaction, "currency"), null))
             {
                 string? currencyCode = this.safeString(parsedTransaction, "currency");
                 currency = this.currency(((string)currencyCode));
@@ -3147,7 +3147,7 @@ public partial class bitstamp : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3347,13 +3347,13 @@ public partial class bitstamp : Exchange
         if (!this.isFiat(code))
         {
             object name = this.getCurrencyName(code);
-            if ((code == "XRP"))
+            if (isEqual(code, "XRP"))
             {
                 if ((tagVar != null))
                 {
                     ((IDictionary<string,object>)request)["destination_tag"] = tagVar;
                 }
-            } else if ((code == "XLM") || (code == "HBAR"))
+            } else if (isEqual(code, "XLM") || isEqual(code, "HBAR"))
             {
                 if ((tagVar != null))
                 {
@@ -3368,7 +3368,7 @@ public partial class bitstamp : Exchange
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["iban"] = address;
-            ((IDictionary<string,object>)request)["account_currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            ((IDictionary<string,object>)request)["account_currency"] = getValue(currency, "id");
             response = await this.privatePostWithdrawalOpen(this.extend(request, parameters));
         }
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
@@ -3397,14 +3397,14 @@ public partial class bitstamp : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", this.parseToNumeric(this.currencyToPrecision(((string)code), amount)) },
-            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper() },
+            { "currency", ((string)getValue(currency, "id")).ToUpper() },
         };
         Dictionary<string, object> response = null;
-        if ((fromAccount == "main"))
+        if (isEqual(fromAccount, "main"))
         {
             ((IDictionary<string,object>)request)["subAccount"] = toAccount;
             response = await this.privatePostTransferFromMain(this.extend(request, parameters));
-        } else if ((toAccount == "main"))
+        } else if (isEqual(toAccount, "main"))
         {
             ((IDictionary<string,object>)request)["subAccount"] = fromAccount;
             response = await this.privatePostTransferToMain(this.extend(request, parameters));
@@ -3415,7 +3415,7 @@ public partial class bitstamp : Exchange
         //
         //    { status: 'ok' }
         //
-        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(response, currency));
+        object transfer = this.parseTransfer(response, currency);
         ((IDictionary<string,object>)transfer)["amount"] = amount;
         ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
         ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
@@ -3465,8 +3465,8 @@ public partial class bitstamp : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/");
-        url = add(url, (this.version + "/"));
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/");
+        url = add(url, add(this.version, "/"));
         url = add(url, this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
@@ -3478,7 +3478,7 @@ public partial class bitstamp : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object xAuth = ("BITSTAMP " + this.apiKey);
+            object xAuth = ("BITSTAMP " + (this.apiKey));
             string xAuthNonce = this.uuid();
             string xAuthTimestamp = ((object)this.milliseconds()).ToString();
             string xAuthVersion = "v2";
@@ -3578,8 +3578,8 @@ public partial class bitstamp : Exchange
             for (int i = 0; i < (errors?.Count ?? 0); i++)
             {
                 object value = errors[i];
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), value, feedback);
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), value, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), value, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), value, feedback);
             }
             throw new ExchangeError ((string)feedback) ;
         }

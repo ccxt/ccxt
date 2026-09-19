@@ -1369,7 +1369,7 @@ public partial class blockchaincom : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string requestPath = ("/" + this.implodeParams(path, parameters));
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), requestPath);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), requestPath);
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
@@ -1423,8 +1423,8 @@ public partial class blockchaincom : Exchange
         if (!isEqual(code, null))
         {
             string feedback = ((this.id + " ") + this.json(response));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
         }
         return null;
     }

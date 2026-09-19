@@ -4661,7 +4661,7 @@ public partial class hashkey : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), path);
+        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), path);
         string? query = null;
         if (isEqual(api, "private"))
         {
@@ -4755,8 +4755,8 @@ public partial class hashkey : Exchange
         if ((!isEqual(code, 200)) || errorInArray)
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), responseCodeString, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCodeString, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), responseCodeString, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), responseCodeString, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

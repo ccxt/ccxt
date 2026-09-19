@@ -2261,7 +2261,7 @@ public partial class foxbit : Exchange
             fullPath = "/status";
             urlPath = "status";
         }
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), urlPath), fullPath);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), urlPath), fullPath);
         parameters = this.omit(parameters, this.extractParams(path));
         Int64 timestamp = this.milliseconds();
         string query = "";
@@ -2341,9 +2341,9 @@ public partial class foxbit : Exchange
         if ((error != null))
         {
             string feedback = ((((this.id + " ") + message) + " details: ") + (detailsString));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), detailsString, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), detailsString, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

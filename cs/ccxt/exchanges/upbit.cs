@@ -1489,7 +1489,7 @@ public partial class upbit : Exchange
         }
         if (postOnly)
         {
-            if (!isEqual(getValue(request, "ord_type"), "limit"))
+            if (!isEqual((request != null && ((IDictionary<string, object>)request).ContainsKey("ord_type") ? ((IDictionary<string, object>)request)["ord_type"] : null), "limit"))
             {
                 throw new InvalidOrder ((string)(this.id + " postOnly orders are only supported for limit orders")) ;
             }
@@ -1502,7 +1502,7 @@ public partial class upbit : Exchange
                 ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
             }
         }
-        if (isEqual(getValue(request, "ord_type"), "best") && (timeInForce == null))
+        if (isEqual((request != null && ((IDictionary<string, object>)request).ContainsKey("ord_type") ? ((IDictionary<string, object>)request)["ord_type"] : null), "best") && (timeInForce == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a timeInForce parameter for best type orders")) ;
         }
@@ -1688,7 +1688,7 @@ public partial class upbit : Exchange
         }
         if (postOnly)
         {
-            if (!isEqual(getValue(request, "new_ord_type"), "limit"))
+            if (!isEqual((request != null && ((IDictionary<string, object>)request).ContainsKey("new_ord_type") ? ((IDictionary<string, object>)request)["new_ord_type"] : null), "limit"))
             {
                 throw new InvalidOrder ((string)(this.id + " postOnly orders are only supported for limit orders")) ;
             }
@@ -1701,7 +1701,7 @@ public partial class upbit : Exchange
                 ((IDictionary<string,object>)request)["new_time_in_force"] = timeInForce;
             }
         }
-        if (isEqual(getValue(request, "new_ord_type"), "best") && (timeInForce == null))
+        if (isEqual((request != null && ((IDictionary<string, object>)request).ContainsKey("new_ord_type") ? ((IDictionary<string, object>)request)["new_ord_type"] : null), "best") && (timeInForce == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a timeInForce parameter for best type orders")) ;
         }
@@ -2687,7 +2687,7 @@ public partial class upbit : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = this.implodeParams(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), new Dictionary<string, object>() {
+        object url = this.implodeParams(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         url = add(url, ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
@@ -2759,10 +2759,10 @@ public partial class upbit : Exchange
             string? message = this.safeString(error, "message");
             string? name = this.safeString(error, "name");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), name, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), name, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), name, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), name, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

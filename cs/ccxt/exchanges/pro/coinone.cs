@@ -67,7 +67,7 @@ public partial class coinone : ccxt.coinone
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "ORDERBOOK" },
@@ -158,7 +158,7 @@ public partial class coinone : ccxt.coinone
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "TICKER" },
@@ -204,7 +204,7 @@ public partial class coinone : ccxt.coinone
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data));
-        string? symbol = ((string)getValue(ticker, "symbol"));
+        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         string messageHash = ("ticker:" + symbol);
         (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
@@ -289,7 +289,7 @@ public partial class coinone : ccxt.coinone
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "TRADE" },
@@ -326,7 +326,7 @@ public partial class coinone : ccxt.coinone
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
-        string? symbol = ((string)getValue(trade, "symbol"));
+        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {

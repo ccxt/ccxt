@@ -9038,7 +9038,7 @@ public partial class htx : Exchange
                     url = add(url, ("?" + this.urlencode(query)));
                 }
             }
-            url = (this.implodeParams(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), new Dictionary<string, object>() {
+            url = (this.implodeParams(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), new Dictionary<string, object>() {
     { "hostname", this.hostname },
 }) + (url));
         } else
@@ -9050,7 +9050,7 @@ public partial class htx : Exchange
             string? levelOneNestedPath = this.safeString(api, 2);
             string? levelTwoNestedPath = this.safeString(api, 3);
             object hostname = null;
-            object hostnames = this.safeValue((((IDictionary<string, object>)this.urls).ContainsKey("hostnames") ? ((IDictionary<string, object>)this.urls)["hostnames"] : null), type);
+            object hostnames = this.safeValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("hostnames") ? ((IDictionary<string, object>)this.urls)["hostnames"] : null), type);
             if (!(hostnames is string))
             {
                 hostnames = this.safeValue(hostnames, levelOneNestedPath);
@@ -9144,7 +9144,7 @@ public partial class htx : Exchange
                 }
             }
             object finalHostname = hostname; // java req
-            url = (this.implodeParams(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), ((string)type)), new Dictionary<string, object>() {
+            url = (this.implodeParams(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), ((string)type)), new Dictionary<string, object>() {
     { "hostname", finalHostname },
 }) + (url));
         }
@@ -9173,10 +9173,10 @@ public partial class htx : Exchange
             {
                 string? code = this.safeString2(response, "err-code", "err_code");
                 string feedback = ((this.id + " ") + (body));
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
                 string? message = this.safeString2(response, "err-msg", "err_msg");
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
         }
@@ -9185,7 +9185,7 @@ public partial class htx : Exchange
             // {code: '1003', message: 'invalid signature'}
             string feedback = ((this.id + " ") + (body));
             string? code = this.safeString(response, "code");
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
         }
         IDictionary<string, object> data = this.safeDict(response, "data");
         List<object> errorsList = this.safeList(data, "errors");
@@ -9195,8 +9195,8 @@ public partial class htx : Exchange
             string? errcode = this.safeString(first, "err_code");
             string? errmessage = this.safeString(first, "err_msg");
             string feedBack = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errcode, feedBack);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errmessage, feedBack);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errcode, feedBack);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errmessage, feedBack);
         }
         return null;
     }

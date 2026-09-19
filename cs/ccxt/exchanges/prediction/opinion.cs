@@ -696,7 +696,7 @@ public partial class opinion : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
-        string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
+        string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
         List<object> promises = new List<object> {this.opinionPublicGetTokenLatestPrice(this.extend(new Dictionary<string, object>() {
     { "token_id", tokenId },
 }, parameters)), this.opinionPublicGetTokenOrderbook(this.extend(new Dictionary<string, object>() {
@@ -795,7 +795,7 @@ public partial class opinion : PredictionExchange
         for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
-            string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
+            string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
             ((IList<object>)promises).Add(this.opinionPublicGetTokenLatestPrice(this.extend(new Dictionary<string, object>() {
                 { "token_id", tokenId },
             }, parameters)));
@@ -839,7 +839,7 @@ public partial class opinion : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
-        string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
+        string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "token_id", tokenId },
         };
@@ -888,7 +888,7 @@ public partial class opinion : PredictionExchange
             throw new BadRequest ((string)((((this.id + " fetchOHLCV() unsupported timeframe ") + (timeframeVar)) + ", supported timeframes are ") + String.Join(", ", ((IList<object>)supportedKeys).ToArray()))) ;
         }
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
-        string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
+        string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar);
         object response = await this.opinionPublicGetTokenPriceHistory(this.extend(new Dictionary<string, object>() {
             { "token_id", tokenId },
@@ -1130,10 +1130,10 @@ public partial class opinion : PredictionExchange
         await this.loadApiKey();
         this.checkRequiredCredentials();
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
-        string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
-        bool isMarket = ((type == "market"));
+        string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
+        bool isMarket = (isEqual(type, "market"));
         string sideStr = ((string)((string)side)).ToUpper();
-        if ((price == null))
+        if (isEqual(price, null))
         {
             if (!isMarket)
             {
@@ -1702,14 +1702,14 @@ public partial class opinion : PredictionExchange
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign before padStart so the PHP str_pad regex matches
-        string? rRaw = ((string)getValue(signature, "r"));
-        string? sRaw = ((string)getValue(signature, "s"));
+        string? rRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
+        string? sRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {
             { "r", ("0x" + (r)) },
             { "s", ("0x" + (s)) },
-            { "v", this.sum(27, getValue(signature, "v")) },
+            { "v", this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)) },
         };
     }
 
@@ -1872,7 +1872,7 @@ public partial class opinion : PredictionExchange
         {
             throw new AuthenticationError ((string)(this.id + " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
         }
-        object wsUrl = this.safeString((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws", "");
+        object wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws", "");
         return add(add(wsUrl, "?apikey="), apiKey);
     }
 
@@ -2409,8 +2409,8 @@ public partial class opinion : PredictionExchange
         {
             string? errmsg = this.safeString(response, "errmsg", "");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), this.numberToString(errno), feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errmsg, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), this.numberToString(errno), feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errmsg, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;
@@ -2436,7 +2436,7 @@ public partial class opinion : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         object apiGroup = ((bool) (api is string)) ? api : getValue(api, 0);
         object access = ((bool) (api is string)) ? "public" : getValue(api, 1);
-        object baseUrls = (((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+        object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "opinion")));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));

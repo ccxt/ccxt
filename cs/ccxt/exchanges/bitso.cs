@@ -2174,7 +2174,7 @@ public partial class bitso : Exchange
                 endpoint = endpoint + ("?" + this.urlencode(query));
             }
         }
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), endpoint);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), endpoint);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();

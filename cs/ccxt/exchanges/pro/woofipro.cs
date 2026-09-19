@@ -83,7 +83,7 @@ public partial class woofipro : ccxt.woofipro
         {
             id = this.accountId;
         }
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), "/"), id);
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), "/"), id);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -378,9 +378,9 @@ public partial class woofipro : ccxt.woofipro
             object ticker = this.parseWsBidAsk(this.extend(data[i], new Dictionary<string, object>() {
                 { "ts", timestamp },
             }));
-            if (!isEqual(getValue(ticker, "symbol"), null))
+            if (!isEqual((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null), null))
             {
-                ((IDictionary<string,object>)this.tickers)[(string)getValue(ticker, "symbol")] = ticker;
+                ((IDictionary<string,object>)this.tickers)[(string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null)] = ticker;
             }
             ((IList<object>)result).Add(ticker);
         }
@@ -672,7 +672,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId);
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId);
         var client = this.client(url);
         string messageHash = "authenticated";
         string eventVar = "auth";
@@ -707,7 +707,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId);
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -720,7 +720,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId);
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -1125,7 +1125,7 @@ public partial class woofipro : ccxt.woofipro
         {
             ((IList<object>)messageHashes).Add("positions");
         }
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId);
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId);
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -1424,7 +1424,7 @@ public partial class woofipro : ccxt.woofipro
             if ((errorMessage != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessage, feedback);
             }
             return ((bool?)((object)(false)));
         } catch(Exception error)

@@ -84,8 +84,8 @@ public partial class woo : ccxt.woo
 
     public async virtual Task<object> watchPublic(object messageHash, object message)
     {
-        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + this.uid) : "";
-        object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + (this.uid)) : "";
+        object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -97,8 +97,8 @@ public partial class woo : ccxt.woo
     public async virtual Task<object> unwatchPublic(object subHash, object symbol, object topic, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + this.uid) : "";
-        object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + (this.uid)) : "";
+        object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
         string unsubHash = ("unsubscribe::" + (subHash));
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -148,8 +148,8 @@ public partial class woo : ccxt.woo
         parameters = ((IList<object>)methodparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbol);
         object topic = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method);
-        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + this.uid) : "";
-        object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + (this.uid)) : "";
+        object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -686,7 +686,7 @@ public partial class woo : ccxt.woo
             }
             ((IDictionary<string,object>)ticker)["ts"] = timestamp;
             Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsBidAsk(ticker));
-            string? symbol = ((string)getValue(parsedTicker, "symbol"));
+            string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
@@ -1027,7 +1027,7 @@ public partial class woo : ccxt.woo
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.uid);
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.uid);
         var client = this.client(url);
         string messageHash = "authenticated";
         string eventVar = "auth";
@@ -1056,7 +1056,7 @@ public partial class woo : ccxt.woo
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.uid);
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.uid);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -1069,7 +1069,7 @@ public partial class woo : ccxt.woo
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.uid);
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.uid);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -1425,7 +1425,7 @@ public partial class woo : ccxt.woo
         }
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(message));
         callDynamically(myTrades, "append", new object[] {trade});
-        string messageHash = ("myTrades:" + (getValue(trade, "symbol")));
+        string messageHash = ("myTrades:" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
         (client as WebSocketClient).resolve(myTrades, messageHash);
         messageHash = "myTrades";
         (client as WebSocketClient).resolve(myTrades, messageHash);
@@ -1470,7 +1470,7 @@ public partial class woo : ccxt.woo
         {
             ((IList<object>)messageHashes).Add("positions");
         }
-        object url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.uid);
+        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.uid);
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -1710,8 +1710,8 @@ public partial class woo : ccxt.woo
         //     }
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(data));
-        string? symbol = ((string)getValue(fundingRate, "symbol"));
+        object fundingRate = this.parseFundingRate(data);
+        object symbol = getValue(fundingRate, "symbol");
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
@@ -1740,7 +1740,7 @@ public partial class woo : ccxt.woo
             if ((errorMessage != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessage, feedback);
             }
             return ((bool?)((object)(false)));
         } catch(Exception error)
