@@ -2549,7 +2549,7 @@ public class Poloniex extends PoloniexApi
             }
             upperCaseType = (((java.util.Objects.equals(price, null)))) ? "STOP" : "STOP_LIMIT";
             ((Map<String, Object>)request).put("stopPrice", triggerPrice);
-        } else if (Helpers.isTrue(isPostOnly))
+        } else if (Boolean.TRUE.equals(isPostOnly))
         {
             upperCaseType = "LIMIT_MAKER";
         }

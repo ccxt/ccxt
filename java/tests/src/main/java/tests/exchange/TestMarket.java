@@ -277,7 +277,7 @@ public class TestMarket extends BaseTest {
             Boolean isNonSpot = !java.util.Objects.equals(spot, true); // such high precision is only allowed in contract markets
             Boolean isPrice = java.util.Objects.equals(priceOrAmountKey, "price");
             Object isTickSize5 = Precise.stringEq("5", exchange.safeString(((Map<String, Object>)market).get("precision"), priceOrAmountKey));
-            if (Boolean.TRUE.equals(isNonSpot) && Boolean.TRUE.equals(isPrice) && Boolean.TRUE.equals(isExclusivePair) && Helpers.isTrue(isTickSize5))
+            if (Boolean.TRUE.equals(isNonSpot) && Boolean.TRUE.equals(isPrice) && Boolean.TRUE.equals(isExclusivePair) && Boolean.TRUE.equals(isTickSize5))
             {
                 continue;
             }

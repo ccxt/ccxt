@@ -1625,7 +1625,7 @@ public class Upbit extends UpbitApi
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
-            if (Helpers.isTrue(postOnly) && (!java.util.Objects.equals(selfTradePrevention, null)))
+            if (Boolean.TRUE.equals(postOnly) && (!java.util.Objects.equals(selfTradePrevention, null)))
             {
                 throw new ExchangeError((this.id + " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
             }
@@ -1695,7 +1695,7 @@ public class Upbit extends UpbitApi
             {
                 ((Map<String, Object>)request).put("identifier", clientOrderId);
             }
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 if (!java.util.Objects.equals(((Map<String, Object>)request).get("ord_type"), "limit"))
                 {
@@ -1842,7 +1842,7 @@ public class Upbit extends UpbitApi
             Object postOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters);
             String timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
             String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
-            if (Helpers.isTrue(postOnly) && (!java.util.Objects.equals(selfTradePrevention, null)))
+            if (Boolean.TRUE.equals(postOnly) && (!java.util.Objects.equals(selfTradePrevention, null)))
             {
                 throw new ExchangeError((this.id + " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
             }
@@ -1911,7 +1911,7 @@ public class Upbit extends UpbitApi
             {
                 ((Map<String, Object>)request).put("new_smp_type", selfTradePrevention);
             }
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 if (!java.util.Objects.equals(((Map<String, Object>)request).get("new_ord_type"), "limit"))
                 {

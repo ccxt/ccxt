@@ -2520,7 +2520,7 @@ public class Deribit extends DeribitApi
         if (!java.util.Objects.equals(filledString, null))
         {
             Object isFilledPositive = Precise.stringGt(filledString, "0");
-            if (Helpers.isTrue(isFilledPositive))
+            if (Boolean.TRUE.equals(isFilledPositive))
             {
                 lastTradeTimestamp = lastUpdate;
             }
@@ -2745,7 +2745,7 @@ public class Deribit extends DeribitApi
             {
                 ((Map<String, Object>)request).put("reduce_only", true);
             }
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 ((Map<String, Object>)request).put("post_only", true);
                 ((Map<String, Object>)request).put("reject_post_only", true);

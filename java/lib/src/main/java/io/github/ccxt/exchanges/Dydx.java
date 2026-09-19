@@ -1686,7 +1686,7 @@ public class Dydx extends DydxApi
             {
                 // long-term
                 orderFlag = 64;
-                if (Helpers.isTrue(postOnly))
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     timeInForceNumber = 2;
                 } else

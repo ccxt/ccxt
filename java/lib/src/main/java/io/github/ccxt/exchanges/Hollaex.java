@@ -1614,7 +1614,7 @@ public class Hollaex extends HollaexApi
             {
                 ((Map<String, Object>)request).put("stop", this.priceToPrecision(symbol, triggerPrice));
             }
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 ((Map<String, Object>)request).put("meta", new HashMap<String, Object>() {{
         put( "post_only", true );

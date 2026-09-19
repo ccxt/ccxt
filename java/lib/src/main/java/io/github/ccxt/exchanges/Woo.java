@@ -1884,7 +1884,7 @@ public class Woo extends WooApi
             ((Map<String, Object>)request).put("type", orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             if (!Boolean.TRUE.equals(isConditional))
             {
-                if (Helpers.isTrue(postOnly))
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     ((Map<String, Object>)request).put("type", "POST_ONLY");
                 } else if (java.util.Objects.equals(timeInForce, "fok"))

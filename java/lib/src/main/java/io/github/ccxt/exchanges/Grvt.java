@@ -2610,7 +2610,7 @@ public class Grvt extends GrvtApi
             }};
             String timeInForce = this.safeStringUpper(parameters, "timeInForce", "GOOD_TILL_TIME");
             Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 ((Map<String, Object>)orderRequest).put("post_only", true);
             }
@@ -2629,7 +2629,7 @@ public class Grvt extends GrvtApi
             ((Map<String, Object>)orderRequest).put("time_in_force", timeInForce);
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
-                if (Helpers.isTrue(postOnly))
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     timeInForce = "POST_ONLY";
                 } else if (java.util.Objects.equals(timeInForce, "ioc"))
@@ -3037,7 +3037,7 @@ public class Grvt extends GrvtApi
         Long timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         String sizeRaw = this.safeString(position, "size");
         Object isLong = (Precise.stringGe(sizeRaw, "0"));
-        String side = ((Helpers.isTrue(isLong))) ? "long" : "short";
+        String side = ((Boolean.TRUE.equals(isLong))) ? "long" : "short";
         return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -3999,7 +3999,7 @@ public class Grvt extends GrvtApi
         Object ethEncodedMessage = this.ethEncodeStructuredData(domainData, Helpers.GetValue(definitions, structureType), messageData);
         String ethEncodedMessageHashed = Helpers.add("0x", this.hash(ethEncodedMessage, keccak(), "hex"));
         Object usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
-        Object secretOrPrivkey = ((Helpers.isTrue(usesPrivKey))) ? this.privateKey : this.secret;
+        Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         Object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Object signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1(), null);
         Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "r", this.formatSignatureRS(Helpers.GetValue(signature, "r")));

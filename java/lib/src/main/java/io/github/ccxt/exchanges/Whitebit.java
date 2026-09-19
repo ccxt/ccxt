@@ -2661,7 +2661,7 @@ public class Whitebit extends WhitebitApi
             }
             Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
             Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC"));
-            if (Boolean.TRUE.equals(isStopOrder) && (Helpers.isTrue(postOnly) || Boolean.TRUE.equals(ioc)))
+            if (Boolean.TRUE.equals(isStopOrder) && (Boolean.TRUE.equals(postOnly) || Boolean.TRUE.equals(ioc)))
             {
                 throw new NotSupported((this.id + " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
             }
@@ -2672,7 +2672,7 @@ public class Whitebit extends WhitebitApi
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             var marginMode = ((List<Object>) marginModequeryVariable).get(0);
             var query = ((List<Object>) marginModequeryVariable).get(1);
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 ((Map<String, Object>)request).put("postOnly", true);
             }

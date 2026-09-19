@@ -1301,7 +1301,7 @@ public class Coinone extends CoinoneApi
             if ((!java.util.Objects.equals(remainingString, null)) && (!java.util.Objects.equals(amountString, null)))
             {
                 Object isLessThan = Precise.stringLt(remainingString, amountString);
-                if (Helpers.isTrue(isLessThan))
+                if (Boolean.TRUE.equals(isLessThan))
                 {
                     status = "canceled";
                 }

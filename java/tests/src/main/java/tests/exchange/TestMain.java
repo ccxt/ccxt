@@ -1930,7 +1930,7 @@ public class TestMain extends BaseTest
         }
         Object newOutputIsEmpty = this.isEmptyOutputValue(exchange, newOutput);
         Object storedOutputIsEmpty = this.isEmptyOutputValue(exchange, storedOutput);
-        if (Helpers.isTrue(newOutputIsEmpty) && Helpers.isTrue(storedOutputIsEmpty))
+        if (Boolean.TRUE.equals(newOutputIsEmpty) && Boolean.TRUE.equals(storedOutputIsEmpty))
         {
             return true;
         }
@@ -3049,7 +3049,7 @@ public class TestMain extends BaseTest
                 Object exchangeName = (exchanges == null || i < 0 || i >= exchanges.size() ? null : exchanges.get(i));
                 Object exchangeData = Helpers.GetValue(staticData, exchangeName);
                 Object disabled = this.checkIfExchangeIsDisabled(exchangeName, exchangeData);
-                if (Helpers.isTrue(disabled))
+                if (Boolean.TRUE.equals(disabled))
                 {
                     continue;
                 }

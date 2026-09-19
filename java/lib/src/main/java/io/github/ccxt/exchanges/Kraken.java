@@ -4435,7 +4435,7 @@ final Object finalId = id;
             Boolean isBatchOrder = (java.util.Objects.equals(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
-            if (Boolean.TRUE.equals(isCancelOrderBatch) || Helpers.isTrue(isTriggerPercent) || Boolean.TRUE.equals(isBatchOrder))
+            if (Boolean.TRUE.equals(isCancelOrderBatch) || Boolean.TRUE.equals(isTriggerPercent) || Boolean.TRUE.equals(isBatchOrder))
             {
                 final Object finalNonce = nonce;
                 body = this.json(this.extend(new HashMap<String, Object>() {{
@@ -4459,7 +4459,7 @@ final Object finalId = id;
                 put( "API-Key", Kraken.this.apiKey );
                 put( "API-Sign", signature );
             }};
-            if (Boolean.TRUE.equals(isCancelOrderBatch) || Helpers.isTrue(isTriggerPercent) || Boolean.TRUE.equals(isBatchOrder))
+            if (Boolean.TRUE.equals(isCancelOrderBatch) || Boolean.TRUE.equals(isTriggerPercent) || Boolean.TRUE.equals(isBatchOrder))
             {
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             } else

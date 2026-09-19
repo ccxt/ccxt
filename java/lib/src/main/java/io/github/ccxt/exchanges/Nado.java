@@ -1373,7 +1373,7 @@ public class Nado extends NadoApi
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
-                if (Helpers.isTrue(this.isArchiveOrderClosed((Map<String, Object>) (order))))
+                if (Boolean.TRUE.equals(this.isArchiveOrderClosed((Map<String, Object>) (order))))
                 {
                     ((List<Object>)closedOrders).add(this.extend(new HashMap<String, Object>() {{
                         put( "status", "closed" );
@@ -3325,7 +3325,7 @@ public class Nado extends NadoApi
             status = this.safeString(order, "status");
             if (java.util.Objects.equals(status, null))
             {
-                if (Helpers.isTrue(this.isArchiveOrderClosed((Map<String, Object>) (order))))
+                if (Boolean.TRUE.equals(this.isArchiveOrderClosed((Map<String, Object>) (order))))
                 {
                     status = "closed";
                 }
@@ -3502,7 +3502,7 @@ public class Nado extends NadoApi
         } else if (java.util.Objects.equals(timeInForce, "FOK"))
         {
             orderType = 2;
-        } else if (Helpers.isTrue(postOnly) || (java.util.Objects.equals(timeInForce, "PO")))
+        } else if (Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO")))
         {
             orderType = 3;
         } else if ((!java.util.Objects.equals(timeInForce, null)) && (!java.util.Objects.equals(timeInForce, "GTC")))

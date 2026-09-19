@@ -1387,7 +1387,7 @@ public class Bitopro extends BitoproApi
                 }
             }
             Object postOnly = this.isPostOnly(java.util.Objects.equals(orderType, "MARKET"), null, parameters);
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 ((Map<String, Object>)request).put("timeInForce", "POST_ONLY");
             }

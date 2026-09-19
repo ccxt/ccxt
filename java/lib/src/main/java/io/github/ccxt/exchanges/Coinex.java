@@ -2870,7 +2870,7 @@ public class Coinex extends CoinexApi
                 ((Map<String, Object>)request).put("side", side);
             }
             Object requestType = type;
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 requestType = "maker_only";
             } else if (!java.util.Objects.equals(timeInForceRaw, null))

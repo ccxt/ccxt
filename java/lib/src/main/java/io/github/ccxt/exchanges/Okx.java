@@ -2928,7 +2928,7 @@ public class Okx extends OkxApi
             put( "settleId", settleId );
             put( "type", finalType );
             put( "spot", finalSpot );
-            put( "margin", Boolean.TRUE.equals(finalSpot) && Helpers.isTrue(leverageAboveOne) );
+            put( "margin", Boolean.TRUE.equals(finalSpot) && Boolean.TRUE.equals(leverageAboveOne) );
             put( "swap", finalSwap );
             put( "future", future );
             put( "option", option );
