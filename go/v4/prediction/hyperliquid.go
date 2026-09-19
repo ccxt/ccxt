@@ -2529,7 +2529,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} raw a dict with parentSymbol and markets entries
  * @returns {object} an event structure
  */
-func (this *Hyperliquid) ParseEvent(raw any) any {
+func (this *Hyperliquid) ParseEvent(raw map[string]any) any {
 	var parentSymbol *string = this.SafeString(raw, "parentSymbol")
 	var markets any = this.SafeList(raw, "markets", []any{})
 	// Extract info from first market

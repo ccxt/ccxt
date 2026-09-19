@@ -3706,9 +3706,9 @@ func (this *Polymarket) ParseEvent(rawEvent any) any {
  * @param {object[]} rawEvents the raw gamma event objects
  * @returns {object[]} a list of event structures
  */
-func (this *Polymarket) ParseEvents(rawEvents any) any {
+func (this *Polymarket) ParseEvents(rawEvents []any) any {
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawEvents); i++ {
+	for i := 0; i < len(rawEvents); i++ {
 		var rawEvent any = ccxt.GetValue(rawEvents, i)
 		result = append(result, this.ParseEvent(rawEvent))
 	}

@@ -460,7 +460,7 @@ func (this *Modetrade) HandleBidAsk(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
 }
-func (this *Modetrade) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Modetrade) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")

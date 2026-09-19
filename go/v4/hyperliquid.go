@@ -5666,7 +5666,7 @@ func (this *Hyperliquid) fetchTradingFeeBody(ch chan any, symbol any, optionalAr
 	ch <- this.ParseTradingFee(data, market)
 	return nil
 }
-func (this *Hyperliquid) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "dailyUserVlm": [

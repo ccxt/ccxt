@@ -1229,7 +1229,7 @@ func (this *Pacifica) ParseLeverageFromSetting(symbol any, setting any) any {
 		"shortLeverage": leverage,
 	}
 }
-func (this *Pacifica) ParseLeverageFromMarket(market any) any {
+func (this *Pacifica) ParseLeverageFromMarket(market map[string]any) any {
 	var marketLimits map[string]any = SafeMapTyped(market, "limits")
 	var leverageLimits map[string]any = SafeMapTyped(marketLimits, "leverage")
 	return map[string]any{

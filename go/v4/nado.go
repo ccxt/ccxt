@@ -3713,7 +3713,7 @@ func (this *Nado) ConvertToX18(value any) any {
 	}
 	return Precise.StringDiv(Precise.StringMul(value, "1000000000000000000"), "1", 0)
 }
-func (this *Nado) ParseX18(value *string) any {
+func (this *Nado) ParseX18(value any) any {
 	if value == nil {
 		return nil
 	}

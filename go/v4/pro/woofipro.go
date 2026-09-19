@@ -459,7 +459,7 @@ func (this *Woofipro) HandleBidAsk(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
 }
-func (this *Woofipro) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Woofipro) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")

@@ -1695,7 +1695,7 @@ func (this *Blofin) ParseFundingBalance(response any) any {
 	}
 	return this.SafeBalance(result)
 }
-func (this *Blofin) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Blofin) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	return map[string]any{
