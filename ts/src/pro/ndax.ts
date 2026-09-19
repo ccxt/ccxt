@@ -35,7 +35,7 @@ export default class ndax extends ndaxRest {
         });
     }
 
-    requestId () {
+    requestId (): number {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;
@@ -75,7 +75,7 @@ export default class ndax extends ndaxRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         const payload = this.safeDict (message, 'o', {});
         //
         //     {
@@ -154,7 +154,7 @@ export default class ndax extends ndaxRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         const payload = this.safeList (message, 'o', []);
         //
         // initial snapshot
@@ -246,7 +246,7 @@ export default class ndax extends ndaxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         //     {
         //         "m": 1,
@@ -408,7 +408,7 @@ export default class ndax extends ndaxRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         //     {
         //         "m": 3,
@@ -488,7 +488,7 @@ export default class ndax extends ndaxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
+    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict): void {
         //
         //     {
         //         "m": 1,
@@ -525,7 +525,7 @@ export default class ndax extends ndaxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): void {
         //
         //     {
         //         "m": 1,
@@ -545,7 +545,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         //
         //     {
         //         "m": 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
