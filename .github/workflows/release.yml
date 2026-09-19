@@ -69,6 +69,23 @@ jobs:
         with:
           go-version: '1.25.x'
           cache-dependency-path: go/go.sum
+      - name: Resolve Cargo target directory
+        run: |
+          # The self-hosted runner provides rust/target as an untracked symlink into a
+          # per-instance cache, so concurrent jobs never share a build directory. The
+          # symlink is created before the job starts and can point at a directory that
+          # does not exist yet; cargo's own create_dir_all then fails ENOTDIR on the
+          # dangling link. Materialise it and resolve to an absolute path; fall back to
+          # a run-private directory anywhere else.
+          if [ -L rust/target ]; then
+            rust_target=$(readlink -f rust/target)
+            mkdir -p "$rust_target"
+          else
+            rust_target="$RUNNER_TEMP/ccxt-rust-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+            mkdir -p "$rust_target"
+          fi
+          printf 'CARGO_TARGET_DIR=%s\n' "$rust_target" >> "$GITHUB_ENV"
+          printf 'Cargo target: %s\n' "$rust_target"
       - name: Install NPM dependencies
         run: npm ci
       - name: Composer install
