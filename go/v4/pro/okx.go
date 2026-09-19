@@ -2724,7 +2724,12 @@ func (this *Okx) HandleOrders(client any, message any) {
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, channel)
 		for i := 0; i < len(marketIds); i++ {
-			var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), ccxt.GetValue(marketIds, i))
+			var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), func() any {
+				if i >= 0 && i < len(marketIds) {
+					return ccxt.DerefScalar(marketIds[i])
+				}
+				return nil
+			}())
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		}
 	}
@@ -2813,7 +2818,12 @@ func (this *Okx) HandleMyTrades(client any, message any) {
 	var myTrades any = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(filteredOrders); i++ {
-		var rawTrade any = ccxt.GetValue(filteredOrders, i)
+		var rawTrade any = func() any {
+			if i >= 0 && i < len(filteredOrders) {
+				return ccxt.DerefScalar(filteredOrders[i])
+			}
+			return nil
+		}()
 		var trade any = this.OrderToTrade(rawTrade)
 		myTrades.(ccxt.Appender).Append(trade)
 		var symbol any = ccxt.GetValue(trade, "symbol")

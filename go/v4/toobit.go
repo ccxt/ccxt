@@ -1196,7 +1196,12 @@ func (this *Toobit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var all []any = this.ArrayConcat(symbols, contracts)
 	var result []any = []any{}
 	for i := 0; i < len(all); i++ {
-		var market any = GetValue(all, i)
+		var market any = func() any {
+			if i >= 0 && i < len(all) {
+				return DerefScalar(all[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseMarket(market)
 		if !IsEqual(parsed, nil) {
 			result = append(result, parsed)

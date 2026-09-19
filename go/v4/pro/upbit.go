@@ -549,7 +549,12 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel any, messag
 		"ticket": this.Uuid(),
 	}}
 	for i := 0; i < len(requests); i++ {
-		message = append(message, ccxt.GetValue(requests, i))
+		message = append(message, func() any {
+			if i >= 0 && i < len(requests) {
+				return ccxt.DerefScalar(requests[i])
+			}
+			return nil
+		}())
 	}
 
 	retRes41515 := (<-this.Watch(url, messageHash, message, messageHash))

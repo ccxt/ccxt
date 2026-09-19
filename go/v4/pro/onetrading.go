@@ -1135,7 +1135,12 @@ func (this *Onetrading) HandleAccountUpdate(client any, message any) {
 	// update balance
 	var balanceKeys []any = []any{"locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"}
 	for i := 0; i < len(balanceKeys); i++ {
-		var newBalance any = this.SafeValue(update, ccxt.GetValue(balanceKeys, i))
+		var newBalance any = this.SafeValue(update, func() any {
+			if i >= 0 && i < len(balanceKeys) {
+				return ccxt.DerefScalar(balanceKeys[i])
+			}
+			return nil
+		}())
 		if !ccxt.IsEqual(newBalance, nil) {
 			this.UpdateBalance(newBalance)
 		}

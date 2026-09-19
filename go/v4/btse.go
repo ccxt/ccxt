@@ -3460,7 +3460,12 @@ func (this *Btse) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var responseList []any = this.ArrayConcat([]any{}, rows)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(responseList); i++ {
-		var feeInfo any = GetValue(responseList, i)
+		var feeInfo any = func() any {
+			if i >= 0 && i < len(responseList) {
+				return DerefScalar(responseList[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(feeInfo, "symbol")
 		var market map[string]any = MapTyped(this.SafeMarket(marketId))
 		var symbol any = market["symbol"]

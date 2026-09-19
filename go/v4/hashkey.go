@@ -3366,7 +3366,12 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		}
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	var firstOrder any = GetValue(ordersRequests, 0)
+	var firstOrder any = func() any {
+		if 0 >= 0 && 0 < len(ordersRequests) {
+			return DerefScalar(ordersRequests[0])
+		}
+		return nil
+	}()
 	var firstSymbol *string = this.SafeString(firstOrder, "symbol")
 	var market any = this.Market(firstSymbol)
 	var request map[string]any = map[string]any{
@@ -4429,7 +4434,12 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var rates []any = []any{}
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
-		var entry any = GetValue(rows, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var timestamp *int64 = this.SafeInteger(entry, "settleTime")
 		rates = append(rates, map[string]any{
 			"info":        entry,

@@ -313,7 +313,12 @@ func (this *Phemex) HandleTicker(client any, message any) {
 		}
 	}
 	for i := 0; i < len(tickers); i++ {
-		var ticker any = ccxt.GetValue(tickers, i)
+		var ticker any = func() any {
+			if i >= 0 && i < len(tickers) {
+				return ccxt.DerefScalar(tickers[i])
+			}
+			return nil
+		}()
 		var symbol any = ccxt.GetValue(ticker, "symbol")
 		var messageHash any = ccxt.Add("ticker:", symbol)
 		var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
@@ -1389,7 +1394,12 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		}
 		trades = this.SafeList(message, "fills", []any{})
 		for i := 0; i < len(orders); i++ {
-			var rawOrder any = ccxt.GetValue(orders, i)
+			var rawOrder any = func() any {
+				if i >= 0 && i < len(orders) {
+					return ccxt.DerefScalar(orders[i])
+				}
+				return nil
+			}()
 			var parsedOrder any = this.ParseOrder(rawOrder)
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
@@ -1418,7 +1428,12 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	var typeVar any = nil
 	var stored any = this.Orders
 	for i := 0; i < len(parsedOrders); i++ {
-		var parsed any = ccxt.GetValue(parsedOrders, i)
+		var parsed any = func() any {
+			if i >= 0 && i < len(parsedOrders) {
+				return ccxt.DerefScalar(parsedOrders[i])
+			}
+			return nil
+		}()
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
 		var market any = this.Market(symbol)

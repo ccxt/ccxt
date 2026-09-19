@@ -869,7 +869,12 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 	var response []any = this.ArrayConcat(spotData, swapData)
 	var result []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var market any = GetValue(response, i)
+		var market any = func() any {
+			if i >= 0 && i < len(response) {
+				return DerefScalar(response[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString2(market, "symbol", "instrument_id")
 		var baseId *string = this.SafeString2(market, "base_asset", "base_currency")
 		var quoteId *string = this.SafeString2(market, "quote_asset", "quote_currency")

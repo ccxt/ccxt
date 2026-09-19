@@ -1623,7 +1623,12 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var markets []any = this.ArrayConcat(spotMarkets, swapMarkets)
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = GetValue(markets, i)
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "market_id")
 		var typeVar any = DerefScalar(this.SafeString(market, "market_type"))
 		typeVar = func() any {

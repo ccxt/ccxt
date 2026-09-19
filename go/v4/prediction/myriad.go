@@ -1053,7 +1053,12 @@ func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
 	var yParity *int64 = this.SafeInteger(signature, "v")
 	var signedFields []any = []any{}
 	for i := 0; i < len(fields); i++ {
-		signedFields = append(signedFields, ccxt.GetValue(fields, i))
+		signedFields = append(signedFields, func() any {
+			if i >= 0 && i < len(fields) {
+				return ccxt.DerefScalar(fields[i])
+			}
+			return nil
+		}())
 	}
 	signedFields = append(signedFields, this.RlpEncodeBytes(this.IntToRlpHex(yParity)))
 	signedFields = append(signedFields, this.RlpEncodeBytes(rHex))
@@ -3790,7 +3795,12 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var promises []any = []any{}
 	for i := 0; i < len(marketKeys); i++ {
-		var key any = ccxt.GetValue(marketKeys, i)
+		var key any = func() any {
+			if i >= 0 && i < len(marketKeys) {
+				return ccxt.DerefScalar(marketKeys[i])
+			}
+			return nil
+		}()
 		var grouped any = ccxt.GetValue(outcomesByMarket, key)
 		var firstOutcome any = ccxt.GetValue(grouped, 0)
 		var info any = this.SafeDict(firstOutcome, "info", map[string]any{})
@@ -3803,7 +3813,12 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	responses := (<-ccxt.PromiseAll(promises))
 	ccxt.PanicOnError(responses)
 	for i := 0; i < len(marketKeys); i++ {
-		var key any = ccxt.GetValue(marketKeys, i)
+		var key any = func() any {
+			if i >= 0 && i < len(marketKeys) {
+				return ccxt.DerefScalar(marketKeys[i])
+			}
+			return nil
+		}()
 		var response any = ccxt.GetValue(responses, i)
 		var grouped any = ccxt.GetValue(outcomesByMarket, key)
 		for j := 0; j < ccxt.GetArrayLength(grouped); j++ {
@@ -4670,7 +4685,12 @@ func (this *Myriad) HandleTrades(client any, data any) {
 			}
 			var myStored any = this.MyTrades
 			for k := 0; k < myLegsLength; k++ {
-				myStored.(ccxt.Appender).Append(ccxt.GetValue(myLegs, k))
+				myStored.(ccxt.Appender).Append(func() any {
+					if k >= 0 && k < len(myLegs) {
+						return ccxt.DerefScalar(myLegs[k])
+					}
+					return nil
+				}())
 			}
 			client.(ccxt.ClientInterface).Resolve(myStored, "myTrades")
 		}

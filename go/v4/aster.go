@@ -2272,9 +2272,19 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	var rows []any = this.ToArray(response)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var marketId *string = this.SafeString(GetValue(rows, i), "symbol")
+		var marketId *string = this.SafeString(func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}(), "symbol")
 		var safeMarket any = this.SafeMarket(marketId, nil, nil, marketType)
-		var priceData map[string]any = this.Extend(this.ParseLastPrice(GetValue(rows, i), safeMarket), params)
+		var priceData map[string]any = this.Extend(this.ParseLastPrice(func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}(), safeMarket), params)
 		results = append(results, priceData)
 	}
 	symbols = this.MarketSymbols(symbols)
@@ -4824,7 +4834,12 @@ func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any 
 	var rawPositions []any = this.ToArray(response)
 	var result []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = GetValue(rawPositions, i)
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(rawPositions) {
+				return DerefScalar(rawPositions[i])
+			}
+			return nil
+		}()
 		var entryPriceString *string = this.SafeString(rawPosition, "entryPrice")
 		if Precise.StringGt(entryPriceString, "0") {
 			result = append(result, this.ParsePositionRisk(rawPosition))
@@ -5222,7 +5237,12 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 		this.Options.Store("leverageBrackets", this.CreateSafeDictionary())
 		var entries []any = this.ToArray(response)
 		for i := 0; i < len(entries); i++ {
-			var entry any = GetValue(entries, i)
+			var entry any = func() any {
+				if i >= 0 && i < len(entries) {
+					return DerefScalar(entries[i])
+				}
+				return nil
+			}()
 			var marketId *string = this.SafeString(entry, "symbol")
 			var symbol *string = this.SafeSymbol(marketId, nil, nil, "contract")
 			var brackets []any = SafeListTyped(entry, "brackets")

@@ -332,7 +332,12 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 				if (thresholdsLength > 0) && !ccxt.IsEqual(index, nil) {
 					var bucketLabel any = nil
 					if index <= 0 {
-						bucketLabel = ccxt.Add("BELOW_", ccxt.GetValue(thresholds, 0))
+						bucketLabel = ccxt.Add("BELOW_", func() any {
+							if 0 >= 0 && 0 < len(thresholds) {
+								return ccxt.DerefScalar(thresholds[0])
+							}
+							return nil
+						}())
 					} else if ccxt.IsGreaterThanOrEqual(index, thresholdsLength) {
 						var lastIdx int64 = ccxt.Subtract(thresholdsLength, 1).(int64)
 						bucketLabel = ccxt.Add("ABOVE_", ccxt.GetValue(thresholds, lastIdx))
@@ -1435,7 +1440,12 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 		}
 	}
 	for i := 0; i < len(candidates); i++ {
-		var key any = ccxt.GetValue(candidates, i)
+		var key any = func() any {
+			if i >= 0 && i < len(candidates) {
+				return ccxt.DerefScalar(candidates[i])
+			}
+			return nil
+		}()
 		if ccxt.InOp(this.Outcomes, key) {
 			return this.SafeDict(this.Outcomes, key, map[string]any{})
 		}
@@ -2439,7 +2449,12 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var lowerQueriesLength int = len(lowerQueries)
 	for i := 0; i < len(marketValues); i++ {
-		var mkt any = ccxt.GetValue(marketValues, i)
+		var mkt any = func() any {
+			if i >= 0 && i < len(marketValues) {
+				return ccxt.DerefScalar(marketValues[i])
+			}
+			return nil
+		}()
 		if !ccxt.EvalTruthy(this.SafeBool(mkt, "prediction", false)) {
 			continue
 		}
@@ -2460,7 +2475,12 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			var haystack any = description + " " + symLower
 			var matches bool = false
 			for qi := 0; qi < len(lowerQueries); qi++ {
-				var words []string = ccxt.Split(ccxt.GetValue(lowerQueries, qi), " ")
+				var words []string = ccxt.Split(func() any {
+					if qi >= 0 && qi < len(lowerQueries) {
+						return ccxt.DerefScalar(lowerQueries[qi])
+					}
+					return nil
+				}(), " ")
 				var wordsLength int = len(words)
 				var allWords bool = true
 				for wi := 0; wi < wordsLength; wi++ {

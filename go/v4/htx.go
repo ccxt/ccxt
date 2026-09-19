@@ -2909,7 +2909,12 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 		"next_quarter": "NQ",
 	}
 	for i := 0; i < len(futureMarkets); i++ {
-		var market any = GetValue(futureMarkets, i)
+		var market any = func() any {
+			if i >= 0 && i < len(futureMarkets) {
+				return DerefScalar(futureMarkets[i])
+			}
+			return nil
+		}()
 		var info map[string]any = SafeMapTyped(market, "info")
 		var contractType *string = this.SafeString(info, "contract_type")
 		var contractSuffix *string = this.SafeString(futuresCharsMaps, contractType)

@@ -1125,7 +1125,12 @@ func (this *Onetrading) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var rawTickers []any = this.ToArray(response)
 	for i := 0; i < len(rawTickers); i++ {
-		var ticker any = this.ParseTicker(GetValue(rawTickers, i))
+		var ticker any = this.ParseTicker(func() any {
+			if i >= 0 && i < len(rawTickers) {
+				return DerefScalar(rawTickers[i])
+			}
+			return nil
+		}())
 		var symbol any = GetValue(ticker, "symbol")
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)

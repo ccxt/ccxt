@@ -696,7 +696,12 @@ func (this *Weex) HandleTrade(client any, message any) {
 	}
 	var sorted []any = this.SortBy(newTrades, "timestamp")
 	for j := 0; j < len(sorted); j++ {
-		var sortedTrade any = ccxt.GetValue(sorted, j)
+		var sortedTrade any = func() any {
+			if j >= 0 && j < len(sorted) {
+				return ccxt.DerefScalar(sorted[j])
+			}
+			return nil
+		}()
 		tradesArray.(ccxt.Appender).Append(sortedTrade)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, tradesArray)

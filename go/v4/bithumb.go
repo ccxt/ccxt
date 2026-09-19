@@ -1192,7 +1192,12 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 			var marketIdsChunk []any = []any{}
 			for i := 0; i < marketIdsLength; i++ {
-				marketIdsChunk = append(marketIdsChunk, GetValue(marketIds, i))
+				marketIdsChunk = append(marketIdsChunk, func() any {
+					if i >= 0 && i < len(marketIds) {
+						return DerefScalar(marketIds[i])
+					}
+					return nil
+				}())
 				var marketIdsChunkLength int = len(marketIdsChunk)
 				var isLastMarketId bool = (i == (marketIdsLength - 1))
 				if (IsGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId {

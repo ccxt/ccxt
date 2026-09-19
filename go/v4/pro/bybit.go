@@ -2917,7 +2917,12 @@ func (this *Bybit) HandleBalance(client any, message any) {
 		info = data
 	}
 	for i := 0; i < len(rawBalances); i++ {
-		this.ParseWsBalance(ccxt.GetValue(rawBalances, i), account)
+		this.ParseWsBalance(func() any {
+			if i >= 0 && i < len(rawBalances) {
+				return ccxt.DerefScalar(rawBalances[i])
+			}
+			return nil
+		}(), account)
 	}
 	if !ccxt.IsEqual(account, nil) {
 		if ccxt.IsEqual(this.SafeDict(this.Balance, account), nil) {

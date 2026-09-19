@@ -1024,7 +1024,12 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 	if EvalTruthy(this.SafeBool(options, "fetchDetailsForAllSymbols", false)) {
 		var promises []any = []any{}
 		for i := 0; i < len(marketIds); i++ {
-			var marketId any = GetValue(marketIds, i)
+			var marketId any = func() any {
+				if i >= 0 && i < len(marketIds) {
+					return DerefScalar(marketIds[i])
+				}
+				return nil
+			}()
 			var request map[string]any = map[string]any{
 				"symbol": marketId,
 			}
@@ -1042,7 +1047,12 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 		if !IsEqual(tradingPairs, nil) {
 			var indexedTradingPairs map[string]any = this.IndexBy(tradingPairs, 0)
 			for i := 0; i < len(marketIds); i++ {
-				var marketId any = GetValue(marketIds, i)
+				var marketId any = func() any {
+					if i >= 0 && i < len(marketIds) {
+						return DerefScalar(marketIds[i])
+					}
+					return nil
+				}()
 				var pairInfo any = this.SafeList(indexedTradingPairs, ToUpper(marketId))
 				if !IsEqual(pairInfo, nil) && !this.InArray(marketId, brokenPairs) {
 					result = append(result, this.ParseMarket(pairInfo))
@@ -1050,8 +1060,18 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 			}
 		} else {
 			for i := 0; i < len(marketIds); i++ {
-				if !this.InArray(GetValue(marketIds, i), brokenPairs) {
-					result = append(result, this.ParseMarket(GetValue(marketIds, i)))
+				if !this.InArray(func() any {
+					if i >= 0 && i < len(marketIds) {
+						return DerefScalar(marketIds[i])
+					}
+					return nil
+				}(), brokenPairs) {
+					result = append(result, this.ParseMarket(func() any {
+						if i >= 0 && i < len(marketIds) {
+							return DerefScalar(marketIds[i])
+						}
+						return nil
+					}()))
 				}
 			}
 		}

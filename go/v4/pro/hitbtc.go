@@ -844,7 +844,12 @@ func (this *Hitbtc) ParseWsTrades(trades any, optionalArgs ...any) any {
 	var tradesArray []any = this.ToArray(trades)
 	var result []any = []any{}
 	for i := 0; i < len(tradesArray); i++ {
-		var trade map[string]any = this.Extend(this.ParseWsTrade(ccxt.GetValue(tradesArray, i), market), params)
+		var trade map[string]any = this.Extend(this.ParseWsTrade(func() any {
+			if i >= 0 && i < len(tradesArray) {
+				return ccxt.DerefScalar(tradesArray[i])
+			}
+			return nil
+		}(), market), params)
 		result = append(result, trade)
 	}
 	result = this.SortBy2(result, "timestamp", "id")

@@ -1475,7 +1475,12 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var rates []any = []any{}
 	var rawRates []any = this.ToArray(response)
 	for i := 0; i < len(rawRates); i++ {
-		var rate any = GetValue(rawRates, i)
+		var rate any = func() any {
+			if i >= 0 && i < len(rawRates) {
+				return DerefScalar(rawRates[i])
+			}
+			return nil
+		}()
 		var datetime *string = this.SafeString(rate, "intervalEndTimestamp")
 		var timestamp *int64 = this.Parse8601(datetime)
 		rates = append(rates, map[string]any{

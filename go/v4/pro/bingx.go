@@ -1864,7 +1864,12 @@ func (this *Bingx) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any 
 						// catch block:
 						var types []any = []any{"spot", "linear", "inverse"}
 						for i := 0; i < len(types); i++ {
-							var typeVar any = ccxt.GetValue(types, i)
+							var typeVar any = func() any {
+								if i >= 0 && i < len(types) {
+									return ccxt.DerefScalar(types[i])
+								}
+								return nil
+							}()
 							var baseUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
 							if baseUrl == nil {
 								continue

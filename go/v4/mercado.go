@@ -370,7 +370,12 @@ func (this *Mercado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var amountLimits map[string]any = SafeMapTyped(this.Options, "limits")
 	var coins []any = this.ToArray(response)
 	for i := 0; i < len(coins); i++ {
-		var coin any = GetValue(coins, i)
+		var coin any = func() any {
+			if i >= 0 && i < len(coins) {
+				return DerefScalar(coins[i])
+			}
+			return nil
+		}()
 		var baseId any = coin
 		var quoteId string = "BRL"
 		var base *string = this.SafeCurrencyCode(baseId)

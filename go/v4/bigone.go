@@ -818,7 +818,12 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var contractMarkets []any = this.ToArray(contractResponse)
 	for i := 0; i < len(contractMarkets); i++ {
-		var market any = GetValue(contractMarkets, i)
+		var market any = func() any {
+			if i >= 0 && i < len(contractMarkets) {
+				return DerefScalar(contractMarkets[i])
+			}
+			return nil
+		}()
 		var baseId *string = this.SafeString(market, "baseCurrency")
 		var quoteId *string = this.SafeString(market, "quoteCurrency")
 		var settleId *string = this.SafeString(market, "settleCurrency")

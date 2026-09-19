@@ -1421,7 +1421,12 @@ func (this *Derive) ParseTrades(trades any, optionalArgs ...any) any {
 	var tradesArray []any = this.ToArray(trades)
 	var result []any = []any{}
 	for i := 0; i < len(tradesArray); i++ {
-		var rawTrade any = GetValue(tradesArray, i)
+		var rawTrade any = func() any {
+			if i >= 0 && i < len(tradesArray) {
+				return DerefScalar(tradesArray[i])
+			}
+			return nil
+		}()
 		var isFetchTrades bool = !(InOp(rawTrade, "order_id"))
 		var liquidityRole *string = this.SafeString(rawTrade, "liquidity_role")
 		if isFetchTrades && (liquidityRole != nil && *liquidityRole == "maker") {

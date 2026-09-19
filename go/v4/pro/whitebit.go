@@ -1433,7 +1433,12 @@ func (this *Whitebit) HandleSubscriptionStatus(client any, message any, id any) 
 	var subs any = client.(ccxt.ClientInterface).GetSubscriptions()
 	var values []any = ccxt.ObjectValues(subs)
 	for i := 0; i < len(values); i++ {
-		var subscription any = ccxt.GetValue(values, i)
+		var subscription any = func() any {
+			if i >= 0 && i < len(values) {
+				return ccxt.DerefScalar(values[i])
+			}
+			return nil
+		}()
 		if subscription != true {
 			var subId *int64 = this.SafeInteger(subscription, "id")
 			if (subId != nil) && (ccxt.IsEqual(subId, id)) {

@@ -391,7 +391,12 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	markets = this.ArrayConcat(markets, this.ToArray(eu_markets))
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = GetValue(markets, i)
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "product_code")
 		var currencies []string = Split(id, "_")
 		var marketType *string = this.SafeString(market, "market_type")

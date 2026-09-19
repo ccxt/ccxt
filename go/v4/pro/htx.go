@@ -2064,7 +2064,12 @@ func (this *Htx) HandlePositions(client any, message any) {
 	if this.IsEmpty(rawPositions) {
 		var prefixes []any = []any{"cross:positions", "isolated:positions"}
 		for i := 0; i < len(prefixes); i++ {
-			var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.GetValue(prefixes, i))
+			var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), func() any {
+				if i >= 0 && i < len(prefixes) {
+					return ccxt.DerefScalar(prefixes[i])
+				}
+				return nil
+			}())
 			for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
 				client.(ccxt.ClientInterface).Resolve([]any{}, ccxt.GetValue(messageHashes, j))
 			}

@@ -388,7 +388,12 @@ func (this *Coinex) HandleBalance(client any, message any) {
 		info = rawBalances
 	}
 	for i := 0; i < len(rawBalances); i++ {
-		var entry any = ccxt.GetValue(rawBalances, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(rawBalances) {
+				return ccxt.DerefScalar(rawBalances[i])
+			}
+			return nil
+		}()
 		this.ParseWsBalance(entry, account)
 	}
 	var messageHash any = nil

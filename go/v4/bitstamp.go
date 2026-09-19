@@ -1433,7 +1433,12 @@ func (this *Bitstamp) ParseCurrencies(rawCurrencies any) any {
 	var result map[string]any = map[string]any{}
 	var arr []any = this.ToArray(rawCurrencies)
 	for i := 0; i < len(arr); i++ {
-		var market any = GetValue(arr, i)
+		var market any = func() any {
+			if i >= 0 && i < len(arr) {
+				return DerefScalar(arr[i])
+			}
+			return nil
+		}()
 		baseIdquoteIdVariable := []any{this.SafeString(market, "base_currency"), this.SafeString(market, "counter_currency")}
 		baseId := GetValue(baseIdquoteIdVariable, 0)
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
@@ -3935,7 +3940,12 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 		}
 		var feedback any = Add(this.Id+" ", body)
 		for i := 0; i < len(errors); i++ {
-			var value any = GetValue(errors, i)
+			var value any = func() any {
+				if i >= 0 && i < len(errors) {
+					return DerefScalar(errors[i])
+				}
+				return nil
+			}()
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], value, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], value, feedback)
 		}

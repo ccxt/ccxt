@@ -397,7 +397,12 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market any = GetValue(rawMarkets, i)
+		var market any = func() any {
+			if i >= 0 && i < len(rawMarkets) {
+				return DerefScalar(rawMarkets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "id")
 		var baseId *string = this.SafeString(market, "base")
 		var quoteId *string = this.SafeString(market, "quote")

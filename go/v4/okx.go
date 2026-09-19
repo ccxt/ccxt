@@ -3840,7 +3840,12 @@ func (this *Okx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var res []any = this.HandleMarketTypeAndParams("fetchOHLCV", market, nil)
-	var typeVar any = GetValue(res, 0)
+	var typeVar any = func() any {
+		if 0 >= 0 && 0 < len(res) {
+			return DerefScalar(res[0])
+		}
+		return nil
+	}()
 	var volumeIndex int = func() int {
 		if IsEqual(typeVar, "spot") {
 			return 5

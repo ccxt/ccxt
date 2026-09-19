@@ -406,8 +406,18 @@ func (this *Luno) HandleMessage(client any, message any) {
 	var subscriptions []any = ccxt.ObjectValues(client.(ccxt.ClientInterface).GetSubscriptions())
 	var handlers []any = []any{this.HandleOrderBook, this.HandleTrades}
 	for j := 0; j < len(handlers); j++ {
-		var handler any = ccxt.GetValue(handlers, j)
-		ccxt.CallDynamically(handler, client, message, ccxt.GetValue(subscriptions, 0))
+		var handler any = func() any {
+			if j >= 0 && j < len(handlers) {
+				return ccxt.DerefScalar(handlers[j])
+			}
+			return nil
+		}()
+		ccxt.CallDynamically(handler, client, message, func() any {
+			if 0 >= 0 && 0 < len(subscriptions) {
+				return ccxt.DerefScalar(subscriptions[0])
+			}
+			return nil
+		}())
 	}
 }
 

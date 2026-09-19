@@ -2337,7 +2337,12 @@ func (this *Nado) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var assets []any = this.ToArray(response)
 	for i := 0; i < len(assets); i++ {
-		var currency any = GetValue(assets, i)
+		var currency any = func() any {
+			if i >= 0 && i < len(assets) {
+				return DerefScalar(assets[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseCurrency(currency)
 		var code *string = this.SafeString(parsed, "code")
 		if code == nil {

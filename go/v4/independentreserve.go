@@ -452,11 +452,21 @@ func (this *Independentreserve) fetchMarketsBody(ch chan any, optionalArgs ...an
 	var baseCurrencyIds []any = this.ToArray(baseCurrencies)
 	var quoteCurrencyIds []any = this.ToArray(quoteCurrencies)
 	for i := 0; i < len(baseCurrencyIds); i++ {
-		var baseId any = GetValue(baseCurrencyIds, i)
+		var baseId any = func() any {
+			if i >= 0 && i < len(baseCurrencyIds) {
+				return DerefScalar(baseCurrencyIds[i])
+			}
+			return nil
+		}()
 		var base *string = this.SafeCurrencyCode(baseId)
 		var minAmount *float64 = this.SafeNumber(limits, baseId)
 		for j := 0; j < len(quoteCurrencyIds); j++ {
-			var quoteId any = GetValue(quoteCurrencyIds, j)
+			var quoteId any = func() any {
+				if j >= 0 && j < len(quoteCurrencyIds) {
+					return DerefScalar(quoteCurrencyIds[j])
+				}
+				return nil
+			}()
 			var quote *string = this.SafeCurrencyCode(quoteId)
 			var id any = Add(Add(baseId, "/"), quoteId)
 			result = append(result, map[string]any{
@@ -1156,7 +1166,12 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 	var fees map[string]any = map[string]any{}
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
-		var fee any = GetValue(rows, i)
+		var fee any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(fee, "CurrencyCode")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var tradingFee *float64 = this.SafeNumber(fee, "Fee")
