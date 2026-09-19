@@ -670,7 +670,7 @@ public class TestMain extends BaseTest
             }
             if (Helpers.isTrue(this.info))
             {
-                dump(this.addPadding(Helpers.add((Helpers.add("[INFO] END ", testPrefixString) + " "), exchange.id), 25));
+                dump(this.addPadding(Helpers.add((("[INFO] END " + testPrefixString) + " "), exchange.id), 25));
             }
             return true;
         });
@@ -3090,7 +3090,7 @@ public class TestMain extends BaseTest
             } else
             {
                 String prefix = ((Helpers.isTrue((isSync())))) ? "[SYNC]" : "";
-                String successMessage = (((((Helpers.add((("[" + this.lang) + "]"), prefix) + "[TEST_SUCCESS] ") + String.valueOf(sum)) + " static ") + type) + " tests passed.");
+                String successMessage = (((((((("[" + this.lang) + "]") + prefix) + "[TEST_SUCCESS] ") + String.valueOf(sum)) + " static ") + type) + " tests passed.");
                 dump(("[INFO]" + successMessage));
             }
             return true;  // required in c#

@@ -1755,7 +1755,7 @@ public class Xt extends XtApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String state = this.safeString(market, "state");
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Object minAmount = null;
         Object maxAmount = null;
@@ -1801,14 +1801,14 @@ public class Xt extends XtApi
         String type = "spot";
         if (java.util.Objects.equals(underlyingType, "U_BASED"))
         {
-            symbol = Helpers.add((symbol + ":"), quote);
+            symbol = ((symbol + ":") + quote);
             settleId = baseId;
             settle = quote;
             linear = true;
             inverse = false;
         } else if (java.util.Objects.equals(underlyingType, "COIN_BASED"))
         {
-            symbol = Helpers.add((symbol + ":"), base);
+            symbol = ((symbol + ":") + base);
             settleId = baseId;
             settle = base;
             linear = false;
@@ -6421,7 +6421,7 @@ final Object finalMarket = market;
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            Object key = Helpers.add(Helpers.add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
+            Object key = ((this.safeString(breakEntry, "symbol") + "_") + this.safeString(breakEntry, "positionSide"));
             ((Map<String, Object>)breakBySymbolSide).put((String)key, breakEntry);
         }
         return breakBySymbolSide;
@@ -6436,7 +6436,7 @@ final Object finalMarket = market;
     public Object mergePositionBreakInfo(Object entry, Object breakBySymbolSide)
     {
         String marketId = this.safeString(entry, "symbol");
-        Object key = Helpers.add(Helpers.add(marketId, "_"), this.safeString(entry, "positionSide"));
+        Object key = ((marketId + "_") + this.safeString(entry, "positionSide"));
         Map<String, Object> breakEntry = (Map<String, Object>) this.safeDict(breakBySymbolSide, key);
         if (java.util.Objects.equals(breakEntry, null))
         {
@@ -7174,10 +7174,10 @@ final Object finalMarket = market;
         {
             if (Boolean.TRUE.equals(signed))
             {
-                payload = (Helpers.add("/", this.version) + request);
+                payload = (("/" + this.version) + request);
             } else
             {
-                payload = ((Helpers.add("/", this.version) + "/public") + request);
+                payload = ((("/" + this.version) + "/public") + request);
             }
         } else
         {
@@ -7224,7 +7224,7 @@ final Object finalMarket = market;
             Object payloadString = null;
             if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
             {
-                payloadString = (((Helpers.add((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow="), recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
+                payloadString = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
                 if (Boolean.TRUE.equals(isUndefinedBody))
                 {
                     if (!java.util.Objects.equals(urlencoded, ""))

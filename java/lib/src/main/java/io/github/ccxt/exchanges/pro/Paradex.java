@@ -233,7 +233,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String messageHash = (Helpers.add("order_book.", ((Map<String, Object>)market).get("id")) + ".snapshot@15@100ms");
+            String messageHash = (("order_book." + ((Map<String, Object>)market).get("id")) + ".snapshot@15@100ms");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -543,7 +543,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String channel = this.safeString(parameters, "channel");
-        Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
+        Object messageHash = Helpers.add((channel + "."), symbol);
         Object ticker = this.parseTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, channel);
@@ -675,7 +675,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
         Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
         String channel = this.safeString(parameters, "channel");
-        Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
+        Object messageHash = Helpers.add((channel + "."), symbol);
         client.resolve(fundingRate, messageHash);
     }
 
@@ -716,7 +716,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", Helpers.add(finalFundingPeriod, "h") );
+            put( "interval", (finalFundingPeriod + "h") );
         }};
     }
 

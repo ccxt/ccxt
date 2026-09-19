@@ -2342,7 +2342,7 @@ public class Kucoin extends KucoinApi
                 final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", finalId );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -2494,7 +2494,7 @@ public class Kucoin extends KucoinApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+                Object symbol = ((((base + "/") + quote) + ":") + settle);
                 String type = "swap";
                 if (Boolean.TRUE.equals(future))
                 {
@@ -2689,7 +2689,7 @@ public class Kucoin extends KucoinApi
                 String settle = this.safeCurrencyCode(settleId);
                 String hasMargin = this.safeString(market, "marginMode");
                 Object isMarginable = (((java.util.Objects.equals(hasMargin, "1")))) ? true : false;
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 if (!java.util.Objects.equals(settle, null))
                 {
                     symbol = (symbol + (":" + settle));
@@ -4117,7 +4117,7 @@ public class Kucoin extends KucoinApi
                 {
                     throw new NotSupported((this.id + " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"")) ;
                 }
-                ((Map<String, Object>)request).put("symbol", (Helpers.add(((Map<String, Object>)market).get("id"), "-") + suffix));
+                ((Map<String, Object>)request).put("symbol", ((((Map<String, Object>)market).get("id") + "-") + suffix));
             }
             Map<String, Object> response = (this.utaGetMarketKline(this.extend(request, parameters))).join();
             //
@@ -4843,7 +4843,7 @@ public class Kucoin extends KucoinApi
                 return (this.createContractOrder(symbol, type, side, amount, price, parameters)).join();
             } else
             {
-                throw new NotSupported(Helpers.add((this.id + " createOrder() does not support market "), ((Map<String, Object>)market).get("type"))) ;
+                throw new NotSupported(((this.id + " createOrder() does not support market ") + ((Map<String, Object>)market).get("type"))) ;
             }
         }).thenApply(Order::new);
 
@@ -5093,7 +5093,7 @@ public class Kucoin extends KucoinApi
         Object result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(((Map<String, Object>)market).get("info"), "quoteIncrement"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
-            throw new InvalidOrder(Helpers.add((((this.id + " amount of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum amount precision of "), this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount")))) ;
+            throw new InvalidOrder(((((this.id + " amount of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount")))) ;
         }
         return result;
     }
@@ -14123,7 +14123,7 @@ final Object finalMarket = market;
             {
                 if ((java.util.Objects.equals(endpoint, "/api/ua/v1/classic/order/place")) || (java.util.Objects.equals(endpoint, "/api/ua/v1/classic/order/place/batch")) || (java.util.Objects.equals(endpoint, "/api/ua/v1/classic/order/cancel")) || (java.util.Objects.equals(endpoint, "/api/ua/v1/classic/order/cancel/batch")))
                 {
-                    endpoint = Helpers.add(endpoint, Helpers.add("?tradeType=", tradeType));
+                    endpoint = Helpers.add(endpoint, ("?tradeType=" + tradeType));
                 }
                 body = this.json(query);
                 endpart = body;

@@ -832,7 +832,7 @@ public class Kraken extends KrakenApi
                 }
                 String status = this.safeString(market, "status");
                 Boolean isActive = java.util.Objects.equals(status, "online");
-                Object symbol = ((Helpers.isTrue((!Boolean.TRUE.equals(isSynthetic))))) ? (Helpers.add((base + "/"), quote)) : id;
+                Object symbol = ((Helpers.isTrue((!Boolean.TRUE.equals(isSynthetic))))) ? (((base + "/") + quote)) : id;
     final Object finalBase = base;
                 final Object finalSpot = spot;
                 final Object finalLeverageBuyLength = leverageBuyLength;
@@ -1101,7 +1101,7 @@ public class Kraken extends KrakenApi
             Object parts = new ArrayList<Object>(Arrays.asList(((String)currencyId).split(java.util.regex.Pattern.quote("."))));
             String firstPart = this.safeString(parts, 0);
             String secondPart = this.safeString(parts, 1);
-            return Helpers.add(Helpers.add(super.safeCurrencyCode(firstPart, currency), "."), secondPart);
+            return ((super.safeCurrencyCode(firstPart, currency) + ".") + secondPart);
         }
         return super.safeCurrencyCode(currencyId, currency);
     }
@@ -2246,7 +2246,7 @@ public class Kraken extends KrakenApi
         Object quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         final Object finalBase = base;
         market = new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -2426,7 +2426,7 @@ public class Kraken extends KrakenApi
                 rawType = part4; // eg, limit, market
             } else
             {
-                rawType = Helpers.add(Helpers.add(part4, " "), part5); // eg. stop loss, take profit, trailing stop
+                rawType = ((part4 + " ") + part5); // eg. stop loss, take profit, trailing stop
             }
             if (java.util.Objects.equals(rawType, "stop loss") || java.util.Objects.equals(rawType, "take profit"))
             {
@@ -2792,7 +2792,7 @@ final Object finalId = id;
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                throw new NotSupported((Helpers.add((this.id + " editOrder() does not support "), ((Map<String, Object>)market).get("type")) + " orders, only spot orders are accepted")) ;
+                throw new NotSupported((((this.id + " editOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders, only spot orders are accepted")) ;
             }
             Object request = new HashMap<String, Object>() {{
                 put( "txid", id );
@@ -4415,7 +4415,7 @@ final Object finalId = id;
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object url = Helpers.add((Helpers.add((Helpers.add("/", this.version) + "/"), api) + "/"), path);
+        Object url = Helpers.add((Helpers.add((("/" + this.version) + "/"), api) + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
             if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)

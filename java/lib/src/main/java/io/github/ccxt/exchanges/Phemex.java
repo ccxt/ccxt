@@ -1015,7 +1015,7 @@ public class Phemex extends PhemexApi
         final Object finalContractSize = contractSize;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", Helpers.add((Helpers.add(Helpers.add(finalBase, "/"), quote) + ":"), finalSettle) );
+            put( "symbol", ((((finalBase + "/") + quote) + ":") + finalSettle) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", finalSettle );
@@ -1120,7 +1120,7 @@ public class Phemex extends PhemexApi
         final Object finalStatus = status;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+            put( "symbol", ((finalBase + "/") + quote) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", null );
@@ -6028,10 +6028,10 @@ final Object finalI = i;
             Object customSymbol = null;
             if (Boolean.TRUE.equals(isUsdtSettled))
             {
-                customSymbol = (Helpers.add(".", ((Map<String, Object>)market).get("id")) + "FR8H"); // phemex requires a custom symbol for funding rate history
+                customSymbol = (("." + ((Map<String, Object>)market).get("id")) + "FR8H"); // phemex requires a custom symbol for funding rate history
             } else
             {
-                customSymbol = (Helpers.add(".", ((Map<String, Object>)market).get("baseId")) + "FR8H");
+                customSymbol = (("." + ((Map<String, Object>)market).get("baseId")) + "FR8H");
             }
             final Object finalCustomSymbol = customSymbol;
             Object request = new HashMap<String, Object>() {{

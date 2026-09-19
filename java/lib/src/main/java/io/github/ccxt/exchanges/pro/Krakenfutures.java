@@ -698,7 +698,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 {
                     throw new ArgumentsRequired((this.id + " watchBalance account must be either 'futures' or 'flex_futures'")) ;
                 }
-                messageHash = Helpers.add(messageHash, Helpers.add(":", account));
+                messageHash = Helpers.add(messageHash, (":" + account));
             }
             return (this.subscribePrivate(name, messageHash, parameters)).join();
         }).thenApply(Balances::new);
@@ -1955,7 +1955,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
         try
         {
-            throw new ExchangeError((String)Helpers.add((this.id + " "), errMsg)) ;
+            throw new ExchangeError(((this.id + " ") + errMsg)) ;
         } catch(Exception error)
         {
             client.reject(error);

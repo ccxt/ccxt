@@ -478,7 +478,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 throw new BadRequest((this.id + " watchTicker() only supports name tickers for contract markets")) ;
             }
-            topic = Helpers.add(topic, Helpers.add(".", ((Map<String, Object>)market).get("id")));
+            topic = Helpers.add(topic, ("." + ((Map<String, Object>)market).get("id")));
             Object topics = new ArrayList<Object>(Arrays.asList(topic));
             return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
         }).thenApply(Ticker::new);
@@ -876,7 +876,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Object symbolString = ((Map<String, Object>)market).get("symbol");
                 Object unfiedTimeframe = (data == null || 1 >= ((List<?>)data).size() ? null : ((List<?>)data).get(1));
                 String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-                ((List<Object>)rawHashes).add(Helpers.add((("kline." + timeframeId) + "."), ((Map<String, Object>)market).get("id")));
+                ((List<Object>)rawHashes).add(((("kline." + timeframeId) + ".") + ((Map<String, Object>)market).get("id")));
                 ((List<Object>)messageHashes).add(((("ohlcv::" + symbolString) + "::") + unfiedTimeframe));
             }
             var symboltimeframestoredVariable = (this.watchTopics(url, messageHashes, rawHashes, parameters)).join();
@@ -927,7 +927,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Object symbolString = ((Map<String, Object>)market).get("symbol");
                 Object unfiedTimeframe = (data == null || 1 >= ((List<?>)data).size() ? null : ((List<?>)data).get(1));
                 String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-                ((List<Object>)rawHashes).add(Helpers.add((("kline." + timeframeId) + "."), ((Map<String, Object>)market).get("id")));
+                ((List<Object>)rawHashes).add(((("kline." + timeframeId) + ".") + ((Map<String, Object>)market).get("id")));
                 ((List<Object>)subMessageHashes).add(((("ohlcv::" + symbolString) + "::") + unfiedTimeframe));
                 ((List<Object>)messageHashes).add(((("unsubscribe::ohlcv::" + symbolString) + "::") + unfiedTimeframe));
             }
@@ -1115,7 +1115,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 List<Object> selectedLimits = (List<Object>) this.safeList2(limits, ((Map<String, Object>)market).get("type"), "default", new ArrayList<Object>(Arrays.asList()));
                 if (!this.inArray(limit, selectedLimits))
                 {
-                    throw new BadRequest(((Helpers.add((this.id + " watchOrderBookForSymbols(): for "), ((Map<String, Object>)market).get("type")) + " markets limit can be one of: ") + this.json(selectedLimits))) ;
+                    throw new BadRequest(((((this.id + " watchOrderBookForSymbols(): for ") + ((Map<String, Object>)market).get("type")) + " markets limit can be one of: ") + this.json(selectedLimits))) ;
                 }
             }
             Object topics = new ArrayList<Object>(Arrays.asList());
@@ -1124,7 +1124,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object marketId = this.marketId(symbol);
-                Object topic = Helpers.add((("orderbook." + String.valueOf(limit)) + "."), marketId);
+                Object topic = ((("orderbook." + String.valueOf(limit)) + ".") + marketId);
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("orderbook:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -1175,7 +1175,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object marketId = ((Map<String, Object>)market).get("id");
-                Object topic = Helpers.add((channel + "."), marketId);
+                Object topic = ((channel + ".") + marketId);
                 ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + symbol));
                 ((List<Object>)subMessageHashes).add(("orderbook:" + symbol));
                 ((List<Object>)topics).add(topic);
@@ -1360,7 +1360,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                String topic = Helpers.add("publicTrade.", ((Map<String, Object>)market).get("id"));
+                String topic = ("publicTrade." + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("trade:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -1405,7 +1405,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                String topic = Helpers.add("publicTrade.", ((Map<String, Object>)market).get("id"));
+                String topic = ("publicTrade." + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("unsubscribe:trade:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -2115,7 +2115,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             method = ((List<Object>) methodparametersVariable).get(0);
             parameters = ((List<Object>) methodparametersVariable).get(1);
             String messageHash = ("liquidations::" + symbol);
-            Object topic = Helpers.add((method + "."), ((Map<String, Object>)market).get("id"));
+            Object topic = ((method + ".") + ((Map<String, Object>)market).get("id"));
             Object newLiquidation = (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), parameters)).join();
             if (this.newUpdates)
             {
@@ -3020,10 +3020,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 String op = this.safeString(request, "op");
                 if (java.util.Objects.equals(op, "auth"))
                 {
-                    throw new AuthenticationError(Helpers.add("Authentication failed: ", ret_msg)) ;
+                    throw new AuthenticationError(("Authentication failed: " + ret_msg)) ;
                 } else
                 {
-                    throw new ExchangeError((String)Helpers.add((this.id + " "), ret_msg)) ;
+                    throw new ExchangeError(((this.id + " ") + ret_msg)) ;
                 }
             }
             return false;

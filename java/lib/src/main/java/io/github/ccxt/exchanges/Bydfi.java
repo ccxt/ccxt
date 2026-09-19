@@ -648,7 +648,7 @@ public class Bydfi extends BydfiApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+        Object symbol = ((((base + "/") + quote) + ":") + settle);
         Boolean inverse = (Boolean) this.safeBool(market, "reverse");
         String limitMaxQty = this.safeString(market, "limitMaxQty");
         String marketMaxQty = this.safeString(market, "marketMaxQty");
@@ -3521,7 +3521,7 @@ public class Bydfi extends BydfiApi
             String methodName = (((java.util.Objects.equals(type, "deposit")))) ? "fetchDeposits" : "fetchWithdrawals";
             if (java.util.Objects.equals(code, null))
             {
-                throw new ArgumentsRequired((Helpers.add((this.id + " "), methodName) + "() requires a code argument")) ;
+                throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a code argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {

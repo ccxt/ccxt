@@ -227,13 +227,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.authenticate()).join();
             }
-            String channel = ((Helpers.add("ticker.", ((Map<String, Object>)market).get("id")) + ".") + interval);
+            String channel = ((("ticker." + ((Map<String, Object>)market).get("id")) + ".") + interval);
             final Object finalInterval = interval;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "public/subscribe" );
                 put( "params", new HashMap<String, Object>() {{
-                    put( "channels", new ArrayList<Object>(Arrays.asList(((Helpers.add("ticker.", ((Map<String, Object>)market).get("id")) + ".") + finalInterval))) );
+                    put( "channels", new ArrayList<Object>(Arrays.asList(((("ticker." + ((Map<String, Object>)market).get("id")) + ".") + finalInterval))) );
                 }} );
                 put( "id", Deribit.this.requestId() );
             }};
@@ -280,7 +280,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue((List<String>)(symbols), i));
-                ((List<Object>)channels).add(((Helpers.add("ticker.", ((Map<String, Object>)market).get("id")) + ".") + interval));
+                ((List<Object>)channels).add(((("ticker." + ((Map<String, Object>)market).get("id")) + ".") + interval));
             }
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -370,7 +370,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue((List<String>)(symbols), i));
-                ((List<Object>)channels).add(Helpers.add("quote.", ((Map<String, Object>)market).get("id")));
+                ((List<Object>)channels).add(("quote." + ((Map<String, Object>)market).get("id")));
             }
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -549,7 +549,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
-        String messageHash = Helpers.add((("trades|" + symbol) + "|"), interval);
+        String messageHash = ((("trades|" + symbol) + "|") + interval);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
@@ -788,7 +788,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             String group = this.safeString(parts, 2);
             String depth = this.safeString(parts, 3);
             String interval = this.safeString(parts, 4);
-            descriptor = Helpers.add((Helpers.add(Helpers.add(group, "."), depth) + "."), interval);
+            descriptor = ((Helpers.add((group + "."), depth) + ".") + interval);
         } else
         {
             String interval = this.safeString(parts, 2);
@@ -1083,7 +1083,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe), stored);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
-        String messageHash = Helpers.add((("chart.trades|" + symbol) + "|"), rawTimeframe);
+        String messageHash = ((("chart.trades|" + symbol) + "|") + rawTimeframe);
         client.resolve(resolveData, messageHash);
     }
 
@@ -1145,9 +1145,9 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 {
                     market = this.market(current);
                 }
-                Object message = Helpers.add((Helpers.add((channelName + "."), ((Map<String, Object>)market).get("id")) + "."), channelDescriptor);
+                Object message = ((((channelName + ".") + ((Map<String, Object>)market).get("id")) + ".") + channelDescriptor);
                 ((List<Object>)rawSubscriptions).add(message);
-                ((List<Object>)messageHashes).add(Helpers.add((((channelName + "|") + ((Map<String, Object>)market).get("symbol")) + "|"), channelDescriptor));
+                ((List<Object>)messageHashes).add(((((channelName + "|") + ((Map<String, Object>)market).get("symbol")) + "|") + channelDescriptor));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );

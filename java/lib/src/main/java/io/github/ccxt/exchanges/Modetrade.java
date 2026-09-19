@@ -886,7 +886,7 @@ public class Modetrade extends ModetradeApi
         String quote = this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(parts, 2);
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+        Object symbol = ((((base + "/") + quote) + ":") + settle);
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", marketId );

@@ -522,7 +522,7 @@ public class Bitopro extends BitoproApi
         String quoteId = this.safeString(market, "quote");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Map<String, Object> limits = new HashMap<String, Object>() {{
             put( "amount", new HashMap<String, Object>() {{
                 put( "min", Bitopro.this.safeNumber(market, "minLimitBaseAmount") );
@@ -2161,7 +2161,7 @@ final Object finalJ = j;
                 String networkId = (((java.util.Objects.equals(requestedNetwork, null)))) ? null : this.safeString(networks, requestedNetwork);
                 if (java.util.Objects.equals(networkId, null))
                 {
-                    throw new ExchangeError(Helpers.add((this.id + " invalid network "), requestedNetwork)) ;
+                    throw new ExchangeError(((this.id + " invalid network ") + requestedNetwork)) ;
                 }
                 ((Map<String, Object>)request).put("protocol", networkId);
             }

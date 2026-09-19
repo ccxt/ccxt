@@ -454,7 +454,7 @@ public class Indodax extends IndodaxApi
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -639,8 +639,8 @@ public class Indodax extends IndodaxApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "server_time");
-        String baseVolume = Helpers.add("vol_", this.safeStringLower(market, "baseId"));
-        String quoteVolume = Helpers.add("vol_", this.safeStringLower(market, "quoteId"));
+        String baseVolume = ("vol_" + this.safeStringLower(market, "baseId"));
+        String quoteVolume = ("vol_" + this.safeStringLower(market, "quoteId"));
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -980,12 +980,12 @@ public class Indodax extends IndodaxApi
             {
                 baseId = "rp";
             }
-            cost = this.safeString(order, Helpers.add("order_", quoteId));
-            amount = this.safeString(order, Helpers.add("order_", baseId));
-            remaining = this.safeString(order, Helpers.add("remain_", baseId));
+            cost = this.safeString(order, ("order_" + quoteId));
+            amount = this.safeString(order, ("order_" + baseId));
+            remaining = this.safeString(order, ("remain_" + baseId));
             // filled buy orders on idr-quoted markets carry the executed base amount
             // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-            filled = this.safeString(order, Helpers.add("receive_", baseId));
+            filled = this.safeString(order, ("receive_" + baseId));
         }
         Long timestamp = this.safeInteger(order, "submit_time");
         Object fee = null;

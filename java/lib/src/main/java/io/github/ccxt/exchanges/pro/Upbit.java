@@ -323,7 +323,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         {
             Helpers.addElementToObject(this.tickers, symbol, ticker);
         }
-        String messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
     }
 
@@ -778,7 +778,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         Helpers.callDynamically(myTrades, "append", new Object[]{trade});
         String messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
-        messageHash = Helpers.add("myTrades:", ((Map<String, Object>)trade).get("symbol"));
+        messageHash = ("myTrades:" + ((Map<String, Object>)trade).get("symbol"));
         client.resolve(myTrades, messageHash);
     }
 
@@ -814,7 +814,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
         Object messageHash = "myOrder";
         client.resolve(this.orders, messageHash);
-        messageHash = Helpers.add((messageHash + ":"), symbol);
+        messageHash = ((messageHash + ":") + symbol);
         client.resolve(this.orders, messageHash);
     }
 

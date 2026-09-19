@@ -1189,7 +1189,7 @@ public class Foxbit extends FoxbitApi
             {
                 if (java.util.Objects.equals(triggerPrice, null))
                 {
-                    throw new InvalidOrder((Helpers.add("Invalid order type: ", type) + ". Must have triggerPrice.")) ;
+                    throw new InvalidOrder((("Invalid order type: " + type) + ". Must have triggerPrice.")) ;
                 }
             }
             if (!java.util.Objects.equals(timeInForce, null))
@@ -1267,7 +1267,7 @@ public class Foxbit extends FoxbitApi
                 Object orderParams = this.safeDict(order, "params", new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(type, "LIMIT") && !java.util.Objects.equals(type, "MARKET") && !java.util.Objects.equals(type, "STOP_MARKET") && !java.util.Objects.equals(type, "STOP_LIMIT") && !java.util.Objects.equals(type, "INSTANT"))
                 {
-                    throw new InvalidOrder((Helpers.add("Invalid order type: ", type) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
+                    throw new InvalidOrder((("Invalid order type: " + type) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
                 }
                 String timeInForce = this.safeStringUpper(orderParams, "timeInForce");
                 Boolean postOnly = (Boolean) this.safeBool(orderParams, "postOnly", false);
@@ -1282,7 +1282,7 @@ public class Foxbit extends FoxbitApi
                 {
                     if (java.util.Objects.equals(triggerPrice, null))
                     {
-                        throw new InvalidOrder((Helpers.add("Invalid order type: ", type) + ". Must have triggerPrice.")) ;
+                        throw new InvalidOrder((("Invalid order type: " + type) + ". Must have triggerPrice.")) ;
                     }
                 }
                 if (!java.util.Objects.equals(timeInForce, null))
@@ -2095,7 +2095,7 @@ public class Foxbit extends FoxbitApi
         String quoteId = this.safeString(quoteAssets, "symbol");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(market, "default_fees");
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -2603,7 +2603,7 @@ public class Foxbit extends FoxbitApi
         }
         if (!java.util.Objects.equals(error, null))
         {
-            String feedback = ((Helpers.add((this.id + " "), message) + " details: ") + detailsString);
+            String feedback = ((((this.id + " ") + message) + " details: ") + detailsString);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), detailsString, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);

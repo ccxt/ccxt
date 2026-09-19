@@ -898,7 +898,7 @@ public class Tokocrypto extends TokocryptoApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
                 String status = this.safeString(market, "spotTradingEnable");
@@ -2106,7 +2106,7 @@ public class Tokocrypto extends TokocryptoApi
             }};
             final Object finalUppercaseType = uppercaseType;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.add(Helpers.add(((Map<String, Object>)market).get("baseId"), "_"), ((Map<String, Object>)market).get("quoteId")) );
+                put( "symbol", Helpers.add((((Map<String, Object>)market).get("baseId") + "_"), ((Map<String, Object>)market).get("quoteId")) );
                 put( "type", Tokocrypto.this.safeString(reverseOrderTypeMapping, finalUppercaseType) );
             }};
             if (java.util.Objects.equals(side, "buy"))

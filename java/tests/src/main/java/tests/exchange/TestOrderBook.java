@@ -51,7 +51,7 @@ public class TestOrderBook extends BaseTest {
                 if (Helpers.isGreaterThan(bidsLength, nextI))
                 {
                     String nextBidString = exchange.safeString(Helpers.GetValue(bids, nextI), 0);
-                    Assert(Precise.stringGt(currentBidString, nextBidString), Helpers.add(Helpers.add((Helpers.add("current bid should be > than the next one: ", currentBidString) + ">"), nextBidString), logText));
+                    Assert(Precise.stringGt(currentBidString, nextBidString), Helpers.add(((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString), logText));
                 }
             }
             if (!(Helpers.inOp(skippedProperties, "compareToZero")))
@@ -72,7 +72,7 @@ public class TestOrderBook extends BaseTest {
                 if (Helpers.isGreaterThan(asksLength, nextI))
                 {
                     String nextAskString = exchange.safeString(Helpers.GetValue(asks, nextI), 0);
-                    Assert(Precise.stringLt(currentAskString, nextAskString), Helpers.add(Helpers.add((Helpers.add("current ask should be < than the next one: ", currentAskString) + "<"), nextAskString), logText));
+                    Assert(Precise.stringLt(currentAskString, nextAskString), Helpers.add(((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString), logText));
                 }
             }
             if (!(Helpers.inOp(skippedProperties, "compareToZero")))
@@ -89,7 +89,7 @@ public class TestOrderBook extends BaseTest {
                 String firstBid = exchange.safeString((bids == null || 0 >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(0)), 0);
                 String firstAsk = exchange.safeString((asks == null || 0 >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(0)), 0);
                 // check bid-ask spread
-                Assert(Precise.stringLt(firstBid, firstAsk), ((Helpers.add((Helpers.add("bids[0][0] (", firstBid) + ") should be < than asks[0][0] ("), firstAsk) + ")") + logText));
+                Assert(Precise.stringLt(firstBid, firstAsk), ((((("bids[0][0] (" + firstBid) + ") should be < than asks[0][0] (") + firstAsk) + ")") + logText));
             }
         }
     }

@@ -2769,16 +2769,16 @@ public class Htx extends HtxApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 Object expiry = null;
                 if (Boolean.TRUE.equals(contract))
                 {
                     if (java.util.Objects.equals(inverse, true))
                     {
-                        symbol = Helpers.add(symbol, Helpers.add(":", base));
+                        symbol = Helpers.add(symbol, (":" + base));
                     } else if (java.util.Objects.equals(linear, true))
                     {
-                        symbol = Helpers.add(symbol, Helpers.add(":", quote));
+                        symbol = Helpers.add(symbol, (":" + quote));
                     }
                     if (Boolean.TRUE.equals(future))
                     {
@@ -2961,7 +2961,7 @@ public class Htx extends HtxApi
             String contractType = this.safeString(info, "contract_type");
             String contractSuffix = this.safeString(futuresCharsMaps, contractType);
             // see comment on formats a bit above
-            Object constructedId = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? Helpers.add((Helpers.add(Helpers.add(((Map<String, Object>)market).get("base"), "-"), ((Map<String, Object>)market).get("quote")) + "-"), contractSuffix) : Helpers.add(Helpers.add(((Map<String, Object>)market).get("base"), "_"), contractSuffix);
+            Object constructedId = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("base"), "-"), ((Map<String, Object>)market).get("quote")) + "-") + contractSuffix) : (Helpers.add(((Map<String, Object>)market).get("base"), "_") + contractSuffix);
             if (java.util.Objects.equals(constructedId, symbolOrMarketId))
             {
                 Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -4196,7 +4196,7 @@ public class Htx extends HtxApi
                         response = (this.contractPublicGetIndexMarketHistoryIndex(this.extend(request, parameters))).join();
                     } else if (java.util.Objects.equals(priceType, "premiumIndex"))
                     {
-                        throw new BadRequest((((Helpers.add((this.id + " "), ((Map<String, Object>)market).get("type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                        throw new BadRequest((((((this.id + " ") + ((Map<String, Object>)market).get("type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
                     } else
                     {
                         response = (this.contractPublicGetMarketHistoryKline(this.extend(request, parameters))).join();
@@ -4209,7 +4209,7 @@ public class Htx extends HtxApi
                         response = (this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, parameters))).join();
                     } else if (java.util.Objects.equals(priceType, "index"))
                     {
-                        throw new BadRequest((((Helpers.add((this.id + " "), ((Map<String, Object>)market).get("type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                        throw new BadRequest((((((this.id + " ") + ((Map<String, Object>)market).get("type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
                     } else if (java.util.Objects.equals(priceType, "premiumIndex"))
                     {
                         response = (this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.extend(request, parameters))).join();
@@ -4228,7 +4228,7 @@ public class Htx extends HtxApi
                         response = (this.contractPublicGetIndexMarketHistorySwapMarkPriceKline(this.extend(request, parameters))).join();
                     } else if (java.util.Objects.equals(priceType, "index"))
                     {
-                        throw new BadRequest((((Helpers.add((this.id + " "), ((Map<String, Object>)market).get("type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                        throw new BadRequest((((((this.id + " ") + ((Map<String, Object>)market).get("type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
                     } else if (java.util.Objects.equals(priceType, "premiumIndex"))
                     {
                         response = (this.contractPublicGetIndexMarketHistorySwapPremiumIndexKline(this.extend(request, parameters))).join();
@@ -4243,7 +4243,7 @@ public class Htx extends HtxApi
                         response = (this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, parameters))).join();
                     } else if (java.util.Objects.equals(priceType, "index"))
                     {
-                        throw new BadRequest((((Helpers.add((this.id + " "), ((Map<String, Object>)market).get("type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                        throw new BadRequest((((((this.id + " ") + ((Map<String, Object>)market).get("type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
                     } else if (java.util.Objects.equals(priceType, "premiumIndex"))
                     {
                         response = (this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.extend(request, parameters))).join();
@@ -6607,7 +6607,7 @@ public class Htx extends HtxApi
                 ((Map<String, Object>)request).put("operator", stopOperator);
                 if ((java.util.Objects.equals(orderType, "limit")) || (java.util.Objects.equals(orderType, "limit-fok")))
                 {
-                    orderType = Helpers.add("stop-", orderType);
+                    orderType = ("stop-" + orderType);
                 } else if ((!java.util.Objects.equals(orderType, "stop-limit")) && (!java.util.Objects.equals(orderType, "stop-limit-fok")))
                 {
                     throw new NotSupported((((this.id + " createOrder() does not support ") + type) + " orders")) ;
@@ -6635,7 +6635,7 @@ public class Htx extends HtxApi
             {
                 Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
                 String brokerId = this.safeString(broker, "id");
-                ((Map<String, Object>)request).put("client-order-id", Helpers.add(brokerId, this.uuid()));
+                ((Map<String, Object>)request).put("client-order-id", (brokerId + this.uuid()));
             } else
             {
                 ((Map<String, Object>)request).put("client-order-id", clientOrderId);
@@ -11590,7 +11590,7 @@ public class Htx extends HtxApi
                 response = (this.contractPublicGetApiV3ContractLiquidationOrders(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchLiquidations() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " fetchLiquidations() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
             //
             //     {

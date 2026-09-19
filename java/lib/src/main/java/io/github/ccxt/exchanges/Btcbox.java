@@ -376,7 +376,7 @@ public class Btcbox extends BtcboxApi
         String base = this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", Btcbox.this.safeString(market, "symbol") );
@@ -1021,7 +1021,7 @@ public class Btcbox extends BtcboxApi
             }
         } else if (java.util.Objects.equals(api, "webApi"))
         {
-            url = Helpers.add(Helpers.add(((Map<String, Object>)this.urls).get("www"), "/"), path);
+            url = Helpers.add((((Map<String, Object>)this.urls).get("www") + "/"), path);
         } else
         {
             this.checkRequiredCredentials();

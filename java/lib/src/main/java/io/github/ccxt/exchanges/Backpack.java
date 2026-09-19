@@ -918,7 +918,7 @@ public class Backpack extends BackpackApi
         String quoteId = this.safeString(market, "quoteSymbol");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Map<String, Object> filters = (Map<String, Object>) this.safeDict(market, "filters", new HashMap<String, Object>() {{}});
         Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filters, "price", new HashMap<String, Object>() {{}});
         Double maxPrice = this.safeNumber(priceFilter, "maxPrice");
@@ -945,7 +945,7 @@ public class Backpack extends BackpackApi
             inverse = false;
             settleId = this.safeString(market, "quoteSymbol");
             settle = this.safeCurrencyCode(settleId);
-            symbol = Helpers.add(symbol, Helpers.add(":", settle));
+            symbol = Helpers.add(symbol, (":" + settle));
             contractSize = 1;
         }
         String orderBookState = this.safeString(market, "orderBookState");

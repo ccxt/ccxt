@@ -630,7 +630,7 @@ public class Upbit extends UpbitApi
             final Object finalState = state;
             return this.safeMarketStructure(new HashMap<String, Object>() {{
                 put( "id", marketId );
-                put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                put( "symbol", ((finalBase + "/") + quote) );
                 put( "base", finalBase );
                 put( "quote", quote );
                 put( "settle", null );
@@ -729,7 +729,7 @@ public class Upbit extends UpbitApi
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalId );
-            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+            put( "symbol", ((finalBase + "/") + quote) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", null );
@@ -1226,7 +1226,7 @@ public class Upbit extends UpbitApi
         String marketId = this.safeString2(trade, "market", "code");
         market = this.safeMarket(marketId, market, "-");
         Object fee = null;
-        String feeCost = this.safeString(trade, Helpers.add(askOrBid, "_fee"));
+        String feeCost = this.safeString(trade, (askOrBid + "_fee"));
         if (!java.util.Objects.equals(feeCost, null))
         {
             final Object finalMarket = market;
@@ -3014,7 +3014,7 @@ public class Upbit extends UpbitApi
         Object url = this.implodeParams(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), new HashMap<String, Object>() {{
             put( "hostname", Upbit.this.hostname );
         }});
-        url = (url + ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters)));
+        url = (url + ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
         Object query = this.omit(parameters, this.extractParams(path));
         if (!java.util.Objects.equals(method, "POST"))
         {

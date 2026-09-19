@@ -850,7 +850,7 @@ public class Btse extends BtseApi
         String quoteId = this.safeString(market, "quoteCurrency");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         String maxAmountString = this.safeString(market, "maxOrderSize");
         String minAmountString = this.safeString(market, "minOrderSize");
         String minPriceString = this.safeString(market, "minOrderPrice");
@@ -862,7 +862,7 @@ public class Btse extends BtseApi
         String contractSize = null;
         if (!Boolean.TRUE.equals(isSpot))
         {
-            symbol = Helpers.add(symbol, Helpers.add(":", quote));
+            symbol = Helpers.add(symbol, (":" + quote));
             contractSize = this.safeString(market, "contractSize");
             if (Boolean.TRUE.equals(isFuture))
             {

@@ -350,7 +350,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             Helpers.addElementToObject(this.tickers, symbol, ticker);
         }
-        String messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
     }
 
@@ -562,7 +562,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             Helpers.addElementToObject(this.bidsasks, symbol, ticker);
         }
-        String messageHash = Helpers.add("bidask:", symbol);
+        String messageHash = ("bidask:" + symbol);
         client.resolve(ticker, messageHash);
     }
 
@@ -648,7 +648,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 messageHash = ("kline:" + symbol);
             } else
             {
-                ((Map<String, Object>)args).put("channel", Helpers.add("candle", interval));
+                ((Map<String, Object>)args).put("channel", ("candle" + interval));
                 ((Map<String, Object>)args).put("instId", ((Map<String, Object>)market).get("id"));
                 messageHash = ((("candles:" + timeframe) + ":") + symbol);
             }
@@ -714,10 +714,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 messageHash = Helpers.add(channel, symbol);
             } else
             {
-                channel = Helpers.add("candle", interval);
+                channel = ("candle" + interval);
                 ((Map<String, Object>)args).put("channel", channel);
                 ((Map<String, Object>)args).put("instId", ((Map<String, Object>)market).get("id"));
-                messageHash = Helpers.add("candles:", interval);
+                messageHash = ("candles:" + interval);
             }
             return (this.unWatchChannel(symbol, channel, messageHash, "watchOHLCV", parameters)).join();
         });
@@ -1599,7 +1599,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 instType = "UTA";
             }
-            messageHash = Helpers.add(Helpers.add(instType, ":positions"), messageHash);
+            messageHash = Helpers.add((instType + ":positions"), messageHash);
             final Object finalInstType = instType;
             Object args = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
@@ -1914,7 +1914,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             if ((java.util.Objects.equals(productType, null)) && (!java.util.Objects.equals(type, "spot")) && (java.util.Objects.equals(symbol, null)))
             {
-                messageHash = Helpers.add((messageHash + ":"), subType);
+                messageHash = ((messageHash + ":") + subType);
             } else if (java.util.Objects.equals(productType, "USDT-FUTURES"))
             {
                 messageHash = (messageHash + ":linear");
@@ -1966,7 +1966,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 instType = "UTA";
                 channel = "order";
             }
-            subscriptionHash = Helpers.add((subscriptionHash + ":"), instType);
+            subscriptionHash = ((subscriptionHash + ":") + instType);
             final Object finalInstType = instType;
             Object args = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
@@ -2137,7 +2137,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
-            Object innerMessageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
+            Object innerMessageHash = Helpers.add((messageHash + ":"), symbol);
             if (java.util.Objects.equals(channel, "orders-crossed"))
             {
                 innerMessageHash = (innerMessageHash + ":cross");
@@ -2515,7 +2515,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 instType = "UTA";
             }
-            Object subscriptionHash = Helpers.add("fill:", instType);
+            Object subscriptionHash = ("fill:" + instType);
             final Object finalInstType = instType;
             Object args = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
@@ -2684,7 +2684,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object parsed = this.parseWsTrade(trade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
-            String symbolSpecificMessageHash = Helpers.add("myTrades:", symbol);
+            String symbolSpecificMessageHash = ("myTrades:" + symbol);
             client.resolve(stored, symbolSpecificMessageHash);
         }
         client.resolve(stored, messageHash);
@@ -2927,7 +2927,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         // see https://github.com/ccxt/ccxt/issues/21973
         Helpers.addElementToObject(this.balance, "info", message);
         this.balance = this.safeBalance(this.balance);
-        String messageHash = Helpers.add("balance:", instType);
+        String messageHash = ("balance:" + instType);
         client.resolve(this.balance, messageHash);
     }
 
@@ -3450,8 +3450,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             subMessageHash = ("kline:" + symbol);
         } else
         {
-            messageHash = ((Helpers.add("unsubscribe:candles:", timeframe) + ":") + symbol);
-            subMessageHash = ((Helpers.add("candles:", timeframe) + ":") + symbol);
+            messageHash = ((("unsubscribe:candles:" + timeframe) + ":") + symbol);
+            subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
         }
         if (((Map<?, ?>)this.ohlcvs).containsKey(symbol))
         {

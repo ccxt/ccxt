@@ -1562,7 +1562,7 @@ public class Bingx extends BingxApi
         String type = (((!java.util.Objects.equals(settle, null)))) ? "swap" : "spot";
         Boolean spot = java.util.Objects.equals(type, "spot");
         Boolean swap = java.util.Objects.equals(type, "swap");
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         if (!java.util.Objects.equals(settle, null))
         {
             symbol = (symbol + (":" + settle));
@@ -7570,7 +7570,7 @@ public class Bingx extends BingxApi
                     {
                         if (Helpers.isGreaterThan(j, 0))
                         {
-                            arrStr = Helpers.add(arrStr, ((("," + "\"") + String.valueOf(arrayElement)) + "\""));
+                            arrStr = (arrStr + ((("," + "\"") + String.valueOf(arrayElement)) + "\""));
                         } else
                         {
                             arrStr = (("\"" + String.valueOf(arrayElement)) + "\"");
@@ -7586,7 +7586,7 @@ public class Bingx extends BingxApi
                         }
                     }
                 }
-                adjustedValue = (Helpers.add("[", arrStr) + "]");
+                adjustedValue = (("[" + arrStr) + "]");
                 value = adjustedValue;
             }
             if ((i == 0))

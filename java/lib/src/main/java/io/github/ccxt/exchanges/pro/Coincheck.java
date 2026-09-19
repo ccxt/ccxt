@@ -91,7 +91,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
-                put( "channel", Helpers.add(((Map<String, Object>)market).get("id"), "-orderbook") );
+                put( "channel", (((Map<String, Object>)market).get("id") + "-orderbook") );
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
@@ -169,7 +169,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
-                put( "channel", Helpers.add(((Map<String, Object>)market).get("id"), "-trades") );
+                put( "channel", (((Map<String, Object>)market).get("id") + "-trades") );
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();

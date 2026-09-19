@@ -137,7 +137,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                    Object subscription = Helpers.add((name + ":"), ((Map<String, Object>)market).get("id"));
+                    Object subscription = ((name + ":") + ((Map<String, Object>)market).get("id"));
                     ((List<Object>)rawSubscriptions).add(subscription);
                     String messageHash = ("ticker:" + symbol);
                     ((List<Object>)messageHashes).add(messageHash);
@@ -473,7 +473,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                    ((List<Object>)subscriptionHashes).add(Helpers.add("liquidation:", ((Map<String, Object>)market).get("id")));
+                    ((List<Object>)subscriptionHashes).add(("liquidation:" + ((Map<String, Object>)market).get("id")));
                     ((List<Object>)messageHashes).add(("liquidations::" + symbol));
                 }
             }
@@ -1461,7 +1461,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            client.resolve(stored, Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(keys, i)));
+            client.resolve(stored, Helpers.add((messageHash + ":"), Helpers.GetValue(keys, i)));
         }
     }
 
@@ -1529,7 +1529,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object topic = Helpers.add((table + ":"), ((Map<String, Object>)market).get("id"));
+                Object topic = ((table + ":") + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ((table + ":") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -1576,7 +1576,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object topic = Helpers.add((table + ":"), ((Map<String, Object>)market).get("id"));
+                Object topic = ((table + ":") + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ((table + ":") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -1626,7 +1626,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String table = ("tradeBin" + this.safeString(this.timeframes, timeframe, timeframe));
-            Object messageHash = Helpers.add((table + ":"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = ((table + ":") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
@@ -1721,7 +1721,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             String marketId = this.safeString(candle, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Object messageHash = Helpers.add(Helpers.add(table, ":"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = Helpers.add((table + ":"), ((Map<String, Object>)market).get("id"));
             List<Object> result = new ArrayList<Object>(Arrays.asList(Helpers.subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), Helpers.multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")));
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);

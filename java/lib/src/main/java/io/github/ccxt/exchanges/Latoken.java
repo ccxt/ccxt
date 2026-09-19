@@ -1103,7 +1103,7 @@ public class Latoken extends LatokenApi
         String quoteId = this.safeString(trade, "quoteCurrency");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
         {
             market = this.market(symbol);
@@ -2259,7 +2259,7 @@ public class Latoken extends LatokenApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        String request = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        String request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object requestString = request;
         Object query = this.omit(parameters, this.extractParams(path));
         Object urlencodedQuery = this.urlencode(query);

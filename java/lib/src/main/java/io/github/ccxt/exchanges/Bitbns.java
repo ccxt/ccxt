@@ -417,14 +417,14 @@ public class Bitbns extends BitbnsApi
                 Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(marketLimits, "cost", new HashMap<String, Object>() {{}});
                 Boolean usdt = (java.util.Objects.equals(quoteId, "USDT"));
                 // INR markets don't need a _INR prefix
-                Object uppercaseId = ((Boolean.TRUE.equals(usdt))) ? ((Helpers.add(baseId, "_") + quoteId)) : baseId;
+                Object uppercaseId = ((Boolean.TRUE.equals(usdt))) ? (((baseId + "_") + quoteId)) : baseId;
     final Object finalBase = base;
                 final Object finalBaseId = baseId;
                 final Object finalQuoteId = quoteId;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "uppercaseId", uppercaseId );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -668,7 +668,7 @@ public class Bitbns extends BitbnsApi
                 // note that "Money" stands for INR - the only fiat in bitbns
                 Object account = this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(data, key));
-                ((Map<String, Object>)account).put("used", this.safeString(data, Helpers.add("inorder", currencyId)));
+                ((Map<String, Object>)account).put("used", this.safeString(data, ("inorder" + currencyId)));
                 if (java.util.Objects.equals(currencyId, "Money"))
                 {
                     currencyId = "INR";
@@ -946,7 +946,7 @@ public class Bitbns extends BitbnsApi
             Object response = null;
             String tail = (((java.util.Objects.equals(isTrigger, true)))) ? "StopLossOrder" : "Order";
             Object quoteSide = (((java.util.Objects.equals(((Map<String, Object>)market).get("quoteId"), "USDT")))) ? "usdtcancel" : "cancel";
-            quoteSide = Helpers.add(quoteSide, tail);
+            quoteSide = (quoteSide + tail);
             ((Map<String, Object>)request).put("side", quoteSide);
             response = (this.v2PostCancel(this.extend(request, parameters))).join();
             Object parsed = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
@@ -1062,7 +1062,7 @@ public class Bitbns extends BitbnsApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("uppercaseId") );
                 put( "page", 0 );
-                put( "side", (((java.util.Objects.equals(finalIsTrigger, true)))) ? (Helpers.add(finalQuoteSide, "StopOrders")) : (Helpers.add(finalQuoteSide, "Orders")) );
+                put( "side", (((java.util.Objects.equals(finalIsTrigger, true)))) ? ((finalQuoteSide + "StopOrders")) : ((finalQuoteSide + "Orders")) );
             }};
             Map<String, Object> response = (this.v2PostGetordersnew(this.extend(request, parameters))).join();
             //

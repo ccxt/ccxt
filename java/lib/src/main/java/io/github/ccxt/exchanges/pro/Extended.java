@@ -702,7 +702,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         Object fundingRate = this.parseWsFundingRate(data, null, message);
         String symbol = this.safeString(fundingRate, "symbol");
         Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
-        String messageHash = Helpers.add("fundingRate:", symbol);
+        String messageHash = ("fundingRate:" + symbol);
         client.resolve(fundingRate, messageHash);
     }
 
@@ -1008,7 +1008,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         String symbol = this.safeString(subscription, "symbol");
         String timeframe = this.safeString(subscription, "timeframe");
         String candleType = this.safeString(subscription, "candleType");
-        Object cacheKey = (((java.util.Objects.equals(candleType, "trades")))) ? timeframe : Helpers.add(Helpers.add(timeframe, ":"), candleType);
+        Object cacheKey = (((java.util.Objects.equals(candleType, "trades")))) ? timeframe : Helpers.add((timeframe + ":"), candleType);
         String messageHash = this.safeString(subscription, "messageHash");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), cacheKey);

@@ -818,7 +818,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(channel, timeframes);
-        Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
+        Object messageHash = Helpers.add((channel + "::"), symbol);
         Object parsed = this.parseWsOHLCV(data, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = (((java.util.Objects.equals(timeframe, null)))) ? null : this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -868,7 +868,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 Object trade = this.parseWsTrade(item);
                 Object symbol = ((Map<String, Object>)trade).get("symbol");
                 String type = "trades";
-                Object messageHash = Helpers.add((type + "::"), symbol);
+                Object messageHash = ((type + "::") + symbol);
                 Object tradesArray = (((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
                 if (java.util.Objects.equals(tradesArray, null))
                 {

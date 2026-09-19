@@ -229,7 +229,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
         }
         Helpers.callDynamically(stored, "append", new Object[]{trade});
-        String messageHash = Helpers.add("trades:", symbol);
+        String messageHash = ("trades:" + symbol);
         client.resolve(stored, messageHash);
     }
 

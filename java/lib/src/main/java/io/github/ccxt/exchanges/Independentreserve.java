@@ -479,7 +479,7 @@ public class Independentreserve extends IndependentreserveApi
                     final Object finalBaseId = baseId;
                                     ((List<Object>)result).add(new HashMap<String, Object>() {{
                         put( "id", id );
-                        put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                        put( "symbol", ((finalBase + "/") + quote) );
                         put( "base", finalBase );
                         put( "quote", quote );
                         put( "settle", null );
@@ -763,7 +763,7 @@ public class Independentreserve extends IndependentreserveApi
         {
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            symbol = Helpers.add(Helpers.add(base, "/"), quote);
+            symbol = Helpers.add((base + "/"), quote);
         } else if (!java.util.Objects.equals(market, null))
         {
             symbol = ((Map<String, Object>)market).get("symbol");

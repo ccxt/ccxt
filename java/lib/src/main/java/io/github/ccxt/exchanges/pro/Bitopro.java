@@ -116,7 +116,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 endPart = ((Map<String, Object>)market).get("id");
             } else
             {
-                endPart = (Helpers.add(((Map<String, Object>)market).get("id"), ":") + this.numberToString(limit));
+                endPart = ((((Map<String, Object>)market).get("id") + ":") + this.numberToString(limit));
             }
             Object orderbook = (this.watchPublic("order-books", messageHash, endPart)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -151,14 +151,14 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String eventVar = this.safeString(message, "event");
-        Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
+        Object messageHash = Helpers.add((eventVar + ":"), symbol);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
             orderbook = this.orderBook(new HashMap<String, Object>() {{}});
         }
         Long timestamp = this.safeInteger(message, "timestamp");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount");
+        Object snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, messageHash);
     }
@@ -224,7 +224,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String eventVar = this.safeString(message, "event");
-        Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
+        Object messageHash = Helpers.add((eventVar + ":"), symbol);
         List<Object> rawData = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawData, market);
         Object tradesCache = this.safeValue(this.trades, symbol);
@@ -235,7 +235,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            Helpers.callDynamically(tradesCache, "append", new Object[]{(trades == null || i < 0 || i >= trades.size() ? null : trades.get(i))});
+            Helpers.callDynamically(tradesCache, "append", new Object[]{Helpers.GetValue(trades, i)});
         }
         Helpers.addElementToObject(this.trades, symbol, tradesCache);
         client.resolve(tradesCache, messageHash);
@@ -314,7 +314,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         String quoteId = this.safeString(data, "quote");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        String symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        String symbol = this.symbol(Helpers.add((base + "/"), quote));
         String messageHash = this.safeString(message, "event");
         if (java.util.Objects.equals(this.myTrades, null))
         {
@@ -325,7 +325,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Object parsed = this.parseWsTrade(data);
         Helpers.callDynamically(trades, "append", new Object[]{parsed});
         client.resolve(trades, messageHash);
-        client.resolve(trades, Helpers.add(Helpers.add(messageHash, ":"), symbol));
+        client.resolve(trades, Helpers.add((messageHash + ":"), symbol));
     }
 
     public Object parseWsTrade(Object trade, Object... optionalArgs)
@@ -356,7 +356,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         String quoteId = this.safeString(trade, "quote");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        String symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        String symbol = this.symbol(Helpers.add((base + "/"), quote));
         market = this.safeMarket(symbol, market);
         String price = this.safeString(trade, "price");
         String type = this.safeStringLower(trade, "orderType");
@@ -472,8 +472,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String eventVar = this.safeString(message, "event");
-        Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
-        Map<String, Object> result = (Map<String, Object>) this.parseTicker(message, market);
+        Object messageHash = Helpers.add((eventVar + ":"), symbol);
+        Object result = this.parseTicker(message, market);
         Helpers.addElementToObject(result, "symbol", this.safeString(market, "symbol")); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(result, "timestamp", timestamp);
@@ -512,10 +512,10 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             put( "X-BITOPRO-PAYLOAD", payload );
             put( "X-BITOPRO-SIGNATURE", signature );
         }};
-        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
+        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(this.options, "ws"), "options"), "headers", headers);
         // instantiate client
         this.client(url);
-        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", originalHeaders);
+        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(this.options, "ws"), "options"), "headers", originalHeaders);
     }
 
     /**

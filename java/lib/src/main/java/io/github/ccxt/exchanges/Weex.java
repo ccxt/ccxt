@@ -1251,7 +1251,7 @@ public class Weex extends WeexApi
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
         Object active = true;
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Boolean isSpot = true;
         Object isLinear = null;
         Object isInverse = null;
@@ -2338,7 +2338,7 @@ public class Weex extends WeexApi
         if (!java.util.Objects.equals(collectCycle, null))
         {
             interval = Precise.stringDiv(collectCycle, "60");
-            interval = Helpers.add(interval, "h");
+            interval = (interval + "h");
         }
         final Object finalInterval = interval;
         return new HashMap<String, Object>() {{

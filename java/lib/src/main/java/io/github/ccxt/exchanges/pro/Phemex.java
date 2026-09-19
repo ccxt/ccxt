@@ -727,7 +727,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
             String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "trade_p" : "trade";
             String messageHash = ("trade:" + symbol);
-            Object method = Helpers.add(name, ".subscribe");
+            Object method = (name + ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", method );
                 put( "id", requestId );
@@ -777,7 +777,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
             String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "orderbook_p" : "orderbook";
             String messageHash = ("orderbook:" + symbol);
-            Object method = Helpers.add(name, ".subscribe");
+            Object method = (name + ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", method );
                 put( "id", requestId );
@@ -826,7 +826,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
             String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "kline_p" : "kline";
             String messageHash = ((("kline:" + timeframe) + ":") + symbol);
-            Object method = Helpers.add(name, ".subscribe");
+            Object method = (name + ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", method );
                 put( "id", requestId );
@@ -1129,7 +1129,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             client.resolve(cachedTrades, hash);
         }
         // generic subscription
-        Object messageHash = Helpers.add((channel + ":"), type);
+        Object messageHash = ((channel + ":") + type);
         client.resolve(cachedTrades, messageHash);
     }
 
@@ -1416,7 +1416,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             client.resolve(this.orders, currentMessageHash);
         }
         // resolve generic subscription (spot or swap)
-        String messageHash = Helpers.add("orders:", type);
+        String messageHash = ("orders:" + type);
         client.resolve(this.orders, messageHash);
     }
 

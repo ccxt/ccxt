@@ -183,7 +183,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             parameters = ((List<Object>) nameparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("tickerSubs")), ((String)((Map<String, Object>)market).get("id")), true); // we need to re-subscribe to all tickers upon watching a new ticker
+            Helpers.addElementToObject(Helpers.GetValue(this.options, "tickerSubs"), ((String)((Map<String, Object>)market).get("id")), true); // we need to re-subscribe to all tickers upon watching a new ticker
             Object tickerSubs = ((Map<String, Object>)this.options).get("tickerSubs");
             Object request = Helpers.objectKeys(tickerSubs);
             String messageHash = ((name + "::") + ((Map<String, Object>)market).get("symbol"));
@@ -384,17 +384,17 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(channel, timeframes);
         String symbol = this.safeString(market, "symbol");
-        Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
-        List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
+        Object messageHash = Helpers.add((channel + "::"), symbol);
+        Object parsed = this.parseOHLCV(data, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (!java.util.Objects.equals(symbol, null))
         {
             if (java.util.Objects.equals(stored, null))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             client.resolve(stored, messageHash);
@@ -438,10 +438,10 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         for (var i = 0; i < ((List<?>)(List<Object>)(trades)).size(); i++)
         {
             Object item = Helpers.GetValue((List<Object>)(trades), i);
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(item, market);
+            Object trade = this.parseTrade(item, market);
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
         }
-        String messageHash = Helpers.add("deals::", symbol);
+        String messageHash = ("deals::" + symbol);
         client.resolve(tradesArray, messageHash);
         return message;
     }
@@ -502,7 +502,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
-        Object messageHash = Helpers.add(Helpers.add(messageHashStart, "::"), symbol);
+        Object messageHash = Helpers.add((messageHashStart + "::"), symbol);
         client.resolve(ticker, messageHash);
         return message;
     }
@@ -542,7 +542,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         if (java.util.Objects.equals(orderbook, null))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
-            orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+            orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         }
         if (java.util.Objects.equals(isFullUpdate, true))
         {

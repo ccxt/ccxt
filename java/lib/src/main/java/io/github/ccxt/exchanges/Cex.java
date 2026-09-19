@@ -564,8 +564,8 @@ public class Cex extends CexApi
         String base = this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
         String quote = this.safeCurrencyCode(quoteId);
-        Object id = Helpers.add(Helpers.add(base, "-"), quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object id = ((base + "-") + quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
+        Object symbol = ((base + "/") + quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );

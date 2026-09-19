@@ -595,7 +595,7 @@ final Object finalBase = base;
             final Object finalStatus = status;
                         ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                 put( "id", id );
-                put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                put( "symbol", ((finalBase + "/") + quote) );
                 put( "base", finalBase );
                 put( "quote", quote );
                 put( "settle", null );
@@ -3258,7 +3258,7 @@ final Object finalBase = base;
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object query = this.omit(parameters, this.extractParams(path));
-        Object url = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        Object url = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Boolean getOrDelete = (java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"));
         if (Boolean.TRUE.equals(getOrDelete))
         {

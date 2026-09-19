@@ -1417,7 +1417,7 @@ public class Coinex extends CoinexApi
                 String quoteId = this.safeString(market, "quote_ccy");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -1520,7 +1520,7 @@ public class Coinex extends CoinexApi
                 String quote = this.safeCurrencyCode(quoteId);
                 String settleId = (((java.util.Objects.equals(subType, "linear")))) ? "USDT" : baseId;
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+                Object symbol = ((((base + "/") + quote) + ":") + settle);
                 Object leveragesLength = ((List<?>)leverages).size();
     final Object finalBase = base;
                 final Object finalLeveragesLength = leveragesLength;
@@ -2848,7 +2848,7 @@ public class Coinex extends CoinexApi
         {
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                throw new InvalidOrder((Helpers.add((this.id + " createOrder() does not support reduceOnly for "), ((Map<String, Object>)market).get("type")) + " orders, reduceOnly orders are supported for swap markets only")) ;
+                throw new InvalidOrder((((this.id + " createOrder() does not support reduceOnly for ") + ((Map<String, Object>)market).get("type")) + " orders, reduceOnly orders are supported for swap markets only")) ;
             }
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3098,7 +3098,7 @@ public class Coinex extends CoinexApi
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(type, "limit"))
                 {
-                    throw new NotSupported((Helpers.add((this.id + " createOrders() does not support "), type) + " orders, only limit orders are accepted")) ;
+                    throw new NotSupported((((this.id + " createOrders() does not support ") + type) + " orders, only limit orders are accepted")) ;
                 }
                 reduceOnly = this.safeValue(orderParams, "reduceOnly");
                 Double triggerPrice = this.safeNumber2(orderParams, "stopPrice", "triggerPrice");

@@ -709,14 +709,14 @@ public class Deepcoin extends DeepcoinApi
         Object settle = null;
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Object isLinear = null;
         if (Boolean.TRUE.equals(swap))
         {
             isLinear = (!java.util.Objects.equals(quoteId, "USD"));
             settleId = ((Helpers.isTrue(isLinear))) ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
-            symbol = Helpers.add((symbol + ":"), settle);
+            symbol = ((symbol + ":") + settle);
         }
         Object fees = this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
         String maxLeverage = this.safeString(market, "lever", "1");
@@ -3889,7 +3889,7 @@ public class Deepcoin extends DeepcoinApi
             this.checkRequiredCredentials();
             Long timestamp = this.milliseconds();
             String dateTime = this.iso8601(timestamp);
-            Object payload = Helpers.add((Helpers.add(dateTime, method) + "/"), requestPath);
+            Object payload = Helpers.add(((dateTime + method) + "/"), requestPath);
             final Object finalDateTime = dateTime;
             headers = new HashMap<String, Object>() {{
                 put( "DC-ACCESS-KEY", Deepcoin.this.apiKey );

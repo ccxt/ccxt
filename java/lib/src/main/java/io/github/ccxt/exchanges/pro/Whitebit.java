@@ -588,7 +588,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Object parsed = this.parseWsTrade(trade);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
-        String messageHash = Helpers.add("myTrades:", symbol);
+        String messageHash = ("myTrades:" + symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -754,7 +754,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }}));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
-        String messageHash = Helpers.add("orders:", symbol);
+        String messageHash = ("orders:" + symbol);
         client.resolve(this.orders, messageHash);
     }
 

@@ -559,7 +559,7 @@ public class Bitteam extends BitteamApi
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "numericId", numericId );
-            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+            put( "symbol", ((finalBase + "/") + quote) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", null );
@@ -2790,13 +2790,13 @@ public class Bitteam extends BitteamApi
                 {
                     Object parts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/order/"))));
                     String orderId = this.safeString(parts, 1);
-                    throw new OrderNotFound((Helpers.add((this.id + " order "), orderId) + " not found")) ;
+                    throw new OrderNotFound((((this.id + " order ") + orderId) + " not found")) ;
                 }
                 if (((String)url).indexOf("/cmc/orderbook/") >= 0)
                 {
                     Object parts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/cmc/orderbook/"))));
                     String symbolId = this.safeString(parts, 1);
-                    throw new BadSymbol((Helpers.add((this.id + " symbolId "), symbolId) + " not found")) ;
+                    throw new BadSymbol((((this.id + " symbolId ") + symbolId) + " not found")) ;
                 }
             }
             String feedback = ((this.id + " ") + body);

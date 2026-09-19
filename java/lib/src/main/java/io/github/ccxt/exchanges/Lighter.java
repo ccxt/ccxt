@@ -1621,7 +1621,7 @@ public class Lighter extends LighterApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 if (!java.util.Objects.equals(settle, null))
                 {
                     symbol = ((symbol + ":") + settle);
@@ -1756,7 +1756,7 @@ public class Lighter extends LighterApi
             put( "id", id );
             put( "name", finalCode );
             put( "code", finalCode );
-            put( "precision", Lighter.this.parseNumber(Helpers.add("1e-", decimals)) );
+            put( "precision", Lighter.this.parseNumber(("1e-" + decimals)) );
             put( "active", true );
             put( "fee", null );
             put( "networks", new HashMap<String, Object>() {{}} );
@@ -4317,7 +4317,7 @@ public class Lighter extends LighterApi
             url = this.implodeHostname(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("public"));
         } else
         {
-            url = Helpers.add((Helpers.add((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/api/"), this.version) + "/"), path);
+            url = Helpers.add((((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/api/") + this.version) + "/"), path);
         }
         if (java.util.Objects.equals(api, "private"))
         {

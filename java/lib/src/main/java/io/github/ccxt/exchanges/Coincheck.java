@@ -987,7 +987,7 @@ public class Coincheck extends CoincheckApi
             }};
             if (java.util.Objects.equals(type, "market"))
             {
-                ((Map<String, Object>)request).put("order_type", Helpers.add((type + "_"), side));
+                ((Map<String, Object>)request).put("order_type", ((type + "_") + side));
                 if (java.util.Objects.equals(side, "sell"))
                 {
                     ((Map<String, Object>)request).put("amount", amount);

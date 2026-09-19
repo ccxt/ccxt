@@ -1112,7 +1112,7 @@ public class Bitrue extends BitrueApi
         }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         if (!java.util.Objects.equals(settle, null))
         {
             symbol = (symbol + (":" + settle));
@@ -3756,9 +3756,9 @@ public class Bitrue extends BitrueApi
             url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), type);
         } else
         {
-            url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), type), "/"), version);
+            url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), type), "/") + version);
         }
-        url = Helpers.add(Helpers.add(url, "/"), this.implodeParams(path, parameters));
+        url = Helpers.add((url + "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "private"))
         {
@@ -3794,7 +3794,7 @@ public class Bitrue extends BitrueApi
                 {
                     signPath = "/dapi";
                 }
-                signPath = Helpers.add((Helpers.add(Helpers.add(signPath, "/"), version) + "/"), path);
+                signPath = Helpers.add((((signPath + "/") + version) + "/"), path);
                 Object signMessage = Helpers.add(Helpers.add(timestamp, method), signPath);
                 if (java.util.Objects.equals(method, "GET"))
                 {

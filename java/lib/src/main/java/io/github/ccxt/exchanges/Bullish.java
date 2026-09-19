@@ -988,7 +988,7 @@ public class Bullish extends BullishApi
         String quoteId = this.safeString(market, "quoteSymbol");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         String basePrecision = this.safeString(market, "basePrecision");
         String quotePrecision = this.safeString(market, "quotePrecision");
         String amountPrecision = this.safeString(market, "quantityPrecision");
@@ -1023,7 +1023,7 @@ public class Bullish extends BullishApi
         } else
         {
             contractSize = this.safeNumber(market, "contractMultiplier");
-            symbol = Helpers.add(symbol, Helpers.add(":", settle));
+            symbol = Helpers.add(symbol, (":" + settle));
             linear = java.util.Objects.equals(settle, quote);
             inverse = !Helpers.isTrue(linear);
             if (java.util.Objects.equals(type, "swap"))
@@ -1044,7 +1044,7 @@ public class Bullish extends BullishApi
                     option = true;
                     optionType = this.safeStringLower(market, "optionType");
                     strike = this.parseToNumeric(this.safeString(market, "optionStrikePrice"));
-                    symbol = Helpers.add(symbol, Helpers.add((("-" + this.numberToString(strike)) + "-"), this.safeString(idParts, 4)));
+                    symbol = Helpers.add(symbol, ((("-" + this.numberToString(strike)) + "-") + this.safeString(idParts, 4)));
                 }
             }
         }

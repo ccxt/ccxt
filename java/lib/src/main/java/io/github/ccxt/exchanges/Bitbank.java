@@ -406,7 +406,7 @@ public class Bitbank extends BitbankApi
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+            put( "symbol", ((finalBase + "/") + quote) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", null );
@@ -1360,14 +1360,14 @@ public class Bitbank extends BitbankApi
             {
                 auth = nonce;
             }
-            url = Helpers.add(url, Helpers.add(Helpers.add(this.version, "/"), this.implodeParams(path, parameters)));
+            url = Helpers.add(url, Helpers.add((this.version + "/"), this.implodeParams(path, parameters)));
             if (java.util.Objects.equals(method, "POST"))
             {
                 body = this.json(query);
                 auth = Helpers.add(auth, body);
             } else
             {
-                auth = Helpers.add(auth, Helpers.add((Helpers.add("/", this.version) + "/"), path));
+                auth = Helpers.add(auth, Helpers.add((("/" + this.version) + "/"), path));
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
                     query = this.urlencode(query);

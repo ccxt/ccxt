@@ -730,7 +730,7 @@ public class Lbank extends LbankApi
                 String quoteId = (String) Helpers.GetValue(parts, 1);
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", marketId );
@@ -837,7 +837,7 @@ public class Lbank extends LbankApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+                Object symbol = ((((base + "/") + quote) + ":") + settle);
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", marketId );
@@ -2025,13 +2025,13 @@ public class Lbank extends LbankApi
                 ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
                 if (Boolean.TRUE.equals(ioc))
                 {
-                    ((Map<String, Object>)request).put("type", (Helpers.add(side, "_") + "ioc"));
+                    ((Map<String, Object>)request).put("type", ((side + "_") + "ioc"));
                 } else if (Boolean.TRUE.equals(fok))
                 {
-                    ((Map<String, Object>)request).put("type", (Helpers.add(side, "_") + "fok"));
+                    ((Map<String, Object>)request).put("type", ((side + "_") + "fok"));
                 } else if (Boolean.TRUE.equals(maker))
                 {
-                    ((Map<String, Object>)request).put("type", (Helpers.add(side, "_") + "maker"));
+                    ((Map<String, Object>)request).put("type", ((side + "_") + "maker"));
                 }
             } else if (java.util.Objects.equals(type, "market"))
             {

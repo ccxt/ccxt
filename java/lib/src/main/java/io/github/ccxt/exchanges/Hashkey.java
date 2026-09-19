@@ -1200,10 +1200,10 @@ public class Hashkey extends HashkeyApi
             isSpot = false;
             isSwap = true;
             baseId = this.safeString(market, "underlying");
-            suffix = Helpers.add(suffix, Helpers.add(":", settleId));
+            suffix = Helpers.add(suffix, (":" + settleId));
         }
         String base = this.safeCurrencyCode(baseId);
-        Object symbol = Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), suffix);
+        Object symbol = Helpers.add(((base + "/") + quote), suffix);
         String status = this.safeString(market, "status");
         Boolean active = java.util.Objects.equals(status, "TRADING");
         Object isLinear = null;
@@ -2951,7 +2951,7 @@ public class Hashkey extends HashkeyApi
                 return (this.createSwapOrder(symbol, type, side, amount, price, parameters)).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " createOrder() is not supported for "), ((Map<String, Object>)market).get("type")) + " type of markets")) ;
+                throw new NotSupported((((this.id + " createOrder() is not supported for ") + ((Map<String, Object>)market).get("type")) + " type of markets")) ;
             }
         }).thenApply(Order::new);
 
@@ -3073,7 +3073,7 @@ public class Hashkey extends HashkeyApi
             return this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
         } else
         {
-            throw new NotSupported((Helpers.add(((this.id + " ") + "createOrderRequest() is not supported for "), ((Map<String, Object>)market).get("type")) + " type of markets")) ;
+            throw new NotSupported(((((this.id + " ") + "createOrderRequest() is not supported for ") + ((Map<String, Object>)market).get("type")) + " type of markets")) ;
         }
     }
 
@@ -3341,7 +3341,7 @@ public class Hashkey extends HashkeyApi
                 response = (this.privatePostApiV1FuturesBatchOrders(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((Helpers.add(((this.id + " ") + "createOrderRequest() is not supported for "), ((Map<String, Object>)market).get("type")) + " type of markets")) ;
+                throw new NotSupported(((((this.id + " ") + "createOrderRequest() is not supported for ") + ((Map<String, Object>)market).get("type")) + " type of markets")) ;
             }
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             List<Object> responseOrders = new ArrayList<Object>(Arrays.asList());
@@ -3476,7 +3476,7 @@ public class Hashkey extends HashkeyApi
                 response = (this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((Helpers.add((((this.id + " ") + methodName) + "() is not supported for "), ((Map<String, Object>)market).get("type")) + " type of markets")) ;
+                throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + ((Map<String, Object>)market).get("type")) + " type of markets")) ;
             }
             Object order = this.safeOrder(response);
             Helpers.addElementToObject(order, "info", response);
@@ -4955,7 +4955,7 @@ final Object finalI = i;
                 return this.parseTradingFee(response, market);
             } else
             {
-                throw new NotSupported((Helpers.add((((this.id + " ") + methodName) + "() is not supported for "), ((Map<String, Object>)market).get("type")) + " type of markets")) ;
+                throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + ((Map<String, Object>)market).get("type")) + " type of markets")) ;
             }
         }).thenApply(TradingFeeInterface::new);
 
@@ -5087,7 +5087,7 @@ final Object finalI = i;
                 query = this.customUrlencode(this.extend(additionalParams, new HashMap<String, Object>() {{
                     put( "signature", finalSignature );
                 }}));
-                url = Helpers.add(url, Helpers.add("?", query));
+                url = Helpers.add(url, ("?" + query));
             } else
             {
                 Map<String, Object> totalParams = this.extend(additionalParams, parameters);
@@ -5096,7 +5096,7 @@ final Object finalI = i;
                 query = this.customUrlencode(totalParams);
                 if (java.util.Objects.equals(method, "GET"))
                 {
-                    url = Helpers.add(url, Helpers.add("?", query));
+                    url = Helpers.add(url, ("?" + query));
                 } else
                 {
                     body = query;

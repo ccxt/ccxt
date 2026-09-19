@@ -1133,7 +1133,7 @@ public class Poloniex extends PoloniexApi
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+            put( "symbol", ((finalBase + "/") + quote) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", null );
@@ -1224,14 +1224,14 @@ public class Poloniex extends PoloniexApi
         String status = this.safeString(market, "status");
         Boolean active = java.util.Objects.equals(status, "OPEN");
         Boolean linear = java.util.Objects.equals(((Map<String, Object>)market).get("ctType"), "LINEAR");
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(linear))
         {
-            symbol = Helpers.add(symbol, Helpers.add(":", settle));
+            symbol = Helpers.add(symbol, (":" + settle));
         } else
         {
             // actually, exchange does not have any inverse future now
-            symbol = Helpers.add(symbol, Helpers.add(":", base));
+            symbol = Helpers.add(symbol, (":" + base));
         }
         String alias = this.safeString(market, "alias");
         String type = "swap";
@@ -2545,7 +2545,7 @@ public class Poloniex extends PoloniexApi
         {
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                throw new InvalidOrder((Helpers.add((this.id + " createOrder() does not support trigger orders for "), ((Map<String, Object>)market).get("type")) + " markets")) ;
+                throw new InvalidOrder((((this.id + " createOrder() does not support trigger orders for ") + ((Map<String, Object>)market).get("type")) + " markets")) ;
             }
             upperCaseType = (((java.util.Objects.equals(price, null)))) ? "STOP" : "STOP_LIMIT";
             Helpers.addElementToObject(request, "stopPrice", triggerPrice);
@@ -2639,7 +2639,7 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                throw new NotSupported((Helpers.add((this.id + " editOrder() does not support "), ((Map<String, Object>)market).get("type")) + " orders, only spot orders are accepted")) ;
+                throw new NotSupported((((this.id + " editOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders, only spot orders are accepted")) ;
             }
             Object request = new HashMap<String, Object>() {{
                 put( "id", id );

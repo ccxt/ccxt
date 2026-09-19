@@ -4356,8 +4356,8 @@ public class Binance extends BinanceApi
         final Object finalBase = base;
         final Object finalOptionType = optionType;
         return new HashMap<String, Object>() {{
-            put( "id", Helpers.add((Helpers.add((Helpers.add(Helpers.add(finalBase, "-"), expiry) + "-"), strikeAsString) + "-"), finalOptionType) );
-            put( "symbol", Helpers.add((Helpers.add((Helpers.add(((((Helpers.add(finalBase, "/") + settle) + ":") + settle) + "-"), expiry) + "-"), strikeAsString) + "-"), finalOptionType) );
+            put( "id", ((((((finalBase + "-") + expiry) + "-") + strikeAsString) + "-") + finalOptionType) );
+            put( "symbol", ((((((((((finalBase + "/") + settle) + ":") + settle) + "-") + expiry) + "-") + strikeAsString) + "-") + finalOptionType) );
             put( "base", finalBase );
             put( "quote", settle );
             put( "baseId", finalBase );
@@ -5424,20 +5424,20 @@ public class Binance extends BinanceApi
         Object fees = this.fees;
         Object linear = null;
         Object inverse = null;
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Object strike = null;
         if (Boolean.TRUE.equals(contract))
         {
             if (Boolean.TRUE.equals(swap))
             {
-                symbol = Helpers.add((symbol + ":"), settle);
+                symbol = ((symbol + ":") + settle);
             } else if (Boolean.TRUE.equals(future))
             {
-                symbol = ((Helpers.add((symbol + ":"), settle) + "-") + this.yymmdd(expiry));
+                symbol = ((((symbol + ":") + settle) + "-") + this.yymmdd(expiry));
             } else if (Boolean.TRUE.equals(option))
             {
                 strike = this.numberToString(this.parseToNumeric(this.safeString(market, "strikePrice")));
-                symbol = Helpers.add((((((Helpers.add((symbol + ":"), settle) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-"), this.safeString(optionParts, 3));
+                symbol = ((((((((symbol + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + this.safeString(optionParts, 3));
             }
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = java.util.Objects.equals(settle, quote);
@@ -7681,7 +7681,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                throw new NotSupported((Helpers.add((this.id + " editSpotOrder() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " editSpotOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
             Object payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
             Map<String, Object> response = (this.privatePostOrderCancelReplace(payload)).join();
@@ -7792,10 +7792,10 @@ public class Binance extends BinanceApi
         {
             if (!java.util.Objects.equals(initialUppercaseType, uppercaseType))
             {
-                throw new InvalidOrder((((Helpers.add((this.id + " triggerPrice parameter is not allowed for "), symbol) + " ") + type) + " orders")) ;
+                throw new InvalidOrder((((((this.id + " triggerPrice parameter is not allowed for ") + symbol) + " ") + type) + " orders")) ;
             } else
             {
-                throw new InvalidOrder((Helpers.add((((this.id + " ") + type) + " is not a valid order type for the "), symbol) + " market")) ;
+                throw new InvalidOrder((((((this.id + " ") + type) + " is not a valid order type for the ") + symbol) + " market")) ;
             }
         }
         if (java.util.Objects.equals(clientOrderId, null))
@@ -7922,7 +7922,7 @@ public class Binance extends BinanceApi
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
         {
-            throw new NotSupported((Helpers.add((this.id + " editContractOrder() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
+            throw new NotSupported((((this.id + " editContractOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
         }
         if (java.util.Objects.equals(side, null))
         {
@@ -8070,7 +8070,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
-                throw new NotSupported((Helpers.add((this.id + " editOrder() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " editOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
@@ -8131,7 +8131,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
             {
-                throw new NotSupported((Helpers.add((this.id + " editOrders() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " editOrders() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
             Object response = null;
             Object request = new HashMap<String, Object>() {{
@@ -8968,7 +8968,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                throw new NotSupported((Helpers.add((this.id + " createOrders() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " createOrders() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
             Object response = null;
             Object request = new HashMap<String, Object>() {{
@@ -9338,7 +9338,7 @@ public class Binance extends BinanceApi
         {
             if (java.util.Objects.equals(type, "market"))
             {
-                throw new InvalidOrder((Helpers.add((((this.id + " ") + type) + " is not a valid order type for the "), symbol) + " market")) ;
+                throw new InvalidOrder((((((this.id + " ") + type) + " is not a valid order type for the ") + symbol) + " market")) ;
             }
         } else
         {
@@ -9351,10 +9351,10 @@ public class Binance extends BinanceApi
             {
                 if (!java.util.Objects.equals(initialUppercaseType, uppercaseType))
                 {
-                    throw new InvalidOrder((((Helpers.add((this.id + " triggerPrice parameter is not allowed for "), symbol) + " ") + type) + " orders")) ;
+                    throw new InvalidOrder((((((this.id + " triggerPrice parameter is not allowed for ") + symbol) + " ") + type) + " orders")) ;
                 } else
                 {
-                    throw new InvalidOrder((Helpers.add((((this.id + " ") + type) + " is not a valid order type for the "), symbol) + " market")) ;
+                    throw new InvalidOrder((((((this.id + " ") + type) + " is not a valid order type for the ") + symbol) + " market")) ;
                 }
             }
         }
@@ -11822,7 +11822,7 @@ public class Binance extends BinanceApi
         String tradedCurrency = this.safeCurrencyCode(currencyId);
         Map<String, Object> bnb = (Map<String, Object>) this.currency("BNB");
         Object earnedCurrency = ((Map<String, Object>)bnb).get("code");
-        Object applicantSymbol = Helpers.add((earnedCurrency + "/"), tradedCurrency);
+        Object applicantSymbol = ((earnedCurrency + "/") + tradedCurrency);
         Boolean tradedCurrencyIsQuote = false;
         if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(applicantSymbol)))
         {
@@ -11846,7 +11846,7 @@ public class Binance extends BinanceApi
             side = "buy";
         } else
         {
-            symbol = Helpers.add(Helpers.add(tradedCurrency, "/"), earnedCurrency);
+            symbol = Helpers.add((tradedCurrency + "/"), earnedCurrency);
             amountString = this.safeString(trade, "amount");
             costString = this.safeString(trade, "transferedAmount");
             side = "sell";
@@ -16295,7 +16295,7 @@ final Object finalMarket = market;
             {
                 signature = this.hmac(this.encode(query), this.encode(this.secret), sha256());
             }
-            query = Helpers.add(query, Helpers.add(("&" + "signature="), signature));
+            query = Helpers.add(query, (("&" + "signature=") + signature));
             headers = new HashMap<String, Object>() {{
                 put( "X-MBX-APIKEY", Binance.this.apiKey );
             }};
@@ -17721,7 +17721,7 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchMyLiquidations() does not support "), this.safeString(market, "type")) + " markets")) ;
+                throw new NotSupported((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type")) + " markets")) ;
             }
             //
             // margin
@@ -18425,7 +18425,7 @@ final Object finalMarket = market;
                 response = (this.dapiPrivateGetPositionMarginHistory(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest(Helpers.add((this.id + " fetchMarginAdjustmentHistory () is not supported for markets of type "), ((Map<String, Object>)market).get("type"))) ;
+                throw new BadRequest(((this.id + " fetchMarginAdjustmentHistory () is not supported for markets of type ") + ((Map<String, Object>)market).get("type"))) ;
             }
             //
             //    [

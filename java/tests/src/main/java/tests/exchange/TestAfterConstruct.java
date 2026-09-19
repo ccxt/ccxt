@@ -81,7 +81,7 @@ public class TestAfterConstruct extends BaseTest {
                 Object networkId = Helpers.GetValue(((Map<String, Object>)exchange.options).get("networks"), networkCode);
                 // check networkCodeToId
                 Object networkIdConverted = exchange.networkCodeToId(networkCode);
-                Assert(java.util.Objects.equals(networkId, networkIdConverted), (Helpers.add((((Helpers.add((("exchange.networkCodeToId (\"" + networkCode) + "\")=\""), networkIdConverted) + "\" does not match exchange.options[\"networks\"][\"") + networkCode) + "\"]=\""), networkId) + "\""));
+                Assert(java.util.Objects.equals(networkId, networkIdConverted), (Helpers.add((((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + networkIdConverted) + "\" does not match exchange.options[\"networks\"][\"") + networkCode) + "\"]=\""), networkId) + "\""));
                 // ensure it exists in networksById
                 Assert(Helpers.inOp(((Map<String, Object>)exchange.options).get("networksById"), networkId), (Helpers.add("exchange.options[\"networksById\"] does not contain networkId \"", networkId) + "\""));
                 // ensure networkCode matches for networksById (however, it only works if one mapping is set)
@@ -90,7 +90,7 @@ public class TestAfterConstruct extends BaseTest {
                     Assert(java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId), networkCode), (Helpers.add((((Helpers.add("exchange.options[\"networksById\"][\"", networkId) + "\"] value is not expected \"") + networkCode) + "\", but: \""), Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId)) + "\""));
                     // check networkIdToCode conversion back
                     Object networkCodeConverted = exchange.networkIdToCode(networkId);
-                    Assert(java.util.Objects.equals(networkCode, networkCodeConverted), (((Helpers.add((Helpers.add("exchange.networkIdToCode (\"", networkId) + "\")=\""), networkCodeConverted) + "\" does not match key \"") + networkCode) + "\" of exchange.options[\"networks\"]"));
+                    Assert(java.util.Objects.equals(networkCode, networkCodeConverted), (((((Helpers.add("exchange.networkIdToCode (\"", networkId) + "\")=\"") + networkCodeConverted) + "\" does not match key \"") + networkCode) + "\" of exchange.options[\"networks\"]"));
                 }
             }
         }

@@ -1834,12 +1834,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
         Boolean isSpot = (java.util.Objects.equals(typeId, "SPOT"));
         Object fees = this.fees;
-        Object symbol = Helpers.add(Helpers.add(baseId, "/"), quoteId);
+        Object symbol = ((baseId + "/") + quoteId);
         String settleId = null;
         if (!Boolean.TRUE.equals(isSpot))
         {
             settleId = quoteId;
-            symbol = Helpers.add(symbol, Helpers.add(":", quoteId));
+            symbol = Helpers.add(symbol, (":" + quoteId));
         }
         Object isLinear = ((Boolean.TRUE.equals(isSpot))) ? null : (java.util.Objects.equals(settleId, quoteId));
         Object isInverse = ((Boolean.TRUE.equals(isSpot))) ? null : (!java.util.Objects.equals(settleId, quoteId));

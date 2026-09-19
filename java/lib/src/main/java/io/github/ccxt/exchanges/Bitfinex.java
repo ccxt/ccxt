@@ -967,7 +967,7 @@ public class Bitfinex extends BitfinexApi
                 Object splitQuote = new ArrayList<Object>(Arrays.asList(((String)((String)quote)).split(java.util.regex.Pattern.quote("F0"))));
                 base = this.safeString(splitBase, 0);
                 quote = this.safeString(splitQuote, 0);
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = Helpers.add((base + "/"), quote);
                 // baseId = 'f' + baseId;
                 // quoteId = 'f' + quoteId;
                 Object settle = null;
@@ -976,7 +976,7 @@ public class Bitfinex extends BitfinexApi
                 {
                     settle = quote;
                     settleId = quote;
-                    symbol = Helpers.add((symbol + ":"), settle);
+                    symbol = ((symbol + ":") + settle);
                 }
                 String minOrderSizeString = this.safeString(market, 3);
                 String maxOrderSizeString = this.safeString(market, 4);
@@ -990,7 +990,7 @@ public class Bitfinex extends BitfinexApi
                 final Object finalType = type;
                 final Object finalSpot = spot;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
-                    put( "id", Helpers.add("t", id) );
+                    put( "id", ("t" + id) );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
                     put( "quote", finalQuote );
@@ -1509,7 +1509,7 @@ public class Bitfinex extends BitfinexApi
             Boolean isDerivativeCode = java.util.Objects.equals(Helpers.slice(((String)currencyId), start, null), "F0");
             if (!Boolean.TRUE.equals(isDerivativeCode))
             {
-                currencyId = Helpers.add(currencyId, "F0");
+                currencyId = (currencyId + "F0");
             }
         } else if (!java.util.Objects.equals(type, "margin"))
         {
@@ -2407,7 +2407,7 @@ public class Bitfinex extends BitfinexApi
             {
                 String errorCode = this.safeString(response, 5);
                 String errorText = this.safeString(response, 7);
-                throw new ExchangeError((Helpers.add((Helpers.add((Helpers.add((this.id + " "), status) + ": "), errorText) + " (#"), errorCode) + ")")) ;
+                throw new ExchangeError((((((((this.id + " ") + status) + ": ") + errorText) + " (#") + errorCode) + ")")) ;
             }
             List<Object> orders = (List<Object>) this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
             List<Object> order = (List<Object>) this.safeList(orders, 0);
@@ -3645,7 +3645,7 @@ public class Bitfinex extends BitfinexApi
             String statusMessage = this.safeString(response, 0);
             if (java.util.Objects.equals(statusMessage, "error"))
             {
-                Object feedback = Helpers.add((this.id + " "), response);
+                Object feedback = ((this.id + " ") + response);
                 String message = this.safeString(response, 2, "");
                 // same message as in v1
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
@@ -5036,7 +5036,7 @@ public class Bitfinex extends BitfinexApi
             {
                 String errorCode = this.safeString(response, 5);
                 String errorText = this.safeString(response, 7);
-                throw new ExchangeError((Helpers.add((Helpers.add((Helpers.add((this.id + " "), status) + ": "), errorText) + " (#"), errorCode) + ")")) ;
+                throw new ExchangeError((((((((this.id + " ") + status) + ": ") + errorText) + " (#") + errorCode) + ")")) ;
             }
             List<Object> order = (List<Object>) this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> newOrder = new HashMap<String, Object>() {{

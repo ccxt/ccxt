@@ -894,7 +894,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             if (!java.util.Objects.equals(errorCode, "0000"))
             {
                 String msg = this.safeString(message, "resmsg");
-                throw new ExchangeError((String)Helpers.add((this.id + " "), msg)) ;
+                throw new ExchangeError(((this.id + " ") + msg)) ;
             }
             return true;
         } catch(Exception e)
@@ -1146,7 +1146,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Object cachedOrders = this.orders;
         Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
         client.resolve(cachedOrders, messageHash);
-        Object symbolSpecificMessageHash = Helpers.add((messageHash + ":"), symbol);
+        Object symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(cachedOrders, symbolSpecificMessageHash);
     }
 

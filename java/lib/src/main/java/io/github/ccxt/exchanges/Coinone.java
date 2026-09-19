@@ -586,7 +586,7 @@ public class Coinone extends CoinoneApi
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -928,7 +928,7 @@ public class Coinone extends CoinoneApi
         String quote = this.safeCurrencyCode(quoteId);
         final Object finalBase = base;
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+            put( "symbol", ((finalBase + "/") + quote) );
             put( "timestamp", timestamp );
             put( "datetime", Coinone.this.iso8601(timestamp) );
             put( "high", Coinone.this.safeString(ticker, "high") );

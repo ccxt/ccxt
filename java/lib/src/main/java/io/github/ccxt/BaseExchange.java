@@ -5996,7 +5996,7 @@ public Object describe()
 
     public Object orderbookChecksumMessage(Object symbol)
     {
-        return (Helpers.add(symbol, " : ") + "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
+        return ((symbol + " : ") + "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
     }
 
     public void createNetworksByIdObject()
@@ -7868,7 +7868,7 @@ public Object describe()
             {
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), marketType))
                 {
-                    throw new BadRequest((Helpers.add((((this.id + " symbols must be of the same type, either ") + marketType) + " or "), ((Map<String, Object>)market).get("type")) + ".")) ;
+                    throw new BadRequest((((((this.id + " symbols must be of the same type, either ") + marketType) + " or ") + ((Map<String, Object>)market).get("type")) + ".")) ;
                 }
             }
             if (Helpers.isTrue(sameSubTypeOnly) && (!java.util.Objects.equals(isLinearSubType, null)))
@@ -10444,7 +10444,7 @@ public Object describe()
         Object result = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
-            throw new InvalidOrder(Helpers.add((((this.id + " price of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum price precision of "), this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price")))) ;
+            throw new InvalidOrder(((((this.id + " price of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum price precision of ") + this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price")))) ;
         }
         return result;
     }
@@ -10459,7 +10459,7 @@ public Object describe()
         Object result = this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
-            throw new InvalidOrder(Helpers.add((((this.id + " amount of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum amount precision of "), this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount")))) ;
+            throw new InvalidOrder(((((this.id + " amount of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount")))) ;
         }
         return result;
     }
@@ -11048,7 +11048,7 @@ public Object describe()
         {
             if (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok))
             {
-                throw new InvalidOrder(Helpers.add((this.id + " postOnly orders cannot have timeInForce equal to "), timeInForce)) ;
+                throw new InvalidOrder(((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce)) ;
             } else if (Helpers.isTrue(isMarketOrder))
             {
                 throw new InvalidOrder((this.id + " market orders cannot be postOnly")) ;
@@ -11090,7 +11090,7 @@ public Object describe()
         {
             if (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok))
             {
-                throw new InvalidOrder(Helpers.add((this.id + " postOnly orders cannot have timeInForce equal to "), timeInForce)) ;
+                throw new InvalidOrder(((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce)) ;
             } else if (Helpers.isTrue(isMarketOrder))
             {
                 throw new InvalidOrder((this.id + " market orders cannot be postOnly")) ;
@@ -11765,7 +11765,7 @@ public Object describe()
                         Object responseLength = Helpers.getArrayLength(response);
                         if (this.verbose)
                         {
-                            Object backwardMessage = Helpers.add((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length "), this.numberToString(responseLength));
+                            Object backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
                             if (!java.util.Objects.equals(paginationTimestamp, null))
                             {
                                 backwardMessage = (backwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
@@ -11795,7 +11795,7 @@ public Object describe()
                         Object responseLength = Helpers.getArrayLength(response);
                         if (this.verbose)
                         {
-                            Object forwardMessage = Helpers.add((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length "), this.numberToString(responseLength));
+                            Object forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
                             if (!java.util.Objects.equals(paginationTimestamp, null))
                             {
                                 forwardMessage = (forwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
@@ -12221,7 +12221,7 @@ public Object describe()
                 {
                     throw new ExchangeError((this.id + " removeRepeatedTradesFromArray() missing timestamp")) ;
                 }
-                id = Helpers.add((Helpers.add((Helpers.add((("t_" + String.valueOf(timestamp)) + "_"), side) + "_"), price) + "_"), amount);
+                id = ((((((("t_" + String.valueOf(timestamp)) + "_") + side) + "_") + price) + "_") + amount);
             }
             if (!java.util.Objects.equals(id, null) && !(uniqueResult.containsKey(id)))
             {
@@ -12557,7 +12557,7 @@ public Object describe()
         {
             month = "DEC";
         }
-        Object reconstructedDate = Helpers.add(Helpers.add(day, month), year);
+        Object reconstructedDate = Helpers.add((day + month), year);
         return reconstructedDate;
     }
 
@@ -12591,7 +12591,7 @@ public Object describe()
         Object monthName = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(5, ((String)date).length())));
         String month = this.safeString(monthMappping, monthName);
         Object day = (date == null ? null : ((String)date).substring(Math.min(5, ((String)date).length()), Math.min(7, ((String)date).length())));
-        Object reconstructedDate = Helpers.add(Helpers.add(day, month), year);
+        Object reconstructedDate = Helpers.add((day + month), year);
         return reconstructedDate;
     }
 

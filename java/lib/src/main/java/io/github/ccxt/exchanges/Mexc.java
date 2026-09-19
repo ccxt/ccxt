@@ -1711,7 +1711,7 @@ public class Mexc extends MexcApi
                 final Object finalActive = active;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -1848,7 +1848,7 @@ public class Mexc extends MexcApi
                 final Object finalState = state;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", Helpers.add((Helpers.add(Helpers.add(finalBase, "/"), finalQuote) + ":"), settle) );
+                    put( "symbol", ((Helpers.add((finalBase + "/"), finalQuote) + ":") + settle) );
                     put( "base", finalBase );
                     put( "quote", finalQuote );
                     put( "settle", settle );
@@ -5822,7 +5822,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             }
             if (java.util.Objects.equals(result, null))
             {
-                throw new InvalidAddress((Helpers.add((((this.id + " fetchDepositAddress() cannot find a deposit address for ") + code) + ", and network"), network) + "consider creating one using .createDepositAddress() method or in MEXC website")) ;
+                throw new InvalidAddress((((((this.id + " fetchDepositAddress() cannot find a deposit address for ") + code) + ", and network") + network) + "consider creating one using .createDepositAddress() method or in MEXC website")) ;
             }
             return result;
         }).thenApply(DepositAddress::new);

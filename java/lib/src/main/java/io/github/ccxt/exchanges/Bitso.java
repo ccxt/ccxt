@@ -678,7 +678,7 @@ public class Bitso extends BitsoApi
                 final Object finalQuote = quote;
                             ((List<Object>)result).add(this.safeMarketStructure(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
+                    put( "symbol", Helpers.add((finalBase + "/"), finalQuote) );
                     put( "base", finalBase );
                     put( "quote", finalQuote );
                     put( "settle", null );
@@ -2378,7 +2378,7 @@ public class Bitso extends BitsoApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        String endpoint = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        String endpoint = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE"))
         {

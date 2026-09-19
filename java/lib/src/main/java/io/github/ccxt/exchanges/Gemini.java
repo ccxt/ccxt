@@ -885,7 +885,7 @@ public class Gemini extends GeminiApi
                 final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", finalMarketId );
-                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "symbol", ((finalBase + "/") + quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -1169,10 +1169,10 @@ public class Gemini extends GeminiApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         if (!java.util.Objects.equals(settleId, null))
         {
-            symbol = Helpers.add((symbol + ":"), settle);
+            symbol = ((symbol + ":") + settle);
             swap = true;
             contractSize = tickSize; // always same
             linear = true; // always linear
@@ -1463,7 +1463,7 @@ public class Gemini extends GeminiApi
             }
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            symbol = Helpers.add(Helpers.add(base, "/"), quote);
+            symbol = Helpers.add((base + "/"), quote);
         }
         if ((java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(market, null)))
         {
@@ -2659,7 +2659,7 @@ public class Gemini extends GeminiApi
         {
             String reasonInner = this.safeString(response, "reason");
             String message = this.safeString(response, "message");
-            Object feedback = Helpers.add((this.id + " "), message);
+            Object feedback = ((this.id + " ") + message);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), reasonInner, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);

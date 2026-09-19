@@ -401,7 +401,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Object ticker = this.parseWsInstrument(message);
         String channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
-        client.resolve(ticker, Helpers.add(Helpers.add(channel, "::"), ((Map<String, Object>)ticker).get("symbol")));
+        client.resolve(ticker, Helpers.add((channel + "::"), ((Map<String, Object>)ticker).get("symbol")));
     }
 
     public Object parseWsInstrument(Object ticker, Object... optionalArgs)
@@ -515,7 +515,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Object ticker = this.parseWsTicker(message);
         String channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
-        client.resolve(ticker, Helpers.add(Helpers.add(channel, "::"), ((Map<String, Object>)ticker).get("symbol")));
+        client.resolve(ticker, Helpers.add((channel + "::"), ((Map<String, Object>)ticker).get("symbol")));
     }
 
     public Object parseWsTicker(Object ticker, Object... optionalArgs)
@@ -638,7 +638,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Object parsed = this.parseOHLCV(tick, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        client.resolve(stored, Helpers.add(Helpers.add(messageHash, "::"), symbol));
+        client.resolve(stored, Helpers.add((messageHash + "::"), symbol));
     }
 
     /**
@@ -728,7 +728,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
         Helpers.addElementToObject(this.trades, ((String)symbol), tradesArray);
         client.resolve(tradesArray, channel);
-        client.resolve(tradesArray, Helpers.add(Helpers.add(channel, "::"), ((Map<String, Object>)trade).get("symbol")));
+        client.resolve(tradesArray, Helpers.add((channel + "::"), ((Map<String, Object>)trade).get("symbol")));
         return message;
     }
 
@@ -872,7 +872,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Helpers.addElementToObject(orderbook, "datetime", datetime);
         Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
-        client.resolve(orderbook, Helpers.add(Helpers.add(channel, "::"), symbol));
+        client.resolve(orderbook, Helpers.add((channel + "::"), symbol));
     }
 
     public void handleDelta(Object orderbook, Object delta)
@@ -949,7 +949,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String channel = this.safeString(message, "channel");
         Object fundingRate = this.parseFundingRate(message);
         Helpers.addElementToObject(this.fundingRates, Helpers.GetValue(fundingRate, "symbol"), fundingRate);
-        client.resolve(fundingRate, Helpers.add(Helpers.add(channel, "::"), Helpers.GetValue(fundingRate, "symbol")));
+        client.resolve(fundingRate, Helpers.add((channel + "::"), Helpers.GetValue(fundingRate, "symbol")));
     }
 
     public Object handleErrorMessage(Client client, Object message)
@@ -971,7 +971,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String errMsg = this.safeString(message, "message");
         try
         {
-            Object feedback = Helpers.add(Helpers.add((this.id + " "), errMsg), reason);
+            Object feedback = Helpers.add(((this.id + " ") + errMsg), reason);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), reason, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), reason, feedback);
             throw new ExchangeError((String)feedback) ;

@@ -2473,8 +2473,8 @@ public class Okx extends OkxApi
         final Object finalExpiry = expiry;
         final Object finalOptionType = optionType;
         return new HashMap<String, Object>() {{
-            put( "id", Helpers.add((Helpers.add((Helpers.add(((Helpers.add(finalBase, "-") + quote) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
-            put( "symbol", Helpers.add((Helpers.add((Helpers.add((Helpers.add(((Helpers.add(finalBase, "/") + quote) + ":"), settle) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
+            put( "id", ((((((((finalBase + "-") + quote) + "-") + finalExpiry) + "-") + strike) + "-") + finalOptionType) );
+            put( "symbol", ((((((((((finalBase + "/") + quote) + ":") + settle) + "-") + finalExpiry) + "-") + strike) + "-") + finalOptionType) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", settle );
@@ -2856,7 +2856,7 @@ public class Okx extends OkxApi
         }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         // handle preopen empty markets
         if (java.util.Objects.equals(base, "") || java.util.Objects.equals(quote, ""))
         {
@@ -2887,7 +2887,7 @@ public class Okx extends OkxApi
                 if (!java.util.Objects.equals(expiry, null))
                 {
                     Object ymd = this.yymmdd(expiry);
-                    symbol = Helpers.add((Helpers.add((((symbol + "-") + ymd) + "-"), strikePrice) + "-"), optionType);
+                    symbol = ((((((symbol + "-") + ymd) + "-") + strikePrice) + "-") + optionType);
                     optionType = (((java.util.Objects.equals(optionType, "P")))) ? "put" : "call";
                 }
             }
@@ -4194,7 +4194,7 @@ public class Okx extends OkxApi
                 ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
             } else if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
             {
-                ((Map<String, Object>)request).put("uly", Helpers.add(Helpers.add(((Map<String, Object>)market).get("baseId"), "-"), ((Map<String, Object>)market).get("quoteId")));
+                ((Map<String, Object>)request).put("uly", Helpers.add((((Map<String, Object>)market).get("baseId") + "-"), ((Map<String, Object>)market).get("quoteId")));
             } else
             {
                 throw new NotSupported((this.id + " fetchTradingFee() supports spot, swap, future or option markets only")) ;
@@ -8519,7 +8519,7 @@ public class Okx extends OkxApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object isArray = (parameters instanceof List);
-        String request = ((Helpers.add("/api/", this.version) + "/") + this.implodeParams(path, parameters));
+        String request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = (this.implodeHostname(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest")) + request);
         // const type = this.getPathAuthenticationType (path);
@@ -8566,7 +8566,7 @@ public class Okx extends OkxApi
                 put( "OK-ACCESS-PASSPHRASE", Okx.this.password );
                 put( "OK-ACCESS-TIMESTAMP", finalTimestamp );
             }};
-            Object auth = (Helpers.add(timestamp, method) + request);
+            Object auth = ((timestamp + method) + request);
             if (java.util.Objects.equals(method, "GET"))
             {
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
@@ -10472,7 +10472,7 @@ public class Okx extends OkxApi
             final Object finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Okx.this.convertToInstrumentType(finalType) );
-                put( "uly", Helpers.add(Helpers.add(((Map<String, Object>)market).get("baseId"), "-"), ((Map<String, Object>)market).get("quoteId")) );
+                put( "uly", Helpers.add((((Map<String, Object>)market).get("baseId") + "-"), ((Map<String, Object>)market).get("quoteId")) );
             }};
             if (!java.util.Objects.equals(since, null))
             {

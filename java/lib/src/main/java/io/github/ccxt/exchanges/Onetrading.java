@@ -636,10 +636,10 @@ public class Onetrading extends OnetradingApi
         String state = this.safeString(market, "state");
         String type = this.safeString(market, "type");
         Boolean isPerp = java.util.Objects.equals(type, "PERP");
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(isPerp))
         {
-            symbol = Helpers.add((symbol + ":"), quote);
+            symbol = ((symbol + ":") + quote);
         }
         final Object finalSymbol = symbol;
         final Object finalBase = base;

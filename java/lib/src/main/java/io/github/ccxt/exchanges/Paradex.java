@@ -938,7 +938,7 @@ public class Paradex extends ParadexApi
         String base = this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settlement_currency");
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+        Object symbol = ((((base + "/") + quote) + ":") + settle);
         Long expiry = this.safeInteger(market, "expiry_at");
         String optionType = this.safeString(market, "option_type");
         String strikePrice = this.safeString(market, "strike_price");
@@ -948,7 +948,7 @@ public class Paradex extends ParadexApi
         {
             String optionTypeSuffix = (((java.util.Objects.equals(optionType, "CALL")))) ? "C" : "P";
             Object deliveryValue = (((Helpers.isEqual(expiry, 0)))) ? "" : (this.yymmdd(expiry) + "-");
-            symbol = Helpers.add((Helpers.add(((symbol + "-") + deliveryValue), strikePrice) + "-"), optionTypeSuffix);
+            symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
         {

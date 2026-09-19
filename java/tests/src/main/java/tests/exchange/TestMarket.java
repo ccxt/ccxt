@@ -155,7 +155,7 @@ public class TestMarket extends BaseTest {
             Object type = Helpers.GetValue(checkedTypes, i);
             if (java.util.Objects.equals(Helpers.GetValue(market, type), true))
             {
-                Assert(java.util.Objects.equals(type, ((Map<String, Object>)market).get("type")), ((((Helpers.add("market.type (", ((Map<String, Object>)market).get("type")) + ") not equal to \"") + type) + "\"") + logText));
+                Assert(java.util.Objects.equals(type, ((Map<String, Object>)market).get("type")), ((((("market.type (" + ((Map<String, Object>)market).get("type")) + ") not equal to \"") + type) + "\"") + logText));
             }
         }
         // check if 'subType' is consistent
@@ -167,7 +167,7 @@ public class TestMarket extends BaseTest {
                 Object subType = Helpers.GetValue(checkedSubTypes, i);
                 if (java.util.Objects.equals(Helpers.GetValue(market, subType), true))
                 {
-                    Assert(java.util.Objects.equals(subType, ((Map<String, Object>)market).get("subType")), ((((Helpers.add("market.subType (", ((Map<String, Object>)market).get("subType")) + ") not equal to \"") + subType) + "\"") + logText));
+                    Assert(java.util.Objects.equals(subType, ((Map<String, Object>)market).get("subType")), ((((("market.subType (" + ((Map<String, Object>)market).get("subType")) + ") not equal to \"") + subType) + "\"") + logText));
                 }
             }
         }
@@ -244,7 +244,7 @@ public class TestMarket extends BaseTest {
             Assert(!java.util.Objects.equals(((Map<String, Object>)market).get("expiryDatetime"), null), ("\"expiryDatetime\" must be defined when \"future\" is true" + logText));
             // expiry datetime should be correct
             Object isoString = exchange.iso8601(((Map<String, Object>)market).get("expiry"));
-            Assert(java.util.Objects.equals(((Map<String, Object>)market).get("expiryDatetime"), isoString), ((Helpers.add((("expiryDatetime (\"" + ((Map<String, Object>)market).get("expiryDatetime")) + "\") must be equal to expiry in iso8601 format \""), isoString) + "\"") + logText));
+            Assert(java.util.Objects.equals(((Map<String, Object>)market).get("expiryDatetime"), isoString), ((((("expiryDatetime (\"" + ((Map<String, Object>)market).get("expiryDatetime")) + "\") must be equal to expiry in iso8601 format \"") + isoString) + "\"") + logText));
             TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "expiry", "0");
             if (java.util.Objects.equals(option, true))
             {

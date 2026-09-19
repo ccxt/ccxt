@@ -338,7 +338,7 @@ public class Bitflyer extends BitflyerApi
             put( "DEC", "12" );
         }};
         String month = this.safeString(months, monthName);
-        return this.parse8601((Helpers.add((Helpers.add(Helpers.add(year, "-"), month) + "-"), day) + "T00:00:00Z"));
+        return this.parse8601((Helpers.add(((Helpers.add(year, "-") + month) + "-"), day) + "T00:00:00Z"));
     }
 
     public Object safeMarket(Object... optionalArgs)
@@ -451,7 +451,7 @@ public class Bitflyer extends BitflyerApi
                 }
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 Object taker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker");
                 Object maker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker");
                 Boolean contract = Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future);
@@ -1578,7 +1578,7 @@ public class Bitflyer extends BitflyerApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object request = (Helpers.add("/", this.version) + "/");
+        Object request = (("/" + this.version) + "/");
         if (java.util.Objects.equals(api, "private"))
         {
             request = (request + "me/");

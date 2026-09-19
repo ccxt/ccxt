@@ -98,7 +98,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orderbook:" + symbol);
-            String channel = Helpers.add("diff_order_book_", ((Map<String, Object>)market).get("id"));
+            String channel = ("diff_order_book_" + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
@@ -134,7 +134,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object channel = Helpers.add("diff_order_book_", ((Map<String, Object>)market).get("id"));
+            Object channel = ("diff_order_book_" + ((Map<String, Object>)market).get("id"));
             String subHash = ("orderbook:" + symbol);
             return (this.unWatchChannel(channel, subHash, "orderbook", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
@@ -313,7 +313,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trades:" + symbol);
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            String channel = Helpers.add("live_trades_", ((Map<String, Object>)market).get("id"));
+            String channel = ("live_trades_" + ((Map<String, Object>)market).get("id"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
                 put( "data", new HashMap<String, Object>() {{
@@ -352,7 +352,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object channel = Helpers.add("live_trades_", ((Map<String, Object>)market).get("id"));
+            Object channel = ("live_trades_" + ((Map<String, Object>)market).get("id"));
             String subHash = ("trades:" + symbol);
             return (this.unWatchChannel(channel, subHash, "trades", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
@@ -473,7 +473,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("fundingRate:" + symbol);
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            String channel = Helpers.add("funding_rate_", ((Map<String, Object>)market).get("id"));
+            String channel = ("funding_rate_" + ((Map<String, Object>)market).get("id"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
                 put( "data", new HashMap<String, Object>() {{
@@ -547,7 +547,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String channel = "private-my_orders";
-            Object messageHash = Helpers.add((channel + "_"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = ((channel + "_") + ((Map<String, Object>)market).get("id"));
             final Object finalSymbol = symbol;
             final Object finalLimit = limit;
             final Object finalChannel = channel;
@@ -594,7 +594,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             (this.authenticate()).join();
-            Object channel = Helpers.add((Helpers.add("private-my_orders_", ((Map<String, Object>)market).get("id")) + "-"), ((Map<String, Object>)this.options).get("userId"));
+            Object channel = Helpers.add((("private-my_orders_" + ((Map<String, Object>)market).get("id")) + "-"), ((Map<String, Object>)this.options).get("userId"));
             return (this.unWatchChannel(channel, channel, "orders", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -631,7 +631,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String channel = "private-my_trades";
-            Object messageHash = Helpers.add((channel + "_"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = ((channel + "_") + ((Map<String, Object>)market).get("id"));
             final Object finalSymbol = symbol;
             final Object finalLimit = limit;
             final Object finalChannel = channel;
@@ -678,7 +678,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             (this.authenticate()).join();
-            Object channel = Helpers.add((Helpers.add("private-my_trades_", ((Map<String, Object>)market).get("id")) + "-"), ((Map<String, Object>)this.options).get("userId"));
+            Object channel = Helpers.add((("private-my_trades_" + ((Map<String, Object>)market).get("id")) + "-"), ((Map<String, Object>)this.options).get("userId"));
             return (this.unWatchChannel(channel, channel, "myTrades", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 

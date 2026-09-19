@@ -210,7 +210,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marketId = ((Map<String, Object>)market).get("id");
             String messageHash = ("ticker::" + symbol);
-            Object channel = Helpers.add(marketId, "@ticker");
+            Object channel = (marketId + "@ticker");
             return (this.watchPublic(new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(channel)), parameters)).join();
         }).thenApply(Ticker::new);
 
@@ -273,7 +273,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                     Object symbol = Helpers.GetValue(symbols, i);
                     Object marketId = this.marketId(symbol);
                     ((List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
-                    ((List<Object>)channels).add(Helpers.add(marketId, channel));
+                    ((List<Object>)channels).add((marketId + channel));
                 }
             }
             (this.watchPublic(messageHashes, channels, parameters)).join();
@@ -325,7 +325,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                             continue;
                         }
                         Object marketId = this.marketId(symbol);
-                        ((List<Object>)channels).add(Helpers.add(marketId, channel));
+                        ((List<Object>)channels).add((marketId + channel));
                     }
                 }
                 ((List<Object>)messageHashes).add(messageHash);
@@ -337,7 +337,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                     Object symbol = Helpers.GetValue(symbols, i);
                     Object marketId = this.marketId(symbol);
                     ((List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
-                    ((List<Object>)channels).add(Helpers.add(marketId, channel));
+                    ((List<Object>)channels).add((marketId + channel));
                 }
                 ((Map<String, Object>)subscription).put("symbols", symbols);
             }
@@ -383,7 +383,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //
         Object ticker = this.parseTicker(message);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
-        String messageHash = Helpers.add("ticker::", symbol);
+        String messageHash = ("ticker::" + symbol);
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
         client.resolve(this.tickers, "ticker::all");
@@ -473,8 +473,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
                 String interval = this.safeString(timeframes, tf, tf);
-                ((List<Object>)channels).add(Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@kline_"), interval));
-                ((List<Object>)messageHashes).add(Helpers.add((("ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::"), interval));
+                ((List<Object>)channels).add(Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), interval));
+                ((List<Object>)messageHashes).add(((("ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + interval));
             }
             var symboltimeframecandlesVariable = (this.watchPublic(messageHashes, channels, parameters)).join();
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
@@ -520,8 +520,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 String interval = this.safeString(this.timeframes, tf, tf);
-                ((List<Object>)channels).add(Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@kline_"), interval));
-                ((List<Object>)messageHashes).add(Helpers.add((("unsubscribe::ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::"), interval));
+                ((List<Object>)channels).add(Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), interval));
+                ((List<Object>)messageHashes).add(((("unsubscribe::ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + interval));
             }
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
@@ -570,7 +570,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Object ohlcv = Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
         Object parsed = this.parseWsOHLCV(message);
         Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
-        String messageHash = Helpers.add((("ohlcv::" + symbol) + "::"), timeframe);
+        String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, ohlcv)), messageHash);
     }
 
@@ -657,7 +657,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((List<Object>)channels).add((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@depth"), depth) + channelSuffix));
+                ((List<Object>)channels).add((Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depth) + channelSuffix));
                 ((List<Object>)messageHashes).add(("orderbook::" + symbol));
             }
             Object orderbook = (this.watchPublic(messageHashes, channels, parameters)).join();
@@ -706,7 +706,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((List<Object>)channels).add((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@depth"), depth) + channelSuffix));
+                ((List<Object>)channels).add((Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depth) + channelSuffix));
                 ((List<Object>)messageHashes).add(("unsubscribe::orderbook::" + symbol));
             }
             final Object finalSymbols = symbols;

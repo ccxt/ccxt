@@ -748,7 +748,7 @@ public class Extended extends ExtendedApi
         Long created = this.safeInteger(market, "createdAt");
         String settleId = null;
         String settle = null;
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         Boolean isSpot = false;
         String type = this.safeStringLower(market, "type");
         Object contractSize = null;
@@ -765,7 +765,7 @@ public class Extended extends ExtendedApi
             type = "swap";
             settleId = quoteId;
             settle = quote;
-            symbol = Helpers.add(symbol, Helpers.add(":", settle));
+            symbol = Helpers.add(symbol, (":" + settle));
             contractSize = this.parseNumber("1");
             linear = true;
             inverse = false;
@@ -4427,7 +4427,7 @@ public class Extended extends ExtendedApi
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
         }
-        url = (Helpers.add((url + "/api/"), version) + endpoint);
+        url = (((url + "/api/") + version) + endpoint);
         if ((java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE") || Boolean.TRUE.equals(queryPost)) && (((List<?>)Helpers.objectKeys(query)).size() > 0))
         {
             url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));

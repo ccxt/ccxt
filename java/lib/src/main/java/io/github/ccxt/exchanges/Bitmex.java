@@ -1193,10 +1193,10 @@ public class Bitmex extends BitmexApi
         Object symbol = null;
         if (Boolean.TRUE.equals(spot))
         {
-            symbol = Helpers.add(Helpers.add(base, "/"), quote);
+            symbol = ((base + "/") + quote);
         } else if (Boolean.TRUE.equals(contract))
         {
-            symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+            symbol = ((((base + "/") + quote) + ":") + settle);
             if (java.util.Objects.equals(linear, true))
             {
                 String multiplierString = this.safeString2(market, "underlyingToPositionMultiplier", "underlyingToSettleMultiplier");
@@ -2747,7 +2747,7 @@ public class Bitmex extends BitmexApi
             {
                 if ((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (!java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)))
                 {
-                    throw new InvalidOrder((Helpers.add((this.id + " createOrder() does not support reduceOnly for "), ((Map<String, Object>)market).get("type")) + " orders, reduceOnly orders are supported for swap and future markets only")) ;
+                    throw new InvalidOrder((((this.id + " createOrder() does not support reduceOnly for ") + ((Map<String, Object>)market).get("type")) + " orders, reduceOnly orders are supported for swap and future markets only")) ;
                 }
             }
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
@@ -2814,7 +2814,7 @@ public class Bitmex extends BitmexApi
                     Boolean isBuyIfTouchedOrder = (java.util.Objects.equals(side, "buy")) && ((java.util.Objects.equals(orderType, "MarketIfTouched")) || (java.util.Objects.equals(orderType, "LimitIfTouched")));
                     if (Boolean.TRUE.equals(isStopSellOrder) || Boolean.TRUE.equals(isBuyIfTouchedOrder))
                     {
-                        trailingAmount = Helpers.add("-", trailingAmount);
+                        trailingAmount = ("-" + trailingAmount);
                     }
                     ((Map<String, Object>)request).put("pegOffsetValue", this.parseToNumeric(trailingAmount));
                     ((Map<String, Object>)request).put("pegPriceType", "TrailingStopPeg");
@@ -2894,7 +2894,7 @@ public class Bitmex extends BitmexApi
                 Boolean isBuyIfTouchedOrder = (java.util.Objects.equals(side, "buy")) && ((java.util.Objects.equals(orderType, "MarketIfTouched")) || (java.util.Objects.equals(orderType, "LimitIfTouched")));
                 if (Boolean.TRUE.equals(isStopSellOrder) || Boolean.TRUE.equals(isBuyIfTouchedOrder))
                 {
-                    trailingAmount = Helpers.add("-", trailingAmount);
+                    trailingAmount = ("-" + trailingAmount);
                 }
                 ((Map<String, Object>)request).put("pegOffsetValue", this.parseToNumeric(trailingAmount));
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerDirection", "trailingAmount")));
@@ -4031,7 +4031,7 @@ public class Bitmex extends BitmexApi
         Object symbol = baseSymbol;
         if (!java.util.Objects.equals(quoteSymbol, null))
         {
-            symbol = (((Helpers.add(baseSymbol, "/") + quoteSymbol) + ":") + quoteSymbol);
+            symbol = ((((baseSymbol + "/") + quoteSymbol) + ":") + quoteSymbol);
         }
         Double openInterest = this.safeNumber(interest, "openInterest");
         Double openValue = this.safeNumber(interest, "openValue");
@@ -4634,7 +4634,7 @@ public class Bitmex extends BitmexApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object query = Helpers.add((Helpers.add("/api/", this.version) + "/"), path);
+        Object query = Helpers.add((("/api/" + this.version) + "/"), path);
         if (java.util.Objects.equals(method, "GET"))
         {
             if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)

@@ -794,7 +794,7 @@ public class Apex extends ApexApi
         String base = this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settleAssetId");
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = Helpers.add((Helpers.add(Helpers.add(baseId, "/"), quote) + ":"), settle);
+        Object symbol = ((((baseId + "/") + quote) + ":") + settle);
         Object expiry = 0;
         Object takerFee = this.parseNumber("0.0002");
         Object makerFee = this.parseNumber("0.0005");

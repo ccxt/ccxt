@@ -99,7 +99,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                messageHash = Helpers.add(messageHash, Helpers.add(":", ((Map<String, Object>)market).get("id")));
+                messageHash = Helpers.add(messageHash, (":" + ((Map<String, Object>)market).get("id")));
                 ((List<Object>)productIds).add(((Map<String, Object>)market).get("id"));
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -140,7 +140,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 Object symbol = Helpers.GetValue(symbols, i);
                 market = this.market(symbol);
                 ((List<Object>)productIds).add(((Map<String, Object>)market).get("id"));
-                ((List<Object>)messageHashes).add(Helpers.add(Helpers.add(messageHashStart, ":"), ((Map<String, Object>)market).get("symbol")));
+                ((List<Object>)messageHashes).add(Helpers.add((messageHashStart + ":"), ((Map<String, Object>)market).get("symbol")));
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             if (((Map<?, ?>)parameters).containsKey("signature"))
@@ -534,7 +534,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object messageHash = Helpers.add((name + ":"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             final Object finalName = name;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -1009,7 +1009,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
             }
-            String messageHash = Helpers.add("ticker:", symbol);
+            String messageHash = ("ticker:" + symbol);
             String idMessageHash = ("ticker:" + marketId);
             client.resolve(ticker, messageHash);
             client.resolve(ticker, idMessageHash);
@@ -1121,7 +1121,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String name = "level2";
-        Object messageHash = Helpers.add((name + ":"), marketId);
+        Object messageHash = ((name + ":") + marketId);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(subscription, "limit");
         if (java.util.Objects.equals(type, "snapshot"))
@@ -1198,10 +1198,10 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         {
             if (java.util.Objects.equals(errMsg, "Authentication Failed"))
             {
-                throw new AuthenticationError(Helpers.add("Authentication failed: ", reason)) ;
+                throw new AuthenticationError(("Authentication failed: " + reason)) ;
             } else
             {
-                throw new ExchangeError((String)Helpers.add((this.id + " "), reason)) ;
+                throw new ExchangeError(((this.id + " ") + reason)) ;
             }
         } catch(Exception error)
         {

@@ -3930,7 +3930,7 @@ public class Bitget extends BitgetApi
                     settleId = this.safeString(supportMarginCoins, 0);
                 }
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 Object type = null;
                 Boolean swap = false;
                 Boolean spot = false;
@@ -3965,7 +3965,7 @@ public class Bitget extends BitgetApi
                     {
                         type = "swap";
                         swap = true;
-                        symbol = Helpers.add((symbol + ":"), settle);
+                        symbol = ((symbol + ":") + settle);
                     } else if (java.util.Objects.equals(symbolType, "delivery"))
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
@@ -3976,10 +3976,10 @@ public class Bitget extends BitgetApi
                         Object year = (yearPart == null ? null : ((String)yearPart).substring(Math.min(2, ((String)yearPart).length()), Math.min(4, ((String)yearPart).length())));
                         String month = this.safeString(expiryParts, 1);
                         Object day = (dayPart == null ? null : ((String)dayPart).substring(0, Math.min(2, ((String)dayPart).length())));
-                        Object expiryString = Helpers.add(Helpers.add(year, month), day);
+                        Object expiryString = Helpers.add((year + month), day);
                         type = "future";
                         future = true;
-                        symbol = ((Helpers.add((symbol + ":"), settle) + "-") + expiryString);
+                        symbol = ((((symbol + ":") + settle) + "-") + expiryString);
                     }
                     contract = true;
                     inverse = (java.util.Objects.equals(base, settle));
@@ -4230,7 +4230,7 @@ public class Bitget extends BitgetApi
                 {
                     settle = this.safeCurrencyCode(settleId);
                 }
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 String type = null;
                 Boolean swap = false;
                 Boolean spot = false;
@@ -4269,7 +4269,7 @@ public class Bitget extends BitgetApi
                     {
                         type = "swap";
                         swap = true;
-                        symbol = Helpers.add((symbol + ":"), settle);
+                        symbol = ((symbol + ":") + settle);
                     } else if (java.util.Objects.equals(symbolType, "delivery"))
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
@@ -4280,10 +4280,10 @@ public class Bitget extends BitgetApi
                         Object year = (yearPart == null ? null : ((String)yearPart).substring(Math.min(2, ((String)yearPart).length()), Math.min(4, ((String)yearPart).length())));
                         String month = this.safeString(expiryParts, 1);
                         Object day = (dayPart == null ? null : ((String)dayPart).substring(0, Math.min(2, ((String)dayPart).length())));
-                        Object expiryString = Helpers.add(Helpers.add(year, month), day);
+                        Object expiryString = Helpers.add((year + month), day);
                         type = "future";
                         future = true;
-                        symbol = ((Helpers.add((symbol + ":"), settle) + "-") + expiryString);
+                        symbol = ((((symbol + ":") + settle) + "-") + expiryString);
                     }
                     contract = true;
                     inverse = (java.util.Objects.equals(base, settle));
@@ -8677,7 +8677,7 @@ final Object finalMinNotional = minNotional;
             {
                 if ((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (!java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)))
                 {
-                    throw new NotSupported((Helpers.add((this.id + " editOrder() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
+                    throw new NotSupported((((this.id + " editOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
                 }
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 ((Map<String, Object>)request).put("productType", productType);
@@ -8914,7 +8914,7 @@ final Object finalMinNotional = minNotional;
                 }
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " cancelOrder() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " cancelOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
             //
             // spot, swap, future and spot margin
@@ -9348,7 +9348,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateMixGetV2MixOrderDetail(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchOrder() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " fetchOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
             //
             // spot
