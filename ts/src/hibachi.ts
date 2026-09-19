@@ -606,7 +606,7 @@ export default class hibachi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetMarketDataTrades (this.extend (request, params));
@@ -722,7 +722,7 @@ export default class hibachi extends Exchange {
             remainingString = Precise.stringSub (totalQuantity, filled);
         }
         let timeInForce = 'GTC';
-        const orderFlags = this.safeValue (order, 'orderFlags');
+        const orderFlags = this.safeString (order, 'orderFlags');
         let postOnly = false;
         let reduceOnly = false;
         if (orderFlags === 'POST_ONLY') {
@@ -828,7 +828,7 @@ export default class hibachi extends Exchange {
         return result;
     }
 
-    orderMessage (market: any, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price: Num = undefined) {
+    orderMessage (market: Market, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price: Num = undefined) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -989,8 +989,8 @@ export default class hibachi extends Exchange {
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (nonce + i, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'place';
@@ -1032,7 +1032,7 @@ export default class hibachi extends Exchange {
         const feeRate = Math.max (takerFeeValue, makerFeeValue);
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'nonce': nonce,
             'updatedQuantity': this.amountToPrecision (symbol, amount),
@@ -1096,8 +1096,8 @@ export default class hibachi extends Exchange {
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.editOrderRequest (nonce + i, id, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'modify';
@@ -1295,7 +1295,7 @@ export default class hibachi extends Exchange {
         // Generate the signature
         const message = this.encodeWithdrawMessage (amount, maxFees, withdrawAddress);
         const signature = this.signMessage (message, this.privateKey);
-        const request = {
+        const request: Dict = {
             'accountId': this.getAccountId (),
             'coin': 'USDT',
             'network': 'ARBITRUM',
@@ -1435,7 +1435,7 @@ export default class hibachi extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = { 'accountId': this.getAccountId () };
+        const request: Dict = { 'accountId': this.getAccountId () };
         const response = await this.privateGetTradeAccountTrades (this.extend (request, params));
         //
         // {
@@ -1509,7 +1509,7 @@ export default class hibachi extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'accountId': this.getAccountId (),
         };
         const response = await this.privateGetTradeOrders (this.extend (request, params));
@@ -1948,7 +1948,7 @@ export default class hibachi extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency ('USDT');
-        const request = { 'accountId': this.getAccountId () };
+        const request: Dict = { 'accountId': this.getAccountId () };
         const rawPromises = [
             this.privateGetCapitalHistory (this.extend (request, params)),
             this.privateGetTradeAccountTradingHistory (this.extend (request, params)),
@@ -2052,7 +2052,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        const request = {
+        const request: Dict = {
             'publicKey': this.safeString (params, 'publicKey'),
             'accountId': this.getAccountId (),
         };
@@ -2113,7 +2113,7 @@ export default class hibachi extends Exchange {
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const currency = this.safeCurrency (code);
-        const request = {
+        const request: Dict = {
             'accountId': this.getAccountId (),
         };
         const response = await this.privateGetCapitalHistory (this.extend (request, params));
@@ -2186,7 +2186,7 @@ export default class hibachi extends Exchange {
         return this.filterBySinceLimit (withdrawals, since, limit, 'timestamp') as Transaction[];
     }
 
-    parseSettlement (settlement: any, market: Market = undefined) {
+    parseSettlement (settlement: Dict, market: Market = undefined) {
         //
         //     {
         //         "direction": "Long",

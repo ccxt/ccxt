@@ -1177,7 +1177,7 @@ export default class coinex extends Exchange {
         symbols = this.marketSymbols (symbols);
         let market: Market = undefined;
         if (symbols !== undefined) {
-            const symbol = this.safeValue (symbols, 0);
+            const symbol = this.safeString (symbols, 0);
             market = this.market (symbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
@@ -1616,7 +1616,7 @@ export default class coinex extends Exchange {
     }
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
-        const marketId = this.safeValue (fee, 'market');
+        const marketId = this.safeString (fee, 'market');
         const symbol = this.safeSymbol (marketId, market);
         return {
             'info': fee,
@@ -2587,9 +2587,9 @@ export default class coinex extends Exchange {
             }
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             if (type !== 'limit') {
                 throw new NotSupported (this.id + ' createOrders() does not support ' + type + ' orders, only limit orders are accepted');
             }
@@ -3112,8 +3112,8 @@ export default class coinex extends Exchange {
                 orderSymbols.push (marketId);
             }
             const id = this.safeString (rawOrder, 'id');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             let orderParams = this.safeDict (rawOrder, 'params', {});
             let marginMode: Str = undefined;
             [ marginMode, orderParams ] = this.handleMarginModeAndParams ('editOrders', orderParams);
@@ -4929,7 +4929,7 @@ export default class coinex extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbols !== undefined) {
-            const symbol = this.safeValue (symbols, 0);
+            const symbol = this.safeString (symbols, 0);
             market = this.market (symbol);
             if (market['swap'] !== true) {
                 throw new BadSymbol (this.id + ' fetchFundingRates() supports swap contracts only');
@@ -5291,7 +5291,7 @@ export default class coinex extends Exchange {
         const currencyId = this.safeString (transfer, 'ccy');
         const fromId = this.safeString (transfer, 'from_account_type');
         const toId = this.safeString (transfer, 'to_account_type');
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
         return {
             'id': undefined,
             'timestamp': timestamp,
@@ -5614,7 +5614,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const rows = this.safeValue (response, 'data', []);
+        const rows = this.safeList (response, 'data', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -5740,7 +5740,7 @@ export default class coinex extends Exchange {
         });
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "borrow_id": 13784021,
