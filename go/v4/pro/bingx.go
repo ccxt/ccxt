@@ -2123,16 +2123,16 @@ func (this *Bingx) HandleOrder(client any, message any) {
 	if !isSpot {
 		// The envelope T is the order update time; o.T is the trade time.
 		var updateTimestamp *int64 = this.SafeInteger(message, "T")
-		if (updateTimestamp != nil) && (ccxt.IsGreaterThan(updateTimestamp, 0)) {
+		if (updateTimestamp != nil) && (*updateTimestamp > 0) {
 			var orderId *string = this.SafeString(parsedOrder, "id")
 			if orderId != nil {
 				// Linear scan bounded by ccxt.ToGetsLimit(orderbooks).Limit (default 1000), avoiding cache-specific maps.
 				// Match both id and symbol: several cached orders can share a symbol.
-				for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(stored)); i++ {
+				for i := 0; i < ccxt.GetArrayLength(stored); i++ {
 					var previousOrder any = ccxt.GetValue(stored, i)
 					if (ccxt.IsEqual(ccxt.GetValue(previousOrder, "id"), orderId)) && (ccxt.IsEqual(ccxt.GetValue(previousOrder, "symbol"), ccxt.GetValue(parsedOrder, "symbol"))) {
 						var previousTimestamp *int64 = this.SafeInteger(previousOrder, "lastUpdateTimestamp")
-						if (previousTimestamp != nil) && (ccxt.IsLessThan(updateTimestamp, previousTimestamp)) {
+						if (previousTimestamp != nil) && (*updateTimestamp < *previousTimestamp) {
 							return
 						}
 						break
