@@ -280,10 +280,32 @@ jobs:
       - name: Deploy Python Package
         run: python -m build --outdir python/dist
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-            packages-dir: 'python/dist'
-            print_hash: true
+        # pypa/gh-action-pypi-publish runs its upload inside a Docker container action,
+        # and the self-hosted release runner has no docker (`docker: command not found`).
+        # Trusted Publishing itself does not need docker: mint a short-lived PyPI API
+        # token from the ambient OIDC token, then upload with twine, which is already
+        # installed by the Install Python build tools step. This is PyPI's documented
+        # manual flow and keeps the same trusted-publisher identity -- no API secret.
+        env:
+          PYTHON_DIST_DIR: python/dist
+        run: |
+          set -euo pipefail
+          # id-token: write is already granted at the workflow level; without it these
+          # two variables are unset and the mint below cannot be attempted.
+          : "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:?OIDC token unavailable (needs id-token: write)}"
+          : "${ACTIONS_ID_TOKEN_REQUEST_URL:?OIDC token unavailable (needs id-token: write)}"
+
+          oidc_token=$(curl -fsS -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=pypi" | jq -er '.value')
+
+          api_token=$(curl -fsS -X POST https://pypi.org/_/oidc/mint-token \
+            -d "{\"token\":\"${oidc_token}\"}" | jq -er '.token')
+          # Mask before any later command can echo it.
+          echo "::add-mask::${api_token}"
+
+          TWINE_USERNAME=__token__ TWINE_PASSWORD="${api_token}" \
+            python -m twine upload --non-interactive --disable-progress-bar \
+              "${PYTHON_DIST_DIR}"/*
       - name: C# Release Build
         run: npm run buildCSRelease
       - name: NuGet login (OIDC - temp API key)
