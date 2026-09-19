@@ -17,7 +17,7 @@ pub async fn testFetchMarketLeverageTiers(mut exchange: Value, mut skippedProper
                 let mut j: Value = Value::Int(0);
         let mut __for_first_1461: bool = true;
         while { if !__for_first_1461 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1461 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(tiers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        testLeverageTier(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&tiers, &j));
+        testLeverageTier(exchange.clone(), skippedProperties.clone(), method.clone(), tiers.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
     }
     }
     return Value::Bool(true);

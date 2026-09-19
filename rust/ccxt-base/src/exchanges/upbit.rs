@@ -1236,8 +1236,7 @@ impl UpbitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1096: bool = true;
             while { if !__for_first_1096 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1096 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderbooks.len() as i64) as f64) } {
-            let mut orderbook: Value = get_value(&orderbooks, &i);
-            let mut orderbook: Value = get_value(&orderbooks, &i);
+            let mut orderbook: Value = orderbooks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(orderbook.clone(), "market", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
             let mut timestamp: Value = self.safe_integer_k(orderbook.clone(), "timestamp", &[]);
@@ -1375,7 +1374,7 @@ impl UpbitCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1097: bool = true;
                 while { if !__for_first_1097 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1097 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketSymbols.len() as i64) as f64) } {
-                let mut market: Value = self.market(get_value(&marketSymbols, &i));
+                let mut market: Value = self.market(marketSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 let mut quoteId: Value = market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null);
                 if !is_true(&self.in_array(quoteId.clone(), quoteIds.clone())) {
                     append_to_array(&mut quoteIds, quoteId.clone());
@@ -1409,8 +1408,7 @@ impl UpbitCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1099: bool = true;
                 while { if !__for_first_1099 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1099 = false; i.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
-                let mut idsQuery: Value = get_value(&queries, &i);
-                let mut idsQuery: Value = get_value(&queries, &i);
+                let mut idsQuery: Value = queries.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let __ws_arg_4 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("markets".to_string(), idsQuery.clone());
@@ -1437,8 +1435,7 @@ impl UpbitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1100: bool = true;
             while { if !__for_first_1100 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1100 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut id: Value = get_value(&ids, &i);
-            let mut id: Value = get_value(&ids, &i);
+            let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (idsString.as_str() != Some("")) {
                 idsString = Value::Str(format!("{}{}", idsString, Value::Str(",".to_string())));
             }
@@ -1704,13 +1701,13 @@ impl UpbitCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut element, &Value::Str("maker".to_string()), self.safe_number_k(get_value(&fetchMarketResponse, &i), "maker", &[]));
-            add_element_to_object(&mut element, &Value::Str("taker".to_string()), self.safe_number_k(get_value(&fetchMarketResponse, &i), "taker", &[]));
-            add_element_to_object(&mut element, &Value::Str("symbol".to_string()), self.safe_string_k(get_value(&fetchMarketResponse, &i), "symbol", &[]));
+            add_element_to_object(&mut element, &Value::Str("maker".to_string()), self.safe_number(fetchMarketResponse.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("maker".to_string()), &[]));
+            add_element_to_object(&mut element, &Value::Str("taker".to_string()), self.safe_number(fetchMarketResponse.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("taker".to_string()), &[]));
+            add_element_to_object(&mut element, &Value::Str("symbol".to_string()), self.safe_string(fetchMarketResponse.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("symbol".to_string()), &[]));
             add_element_to_object(&mut element, &Value::Str("percentage".to_string()), Value::Bool(true));
             add_element_to_object(&mut element, &Value::Str("tierBased".to_string()), Value::Bool(false));
-            add_element_to_object(&mut element, &Value::Str("info".to_string()), get_value(&fetchMarketResponse, &i));
-            let mut feeSymbol: Value = self.safe_string_k(get_value(&fetchMarketResponse, &i), "symbol", &[]);
+            add_element_to_object(&mut element, &Value::Str("info".to_string()), fetchMarketResponse.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            let mut feeSymbol: Value = self.safe_string(fetchMarketResponse.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("symbol".to_string()), &[]);
             if (feeSymbol != Value::Null) {
                 add_element_to_object(&mut response, &feeSymbol, element.clone());
             }
@@ -2533,11 +2530,10 @@ impl UpbitCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1102: bool = true;
                 while { if !__for_first_1102 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1102 = false; i.as_f64().unwrap_or(f64::NAN) < numTrades.as_f64().unwrap_or(f64::NAN) } {
-                let mut trade: Value = get_value(&trades, &i);
-                let mut trade: Value = get_value(&trades, &i);
+                let mut trade: Value = trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 cost = crate::precise::Precise::stringAdd(&cost, &self.safe_string_k(trade.clone(), "cost", &[]));
                 if getFeesFromTrades {
-                    let mut tradeFee: Value = self.safe_dict_k(get_value(&trades, &i), "fee", &[Value::Map({
+                    let mut tradeFee: Value = self.safe_dict(trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("fee".to_string()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

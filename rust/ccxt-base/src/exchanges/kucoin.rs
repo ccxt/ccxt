@@ -3489,7 +3489,7 @@ impl KucoinCore {
         if fetchContractMarkets {
             contractIndex = nextIndex.clone();
         }
-        let mut crossData: Value = (if (requestMarginables) { self.safe_dict_k(get_value(&responses, &crossIndex), "data", &[Value::Map({
+        let mut crossData: Value = (if (requestMarginables) { self.safe_dict(responses.as_array().and_then(|__arr| match &crossIndex { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("data".to_string()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { Value::Map({
@@ -3498,7 +3498,7 @@ impl KucoinCore {
 }) });
         let mut crossItems: Value = self.safe_list_k(crossData, "items", &[Value::from(vec![])]);
         let mut crossById: Value = self.index_by(crossItems.clone(), Value::Str("symbol".to_string()));
-        let mut isolatedData: Value = (if (requestMarginables) { get_value(&responses, &isolatedIndex) } else { Value::Map({
+        let mut isolatedData: Value = (if (requestMarginables) { responses.as_array().and_then(|__arr| match &isolatedIndex { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -3521,8 +3521,7 @@ impl KucoinCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_880: bool = true;
             while { if !__for_first_880 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_880 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsData.len() as i64) as f64) } {
-            let mut market: Value = get_value(&symbolsData, &i);
-            let mut market: Value = get_value(&symbolsData, &i);
+            let mut market: Value = symbolsData.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             if (id == Value::Null) {
                 continue;
@@ -3703,8 +3702,7 @@ impl KucoinCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_881: bool = true;
             while { if !__for_first_881 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_881 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut market: Value = get_value(&data, &i);
-            let mut market: Value = get_value(&data, &i);
+            let mut market: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut expiry: Value = self.safe_integer_k(market.clone(), "expireDate", &[]);
             let mut future: Value = Value::Bool(self.safe_string_k(market.clone(), "nextFundingRateTime", &[]) == Value::Null);
@@ -3916,8 +3914,7 @@ impl KucoinCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_882: bool = true;
             while { if !__for_first_882 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_882 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsData.len() as i64) as f64) } {
-            let mut market: Value = get_value(&symbolsData, &i);
-            let mut market: Value = get_value(&symbolsData, &i);
+            let mut market: Value = symbolsData.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrency", &[]);
@@ -4159,8 +4156,7 @@ impl KucoinCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_883: bool = true;
             while { if !__for_first_883 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_883 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: Value = get_value(&chains, &j);
-            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = chains.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut chainId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[chainId.clone(), code.clone()]);
             if (networkCode != Value::Null) {
@@ -4297,8 +4293,7 @@ impl KucoinCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_884: bool = true;
             while { if !__for_first_884 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_884 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut account: Value = get_value(&data, &i);
-            let mut account: Value = get_value(&data, &i);
+            let mut account: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut accountId: Value = self.safe_string_k(account.clone(), "id", &[]);
             let mut currencyId: Value = self.safe_string_k(account.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -4478,8 +4473,7 @@ impl KucoinCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_885: bool = true;
                 while { if !__for_first_885 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_885 = false; i.as_f64().unwrap_or(f64::NAN) < ((chains.len() as i64) as f64) } {
-                let mut chain: Value = get_value(&chains, &i);
-                let mut chain: Value = get_value(&chains, &i);
+                let mut chain: Value = chains.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut chainId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
                 let mut networkCodeNew: Value = self.network_id_to_code(&[chainId.clone(), self.safe_string_k(currency.clone(), "code", &[])]);
                 if (networkCodeNew != Value::Null) {
@@ -4936,7 +4930,7 @@ impl KucoinCore {
             let mut __for_first_886: bool = true;
             while { if !__for_first_886 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_886 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut tickers, &i), &Value::Str("time".to_string()), time.clone());
-            let mut ticker: Value = self.parse_spot_or_uta_ticker(get_value(&tickers, &i), &[]);
+            let mut ticker: Value = self.parse_spot_or_uta_ticker(tickers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (symbol != Value::Null) {
                 add_element_to_object(&mut result, &symbol, ticker.clone());
@@ -6899,8 +6893,7 @@ impl KucoinCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_888: bool = true;
             while { if !__for_first_888 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_888 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = get_value(&orders, &i);
-            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut rawOrder: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             if (marketId == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires a symbol for each order".to_string()))));
@@ -7014,8 +7007,7 @@ impl KucoinCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_889: bool = true;
             while { if !__for_first_889 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_889 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = get_value(&orders, &i);
-            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut rawOrder: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires a symbol for each order".to_string()))));
@@ -11022,8 +11014,7 @@ impl KucoinCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_891: bool = true;
                 while { if !__for_first_891 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_891 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
-                let mut balance: Value = get_value(&accounts, &i);
-                let mut balance: Value = get_value(&accounts, &i);
+                let mut balance: Value = accounts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
                 let mut codeInner: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 if (codeInner != Value::Null) {
@@ -11037,8 +11028,7 @@ impl KucoinCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_892: bool = true;
                 while { if !__for_first_892 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_892 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-                let mut balance: Value = get_value(&data, &i);
-                let mut balance: Value = get_value(&data, &i);
+                let mut balance: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut balanceType: Value = self.safe_string_k(balance.clone(), "type", &[]);
                 if (balanceType.as_str() == type_var.as_str()) {
                     let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -11260,8 +11250,7 @@ impl KucoinCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_894: bool = true;
                 while { if !__for_first_894 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_894 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
-                let mut entry: Value = get_value(&accounts, &i);
-                let mut entry: Value = get_value(&accounts, &i);
+                let mut entry: Value = accounts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut currencies: Value = self.safe_list_k(entry.clone(), "currencies", &[Value::from(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
@@ -12539,8 +12528,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_897: bool = true;
             while { if !__for_first_897 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_897 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut code: Value = get_value(&keys, &i);
-            let mut code: Value = get_value(&keys, &i);
+            let mut code: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             { let __be_tmp = self.filter_by_currency_since_limit(get_value(&borrowRateHistories, &code), &[code.clone(), since.clone(), limit.clone()]); add_element_to_object(&mut borrowRateHistories, &code, __be_tmp); };
         }
         }
@@ -13217,8 +13205,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_898: bool = true;
             while { if !__for_first_898 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_898 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
             let mut isFundingIndex: bool = (marketId != Value::Null) && (starts_with(&marketId, &Value::Str(".".to_string())));
@@ -13538,8 +13525,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_899: bool = true;
             while { if !__for_first_899 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_899 = false; i.as_f64().unwrap_or(f64::NAN) < ((dataList.len() as i64) as f64) } {
-            let mut listItem: Value = get_value(&dataList, &i);
-            let mut listItem: Value = get_value(&dataList, &i);
+            let mut listItem: Value = dataList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer2(listItem.clone(), Value::Str("timePoint".to_string()), Value::Str("settlementTime".to_string()), &[]);
             let mut marketId: Value = self.safe_string_k(listItem.clone(), "symbol", &[]);
             append_to_array(&mut fees, Value::Map({
@@ -14114,8 +14100,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_901: bool = true;
             while { if !__for_first_901 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_901 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut orderId: Value = get_value(&ids, &i);
-            let mut orderId: Value = get_value(&ids, &i);
+            let mut orderId: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if is_true(&uta) {
                 append_to_array(&mut ordersRequests, Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -14124,7 +14109,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                     m
                 }));
             }  else {
-                append_to_array(&mut ordersRequests, get_value(&ids, &i));
+                append_to_array(&mut ordersRequests, ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
         }
         }

@@ -138,19 +138,19 @@ fn helperBatchNetworkTests() {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1417: bool = true;
         while { if !__for_first_1417 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1417 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(allNetworkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        let mut randomNetworkCode: Value = get_value(&allNetworkCodes, &i);
+        let mut randomNetworkCode: Value = allNetworkCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1416: bool = true;
             while { if !__for_first_1416 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1416 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(allCurrencyCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut randomCurrencyCode: Value = get_value(&allCurrencyCodes, &j);
+            let mut randomCurrencyCode: Value = allCurrencyCodes.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut result: Value = exchange.network_id_to_code(&[randomNetworkCode.clone(), randomCurrencyCode.clone()]);
             let mut keys: Value = object_keys(&defaultNetworkCodeReplacements);
             {
                                 let mut k: Value = Value::Int(0);
                 let mut __for_first_1415: bool = true;
                 while { if !__for_first_1415 { k = (match (&(k), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1415 = false; k.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut chainBaseCoin: Value = get_value(&keys, &k);
+                let mut chainBaseCoin: Value = keys.as_array().and_then(|__arr| match &k { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut chainMapping: Value = get_value(&defaultNetworkCodeReplacements, &chainBaseCoin);
                 let mut primaryNetworkCode: Value = get_value(&chainMapping, &Value::Str("primary".to_string()));
                 let mut secondaryNetworkCode: Value = get_value(&chainMapping, &Value::Str("secondary".to_string()));
