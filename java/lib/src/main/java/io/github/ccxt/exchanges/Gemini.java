@@ -836,13 +836,13 @@ public class Gemini extends GeminiApi
             Object data = (this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>")).join();
             String error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
             List<Object> tables = (List<Object>) Helpers.split(data, "tbody>");
-            Object numTables = Helpers.getArrayLength(tables);
+            Object numTables = (tables == null ? 0 : tables.size());
             if (Helpers.isLessThan(numTables, 2))
             {
                 throw new NotSupported(error) ;
             }
             List<Object> rows = (List<Object>) Helpers.split(Helpers.GetValue(tables, 1), "\n<tr>\n"); // eslint-disable-line quotes
-            Object numRows = Helpers.getArrayLength(rows);
+            Object numRows = (rows == null ? 0 : rows.size());
             if (Helpers.isLessThan(numRows, 2))
             {
                 throw new NotSupported(error) ;
@@ -853,7 +853,7 @@ public class Gemini extends GeminiApi
             {
                 String row = (String) Helpers.GetValue(rows, i);
                 List<Object> cells = (List<Object>) Helpers.split(row, "</td>\n"); // eslint-disable-line quotes
-                Object numCells = Helpers.getArrayLength(cells);
+                Object numCells = (cells == null ? 0 : cells.size());
                 if (Helpers.isLessThan(numCells, 5))
                 {
                     throw new NotSupported(error) ;
@@ -1027,7 +1027,7 @@ public class Gemini extends GeminiApi
                 Object responses = (Helpers.promiseAll(promises)).join();
                 for (var i = 0; i < ((List<?>)responses).size(); i++)
                 {
-                    ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(responses, i)));
+                    ((List<Object>)result).add(this.parseMarket((responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i))));
                 }
             } else
             {

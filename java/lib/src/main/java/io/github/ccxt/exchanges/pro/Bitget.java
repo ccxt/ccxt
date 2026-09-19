@@ -261,7 +261,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(symbol);
                 final Object finalInstType = instType;
                 Map<String, Object> args = new HashMap<String, Object>() {{
@@ -529,7 +529,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(symbol);
                 final Object finalInstType = instType;
                 Map<String, Object> args = new HashMap<String, Object>() {{
@@ -1009,7 +1009,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             parameters = ((List<Object>) utaparametersVariable).get(1);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object instType = null;
                 var instTypeparametersVariable = this.getInstType("watchOrderBookForSymbols", (Map<String, Object>) (market), uta, parameters);
@@ -1135,13 +1135,13 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     if (Helpers.isLessThan(i, bidsLength))
                     {
-                        ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(storedBids, i), 2), 0));
-                        ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(storedBids, i), 2), 1));
+                        ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 2), 0));
+                        ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 2), 1));
                     }
                     if (Helpers.isLessThan(i, asksLength))
                     {
-                        ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(storedAsks, i), 2), 0));
-                        ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(storedAsks, i), 2), 1));
+                        ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 2), 0));
+                        ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 2), 1));
                     }
                 }
                 Object payload = String.join(":", (List<String>)payloadArray);
@@ -1276,7 +1276,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object instType = null;
                 var instTypeparametersVariable = this.getInstType("watchTradesForSymbols", (Map<String, Object>) (market), uta, parameters);
@@ -1730,7 +1730,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Object messageHashes = this.findMessageHashes(client, (instType + ":positions::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));

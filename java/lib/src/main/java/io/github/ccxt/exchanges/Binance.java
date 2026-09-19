@@ -5055,7 +5055,7 @@ public class Binance extends BinanceApi
             List<Object> fetchMarkets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawFetchMarkets).size(); i++)
             {
-                Object type = Helpers.GetValue(rawFetchMarkets, i);
+                Object type = (rawFetchMarkets == null || i < 0 || i >= ((List<?>)rawFetchMarkets).size() ? null : ((List<?>)rawFetchMarkets).get(i));
                 if (java.util.Objects.equals(type, "option") && (java.util.Objects.equals(isDemoEnv, true)))
                 {
                     continue;
@@ -5367,7 +5367,7 @@ public class Binance extends BinanceApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(markets, i)));
+                ((List<Object>)result).add(this.parseMarket((markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i))));
             }
             return result;
         });
@@ -5689,7 +5689,7 @@ public class Binance extends BinanceApi
             Object balances = this.safeList2(response, "balances", "userAssets", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object balance = Helpers.GetValue(balances, i);
+                Object balance = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -6523,11 +6523,11 @@ public class Binance extends BinanceApi
         }
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Map<String, Object> symbolMarket = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+            Map<String, Object> symbolMarket = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
             Boolean stock = (Boolean) this.safeBool(symbolMarket, "stock", false);
             if (java.util.Objects.equals(stock, true))
             {
-                throw new NotSupported((((((this.id + " ") + methodName) + "() does not support tokenized stock symbols (") + Helpers.GetValue(symbols, i)) + "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
+                throw new NotSupported((((((this.id + " ") + methodName) + "() does not support tokenized stock symbols (") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))) + "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
             }
         }
     }
@@ -8107,7 +8107,7 @@ public class Binance extends BinanceApi
             Object orderSymbols = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 ((List<Object>)orderSymbols).add(marketId);
                 String id = this.safeString(rawOrder, "id");
@@ -8953,7 +8953,7 @@ public class Binance extends BinanceApi
             Object orderSymbols = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 ((List<Object>)orderSymbols).add(marketId);
                 String type = this.safeString(rawOrder, "type");
@@ -16483,7 +16483,7 @@ final Object finalMarket = market;
             Object byLimit = this.safeValue(config, "byLimit");
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
-                Object entry = Helpers.GetValue(byLimit, i);
+                Object entry = (byLimit == null || i < 0 || i >= ((List<?>)byLimit).size() ? null : ((List<?>)byLimit).get(i));
                 if (Helpers.isLessThanOrEqual(limit, Helpers.GetValue(entry, 0)))
                 {
                     return Helpers.GetValue(entry, 1);
@@ -17565,7 +17565,7 @@ final Object finalMarket = market;
                 Object result = this.parseOpenInterestsHistory(response, market);
                 for (var i = 0; i < ((List<?>)result).size(); i++)
                 {
-                    Object item = Helpers.GetValue(result, i);
+                    Object item = (result == null || i < 0 || i >= ((List<?>)result).size() ? null : ((List<?>)result).get(i));
                     if (java.util.Objects.equals(((Map<String, Object>)item).get("symbol"), symbol))
                     {
                         return item;
@@ -18058,7 +18058,7 @@ final Object finalMarket = market;
             Map<String, Object> tradingLimits = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
                 String symbol = this.safeString(market, "symbol");
                 if (java.util.Objects.equals(market, null))
                 {

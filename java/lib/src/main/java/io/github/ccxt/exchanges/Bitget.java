@@ -3789,7 +3789,7 @@ public class Bitget extends BitgetApi
             Boolean fetchMargins = false;
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                Object type = Helpers.GetValue(types, i);
+                Object type = (types == null || i < 0 || i >= ((List<?>)types).size() ? null : ((List<?>)types).get(i));
                 if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
                 {
                     List<Object> subTypes = new ArrayList<Object>(Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
@@ -3911,7 +3911,7 @@ public class Bitget extends BitgetApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
                 String marketId = this.safeString(market, "symbol");
                 String quoteId = this.safeString(market, "quoteCoin");
                 String baseId = this.safeString(market, "baseCoin");
@@ -4207,7 +4207,7 @@ public class Bitget extends BitgetApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
                 String category = this.safeString(market, "category");
                 String marketId = this.safeString(market, "symbol");
                 String quoteId = this.safeString(market, "quoteCoin");
@@ -4728,7 +4728,7 @@ public class Bitget extends BitgetApi
         Object minNotional = 0;
         for (var i = 0; i < ((List<?>)info).size(); i++)
         {
-            Object item = Helpers.GetValue(info, i);
+            Object item = (info == null || i < 0 || i >= ((List<?>)info).size() ? null : ((List<?>)info).get(i));
             Double minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
             if (!java.util.Objects.equals(minimumNotional, null))
             {
@@ -7119,7 +7119,7 @@ final Object finalMinNotional = minNotional;
         //
         for (var i = 0; i < ((List<?>)balance).size(); i++)
         {
-            Object entry = Helpers.GetValue(balance, i);
+            Object entry = (balance == null || i < 0 || i >= ((List<?>)balance).size() ? null : ((List<?>)balance).get(i));
             Object account = this.account();
             String currencyId = this.safeString(entry, "coin");
             String code = this.safeCurrencyCode(currencyId);
@@ -7189,7 +7189,7 @@ final Object finalMinNotional = minNotional;
         //
         for (var i = 0; i < ((List<?>)balance).size(); i++)
         {
-            Object entry = Helpers.GetValue(balance, i);
+            Object entry = (balance == null || i < 0 || i >= ((List<?>)balance).size() ? null : ((List<?>)balance).get(i));
             Object account = this.account();
             String currencyId = this.safeString2(entry, "marginCoin", "coin");
             String code = this.safeCurrencyCode(currencyId);
@@ -7517,7 +7517,7 @@ final Object finalMinNotional = minNotional;
                 Object feeObject = null;
                 for (var i = 0; i < ((List<?>)feeValues).size(); i++)
                 {
-                    Object feeValue = Helpers.GetValue(feeValues, i);
+                    Object feeValue = (feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i));
                     if (!java.util.Objects.equals(this.safeValue(feeValue, "feeCoinCode"), null))
                     {
                         feeObject = feeValue;
@@ -8300,7 +8300,7 @@ final Object finalMinNotional = minNotional;
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -8393,7 +8393,7 @@ final Object finalMinNotional = minNotional;
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -9010,7 +9010,7 @@ final Object finalMinNotional = minNotional;
             List<Object> requestList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object individualId = Helpers.GetValue(ids, i);
+                Object individualId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
                 final Object finalProductType = productType;
                 Map<String, Object> order = new HashMap<String, Object>() {{
                     put( "orderId", individualId );
@@ -9090,7 +9090,7 @@ final Object finalMinNotional = minNotional;
             List<Object> orderIdList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object individualId = Helpers.GetValue(ids, i);
+                Object individualId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
                 Map<String, Object> orderId = new HashMap<String, Object>() {{
                     put( "orderId", individualId );
                 }};
@@ -11420,7 +11420,7 @@ final Object finalMinNotional = minNotional;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)position).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition(Helpers.GetValue(position, i), market));
+                ((List<Object>)result).add(this.parsePosition((position == null || i < 0 || i >= ((List<?>)position).size() ? null : ((List<?>)position).get(i)), market));
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -11777,7 +11777,7 @@ final Object finalMinNotional = minNotional;
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object entry = Helpers.GetValue(result, i);
+                Object entry = (result == null || i < 0 || i >= ((List<?>)result).size() ? null : ((List<?>)result).get(i));
                 String marketId = this.safeString(entry, "symbol");
                 String symbolInner = this.safeSymbol(marketId, market);
                 Long timestamp = (Long) this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
@@ -12226,7 +12226,7 @@ final Object finalMinNotional = minNotional;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)contracts).size(); i++)
         {
-            Object contract = Helpers.GetValue(contracts, i);
+            Object contract = (contracts == null || i < 0 || i >= ((List<?>)contracts).size() ? null : ((List<?>)contracts).get(i));
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
             // const business = this.safeString (contract, 'businessType');
             // if (business !== 'contract_settle_fee') {
