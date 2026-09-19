@@ -178,7 +178,7 @@ export default class grvt extends grvtRest {
             rawHashes.push (marketId + '@' + interval.toString ());
             messageHashes.push ('ticker::' + market['symbol']);
         }
-        const request = {
+        const request: Dict = {
             'stream': channel,
             'selectors': rawHashes,
         };
@@ -326,13 +326,13 @@ export default class grvt extends grvtRest {
             rawHashes.push (marketId + '@' + limitRaw.toString ());
             messageHashes.push ('trade::' + market['symbol']);
         }
-        const request = {
+        const request: Dict = {
             'stream': 'v1.trade',
             'selectors': rawHashes,
         };
         const trades = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -432,7 +432,7 @@ export default class grvt extends grvtRest {
             rawHashes.push (marketId + '@' + timeframeId + '-TRADE');
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
         }
-        const request = {
+        const request: Dict = {
             'stream': 'v1.candle',
             'selectors': rawHashes,
         };
@@ -475,7 +475,7 @@ export default class grvt extends grvtRest {
         const timeframeId = secondPart.replace ('-TRADE', '');
         const timeframe = this.findTimeframe (timeframeId);
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.handleOption ('watchOHLCV', 'limit', 1000);
             this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
@@ -549,7 +549,7 @@ export default class grvt extends grvtRest {
             rawHashes.push (marketId + '@' + extraPart);
             messageHashes.push ('orderbook::' + market['symbol']);
         }
-        const request = {
+        const request: Dict = {
             'stream': channel,
             'selectors': rawHashes,
         };
@@ -678,7 +678,7 @@ export default class grvt extends grvtRest {
             messageHashes.push ('myTrades');
             rawHashes.push (subAccountId);
         }
-        const request = {
+        const request: Dict = {
             'stream': 'v1.fill',
             'selectors': rawHashes,
         };
@@ -771,7 +771,7 @@ export default class grvt extends grvtRest {
             messageHashes.push ('positions');
             rawHashes.push (subAccountId);
         }
-        const request = {
+        const request: Dict = {
             'stream': 'v1.position',
             'selectors': rawHashes,
         };
@@ -856,7 +856,7 @@ export default class grvt extends grvtRest {
             messageHashes.push ('order::' + market['symbol']);
             rawHashes.push (subAccountId + '-' + market['id']);
         }
-        const request = {
+        const request: Dict = {
             'stream': 'v1.order',
             'selectors': rawHashes,
         };

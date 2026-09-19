@@ -329,8 +329,8 @@ export default class zaif extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeValue (response, 'return', {});
-        const deposit = this.safeValue (balances, 'deposit');
+        const balances = this.safeDict (response, 'return', {});
+        const deposit = this.safeDict (balances, 'deposit');
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -806,7 +806,7 @@ export default class zaif extends Exchange {
         //
         currency = this.safeCurrency (undefined, currency);
         let fee: Fee = undefined;
-        const feeCost = this.safeValue (transaction, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
