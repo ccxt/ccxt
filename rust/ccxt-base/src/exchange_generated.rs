@@ -942,7 +942,7 @@ pub trait ExchangeBase:
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut key = get_arg(optional_args, 1, Value::Str("timestamp".into()));
         let mut fromStart = get_arg(optional_args, 2, Value::Bool(false));
-        if is_true(&self.value_is_defined(limit.clone())) {
+        if self.value_is_defined(limit.clone()).as_bool() == Some(true) {
             let mut arrayLength: Value = Value::Int(array.len() as i64);
             if arrayLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                 let mut ascending: bool = true;
@@ -2023,7 +2023,7 @@ pub trait ExchangeBase:
 }
 
     fn is_empty_string(&self, mut value: Value) -> Value {
-        return Value::Bool(!is_true(&self.value_is_defined(value.clone())) || (value.as_str() == Some("")));
+        return Value::Bool(!(self.value_is_defined(value.clone()).as_bool() == Some(true)) || (value.as_str() == Some("")));
 
     Value::Null
 }
@@ -2193,7 +2193,7 @@ pub trait ExchangeBase:
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut featureBlock: Value = get_value(&featuresObj, &key);
             let mut featureBlock: Value = get_value(&featuresObj, &key);
-            if !is_true(&self.in_array(key.clone(), Value::from(vec![Value::Str("sandbox".into())]))) && (featureBlock != Value::Null) {
+            if !(self.in_array(key.clone(), Value::from(vec![Value::Str("sandbox".into())])).as_bool() == Some(true)) && (featureBlock != Value::Null) {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
                 if !(in_op(&featureBlock, &Value::Str("symbolRequired".into()))) {
                     add_element_to_object(&mut featureBlock, &Value::Str("symbolRequired".into()), self.in_array(key.clone(), Value::from(vec![Value::Str("createOrder".into()), Value::Str("createOrders".into()), Value::Str("fetchOHLCV".into())])));
@@ -3762,7 +3762,7 @@ pub trait ExchangeBase:
             // average
             if (average == Value::Null) && (close != Value::Null) {
                 let mut precision: Value = Value::Int(18);
-                if (market != Value::Null) && is_true(&self.is_tick_precision()) {
+                if (market != Value::Null) && self.is_tick_precision().as_bool() == Some(true) {
                     let mut marketPrecision: Value = self.safe_dict_k(market.clone(), "precision", &[]);
                     let mut precisionPrice: Value = self.safe_string_k(marketPrecision, "price", &[]);
                     if (precisionPrice != Value::Null) {
@@ -4690,7 +4690,7 @@ pub trait ExchangeBase:
                 let mut market: Value = self.safe_market(&[id.clone(), Value::Null, Value::Null, Value::Str("swap".into())]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut contract: Value = self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]);
-                if (contract.as_bool() == Some(true)) && (noSymbols || ((symbols != Value::Null) && is_true(&self.in_array(symbol.clone(), symbols.clone())))) {
+                if (contract.as_bool() == Some(true)) && (noSymbols || ((symbols != Value::Null) && self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true))) {
                     add_element_to_object(&mut tiers, &symbol, <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item.clone(), &[market.clone()]));
                 }
             }
@@ -4707,7 +4707,7 @@ pub trait ExchangeBase:
                 let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::Str("swap".into())]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut contract: Value = self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]);
-                if (contract.as_bool() == Some(true)) && (noSymbols || ((symbols != Value::Null) && is_true(&self.in_array(symbol.clone(), symbols.clone())))) {
+                if (contract.as_bool() == Some(true)) && (noSymbols || ((symbols != Value::Null) && self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true))) {
                     add_element_to_object(&mut tiers, &symbol, <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item.clone(), &[market.clone()]));
                 }
             }
@@ -5210,7 +5210,7 @@ pub trait ExchangeBase:
                         let mut i: Value = Value::Int(0);
             let mut __for_first_128: bool = true;
             while { if !__for_first_128 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_128 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&objects).as_f64().unwrap_or(f64::NAN) } {
-            if is_true(&self.in_array(get_value(&get_value(&objects, &i), &key), values.clone())) {
+            if self.in_array(get_value(&get_value(&objects, &i), &key), values.clone()).as_bool() == Some(true) {
                 append_to_array(&mut results, get_value(&objects, &i));
             }
         }
@@ -5242,7 +5242,7 @@ pub trait ExchangeBase:
                         let mut i: Value = Value::Int(0);
             let mut __for_first_129: bool = true;
             while { if !__for_first_129 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_129 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&objects).as_f64().unwrap_or(f64::NAN) } {
-            if !is_true(&self.in_array(get_value(&get_value(&objects, &i), &key), values.clone())) {
+            if !(self.in_array(get_value(&get_value(&objects, &i), &key), values.clone()).as_bool() == Some(true)) {
                 append_to_array(&mut results, get_value(&objects, &i));
             }
         }
@@ -7476,7 +7476,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
-        if !is_true(&self.in_array(triggerDirection.clone(), Value::from(vec![Value::Str("ascending".into()), Value::Str("descending".into()), Value::Str("up".into()), Value::Str("down".into()), Value::Str("above".into()), Value::Str("below".into())]))) && !exchangeSpecificDefined && !is_true(&allowEmpty) {
+        if !(self.in_array(triggerDirection.clone(), Value::from(vec![Value::Str("ascending".into()), Value::Str("descending".into()), Value::Str("up".into()), Value::Str("down".into()), Value::Str("above".into()), Value::Str("below".into())])).as_bool() == Some(true)) && !exchangeSpecificDefined && !is_true(&allowEmpty) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : trigger orders require params[\"triggerDirection\"] to be either \"ascending\" or \"descending\"".into()))));
         }
         // if old format was provided, overwrite to new
@@ -7913,7 +7913,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {undefined}
          */
         let mut optionsLength: f64 = ((options.len() as i64) as f64);
-        if (argument == Value::Null) || is_true(&((optionsLength > ((0i64) as f64)) && (!is_true(&(self.in_array(argument, options.clone())))))) {
+        if (argument == Value::Null) || ((optionsLength > ((0i64) as f64)) && (!(self.in_array(argument, options.clone()).as_bool() == Some(true)))) {
             let mut messageOptions: Value = join(&options, &Value::Str(", ".into()));
             let mut message: Value = Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a ".into())).into()), &argumentName), Value::Str(" argument".into())).into());
             if (messageOptions.as_str() != Some("")) {
@@ -7971,7 +7971,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             let mut currency: Value = self.safe_currency(currencyId, &[]);
             let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
-            if (codes == Value::Null) || is_true(&(self.in_array(code.clone(), codes.clone()))) {
+            if (codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true) {
                 add_element_to_object(&mut depositWithdrawFees, &code, <Self as crate::exchange_generated::ExchangeBase>::parse_deposit_withdraw_fee(self, dictionary.clone(), &[currency.clone()]));
             }
         }
@@ -8662,7 +8662,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_163: bool = true;
             while { if !__for_first_163 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_163 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if !is_true(&self.in_array(key.clone(), removeKeys.clone())) {
+            if !(self.in_array(key.clone(), removeKeys.clone()).as_bool() == Some(true)) {
                 add_element_to_object(&mut newDict, &key, dict.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
             }
         }
@@ -8847,7 +8847,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut info: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = (if (symbolKey == Value::Null) { Value::Null } else { self.safe_string(info.clone(), symbolKey.clone(), &[]) });
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
-            if (symbols == Value::Null) || is_true(&self.in_array(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), symbols.clone())) {
+            if (symbols == Value::Null) || self.in_array(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), symbols.clone()).as_bool() == Some(true) {
                 add_element_to_object(&mut marginModeStructures, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), <Self as crate::exchange_generated::ExchangeBase>::parse_margin_mode(self, info.clone(), &[market.clone()]));
             }
         }
@@ -8885,7 +8885,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut info: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = (if (symbolKey == Value::Null) { Value::Null } else { self.safe_string(info.clone(), symbolKey.clone(), &[]) });
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
-            if (symbols == Value::Null) || is_true(&self.in_array(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), symbols.clone())) {
+            if (symbols == Value::Null) || self.in_array(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), symbols.clone()).as_bool() == Some(true) {
                 add_element_to_object(&mut leverageStructures, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), <Self as crate::exchange_generated::ExchangeBase>::parse_leverage(self, info.clone(), &[market.clone()]));
             }
         }
@@ -9095,7 +9095,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut info: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = (if (symbolKey == Value::Null) { Value::Null } else { self.safe_string(info.clone(), symbolKey.clone(), &[]) });
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
-            if (symbols == Value::Null) || is_true(&self.in_array(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), symbols.clone())) {
+            if (symbols == Value::Null) || self.in_array(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), symbols.clone()).as_bool() == Some(true) {
                 append_to_array(&mut marginModifications, <Self as crate::exchange_generated::ExchangeBase>::parse_margin_modification(self, info.clone(), &[market.clone()]));
             }
         }
