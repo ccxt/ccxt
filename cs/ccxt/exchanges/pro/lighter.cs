@@ -344,7 +344,7 @@ public partial class lighter : ccxt.lighter
      * @name lighter#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -358,6 +358,10 @@ public partial class lighter : ccxt.lighter
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
+        if (isTrue(!isEqual(getValue(market, "swap"), true)))
+        {
+            throw new NotSupported ((string)add(this.id, " watchTicker() is only supported for swap markets")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", add("market_stats/", getValue(market, "id")) },
         };
@@ -370,7 +374,7 @@ public partial class lighter : ccxt.lighter
      * @name lighter#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -383,6 +387,10 @@ public partial class lighter : ccxt.lighter
         }
         Dictionary<string, object> market = this.market(symbol);
         symbol = getValue(market, "symbol");
+        if (isTrue(!isEqual(getValue(market, "swap"), true)))
+        {
+            throw new NotSupported ((string)add(this.id, " unWatchTicker() is only supported for swap markets")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", add("market_stats/", getValue(market, "id")) },
         };
@@ -396,9 +404,8 @@ public partial class lighter : ccxt.lighter
      * @name lighter#watchTickers
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
@@ -408,7 +415,12 @@ public partial class lighter : ccxt.lighter
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols, null, true, true);
+        object firstMarket = this.getMarketFromSymbols(symbols);
+        if (isTrue(isTrue((!isEqual(firstMarket, null))) && isTrue((!isEqual(getValue(firstMarket, "swap"), true)))))
+        {
+            throw new NotSupported ((string)add(this.id, " watchTickers() is only supported for swap markets")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", "market_stats/all" },
         };
@@ -444,7 +456,7 @@ public partial class lighter : ccxt.lighter
      * @name lighter#unWatchTickers
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -454,6 +466,12 @@ public partial class lighter : ccxt.lighter
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols, null, true, true);
+        object firstMarket = this.getMarketFromSymbols(symbols);
+        if (isTrue(isTrue((!isEqual(firstMarket, null))) && isTrue((!isEqual(getValue(firstMarket, "swap"), true)))))
+        {
+            throw new NotSupported ((string)add(this.id, " unWatchTickers() is only supported for swap markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", "market_stats/all" },

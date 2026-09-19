@@ -4926,7 +4926,8 @@ public partial class BaseExchange
             return getValue(mapping, key);
         } else
         {
-            throw new NotSupported ((string)add(add(add(this.id, " "), key), " does not have a value in mapping")) ;
+            List<object> keys = new List<object>(((IDictionary<string,object>)mapping).Keys);
+            throw new NotSupported ((string)add(add(add(add(add(this.id, " "), key), " does not have a value in mapping"), ", must be one of "), String.Join(", ", ((IList<object>)keys).ToArray()))) ;
         }
     }
 
