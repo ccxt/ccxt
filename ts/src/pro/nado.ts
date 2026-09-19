@@ -289,7 +289,7 @@ export default class nado extends nadoRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'ohlcv:' + timeframe + ':' + market['symbol'];
-        const request = {
+        const request: Dict = {
             'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
         };
         const result = await this.watchPublic ('latest_candlestick', market, messageHash, this.extend (request, params));
@@ -1007,7 +1007,7 @@ export default class nado extends nadoRest {
             'id': this.requestId (),
         };
         const subscribeHash = 'subscribe:' + this.json (request['stream']);
-        const subscription = {
+        const subscription: Dict = {
             'streamType': streamType,
             'symbol': this.safeString (market, 'symbol'),
         };
@@ -1037,7 +1037,7 @@ export default class nado extends nadoRest {
             'stream': this.deepExtend (stream, params),
             'id': id,
         };
-        const subscription = {
+        const subscription: Dict = {
             'streamType': streamType,
         };
         client.subscriptions['subscription:' + this.numberToString (id)] = {
@@ -1056,7 +1056,7 @@ export default class nado extends nadoRest {
             'stream': this.deepExtend (stream, params),
             'id': id,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': id,
             'messageHash': messageHash,
         };
@@ -1088,7 +1088,7 @@ export default class nado extends nadoRest {
         const id = this.requestId ();
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const expiration = this.sum (this.milliseconds (), recvWindow);
-        const tx = {
+        const tx: Dict = {
             'sender': sender,
             'expiration': this.numberToString (expiration),
         };
@@ -1127,7 +1127,7 @@ export default class nado extends nadoRest {
         return this.signHash (hash, this.privateKey);
     }
 
-    createPublicSubscriptionRequest (method: string, streamType: any, market = undefined, id: Int = undefined, params = {}) {
+    createPublicSubscriptionRequest (method: string, streamType: any, market: Market = undefined, id: Int = undefined, params = {}) {
         const stream: Dict = {
             'type': streamType,
         };
@@ -1155,7 +1155,7 @@ export default class nado extends nadoRest {
                 const subscribeHash = 'subscribe:' + this.json (request['stream']);
                 const streamSubscription = this.safeValue (client.subscriptions, subscribeHash);
                 if (streamSubscription === undefined) {
-                    const subscription = {
+                    const subscription: Dict = {
                         'streamType': streamType,
                         'symbol': this.safeString (market, 'symbol'),
                     };
@@ -1173,7 +1173,7 @@ export default class nado extends nadoRest {
         const url = this.urls['api']['ws']['subscriptions'];
         const id = this.requestId ();
         const request = this.createPublicSubscriptionRequest ('unsubscribe', streamType, market, id, params);
-        const subscription = {
+        const subscription: Dict = {
             'id': id,
             'messageHash': messageHash,
         };
@@ -1196,7 +1196,7 @@ export default class nado extends nadoRest {
             const unsubscribeHash = 'unsubscribe:' + messageHash;
             const requestParams = (subscriptionParams === undefined) ? params : subscriptionParams[i];
             const request = this.createPublicSubscriptionRequest ('unsubscribe', streamType, markets[i], id, requestParams);
-            const subscription = {
+            const subscription: Dict = {
                 'id': id,
                 'messageHash': messageHash,
             };
@@ -1898,7 +1898,7 @@ export default class nado extends nadoRest {
         }
         const id = this.safeString (message, 'id');
         const hasResult = ('result' in message);
-        const result = this.safeValue (message, 'result');
+        const result = this.safeDict (message, 'result');
         const method = this.safeString (result, 'method');
         if (method === 'pong') {
             // pong replies carry both 'id' and 'result' so they must be routed
@@ -1913,12 +1913,12 @@ export default class nado extends nadoRest {
             return;
         }
         if ((id !== undefined) && hasResult) {
-            const authentication = this.safeValue (client.subscriptions, 'authentication:' + id);
+            const authentication = this.safeString (client.subscriptions, 'authentication:' + id);
             if (authentication !== undefined) {
                 this.handleAuthentication (client, message);
                 return;
             }
-            const subscription = this.safeValue (client.subscriptions, 'subscription:' + id);
+            const subscription = this.safeDict (client.subscriptions, 'subscription:' + id);
             if (subscription !== undefined) {
                 this.handleSubscription (client, message);
                 return;
@@ -1931,7 +1931,7 @@ export default class nado extends nadoRest {
             return;
         }
         const type = this.safeString (message, 'type');
-        const methods = {
+        const methods: Dict = {
             'trade': this.handleTrade,
             'all_bbo': this.handleAllBidsAsks,
             'best_bid_offer': this.handleBidAsk,
