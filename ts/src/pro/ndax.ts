@@ -50,7 +50,7 @@ export default class ndax extends ndaxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -76,7 +76,7 @@ export default class ndax extends ndaxRest {
     }
 
     handleTicker (client: Client, message: any) {
-        const payload = this.safeValue (message, 'o', {});
+        const payload = this.safeDict (message, 'o', {});
         //
         //     {
         //         "OMSId": 1,
@@ -124,7 +124,7 @@ export default class ndax extends ndaxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -215,7 +215,7 @@ export default class ndax extends ndaxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -281,7 +281,7 @@ export default class ndax extends ndaxRest {
             if (marketId !== undefined) {
                 updates[marketId] = {};
             }
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             const keys = Object.keys (this.timeframes);
             for (let j = 0; j < keys.length; j++) {
                 const timeframe = keys[j];
@@ -353,7 +353,7 @@ export default class ndax extends ndaxRest {
                 const messageHash = name + ':' + timeframe + ':' + marketId;
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
-                const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+                const stored = this.safeList (this.ohlcvs[symbol], timeframe, []);
                 client.resolve (stored, messageHash);
             }
         }
@@ -369,7 +369,7 @@ export default class ndax extends ndaxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -432,7 +432,7 @@ export default class ndax extends ndaxRest {
         //         0,   // 9 Side
         //     ],
         //
-        const firstBidAsk = this.safeValue (payload, 0, []);
+        const firstBidAsk = this.safeList (payload, 0, []);
         const marketId = this.safeString (firstBidAsk, 7);
         if (marketId === undefined) {
             return;
@@ -497,7 +497,7 @@ export default class ndax extends ndaxRest {
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        const payload = this.safeValue (message, 'o', []);
+        const payload = this.safeList (message, 'o', []);
         //
         //     [
         //         [
@@ -536,7 +536,7 @@ export default class ndax extends ndaxRest {
         //
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const id = this.safeInteger (message, 'i');
-        const subscription = (id === undefined) ? undefined : this.safeValue (subscriptionsById, id);
+        const subscription = (id === undefined) ? undefined : this.safeDict (subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
