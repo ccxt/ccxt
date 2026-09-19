@@ -412,7 +412,7 @@ export default class weex extends weexRest {
         }
         const trades = await this.subscribePublic (messageHashes, channels, isContract, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -1633,7 +1633,7 @@ export default class weex extends weexRest {
             'type': type,
         };
         const response = await this.fetchBalance (params);
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
