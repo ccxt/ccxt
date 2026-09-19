@@ -4670,7 +4670,7 @@ func (this *Bitmex) ParseSettlements(settlements any, optionalArgs ...any) any {
 	var symbol *string = this.SafeString(market, "symbol")
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
-func (this *Bitmex) ParseSettlement(settlement any, optionalArgs ...any) any {
+func (this *Bitmex) ParseSettlement(settlement any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        timestamp: '2025-03-28T12:00:00.000Z',

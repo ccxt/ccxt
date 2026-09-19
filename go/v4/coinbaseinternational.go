@@ -1186,7 +1186,7 @@ func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code an
 	ch <- true
 	return nil
 }
-func (this *Coinbaseinternational) ParseNetworks(networks any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseNetworks(networks any, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var result map[string]any = map[string]any{}

@@ -11141,7 +11141,7 @@ func (this *Kucoin) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Kucoin) ParseLedgerDirection(direction *string) any {
+func (this *Kucoin) ParseLedgerDirection(direction *string) *string {
 	var directions map[string]any = map[string]any{
 		"in":          "in",
 		"out":         "out",
@@ -11980,7 +11980,7 @@ func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan any, code any, optionalAr
 	ch <- this.ParseBorrowRateHistory(rows, code, since, limit)
 	return nil
 }
-func (this *Kucoin) ParseBorrowRateHistories(response any, codes any, since any, limit any) any {
+func (this *Kucoin) ParseBorrowRateHistories(response any, codes any, since any, limit any) map[string]any {
 	//
 	//     [
 	//         {
@@ -12834,7 +12834,7 @@ func (this *Kucoin) ParseFundingRate(data any, optionalArgs ...any) any {
 		"interval":                 this.ParseFundingInterval(granularity),
 	}
 }
-func (this *Kucoin) ParseFundingInterval(interval *string) any {
+func (this *Kucoin) ParseFundingInterval(interval *string) *string {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",

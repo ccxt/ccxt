@@ -3919,7 +3919,7 @@ func (this *Btse) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Btse) ParseLedgerEntryDirection(typeVar *string) any {
+func (this *Btse) ParseLedgerEntryDirection(typeVar *string) *string {
 	var directions map[string]any = map[string]any{
 		"Deposit":                    "in",
 		"Withdraw":                   "out",

@@ -1664,7 +1664,7 @@ func (this *Bitteam) ParseOrderType(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitteam) ParseValueToPricision(valueObject any, valueKey any, preciseObject any, precisionKey any) any {
+func (this *Bitteam) ParseValueToPricision(valueObject any, valueKey any, preciseObject any, precisionKey any) *string {
 	var valueRawString *string = this.SafeString(valueObject, valueKey)
 	var precisionRawString *string = this.SafeString(preciseObject, precisionKey)
 	if (valueRawString == nil) || (precisionRawString == nil) {
@@ -2758,7 +2758,7 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var addressTo *string = this.SafeString(transaction, "recipient")
 	var tag *string = this.SafeString(transaction, "message")
 	var typeVar *string = this.ParseTransactionType(this.SafeString(transaction, "type"))
-	var amount any = this.ParseValueToPricision(transaction, "amount", currencyObject, "decimals")
+	var amount *string = this.ParseValueToPricision(transaction, "amount", currencyObject, "decimals")
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	return map[string]any{
 		"info":        transaction,

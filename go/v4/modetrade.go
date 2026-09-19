@@ -1296,7 +1296,7 @@ func (this *Modetrade) ParseFundingRate(fundingRate any, optionalArgs ...any) an
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *Modetrade) ParseFundingInterval(interval *string) any {
+func (this *Modetrade) ParseFundingInterval(interval *string) *string {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",

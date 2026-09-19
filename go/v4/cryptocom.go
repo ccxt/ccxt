@@ -3935,7 +3935,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
 }
-func (this *Cryptocom) ParseSettlement(settlement any, optionalArgs ...any) any {
+func (this *Cryptocom) ParseSettlement(settlement any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "i": "BTCUSD-230526",

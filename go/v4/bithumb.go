@@ -3304,7 +3304,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"info": transaction,
 	}
 }
-func (this *Bithumb) ParseTransactionStatusByType(status *string, optionalArgs ...any) any {
+func (this *Bithumb) ParseTransactionStatusByType(status *string, optionalArgs ...any) *string {
 	typeVar := GetArg(optionalArgs, 0, nil)
 	_ = typeVar
 	if typeVar == nil {

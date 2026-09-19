@@ -6933,7 +6933,7 @@ func (this *Mexc) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(this.SafeStringN(transfer, []any{"transact_state", "state", "status"})),
 	}
 }
-func (this *Mexc) ParseAccountId(status any) any {
+func (this *Mexc) ParseAccountId(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"SPOT":     "spot",
 		"FUTURES":  "swap",
@@ -7187,7 +7187,7 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 	ch <- this.ParseTransactionFees(response, codes)
 	return nil
 }
-func (this *Mexc) ParseTransactionFees(response any, optionalArgs ...any) any {
+func (this *Mexc) ParseTransactionFees(response any, optionalArgs ...any) map[string]any {
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
 	var withdrawFees map[string]any = map[string]any{}
@@ -7206,7 +7206,7 @@ func (this *Mexc) ParseTransactionFees(response any, optionalArgs ...any) any {
 		"info":     response,
 	}
 }
-func (this *Mexc) ParseTransactionFee(transaction any, optionalArgs ...any) any {
+func (this *Mexc) ParseTransactionFee(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "coin": "AGLD",

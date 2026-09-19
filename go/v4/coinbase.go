@@ -5953,7 +5953,7 @@ func (this *Coinbase) ParseDepositMethodIds(ids any, optionalArgs ...any) any {
 	}
 	return result
 }
-func (this *Coinbase) ParseDepositMethodId(depositId any) any {
+func (this *Coinbase) ParseDepositMethodId(depositId any) map[string]any {
 	return map[string]any{
 		"info":     depositId,
 		"id":       this.SafeString(depositId, "id"),

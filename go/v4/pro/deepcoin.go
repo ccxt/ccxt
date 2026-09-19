@@ -1492,7 +1492,7 @@ func (this *Deepcoin) ParseWsPosition(position any, optionalArgs ...any) any {
 		"info":                        position,
 	})
 }
-func (this *Deepcoin) ParsePositionSide(direction *string) any {
+func (this *Deepcoin) ParsePositionSide(direction *string) *string {
 	if direction == nil {
 		return direction
 	}
@@ -1502,7 +1502,7 @@ func (this *Deepcoin) ParsePositionSide(direction *string) any {
 	}
 	return this.SafeString(directions, direction, direction)
 }
-func (this *Deepcoin) ParseWsMarginMode(marginMode *string) any {
+func (this *Deepcoin) ParseWsMarginMode(marginMode *string) *string {
 	if marginMode == nil {
 		return marginMode
 	}

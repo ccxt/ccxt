@@ -3969,7 +3969,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
-func (this *Delta) ParseSettlement(settlement any, market any) any {
+func (this *Delta) ParseSettlement(settlement any, market any) map[string]any {
 	//
 	//     {
 	//         "contract_value": "0.001",

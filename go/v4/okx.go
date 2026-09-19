@@ -8787,7 +8787,7 @@ func (this *Okx) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *Okx) ParseFundingInterval(interval *string) any {
+func (this *Okx) ParseFundingInterval(interval *string) *string {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"7200000":  "2h",
@@ -9447,7 +9447,7 @@ func (this *Okx) ParseBorrowRate(info any, optionalArgs ...any) any {
 		"info":      info,
 	}
 }
-func (this *Okx) ParseBorrowRateHistories(response any, codes any, since any, limit any) any {
+func (this *Okx) ParseBorrowRateHistories(response any, codes any, since any, limit any) map[string]any {
 	//
 	//    [
 	//        {
@@ -10734,13 +10734,13 @@ func (this *Okx) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var settlements any = this.ParseSettlements(data, market)
+	var settlements []any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
 }
-func (this *Okx) ParseSettlement(settlement any, market any) any {
+func (this *Okx) ParseSettlement(settlement any, market any) map[string]any {
 	//
 	//     {
 	//         "insId": "BTC-USD-230521-28500-P",
@@ -10757,7 +10757,7 @@ func (this *Okx) ParseSettlement(settlement any, market any) any {
 		"datetime":  nil,
 	}
 }
-func (this *Okx) ParseSettlements(settlements any, market any) any {
+func (this *Okx) ParseSettlements(settlements any, market any) []any {
 	//
 	//     {
 	//         "details": [
@@ -10776,7 +10776,7 @@ func (this *Okx) ParseSettlements(settlements any, market any) any {
 		var timestamp *int64 = this.SafeInteger(entry, "ts")
 		var details any = this.SafeList(entry, "details", []any{})
 		for j := 0; j < GetArrayLength(details); j++ {
-			var settlement any = this.ParseSettlement(GetValue(details, j), market)
+			var settlement map[string]any = this.ParseSettlement(GetValue(details, j), market)
 			result = append(result, this.Extend(settlement, map[string]any{
 				"timestamp": timestamp,
 				"datetime":  this.Iso8601(timestamp),

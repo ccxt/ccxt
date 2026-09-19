@@ -507,7 +507,7 @@ func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 	}
 	return nil
 }
-func (this *Bitrue) ParseContractBidsAsks(bidsAsks any, symbol any) any {
+func (this *Bitrue) ParseContractBidsAsks(bidsAsks any, symbol any) []any {
 	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(bidsAsks); i++ {
 		var level any = ccxt.GetValue(bidsAsks, i)

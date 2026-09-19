@@ -2358,7 +2358,7 @@ func (this *Gate) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 		for i := 0; i < GetArrayLength(response); i++ {
 			var contract any = this.SafeDict(response, i, map[string]any{})
-			var parsedMarket any = this.ParseContractMarket(contract, settleId)
+			var parsedMarket map[string]any = this.ParseContractMarket(contract, settleId)
 			result = append(result, parsedMarket)
 		}
 	}
@@ -2393,7 +2393,7 @@ func (this *Gate) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 		for i := 0; i < GetArrayLength(response); i++ {
 			var contract any = this.SafeDict(response, i, map[string]any{})
-			var parsedMarket any = this.ParseContractMarket(contract, settleId)
+			var parsedMarket map[string]any = this.ParseContractMarket(contract, settleId)
 			result = append(result, parsedMarket)
 		}
 	}
@@ -2401,7 +2401,7 @@ func (this *Gate) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
 	ch <- result
 	return nil
 }
-func (this *Gate) ParseContractMarket(market any, settleId any) any {
+func (this *Gate) ParseContractMarket(market any, settleId any) map[string]any {
 	//
 	//  Perpetual swap
 	//
@@ -3301,7 +3301,7 @@ func (this *Gate) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"interval":                 this.ParseFundingInterval(fundingInterval),
 	}
 }
-func (this *Gate) ParseFundingInterval(interval *string) any {
+func (this *Gate) ParseFundingInterval(interval *string) *string {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",
@@ -9919,7 +9919,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
 }
-func (this *Gate) ParseSettlement(settlement any, optionalArgs ...any) any {
+func (this *Gate) ParseSettlement(settlement any, optionalArgs ...any) map[string]any {
 	//
 	// fetchSettlementHistory
 	//

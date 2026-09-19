@@ -821,8 +821,8 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 	var futuresFees map[string]any = SafeMapTyped(response, 1)
 	var spotFeeTiers any = this.SafeList(spotFees, "fee_tiers", []any{})
 	var futuresFeeTiers any = this.SafeList(futuresFees, "fee_tiers", []any{})
-	var spotTiers any = this.ParseFeeTiers(spotFeeTiers)
-	var futuresTiers any = this.ParseFeeTiers(futuresFeeTiers)
+	var spotTiers map[string]any = this.ParseFeeTiers(spotFeeTiers)
+	var futuresTiers map[string]any = this.ParseFeeTiers(futuresFeeTiers)
 	var firstSpotTier any = this.SafeDict(spotTiers, 0, map[string]any{})
 	var firstFuturesTier any = this.SafeDict(futuresTiers, 0, map[string]any{})
 	var result map[string]any = map[string]any{}
@@ -943,7 +943,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	ch <- result
 	return nil
 }
-func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) any {
+func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[string]any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var takerFees []any = []any{}
