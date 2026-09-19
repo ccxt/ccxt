@@ -182,7 +182,7 @@ export default class coinex extends coinexRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWSTicker (ticker: any, market: Market = undefined) {
+    parseWSTicker (ticker: Dict, market: Market = undefined) {
         //
         //  spot
         //
@@ -360,7 +360,7 @@ export default class coinex extends coinexRest {
         }
         let messageHash: Str = undefined;
         if (account !== undefined) {
-            if (this.safeValue (this.balance, account) === undefined) {
+            if (this.safeDict (this.balance, account) === undefined) {
                 this.balance[account] = {};
             }
             this.balance[account]['info'] = info;
@@ -370,7 +370,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    parseWsBalance (balance: any, accountType: Str = undefined) {
+    parseWsBalance (balance: Dict, accountType: Str = undefined) {
         //
         // spot
         //
@@ -400,7 +400,7 @@ export default class coinex extends coinexRest {
         account['free'] = this.safeString (balance, 'available');
         account['used'] = this.safeString (balance, 'frozen');
         if (accountType !== undefined) {
-            if (this.safeValue (this.balance, accountType) === undefined) {
+            if (this.safeDict (this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
             if ((accountType !== undefined) && (code !== undefined)) {
@@ -567,7 +567,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined) {
         //
         // spot watchTrades
         //
@@ -1110,7 +1110,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined) {
         //
         // spot
         //
@@ -1319,7 +1319,7 @@ export default class coinex extends coinexRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker: any, market: Market = undefined) {
+    parseWsBidAsk (ticker: Dict, market: Market = undefined) {
         //
         //     {
         //         "market": "BTCUSDT",
@@ -1427,7 +1427,7 @@ export default class coinex extends coinexRest {
 
     handleSubscriptionStatus (client: Client, message: any) {
         const id = this.safeInteger (message, 'id');
-        const subscription = this.safeValue (client.subscriptions, id);
+        const subscription = this.safeDict (client.subscriptions, id);
         if (subscription !== undefined) {
             const futureIndex = this.safeString (subscription, 'future');
             const future = this.safeValue (client.futures, futureIndex);
