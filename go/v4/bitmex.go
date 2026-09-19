@@ -765,15 +765,20 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 	var code *string = this.SafeCurrencyCode(asset)
 	var id *string = this.SafeString(currency, "currency")
 	var name *string = this.SafeString(currency, "name")
-	var chains any = this.SafeList(currency, "networks", []any{})
+	var chains []any = SafeListTyped(currency, "networks")
 	var depositEnabled bool = false
 	var withdrawEnabled bool = false
 	var networks map[string]any = map[string]any{}
 	var scale *string = this.SafeString(currency, "scale")
 	var precisionString any = this.ParsePrecision(scale)
 	var precision any = this.ParseNumber(precisionString)
-	for j := 0; j < GetArrayLength(chains); j++ {
-		var chain any = GetValue(chains, j)
+	for j := 0; j < len(chains); j++ {
+		var chain any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(chain, "asset")
 		var network any = this.NetworkIdToCode(networkId, code)
 		var withdrawalFeeRaw *string = this.SafeString(chain, "withdrawalFee")
@@ -3981,8 +3986,8 @@ func (this *Bitmex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networks any = this.SafeList(fee, "networks", []any{})
-	var networksLength int = GetArrayLength(networks)
+	var networks []any = SafeListTyped(fee, "networks")
+	var networksLength int = len(networks)
 	var result map[string]any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
@@ -3999,7 +4004,12 @@ func (this *Bitmex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		var scale *string = this.SafeString(fee, "scale")
 		var precision any = this.ParsePrecision(scale)
 		for i := 0; i < networksLength; i++ {
-			var network any = GetValue(networks, i)
+			var network any = func() any {
+				if i >= 0 && i < len(networks) {
+					return DerefScalar(networks[i])
+				}
+				return nil
+			}()
 			var networkId *string = this.SafeString(network, "asset")
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)

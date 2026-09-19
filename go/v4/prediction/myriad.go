@@ -849,10 +849,15 @@ func (this *Myriad) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = ccxt.SafeListTyped(response, "data")
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		result = append(result, this.ParsePredictionPosition(ccxt.GetValue(data, i)))
+	for i := 0; i < len(data); i++ {
+		result = append(result, this.ParsePredictionPosition(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()))
 	}
 
 	ch <- this.FilterByArray(result, "outcome", outcomes, false)
@@ -2061,11 +2066,16 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var rows any = this.SafeList(response, "data", []any{})
+	var rows []any = ccxt.SafeListTyped(response, "data")
 	var result []any = []any{}
-	var rowsLength int = ccxt.GetArrayLength(rows)
+	var rowsLength int = len(rows)
 	for i := 0; i < rowsLength; i++ {
-		var row any = ccxt.GetValue(rows, i)
+		var row any = func() any {
+			if i >= 0 && i < len(rows) {
+				return ccxt.DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var action *string = this.SafeStringLower(row, "action")
 		if (action == nil || *action != "buy") && (action == nil || *action != "sell") {
 			continue
@@ -4009,8 +4019,8 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			rawQuestions = []any{rawQuestion}
 		}
 	} else {
-		var requestedTags any = this.SafeList(params, "tags", []any{})
-		var requestedTagsLength int = ccxt.GetArrayLength(requestedTags)
+		var requestedTags []any = ccxt.SafeListTyped(params, "tags")
+		var requestedTagsLength int = len(requestedTags)
 		if requestedTagsLength == 0 {
 			// unscoped mode: fetch bounded open lists from both sources and merge
 
@@ -4022,7 +4032,12 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			var tagQueries []any = []any{}
 			for i := 0; i < requestedTagsLength; i++ {
 				// tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-				var tagSlug any = ccxt.GetValue(requestedTags, i)
+				var tagSlug any = func() any {
+					if i >= 0 && i < len(requestedTags) {
+						return ccxt.DerefScalar(requestedTags[i])
+					}
+					return nil
+				}()
 				tagQueries = append(tagQueries, ccxt.Replace(tagSlug, "-", " "))
 			}
 			// run both searches in parallel; some events are only discoverable from questions,
@@ -4413,11 +4428,16 @@ func (this *Myriad) HandleOrderBook(client any, data any) {
 	var networkId *string = this.SafeString(data, "networkId")
 	var marketId *string = this.SafeString(data, "marketId")
 	var ts *int64 = this.SafeInteger(data, "ts")
-	var changes any = this.SafeList(data, "changes", []any{})
-	var changesLength int = ccxt.GetArrayLength(changes)
+	var changes []any = ccxt.SafeListTyped(data, "changes")
+	var changesLength int = len(changes)
 	var updated map[string]any = map[string]any{}
 	for i := 0; i < changesLength; i++ {
-		var change any = ccxt.GetValue(changes, i)
+		var change any = func() any {
+			if i >= 0 && i < len(changes) {
+				return ccxt.DerefScalar(changes[i])
+			}
+			return nil
+		}()
 		var outcomeId *string = this.SafeString(change, "outcome")
 		var sym any = this.MarketOutcomeToSymbol(networkId, marketId, outcomeId)
 		if sym == nil {
@@ -4603,10 +4623,15 @@ func (this *Myriad) HandleTrades(client any, data any) {
 		if ccxt.IsEqual(takerTrader, myWallet) {
 			myLegs = append(myLegs, trade)
 		}
-		var makers any = this.SafeList(data, "makers", []any{})
-		var makersLength int = ccxt.GetArrayLength(makers)
+		var makers []any = ccxt.SafeListTyped(data, "makers")
+		var makersLength int = len(makers)
 		for i := 0; i < makersLength; i++ {
-			var maker any = ccxt.GetValue(makers, i)
+			var maker any = func() any {
+				if i >= 0 && i < len(makers) {
+					return ccxt.DerefScalar(makers[i])
+				}
+				return nil
+			}()
 			var makerTrader *string = this.SafeStringLower(maker, "trader")
 			if ccxt.IsEqual(makerTrader, myWallet) {
 				var makerSym any = this.MarketOutcomeToSymbol(networkId, marketId, this.SafeString(maker, "outcome"))
@@ -4796,13 +4821,18 @@ func (this *Myriad) HandleTicker(client any, data any) {
 	var networkId *string = this.SafeString(data, "networkId")
 	var marketId *string = this.SafeString(data, "marketId")
 	var ts *int64 = this.SafeInteger(data, "ts")
-	var outcomes any = this.SafeList(data, "outcomes", []any{})
-	var outcomesLength int = ccxt.GetArrayLength(outcomes)
+	var outcomes []any = ccxt.SafeListTyped(data, "outcomes")
+	var outcomesLength int = len(outcomes)
 	if this.Tickers == nil {
 		this.Tickers = this.CreateSafeDictionary()
 	}
 	for i := 0; i < outcomesLength; i++ {
-		var oc any = ccxt.GetValue(outcomes, i)
+		var oc any = func() any {
+			if i >= 0 && i < len(outcomes) {
+				return ccxt.DerefScalar(outcomes[i])
+			}
+			return nil
+		}()
 		var outcomeId *string = this.SafeString(oc, "outcome")
 		var sym any = this.MarketOutcomeToSymbol(networkId, marketId, outcomeId)
 		if sym == nil {

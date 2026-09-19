@@ -1789,7 +1789,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message any) {
 	//        ]
 	//    }
 	//
-	var trades any = this.SafeList(message, "fills", []any{})
+	var trades []any = ccxt.SafeListTyped(message, "fills")
 	var stored any = this.MyTrades
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1797,8 +1797,13 @@ func (this *Krakenfutures) HandleMyTrades(client any, message any) {
 		this.MyTrades = stored
 	}
 	var tradeSymbols map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
-		var trade any = ccxt.GetValue(trades, i)
+	for i := 0; i < len(trades); i++ {
+		var trade any = func() any {
+			if i >= 0 && i < len(trades) {
+				return ccxt.DerefScalar(trades[i])
+			}
+			return nil
+		}()
 		var parsedTrade any = this.ParseWsMyTrade(trade)
 		if !ccxt.IsEqual(ccxt.GetValue(parsedTrade, "symbol"), nil) {
 			ccxt.AddElementToObject(tradeSymbols, ccxt.GetValue(parsedTrade, "symbol"), true)

@@ -2629,12 +2629,17 @@ func (this *Bybit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var list any = this.SafeList(result, "list", []any{})
+	var list []any = SafeListTyped(result, "list")
 	var status string = "ok"
 	var eta *int64 = nil
 	var url any = nil
-	for i := 0; i < GetArrayLength(list); i++ {
-		var event any = GetValue(list, i)
+	for i := 0; i < len(list); i++ {
+		var event any = func() any {
+			if i >= 0 && i < len(list) {
+				return DerefScalar(list[i])
+			}
+			return nil
+		}()
 		var state *string = this.SafeString(event, "state")
 		if state != nil && *state == "ongoing" {
 			status = "maintenance"
@@ -2766,10 +2771,15 @@ func (this *Bybit) ParseCurrency(currency any) any {
 	var currencyId *string = this.SafeString(currency, "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(currency, "name")
-	var chains any = this.SafeList(currency, "chains", []any{})
+	var chains []any = SafeListTyped(currency, "chains")
 	var networks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(chains); j++ {
-		var chain any = GetValue(chains, j)
+	for j := 0; j < len(chains); j++ {
+		var chain any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(chain, "chain")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -2959,12 +2969,17 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan any, params any) any {
 	//     }
 	//
 	var responseResult map[string]any = SafeMapTyped(response, "result")
-	var markets any = this.SafeList(responseResult, "list", []any{})
+	var markets []any = SafeListTyped(responseResult, "list")
 	var result []any = []any{}
 	var takerFee any = this.ParseNumber("0.001")
 	var makerFee any = this.ParseNumber("0.001")
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quoteId *string = this.SafeString(market, "quoteCoin")
@@ -4255,9 +4270,14 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	//
 	var rates []any = []any{}
 	var result map[string]any = SafeMapTyped(response, "result")
-	var resultList any = this.SafeList(result, "list", []any{})
-	for i := 0; i < GetArrayLength(resultList); i++ {
-		var entry any = GetValue(resultList, i)
+	var resultList []any = SafeListTyped(result, "list")
+	for i := 0; i < len(resultList); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(resultList) {
+				return DerefScalar(resultList[i])
+			}
+			return nil
+		}()
 		var timestamp *int64 = this.SafeInteger(entry, "fundingRateTimestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -4836,10 +4856,15 @@ func (this *Bybit) ParseBalance(response any) any {
 			var entry any = GetValue(currencyList, i)
 			var accountType *string = this.SafeString(entry, "accountType")
 			if (accountType != nil && *accountType == "UNIFIED") || (accountType != nil && *accountType == "CONTRACT") || (accountType != nil && *accountType == "SPOT") {
-				var coins any = this.SafeList(entry, "coin", []any{})
-				for j := 0; j < GetArrayLength(coins); j++ {
+				var coins []any = SafeListTyped(entry, "coin")
+				for j := 0; j < len(coins); j++ {
 					var account any = this.Account()
-					var coinEntry any = GetValue(coins, j)
+					var coinEntry any = func() any {
+						if j >= 0 && j < len(coins) {
+							return DerefScalar(coins[j])
+						}
+						return nil
+					}()
 					var loan *string = this.SafeString(coinEntry, "borrowAmount")
 					var interest *string = this.SafeString(coinEntry, "accruedInterest")
 					if (loan != nil) && (interest != nil) {
@@ -5931,10 +5956,15 @@ func (this *Bybit) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
 	var retInfo map[string]any = SafeMapTyped(response, "retExtInfo")
-	var codes any = this.SafeList(retInfo, "list", []any{})
+	var codes []any = SafeListTyped(retInfo, "list")
 	// extend the error with the unsuccessful orders
-	for i := 0; i < GetArrayLength(codes); i++ {
-		var code any = GetValue(codes, i)
+	for i := 0; i < len(codes); i++ {
+		var code any = func() any {
+			if i >= 0 && i < len(codes) {
+				return DerefScalar(codes[i])
+			}
+			return nil
+		}()
 		var retCode *int64 = this.SafeInteger(code, "code")
 		if retCode == nil || *retCode != 0 {
 			AddElementToObject(data, i, this.Extend(GetValue(data, i), code))
@@ -6209,10 +6239,15 @@ func (this *Bybit) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
 	var retInfo map[string]any = SafeMapTyped(response, "retExtInfo")
-	var codes any = this.SafeList(retInfo, "list", []any{})
+	var codes []any = SafeListTyped(retInfo, "list")
 	// extend the error with the unsuccessful orders
-	for i := 0; i < GetArrayLength(codes); i++ {
-		var code any = GetValue(codes, i)
+	for i := 0; i < len(codes); i++ {
+		var code any = func() any {
+			if i >= 0 && i < len(codes) {
+				return DerefScalar(codes[i])
+			}
+			return nil
+		}()
 		var retCode *int64 = this.SafeInteger(code, "code")
 		if retCode == nil || *retCode != 0 {
 			AddElementToObject(data, i, this.Extend(GetValue(data, i), code))
@@ -10559,8 +10594,8 @@ func (this *Bybit) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var chains any = this.SafeList(fee, "chains", []any{})
-	var chainsLength int = GetArrayLength(chains)
+	var chains []any = SafeListTyped(fee, "chains")
+	var chainsLength int = len(chains)
 	var result map[string]any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
@@ -10575,7 +10610,12 @@ func (this *Bybit) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	if chainsLength != 0 {
 		for i := 0; i < chainsLength; i++ {
-			var chain any = GetValue(chains, i)
+			var chain any = func() any {
+				if i >= 0 && i < len(chains) {
+					return DerefScalar(chains[i])
+				}
+				return nil
+			}()
 			var networkId *string = this.SafeString(chain, "chain")
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
@@ -11050,8 +11090,13 @@ func (this *Bybit) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any)
 	//
 	var timestamp *int64 = this.SafeInteger(response, "time")
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "list", []any{})
-	var greeks any = this.ParseGreeks(GetValue(data, 0), market)
+	var data []any = SafeListTyped(result, "list")
+	var greeks any = this.ParseGreeks(func() any {
+		if 0 >= 0 && 0 < len(data) {
+			return DerefScalar(data[0])
+		}
+		return nil
+	}(), market)
 
 	ch <- this.Extend(greeks, map[string]any{
 		"timestamp": timestamp,
@@ -12099,9 +12144,14 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) 
 	//
 	var result map[string]any = map[string]any{}
 	var data map[string]any = SafeMapTyped(response, "result")
-	var coins any = this.SafeList(data, "coins", []any{})
-	for i := 0; i < GetArrayLength(coins); i++ {
-		var entry any = GetValue(coins, i)
+	var coins []any = SafeListTyped(data, "coins")
+	for i := 0; i < len(coins); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(coins) {
+				return DerefScalar(coins[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(entry, "coin")
 		var disableFrom *bool = this.SafeBool(entry, "disableFrom")
 		var disableTo *bool = this.SafeBool(entry, "disableTo")

@@ -2540,10 +2540,15 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var userref *string = this.SafeString(order, "userref")
 	var clientOrderId *string = this.SafeString(order, "cl_ord_id", userref)
-	var rawTrades any = this.SafeList(order, "trades", []any{})
+	var rawTrades []any = SafeListTyped(order, "trades")
 	var trades []any = []any{}
-	for i := 0; i < GetArrayLength(rawTrades); i++ {
-		var rawTrade any = GetValue(rawTrades, i)
+	for i := 0; i < len(rawTrades); i++ {
+		var rawTrade any = func() any {
+			if i >= 0 && i < len(rawTrades) {
+				return DerefScalar(rawTrades[i])
+			}
+			return nil
+		}()
 		if IsString(rawTrade) {
 			trades = append(trades, this.SafeTrade(map[string]any{
 				"id":      rawTrade,
@@ -4651,9 +4656,14 @@ func (this *Kraken) HandleErrors(code any, reason any, url any, method any, head
 			if InOp(response, "result") {
 				var result map[string]any = SafeMapTyped(response, "result")
 				if func() bool { _, ok := result["orders"]; return ok }() {
-					var orders any = this.SafeList(result, "orders", []any{})
-					for i := 0; i < GetArrayLength(orders); i++ {
-						var order any = GetValue(orders, i)
+					var orders []any = SafeListTyped(result, "orders")
+					for i := 0; i < len(orders); i++ {
+						var order any = func() any {
+							if i >= 0 && i < len(orders) {
+								return DerefScalar(orders[i])
+							}
+							return nil
+						}()
 						var error *string = this.SafeString(order, "error")
 						if error != nil {
 							this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, message)

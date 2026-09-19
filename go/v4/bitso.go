@@ -604,11 +604,16 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//             },
 	//         ]
 	//     }
-	var markets any = this.SafeList(response, "payload", []any{})
+	var markets []any = SafeListTyped(response, "payload")
 	var currencies map[string]any = SafeMapTyped(this.Options, "cachedCurrencies")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "book")
 		baseIdquoteIdVariable := Split(id, "_")
 		baseId := GetValue(baseIdquoteIdVariable, 0)
@@ -623,7 +628,7 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var makerString *string = this.SafeString(flatRate, "maker")
 		var taker any = this.ParseNumber(Precise.StringDiv(takerString, "100"))
 		var maker any = this.ParseNumber(Precise.StringDiv(makerString, "100"))
-		var feeTiers any = this.SafeList(fees, "structure", []any{})
+		var feeTiers []any = SafeListTyped(fees, "structure")
 		var fee map[string]any = map[string]any{
 			"taker":      taker,
 			"maker":      maker,
@@ -632,8 +637,13 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var takerFees []any = []any{}
 		var makerFees []any = []any{}
-		for j := 0; j < GetArrayLength(feeTiers); j++ {
-			var tier any = GetValue(feeTiers, j)
+		for j := 0; j < len(feeTiers); j++ {
+			var tier any = func() any {
+				if j >= 0 && j < len(feeTiers) {
+					return DerefScalar(feeTiers[j])
+				}
+				return nil
+			}()
 			var volume *float64 = this.SafeNumber(tier, "volume")
 			var takerFee *float64 = this.SafeNumber(tier, "taker")
 			var makerFee *float64 = this.SafeNumber(tier, "maker")
@@ -791,14 +801,19 @@ func (this *Bitso) ParseCurrency(rawCurrency any) any {
 }
 func (this *Bitso) ParseBalance(response any) any {
 	var payload any = this.SafeValue(response, "payload", map[string]any{})
-	var balances any = this.SafeList(payload, "balances", []any{})
+	var balances []any = SafeListTyped(payload, "balances")
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
@@ -1324,10 +1339,15 @@ func (this *Bitso) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var payload map[string]any = SafeMapTyped(response, "payload")
-	var fees any = this.SafeList(payload, "fees", []any{})
+	var fees []any = SafeListTyped(payload, "fees")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(fees); i++ {
-		var fee any = GetValue(fees, i)
+	for i := 0; i < len(fees); i++ {
+		var fee any = func() any {
+			if i >= 0 && i < len(fees) {
+				return DerefScalar(fees[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(fee, "book")
 		var symbol *string = this.SafeSymbol(marketId, nil, "_")
 		AddElementToObject(result, symbol, map[string]any{
@@ -1550,10 +1570,15 @@ func (this *Bitso) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	//         "payload": ["yWTQGxDMZ0VimZgZ"]
 	//     }
 	//
-	var payload any = this.SafeList(response, "payload", []any{})
+	var payload []any = SafeListTyped(response, "payload")
 	var orders []any = []any{}
-	for i := 0; i < GetArrayLength(payload); i++ {
-		var id any = GetValue(payload, i)
+	for i := 0; i < len(payload); i++ {
+		var id any = func() any {
+			if i >= 0 && i < len(payload) {
+				return DerefScalar(payload[i])
+			}
+			return nil
+		}()
 		orders = append(orders, this.ParseOrder(id, market))
 	}
 
@@ -1594,10 +1619,15 @@ func (this *Bitso) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
 	//     }
 	//
-	var payload any = this.SafeList(response, "payload", []any{})
+	var payload []any = SafeListTyped(response, "payload")
 	var canceledOrders []any = []any{}
-	for i := 0; i < GetArrayLength(payload); i++ {
-		var order any = this.ParseOrder(GetValue(payload, i))
+	for i := 0; i < len(payload); i++ {
+		var order any = this.ParseOrder(func() any {
+			if i >= 0 && i < len(payload) {
+				return DerefScalar(payload[i])
+			}
+			return nil
+		}())
 		canceledOrders = append(canceledOrders, order)
 	}
 
@@ -2071,9 +2101,14 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 	//
 	var result map[string]any = map[string]any{}
 	var payload map[string]any = SafeMapTyped(response, "payload")
-	var depositFees any = this.SafeList(payload, "deposit_fees", []any{})
-	for i := 0; i < GetArrayLength(depositFees); i++ {
-		var depositFee any = GetValue(depositFees, i)
+	var depositFees []any = SafeListTyped(payload, "deposit_fees")
+	for i := 0; i < len(depositFees); i++ {
+		var depositFee any = func() any {
+			if i >= 0 && i < len(depositFees) {
+				return DerefScalar(depositFees[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(depositFee, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (codes != nil) && !this.InArray(code, codes) {
@@ -2237,10 +2272,15 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 	currencyIdKey := GetArg(optionalArgs, 1, nil)
 	_ = currencyIdKey
 	var result map[string]any = map[string]any{}
-	var depositResponse any = this.SafeList(response, "deposit_fees", []any{})
+	var depositResponse []any = SafeListTyped(response, "deposit_fees")
 	var withdrawalResponse any = this.SafeValue(response, "withdrawal_fees", []any{})
-	for i := 0; i < GetArrayLength(depositResponse); i++ {
-		var entry any = GetValue(depositResponse, i)
+	for i := 0; i < len(depositResponse); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(depositResponse) {
+				return DerefScalar(depositResponse[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (codes == nil) || ((code != nil) && (InOp(codes, code))) {

@@ -1003,10 +1003,15 @@ func (this *Digifinex) fetchMarketsV1Body(ch chan any, optionalArgs ...any) any 
 	//         "code":0
 	//     }
 	//
-	var markets any = this.SafeList(response, "data", []any{})
+	var markets []any = SafeListTyped(response, "data")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "market")
 		if id == nil {
 			panic(ExchangeError(this.Id + " fetchMarketsV1() missing id"))
@@ -2579,8 +2584,8 @@ func (this *Digifinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	//     }
 	//
 	if (IsEqual(marketType, "spot")) || (IsEqual(marketType, "margin")) {
-		var canceledOrders any = this.SafeList(response, "success", []any{})
-		var numCanceledOrders int = GetArrayLength(canceledOrders)
+		var canceledOrders []any = SafeListTyped(response, "success")
+		var numCanceledOrders int = len(canceledOrders)
 		if numCanceledOrders != 1 {
 			panic(OrderNotFound(Add(Add(this.Id+" cancelOrder() ", id), " not found")))
 		}
@@ -2598,19 +2603,29 @@ func (this *Digifinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	}
 }
 func (this *Digifinex) ParseCancelOrders(response any) any {
-	var success any = this.SafeList(response, "success", []any{})
-	var error any = this.SafeList(response, "error", []any{})
+	var success []any = SafeListTyped(response, "success")
+	var error []any = SafeListTyped(response, "error")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(success); i++ {
-		var order any = GetValue(success, i)
+	for i := 0; i < len(success); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(success) {
+				return DerefScalar(success[i])
+			}
+			return nil
+		}()
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
 			"status": "canceled",
 		}))
 	}
-	for i := 0; i < GetArrayLength(error); i++ {
-		var order any = GetValue(error, i)
+	for i := 0; i < len(error); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(error) {
+				return DerefScalar(error[i])
+			}
+			return nil
+		}()
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString2(order, "order-id", "order_id"),
@@ -4196,10 +4211,15 @@ func (this *Digifinex) fetchCrossBorrowRateBody(ch chan any, code any, optionalA
 	//         "equity": 45.133305540922
 	//     }
 	//
-	var data any = this.SafeList(response, "list", []any{})
+	var data []any = SafeListTyped(response, "list")
 	var result any = nil
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		if IsEqual(this.SafeString(entry, "currency"), code) {
 			result = entry
 		}
@@ -4496,10 +4516,15 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var result any = this.SafeList(data, "funding_rates", []any{})
+	var result []any = SafeListTyped(data, "funding_rates")
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(result); i++ {
-		var entry any = GetValue(result, i)
+	for i := 0; i < len(result); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(result) {
+				return DerefScalar(result[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(data, "instrument_id")
 		var symbolInner *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.SafeInteger(entry, "time")
@@ -4721,10 +4746,15 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 		}
 		return "positions"
 	}()
-	var positions any = this.SafeList(response, positionRequest, []any{})
+	var positions []any = SafeListTyped(response, positionRequest)
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(positions); i++ {
-		result = append(result, this.ParsePosition(GetValue(positions, i), market))
+	for i := 0; i < len(positions); i++ {
+		result = append(result, this.ParsePosition(func() any {
+			if i >= 0 && i < len(positions) {
+				return DerefScalar(positions[i])
+			}
+			return nil
+		}(), market))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -4844,8 +4874,13 @@ func (this *Digifinex) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 		}
 		return "positions"
 	}()
-	var data any = this.SafeList(response, dataRequest, []any{})
-	var position any = this.ParsePosition(GetValue(data, 0), market)
+	var data []any = SafeListTyped(response, dataRequest)
+	var position any = this.ParsePosition(func() any {
+		if 0 >= 0 && 0 < len(data) {
+			return DerefScalar(data[0])
+		}
+		return nil
+	}(), market)
 	if IsEqual(marketType, "swap") {
 
 		ch <- position

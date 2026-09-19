@@ -468,10 +468,15 @@ func (this *Poloniex) HandleOrderRequest(client any, message any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var orders []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var order any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var parsedOrder any = this.ParseWsOrder(order)
 		orders = append(orders, parsedOrder)
 	}
@@ -967,9 +972,14 @@ func (this *Poloniex) HandleTrade(client any, message any) any {
 	//        ]
 	//    }
 	//
-	var data any = this.SafeList(message, "data", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var item any = ccxt.GetValue(data, i)
+	var data []any = ccxt.SafeListTyped(message, "data")
+	for i := 0; i < len(data); i++ {
+		var item any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(item, "symbol")
 		if marketId != nil {
 			var trade any = this.ParseWsTrade(item)
@@ -1351,10 +1361,15 @@ func (this *Poloniex) HandleTicker(client any, message any) any {
 	//        ]
 	//    }
 	//
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var newTickers map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var item any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var item any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(item, "symbol")
 		if marketId != nil {
 			var ticker any = this.ParseTicker(item)
@@ -1429,12 +1444,17 @@ func (this *Poloniex) HandleOrderBook(client any, message any) {
 	//        "action": "update"
 	//    }
 	//
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var typeVar *string = this.SafeString(message, "action")
 	var snapshot bool = (typeVar != nil && *typeVar == "snapshot")
 	var update bool = (typeVar != nil && *typeVar == "update")
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var item any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var item any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(item, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
@@ -1600,8 +1620,8 @@ func (this *Poloniex) HandleMessage(client any, message any) {
 	} else if typeVar == nil {
 		this.HandleOrderRequest(client, message)
 	} else {
-		var data any = this.SafeList(message, "data", []any{})
-		var dataLength int = ccxt.GetArrayLength(data)
+		var data []any = ccxt.SafeListTyped(message, "data")
+		var dataLength int = len(data)
 		if dataLength > 0 {
 			ccxt.CallDynamically(method, client, message)
 		}

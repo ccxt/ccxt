@@ -2160,9 +2160,14 @@ func (this *Bybit) HandlePositions(client any, message any) {
 	}
 	var cache any = this.Positions
 	var newPositions []any = []any{}
-	var rawPositions any = this.SafeList(message, "data", []any{})
-	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
-		var rawPosition any = ccxt.GetValue(rawPositions, i)
+	var rawPositions []any = ccxt.SafeListTyped(message, "data")
+	for i := 0; i < len(rawPositions); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(rawPositions) {
+				return ccxt.DerefScalar(rawPositions[i])
+			}
+			return nil
+		}()
 		var position any = this.ParsePosition(rawPosition)
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions
@@ -2327,9 +2332,14 @@ func (this *Bybit) HandleLiquidation(client any, message any) {
 	//     }
 	//
 	if ccxt.IsArray(ccxt.GetValue(message, "data")) {
-		var rawLiquidations any = this.SafeList(message, "data", []any{})
-		for i := 0; i < ccxt.GetArrayLength(rawLiquidations); i++ {
-			var rawLiquidation any = ccxt.GetValue(rawLiquidations, i)
+		var rawLiquidations []any = ccxt.SafeListTyped(message, "data")
+		for i := 0; i < len(rawLiquidations); i++ {
+			var rawLiquidation any = func() any {
+				if i >= 0 && i < len(rawLiquidations) {
+					return ccxt.DerefScalar(rawLiquidations[i])
+				}
+				return nil
+			}()
 			var marketId *string = this.SafeString(rawLiquidation, "s")
 			var market any = this.SafeMarket(marketId, nil, "", "contract")
 			var symbol any = ccxt.GetValue(market, "symbol")
@@ -3019,10 +3029,15 @@ func (this *Bybit) watchTopicsBody(ch chan any, url any, messageHashes any, topi
 		var subscriptionHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 		for i := 0; i < len(subscriptionHashes); i++ {
 			var existing map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.GetValue(subscriptionHashes, i))
-			var recordedTopics any = this.SafeList(existing, "topics", []any{})
-			var recordedLength int = ccxt.GetArrayLength(recordedTopics)
+			var recordedTopics []any = ccxt.SafeListTyped(existing, "topics")
+			var recordedLength int = len(recordedTopics)
 			for j := 0; j < recordedLength; j++ {
-				ccxt.AddElementToObject(subscribedTopics, ccxt.GetValue(recordedTopics, j), true)
+				ccxt.AddElementToObject(subscribedTopics, func() any {
+					if j >= 0 && j < len(recordedTopics) {
+						return ccxt.DerefScalar(recordedTopics[j])
+					}
+					return nil
+				}(), true)
 			}
 		}
 		for i := 0; i < topicsLength; i++ {
@@ -3445,11 +3460,21 @@ func (this *Bybit) HandleUnSubscribe(client any, message any) any {
 			if reqId != subId && (reqId == nil || subId == nil || *reqId != *subId) {
 				continue
 			}
-			var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
-			var subMessageHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
-			for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
-				var unsubHash any = ccxt.GetValue(messageHashes, j)
-				var subHash any = ccxt.GetValue(subMessageHashes, j)
+			var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
+			for j := 0; j < len(messageHashes); j++ {
+				var unsubHash any = func() any {
+					if j >= 0 && j < len(messageHashes) {
+						return ccxt.DerefScalar(messageHashes[j])
+					}
+					return nil
+				}()
+				var subHash any = func() any {
+					if j >= 0 && j < len(subMessageHashes) {
+						return ccxt.DerefScalar(subMessageHashes[j])
+					}
+					return nil
+				}()
 				var usePrefix bool = (ccxt.IsEqual(subHash, "orders")) || (ccxt.IsEqual(subHash, "myTrades")) || (ccxt.IsEqual(subHash, "positions"))
 				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash, usePrefix)
 			}

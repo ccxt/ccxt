@@ -752,9 +752,14 @@ func (this *Derive) HandleOrder(client any, message any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var topic *string = this.SafeString(params, "channel")
-	var rawOrders any = this.SafeList(params, "data", []any{})
-	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-		var data any = ccxt.GetValue(rawOrders, i)
+	var rawOrders []any = ccxt.SafeListTyped(params, "data")
+	for i := 0; i < len(rawOrders); i++ {
+		var data any = func() any {
+			if i >= 0 && i < len(rawOrders) {
+				return ccxt.DerefScalar(rawOrders[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseOrder(data)
 		var symbol *string = this.SafeString(parsed, "symbol")
 		var orderId *string = this.SafeString(parsed, "id")
@@ -867,8 +872,8 @@ func (this *Derive) HandleMyTrade(client any, message any) {
 	}
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var topic *string = this.SafeString(params, "channel")
-	var rawTrades any = this.SafeList(params, "data", []any{})
-	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
+	var rawTrades []any = ccxt.SafeListTyped(params, "data")
+	for i := 0; i < len(rawTrades); i++ {
 		var trade any = this.ParseTrade(message)
 		myTrades.(ccxt.Appender).Append(trade)
 		client.(ccxt.ClientInterface).Resolve(myTrades, topic)
@@ -1002,8 +1007,8 @@ func (this *Derive) HandleAuth(client any, message any) {
 	// }
 	//
 	var messageHash string = "authenticated"
-	var ids any = this.SafeList(message, "result", []any{})
-	if ccxt.GetArrayLength(ids) > 0 {
+	var ids []any = ccxt.SafeListTyped(message, "result")
+	if len(ids) > 0 {
 		// client.resolve (message, messageHash)
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
 		future.(*ccxt.Future).Resolve(true)

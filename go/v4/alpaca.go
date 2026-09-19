@@ -2830,7 +2830,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 	//     ]
 	//
 	var account any = this.SafeDict(response, "account", map[string]any{})
-	var positions any = this.SafeList(response, "positions", []any{})
+	var positions []any = SafeListTyped(response, "positions")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -2844,8 +2844,13 @@ func (this *Alpaca) ParseBalance(response any) any {
 		AddElementToObject(cashAccount, "total", Precise.StringSub(equity, positionsValue)) // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
 		AddElementToObject(result, code, cashAccount)
 	}
-	for i := 0; i < GetArrayLength(positions); i++ {
-		var position any = GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var position any = func() any {
+			if i >= 0 && i < len(positions) {
+				return DerefScalar(positions[i])
+			}
+			return nil
+		}()
 		var positionSymbol *string = this.SafeString(position, "symbol")
 		if positionSymbol == nil {
 			continue

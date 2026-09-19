@@ -391,10 +391,15 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var eventsLength int = ccxt.GetArrayLength(events)
 		var queryMarkets []any = []any{}
 		for ei := 0; ei < eventsLength; ei++ {
-			var eventMarkets any = this.SafeList(ccxt.GetValue(events, ei), "markets", []any{})
-			var eventMarketsLength int = ccxt.GetArrayLength(eventMarkets)
+			var eventMarkets []any = ccxt.SafeListTyped(ccxt.GetValue(events, ei), "markets")
+			var eventMarketsLength int = len(eventMarkets)
 			for mi := 0; mi < eventMarketsLength; mi++ {
-				queryMarkets = append(queryMarkets, ccxt.GetValue(eventMarkets, mi))
+				queryMarkets = append(queryMarkets, func() any {
+					if mi >= 0 && mi < len(eventMarkets) {
+						return ccxt.DerefScalar(eventMarkets[mi])
+					}
+					return nil
+				}())
 			}
 		}
 
@@ -426,10 +431,15 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 		response := (<-this.KalshiPublicGetMarkets(this.Extend(request, rest)))
 		ccxt.PanicOnError(response)
-		var rawMarkets any = this.SafeList(response, "markets", []any{})
-		var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
-		for i := 0; i < ccxt.GetArrayLength(rawMarkets); i++ {
-			var raw any = ccxt.GetValue(rawMarkets, i)
+		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
+		var rawMarketsLength int = len(rawMarkets)
+		for i := 0; i < len(rawMarkets); i++ {
+			var raw any = func() any {
+				if i >= 0 && i < len(rawMarkets) {
+					return ccxt.DerefScalar(rawMarkets[i])
+				}
+				return nil
+			}()
 			var parsed any = this.ParseBinaryMarketToOutcomes(raw)
 			var eventTicker *string = this.SafeString(raw, "event_ticker")
 			var eventTitle *string = this.SafeString(raw, "title", eventTicker)
@@ -684,9 +694,14 @@ func (this *Kalshi) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 
 		response := (<-this.KalshiPublicGetMarkets(request))
 		ccxt.PanicOnError(response)
-		var rawMarkets any = this.SafeList(response, "markets", []any{})
-		for i := 0; i < ccxt.GetArrayLength(rawMarkets); i++ {
-			var parsed any = this.ParseMarket(ccxt.GetValue(rawMarkets, i))
+		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
+		for i := 0; i < len(rawMarkets); i++ {
+			var parsed any = this.ParseMarket(func() any {
+				if i >= 0 && i < len(rawMarkets) {
+					return ccxt.DerefScalar(rawMarkets[i])
+				}
+				return nil
+			}())
 			if ccxt.IsEqual(parsed, nil) {
 				panic(ccxt.ExchangeError(this.Id + " fetchOutcomes() could not resolve parsed"))
 			}
@@ -1394,9 +1409,14 @@ func (this *Kalshi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		response := (<-this.KalshiPublicGetMarkets(this.Extend(request, params)))
 		ccxt.PanicOnError(response)
-		var rawMarkets any = this.SafeList(response, "markets", []any{})
-		for i := 0; i < ccxt.GetArrayLength(rawMarkets); i++ {
-			var raw any = ccxt.GetValue(rawMarkets, i)
+		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
+		for i := 0; i < len(rawMarkets); i++ {
+			var raw any = func() any {
+				if i >= 0 && i < len(rawMarkets) {
+					return ccxt.DerefScalar(rawMarkets[i])
+				}
+				return nil
+			}()
 			var marketTicker *string = this.SafeString(raw, "ticker")
 			if (marketTicker == nil) || !(func() bool {
 				if marketTicker == nil {
@@ -1477,42 +1497,82 @@ func (this *Kalshi) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 	var book any = this.SafeValue(response, "orderbook_fp", response)
 	var timestamp int64 = this.Milliseconds()
 	// Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
-	var rawYes any = this.SafeList(book, "yes_dollars", []any{})
-	var rawNo any = this.SafeList(book, "no_dollars", []any{})
+	var rawYes []any = ccxt.SafeListTyped(book, "yes_dollars")
+	var rawNo []any = ccxt.SafeListTyped(book, "no_dollars")
 	// Convert [price_cents, size] → [price, size]
 	var bids []any = []any{}
 	var asks []any = []any{}
 	if isNo {
 		// NO perspective: NO bids come from rawNo, NO asks invert rawYes (NO ask = 1 - YES bid)
-		for bi := 0; bi < ccxt.GetArrayLength(rawNo); bi++ {
-			var price *float64 = this.SafeNumber(ccxt.GetValue(rawNo, bi), 0)
-			bids = append(bids, []any{price, this.SafeNumber(ccxt.GetValue(rawNo, bi), 1)})
+		for bi := 0; bi < len(rawNo); bi++ {
+			var price *float64 = this.SafeNumber(func() any {
+				if bi >= 0 && bi < len(rawNo) {
+					return ccxt.DerefScalar(rawNo[bi])
+				}
+				return nil
+			}(), 0)
+			bids = append(bids, []any{price, this.SafeNumber(func() any {
+				if bi >= 0 && bi < len(rawNo) {
+					return ccxt.DerefScalar(rawNo[bi])
+				}
+				return nil
+			}(), 1)})
 		}
-		for ai := 0; ai < ccxt.GetArrayLength(rawYes); ai++ {
-			var yesPrice *float64 = this.SafeNumber(ccxt.GetValue(rawYes, ai), 0)
+		for ai := 0; ai < len(rawYes); ai++ {
+			var yesPrice *float64 = this.SafeNumber(func() any {
+				if ai >= 0 && ai < len(rawYes) {
+					return ccxt.DerefScalar(rawYes[ai])
+				}
+				return nil
+			}(), 0)
 			var price any = func() any {
 				if yesPrice != nil {
 					return this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(yesPrice)))
 				}
 				return nil
 			}()
-			asks = append(asks, []any{price, this.SafeNumber(ccxt.GetValue(rawYes, ai), 1)})
+			asks = append(asks, []any{price, this.SafeNumber(func() any {
+				if ai >= 0 && ai < len(rawYes) {
+					return ccxt.DerefScalar(rawYes[ai])
+				}
+				return nil
+			}(), 1)})
 		}
 	} else {
 		// YES perspective: YES bids from rawYes, YES asks invert rawNo (YES ask = 1 - NO bid)
-		for bi := 0; bi < ccxt.GetArrayLength(rawYes); bi++ {
-			var price *float64 = this.SafeNumber(ccxt.GetValue(rawYes, bi), 0)
-			bids = append(bids, []any{price, this.SafeNumber(ccxt.GetValue(rawYes, bi), 1)})
+		for bi := 0; bi < len(rawYes); bi++ {
+			var price *float64 = this.SafeNumber(func() any {
+				if bi >= 0 && bi < len(rawYes) {
+					return ccxt.DerefScalar(rawYes[bi])
+				}
+				return nil
+			}(), 0)
+			bids = append(bids, []any{price, this.SafeNumber(func() any {
+				if bi >= 0 && bi < len(rawYes) {
+					return ccxt.DerefScalar(rawYes[bi])
+				}
+				return nil
+			}(), 1)})
 		}
-		for ai := 0; ai < ccxt.GetArrayLength(rawNo); ai++ {
-			var noPrice *float64 = this.SafeNumber(ccxt.GetValue(rawNo, ai), 0)
+		for ai := 0; ai < len(rawNo); ai++ {
+			var noPrice *float64 = this.SafeNumber(func() any {
+				if ai >= 0 && ai < len(rawNo) {
+					return ccxt.DerefScalar(rawNo[ai])
+				}
+				return nil
+			}(), 0)
 			var price any = func() any {
 				if noPrice != nil {
 					return this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(noPrice)))
 				}
 				return nil
 			}()
-			asks = append(asks, []any{price, this.SafeNumber(ccxt.GetValue(rawNo, ai), 1)})
+			asks = append(asks, []any{price, this.SafeNumber(func() any {
+				if ai >= 0 && ai < len(rawNo) {
+					return ccxt.DerefScalar(rawNo[ai])
+				}
+				return nil
+			}(), 1)})
 		}
 	}
 
@@ -1657,10 +1717,15 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	//         "ticker": "KXGDPSHAREMANU-29"
 	//     }
 	//
-	var candles any = this.SafeList(response, "candlesticks", []any{})
+	var candles []any = ccxt.SafeListTyped(response, "candlesticks")
 	var usableCandles []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(candles); i++ {
-		var candle any = ccxt.GetValue(candles, i)
+	for i := 0; i < len(candles); i++ {
+		var candle any = func() any {
+			if i >= 0 && i < len(candles) {
+				return ccxt.DerefScalar(candles[i])
+			}
+			return nil
+		}()
 		var priceObj map[string]any = ccxt.SafeMapTyped(candle, "price")
 		var openPrice *float64 = this.SafeNumber(priceObj, "open_dollars")
 		var previousPrice *float64 = this.SafeNumber(priceObj, "previous_dollars")
@@ -1770,10 +1835,15 @@ func (this *Kalshi) fetchTradesBody(ch chan any, outcome any, optionalArgs ...an
 
 	response := (<-this.KalshiPublicGetMarketsTrades(this.Extend(request, params)))
 	ccxt.PanicOnError(response)
-	var trades any = this.SafeList(response, "trades", []any{})
+	var trades []any = ccxt.SafeListTyped(response, "trades")
 	var filteredTrades []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
-		var trade any = ccxt.GetValue(trades, i)
+	for i := 0; i < len(trades); i++ {
+		var trade any = func() any {
+			if i >= 0 && i < len(trades) {
+				return ccxt.DerefScalar(trades[i])
+			}
+			return nil
+		}()
 		var tradeTicker *string = this.SafeString2(trade, "ticker", "market_ticker")
 		if (tradeTicker == nil) || (tradeTicker == ticker || (tradeTicker != nil && ticker != nil && *tradeTicker == *ticker)) {
 			filteredTrades = append(filteredTrades, trade)
@@ -1906,11 +1976,16 @@ func (this *Kalshi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.KalshiPrivateGetPortfolioFills(this.Extend(request, params)))
 	ccxt.PanicOnError(response)
-	var fills any = this.SafeList(response, "fills", []any{})
-	var fillsLength int = ccxt.GetArrayLength(fills)
+	var fills []any = ccxt.SafeListTyped(response, "fills")
+	var fillsLength int = len(fills)
 	var trades []any = []any{}
 	for i := 0; i < fillsLength; i++ {
-		trades = append(trades, this.ParseMyTrade(ccxt.GetValue(fills, i), outcomeObj))
+		trades = append(trades, this.ParseMyTrade(func() any {
+			if i >= 0 && i < len(fills) {
+				return ccxt.DerefScalar(fills[i])
+			}
+			return nil
+		}(), outcomeObj))
 	}
 	var wantedOutcome any = nil
 	if outcome != nil {
@@ -2185,11 +2260,16 @@ func (this *Kalshi) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.KalshiPrivateGetPortfolioSettlements(this.Extend(request, params)))
 	ccxt.PanicOnError(response)
-	var rawSettlements any = this.SafeList(response, "settlements", []any{})
-	var rawSettlementsLength int = ccxt.GetArrayLength(rawSettlements)
+	var rawSettlements []any = ccxt.SafeListTyped(response, "settlements")
+	var rawSettlementsLength int = len(rawSettlements)
 	var parsed []any = []any{}
 	for i := 0; i < rawSettlementsLength; i++ {
-		parsed = append(parsed, this.ParseSettlement(ccxt.GetValue(rawSettlements, i)))
+		parsed = append(parsed, this.ParseSettlement(func() any {
+			if i >= 0 && i < len(rawSettlements) {
+				return ccxt.DerefScalar(rawSettlements[i])
+			}
+			return nil
+		}()))
 	}
 	var wantedOutcome any = nil
 	if outcome != nil {
@@ -2925,11 +3005,16 @@ func (this *Kalshi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	restingResponse := (<-this.KalshiPrivateGetPortfolioOrders(request))
 	ccxt.PanicOnError(restingResponse)
-	var restingOrders any = this.SafeList(restingResponse, "orders", []any{})
-	var restingOrdersLength int = ccxt.GetArrayLength(restingOrders)
+	var restingOrders []any = ccxt.SafeListTyped(restingResponse, "orders")
+	var restingOrdersLength int = len(restingOrders)
 	var canceledOrders []any = []any{}
 	for i := 0; i < restingOrdersLength; i++ {
-		var restingOrder any = ccxt.GetValue(restingOrders, i)
+		var restingOrder any = func() any {
+			if i >= 0 && i < len(restingOrders) {
+				return ccxt.DerefScalar(restingOrders[i])
+			}
+			return nil
+		}()
 		var orderId *string = this.SafeString(restingOrder, "order_id")
 		if orderId != nil {
 
@@ -3097,10 +3182,15 @@ func (this *Kalshi) fetchEventsByQueryBody(ch chan any, queries any, limit any, 
 			"page_size": pageSize,
 		}))
 		ccxt.PanicOnError(searchResponse)
-		var page any = this.SafeList(searchResponse, "current_page", []any{})
-		var pageLength int = ccxt.GetArrayLength(page)
+		var page []any = ccxt.SafeListTyped(searchResponse, "current_page")
+		var pageLength int = len(page)
 		for pi := 0; pi < pageLength; pi++ {
-			var et *string = this.SafeString(ccxt.GetValue(page, pi), "event_ticker")
+			var et *string = this.SafeString(func() any {
+				if pi >= 0 && pi < len(page) {
+					return ccxt.DerefScalar(page[pi])
+				}
+				return nil
+			}(), "event_ticker")
 			if et != nil {
 				var already *string = this.SafeString(seen, et)
 				if already == nil {
@@ -3205,12 +3295,17 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan any, optionalArgs ...a
 	_ = params
 	var collected []any = []any{}
 	// tags / category -> documented /series listing
-	var tags any = this.SafeList(params, "tags", []any{})
-	var tagsLength int = ccxt.GetArrayLength(tags)
+	var tags []any = ccxt.SafeListTyped(params, "tags")
+	var tagsLength int = len(tags)
 	for ti := 0; ti < tagsLength; ti++ {
 
 		seriesResponse := (<-this.KalshiPublicGetSeries(map[string]any{
-			"tags": ccxt.GetValue(tags, ti),
+			"tags": func() any {
+				if ti >= 0 && ti < len(tags) {
+					return ccxt.DerefScalar(tags[ti])
+				}
+				return nil
+			}(),
 		}))
 		ccxt.PanicOnError(seriesResponse)
 		var seriesList any = this.SafeList(seriesResponse, "series", []any{})
@@ -3318,10 +3413,15 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan any, seriesTickers any, status
 
 			response := (<-this.KalshiPublicGetEvents(this.Extend(request, rest)))
 			ccxt.PanicOnError(response)
-			var pageEvents any = this.SafeList(response, "events", []any{})
-			var pageEventsLength int = ccxt.GetArrayLength(pageEvents)
+			var pageEvents []any = ccxt.SafeListTyped(response, "events")
+			var pageEventsLength int = len(pageEvents)
 			for ei := 0; ei < pageEventsLength; ei++ {
-				rawEvents = append(rawEvents, ccxt.GetValue(pageEvents, ei))
+				rawEvents = append(rawEvents, func() any {
+					if ei >= 0 && ei < len(pageEvents) {
+						return ccxt.DerefScalar(pageEvents[ei])
+					}
+					return nil
+				}())
 			}
 			cursor = ccxt.DerefScalar(this.SafeString(response, "cursor"))
 			var collectedAfterPage int = len(rawEvents)
@@ -3440,7 +3540,7 @@ func (this *Kalshi) ParseEvent(rawEvent any) any {
 	//         "sub_title": "During Trump's term",
 	//         "title": "Will Trump balance the budget?"
 	// }
-	var rawMarkets any = this.SafeList(rawEvent, "markets", []any{})
+	var rawMarkets []any = ccxt.SafeListTyped(rawEvent, "markets")
 	var marketsList []any = []any{}
 	// aggregate volume/liquidity from the markets and derive the creation time so sort works
 	// kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,
@@ -3451,8 +3551,13 @@ func (this *Kalshi) ParseEvent(rawEvent any) any {
 	var anyActive bool = false
 	var allResolved bool = true
 	var latestClose any = nil
-	for i := 0; i < ccxt.GetArrayLength(rawMarkets); i++ {
-		var rawMarket any = ccxt.GetValue(rawMarkets, i)
+	for i := 0; i < len(rawMarkets); i++ {
+		var rawMarket any = func() any {
+			if i >= 0 && i < len(rawMarkets) {
+				return ccxt.DerefScalar(rawMarkets[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseMarket(rawMarket)
 		marketsList = append(marketsList, parsed)
 		totalVolume = this.Sum(totalVolume, this.SafeNumber2(rawMarket, "volume_fp", "volume", 0))

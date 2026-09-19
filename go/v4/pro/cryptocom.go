@@ -865,9 +865,14 @@ func (this *Cryptocom) HandleTicker(client any, message any) {
 	var messageHash *string = this.SafeString(message, "subscription")
 	var marketId *string = this.SafeString(message, "instrument_name")
 	var market any = this.SafeMarket(marketId)
-	var data any = this.SafeList(message, "data", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var ticker any = ccxt.GetValue(data, i)
+	var data []any = ccxt.SafeListTyped(message, "data")
+	for i := 0; i < len(data); i++ {
+		var ticker any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseWsTicker(ticker, market)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
 		if symbol != nil {
@@ -1397,14 +1402,19 @@ func (this *Cryptocom) HandlePositions(client any, message any) {
 	// and has exactly one subscriptionhash which is the account type
 	var data any = this.SafeList(message, "data", []any{})
 	var firstData map[string]any = ccxt.SafeMapTyped(data, 0)
-	var rawPositions any = this.SafeList(firstData, "positions", []any{})
+	var rawPositions []any = ccxt.SafeListTyped(firstData, "positions")
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
 	var newPositions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
-		var rawPosition any = ccxt.GetValue(rawPositions, i)
+	for i := 0; i < len(rawPositions); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(rawPositions) {
+				return ccxt.DerefScalar(rawPositions[i])
+			}
+			return nil
+		}()
 		var position any = this.ParsePosition(rawPosition)
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
@@ -1496,10 +1506,15 @@ func (this *Cryptocom) HandleBalance(client any, message any) {
 	//
 	var messageHash *string = this.SafeString(message, "subscription")
 	var data any = this.SafeList(message, "data", []any{})
-	var positionBalances any = this.SafeList(ccxt.GetValue(data, 0), "position_balances", []any{})
+	var positionBalances []any = ccxt.SafeListTyped(ccxt.GetValue(data, 0), "position_balances")
 	ccxt.AddElementToObject(this.Balance, "info", data)
-	for i := 0; i < ccxt.GetArrayLength(positionBalances); i++ {
-		var balance any = ccxt.GetValue(positionBalances, i)
+	for i := 0; i < len(positionBalances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(positionBalances) {
+				return ccxt.DerefScalar(positionBalances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "instrument_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
@@ -2063,11 +2078,21 @@ func (this *Cryptocom) HandleUnsubscribe(client any, message any) {
 			if id != subId && (id == nil || subId == nil || *id != *subId) {
 				continue
 			}
-			var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
-			var subMessageHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
-			for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
-				var unsubHash any = ccxt.GetValue(messageHashes, j)
-				var subHash any = ccxt.GetValue(subMessageHashes, j)
+			var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
+			for j := 0; j < len(messageHashes); j++ {
+				var unsubHash any = func() any {
+					if j >= 0 && j < len(messageHashes) {
+						return ccxt.DerefScalar(messageHashes[j])
+					}
+					return nil
+				}()
+				var subHash any = func() any {
+					if j >= 0 && j < len(subMessageHashes) {
+						return ccxt.DerefScalar(subMessageHashes[j])
+					}
+					return nil
+				}()
 				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 			}
 			this.CleanCache(subscription)

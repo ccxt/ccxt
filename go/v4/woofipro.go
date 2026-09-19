@@ -1072,12 +1072,17 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	tokenResponse := GetValue(tokenResponsechainResponseVariable, 0)
 	chainResponse := GetValue(tokenResponsechainResponseVariable, 1)
 	var tokenData map[string]any = SafeMapTyped(tokenResponse, "data")
-	var tokenRows any = this.SafeList(tokenData, "rows", []any{})
+	var tokenRows []any = SafeListTyped(tokenData, "rows")
 	var chainData map[string]any = SafeMapTyped(chainResponse, "data")
 	var chainRows any = this.SafeList(chainData, "rows", []any{})
 	var indexedChains map[string]any = this.IndexBy(chainRows, "chain_id")
-	for i := 0; i < GetArrayLength(tokenRows); i++ {
-		var token any = GetValue(tokenRows, i)
+	for i := 0; i < len(tokenRows); i++ {
+		var token any = func() any {
+			if i >= 0 && i < len(tokenRows) {
+				return DerefScalar(tokenRows[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseCurrency(map[string]any{
 			"_token":         token,
 			"_indexedChains": indexedChains,
@@ -1094,12 +1099,17 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 func (this *Woofipro) ParseCurrency(rawCurrency any) any {
 	var token any = this.SafeDict(rawCurrency, "_token", map[string]any{})
 	var currencyId *string = this.SafeString(token, "token")
-	var networks any = this.SafeList(token, "chain_details", []any{})
+	var networks []any = SafeListTyped(token, "chain_details")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var indexedChains map[string]any = SafeMapTyped(rawCurrency, "_indexedChains")
 	var resultingNetworks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(networks); j++ {
-		var networkEntry any = GetValue(networks, j)
+	for j := 0; j < len(networks); j++ {
+		var networkEntry any = func() any {
+			if j >= 0 && j < len(networks) {
+				return DerefScalar(networks[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(networkEntry, "chain_id")
 		var networkRow any = this.SafeDict(indexedChains, networkId)
 		var networkName *string = this.SafeString(networkRow, "name", networkId)
@@ -1650,11 +1660,16 @@ func (this *Woofipro) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTyped(data, "rows")
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(rows); i++ {
-		var row any = GetValue(rows, i)
+	for i := 0; i < len(rows); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(row, "symbol", "")
 		if (this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId)) {
 			continue
@@ -1798,11 +1813,16 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTyped(data, "rows")
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(rows); i++ {
-		var row any = GetValue(rows, i)
+	for i := 0; i < len(rows); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(row, "symbol", "")
 		if (this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId)) {
 			continue
@@ -1897,10 +1917,15 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var result any = this.SafeList(data, "rows", []any{})
+	var result []any = SafeListTyped(data, "rows")
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(result); i++ {
-		var entry any = GetValue(result, i)
+	for i := 0; i < len(result); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(result) {
+				return DerefScalar(result[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "symbol")
 		var timestamp *int64 = this.SafeInteger(entry, "funding_rate_timestamp")
 		rates = append(rates, map[string]any{
@@ -3546,9 +3571,14 @@ func (this *Woofipro) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances any = this.SafeList(response, "holding", []any{})
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	var balances []any = SafeListTyped(response, "holding")
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "holding"))
@@ -4730,8 +4760,8 @@ func (this *Woofipro) Sign(path any, optionalArgs ...any) any {
 			if isSandboxMode == nil || *isSandboxMode != true {
 				var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT")
 				if IsEqual(path, "batch-order") {
-					var ordersList any = this.SafeList(params, "orders", []any{})
-					for i := 0; i < GetArrayLength(ordersList); i++ {
+					var ordersList []any = SafeListTyped(params, "orders")
+					for i := 0; i < len(ordersList); i++ {
 						AddElementToObject(GetValue(GetValue(params, "orders"), i), "order_tag", brokerId)
 					}
 				} else {

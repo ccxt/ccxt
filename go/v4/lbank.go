@@ -709,10 +709,15 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         "ts": 1691560288484
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var market any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(market, "symbol")
 		var parts []string = Split(marketId, "_")
 		var baseId any = GetValue(parts, 0)
@@ -818,10 +823,15 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         "success": true
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var market any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCurrency")
 		var settleId *string = this.SafeString(market, "clearCurrency")
@@ -1969,10 +1979,15 @@ func (this *Lbank) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.SpotPrivatePostSupplementCustomerTradeFee(this.Extend(request, params)))
 	PanicOnError(response)
-	var fees any = this.SafeList(response, "data", []any{})
+	var fees []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(fees); i++ {
-		var fee any = this.ParseTradingFee(GetValue(fees, i))
+	for i := 0; i < len(fees); i++ {
+		var fee any = this.ParseTradingFee(func() any {
+			if i >= 0 && i < len(fees) {
+				return DerefScalar(fees[i])
+			}
+			return nil
+		}())
 		var symbol any = GetValue(fee, "symbol")
 		AddElementToObject(result, symbol, fee)
 	}
@@ -2450,11 +2465,16 @@ func (this *Lbank) fetchOrderDefaultBody(ch chan any, id any, optionalArgs ...an
 	//          "ts":1647455270776
 	//      }
 	//
-	var result any = this.SafeList(response, "data", []any{})
-	var numOrders int = GetArrayLength(result)
+	var result []any = SafeListTyped(response, "data")
+	var numOrders int = len(result)
 	if numOrders == 1 {
 
-		ch <- this.ParseOrder(GetValue(result, 0))
+		ch <- this.ParseOrder(func() any {
+			if 0 >= 0 && 0 < len(result) {
+				return DerefScalar(result[0])
+			}
+			return nil
+		}())
 		return nil
 	} else {
 		panic(BadRequest(this.Id + " fetchOrder() can only fetch one order at a time"))
@@ -3415,18 +3435,28 @@ func (this *Lbank) fetchPrivateTransactionFeesBody(ch chan any, optionalArgs ...
 	//        "code": 0
 	//    }
 	//
-	var result any = this.SafeList(response, "data", []any{})
+	var result []any = SafeListTyped(response, "data")
 	var withdrawFees map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(result); i++ {
-		var entry any = GetValue(result, i)
+	for i := 0; i < len(result); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(result) {
+				return DerefScalar(result[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var networkList any = this.SafeList(entry, "networkList", []any{})
+		var networkList []any = SafeListTyped(entry, "networkList")
 		if code != nil {
 			AddElementToObject(withdrawFees, code, map[string]any{})
 		}
-		for j := 0; j < GetArrayLength(networkList); j++ {
-			var networkEntry any = GetValue(networkList, j)
+		for j := 0; j < len(networkList); j++ {
+			var networkEntry any = func() any {
+				if j >= 0 && j < len(networkList) {
+					return DerefScalar(networkList[j])
+				}
+				return nil
+			}()
 			var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
 			if fee != nil {
 				var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
@@ -3494,10 +3524,15 @@ func (this *Lbank) fetchPublicTransactionFeesBody(ch chan any, optionalArgs ...a
 	//        "ts": "1663364435973"
 	//    }
 	//
-	var result any = this.SafeList(response, "data", []any{})
+	var result []any = SafeListTyped(response, "data")
 	var withdrawFees map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(result); i++ {
-		var item any = GetValue(result, i)
+	for i := 0; i < len(result); i++ {
+		var item any = func() any {
+			if i >= 0 && i < len(result) {
+				return DerefScalar(result[i])
+			}
+			return nil
+		}()
 		var canWithdraw *string = this.SafeString(item, "canWithDraw")
 		if canWithdraw != nil && *canWithdraw == "true" {
 			var currencyId *string = this.SafeString(item, "assetCode")
@@ -3780,9 +3815,14 @@ func (this *Lbank) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	_ = currency
 	var result any = this.DepositWithdrawFee(fee)
 	var code *string = this.SafeString(currency, "code")
-	var networkList any = this.SafeList(fee, "networkList", []any{})
-	for j := 0; j < GetArrayLength(networkList); j++ {
-		var networkEntry any = GetValue(networkList, j)
+	var networkList []any = SafeListTyped(fee, "networkList")
+	for j := 0; j < len(networkList); j++ {
+		var networkEntry any = func() any {
+			if j >= 0 && j < len(networkList) {
+				return DerefScalar(networkList[j])
+			}
+			return nil
+		}()
 		var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
 		var isDefault *bool = this.SafeBool(networkEntry, "isDefault")

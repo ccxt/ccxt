@@ -319,9 +319,14 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Mudrex) HandleTicker(client any, message any) {
-	var data any = this.SafeList(message, "data", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var t any = ccxt.GetValue(data, i)
+	var data []any = ccxt.SafeListTyped(message, "data")
+	for i := 0; i < len(data); i++ {
+		var t any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var s *string = this.SafeString(t, "s")
 		if s == nil {
 			continue

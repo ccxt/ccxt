@@ -706,10 +706,15 @@ func (this *Backpack) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 func (this *Backpack) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "symbol")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var networks any = this.SafeList(rawCurrency, "tokens", []any{})
+	var networks []any = SafeListTyped(rawCurrency, "tokens")
 	var parsedNetworks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(networks); j++ {
-		var network any = GetValue(networks, j)
+	for j := 0; j < len(networks); j++ {
+		var network any = func() any {
+			if j >= 0 && j < len(networks) {
+				return DerefScalar(networks[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(network, "blockchain")
 		var networkIdLowerCase *string = this.SafeStringLower(network, "blockchain")
 		var networkCode any = this.NetworkIdToCode(networkIdLowerCase, code)

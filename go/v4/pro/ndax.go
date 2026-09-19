@@ -190,7 +190,7 @@ func (this *Ndax) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	return nil
 }
 func (this *Ndax) HandleTrades(client any, message any) {
-	var payload any = this.SafeList(message, "o", []any{})
+	var payload []any = ccxt.SafeListTyped(message, "o")
 	//
 	// initial snapshot
 	//
@@ -212,8 +212,13 @@ func (this *Ndax) HandleTrades(client any, message any) {
 	//
 	var name string = "SubscribeTrades"
 	var updates map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(payload); i++ {
-		var trade any = this.ParseTrade(ccxt.GetValue(payload, i))
+	for i := 0; i < len(payload); i++ {
+		var trade any = this.ParseTrade(func() any {
+			if i >= 0 && i < len(payload) {
+				return ccxt.DerefScalar(payload[i])
+			}
+			return nil
+		}())
 		var symbol any = ccxt.GetValue(trade, "symbol")
 		var tradesArray any = func() any {
 			if symbol == nil {
@@ -315,7 +320,7 @@ func (this *Ndax) HandleOHLCV(client any, message any) {
 	//         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
 	//     }
 	//
-	var payload any = this.SafeList(message, "o", []any{})
+	var payload []any = ccxt.SafeListTyped(message, "o")
 	//
 	//     [
 	//         [
@@ -333,8 +338,13 @@ func (this *Ndax) HandleOHLCV(client any, message any) {
 	//     ]
 	//
 	var updates map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(payload); i++ {
-		var ohlcv any = ccxt.GetValue(payload, i)
+	for i := 0; i < len(payload); i++ {
+		var ohlcv any = func() any {
+			if i >= 0 && i < len(payload) {
+				return ccxt.DerefScalar(payload[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(ohlcv, 8)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")

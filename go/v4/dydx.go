@@ -1032,9 +1032,14 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	// }
 	//
 	var rates []any = []any{}
-	var rows any = this.SafeList(response, "historicalFunding", []any{})
-	for i := 0; i < GetArrayLength(rows); i++ {
-		var entry any = GetValue(rows, i)
+	var rows []any = SafeListTyped(response, "historicalFunding")
+	for i := 0; i < len(rows); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var timestamp *int64 = this.Parse8601(this.SafeString(entry, "effectiveAt"))
 		var marketId *string = this.SafeString(entry, "ticker")
 		rates = append(rates, map[string]any{
@@ -3044,10 +3049,15 @@ func (this *Dydx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	// }
 	//
-	var rows any = this.SafeList(response, "subaccounts", []any{})
+	var rows []any = SafeListTyped(response, "subaccounts")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(rows); i++ {
-		var account any = GetValue(rows, i)
+	for i := 0; i < len(rows); i++ {
+		var account any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var accountId *string = this.SafeString(account, "subaccountNumber")
 		result = append(result, map[string]any{
 			"id":       accountId,

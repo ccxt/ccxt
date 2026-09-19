@@ -443,14 +443,19 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var queries any = this.ParseSearchQueries(params)
 	// binance has no tag taxonomy — resolve requested tags through the semantic search too
-	var tags any = this.SafeList(params, "tags", []any{})
-	var tagsLength int = ccxt.GetArrayLength(tags)
+	var tags []any = ccxt.SafeListTyped(params, "tags")
+	var tagsLength int = len(tags)
 	var allQueries []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(queries); i++ {
 		allQueries = append(allQueries, ccxt.GetValue(queries, i))
 	}
 	for i := 0; i < tagsLength; i++ {
-		allQueries = append(allQueries, ccxt.GetValue(tags, i))
+		allQueries = append(allQueries, func() any {
+			if i >= 0 && i < len(tags) {
+				return ccxt.DerefScalar(tags[i])
+			}
+			return nil
+		}())
 	}
 	var allQueriesLength int = len(allQueries)
 	params = this.Omit(params, []any{"query", "queries"})
@@ -1152,9 +1157,14 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances any = this.SafeList(response, "items", []any{})
-	for i := 0; i < ccxt.GetArrayLength(balances); i++ {
-		var balance any = ccxt.GetValue(balances, i)
+	var balances []any = ccxt.SafeListTyped(response, "items")
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return ccxt.DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var accountType *string = this.SafeString(balance, "accountType")
 		if ccxt.IsEqual(accountType, typeVar) {
 			var free *string = this.SafeString(balance, "availableBalanceDisplay")
@@ -2327,14 +2337,19 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	//     ]
 	// }
 	//
-	var canceledOrders any = this.SafeList(response, "canceled", []any{})
+	var canceledOrders []any = ccxt.SafeListTyped(response, "canceled")
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome", outcome)
-	var failedOrders any = this.SafeList(response, "failed", []any{})
-	var failedOrdersLength int = ccxt.GetArrayLength(failedOrders)
+	var failedOrders []any = ccxt.SafeListTyped(response, "failed")
+	var failedOrdersLength int = len(failedOrders)
 	if failedOrdersLength > 0 {
 		var failedDetails any = ""
 		for i := 0; i < failedOrdersLength; i++ {
-			var failedOrder any = ccxt.GetValue(failedOrders, i)
+			var failedOrder any = func() any {
+				if i >= 0 && i < len(failedOrders) {
+					return ccxt.DerefScalar(failedOrders[i])
+				}
+				return nil
+			}()
 			var failedOrderId *string = this.SafeString(failedOrder, "orderId")
 			var failedReason *string = this.SafeString(failedOrder, "reason")
 			if i > 0 {
@@ -2345,9 +2360,14 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" cancelOrders() failed for ", failedDetails)))
 	}
 	var orders []any = []any{}
-	var canceledOrdersLength int = ccxt.GetArrayLength(canceledOrders)
+	var canceledOrdersLength int = len(canceledOrders)
 	for i := 0; i < canceledOrdersLength; i++ {
-		var status any = ccxt.GetValue(canceledOrders, i)
+		var status any = func() any {
+			if i >= 0 && i < len(canceledOrders) {
+				return ccxt.DerefScalar(canceledOrders[i])
+			}
+			return nil
+		}()
 		var order map[string]any = map[string]any{
 			"id":            status,
 			"clientOrderId": nil,

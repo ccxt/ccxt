@@ -464,9 +464,14 @@ func (this *Toobit) HandleOHLCV(client any, message any) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
 	}
-	var data any = this.SafeList(message, "data", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var parsed any = this.ParseWsOHLCV(ccxt.GetValue(data, i), market)
+	var data []any = ccxt.SafeListTyped(message, "data")
+	for i := 0; i < len(data); i++ {
+		var parsed any = this.ParseWsOHLCV(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), timeframe)
@@ -767,9 +772,14 @@ func (this *Toobit) HandleOrderBook(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var data any = this.SafeList(message, "data", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var entry any = ccxt.GetValue(data, i)
+	var data []any = ccxt.SafeListTyped(message, "data")
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderBook::", symbol), "::"), "diffDepth")
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var limit *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "orderBookLimit", 1000)
@@ -816,13 +826,18 @@ func (this *Toobit) HandleOrderBookPartialSnapshot(client any, message any) {
 	this.SetOrderBookSnapshot(client, message, "depth")
 }
 func (this *Toobit) SetOrderBookSnapshot(client any, message any, channel any) {
-	var data any = this.SafeList(message, "data", []any{})
-	var length int = ccxt.GetArrayLength(data)
+	var data []any = ccxt.SafeListTyped(message, "data")
+	var length int = len(data)
 	if length == 0 {
 		return
 	}
 	for i := 0; i < length; i++ {
-		var entry any = ccxt.GetValue(data, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "s")
 		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash any = ccxt.Add("orderBook::"+*symbol+"::", channel)

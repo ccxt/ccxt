@@ -1979,9 +1979,14 @@ func (this *Whitebit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 				for i := 0; i < len(marketIds); i++ {
 					var marketId string = GetValue(marketIds, i).(string)
 					var marketNew any = this.SafeMarket(marketId, nil, "_")
-					var marketOrders any = this.SafeList(response, marketId, []any{})
-					for j := 0; j < GetArrayLength(marketOrders); j++ {
-						var order any = GetValue(marketOrders, j)
+					var marketOrders []any = SafeListTyped(response, marketId)
+					for j := 0; j < len(marketOrders); j++ {
+						var order any = func() any {
+							if j >= 0 && j < len(marketOrders) {
+								return DerefScalar(marketOrders[j])
+							}
+							return nil
+						}()
 						var orderId *string = this.SafeString(order, "id")
 						if IsEqual(orderId, id) {
 
@@ -3383,9 +3388,14 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
 		var marketNew any = this.SafeMarket(marketId, nil, "_")
-		var orders any = this.SafeList(response, marketId, []any{})
-		for j := 0; j < GetArrayLength(orders); j++ {
-			var order any = this.ParseOrder(GetValue(orders, j), marketNew)
+		var orders []any = SafeListTyped(response, marketId)
+		for j := 0; j < len(orders); j++ {
+			var order any = this.ParseOrder(func() any {
+				if j >= 0 && j < len(orders) {
+					return DerefScalar(orders[j])
+				}
+				return nil
+			}(), marketNew)
 			AppendToArray(&results, this.Extend(order, map[string]any{
 				"status": "closed",
 			}))

@@ -939,10 +939,15 @@ func (this *Coinbase) fetchPortfoliosBody(ch chan any, optionalArgs ...any) any 
 
 	response := (<-this.V3PrivateGetBrokeragePortfolios(params))
 	PanicOnError(response)
-	var portfolios any = this.SafeList(response, "portfolios", []any{})
+	var portfolios []any = SafeListTyped(response, "portfolios")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(portfolios); i++ {
-		var portfolio any = GetValue(portfolios, i)
+	for i := 0; i < len(portfolios); i++ {
+		var portfolio any = func() any {
+			if i >= 0 && i < len(portfolios) {
+				return DerefScalar(portfolios[i])
+			}
+			return nil
+		}()
 		result = append(result, map[string]any{
 			"id":   this.SafeString(portfolio, "uuid"),
 			"type": this.SafeString(portfolio, "type"),
@@ -2069,27 +2074,47 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	var feeTier any = this.SafeDict(fees, "fee_tier", map[string]any{})
 	var expiringFeeTier any = this.SafeDict(expiringFees, "fee_tier", map[string]any{})   // fee tier null?
 	var perpetualFeeTier any = this.SafeDict(perpetualFees, "fee_tier", map[string]any{}) // fee tier null?
-	var data any = this.SafeList(spot, "products", []any{})
+	var data []any = SafeListTyped(spot, "products")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		result = append(result, this.ParseSpotMarket(GetValue(data, i), feeTier))
+	for i := 0; i < len(data); i++ {
+		result = append(result, this.ParseSpotMarket(func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}(), feeTier))
 	}
-	var futureData any = this.SafeList(expiringFutures, "products", []any{})
-	for i := 0; i < GetArrayLength(futureData); i++ {
-		result = append(result, this.ParseContractMarket(GetValue(futureData, i), expiringFeeTier))
+	var futureData []any = SafeListTyped(expiringFutures, "products")
+	for i := 0; i < len(futureData); i++ {
+		result = append(result, this.ParseContractMarket(func() any {
+			if i >= 0 && i < len(futureData) {
+				return DerefScalar(futureData[i])
+			}
+			return nil
+		}(), expiringFeeTier))
 	}
-	var perpetualData any = this.SafeList(perpetualFutures, "products", []any{})
-	for i := 0; i < GetArrayLength(perpetualData); i++ {
-		result = append(result, this.ParseContractMarket(GetValue(perpetualData, i), perpetualFeeTier))
+	var perpetualData []any = SafeListTyped(perpetualFutures, "products")
+	for i := 0; i < len(perpetualData); i++ {
+		result = append(result, this.ParseContractMarket(func() any {
+			if i >= 0 && i < len(perpetualData) {
+				return DerefScalar(perpetualData[i])
+			}
+			return nil
+		}(), perpetualFeeTier))
 	}
 	var newMarkets []any = []any{}
 	for i := 0; i < len(result); i++ {
 		var market any = GetValue(result, i)
 		var info map[string]any = SafeMapTyped(market, "info")
-		var realMarketIds any = this.SafeList(info, "alias_to", []any{})
-		var length int = GetArrayLength(realMarketIds)
+		var realMarketIds []any = SafeListTyped(info, "alias_to")
+		var length int = len(realMarketIds)
 		if length > 0 {
-			AddElementToObject(market, "alias", GetValue(realMarketIds, 0))
+			AddElementToObject(market, "alias", func() any {
+				if 0 >= 0 && 0 < len(realMarketIds) {
+					return DerefScalar(realMarketIds[0])
+				}
+				return nil
+			}())
 		} else {
 			AddElementToObject(market, "alias", nil)
 		}
@@ -2784,10 +2809,15 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	//         "num_products": 549
 	//     }
 	//
-	var data any = this.SafeList(response, "products", []any{})
+	var data []any = SafeListTyped(response, "products")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "product_id")
 		var market any = this.SafeMarket(marketId, nil, "-")
 		var symbol any = GetValue(market, "symbol")
@@ -6616,10 +6646,15 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) any {
 	var portfolioInfo map[string]any = SafeMapTyped(breakdown, "portfolio")
 	var portfolioName *string = this.SafeString(portfolioInfo, "name", "Unknown")
 	var portfolioUuid *string = this.SafeString(portfolioInfo, "uuid", "")
-	var spotPositions any = this.SafeList(breakdown, "spot_positions", []any{})
+	var spotPositions []any = SafeListTyped(breakdown, "spot_positions")
 	var parsedPositions []any = []any{}
-	for i := 0; i < GetArrayLength(spotPositions); i++ {
-		var position any = GetValue(spotPositions, i)
+	for i := 0; i < len(spotPositions); i++ {
+		var position any = func() any {
+			if i >= 0 && i < len(spotPositions) {
+				return DerefScalar(spotPositions[i])
+			}
+			return nil
+		}()
 		var currencyCode *string = this.SafeString(position, "asset", "Unknown")
 		var availableBalanceStr *string = this.SafeString(position, "available_to_trade_fiat", "0")
 		var availableBalance any = this.ParseNumber(availableBalanceStr)

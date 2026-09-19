@@ -1435,12 +1435,17 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *Onetrading) ParseBalance(response any) any {
-	var balances any = this.SafeList(response, "balances", []any{})
+	var balances []any = SafeListTyped(response, "balances")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "currency_code")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()

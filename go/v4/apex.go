@@ -635,9 +635,14 @@ func (this *Apex) ParseCurrency(currency any) any {
 	var chains any = GetValue(this.Options, "_temp_currencies_chains")
 	for j := 0; j < GetArrayLength(chains); j++ {
 		var chain any = GetValue(chains, j)
-		var tokens any = this.SafeList(chain, "tokens", []any{})
-		for f := 0; f < GetArrayLength(tokens); f++ {
-			var token any = GetValue(tokens, f)
+		var tokens []any = SafeListTyped(chain, "tokens")
+		for f := 0; f < len(tokens); f++ {
+			var token any = func() any {
+				if f >= 0 && f < len(tokens) {
+					return DerefScalar(tokens[f])
+				}
+				return nil
+			}()
 			var tokenName *string = this.SafeString(token, "token")
 			if tokenName == currencyId || (tokenName != nil && currencyId != nil && *tokenName == *currencyId) {
 				var networkId *string = this.SafeString(chain, "chainId")
@@ -1397,9 +1402,14 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	//
 	var rates []any = []any{}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var resultList any = this.SafeList(data, "historyFunds", []any{})
-	for i := 0; i < GetArrayLength(resultList); i++ {
-		var entry any = GetValue(resultList, i)
+	var resultList []any = SafeListTyped(data, "historyFunds")
+	for i := 0; i < len(resultList); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(resultList) {
+				return DerefScalar(resultList[i])
+			}
+			return nil
+		}()
 		var timestamp *int64 = this.SafeInteger(entry, "fundingTimestamp")
 		var marketId *string = this.SafeString(entry, "symbol")
 		rates = append(rates, map[string]any{
@@ -1818,10 +1828,15 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 	var spotAccount map[string]any = SafeMapTyped(accountData, "spotAccount")
 	var zkAccountId *string = this.SafeString(spotAccount, "zkAccountId", "")
 	var subAccountId *string = this.SafeString(spotAccount, "defaultSubAccountId", "0")
-	var subAccounts any = this.SafeList(spotAccount, "subAccounts", []any{})
+	var subAccounts []any = SafeListTyped(spotAccount, "subAccounts")
 	var nonce any = "0"
-	if GetArrayLength(subAccounts) > 0 {
-		nonce = DerefScalar(this.SafeString(GetValue(subAccounts, 0), "nonce", "0"))
+	if len(subAccounts) > 0 {
+		nonce = DerefScalar(this.SafeString(func() any {
+			if 0 >= 0 && 0 < len(subAccounts) {
+				return DerefScalar(subAccounts[0])
+			}
+			return nil
+		}(), "nonce", "0"))
 	}
 	var finalNonce any = nonce // java req
 	var ethAddress *string = this.SafeString(accountData, "ethereumAddress", "")

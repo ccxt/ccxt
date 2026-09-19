@@ -290,10 +290,15 @@ func (this *Bitvavo) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Bitvavo) HandleBidAsk(client any, message any) {
 	var event string = "bidask"
-	var tickers any = this.SafeList(message, "data", []any{})
+	var tickers []any = ccxt.SafeListTyped(message, "data")
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(tickers); i++ {
-		var data any = ccxt.GetValue(tickers, i)
+	for i := 0; i < len(tickers); i++ {
+		var data any = func() any {
+			if i >= 0 && i < len(tickers) {
+				return ccxt.DerefScalar(tickers[i])
+			}
+			return nil
+		}()
 		var ticker any = this.ParseWsBidAsk(data)
 		var symbol any = ccxt.GetValue(ticker, "symbol")
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
@@ -623,7 +628,7 @@ func (this *Bitvavo) HandleOHLCV(client any, message any) {
 	// use a reverse lookup in a static map instead
 	var timeframe any = this.FindTimeframe(interval)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(name+"@", marketId), "_"), interval)
-	var candles any = this.SafeList(message, "candle", []any{})
+	var candles []any = ccxt.SafeListTyped(message, "candle")
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
@@ -631,8 +636,13 @@ func (this *Bitvavo) HandleOHLCV(client any, message any) {
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 	}
-	for i := 0; i < ccxt.GetArrayLength(candles); i++ {
-		var candle any = ccxt.GetValue(candles, i)
+	for i := 0; i < len(candles); i++ {
+		var candle any = func() any {
+			if i >= 0 && i < len(candles) {
+				return ccxt.DerefScalar(candles[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseOHLCV(candle, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}

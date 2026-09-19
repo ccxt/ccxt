@@ -546,10 +546,15 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	//        "serverTime": "2018-07-19T11:32:39.433Z"
 	//    }
 	//
-	var instruments any = this.SafeList(response, "instruments", []any{})
+	var instruments []any = SafeListTyped(response, "instruments")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(instruments); i++ {
-		var market any = GetValue(instruments, i)
+	for i := 0; i < len(instruments); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(instruments) {
+				return DerefScalar(instruments[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "symbol")
 		var marketType *string = this.SafeString(market, "type")
 		var typeVar string
@@ -1004,10 +1009,15 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 		//
 		volumes = this.SafeDict(volumesResponse, "volumesByFeeSchedule", map[string]any{})
 	}
-	var feeSchedules any = this.SafeList(response, "feeSchedules", []any{})
+	var feeSchedules []any = SafeListTyped(response, "feeSchedules")
 	var schedulesByUid map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(feeSchedules); i++ {
-		var schedule any = GetValue(feeSchedules, i)
+	for i := 0; i < len(feeSchedules); i++ {
+		var schedule any = func() any {
+			if i >= 0 && i < len(feeSchedules) {
+				return DerefScalar(feeSchedules[i])
+			}
+			return nil
+		}()
 		var uid *string = this.SafeString(schedule, "uid")
 		if uid != nil {
 			AddElementToObject(schedulesByUid, uid, schedule)
@@ -1046,11 +1056,16 @@ func (this *Krakenfutures) ParseTradingFee(fee any, optionalArgs ...any) any {
 	_ = market
 	volume := GetArg(optionalArgs, 1, nil)
 	_ = volume
-	var tiers any = this.SafeList(fee, "tiers", []any{})
+	var tiers []any = SafeListTyped(fee, "tiers")
 	var makerFee any = nil
 	var takerFee any = nil
-	for i := 0; i < GetArrayLength(tiers); i++ {
-		var tier any = GetValue(tiers, i)
+	for i := 0; i < len(tiers); i++ {
+		var tier any = func() any {
+			if i >= 0 && i < len(tiers) {
+				return DerefScalar(tiers[i])
+			}
+			return nil
+		}()
 		var tierVolume *string = this.SafeString(tier, "usdVolume")
 		if (volume == nil) || Precise.StringGe(volume, tierVolume) {
 			makerFee = DerefScalar(this.SafeString(tier, "makerFee"))
@@ -1302,10 +1317,10 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		//        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
 		//    }
 		//
-		var elements any = this.SafeList(response, "elements", []any{})
+		var elements []any = SafeListTyped(response, "elements")
 		// we need to reverse the list to fix chronology
 		rawTrades = []any{}
-		var length int = GetArrayLength(elements)
+		var length int = len(elements)
 		for i := 0; i < length; i++ {
 			var index any = Subtract(Subtract(length, 1), i)
 			var element any = GetValue(elements, index)
@@ -1912,13 +1927,18 @@ func (this *Krakenfutures) cancelOrdersBody(ch chan any, ids any, optionalArgs .
 		PanicOnError(retRes157112)
 	}
 	var orders []any = []any{}
-	var clientOrderIds any = this.SafeList(params, "clientOrderIds", []any{})
-	var clientOrderIdsLength int = GetArrayLength(clientOrderIds)
+	var clientOrderIds []any = SafeListTyped(params, "clientOrderIds")
+	var clientOrderIdsLength int = len(clientOrderIds)
 	if clientOrderIdsLength > 0 {
-		for i := 0; i < GetArrayLength(clientOrderIds); i++ {
+		for i := 0; i < len(clientOrderIds); i++ {
 			orders = append(orders, map[string]any{
-				"order":    "cancel",
-				"cliOrdId": GetValue(clientOrderIds, i),
+				"order": "cancel",
+				"cliOrdId": func() any {
+					if i >= 0 && i < len(clientOrderIds) {
+						return DerefScalar(clientOrderIds[i])
+					}
+					return nil
+				}(),
 			})
 		}
 	} else {
@@ -2281,10 +2301,15 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 		response = (<-this.HistoryGetOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var allOrders any = this.SafeList(response, "elements", []any{})
+	var allOrders []any = SafeListTyped(response, "elements")
 	var closedOrders []any = []any{}
-	for i := 0; i < GetArrayLength(allOrders); i++ {
-		var order any = GetValue(allOrders, i)
+	for i := 0; i < len(allOrders); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(allOrders) {
+				return DerefScalar(allOrders[i])
+			}
+			return nil
+		}()
 		var event map[string]any = SafeMapTyped(order, "event")
 		var orderPlaced any = this.SafeDict2(event, "OrderPlaced", "OrderTriggerActivated")
 		var orderUpdated any = this.SafeDict(event, "OrderUpdated")
@@ -2365,10 +2390,15 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan any, optionalArgs ...
 		response = (<-this.HistoryGetOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var allOrders any = this.SafeList(response, "elements", []any{})
+	var allOrders []any = SafeListTyped(response, "elements")
 	var canceledAndRejected []any = []any{}
-	for i := 0; i < GetArrayLength(allOrders); i++ {
-		var order any = GetValue(allOrders, i)
+	for i := 0; i < len(allOrders); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(allOrders) {
+				return DerefScalar(allOrders[i])
+			}
+			return nil
+		}()
 		var event map[string]any = SafeMapTyped(order, "event")
 		var isCancelledTriggerOrder bool = (func() bool { _, ok := event["OrderTriggerCancelled"]; return ok }())
 		var orderPlaced any = this.SafeDict2(event, "OrderPlaced", "OrderTriggerCancelled")
@@ -2809,9 +2839,9 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 			"trades":              nil,
 		})
 	}
-	var orderEvents any = this.SafeList(order, "orderEvents", []any{})
+	var orderEvents []any = SafeListTyped(order, "orderEvents")
 	var errorStatus *string = this.SafeString(order, "status")
-	var orderEventsLength int = GetArrayLength(orderEvents)
+	var orderEventsLength int = len(orderEvents)
 	if (InOp(order, "orderEvents")) && (errorStatus != nil) && (orderEventsLength == 0) {
 		// creteOrders error response
 		return this.SafeOrder(map[string]any{
@@ -2827,8 +2857,13 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	var trades any = []any{}
 	if orderEventsLength > 0 {
 		var executions []any = []any{}
-		for i := 0; i < GetArrayLength(orderEvents); i++ {
-			var item any = GetValue(orderEvents, i)
+		for i := 0; i < len(orderEvents); i++ {
+			var item any = func() any {
+				if i >= 0 && i < len(orderEvents) {
+					return DerefScalar(orderEvents[i])
+				}
+				return nil
+			}()
 			if IsEqual(this.SafeString(item, "type"), "EXECUTION") {
 				executions = append(executions, item)
 			}
@@ -3119,12 +3154,17 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 	//        ]
 	//    }
 	//
-	var logs any = this.SafeList(response, "logs", []any{})
+	var logs []any = SafeListTyped(response, "logs")
 	// each execution emits two rows: a cash leg(asset is a currency) and
 	// a position-size leg(asset equals the contract id) - keep the cash legs only
 	var rows []any = []any{}
-	for i := 0; i < GetArrayLength(logs); i++ {
-		var row any = GetValue(logs, i)
+	for i := 0; i < len(logs); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(logs) {
+				return DerefScalar(logs[i])
+			}
+			return nil
+		}()
 		var asset *string = this.SafeString(row, "asset")
 		var contract *string = this.SafeString(row, "contract")
 		if (asset != nil) && (asset != contract && (asset == nil || contract == nil || *asset != *contract)) {
@@ -3644,10 +3684,15 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan any, optionalArgs ...an
 
 	response := (<-this.PublicGetTickers(params))
 	PanicOnError(response)
-	var tickers any = this.SafeList(response, "tickers", []any{})
+	var tickers []any = SafeListTyped(response, "tickers")
 	var fundingRates []any = []any{}
-	for i := 0; i < GetArrayLength(tickers); i++ {
-		var entry any = GetValue(tickers, i)
+	for i := 0; i < len(tickers); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(tickers) {
+				return DerefScalar(tickers[i])
+			}
+			return nil
+		}()
 		var entry_symbol *string = this.SafeString(entry, "symbol")
 		if !IsEqual(marketIds, nil) {
 			if !this.InArray(entry_symbol, marketIds) {

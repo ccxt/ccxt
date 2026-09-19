@@ -2318,12 +2318,22 @@ func (this *Lighter) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "funding_rates", []any{})
+	var data []any = SafeListTyped(response, "funding_rates")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var exchange *string = this.SafeString(GetValue(data, i), "exchange")
+	for i := 0; i < len(data); i++ {
+		var exchange *string = this.SafeString(func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}(), "exchange")
 		if exchange != nil && *exchange == "lighter" {
-			result = append(result, GetValue(data, i))
+			result = append(result, func() any {
+				if i >= 0 && i < len(data) {
+					return DerefScalar(data[i])
+				}
+				return nil
+			}())
 		}
 	}
 
@@ -2417,13 +2427,23 @@ func (this *Lighter) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var accounts any = this.SafeList(response, "accounts", []any{})
-	for i := 0; i < GetArrayLength(accounts); i++ {
-		var account any = GetValue(accounts, i)
+	var accounts []any = SafeListTyped(response, "accounts")
+	for i := 0; i < len(accounts); i++ {
+		var account any = func() any {
+			if i >= 0 && i < len(accounts) {
+				return DerefScalar(accounts[i])
+			}
+			return nil
+		}()
 		if typeVar != nil && *typeVar == "spot" {
-			var assets any = this.SafeList(account, "assets", []any{})
-			for j := 0; j < GetArrayLength(assets); j++ {
-				var asset any = GetValue(assets, j)
+			var assets []any = SafeListTyped(account, "assets")
+			for j := 0; j < len(assets); j++ {
+				var asset any = func() any {
+					if j >= 0 && j < len(assets) {
+						return DerefScalar(assets[j])
+					}
+					return nil
+				}()
 				var codeId *string = this.SafeString(asset, "symbol")
 				var code *string = this.SafeCurrencyCode(codeId)
 				var balance any = this.SafeDict(result, code, this.Account())
@@ -2567,12 +2587,22 @@ func (this *Lighter) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var allPositions []any = []any{}
-	var accounts any = this.SafeList(response, "accounts", []any{})
-	for i := 0; i < GetArrayLength(accounts); i++ {
-		var account any = GetValue(accounts, i)
-		var positions any = this.SafeList(account, "positions", []any{})
-		for j := 0; j < GetArrayLength(positions); j++ {
-			allPositions = append(allPositions, GetValue(positions, j))
+	var accounts []any = SafeListTyped(response, "accounts")
+	for i := 0; i < len(accounts); i++ {
+		var account any = func() any {
+			if i >= 0 && i < len(accounts) {
+				return DerefScalar(accounts[i])
+			}
+			return nil
+		}()
+		var positions []any = SafeListTyped(account, "positions")
+		for j := 0; j < len(positions); j++ {
+			allPositions = append(allPositions, func() any {
+				if j >= 0 && j < len(positions) {
+					return DerefScalar(positions[j])
+				}
+				return nil
+			}())
 		}
 	}
 

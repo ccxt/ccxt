@@ -718,10 +718,15 @@ func (this *Delta) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
 	var numericId *int64 = this.SafeInteger(rawCurrency, "id")
 	var code *string = this.SafeCurrencyCode(id)
-	var chains any = this.SafeList(rawCurrency, "networks", []any{})
+	var chains []any = SafeListTyped(rawCurrency, "networks")
 	var networks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(chains); j++ {
-		var chain any = GetValue(chains, j)
+	for j := 0; j < len(chains); j++ {
+		var chain any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(chain, "network")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -1016,10 +1021,15 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         "success":true
 	//     }
 	//
-	var markets any = this.SafeList(response, "result", []any{})
+	var markets []any = SafeListTyped(response, "result")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var typeVar any = DerefScalar(this.SafeString(market, "contract_type"))
 		if (IsEqual(typeVar, "options_combos")) || (IsEqual(typeVar, "binary_call_options")) || (IsEqual(typeVar, "binary_put_options")) {
 			continue
@@ -1632,10 +1642,15 @@ func (this *Delta) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         "success":true
 	//     }
 	//
-	var tickers any = this.SafeList(response, "result", []any{})
+	var tickers []any = SafeListTyped(response, "result")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(tickers); i++ {
-		var rawTicker any = GetValue(tickers, i)
+	for i := 0; i < len(tickers); i++ {
+		var rawTicker any = func() any {
+			if i >= 0 && i < len(tickers) {
+				return DerefScalar(tickers[i])
+			}
+			return nil
+		}()
 		var contractType *string = this.SafeString(rawTicker, "contract_type")
 		if (contractType != nil && *contractType == "options_combos") || (contractType != nil && *contractType == "binary_call_options") || (contractType != nil && *contractType == "binary_put_options") {
 			continue
@@ -1980,13 +1995,18 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	return nil
 }
 func (this *Delta) ParseBalance(response any) any {
-	var balances any = this.SafeList(response, "result", []any{})
+	var balances []any = SafeListTyped(response, "result")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "asset_id")
 		var currency any = this.SafeDict(currenciesByNumericId, currencyId)
 		var code any = func() any {

@@ -966,10 +966,15 @@ func (this *Gemini) fetchUSDTMarketsBody(ch chan any, optionalArgs ...any) any {
 		ch <- []any{} // sandbox does not have usdt markets
 		return nil
 	}
-	var fetchUsdtMarkets any = this.SafeList(this.Options, "fetchUsdtMarkets", []any{})
+	var fetchUsdtMarkets []any = SafeListTyped(this.Options, "fetchUsdtMarkets")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(fetchUsdtMarkets); i++ {
-		var marketId any = GetValue(fetchUsdtMarkets, i)
+	for i := 0; i < len(fetchUsdtMarkets); i++ {
+		var marketId any = func() any {
+			if i >= 0 && i < len(fetchUsdtMarkets) {
+				return DerefScalar(fetchUsdtMarkets[i])
+			}
+			return nil
+		}()
 		var request map[string]any = map[string]any{
 			"symbol": marketId,
 		}

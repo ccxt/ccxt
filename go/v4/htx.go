@@ -2678,14 +2678,19 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 	//         "ts":1640736207263
 	//     }
 	//
-	var markets any = this.SafeList(response, "data", []any{})
-	var numMarkets int = GetArrayLength(markets)
+	var markets []any = SafeListTyped(response, "data")
+	var numMarkets int = len(markets)
 	if numMarkets < 1 {
 		panic(OperationFailed(Add(this.Id+" fetchMarkets() returned an empty response: ", this.Json(response))))
 	}
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var baseId any = nil
 		var quoteId any = nil
 		var settleId any = nil
@@ -4048,12 +4053,22 @@ func (this *Htx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var trades any = this.SafeList(GetValue(data, i), "data", []any{})
-		for j := 0; j < GetArrayLength(trades); j++ {
-			var trade any = this.ParseTrade(GetValue(trades, j), market)
+	for i := 0; i < len(data); i++ {
+		var trades []any = SafeListTyped(func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}(), "data")
+		for j := 0; j < len(trades); j++ {
+			var trade any = this.ParseTrade(func() any {
+				if j >= 0 && j < len(trades) {
+					return DerefScalar(trades[j])
+				}
+				return nil
+			}(), market)
 			result = append(result, trade)
 		}
 	}
@@ -4501,10 +4516,15 @@ func (this *Htx) ParseCurrency(rawCurrency any) any {
 	if code != nil {
 		AddElementToObject(GetValue(this.Options, "networkChainIdsByNames"), code, map[string]any{})
 	}
-	var chains any = this.SafeList(rawCurrency, "chains", []any{})
+	var chains []any = SafeListTyped(rawCurrency, "chains")
 	var networks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(chains); j++ {
-		var chainEntry any = GetValue(chains, j)
+	for j := 0; j < len(chains); j++ {
+		var chainEntry any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var uniqueChainId *string = this.SafeString(chainEntry, "chain")             // i.e. usdterc20, trc20usdt ...
 		var title *string = this.SafeString2(chainEntry, "baseChain", "displayName") // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
 		if (code != nil) && (title != nil) {
@@ -4853,9 +4873,14 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var data any = this.SafeValue(response, "data")
 	if EvalTruthy(isMultiAssetMode) || (linear && (swap || future)) {
-		var details any = this.SafeList(data, "details", []any{})
-		for i := 0; i < GetArrayLength(details); i++ {
-			var balance any = GetValue(details, i)
+		var details []any = SafeListTyped(data, "details")
+		for i := 0; i < len(details); i++ {
+			var balance any = func() any {
+				if i >= 0 && i < len(details) {
+					return DerefScalar(details[i])
+				}
+				return nil
+			}()
 			var currencyId *string = this.SafeString(balance, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
@@ -7848,10 +7873,15 @@ func (this *Htx) ParseCancelOrders(orders any) any {
 		success = this.SafeList(orders, "success", []any{})
 	}
 	var failed any = this.SafeList2(orders, "errors", "failed", []any{})
-	var data any = this.SafeList(orders, "data", []any{})
+	var data []any = SafeListTyped(orders, "data")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var order any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString(order, "order_id"),
@@ -9114,9 +9144,14 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		}
 	} else {
 		var cursor any = this.SafeValue(data, "current_page")
-		var result any = this.SafeList(data, "data", []any{})
-		for i := 0; i < GetArrayLength(result); i++ {
-			var entry any = GetValue(result, i)
+		var result []any = SafeListTyped(data, "data")
+		for i := 0; i < len(result); i++ {
+			var entry any = func() any {
+				if i >= 0 && i < len(result) {
+					return DerefScalar(result[i])
+				}
+				return nil
+			}()
 			AddElementToObject(entry, "current_page", cursor)
 			var marketId *string = this.SafeString(entry, "contract_code")
 			var symbolInner *string = this.SafeSymbol(marketId)
@@ -10163,11 +10198,16 @@ func (this *Htx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			panic(NotSupported(this.Id + " fetchPositions() not support this market type"))
 		}
 	}
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var position any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var position any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParsePosition(position)
 		result = append(result, this.Extend(parsed, map[string]any{
 			"timestamp": timestamp,
@@ -10516,13 +10556,23 @@ func (this *Htx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(info, "trade_partition")
 	var marketId *string = this.SafeString(info, "contract_code")
 	var tiers []any = []any{}
-	var brackets any = this.SafeList(info, "list", []any{})
-	for i := 0; i < GetArrayLength(brackets); i++ {
-		var item any = GetValue(brackets, i)
+	var brackets []any = SafeListTyped(info, "list")
+	for i := 0; i < len(brackets); i++ {
+		var item any = func() any {
+			if i >= 0 && i < len(brackets) {
+				return DerefScalar(brackets[i])
+			}
+			return nil
+		}()
 		var leverage *string = this.SafeString(item, "lever_rate")
-		var ladders any = this.SafeList(item, "ladders", []any{})
-		for k := 0; k < GetArrayLength(ladders); k++ {
-			var bracket any = GetValue(ladders, k)
+		var ladders []any = SafeListTyped(item, "ladders")
+		for k := 0; k < len(ladders); k++ {
+			var bracket any = func() any {
+				if k >= 0 && k < len(ladders) {
+					return DerefScalar(ladders[k])
+				}
+				return nil
+			}()
 			var adjustFactor *string = this.SafeString(bracket, "adjust_factor")
 			tiers = append(tiers, map[string]any{
 				"tier":                  this.SafeInteger(bracket, "ladder"),
@@ -10867,8 +10917,13 @@ func (this *Htx) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...
 		})
 		return nil
 	}
-	var data any = this.SafeList(response, "data", []any{})
-	var openInterest any = this.ParseOpenInterest(GetValue(data, 0), market)
+	var data []any = SafeListTyped(response, "data")
+	var openInterest any = this.ParseOpenInterest(func() any {
+		if 0 >= 0 && 0 < len(data) {
+			return DerefScalar(data[0])
+		}
+		return nil
+	}(), market)
 	AddElementToObject(openInterest, "timestamp", timestamp)
 	AddElementToObject(openInterest, "datetime", this.Iso8601(timestamp))
 
@@ -11456,11 +11511,16 @@ func (this *Htx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var chains any = this.SafeList(fee, "chains", []any{})
+	var chains []any = SafeListTyped(fee, "chains")
 	var code *string = this.SafeString(currency, "code")
 	var result any = this.DepositWithdrawFee(fee)
-	for j := 0; j < GetArrayLength(chains); j++ {
-		var chainEntry any = GetValue(chains, j)
+	for j := 0; j < len(chains); j++ {
+		var chainEntry any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(chainEntry, "chain")
 		var withdrawFeeType *string = this.SafeString(chainEntry, "withdrawFeeType")
 		var networkCode any = this.NetworkIdToCode(networkId, code)

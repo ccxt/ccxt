@@ -2439,9 +2439,14 @@ func (this *Phemex) ParseSpotBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var data any = this.SafeList(response, "data", []any{})
-	for i := 0; i < GetArrayLength(data); i++ {
-		var balance any = GetValue(data, i)
+	var data []any = SafeListTyped(response, "data")
+	for i := 0; i < len(data); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var currency map[string]any = SafeMapTyped(this.Currencies, code)
@@ -4730,10 +4735,15 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var positions any = this.SafeList(data, "positions", []any{})
+	var positions []any = SafeListTyped(data, "positions")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(positions); i++ {
-		var position any = GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var position any = func() any {
+			if i >= 0 && i < len(positions) {
+				return DerefScalar(positions[i])
+			}
+			return nil
+		}()
 		result = append(result, this.ParsePosition(position))
 	}
 
@@ -5083,10 +5093,15 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTyped(data, "rows")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(rows); i++ {
-		var entry any = GetValue(rows, i)
+	for i := 0; i < len(rows); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var timestamp *int64 = this.SafeInteger(entry, "createTime")
 		var execFee *string = this.SafeString2(entry, "execFeeEv", "execFeeRv")
 		var currencyCode *string = this.SafeCurrencyCode(this.SafeString(entry, "currency"))
@@ -6690,10 +6705,15 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var ranks any = this.SafeList(data, "positions", []any{})
+	var ranks []any = SafeListTyped(data, "positions")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(ranks); i++ {
-		var rank any = GetValue(ranks, i)
+	for i := 0; i < len(ranks); i++ {
+		var rank any = func() any {
+			if i >= 0 && i < len(ranks) {
+				return DerefScalar(ranks[i])
+			}
+			return nil
+		}()
 		result = append(result, this.ParseADLRank(rank))
 	}
 

@@ -777,10 +777,15 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "coin")
 	var code *string = this.SafeCurrencyCode(id)
 	var isFiat *bool = this.SafeBool(rawCurrency, "isLegalMoney")
-	var networkList any = this.SafeList(rawCurrency, "networkList", []any{})
+	var networkList []any = SafeListTyped(rawCurrency, "networkList")
 	var networks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(networkList); j++ {
-		var networkItem any = GetValue(networkList, j)
+	for j := 0; j < len(networkList); j++ {
+		var networkItem any = func() any {
+			if j >= 0 && j < len(networkList) {
+				return DerefScalar(networkList[j])
+			}
+			return nil
+		}()
 		var network *string = this.SafeString(networkItem, "network")
 		var networkCode any = this.NetworkIdToCode(network, code)
 		if networkCode != nil {
@@ -837,18 +842,28 @@ func (this *Coinsph) CalculateRateLimiterCost(api any, method any, path any, par
 	} else if (InOp(config, "byNumberOfSymbols")) && (InOp(params, "symbols")) {
 		var symbols any = GetValue(params, "symbols")
 		var symbolsAmount int = GetArrayLength(symbols)
-		var byNumberOfSymbols any = this.SafeList(config, "byNumberOfSymbols", []any{})
-		for i := 0; i < GetArrayLength(byNumberOfSymbols); i++ {
-			var entry any = GetValue(byNumberOfSymbols, i)
+		var byNumberOfSymbols []any = SafeListTyped(config, "byNumberOfSymbols")
+		for i := 0; i < len(byNumberOfSymbols); i++ {
+			var entry any = func() any {
+				if i >= 0 && i < len(byNumberOfSymbols) {
+					return DerefScalar(byNumberOfSymbols[i])
+				}
+				return nil
+			}()
 			if IsGreaterThanOrEqual(symbolsAmount, GetValue(entry, 0)) {
 				return GetValue(entry, 1)
 			}
 		}
 	} else if (InOp(config, "byLimit")) && (InOp(params, "limit")) {
 		var limit any = GetValue(params, "limit")
-		var byLimit any = this.SafeList(config, "byLimit", []any{})
-		for i := 0; i < GetArrayLength(byLimit); i++ {
-			var entry any = GetValue(byLimit, i)
+		var byLimit []any = SafeListTyped(config, "byLimit")
+		for i := 0; i < len(byLimit); i++ {
+			var entry any = func() any {
+				if i >= 0 && i < len(byLimit) {
+					return DerefScalar(byLimit[i])
+				}
+				return nil
+			}()
 			if IsGreaterThanOrEqual(limit, GetValue(entry, 0)) {
 				return GetValue(entry, 1)
 			}
@@ -998,10 +1013,15 @@ func (this *Coinsph) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var markets any = this.SafeList(response, "symbols", []any{})
+	var markets []any = SafeListTyped(response, "symbols")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
@@ -1720,14 +1740,19 @@ func (this *Coinsph) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Coinsph) ParseBalance(response any) any {
-	var balances any = this.SafeList(response, "balances", []any{})
+	var balances []any = SafeListTyped(response, "balances")
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()

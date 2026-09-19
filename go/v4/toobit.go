@@ -954,10 +954,15 @@ func (this *Toobit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//          ...
 	//
-	var coins any = this.SafeList(response, "coins", []any{})
+	var coins []any = SafeListTyped(response, "coins")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(coins); i++ {
-		var coin any = GetValue(coins, i)
+	for i := 0; i < len(coins); i++ {
+		var coin any = func() any {
+			if i >= 0 && i < len(coins) {
+				return DerefScalar(coins[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseCurrency(coin)
 		if !IsEqual(parsed, nil) {
 			var code any = GetValue(parsed, "code")
@@ -972,9 +977,14 @@ func (this *Toobit) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "coinId")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var rawNetworks any = this.SafeList(rawCurrency, "chainTypes", []any{})
-	for j := 0; j < GetArrayLength(rawNetworks); j++ {
-		var rawNetwork any = GetValue(rawNetworks, j)
+	var rawNetworks []any = SafeListTyped(rawCurrency, "chainTypes")
+	for j := 0; j < len(rawNetworks); j++ {
+		var rawNetwork any = func() any {
+			if j >= 0 && j < len(rawNetworks) {
+				return DerefScalar(rawNetworks[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(rawNetwork, "chainType")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {

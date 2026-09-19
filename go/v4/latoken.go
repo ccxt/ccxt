@@ -777,9 +777,14 @@ func (this *Latoken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var types map[string]any = SafeMapTyped(this.Options, "types")
 	var accountType *string = this.SafeString(types, typeVar, typeVar)
 	var balancesByType map[string]any = this.GroupBy(response, "type")
-	var balances any = this.SafeList(balancesByType, accountType, []any{})
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	var balances []any = SafeListTyped(balancesByType, accountType)
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "currency")
 		var timestamp *int64 = this.SafeInteger(balance, "timestamp")
 		if timestamp != nil {
@@ -866,19 +871,29 @@ func (this *Latoken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	// observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
 	// for over half an hour - such a level is a deleted level their
 	// aggregation failed to drop, so it is removed here
-	var rawAsks any = this.SafeList(response, "ask", []any{})
-	var rawBids any = this.SafeList(response, "bid", []any{})
+	var rawAsks []any = SafeListTyped(response, "ask")
+	var rawBids []any = SafeListTyped(response, "bid")
 	var asks []any = []any{}
 	var bids []any = []any{}
-	for i := 0; i < GetArrayLength(rawAsks); i++ {
-		var askEntry any = GetValue(rawAsks, i)
+	for i := 0; i < len(rawAsks); i++ {
+		var askEntry any = func() any {
+			if i >= 0 && i < len(rawAsks) {
+				return DerefScalar(rawAsks[i])
+			}
+			return nil
+		}()
 		var askQuantity *string = this.SafeString(askEntry, "quantity")
 		if Precise.StringGt(askQuantity, "0") {
 			asks = append(asks, askEntry)
 		}
 	}
-	for i := 0; i < GetArrayLength(rawBids); i++ {
-		var bidEntry any = GetValue(rawBids, i)
+	for i := 0; i < len(rawBids); i++ {
+		var bidEntry any = func() any {
+			if i >= 0 && i < len(rawBids) {
+				return DerefScalar(rawBids[i])
+			}
+			return nil
+		}()
 		var bidQuantity *string = this.SafeString(bidEntry, "quantity")
 		if Precise.StringGt(bidQuantity, "0") {
 			bids = append(bids, bidEntry)

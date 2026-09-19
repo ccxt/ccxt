@@ -396,7 +396,7 @@ func (this *Htx) HandleTrades(client any, message any) any {
 	//     }
 	//
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
-	var data any = this.SafeList(tick, "data", []any{})
+	var data []any = ccxt.SafeListTyped(tick, "data")
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message
@@ -411,8 +411,13 @@ func (this *Htx) HandleTrades(client any, message any) any {
 		tradesCache = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, tradesCache)
 	}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var trade any = this.ParseTrade(ccxt.GetValue(data, i), market)
+	for i := 0; i < len(data); i++ {
+		var trade any = this.ParseTrade(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), market)
 		tradesCache.(ccxt.Appender).Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)
@@ -2391,10 +2396,15 @@ func (this *Htx) HandleBalance(client any, message any) {
 		}
 		if topic != nil && *topic == "account" {
 			var accountData map[string]any = ccxt.SafeMapTyped(message, "data")
-			var details any = this.SafeList(accountData, "details", []any{})
-			var detailsLength int = ccxt.GetArrayLength(details)
+			var details []any = ccxt.SafeListTyped(accountData, "details")
+			var detailsLength int = len(details)
 			for i := 0; i < detailsLength; i++ {
-				var detail any = ccxt.GetValue(details, i)
+				var detail any = func() any {
+					if i >= 0 && i < len(details) {
+						return ccxt.DerefScalar(details[i])
+					}
+					return nil
+				}()
 				var currencyId *string = this.SafeString(detail, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				if code == nil {
@@ -2543,11 +2553,21 @@ func (this *Htx) HandleSubscriptionStatus(client any, message any) {
 	}
 }
 func (this *Htx) HandleUnSubscription(client any, subscription any) {
-	var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
-	var subMessageHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
-	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
-		var unsubHash any = ccxt.GetValue(messageHashes, i)
-		var subHash any = ccxt.GetValue(subMessageHashes, i)
+	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
+	for i := 0; i < len(messageHashes); i++ {
+		var unsubHash any = func() any {
+			if i >= 0 && i < len(messageHashes) {
+				return ccxt.DerefScalar(messageHashes[i])
+			}
+			return nil
+		}()
+		var subHash any = func() any {
+			if i >= 0 && i < len(subMessageHashes) {
+				return ccxt.DerefScalar(subMessageHashes[i])
+			}
+			return nil
+		}()
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
@@ -3149,11 +3169,16 @@ func (this *Htx) HandleMyTrade(client any, message any, optionalArgs ...any) {
 		} else {
 			// this trades object is artificially created
 			// in handleOrder
-			var rawTrades any = this.SafeList(message, "trades", []any{})
+			var rawTrades []any = ccxt.SafeListTyped(message, "trades")
 			var marketId *string = this.SafeString(message, "symbol")
 			var market any = this.Market(marketId)
-			for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
-				var trade any = ccxt.GetValue(rawTrades, i)
+			for i := 0; i < len(rawTrades); i++ {
+				var trade any = func() any {
+					if i >= 0 && i < len(rawTrades) {
+						return ccxt.DerefScalar(rawTrades[i])
+					}
+					return nil
+				}()
 				var parsedTrade any = this.ParseTrade(trade, market)
 				// add extra params (side, type, ...) coming from the order
 				parsedTrade = this.Extend(parsedTrade, extendParams)

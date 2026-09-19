@@ -1579,10 +1579,15 @@ func (this *Poloniex) ParseCurrency(currency any) any {
 	var id *string = this.SafeString(entry, "coin")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var chains any = this.SafeList(entry, "networkList", []any{})
-	var chainsLength int = GetArrayLength(chains)
+	var chains []any = SafeListTyped(entry, "networkList")
+	var chainsLength int = len(chains)
 	for j := 0; j < chainsLength; j++ {
-		var chain any = GetValue(chains, j)
+		var chain any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var chainId *string = this.SafeString(chain, "blockchain")
 		var networkCode any = this.NetworkIdToCode(chainId, code)
 		if networkCode != nil {
@@ -3130,9 +3135,14 @@ func (this *Poloniex) ParseBalance(response any) any {
 		var ts *int64 = this.SafeInteger(response, "uTime")
 		result["timestamp"] = ts
 		result["datetime"] = this.Iso8601(ts)
-		var details any = this.SafeList(response, "details", []any{})
-		for i := 0; i < GetArrayLength(details); i++ {
-			var balance any = GetValue(details, i)
+		var details []any = SafeListTyped(response, "details")
+		for i := 0; i < len(details); i++ {
+			var balance any = func() any {
+				if i >= 0 && i < len(details) {
+					return DerefScalar(details[i])
+				}
+				return nil
+			}()
 			var currencyId *string = this.SafeString(balance, "ccy")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
@@ -4341,9 +4351,14 @@ func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var longLeverage *int64 = nil
 	var marketId any = nil
 	var marginMode any = nil
-	var data any = this.SafeList(leverage, "data", []any{})
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	var data []any = SafeListTyped(leverage, "data")
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		marketId = DerefScalar(this.SafeString(entry, "symbol"))
 		// mgnMode arrives upper case; parseOrder and parsePosition read the
 		// same field with safeStringLower

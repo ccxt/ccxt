@@ -271,7 +271,7 @@ func (this *Cex) HandleTrade(client any, message any) {
 	this.HandleTradesInner(client, message)
 }
 func (this *Cex) HandleTradesInner(client any, message any) {
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var symbol *string = this.SafeString(ccxt.GetValue(this.Options, "watchTrades"), "symbol")
 	if symbol == nil {
 		return
@@ -282,7 +282,7 @@ func (this *Cex) HandleTradesInner(client any, message any) {
 	}
 	var stored any = ccxt.GetValue(this.Trades, symbol)
 	var market any = this.Market(symbol)
-	var dataLength int = ccxt.GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var index any = ccxt.Subtract(ccxt.Subtract(dataLength, 1), i)
 		var rawTrade any = ccxt.GetValue(data, index)
@@ -1085,14 +1085,19 @@ func (this *Cex) HandleOrdersSnapshot(client any, message any) {
 	//     }
 	//
 	var symbol *string = this.SafeString(message, "oid") // symbol is set as requestId in watchOrders
-	var rawOrders any = this.SafeList(message, "data", []any{})
+	var rawOrders []any = ccxt.SafeListTyped(message, "data")
 	var myOrders any = this.Orders
 	if ccxt.IsEqual(myOrders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		myOrders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-		var rawOrder any = ccxt.GetValue(rawOrders, i)
+	for i := 0; i < len(rawOrders); i++ {
+		var rawOrder any = func() any {
+			if i >= 0 && i < len(rawOrders) {
+				return ccxt.DerefScalar(rawOrders[i])
+			}
+			return nil
+		}()
 		var market any = this.SafeMarket(symbol)
 		var order any = this.ParseOrder(rawOrder, market)
 		ccxt.AddElementToObject(order, "status", "open")
@@ -1397,17 +1402,47 @@ func (this *Cex) HandleOHLCV(client any, message any) {
 	//         "pair": "BTC:USD"
 	//     }
 	//
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var pair *string = this.SafeString(message, "pair")
 	var symbol any = this.PairToSymbol(pair)
 	var messageHash any = ccxt.Add("ohlcv:", symbol)
 	// const stored = this.safeValue (this.ohlcvs, symbol)
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), "unknown")
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var ohlcv []any = []any{this.SafeTimestamp(ccxt.GetValue(data, i), 0), this.SafeNumber(ccxt.GetValue(data, i), 1), this.SafeNumber(ccxt.GetValue(data, i), 2), this.SafeNumber(ccxt.GetValue(data, i), 3), this.SafeNumber(ccxt.GetValue(data, i), 4), this.SafeNumber(ccxt.GetValue(data, i), 5)}
+	for i := 0; i < len(data); i++ {
+		var ohlcv []any = []any{this.SafeTimestamp(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), 0), this.SafeNumber(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), 1), this.SafeNumber(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), 2), this.SafeNumber(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), 3), this.SafeNumber(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), 4), this.SafeNumber(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), 5)}
 		stored.(ccxt.Appender).Append(ohlcv)
 	}
-	var dataLength int = ccxt.GetArrayLength(data)
+	var dataLength int = len(data)
 	if dataLength > 0 {
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}

@@ -960,16 +960,26 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan any, outcome any, optionalAr
 	//
 	var timestamp *int64 = this.SafeInteger(response, "time")
 	var levels any = this.SafeList(response, "levels", []any{})
-	var rawBids any = this.SafeList(levels, 0, []any{})
-	var rawAsks any = this.SafeList(levels, 1, []any{})
+	var rawBids []any = ccxt.SafeListTyped(levels, 0)
+	var rawAsks []any = ccxt.SafeListTyped(levels, 1)
 	var bids []any = []any{}
 	var asks []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawBids); i++ {
-		var entry any = ccxt.GetValue(rawBids, i)
+	for i := 0; i < len(rawBids); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(rawBids) {
+				return ccxt.DerefScalar(rawBids[i])
+			}
+			return nil
+		}()
 		bids = append(bids, []any{this.SafeNumber(entry, "px"), this.SafeNumber(entry, "sz")})
 	}
-	for i := 0; i < ccxt.GetArrayLength(rawAsks); i++ {
-		var entry any = ccxt.GetValue(rawAsks, i)
+	for i := 0; i < len(rawAsks); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(rawAsks) {
+				return ccxt.DerefScalar(rawAsks[i])
+			}
+			return nil
+		}()
 		asks = append(asks, []any{this.SafeNumber(entry, "px"), this.SafeNumber(entry, "sz")})
 	}
 	var orderbook any = this.ParseOrderBook(map[string]any{
@@ -1145,9 +1155,14 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances any = this.SafeList(response, "balances", []any{})
-	for i := 0; i < ccxt.GetArrayLength(balances); i++ {
-		var balance any = ccxt.GetValue(balances, i)
+	var balances []any = ccxt.SafeListTyped(response, "balances")
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return ccxt.DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var coin *string = this.SafeString(balance, "coin")
 		var total *string = this.SafeString(balance, "total")
 		var used *string = this.SafeString(balance, "hold")
@@ -1744,7 +1759,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	ccxt.PanicOnError(response)
 	var innerResponse map[string]any = ccxt.SafeMapTyped(response, "response")
 	var data map[string]any = ccxt.SafeMapTyped(innerResponse, "data")
-	var statuses any = this.SafeList(data, "statuses", []any{})
+	var statuses []any = ccxt.SafeListTyped(data, "statuses")
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome", outcome)
 	var requestIds any = ids
 	if !ccxt.IsEqual(clientOrderId, nil) {
@@ -1755,8 +1770,13 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 		}
 	}
 	var orders []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(statuses); i++ {
-		var status any = ccxt.GetValue(statuses, i)
+	for i := 0; i < len(statuses); i++ {
+		var status any = func() any {
+			if i >= 0 && i < len(statuses) {
+				return ccxt.DerefScalar(statuses[i])
+			}
+			return nil
+		}()
 		var error *string = this.SafeString(status, "error")
 		if error != nil {
 			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" cancelOrders() failed for ", this.SafeString(requestIds, i, this.SafeString(requestIds, 0))), ": "), error)))
@@ -2904,9 +2924,14 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 	// Check for error statuses in order responses
 	var responsePayload map[string]any = ccxt.SafeMapTyped(response, "response")
 	var data map[string]any = ccxt.SafeMapTyped(responsePayload, "data")
-	var statuses any = this.SafeList(data, "statuses", []any{})
-	for i := 0; i < ccxt.GetArrayLength(statuses); i++ {
-		var message *string = this.SafeString(ccxt.GetValue(statuses, i), "error")
+	var statuses []any = ccxt.SafeListTyped(data, "statuses")
+	for i := 0; i < len(statuses); i++ {
+		var message *string = this.SafeString(func() any {
+			if i >= 0 && i < len(statuses) {
+				return ccxt.DerefScalar(statuses[i])
+			}
+			return nil
+		}(), "error")
 		if message != nil {
 			var feedback any = ccxt.Add(this.Id+" ", body)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)

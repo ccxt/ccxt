@@ -1478,12 +1478,17 @@ func (this *Nado) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) 
 	//     }
 	//
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
-	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
+	var cancelledOrders []any = ccxt.SafeListTyped(data, "cancelled_orders")
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(cancelledOrders); i++ {
+	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
-		}, ccxt.GetValue(cancelledOrders, i)), market))
+		}, func() any {
+			if i >= 0 && i < len(cancelledOrders) {
+				return ccxt.DerefScalar(cancelledOrders[i])
+			}
+			return nil
+		}()), market))
 	}
 
 	ch <- result
@@ -1540,12 +1545,17 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.WatchExecuteRequestAsync(requestIdString, request))
 	ccxt.PanicOnError(response)
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
-	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
+	var cancelledOrders []any = ccxt.SafeListTyped(data, "cancelled_orders")
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(cancelledOrders); i++ {
+	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
-		}, ccxt.GetValue(cancelledOrders, i)), market))
+		}, func() any {
+			if i >= 0 && i < len(cancelledOrders) {
+				return ccxt.DerefScalar(cancelledOrders[i])
+			}
+			return nil
+		}()), market))
 	}
 
 	ch <- result

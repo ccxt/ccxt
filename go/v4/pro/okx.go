@@ -452,10 +452,15 @@ func (this *Okx) HandleTrades(client any, message any) {
 	var channel *string = this.SafeString(arg, "channel")
 	var marketId *string = this.SafeString(arg, "instId")
 	var symbol *string = this.SafeSymbol(marketId)
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var trade any = this.ParseTrade(ccxt.GetValue(data, i))
+	for i := 0; i < len(data); i++ {
+		var trade any = this.ParseTrade(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}())
 		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
@@ -866,10 +871,15 @@ func (this *Okx) HandleTicker(client any, message any) {
 	var market any = this.SafeMarket(marketId, nil, "-")
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var channel *string = this.SafeString(arg, "channel")
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var newTickers map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var ticker any = this.ParseTicker(ccxt.GetValue(data, i))
+	for i := 0; i < len(data); i++ {
+		var ticker any = this.ParseTicker(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}())
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		ccxt.AddElementToObject(newTickers, symbol, ticker)
 	}
@@ -1588,15 +1598,20 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 	if channel == nil {
 		return
 	}
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var interval string = ccxt.Replace(channel, "candle", "")
 	// use a reverse lookup in a static map instead
 	var timeframe any = this.FindTimeframe(interval)
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var parsed any = this.ParseOHLCV(ccxt.GetValue(data, i), market)
+	for i := 0; i < len(data); i++ {
+		var parsed any = this.ParseOHLCV(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), market)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
@@ -2501,14 +2516,19 @@ func (this *Okx) HandlePositions(client any, message any) {
 	var market any = this.SafeMarket(marketId, nil, "-")
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var channel *string = this.SafeString(arg, "channel", "")
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
 	var newPositions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var rawPosition any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var position any = this.ParsePosition(rawPosition)
 		if ccxt.IsEqual(ccxt.GetValue(position, "contracts"), 0) && ccxt.IsEqual(ccxt.GetValue(rawPosition, "posSide"), "net") {
 			ccxt.AddElementToObject(position, "side", "long")
@@ -2766,11 +2786,16 @@ func (this *Okx) HandleMyTrades(client any, message any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel")
-	var rawOrders any = this.SafeList(message, "data", []any{})
+	var rawOrders []any = ccxt.SafeListTyped(message, "data")
 	var filteredOrders []any = []any{}
 	// filter orders with no last trade id
-	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-		var rawOrder any = ccxt.GetValue(rawOrders, i)
+	for i := 0; i < len(rawOrders); i++ {
+		var rawOrder any = func() any {
+			if i >= 0 && i < len(rawOrders) {
+				return ccxt.DerefScalar(rawOrders[i])
+			}
+			return nil
+		}()
 		var tradeId *string = this.SafeString(rawOrder, "tradeId", "")
 		if ccxt.GetLength(tradeId) > 0 {
 			var order any = this.ParseOrder(rawOrder)

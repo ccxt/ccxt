@@ -692,10 +692,15 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var pairs any = this.SafeList(data, "pairs", []any{})
+	var pairs []any = SafeListTyped(data, "pairs")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(pairs); i++ {
-		var pair any = GetValue(pairs, i)
+	for i := 0; i < len(pairs); i++ {
+		var pair any = func() any {
+			if i >= 0 && i < len(pairs) {
+				return DerefScalar(pairs[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(pair, "name")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = GetValue(market, "symbol")
@@ -810,9 +815,14 @@ func (this *Bitbank) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var assets any = this.SafeList(data, "assets", []any{})
-	for i := 0; i < GetArrayLength(assets); i++ {
-		var balance any = GetValue(assets, i)
+	var assets []any = SafeListTyped(data, "assets")
+	for i := 0; i < len(assets); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(assets) {
+				return DerefScalar(assets[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()

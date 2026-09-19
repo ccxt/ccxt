@@ -3008,10 +3008,15 @@ func (this *Gate) ParseCurrency(rawCurrency any) any {
 		}
 		return "crypto"
 	}()
-	var chains any = this.SafeList(rawCurrency, "chains", []any{})
+	var chains []any = SafeListTyped(rawCurrency, "chains")
 	var networks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(chains); j++ {
-		var chain any = GetValue(chains, j)
+	for j := 0; j < len(chains); j++ {
+		var chain any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(chain, "name")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {

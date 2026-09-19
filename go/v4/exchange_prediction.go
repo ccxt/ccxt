@@ -92,20 +92,25 @@ func (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var query *string = this.SafeString(params, "query")
-	var queries any = this.SafeList(params, "queries", []any{})
-	var tags any = this.SafeList(params, "tags", []any{})
+	var queries []any = SafeListTyped(params, "queries")
+	var tags []any = SafeListTyped(params, "tags")
 	var eventId *string = this.SafeString(params, "eventId")
 	var slug *string = this.SafeString(params, "slug")
-	var queriesLength int = GetArrayLength(queries)
-	var tagsLength int = GetArrayLength(tags)
+	var queriesLength int = len(queries)
+	var tagsLength int = len(tags)
 	if (query != nil) || (queriesLength > 0) || (tagsLength > 0) || (eventId != nil) || (slug != nil) {
 		return nil
 	}
-	var extraScopeParams any = this.SafeList(this.Options, "eventScopeParams", []any{})
-	var extraScopeParamsLength int = GetArrayLength(extraScopeParams)
+	var extraScopeParams []any = SafeListTyped(this.Options, "eventScopeParams")
+	var extraScopeParamsLength int = len(extraScopeParams)
 	var extraNames any = ""
 	for i := 0; i < extraScopeParamsLength; i++ {
-		var scopeKey any = GetValue(extraScopeParams, i)
+		var scopeKey any = func() any {
+			if i >= 0 && i < len(extraScopeParams) {
+				return DerefScalar(extraScopeParams[i])
+			}
+			return nil
+		}()
 		if InOp(params, scopeKey) {
 			return nil
 		}
@@ -288,10 +293,15 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(events); i++ {
 		var event any = GetValue(events, i)
-		var eventTags any = this.SafeList(event, "tags", []any{})
+		var eventTags []any = SafeListTyped(event, "tags")
 		var matched bool = false
-		for ti := 0; ti < GetArrayLength(eventTags); ti++ {
-			var tag any = GetValue(eventTags, ti)
+		for ti := 0; ti < len(eventTags); ti++ {
+			var tag any = func() any {
+				if ti >= 0 && ti < len(eventTags) {
+					return DerefScalar(eventTags[ti])
+				}
+				return nil
+			}()
 			var tagLabel any = nil
 			if IsString(tag) {
 				tagLabel = tag
@@ -668,9 +678,14 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 	if IsEqual(this.Outcomes_by_id, nil) {
 		this.Outcomes_by_id = map[string]any{}
 	}
-	var outcomesList any = this.SafeList(market, "outcomes", []any{})
-	for j := 0; j < GetArrayLength(outcomesList); j++ {
-		var oc any = GetValue(outcomesList, j)
+	var outcomesList []any = SafeListTyped(market, "outcomes")
+	for j := 0; j < len(outcomesList); j++ {
+		var oc any = func() any {
+			if j >= 0 && j < len(outcomesList) {
+				return DerefScalar(outcomesList[j])
+			}
+			return nil
+		}()
 		var ocSymbol any = this.SafeString2(oc, "outcome", "symbol")
 		var ocId *string = this.SafeString2(oc, "outcomeId", "id")
 		// assign unconditionally — safeString2 keeps the canonical key when present

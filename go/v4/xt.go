@@ -1334,18 +1334,28 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var chainsData any = this.SafeList(chainsResponse, "result", []any{})
 	var currenciesResult map[string]any = SafeMapTyped(currenciesResponse, "result")
-	var currenciesData any = this.SafeList(currenciesResult, "currencies", []any{})
+	var currenciesData []any = SafeListTyped(currenciesResult, "currencies")
 	var chainsDataIndexed map[string]any = this.IndexBy(chainsData, "currency")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(currenciesData); i++ {
-		var entry any = GetValue(currenciesData, i)
+	for i := 0; i < len(currenciesData); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(currenciesData) {
+				return DerefScalar(currenciesData[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var networkEntry map[string]any = SafeMapTyped(chainsDataIndexed, currencyId)
-		var rawNetworks any = this.SafeList(networkEntry, "supportChains", []any{})
+		var rawNetworks []any = SafeListTyped(networkEntry, "supportChains")
 		var networks map[string]any = map[string]any{}
-		for j := 0; j < GetArrayLength(rawNetworks); j++ {
-			var rawNetwork any = GetValue(rawNetworks, j)
+		for j := 0; j < len(rawNetworks); j++ {
+			var rawNetwork any = func() any {
+				if j >= 0 && j < len(rawNetworks) {
+					return DerefScalar(rawNetworks[j])
+				}
+				return nil
+			}()
 			var networkId *string = this.SafeString(rawNetwork, "chain")
 			var networkCode any = this.NetworkIdToCode(networkId, code)
 			if networkCode != nil {
@@ -1734,7 +1744,7 @@ func (this *Xt) ParseMarket(market any) any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var state *string = this.SafeString(market, "state")
 	var symbol any = Add(Add(base, "/"), quote)
-	var filters any = this.SafeList(market, "filters", []any{})
+	var filters []any = SafeListTyped(market, "filters")
 	var minAmount *float64 = nil
 	var maxAmount *float64 = nil
 	var minCost *float64 = nil
@@ -1742,8 +1752,13 @@ func (this *Xt) ParseMarket(market any) any {
 	var minPrice *float64 = nil
 	var maxPrice *float64 = nil
 	var amountPrecision any = nil
-	for i := 0; i < GetArrayLength(filters); i++ {
-		var entry any = GetValue(filters, i)
+	for i := 0; i < len(filters); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(filters) {
+				return DerefScalar(filters[i])
+			}
+			return nil
+		}()
 		var filter *string = this.SafeString(entry, "filter")
 		if filter != nil && *filter == "QUANTITY" {
 			minAmount = this.SafeNumber(entry, "min")
@@ -2361,10 +2376,15 @@ func (this *Xt) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var tickers any = this.SafeList(response, "result", []any{})
+	var tickers []any = SafeListTyped(response, "result")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(tickers); i++ {
-		var ticker any = this.ParseTicker(GetValue(tickers, i), market)
+	for i := 0; i < len(tickers); i++ {
+		var ticker any = this.ParseTicker(func() any {
+			if i >= 0 && i < len(tickers) {
+				return DerefScalar(tickers[i])
+			}
+			return nil
+		}(), market)
 		var symbol any = GetValue(ticker, "symbol")
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
@@ -2470,10 +2490,15 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var tickers any = this.SafeList(response, "result", []any{})
+	var tickers []any = SafeListTyped(response, "result")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(tickers); i++ {
-		var rawTicker any = GetValue(tickers, i)
+	for i := 0; i < len(tickers); i++ {
+		var rawTicker any = func() any {
+			if i >= 0 && i < len(tickers) {
+				return DerefScalar(tickers[i])
+			}
+			return nil
+		}()
 		// the spot and contract payloads share the same field names, so
 		// the market type cannot be inferred from the entry itself
 		var marketId *string = this.SafeString(rawTicker, "s")
@@ -6042,12 +6067,22 @@ func (this *Xt) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var tiers []any = []any{}
-	var brackets any = this.SafeList(info, "leverageBrackets", []any{})
-	for i := 0; i < GetArrayLength(brackets); i++ {
-		var tier any = GetValue(brackets, i)
+	var brackets []any = SafeListTyped(info, "leverageBrackets")
+	for i := 0; i < len(brackets); i++ {
+		var tier any = func() any {
+			if i >= 0 && i < len(brackets) {
+				return DerefScalar(brackets[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(info, "symbol")
 		market = this.SafeMarket(marketId, market, "_", "contract")
-		var minNotional *float64 = this.SafeNumber(GetValue(brackets, i-1), "maxNominalValue", 0)
+		var minNotional *float64 = this.SafeNumber(func() any {
+			if i-1 >= 0 && i-1 < len(brackets) {
+				return DerefScalar(brackets[i-1])
+			}
+			return nil
+		}(), "maxNominalValue", 0)
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeInteger(tier, "bracket"),
 			"symbol":                this.SafeSymbol(marketId, market, "_", "contract"),
@@ -6156,10 +6191,15 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var items any = this.SafeList(result, "items", []any{})
+	var items []any = SafeListTyped(result, "items")
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(items); i++ {
-		var entry any = GetValue(items, i)
+	for i := 0; i < len(items); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(items) {
+				return DerefScalar(items[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbolInner *string = this.SafeSymbol(marketId, market)
 		var timestamp *int64 = this.SafeInteger(entry, "createdTime")
@@ -6619,10 +6659,15 @@ func (this *Xt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var items any = this.SafeList(data, "items", []any{})
+	var items []any = SafeListTyped(data, "items")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(items); i++ {
-		var entry any = GetValue(items, i)
+	for i := 0; i < len(items); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(items) {
+				return DerefScalar(items[i])
+			}
+			return nil
+		}()
 		result = append(result, this.ParseFundingHistory(entry, market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
@@ -6783,10 +6828,15 @@ func (this *Xt) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) 
 	//         ]
 	//     }
 	//
-	var positions any = this.SafeList(response, "result", []any{})
+	var positions []any = SafeListTyped(response, "result")
 	var breakBySymbolSide any = this.IndexPositionBreakList(this.SafeList(breakResponse, "result", []any{}))
-	for i := 0; i < GetArrayLength(positions); i++ {
-		var entry any = GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(positions) {
+				return DerefScalar(positions[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "symbol")
 		var marketInner any = this.SafeMarket(marketId, nil, nil, "contract")
 		var positionSize *string = this.SafeString(entry, "positionSize")
@@ -6884,11 +6934,16 @@ func (this *Xt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var positions any = this.SafeList(response, "result", []any{})
+	var positions []any = SafeListTyped(response, "result")
 	var breakBySymbolSide any = this.IndexPositionBreakList(this.SafeList(breakResponse, "result", []any{}))
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(positions); i++ {
-		var entry any = GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(positions) {
+				return DerefScalar(positions[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "symbol")
 		var marketInner any = this.SafeMarket(marketId, nil, nil, "contract")
 		var merged any = this.MergePositionBreakInfo(entry, breakBySymbolSide)

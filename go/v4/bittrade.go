@@ -1153,14 +1153,24 @@ func (this *Bittrade) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.MarketGetTickers(params))
 	PanicOnError(response)
-	var tickers any = this.SafeList(response, "data", []any{})
+	var tickers []any = SafeListTyped(response, "data")
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(tickers); i++ {
-		var marketId *string = this.SafeString(GetValue(tickers, i), "symbol")
+	for i := 0; i < len(tickers); i++ {
+		var marketId *string = this.SafeString(func() any {
+			if i >= 0 && i < len(tickers) {
+				return DerefScalar(tickers[i])
+			}
+			return nil
+		}(), "symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = GetValue(market, "symbol")
-		var ticker any = this.ParseTicker(GetValue(tickers, i), market)
+		var ticker any = this.ParseTicker(func() any {
+			if i >= 0 && i < len(tickers) {
+				return DerefScalar(tickers[i])
+			}
+			return nil
+		}(), market)
 		AddElementToObject(ticker, "timestamp", timestamp)
 		AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
 		AddElementToObject(result, symbol, ticker)
@@ -1413,12 +1423,22 @@ func (this *Bittrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var trades any = this.SafeList(GetValue(data, i), "data", []any{})
-		for j := 0; j < GetArrayLength(trades); j++ {
-			var trade any = this.ParseTrade(GetValue(trades, j), market)
+	for i := 0; i < len(data); i++ {
+		var trades []any = SafeListTyped(func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}(), "data")
+		for j := 0; j < len(trades); j++ {
+			var trade any = this.ParseTrade(func() any {
+				if j >= 0 && j < len(trades) {
+					return DerefScalar(trades[j])
+				}
+				return nil
+			}(), market)
 			result = append(result, trade)
 		}
 	}
@@ -1644,12 +1664,17 @@ func (this *Bittrade) ParseCurrency(currency any) any {
 	})
 }
 func (this *Bittrade) ParseBalance(response any) any {
-	var balances any = this.SafeList(GetValue(response, "data"), "list", []any{})
+	var balances []any = SafeListTyped(GetValue(response, "data"), "list")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = nil

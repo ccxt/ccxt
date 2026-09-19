@@ -1057,10 +1057,15 @@ func (this *Hitbtc) ParseCurrency(currency any) any {
 	var currencyId any = GetValue(currency, "_coin_id")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var entry any = currency
-	var rawNetworks any = this.SafeList(entry, "networks", []any{})
+	var rawNetworks []any = SafeListTyped(entry, "networks")
 	var networks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(rawNetworks); j++ {
-		var rawNetwork any = GetValue(rawNetworks, j)
+	for j := 0; j < len(rawNetworks); j++ {
+		var rawNetwork any = func() any {
+			if j >= 0 && j < len(rawNetworks) {
+				return DerefScalar(rawNetworks[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString2(rawNetwork, "protocol", "network")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		networkCode = func() any {
@@ -3731,9 +3736,14 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	for i := 0; i < len(contracts); i++ {
 		var marketId string = GetValue(contracts, i).(string)
 		var marketInner any = this.SafeMarket(marketId)
-		var fundingRateData any = this.SafeList(response, marketId, []any{})
-		for j := 0; j < GetArrayLength(fundingRateData); j++ {
-			var entry any = GetValue(fundingRateData, j)
+		var fundingRateData []any = SafeListTyped(response, marketId)
+		for j := 0; j < len(fundingRateData); j++ {
+			var entry any = func() any {
+				if j >= 0 && j < len(fundingRateData) {
+					return DerefScalar(fundingRateData[j])
+				}
+				return nil
+			}()
 			var symbolInner *string = this.SafeSymbol(GetValue(marketInner, "symbol"))
 			var fundingRate *float64 = this.SafeNumber(entry, "funding_rate")
 			var datetime *string = this.SafeString(entry, "timestamp")
@@ -3985,20 +3995,30 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) any {
 	var marginMode *string = this.SafeString(position, "type")
 	var leverage *float64 = this.SafeNumber(position, "leverage")
 	var datetime *string = this.SafeString(position, "updated_at")
-	var positions any = this.SafeList(position, "positions", []any{})
+	var positions []any = SafeListTyped(position, "positions")
 	var liquidationPrice *float64 = nil
 	var entryPrice *float64 = nil
 	var contracts *float64 = nil
-	for i := 0; i < GetArrayLength(positions); i++ {
-		var entry any = GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(positions) {
+				return DerefScalar(positions[i])
+			}
+			return nil
+		}()
 		liquidationPrice = this.SafeNumber(entry, "price_liquidation")
 		entryPrice = this.SafeNumber(entry, "price_entry")
 		contracts = this.SafeNumber(entry, "quantity")
 	}
-	var currencies any = this.SafeList(position, "currencies", []any{})
+	var currencies []any = SafeListTyped(position, "currencies")
 	var collateral *float64 = nil
-	for i := 0; i < GetArrayLength(currencies); i++ {
-		var entry any = GetValue(currencies, i)
+	for i := 0; i < len(currencies); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(currencies) {
+				return DerefScalar(currencies[i])
+			}
+			return nil
+		}()
 		collateral = this.SafeNumber(entry, "margin_balance")
 	}
 	var marketId *string = this.SafeString(position, "symbol")
@@ -4707,10 +4727,15 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networks any = this.SafeList(fee, "networks", []any{})
+	var networks []any = SafeListTyped(fee, "networks")
 	var result any = this.DepositWithdrawFee(fee)
-	for j := 0; j < GetArrayLength(networks); j++ {
-		var networkEntry any = GetValue(networks, j)
+	for j := 0; j < len(networks); j++ {
+		var networkEntry any = func() any {
+			if j >= 0 && j < len(networks) {
+				return DerefScalar(networks[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var code *string = this.SafeString(currency, "code")
 		var networkCode any = this.NetworkIdToCode(networkId, code)

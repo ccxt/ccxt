@@ -3012,11 +3012,16 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	// same as fetchTicker, with multiple rows
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTyped(data, "rows")
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(rows); i++ {
-		var row any = GetValue(rows, i)
+	for i := 0; i < len(rows); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(row, "symbol")
 		if marketId == nil {
 			continue
@@ -3464,9 +3469,14 @@ func (this *Woo) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances any = this.SafeList(response, "holding", []any{})
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	var balances []any = SafeListTyped(response, "holding")
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "holding"))
@@ -4840,10 +4850,15 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTyped(data, "rows")
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(rows); i++ {
-		var entry any = GetValue(rows, i)
+	for i := 0; i < len(rows); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "symbol")
 		var timestamp *int64 = this.SafeInteger(entry, "fundingRateTimestamp")
 		rates = append(rates, map[string]any{
@@ -5742,9 +5757,14 @@ func (this *Woo) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var result map[string]any = map[string]any{}
-	var data any = this.SafeList(response, "rows", []any{})
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	var data []any = SafeListTyped(response, "rows")
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(entry, "token")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {

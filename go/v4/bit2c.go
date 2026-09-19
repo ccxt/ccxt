@@ -479,19 +479,29 @@ func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	// feed filters these rows out, so a non-positive amount is a dead order
 	// their full snapshot failed to purge - it is removed here, which also
 	// uncrosses the book. rows are positional price and amount pairs
-	var rawBids any = this.SafeList(orderbook, "bids", []any{})
-	var rawAsks any = this.SafeList(orderbook, "asks", []any{})
+	var rawBids []any = SafeListTyped(orderbook, "bids")
+	var rawAsks []any = SafeListTyped(orderbook, "asks")
 	var bids []any = []any{}
 	var asks []any = []any{}
-	for i := 0; i < GetArrayLength(rawBids); i++ {
-		var bidRow any = GetValue(rawBids, i)
+	for i := 0; i < len(rawBids); i++ {
+		var bidRow any = func() any {
+			if i >= 0 && i < len(rawBids) {
+				return DerefScalar(rawBids[i])
+			}
+			return nil
+		}()
 		var bidAmount *string = this.SafeString(bidRow, 1)
 		if Precise.StringGt(bidAmount, "0") {
 			bids = append(bids, bidRow)
 		}
 	}
-	for i := 0; i < GetArrayLength(rawAsks); i++ {
-		var askRow any = GetValue(rawAsks, i)
+	for i := 0; i < len(rawAsks); i++ {
+		var askRow any = func() any {
+			if i >= 0 && i < len(rawAsks) {
+				return DerefScalar(rawAsks[i])
+			}
+			return nil
+		}()
 		var askAmount *string = this.SafeString(askRow, 1)
 		if Precise.StringGt(askAmount, "0") {
 			asks = append(asks, askRow)

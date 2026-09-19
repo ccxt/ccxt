@@ -1150,13 +1150,18 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message any) {
 	} else if typeVar != nil && *typeVar == "l2update" {
 		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 		var timestamp *int64 = this.Parse8601(this.SafeString(message, "time"))
-		var changes any = this.SafeList(message, "changes", []any{})
+		var changes []any = ccxt.SafeListTyped(message, "changes")
 		var sides map[string]any = map[string]any{
 			"sell": "asks",
 			"buy":  "bids",
 		}
-		for i := 0; i < ccxt.GetArrayLength(changes); i++ {
-			var change any = ccxt.GetValue(changes, i)
+		for i := 0; i < len(changes); i++ {
+			var change any = func() any {
+				if i >= 0 && i < len(changes) {
+					return ccxt.DerefScalar(changes[i])
+				}
+				return nil
+			}()
 			var key *string = this.SafeString(change, 0)
 			var side *string = this.SafeString(sides, key)
 			var price *float64 = this.SafeNumber(change, 1)

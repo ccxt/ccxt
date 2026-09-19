@@ -1820,10 +1820,15 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		response := (<-this.PrivateGetFuturesFeeHistory(this.Extend(request, params)))
 		PanicOnError(response)
-		var data any = this.SafeList(response, "data", []any{})
-		var dataLength int = GetArrayLength(data)
+		var data []any = SafeListTyped(response, "data")
+		var dataLength int = len(data)
 		for i := 0; i < dataLength; i++ {
-			var entry any = GetValue(data, i)
+			var entry any = func() any {
+				if i >= 0 && i < len(data) {
+					return DerefScalar(data[i])
+				}
+				return nil
+			}()
 			allRows = append(allRows, entry)
 			if IsEqual(this.SafeString(entry, "fee_type"), "TRANSACTION") {
 				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns

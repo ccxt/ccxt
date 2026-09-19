@@ -1020,10 +1020,15 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//       ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var tickers map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var marketData any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var marketData any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(marketData, "name")
 		var market any = this.SafeMarket(marketId)
 		var stats any = this.SafeDict(marketData, "marketStats", map[string]any{})
@@ -1309,13 +1314,18 @@ func (this *Extended) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = GetValue(data, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -1409,13 +1419,18 @@ func (this *Extended) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	//         }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = GetValue(data, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -1751,13 +1766,18 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	//       }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = GetValue(data, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2131,13 +2151,18 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.V1PrivateGetUserAssetOperations(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = GetValue(data, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2286,13 +2311,18 @@ func (this *Extended) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = GetValue(data, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2522,13 +2552,18 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.V1PrivateGetUserAssetOperations(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = GetValue(data, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -3190,13 +3225,18 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 	//         }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = GetValue(data, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -4294,13 +4334,18 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//       }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = GetValue(data, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,

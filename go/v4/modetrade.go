@@ -1029,12 +1029,17 @@ func (this *Modetrade) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 }
 func (this *Modetrade) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "token")
-	var networks any = this.SafeList(rawCurrency, "chain_details", []any{})
+	var networks []any = SafeListTyped(rawCurrency, "chain_details")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var minPrecision any = nil
 	var resultingNetworks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(networks); j++ {
-		var network any = GetValue(networks, j)
+	for j := 0; j < len(networks); j++ {
+		var network any = func() any {
+			if j >= 0 && j < len(networks) {
+				return DerefScalar(networks[j])
+			}
+			return nil
+		}()
 		// TODO: transform chain id to human readable name
 		var networkId *string = this.SafeString(network, "chain_id", "")
 		var precision any = this.ParsePrecision(this.SafeString(network, "decimals"))
@@ -1514,10 +1519,15 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var result any = this.SafeList(data, "rows", []any{})
+	var result []any = SafeListTyped(data, "rows")
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(result); i++ {
-		var entry any = GetValue(result, i)
+	for i := 0; i < len(result); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(result) {
+				return DerefScalar(result[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "symbol")
 		var timestamp *int64 = this.SafeInteger(entry, "funding_rate_timestamp")
 		rates = append(rates, map[string]any{
@@ -3167,9 +3177,14 @@ func (this *Modetrade) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances any = this.SafeList(response, "holding", []any{})
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	var balances []any = SafeListTyped(response, "holding")
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "holding"))
@@ -4069,8 +4084,8 @@ func (this *Modetrade) Sign(path any, optionalArgs ...any) any {
 			if isSandboxMode == nil || *isSandboxMode != true {
 				var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXTMODE")
 				if IsEqual(path, "batch-order") {
-					var ordersList any = this.SafeList(params, "orders", []any{})
-					for i := 0; i < GetArrayLength(ordersList); i++ {
+					var ordersList []any = SafeListTyped(params, "orders")
+					for i := 0; i < len(ordersList); i++ {
 						AddElementToObject(GetValue(GetValue(params, "orders"), i), "order_tag", brokerId)
 					}
 				} else {

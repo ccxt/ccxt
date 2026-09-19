@@ -2488,9 +2488,14 @@ func (this *Kucoin) fetchContractMarketsBody(ch chan any, optionalArgs ...any) a
 	//    }
 	//
 	var result []any = []any{}
-	var data any = this.SafeList(response, "data", []any{})
-	for i := 0; i < GetArrayLength(data); i++ {
-		var market any = GetValue(data, i)
+	var data []any = SafeListTyped(response, "data")
+	for i := 0; i < len(data); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "symbol")
 		var expiry *int64 = this.SafeInteger(market, "expireDate")
 		var future bool = (this.SafeString(market, "nextFundingRateTime") == nil)
@@ -3224,9 +3229,14 @@ func (this *Kucoin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			},
 			"networks": map[string]any{},
 		}
-		var chains any = this.SafeList(fee, "chains", []any{})
-		for i := 0; i < GetArrayLength(chains); i++ {
-			var chain any = GetValue(chains, i)
+		var chains []any = SafeListTyped(fee, "chains")
+		for i := 0; i < len(chains); i++ {
+			var chain any = func() any {
+				if i >= 0 && i < len(chains) {
+					return DerefScalar(chains[i])
+				}
+				return nil
+			}()
 			var chainId *string = this.SafeString(chain, "chainId")
 			var networkCodeNew any = this.NetworkIdToCode(chainId, this.SafeString(currency, "code"))
 			if networkCodeNew != nil {
@@ -10421,9 +10431,14 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		}
 	} else if cross {
 		var data any = this.SafeDict(response, "data", map[string]any{})
-		var accounts any = this.SafeList(data, "accounts", []any{})
-		for i := 0; i < GetArrayLength(accounts); i++ {
-			var balance any = GetValue(accounts, i)
+		var accounts []any = SafeListTyped(data, "accounts")
+		for i := 0; i < len(accounts); i++ {
+			var balance any = func() any {
+				if i >= 0 && i < len(accounts) {
+					return DerefScalar(accounts[i])
+				}
+				return nil
+			}()
 			var currencyId *string = this.SafeString(balance, "currency")
 			var codeInner *string = this.SafeCurrencyCode(currencyId)
 			if codeInner != nil {
@@ -12745,10 +12760,15 @@ func (this *Kucoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "symbol")
 		// kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
 		var isFundingIndex bool = (marketId != nil) && (StartsWith(marketId, "."))

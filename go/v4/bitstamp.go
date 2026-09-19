@@ -3919,9 +3919,14 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 		if IsString(reasonInner) {
 			errors = append(errors, reasonInner)
 		} else {
-			var all any = this.SafeList(reasonInner, "__all__", []any{})
-			for i := 0; i < GetArrayLength(all); i++ {
-				errors = append(errors, GetValue(all, i))
+			var all []any = SafeListTyped(reasonInner, "__all__")
+			for i := 0; i < len(all); i++ {
+				errors = append(errors, func() any {
+					if i >= 0 && i < len(all) {
+						return DerefScalar(all[i])
+					}
+					return nil
+				}())
 			}
 		}
 		var code *string = this.SafeString(response, "code")

@@ -115,8 +115,8 @@ func (this *Luno) HandleTrades(client any, message any, subscription any) {
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var rawTrades any = this.SafeList(message, "trade_updates", []any{})
-	var length int = ccxt.GetArrayLength(rawTrades)
+	var rawTrades []any = ccxt.SafeListTyped(message, "trade_updates")
+	var length int = len(rawTrades)
 	if length == 0 {
 		return
 	}
@@ -129,8 +129,13 @@ func (this *Luno) HandleTrades(client any, message any, subscription any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
-		var rawTrade any = ccxt.GetValue(rawTrades, i)
+	for i := 0; i < len(rawTrades); i++ {
+		var rawTrade any = func() any {
+			if i >= 0 && i < len(rawTrades) {
+				return ccxt.DerefScalar(rawTrades[i])
+			}
+			return nil
+		}()
 		var trade any = this.ParseTrade(rawTrade, market)
 		stored.(ccxt.Appender).Append(trade)
 	}

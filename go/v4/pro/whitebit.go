@@ -146,9 +146,14 @@ func (this *Whitebit) HandleOHLCV(client any, message any) any {
 	//     "id": null
 	// }
 	//
-	var params any = this.SafeList(message, "params", []any{})
-	for i := 0; i < ccxt.GetArrayLength(params); i++ {
-		var data any = ccxt.GetValue(params, i)
+	var params []any = ccxt.SafeListTyped(message, "params")
+	for i := 0; i < len(params); i++ {
+		var data any = func() any {
+			if i >= 0 && i < len(params) {
+				return ccxt.DerefScalar(params[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(data, 7)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
