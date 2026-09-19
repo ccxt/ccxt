@@ -1430,8 +1430,8 @@ public class Luno extends LunoApi
                 ((Map<String, Object>)request).put("since", this.parseToInt(since));
             } else
             {
-                Object duration = Helpers.multiply((1000L * 1000L), this.parseTimeframe(timeframe));
-                ((Map<String, Object>)request).put("since", Helpers.subtract(this.milliseconds(), duration));
+                Long duration = ((1000L * 1000L) * ((long) this.parseTimeframe(timeframe)));
+                ((Map<String, Object>)request).put("since", (this.milliseconds() - duration));
             }
             Map<String, Object> response = (this.exchangePrivateGetCandles(this.extend(request, parameters))).join();
             //

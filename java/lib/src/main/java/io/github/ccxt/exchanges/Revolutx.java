@@ -1481,7 +1481,7 @@ public class Revolutx extends RevolutxApi
                 ((Map<String, Object>)request).put("start_date", since);
             } else if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("start_date", Helpers.subtract(until, thirtyDays));
+                ((Map<String, Object>)request).put("start_date", (until - thirtyDays));
             }
             if (!java.util.Objects.equals(until, null))
             {
@@ -1641,7 +1641,7 @@ public class Revolutx extends RevolutxApi
                 ((Map<String, Object>)request).put("start_date", since);
             } else if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("start_date", Helpers.subtract(until, thirtyDays));
+                ((Map<String, Object>)request).put("start_date", (until - thirtyDays));
             }
             if (!java.util.Objects.equals(until, null))
             {

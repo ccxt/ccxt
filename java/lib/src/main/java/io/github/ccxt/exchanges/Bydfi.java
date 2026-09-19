@@ -1088,7 +1088,7 @@ public class Bydfi extends BydfiApi
             until = ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
             Long now = this.milliseconds();
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Object timeDelta = Helpers.multiply(duration, numberOfCandles);
             if (java.util.Objects.equals(startTime, null) && java.util.Objects.equals(until, null))
             {
@@ -2215,7 +2215,7 @@ public class Bydfi extends BydfiApi
             if (java.util.Objects.equals(until, null))
             {
                 // both since and until are undefined
-                startTime = Helpers.subtract(now, sevenDays);
+                startTime = (now - sevenDays);
                 until = now;
             } else
             {
@@ -3554,7 +3554,7 @@ public class Bydfi extends BydfiApi
                 if (java.util.Objects.equals(until, null))
                 {
                     // both since and until are undefined
-                    startTime = Helpers.subtract(now, sevenDays);
+                    startTime = (now - sevenDays);
                     until = now;
                 } else
                 {

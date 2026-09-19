@@ -1736,7 +1736,7 @@ public class Dydx extends DydxApi
                 {
                     throw new ExchangeError((this.id + " method() missing latestBlockHeight")) ;
                 }
-                goodTillBlock = Helpers.add(latestBlockHeight, 20);
+                goodTillBlock = (latestBlockHeight + 20L);
             }
         } else
         {

@@ -1985,7 +1985,7 @@ public class Weex extends WeexApi
                 if ((java.util.Objects.equals(since, null)) || (java.util.Objects.equals(until, null)))
                 {
                     Long now = this.milliseconds();
-                    Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                    Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
                     Object numberOfCandles = (((!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0)))) ? limit : maxHistoricalLimit;
                     Object timeDelta = Helpers.multiply(numberOfCandles, duration);
                     if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null)))

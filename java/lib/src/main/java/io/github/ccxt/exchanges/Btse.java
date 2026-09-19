@@ -1002,7 +1002,7 @@ public class Btse extends BtseApi
                     // check if the requested time range is too large for one request
                     // if so, just omit until for correct paginated calls for not to get an error from the exchange
                     int duration = this.parseTimeframe(timeframe);
-                    Object maxDelta = Helpers.multiply(Helpers.multiply(duration, maxLimit), 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
+                    Long maxDelta = ((((long) duration) * ((long) maxLimit)) * 1000L); // parseTimeframe returns seconds, the difference below is in milliseconds
                     Object difference = Helpers.subtract(until, since);
                     if (Helpers.isLessThan(difference, maxDelta))
                     {
@@ -1149,10 +1149,10 @@ public class Btse extends BtseApi
                 {
                     Object age = Helpers.subtract(this.milliseconds(), since);
                     Integer day = 86400000;
-                    if (Helpers.isGreaterThan(age, Helpers.multiply(14, day)))
+                    if (Helpers.isGreaterThan(age, (14L * ((long) day))))
                     {
                         period = "1M";
-                    } else if (Helpers.isGreaterThan(age, Helpers.multiply(7, day)))
+                    } else if (Helpers.isGreaterThan(age, (7L * ((long) day))))
                     {
                         period = "2W";
                     }
@@ -1831,7 +1831,7 @@ public class Btse extends BtseApi
         // hour rounds to the same string, and the vocabulary has no minutes
         if ((!java.util.Objects.equals(fundingIntervalMinutes, null)) && (Helpers.isGreaterThanOrEqual(fundingIntervalMinutes, 60)))
         {
-            Long hours = this.parseToInt(Helpers.divide(fundingIntervalMinutes, 60));
+            Long hours = this.parseToInt((((double) fundingIntervalMinutes) / ((double) 60)));
             interval = (String.valueOf(hours) + "h");
         }
         final Object finalMarket = market;

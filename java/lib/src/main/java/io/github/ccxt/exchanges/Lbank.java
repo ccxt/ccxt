@@ -1472,7 +1472,7 @@ public class Lbank extends LbankApi
             if (java.util.Objects.equals(since, null))
             {
                 int duration = this.parseTimeframe(timeframe);
-                since = Helpers.subtract(this.milliseconds(), (Helpers.multiply(Helpers.multiply(duration, 1000), limit)));
+                since = Helpers.subtract(this.milliseconds(), (Helpers.multiply((((long) duration) * 1000L), limit)));
             }
             Long parsedSince = this.parseToInt(Helpers.divide(since, 1000));
             Object parsedLimit = Helpers.mathMin(Helpers.add(limit, 1), 2000); // max 2000;
@@ -1686,7 +1686,7 @@ public class Lbank extends LbankApi
         Object intervalString = null;
         if (!java.util.Objects.equals(positionFeeTime, null))
         {
-            Long interval = this.parseToInt(Helpers.divide(Helpers.divide(positionFeeTime, 60), 60));
+            Long interval = this.parseToInt((((double) (((double) positionFeeTime) / ((double) 60))) / ((double) 60)));
             intervalString = (String.valueOf(interval) + "h");
         }
         final Object finalIntervalString = intervalString;

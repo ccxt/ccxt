@@ -477,7 +477,7 @@ public class TestMain extends BaseTest
                     if (Boolean.TRUE.equals(isOperationFailed))
                     {
                         // if last retry was gone with same `tempFailure` error, then let's eventually return false
-                        if (Helpers.isEqual(i, Helpers.subtract(maxRetries, 1)))
+                        if ((i == (((long) maxRetries) - 1L)))
                         {
                             Boolean isOnMaintenance = (Helpers.isInstance(e, OnMaintenance.class));
                             Boolean isExchangeNotAvailable = (Helpers.isInstance(e, ExchangeNotAvailable.class));

@@ -1207,7 +1207,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                             continue;
                         }
                         // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                        if ((Helpers.isLessThanOrEqual((Helpers.subtract(U, 1)), Helpers.GetValue(orderbook, "nonce"))) && (Helpers.isGreaterThanOrEqual((Helpers.subtract(u, 1)), Helpers.GetValue(orderbook, "nonce"))))
+                        if ((Helpers.isLessThanOrEqual(((U - 1L)), Helpers.GetValue(orderbook, "nonce"))) && (Helpers.isGreaterThanOrEqual(((u - 1L)), Helpers.GetValue(orderbook, "nonce"))))
                         {
                             this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), orderbook);
                         }
@@ -1330,11 +1330,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         if (java.util.Objects.equals(timestamp, null))
                         {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = (Helpers.isLessThanOrEqual((Helpers.subtract(U, 1)), nonce)) && (Helpers.isGreaterThanOrEqual((Helpers.subtract(u, 1)), nonce));
+                            conditional = (Helpers.isLessThanOrEqual(((U - 1L)), nonce)) && (Helpers.isGreaterThanOrEqual(((u - 1L)), nonce));
                         } else
                         {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                            conditional = (Helpers.isEqual((Helpers.subtract(U, 1)), nonce));
+                            conditional = (Helpers.isEqual(((U - 1L)), nonce));
                         }
                         if (Boolean.TRUE.equals(conditional))
                         {
@@ -3532,7 +3532,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Long listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
             Long time = this.milliseconds();
             Object delay = this.sum(listenTokenRefreshRate, 10000);
-            if (Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay))
+            if (Helpers.isGreaterThan((time - lastAuthenticatedTime), delay))
             {
                 // the future covers the REST create plus the ws subscribe, including the
                 // renewal timer re-entry through renewListenToken, so a concurrent caller
@@ -3607,7 +3607,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     // Schedule token renewal before expiration
                     if (!java.util.Objects.equals(expirationTime, null))
                     {
-                        Object renewalTime = Helpers.subtract(Helpers.subtract(expirationTime, time), 60000); // Renew 1 minute before expiration
+                        Long renewalTime = ((expirationTime - time) - 60000L); // Renew 1 minute before expiration
                         if (Helpers.isGreaterThan(renewalTime, 0))
                         {
                             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
@@ -3709,7 +3709,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String refreshRateKey = ((Boolean.TRUE.equals(isStock))) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
             Long listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
             Object delay = this.sum(listenKeyRefreshRate, 10000);
-            if (Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay))
+            if (Helpers.isGreaterThan((time - lastAuthenticatedTime), delay))
             {
                 // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
                 // the flight is registered on a never-dialed client because the

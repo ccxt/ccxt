@@ -752,7 +752,7 @@ public class Bitbank extends BitbankApi
                     limit = 1000; // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
                 }
                 int duration = this.parseTimeframe(timeframe);
-                since = Helpers.subtract(this.milliseconds(), Helpers.multiply(Helpers.multiply(duration, 1000), limit));
+                since = Helpers.subtract(this.milliseconds(), Helpers.multiply((((long) duration) * 1000L), limit));
             }
             if (java.util.Objects.equals(this.markets, null))
             {

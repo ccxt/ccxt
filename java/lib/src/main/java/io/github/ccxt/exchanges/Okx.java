@@ -3901,9 +3901,9 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(since, null))
             {
                 Long now = this.milliseconds();
-                Object durationInMilliseconds = Helpers.multiply(duration, 1000);
+                Long durationInMilliseconds = (((long) duration) * 1000L);
                 // switch to history candles if since is past the cutoff for current candles
-                Object historyBorder = Helpers.subtract(now, (Helpers.multiply(((1440L - 1L)), durationInMilliseconds)));
+                Long historyBorder = (now - ((((1440L - 1L)) * durationInMilliseconds)));
                 if (Helpers.isLessThan(since, historyBorder))
                 {
                     defaultType = "HistoryCandles";
@@ -11607,8 +11607,8 @@ public class Okx extends OkxApi
             }
             Object response = null;
             Long now = this.milliseconds();
-            Object oneWeekAgo = Helpers.subtract(now, 604800000);
-            Object threeMonthsAgo = Helpers.subtract(now, 7776000000L);
+            Long oneWeekAgo = (now - 604800000L);
+            Long threeMonthsAgo = (now - 7776000000L);
             if ((java.util.Objects.equals(since, null)) || (Helpers.isGreaterThan(since, oneWeekAgo)))
             {
                 response = (this.privateGetAccountBills(this.extend(request, parameters))).join();

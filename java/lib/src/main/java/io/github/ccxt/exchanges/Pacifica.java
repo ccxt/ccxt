@@ -1518,7 +1518,7 @@ public class Pacifica extends PacificaApi
         Double oraclePx = this.safeNumber(info, "oracle");
         Double nextFundingRate = this.safeNumber(info, "next_funding");
         Long timestamp = this.safeInteger(info, "timestamp");
-        Object fundingTimestamp = Helpers.multiply(Helpers.multiply(Helpers.multiply((Helpers.add((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(Helpers.divide(this.milliseconds(), 60), 60), 1000))))), 1)), 60), 60), 1000);
+        Object fundingTimestamp = Helpers.multiply(Helpers.multiply(Helpers.multiply((Helpers.add((Math.floor(Double.parseDouble(String.valueOf((((double) (((double) (((double) this.milliseconds()) / ((double) 60))) / ((double) 60))) / ((double) 1000)))))), 1)), 60), 60), 1000);
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", symbol );
@@ -1602,11 +1602,11 @@ public class Pacifica extends PacificaApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    until = Helpers.subtract(Helpers.add(since, (Helpers.multiply(limit, (Helpers.multiply(this.parseTimeframe(tf), 1000))))), 1);
+                    until = Helpers.subtract(Helpers.add(since, (Helpers.multiply(limit, ((((long) this.parseTimeframe(tf)) * 1000L))))), 1);
                 }
                 if (java.util.Objects.equals(until, null))
                 {
-                    until = Helpers.subtract(Helpers.add(since, (Helpers.multiply(defaultMaxLimit, (Helpers.multiply(this.parseTimeframe(tf), 1000))))), 1);
+                    until = Helpers.subtract(Helpers.add(since, ((((long) defaultMaxLimit) * ((((long) this.parseTimeframe(tf)) * 1000L))))), 1);
                 }
                 if (Helpers.isGreaterThan(until, nowMillis))
                 {

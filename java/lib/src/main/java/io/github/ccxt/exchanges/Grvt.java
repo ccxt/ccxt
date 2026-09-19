@@ -804,7 +804,7 @@ public class Grvt extends GrvtApi
             // expires in 24 hours as CS suggested
             Long expires = this.safeInteger(this.options, "signInExpiration", 0);
             // if previous sign-in not expired (give 10 seconds margin)
-            if (!java.util.Objects.equals(expires, null) && Helpers.isGreaterThan(expires, Helpers.add(now, 10000)))
+            if (!java.util.Objects.equals(expires, null) && Helpers.isGreaterThan(expires, (now + 10000L)))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -818,7 +818,7 @@ public class Grvt extends GrvtApi
             //        "status": "success"
             //    }
             //
-            Helpers.addElementToObject(this.options, "signInExpiration", Helpers.add(now, 86400000)); // 24 hours
+            Helpers.addElementToObject(this.options, "signInExpiration", (now + 86400000L)); // 24 hours
             return response;
         });
 
@@ -835,7 +835,7 @@ public class Grvt extends GrvtApi
             // expires in 24 hours as CS suggested
             Long expires = this.safeInteger(this.options, "signInExpiration", 0);
             // if previous sign-in not expired (give 10 seconds margin)
-            if (!java.util.Objects.equals(expires, null) && Helpers.isGreaterThan(expires, Helpers.add(now, 10000)))
+            if (!java.util.Objects.equals(expires, null) && Helpers.isGreaterThan(expires, (now + 10000L)))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -852,7 +852,7 @@ public class Grvt extends GrvtApi
             //        "status": "success"
             //    }
             //
-            Helpers.addElementToObject(this.options, "signInExpiration", Helpers.add(now, 86400000)); // 24 hours
+            Helpers.addElementToObject(this.options, "signInExpiration", (now + 86400000L)); // 24 hours
             return response;
         });
 
@@ -4023,7 +4023,7 @@ public class Grvt extends GrvtApi
 
     public Object defaultSignature()
     {
-        Object expiration = Helpers.add(Helpers.multiply(this.milliseconds(), 1000000), Helpers.multiply(Helpers.multiply(1000000, this.safeInteger(this.options, "expirationSeconds", 30)), 1000));
+        Object expiration = Helpers.add((this.milliseconds() * 1000000L), Helpers.multiply(Helpers.multiply(1000000, this.safeInteger(this.options, "expirationSeconds", 30)), 1000));
         return new HashMap<String, Object>() {{
             put( "signer", "" );
             put( "r", "" );

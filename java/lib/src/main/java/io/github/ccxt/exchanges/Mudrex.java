@@ -446,7 +446,7 @@ public class Mudrex extends MudrexApi
             if (!java.util.Objects.equals(until, null))
             {
                 parameters = this.omit(parameters, "until");
-                endTime = this.parseToInt(Helpers.divide(until, 1000));
+                endTime = this.parseToInt((((double) until) / ((double) 1000)));
             } else if (Helpers.isGreaterThan(endTime, now))
             {
                 endTime = now;

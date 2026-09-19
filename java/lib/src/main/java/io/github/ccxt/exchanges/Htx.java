@@ -4154,7 +4154,7 @@ public class Htx extends HtxApi
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger(parameters, "until");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
-            Object untilSeconds = (((!java.util.Objects.equals(until, null)))) ? this.parseToInt(Helpers.divide(until, 1000)) : null;
+            Object untilSeconds = (((!java.util.Objects.equals(until, null)))) ? this.parseToInt((((double) until) / ((double) 1000))) : null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 if (!java.util.Objects.equals(limit, null))

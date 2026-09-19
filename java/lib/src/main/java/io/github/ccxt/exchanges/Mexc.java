@@ -2308,7 +2308,7 @@ public class Mexc extends MexcApi
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, ((Map<String, Object>)market).get("type"), new HashMap<String, Object>() {{}});
             String timeframeValue = this.safeString(timeframes, timeframe);
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "interval", timeframeValue );
@@ -2341,7 +2341,7 @@ public class Mexc extends MexcApi
                 }
                 if (!java.util.Objects.equals(until, null))
                 {
-                    ((Map<String, Object>)request).put("endTime", Helpers.add(until, 1)); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
+                    ((Map<String, Object>)request).put("endTime", (until + 1L)); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
                 }
                 Object response = (this.spotPublicGetKlines(this.extend(request, parameters))).join();
                 //
@@ -2367,7 +2367,7 @@ public class Mexc extends MexcApi
                 }
                 if (!java.util.Objects.equals(until, null))
                 {
-                    ((Map<String, Object>)request).put("end", this.parseToInt(Helpers.divide(until, 1000)));
+                    ((Map<String, Object>)request).put("end", this.parseToInt((((double) until) / ((double) 1000))));
                     if (java.util.Objects.equals(since, null))
                     {
                         ((Map<String, Object>)request).put("start", this.parseToInt(Helpers.divide(start, 1000)));

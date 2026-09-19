@@ -2567,7 +2567,7 @@ public class Bithumb extends BithumbApi
                 Long normalizedTimestamp = this.parse8601(normalized);
                 if (!java.util.Objects.equals(normalizedTimestamp, null))
                 {
-                    timestamp = Helpers.subtract(normalizedTimestamp, (9L * 3600000L));
+                    timestamp = (normalizedTimestamp - (9L * 3600000L));
                 } else
                 {
                     timestamp = this.parse8601(datetime);
@@ -3302,7 +3302,7 @@ public class Bithumb extends BithumbApi
             Long normalizedTimestamp = this.parse8601(normalized);
             if (!java.util.Objects.equals(normalizedTimestamp, null))
             {
-                timestamp = Helpers.subtract(normalizedTimestamp, (9L * 3600000L));
+                timestamp = (normalizedTimestamp - (9L * 3600000L));
             }
         }
         final Object finalTimestamp = timestamp;

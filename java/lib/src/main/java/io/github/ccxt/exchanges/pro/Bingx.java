@@ -1813,7 +1813,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Long time = this.milliseconds();
             Long lastAuthenticatedTime = this.safeInteger(this.options, "lastAuthenticatedTime", 0);
             Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
-            if (Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), listenKeyRefreshRate))
+            if (Helpers.isGreaterThan((time - lastAuthenticatedTime), listenKeyRefreshRate))
             {
                 // single-flight leader election on a never-dialed client, see
                 // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint

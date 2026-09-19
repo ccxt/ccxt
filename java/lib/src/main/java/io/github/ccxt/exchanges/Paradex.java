@@ -1216,7 +1216,7 @@ public class Paradex extends ParadexApi
                     ((Map<String, Object>)request).put("start_at", Helpers.add(Helpers.subtract(until, Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limit, 1))), 1000)), 1));
                 } else
                 {
-                    ((Map<String, Object>)request).put("start_at", Helpers.add(Helpers.subtract(until, Helpers.multiply(Helpers.multiply(duration, 101), 1000)), 1));
+                    ((Map<String, Object>)request).put("start_at", ((until - ((((long) duration) * 101L) * 1000L)) + 1L));
                 }
             }
             Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(request, parameters))).join();

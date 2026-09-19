@@ -1516,7 +1516,7 @@ public class Cryptocom extends CryptocomApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_ts", Helpers.subtract(since, Helpers.multiply(duration, 1000)));
+                ((Map<String, Object>)request).put("start_ts", Helpers.subtract(since, (((long) duration) * 1000L)));
                 if (!java.util.Objects.equals(limit, null))
                 {
                     ((Map<String, Object>)request).put("end_ts", this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000)));
@@ -3952,7 +3952,7 @@ public class Cryptocom extends CryptocomApi
         Object fundingTimestamp = null;
         if (!java.util.Objects.equals(timestamp, null))
         {
-            fundingTimestamp = Helpers.multiply(Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(timestamp, 3600000)))), 3600000); // end of the next hour
+            fundingTimestamp = Helpers.multiply(Math.ceil(Double.parseDouble(String.valueOf((((double) timestamp) / ((double) 3600000))))), 3600000); // end of the next hour
         }
         final Object finalTimestamp = timestamp;
         final Object finalFundingTimestamp = fundingTimestamp;

@@ -1186,7 +1186,7 @@ public class Backpack extends BackpackApi
             {
                 throw new ExchangeError((this.id + " fetchOrderBook() missing microseconds")) ;
             }
-            Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+            Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;

@@ -378,7 +378,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         String id = this.safeString(trade, "id");
-        Long timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
+        Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "amount");
         if (java.util.Objects.equals(market, null))
@@ -746,7 +746,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
-        Long timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
+        Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
         market = this.safeMarket(null, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String feeCost = this.safeString(trade, "fee");
