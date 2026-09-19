@@ -2982,11 +2982,11 @@ public class Binance extends BinanceApi
                 put( "option", new HashMap<String, Object>() {{}} );
             }} );
             put( "currencies", new HashMap<String, Object>() {{
-                put( "BNFCR", Binance.this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                put( "BNFCR", Binance.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "id", "BNFCR" );
                     put( "code", "BNFCR" );
                     put( "precision", Binance.this.parseNumber("0.001") );
-                }}) );
+                }})) );
             }} );
             put( "commonCurrencies", new HashMap<String, Object>() {{
                 put( "BCC", "BCC" );
@@ -4401,7 +4401,7 @@ public class Binance extends BinanceApi
         }};
     }
 
-    public Object market(Object symbol)
+    public Object market(String symbol)
     {
         if (java.util.Objects.equals(symbol, null))
         {
@@ -4787,7 +4787,7 @@ public class Binance extends BinanceApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < Helpers.getArrayLength(responseCurrencies); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency((Map<String, Object>) (Helpers.GetValue(responseCurrencies, i)));
             if (java.util.Objects.equals(parsed, null))
             {
                 throw new ExchangeError((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
@@ -4808,7 +4808,7 @@ public class Binance extends BinanceApi
         return result;
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         //
         //    {
@@ -4992,7 +4992,7 @@ public class Binance extends BinanceApi
         }
         Boolean trading = (Boolean) this.safeBool(entry, "trading");
         final Object finalType = type;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", name );
             put( "code", code );
@@ -5006,7 +5006,7 @@ public class Binance extends BinanceApi
             put( "fee", null );
             put( "fees", fees );
             put( "limits", null );
-        }});
+        }}));
     }
 
     /**
@@ -5367,14 +5367,14 @@ public class Binance extends BinanceApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(markets, i)));
+                ((List<Object>)result).add(this.parseMarket((Map<String, Object>) (Helpers.GetValue(markets, i))));
             }
             return result;
         });
 
     }
 
-    public Object parseMarket(Object market)
+    public Object parseMarket(Map<String, Object> market)
     {
         Boolean swap = false;
         Boolean future = false;
@@ -5391,7 +5391,7 @@ public class Binance extends BinanceApi
         String baseId = this.safeString(market, "baseAsset", optionBase);
         String quoteId = this.safeString(market, "quoteAsset");
         Boolean stock = false;
-        if (((Map<?, ?>)market).containsKey("tradability"))
+        if (market.containsKey("tradability"))
         {
             quoteId = "USDC";
             stock = true;
@@ -5399,7 +5399,7 @@ public class Binance extends BinanceApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String contractType = this.safeString(market, "contractType");
-        Boolean contract = (((Map<?, ?>)market).containsKey("contractType"));
+        Boolean contract = (market.containsKey("contractType"));
         Long expiry = (Long) this.safeInteger2(market, "deliveryDate", "expiryDate");
         String settleId = this.safeString(market, "marginAsset");
         if ((java.util.Objects.equals(contractType, "PERPETUAL")) || ((expiry != null && expiry == 4133404800000L)))
@@ -5718,11 +5718,11 @@ public class Binance extends BinanceApi
                 String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (!java.util.Objects.equals(baseCode, null))
                 {
-                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper(base)));
                 }
                 if (!java.util.Objects.equals(quoteCode, null))
                 {
-                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper(quote)));
                 }
             }
         } else if (java.util.Objects.equals(type, "savings"))
@@ -5790,7 +5790,7 @@ public class Binance extends BinanceApi
         }
         ((Map<String, Object>)result).put("timestamp", timestamp);
         ((Map<String, Object>)result).put("datetime", this.iso8601(timestamp));
-        return this.safeBalance(result);
+        return this.safeBalance((Map<String, Object>) (result));
     }
 
     /**
@@ -5880,7 +5880,7 @@ public class Binance extends BinanceApi
                     Object symbols = "";
                     if ((paramSymbols instanceof List))
                     {
-                        Object mid = this.marketId((paramSymbols == null || 0 >= ((List<?>)paramSymbols).size() ? null : ((List<?>)paramSymbols).get(0)));
+                        Object mid = this.marketId((String) ((paramSymbols == null || 0 >= ((List<?>)paramSymbols).size() ? null : ((List<?>)paramSymbols).get(0))));
                         if (!java.util.Objects.equals(mid, null))
                         {
                             symbols = mid;
@@ -5888,7 +5888,7 @@ public class Binance extends BinanceApi
                         for (var i = 1; i < ((List<?>)paramSymbols).size(); i++)
                         {
                             Object symbol = (paramSymbols == null || i < 0 || i >= paramSymbols.size() ? null : paramSymbols.get(i));
-                            Object id = this.marketId(symbol);
+                            Object id = this.marketId((String) (symbol));
                             if (!java.util.Objects.equals(id, null))
                             {
                                 symbols = (symbols + ("," + id));
@@ -6125,7 +6125,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -6194,14 +6194,14 @@ public class Binance extends BinanceApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "T");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, (String) (symbol), timestamp);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger2(response, "lastUpdateId", "u"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         // markPrices
         //
@@ -6354,19 +6354,19 @@ public class Binance extends BinanceApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = (Long) this.safeInteger2(ticker, "closeTime", "time");
         String marketType = null;
-        if ((((Map<?, ?>)ticker).containsKey("time")))
+        if ((ticker.containsKey("time")))
         {
             marketType = "contract";
         }
         if (java.util.Objects.equals(marketType, null))
         {
-            marketType = (((((Map<?, ?>)ticker).containsKey("bidQty")))) ? "spot" : "contract";
+            marketType = (((ticker.containsKey("bidQty")))) ? "spot" : "contract";
         }
         String marketId = this.safeString(ticker, "symbol");
         String symbol = this.safeSymbol(marketId, market, null, marketType);
         String last = this.safeString(ticker, "lastPrice");
         String wAvg = this.safeString(ticker, "weightedAvgPrice");
-        Boolean isCoinm = (((Map<?, ?>)ticker).containsKey("baseVolume"));
+        Boolean isCoinm = (ticker.containsKey("baseVolume"));
         String baseVolume = null;
         String quoteVolume = null;
         if (Boolean.TRUE.equals(isCoinm))
@@ -6381,7 +6381,7 @@ public class Binance extends BinanceApi
         }
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
-        return this.safeTicker(new HashMap<String, Object>() {{
+        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Binance.this.iso8601(timestamp) );
@@ -6404,7 +6404,7 @@ public class Binance extends BinanceApi
             put( "markPrice", Binance.this.safeString(ticker, "markPrice") );
             put( "indexPrice", Binance.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -6468,7 +6468,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -6504,13 +6504,13 @@ public class Binance extends BinanceApi
             if ((response instanceof List))
             {
                 Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-                return this.parseTicker(firstTicker, market);
+                return this.parseTicker((Map<String, Object>) (firstTicker), market);
             }
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " fetchTicker() returned empty response")) ;
             }
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         }).thenApply(Ticker::new);
 
     }
@@ -6523,7 +6523,7 @@ public class Binance extends BinanceApi
         }
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Map<String, Object> symbolMarket = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+            Map<String, Object> symbolMarket = (Map<String, Object>) this.market((String) (Helpers.GetValue(symbols, i)));
             Boolean stock = (Boolean) this.safeBool(symbolMarket, "stock", false);
             if (java.util.Objects.equals(stock, true))
             {
@@ -6556,7 +6556,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true, true);
+            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
             this.checkNoStockSymbols(symbols, "fetchBidsAsks");
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
@@ -6573,7 +6573,7 @@ public class Binance extends BinanceApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    ((Map<String, Object>)request).put("symbol", this.marketId((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
+                    ((Map<String, Object>)request).put("symbol", this.marketId((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)))));
                 }
             }
             Object response = null;
@@ -6629,7 +6629,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true, true);
+            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
@@ -6728,7 +6728,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true, true);
+            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
             this.checkNoStockSymbols(symbols, "fetchTickers");
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
@@ -6788,7 +6788,7 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(Helpers.GetValue(response, i), "symbol");
             Map<String, Object> tickerMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, "spot");
-            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(response, i));
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (Helpers.GetValue(response, i)));
             Helpers.addElementToObject(parsedTicker, "symbol", ((Map<String, Object>)tickerMarket).get("symbol"));
             ((List<Object>)results).add(parsedTicker);
         }
@@ -6817,7 +6817,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrice", market, parameters, "swap");
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -6845,13 +6845,13 @@ public class Binance extends BinanceApi
             }
             if ((response instanceof List))
             {
-                return this.parseTicker(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
+                return this.parseTicker((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), market);
             }
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " fetchMarkPrice() returned empty response")) ;
             }
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         }).thenApply(Ticker::new);
 
     }
@@ -6879,7 +6879,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true, true);
+            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
@@ -7012,7 +7012,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
             // the reality is that the time range wider than 500 candles won't work right
             Object defaultLimit = 500;
@@ -7140,10 +7140,10 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if (((Map<?, ?>)trade).containsKey("isDustTrade"))
+        if (trade.containsKey("isDustTrade"))
         {
             return this.parseDustTrade(trade, market);
         }
@@ -7363,7 +7363,7 @@ public class Binance extends BinanceApi
         String amount = this.safeString2(trade, "q", "qty");
         amount = this.safeString(trade, "quantity", amount);
         String marketId = this.safeString(trade, "symbol");
-        Boolean isSpotTrade = (((Map<?, ?>)trade).containsKey("isIsolated")) || (((Map<?, ?>)trade).containsKey("M")) || (((Map<?, ?>)trade).containsKey("orderListId")) || (((Map<?, ?>)trade).containsKey("isMaker"));
+        Boolean isSpotTrade = (trade.containsKey("isIsolated")) || (trade.containsKey("M")) || (trade.containsKey("orderListId")) || (trade.containsKey("isMaker"));
         String marketType = ((Boolean.TRUE.equals(isSpotTrade))) ? "spot" : "contract";
         market = this.safeMarket(marketId, market, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -7373,37 +7373,37 @@ public class Binance extends BinanceApi
         if (!java.util.Objects.equals(buyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
-        } else if (((Map<?, ?>)trade).containsKey("side"))
+        } else if (trade.containsKey("side"))
         {
             side = this.safeStringLower(trade, "side");
         } else
         {
-            if (((Map<?, ?>)trade).containsKey("isBuyer"))
+            if (trade.containsKey("isBuyer"))
             {
                 side = (((java.util.Objects.equals(((Map<String, Object>)trade).get("isBuyer"), true)))) ? "buy" : "sell"; // this is a true side
             }
         }
         Object fee = null;
-        if (((Map<?, ?>)trade).containsKey("commission"))
+        if (trade.containsKey("commission"))
         {
             fee = new HashMap<String, Object>() {{
                 put( "cost", Binance.this.safeString(trade, "commission") );
                 put( "currency", Binance.this.safeCurrencyCode(Binance.this.safeString(trade, "commissionAsset")) );
             }};
         }
-        if (((Map<?, ?>)trade).containsKey("isMaker"))
+        if (trade.containsKey("isMaker"))
         {
             takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("isMaker"), true)))) ? "maker" : "taker";
         }
-        if (((Map<?, ?>)trade).containsKey("maker"))
+        if (trade.containsKey("maker"))
         {
             takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("maker"), true)))) ? "maker" : "taker";
         }
-        if ((((Map<?, ?>)trade).containsKey("optionSide")) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
+        if ((trade.containsKey("optionSide")) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
         {
             String settle = this.safeCurrencyCode(this.safeString(trade, "quoteAsset", "USDT"));
             takerOrMaker = this.safeStringLower(trade, "liquidity");
-            if (((Map<?, ?>)trade).containsKey("fee"))
+            if (trade.containsKey("fee"))
             {
                 fee = new HashMap<String, Object>() {{
                     put( "cost", Binance.this.safeString(trade, "fee") );
@@ -7414,7 +7414,7 @@ public class Binance extends BinanceApi
             {
                 side = (((java.util.Objects.equals(side, "1")))) ? "buy" : "sell";
             }
-            if (((Map<?, ?>)trade).containsKey("optionSide"))
+            if (trade.containsKey("optionSide"))
             {
                 if (!java.util.Objects.equals(side, "buy"))
                 {
@@ -7426,7 +7426,7 @@ public class Binance extends BinanceApi
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalAmount = amount;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Binance.this.iso8601(timestamp) );
@@ -7440,7 +7440,7 @@ public class Binance extends BinanceApi
             put( "amount", finalAmount );
             put( "cost", Binance.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("quoteQty", "baseQty", "total"))) );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -7492,7 +7492,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -7678,7 +7678,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((((this.id + " editSpotOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
@@ -7725,7 +7725,7 @@ public class Binance extends BinanceApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "newOrderResponse", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, market);
+            return this.parseOrder((Map<String, Object>) (data), market);
         });
 
     }
@@ -7757,7 +7757,7 @@ public class Binance extends BinanceApi
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @returns {object} request to be sent to the exchange
          */
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("newClientOrderId", "clientOrderId", "origClientOrderId")));
         if (java.util.Objects.equals(side, null))
         {
@@ -7864,7 +7864,7 @@ public class Binance extends BinanceApi
         }
         if (Boolean.TRUE.equals(quantityIsRequired))
         {
-            ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+            ((Map<String, Object>)request).put("quantity", this.amountToPrecision((String) (symbol), amount));
         }
         if (Boolean.TRUE.equals(priceIsRequired))
         {
@@ -7872,7 +7872,7 @@ public class Binance extends BinanceApi
             {
                 throw new InvalidOrder((((this.id + " editOrder() requires a price argument for a ") + type) + " order")) ;
             }
-            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
         }
         if (Boolean.TRUE.equals(timeInForceIsRequired) && (java.util.Objects.equals(this.safeString(parameters, "timeInForce"), null)))
         {
@@ -7885,7 +7885,7 @@ public class Binance extends BinanceApi
                 throw new InvalidOrder((((this.id + " editOrder() requires a triggerPrice extra param for a ") + type) + " order")) ;
             } else
             {
-                ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
+                ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision((String) (symbol), triggerPrice));
             }
         }
         ((Map<String, Object>)request).put("cancelReplaceMode", "STOP_ON_FAILURE"); // If the cancel request fails, the new order placement will not be attempted.
@@ -7919,7 +7919,7 @@ public class Binance extends BinanceApi
         {
             throw new ArgumentsRequired((this.id + " editOrder() and editOrderWs() require a price argument for swap orders")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
         if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
         {
             throw new NotSupported((((this.id + " editContractOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
@@ -7933,12 +7933,12 @@ public class Binance extends BinanceApi
             put( "symbol", ((Map<String, Object>)market).get("id") );
             put( "side", ((String)finalSide).toUpperCase() );
             put( "orderId", id );
-            put( "quantity", Binance.this.amountToPrecision(symbol, amount) );
+            put( "quantity", Binance.this.amountToPrecision((String) (symbol), amount) );
         }};
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("newClientOrderId", "clientOrderId", "origClientOrderId")));
         if (!java.util.Objects.equals(price, null))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
         }
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -7977,7 +7977,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
@@ -8034,7 +8034,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         });
 
     }
@@ -8067,7 +8067,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 throw new NotSupported((((this.id + " editOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
@@ -8127,8 +8127,8 @@ public class Binance extends BinanceApi
                 Object orderRequest = this.editContractOrderRequest(id, marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
+            orderSymbols = this.marketSymbols(orderSymbols, (String) (null), false, true, true);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) ((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0))));
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
             {
                 throw new NotSupported((((this.id + " editOrders() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
@@ -8232,7 +8232,7 @@ public class Binance extends BinanceApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // spot
@@ -8835,21 +8835,21 @@ public class Binance extends BinanceApi
             String msg = this.safeString(order, "msg");
             if ((!java.util.Objects.equals(code, "200")) && !((java.util.Objects.equals(msg, "success")) || (java.util.Objects.equals(msg, "The operation of cancel all open order is done."))))
             {
-                return this.safeOrder(new HashMap<String, Object>() {{
+                return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", order );
                     put( "status", "rejected" );
-                }}, market);
+                }}), market);
             }
         }
         String status = this.parseOrderStatus(this.safeStringN(order, new ArrayList<Object>(Arrays.asList("status", "strategyStatus", "algoStatus"))));
         String marketId = this.safeString(order, "symbol");
-        Boolean isContract = (((Map<?, ?>)order).containsKey("positionSide")) || (((Map<?, ?>)order).containsKey("cumQuote"));
+        Boolean isContract = (order.containsKey("positionSide")) || (order.containsKey("cumQuote"));
         String marketType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
         String symbol = this.safeSymbol(marketId, market, null, marketType);
         String filled = this.safeString2(order, "executedQty", "filledQty", "0");
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"))); // order of the keys matters here
         Object lastTradeTimestamp = null;
-        if ((((Map<?, ?>)order).containsKey("transactTime")) || (((Map<?, ?>)order).containsKey("updateTime")) || (((Map<?, ?>)order).containsKey("updatedAt")))
+        if ((order.containsKey("transactTime")) || (order.containsKey("updateTime")) || (order.containsKey("updatedAt")))
         {
             Long timestampValue = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("updateTime", "transactTime", "updatedAt")));
             if (java.util.Objects.equals(status, "open"))
@@ -8901,7 +8901,7 @@ public class Binance extends BinanceApi
         final Object finalCost = cost;
         final Object finalStatus = status;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Binance.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("strategyId", "orderId", "algoId"))) );
             put( "clientOrderId", Binance.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("clientOrderId", "newClientStrategyId", "clientAlgoId"))) );
@@ -8925,7 +8925,7 @@ public class Binance extends BinanceApi
             put( "status", finalStatus );
             put( "fee", finalFee );
             put( "trades", fills );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -8964,8 +8964,8 @@ public class Binance extends BinanceApi
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
+            orderSymbols = this.marketSymbols(orderSymbols, (String) (null), false, true, true);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) ((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0))));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((((this.id + " createOrders() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
@@ -9078,7 +9078,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             // don't handle/omit params here, omitting happens inside createOrderRequest
             String marketType = this.safeString(parameters, "type", ((Map<String, Object>)market).get("type"));
             String marginMode = this.safeString(parameters, "marginMode");
@@ -9183,7 +9183,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -9213,7 +9213,7 @@ public class Binance extends BinanceApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
         String marketType = this.safeString(parameters, "type", ((Map<String, Object>)market).get("type"));
         Boolean stock = (Boolean) this.safeBool(market, "stock", false);
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientAlgoId", "newClientOrderId", "clientOrderId")));
@@ -9268,7 +9268,7 @@ public class Binance extends BinanceApi
                 ((Map<String, Object>)request).put("callbackRate", trailingPercent);
                 if (!java.util.Objects.equals(trailingTriggerPrice, null))
                 {
-                    ((Map<String, Object>)request).put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
+                    ((Map<String, Object>)request).put("activationPrice", this.priceToPrecision((String) (symbol), trailingTriggerPrice));
                 }
             } else
             {
@@ -9306,7 +9306,7 @@ public class Binance extends BinanceApi
                 }
                 if (!java.util.Objects.equals(trailingTriggerPrice, null))
                 {
-                    stopPrice = this.priceToPrecision(symbol, trailingTriggerPrice);
+                    stopPrice = this.priceToPrecision((String) (symbol), trailingTriggerPrice);
                 }
                 String trailingPercentConverted = Precise.stringMul(trailingPercent, "100");
                 ((Map<String, Object>)request).put("trailingDelta", trailingPercentConverted);
@@ -9489,7 +9489,7 @@ public class Binance extends BinanceApi
                     String marketAmountPrecision = this.safeString(((Map<String, Object>)market).get("precision"), "amount");
                     if (!java.util.Objects.equals(marketAmountPrecision, null))
                     {
-                        ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+                        ((Map<String, Object>)request).put("quantity", this.amountToPrecision((String) (symbol), amount));
                     } else
                     {
                         ((Map<String, Object>)request).put("quantity", this.parseToNumeric(amount));
@@ -9580,7 +9580,7 @@ public class Binance extends BinanceApi
             Boolean isPrecisionAvailable = (!java.util.Objects.equals(marketAmountPrecision, null));
             if (Boolean.TRUE.equals(isPrecisionAvailable))
             {
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put("quantity", this.amountToPrecision((String) (symbol), amount));
             } else
             {
                 ((Map<String, Object>)request).put("quantity", this.parseToNumeric(amount)); // some options don't have the precision available
@@ -9596,7 +9596,7 @@ public class Binance extends BinanceApi
             Boolean isPricePrecisionAvailable = (!java.util.Objects.equals(pricePrecision, null));
             if (Boolean.TRUE.equals(isPricePrecisionAvailable))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
             } else
             {
                 ((Map<String, Object>)request).put("price", this.parseToNumeric(price)); // some options don't have the precision available
@@ -9622,10 +9622,10 @@ public class Binance extends BinanceApi
             {
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && !Helpers.isTrue(isPortfolioMargin))
                 {
-                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, stopPrice));
+                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision((String) (symbol), stopPrice));
                 } else
                 {
-                    ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, stopPrice));
+                    ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision((String) (symbol), stopPrice));
                 }
             }
         }
@@ -9672,7 +9672,7 @@ public class Binance extends BinanceApi
         {
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                ((Map<String, Object>)request).put("icebergQty", this.amountToPrecision(symbol, icebergAmount));
+                ((Map<String, Object>)request).put("icebergQty", this.amountToPrecision((String) (symbol), icebergAmount));
             }
         }
         Object requestParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged", "icebergAmount")));
@@ -9700,7 +9700,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketOrderWithCost() supports spot orders only")) ;
@@ -9733,7 +9733,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -9766,7 +9766,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
@@ -9818,7 +9818,7 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 stock = this.safeBool(market, "stock", false);
                 if (!java.util.Objects.equals(stock, true))
                 {
@@ -9922,7 +9922,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -9983,7 +9983,7 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 stock = this.safeBool(market, "stock", false);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             } else if (!Helpers.isTrue(stock))
@@ -10377,7 +10377,7 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 stock = this.safeBool(market, "stock", false);
                 if (!java.util.Objects.equals(stock, true))
                 {
@@ -10515,7 +10515,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -10721,7 +10721,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         });
 
     }
@@ -10766,7 +10766,7 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 stock = this.safeBool(market, "stock", false);
             } else if (!Helpers.isTrue(stock))
             {
@@ -10824,7 +10824,7 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 stock = this.safeBool(market, "stock", false);
             } else if (!Helpers.isTrue(stock))
             {
@@ -10882,7 +10882,7 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 stock = this.safeBool(market, "stock", false);
             } else if (!Helpers.isTrue(stock))
             {
@@ -10946,7 +10946,7 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 stock = this.safeBool(market, "stock", false);
                 if (!java.util.Objects.equals(stock, true))
                 {
@@ -11080,7 +11080,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(response, market);
+            return this.parseOrder((Map<String, Object>) (response), market);
         }).thenApply(Order::new);
 
     }
@@ -11128,7 +11128,7 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 stock = this.safeBool(market, "stock", false);
                 if (!java.util.Objects.equals(stock, true))
                 {
@@ -11225,9 +11225,9 @@ public class Binance extends BinanceApi
             } else
             {
                 final Object finalResponse = response;
-                Object order = this.safeOrder(new HashMap<String, Object>() {{
+                Object order = this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", finalResponse );
-                }});
+                }}));
                 return new ArrayList<Object>(Arrays.asList(order));
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -11265,7 +11265,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 throw new BadRequest((this.id + " cancelOrders is only supported for swap markets.")) ;
@@ -11362,7 +11362,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             String type = this.safeString(parameters, "type", ((Map<String, Object>)market).get("type"));
             parameters = this.omit(parameters, "type");
             if (!java.util.Objects.equals(type, "spot"))
@@ -11430,7 +11430,7 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 stock = this.safeBool(market, "stock", false);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
@@ -11932,7 +11932,7 @@ public class Binance extends BinanceApi
             {
                 if (!java.util.Objects.equals(code, null))
                 {
-                    currency = this.currency(code);
+                    currency = this.currency((String) (code));
                 }
                 ((Map<String, Object>)request).put("transactionType", 0);
                 if (!java.util.Objects.equals(since, null))
@@ -11949,7 +11949,7 @@ public class Binance extends BinanceApi
             {
                 if (!java.util.Objects.equals(code, null))
                 {
-                    currency = this.currency(code);
+                    currency = this.currency((String) (code));
                     ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
                 }
                 if (!java.util.Objects.equals(since, null))
@@ -12039,7 +12039,7 @@ public class Binance extends BinanceApi
             {
                 if (!java.util.Objects.equals(code, null))
                 {
-                    currency = this.currency(code);
+                    currency = this.currency((String) (code));
                 }
                 ((Map<String, Object>)request).put("transactionType", 1);
                 if (!java.util.Objects.equals(since, null))
@@ -12052,7 +12052,7 @@ public class Binance extends BinanceApi
             {
                 if (!java.util.Objects.equals(code, null))
                 {
-                    currency = this.currency(code);
+                    currency = this.currency((String) (code));
                     ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
                 }
                 if (!java.util.Objects.equals(since, null))
@@ -12128,7 +12128,7 @@ public class Binance extends BinanceApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -12290,7 +12290,7 @@ public class Binance extends BinanceApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         // transfer
@@ -12453,10 +12453,10 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Binance.this.currencyToPrecision(code, amount) );
+                put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
             }};
             ((Map<String, Object>)request).put("type", this.safeString(parameters, "type"));
             parameters = this.omit(parameters, "type");
@@ -12555,7 +12555,7 @@ public class Binance extends BinanceApi
             //         "tranId":13526853623
             //     }
             //
-            return this.parseTransfer(response, currency);
+            return this.parseTransfer((Map<String, Object>) (response), currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -12600,7 +12600,7 @@ public class Binance extends BinanceApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String limitKey = "limit";
@@ -12679,7 +12679,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
             }};
@@ -13054,7 +13054,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "address", address );
@@ -13071,10 +13071,10 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)request).put("network", this.networkCodeToId(networkCode, ((Map<String, Object>)currency).get("code")));
             }
-            ((Map<String, Object>)request).put("amount", this.currencyToPrecision(((Map<String, Object>)currency).get("code"), amount, networkCode));
+            ((Map<String, Object>)request).put("amount", this.currencyToPrecision((String) (((Map<String, Object>)currency).get("code")), amount, networkCode));
             Map<String, Object> response = (this.sapiPostCapitalWithdrawApply(this.extend(request, parameters))).join();
             //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -13136,7 +13136,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Object type = ((Map<String, Object>)market).get("type");
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
@@ -13456,7 +13456,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             final Object finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
@@ -13469,7 +13469,7 @@ public class Binance extends BinanceApi
             //       "tranId": 100000001
             //   }
             //
-            return this.parseTransfer(response, currency);
+            return this.parseTransfer((Map<String, Object>) (response), currency);
         });
 
     }
@@ -13494,7 +13494,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -13576,7 +13576,7 @@ public class Binance extends BinanceApi
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 symbol = ((Map<String, Object>)market).get("symbol");
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
@@ -14327,7 +14327,7 @@ public class Binance extends BinanceApi
         final Object finalMarginMode = marginMode;
         final Object finalSide = side;
         final Object finalPercentage = percentage;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -14354,7 +14354,7 @@ public class Binance extends BinanceApi
             put( "percentage", finalPercentage );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     public CompletableFuture<Object> loadLeverageBrackets(Object... optionalArgs)
@@ -14604,7 +14604,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 throw new NotSupported((this.id + " fetchPosition() supports option markets only")) ;
@@ -14679,7 +14679,7 @@ final Object finalMarket = market;
                 {
                     symbol = symbols;
                 }
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.eapiPrivateGetPosition(this.extend(request, parameters))).join();
@@ -14753,7 +14753,7 @@ final Object finalMarket = market;
         Long timestamp = this.safeInteger(position, "time");
         final Object finalSide = side;
         final Object finalQuantity = quantity;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -14777,7 +14777,7 @@ final Object finalMarket = market;
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );
-        }});
+        }}));
     }
 
     /**
@@ -15151,7 +15151,7 @@ final Object finalMarket = market;
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
@@ -15243,7 +15243,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             final Object finalLeverage = leverage;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -15327,7 +15327,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             final Object finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -15405,7 +15405,7 @@ final Object finalMarket = market;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("setPositionMode", market, parameters);
@@ -15540,7 +15540,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(leverage, "symbol");
@@ -15606,7 +15606,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
+            Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market((String) (symbol));
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -15672,7 +15672,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
+            Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market((String) (symbol));
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -15840,7 +15840,7 @@ final Object finalMarket = market;
                 throw new BadRequest((this.id + " fetchLedgerEntry() can only be used for type option")) ;
             }
             this.checkRequiredArgument("fetchLedgerEntry", code, "code");
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "recordId", id );
                 put( "currency", ((Map<String, Object>)currency).get("id") );
@@ -15858,7 +15858,7 @@ final Object finalMarket = market;
             //     ]
             //
             Object first = this.safeDict(response, 0, response);
-            return this.parseLedgerEntry(first, currency);
+            return this.parseLedgerEntry((Map<String, Object>) (first), currency);
         }).thenApply(LedgerEntry::new);
 
     }
@@ -15908,7 +15908,7 @@ final Object finalMarket = market;
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
@@ -16000,7 +16000,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         // options (eapi)
@@ -16098,7 +16098,7 @@ final Object finalMarket = market;
             return null;
         }
         Object networkCode = null;
-        Map<String, Object> currency = (Map<String, Object>) this.currency(currencyCode);
+        Map<String, Object> currency = (Map<String, Object>) this.currency((String) (currencyCode));
         Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
         List<Object> networkCodes = new ArrayList<Object>(networks.keySet());
         for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
@@ -16536,8 +16536,8 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            amount = this.amountToPrecision(symbol, amount);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            amount = this.amountToPrecision((String) (symbol), amount);
             final Object finalAmount = amount;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", addOrReduce );
@@ -16568,14 +16568,14 @@ final Object finalMarket = market;
                 throw new NullResponse((this.id + " parseMarginModification() returned empty response")) ;
             }
             final Object finalCode = code;
-            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
                 put( "code", finalCode );
             }});
         });
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         //
         // add/reduce margin
@@ -16688,7 +16688,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
@@ -16823,7 +16823,7 @@ final Object finalMarket = market;
             {
                 throw new BadRequest((this.id + " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             final Object finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
@@ -16847,7 +16847,7 @@ final Object finalMarket = market;
             //         },
             //     ]
             //
-            return this.parseBorrowRateHistory(response, code, since, limit);
+            return this.parseBorrowRateHistory(response, (String) (code), since, limit);
         });
 
     }
@@ -16875,7 +16875,7 @@ final Object finalMarket = market;
         }};
     }
 
-    public Object parseIsolatedBorrowRate(Object info, Object... optionalArgs)
+    public Object parseIsolatedBorrowRate(Map<String, Object> info, Object... optionalArgs)
     {
         //
         //    {
@@ -16936,7 +16936,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             // ensure you have enough token in your funding account before calling this code
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token", ((Map<String, Object>)currency).get("id") );
@@ -17068,7 +17068,7 @@ final Object finalMarket = market;
             Object market = null;
             if (!java.util.Objects.equals(code, null))
             {
-                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
                 ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -17090,7 +17090,7 @@ final Object finalMarket = market;
             {
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    market = this.market(symbol);
+                    market = this.market((String) (symbol));
                     ((Map<String, Object>)request).put("isolatedSymbol", ((Map<String, Object>)market).get("id"));
                 }
                 response = (this.sapiGetMarginInterestHistory(this.extend(request, parameters))).join();
@@ -17138,7 +17138,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseBorrowInterest(Object info, Object... optionalArgs)
+    public Object parseBorrowInterest(Map<String, Object> info, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String symbol = this.safeString(info, "isolatedSymbol");
@@ -17183,10 +17183,10 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Binance.this.currencyToPrecision(code, amount) );
+                put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
             }};
             Object response = null;
             Object isPortfolioMargin = null;
@@ -17238,11 +17238,11 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Binance.this.currencyToPrecision(code, amount) );
+                put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "isIsolated", "TRUE" );
                 put( "type", "REPAY" );
@@ -17281,10 +17281,10 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Binance.this.currencyToPrecision(code, amount) );
+                put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
             }};
             Object response = null;
             Object isPortfolioMargin = null;
@@ -17332,11 +17332,11 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Binance.this.currencyToPrecision(code, amount) );
+                put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "isIsolated", "TRUE" );
                 put( "type", "BORROW" );
@@ -17425,7 +17425,7 @@ final Object finalMarket = market;
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, parameters, 500)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             final Object finalTimeframe = timeframe;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "period", Binance.this.safeString(Binance.this.timeframes, finalTimeframe, finalTimeframe) );
@@ -17504,7 +17504,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
@@ -17591,7 +17591,7 @@ final Object finalMarket = market;
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         Boolean isInverse = (java.util.Objects.equals(this.safeBool(market, "inverse"), true));
         Object baseVolume = ((Boolean.TRUE.equals(isInverse))) ? null : amount;
-        return this.safeOpenInterest(new HashMap<String, Object>() {{
+        return this.safeOpenInterest((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", Binance.this.safeSymbol(id, market, null, "contract") );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", value );
@@ -17600,7 +17600,7 @@ final Object finalMarket = market;
             put( "timestamp", timestamp );
             put( "datetime", Binance.this.iso8601(timestamp) );
             put( "info", interest );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -17647,7 +17647,7 @@ final Object finalMarket = market;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyLiquidations", market, parameters);
@@ -17888,7 +17888,7 @@ final Object finalMarket = market;
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(liquidation, "symbol");
         Long timestamp = (Long) this.safeInteger2(liquidation, "updatedTime", "updateTime");
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Binance.this.safeSymbol(marketId, market) );
             put( "contracts", Binance.this.safeNumber(liquidation, "executedQty") );
@@ -17899,7 +17899,7 @@ final Object finalMarket = market;
             put( "quoteValue", Binance.this.safeNumber(liquidation, "cumQuote") );
             put( "timestamp", timestamp );
             put( "datetime", Binance.this.iso8601(timestamp) );
-        }});
+        }}));
     }
 
     /**
@@ -17921,7 +17921,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -17943,7 +17943,7 @@ final Object finalMarket = market;
             //         }
             //     ]
             //
-            return this.parseGreeks(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
+            return this.parseGreeks((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), market);
         }).thenApply(Greeks::new);
 
     }
@@ -17968,7 +17968,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true, true);
+            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (!java.util.Objects.equals(symbols, null))
@@ -17976,7 +17976,7 @@ final Object finalMarket = market;
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
+                    market = this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -18003,7 +18003,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseGreeks(Object greeks, Object... optionalArgs)
+    public Object parseGreeks(Map<String, Object> greeks, Object... optionalArgs)
     {
         //
         //     {
@@ -18098,7 +18098,7 @@ final Object finalMarket = market;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = this.market((String) (symbol));
             }
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionMode", market, parameters);
@@ -18156,7 +18156,7 @@ final Object finalMarket = market;
             if (!java.util.Objects.equals(symbols, null))
             {
                 symbols = this.marketSymbols(symbols);
-                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
+                market = this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
             }
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
@@ -18204,7 +18204,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
@@ -18228,12 +18228,12 @@ final Object finalMarket = market;
             {
                 throw new NullResponse((this.id + " fetchMarginMode() returned empty response")) ;
             }
-            return this.parseMarginMode(Helpers.GetValue(response, 0), market);
+            return this.parseMarginMode((Map<String, Object>) (Helpers.GetValue(response, 0)), market);
         }).thenApply(MarginMode::new);
 
     }
 
-    public Object parseMarginMode(Object marginMode, Object... optionalArgs)
+    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(marginMode, "symbol");
@@ -18277,7 +18277,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -18307,12 +18307,12 @@ final Object finalMarket = market;
             //     ]
             //
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseOption(chain, null, market);
+            return this.parseOption((Map<String, Object>) (chain), null, market);
         }).thenApply(Option::new);
 
     }
 
-    public Object parseOption(Object chain, Object... optionalArgs)
+    public Object parseOption(Map<String, Object> chain, Object... optionalArgs)
     {
         //
         //     {
@@ -18394,7 +18394,7 @@ final Object finalMarket = market;
             {
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -18568,13 +18568,13 @@ final Object finalMarket = market;
             //         "fromAmount":"0.1"
             //     }
             //
-            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCode);
-            Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCode);
+            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency((String) (fromCode));
+            Map<String, Object> toCurrency = (Map<String, Object>) this.currency((String) (toCode));
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion(response, fromCurrency, toCurrency);
+            return this.parseConversion((Map<String, Object>) (response), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18622,13 +18622,13 @@ final Object finalMarket = market;
                 ((Map<String, Object>)request).put("quoteId", id);
                 response = (this.sapiPostConvertAcceptQuote(this.extend(request, parameters))).join();
             }
-            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCode);
-            Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCode);
+            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency((String) (fromCode));
+            Map<String, Object> toCurrency = (Map<String, Object>) this.currency((String) (toCode));
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion(response, fromCurrency, toCurrency);
+            return this.parseConversion((Map<String, Object>) (response), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18662,7 +18662,7 @@ final Object finalMarket = market;
                 Long now = this.milliseconds();
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                    Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
                     ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
                 }
                 ((Map<String, Object>)request).put("tranId", id);
@@ -18696,7 +18696,7 @@ final Object finalMarket = market;
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion(data, fromCurrency, toCurrency);
+            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18751,7 +18751,7 @@ final Object finalMarket = market;
             String toCurrencyKey = null;
             if (java.util.Objects.equals(code, "BUSD"))
             {
-                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
                 ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
                 if (!java.util.Objects.equals(limit, null))
                 {
@@ -18782,7 +18782,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseConversion(Object conversion, Object... optionalArgs)
+    public Object parseConversion(Map<String, Object> conversion, Object... optionalArgs)
     {
         //
         // fetchConvertQuote
@@ -18901,7 +18901,7 @@ final Object finalMarket = market;
             if (!java.util.Objects.equals(symbols, null))
             {
                 symbols = this.marketSymbols(symbols);
-                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
+                market = this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
             }
             String type = "swap";
             Object subType = null;
@@ -18963,7 +18963,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             if (java.util.Objects.equals(timeframe, null))
             {
                 timeframe = "1d";
@@ -19005,7 +19005,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseLongShortRatio(Object info, Object... optionalArgs)
+    public Object parseLongShortRatio(Map<String, Object> info, Object... optionalArgs)
     {
         //
         // linear
@@ -19060,7 +19060,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -19080,7 +19080,7 @@ final Object finalMarket = market;
             {
                 throw new NullResponse((this.id + " parseADLRank() returned empty response")) ;
             }
-            return this.parseADLRank(response, market);
+            return this.parseADLRank((Map<String, Object>) (response), market);
         }).thenApply(ADL::new);
 
     }
@@ -19109,7 +19109,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true, true);
+            symbols = this.marketSymbols(symbols, (String) (null), true, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
@@ -19164,7 +19164,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseADLRank(Object info, Object... optionalArgs)
+    public Object parseADLRank(Map<String, Object> info, Object... optionalArgs)
     {
         //
         // fetchADLRank
