@@ -485,7 +485,7 @@ export default class zebpay extends Exchange {
         }
         const market = this.market (symbol);
         let response = undefined;
-        let data;
+        let data: NullableDict = undefined;
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -1096,7 +1096,7 @@ export default class zebpay extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    orderRequest (symbol: any, type: any, amount: any, request: any, price: Num = undefined, params = {}) {
+    orderRequest (symbol: any, type: any, amount: any, request: Dict, price: Num = undefined, params = {}) {
         const upperCaseType = type.toUpperCase ();
         const triggerPrice = this.safeString (params, 'stopLossPrice');
         const quoteOrderQty = this.safeString2 (params, 'quoteOrderQty', 'cost', undefined);
