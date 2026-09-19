@@ -123,7 +123,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }});
     }
 
-    public Object getUrl(Object channel, Object... optionalArgs)
+    public Object getUrl(String channel, Object... optionalArgs)
     {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
         Object access = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
@@ -162,7 +162,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 symbols = this.symbols;
             }
             symbols = this.marketSymbols(symbols);
-            Object url = this.getUrl(channel, access);
+            Object url = this.getUrl((String) (channel), access);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(symbols, null))
@@ -209,7 +209,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 (this.loadMarkets()).join();
             }
-            Object url = this.getUrl(channel, access);
+            Object url = this.getUrl((String) (channel), access);
             Map<String, Object> firstArgument = new HashMap<String, Object>() {{
                 put( "channel", channel );
             }};
@@ -315,7 +315,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     put( "finalAccess", finalAccess );
                 }})).join();
             }
-            Object url = this.getUrl(channel, access);
+            Object url = this.getUrl((String) (channel), access);
             Object trades = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
@@ -379,7 +379,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     put( "finalAccess", finalAccess );
                 }})).join();
             }
-            Object url = this.getUrl(channel, access);
+            Object url = this.getUrl((String) (channel), access);
             return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         });
 
@@ -772,7 +772,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "unsubscribe" );
                 put( "args", topics );
             }};
-            Object url = this.getUrl(channel, "public");
+            Object url = this.getUrl((String) (channel), "public");
             return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         });
 
@@ -850,7 +850,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "channel", "bbo-tbt");
             channel = ((List<Object>) channelparametersVariable).get(0);
             parameters = ((List<Object>) channelparametersVariable).get(1);
-            Object url = this.getUrl(channel, "public");
+            Object url = this.getUrl((String) (channel), "public");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -1640,7 +1640,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "subscribe" );
                 put( "args", topics );
             }};
-            Object url = this.getUrl(depth, "public");
+            Object url = this.getUrl((String) (depth), "public");
             Object orderbook = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
@@ -1710,7 +1710,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "unsubscribe" );
                 put( "args", topics );
             }};
-            Object url = this.getUrl(depth, "public");
+            Object url = this.getUrl((String) (depth), "public");
             return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         });
 
@@ -2305,7 +2305,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     put( "op", "subscribe" );
                     put( "args", args );
                 }};
-                Object url = this.getUrl(channel, "private");
+                Object url = this.getUrl((String) (channel), "private");
                 newPositions = (this.watch(url, channel, nonSymbolRequest, channel, null)).join();
             } else
             {
@@ -2736,7 +2736,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> opparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrderWs", "op", "batch-orders");
             op = ((List<Object>) opparametersVariable).get(0);
             parameters = ((List<Object>) opparametersVariable).get(1);
-            Object args = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object args = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long instIdCode = this.safeInteger(market, "instIdCode");
             if (!java.util.Objects.equals(instIdCode, null))
@@ -2834,7 +2834,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> opparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrderWs", "op", "amend-order");
             op = ((List<Object>) opparametersVariable).get(0);
             parameters = ((List<Object>) opparametersVariable).get(1);
-            Object args = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+            Object args = this.editOrderRequest(id, (String) (symbol), type, side, amount, price, parameters);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long instIdCode = this.safeInteger(market, "instIdCode");
             if (!java.util.Objects.equals(instIdCode, null))

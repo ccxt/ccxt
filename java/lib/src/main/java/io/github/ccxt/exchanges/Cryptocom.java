@@ -1774,7 +1774,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -1949,7 +1949,7 @@ public class Cryptocom extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.v1PrivatePostPrivateCreateOrder(request)).join();
             //
             //     {
@@ -2063,7 +2063,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object createAdvancedOrderRequest(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createAdvancedOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2254,7 +2254,7 @@ public class Cryptocom extends CryptocomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = this.editOrderRequest(id, symbol, amount, price, parameters);
+            Object request = this.editOrderRequest(id, (String) (symbol), amount, price, parameters);
             Map<String, Object> response = (this.v1PrivatePostPrivateAmendOrder(request)).join();
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
@@ -2262,7 +2262,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object editOrderRequest(Object id, Object symbol, Object amount, Object... optionalArgs)
+    public Object editOrderRequest(Object id, String symbol, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -3127,7 +3127,7 @@ public class Cryptocom extends CryptocomApi
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "ACTIVE", "open" );
@@ -3139,7 +3139,7 @@ public class Cryptocom extends CryptocomApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "GOOD_TILL_CANCEL", "GTC" );
@@ -3842,7 +3842,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object parseSettlement(Object settlement, Object market)
+    public Object parseSettlement(Map<String, Object> settlement, Object market)
     {
         //
         //     {
@@ -3878,7 +3878,7 @@ public class Cryptocom extends CryptocomApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
         }
         return result;
     }
@@ -4405,7 +4405,7 @@ public class Cryptocom extends CryptocomApi
             //    }
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee(data, market);
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -4445,12 +4445,12 @@ public class Cryptocom extends CryptocomApi
             //   }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTradingFees(result);
+            return this.parseTradingFees((Map<String, Object>) (result));
         }).thenApply(TradingFees::new);
 
     }
 
-    public Object parseTradingFees(Object response)
+    public Object parseTradingFees(Map<String, Object> response)
     {
         //
         // {
@@ -4484,7 +4484,7 @@ public class Cryptocom extends CryptocomApi
         return result;
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         // {

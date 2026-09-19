@@ -7733,7 +7733,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                Object request = this.createUtaOrderRequest((String) symbol, (String) type, (String) side, amount, price, parameters);
+                Object request = this.createUtaOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
                 {
                     response = (this.privateUtaPostV3TradePlaceStrategyOrder(request)).join();
@@ -7743,7 +7743,7 @@ final Object finalMinNotional = minNotional;
                 }
             } else
             {
-                Object request = this.createOrderRequest((String) symbol, (String) type, (String) side, amount, price, parameters);
+                Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
                     if (Boolean.TRUE.equals(isTriggerOrder))

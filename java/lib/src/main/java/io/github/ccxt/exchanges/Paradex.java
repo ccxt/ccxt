@@ -1013,7 +1013,7 @@ public class Paradex extends ParadexApi
         }});
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {
@@ -1101,7 +1101,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee(first, market);
+            return this.parseTradingFee((Map<String, Object>) (first), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -1148,7 +1148,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
+                Object fee = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 ((Map<String, Object>)result).put((String)((String)symbol), fee);
             }
@@ -2135,7 +2135,7 @@ public class Paradex extends ParadexApi
             put( "datetime", Paradex.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "status", Paradex.this.parseOrderStatus(finalStatus) );
+            put( "status", Paradex.this.parseOrderStatus((String) (finalStatus)) );
             put( "symbol", symbol );
             put( "type", Paradex.this.parseOrderType(orderType) );
             put( "timeInForce", Paradex.this.parseTimeInForce(Paradex.this.safeString(order, "instruction")) );
@@ -2160,7 +2160,7 @@ public class Paradex extends ParadexApi
         }}, market);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "IOC", "IOC" );
@@ -2170,7 +2170,7 @@ public class Paradex extends ParadexApi
         return this.safeString(timeInForces, ((String)timeInForce));
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         if (!java.util.Objects.equals(status, null))
         {
@@ -2185,7 +2185,7 @@ public class Paradex extends ParadexApi
         return null;
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -2201,7 +2201,7 @@ public class Paradex extends ParadexApi
         return Precise.stringMul(num, "100000000");
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2311,7 +2311,7 @@ public class Paradex extends ParadexApi
         return this.extend(request, parameters);
     }
 
-    public CompletableFuture<Object> signOrderRequest(Object request, Object... optionalArgs)
+    public CompletableFuture<Object> signOrderRequest(Map<String, Object> request, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2414,8 +2414,8 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            request = (this.signOrderRequest(request)).join();
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            request = (this.signOrderRequest((Map<String, Object>) (request))).join();
             Map<String, Object> response = (this.privatePostOrders(request)).join();
             //
             // {
@@ -2489,11 +2489,11 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             request = this.omit(request, new ArrayList<Object>(Arrays.asList("instruction", "client_id", "flags")));
             Helpers.addElementToObject(request, "order_id", id);
             Helpers.addElementToObject(request, "id", id);
-            request = (this.signOrderRequest(request, true)).join();
+            request = (this.signOrderRequest((Map<String, Object>) (request), true)).join();
             Map<String, Object> response = (this.privatePutOrdersOrderId(request)).join();
             //
             //     {
@@ -2566,7 +2566,7 @@ public class Paradex extends ParadexApi
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(parameters, orderParams);
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
-                orderRequest = (this.signOrderRequest(orderRequest)).join();
+                orderRequest = (this.signOrderRequest((Map<String, Object>) (orderRequest))).join();
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> response = (this.privatePostOrdersBatch(ordersRequests)).join();
@@ -3755,7 +3755,7 @@ public class Paradex extends ParadexApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PENDING", "pending" );

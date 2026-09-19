@@ -1481,7 +1481,7 @@ public class Bitfinex extends BitfinexApi
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
@@ -2075,7 +2075,7 @@ public class Bitfinex extends BitfinexApi
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)));
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         if (java.util.Objects.equals(status, null))
         {
@@ -2199,7 +2199,7 @@ public class Bitfinex extends BitfinexApi
         }}, market);
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2353,7 +2353,7 @@ public class Bitfinex extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             List<Object> response = (this.privatePostAuthWOrderSubmit(request)).join();
             //
             //      [
@@ -3167,7 +3167,7 @@ public class Bitfinex extends BitfinexApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
@@ -3894,7 +3894,7 @@ public class Bitfinex extends BitfinexApi
         return response;
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         if (java.util.Objects.equals(type, null))
         {

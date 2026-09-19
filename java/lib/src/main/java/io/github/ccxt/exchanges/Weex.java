@@ -2642,7 +2642,7 @@ public class Weex extends WeexApi
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Successful", "ok" );
@@ -2723,7 +2723,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostApiV3Order(request)).join();
             //
             //     {
@@ -2742,7 +2742,7 @@ public class Weex extends WeexApi
 
     }
 
-    public Object createSpotOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createSpotOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2826,7 +2826,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             String triggerPrice = this.safeString(request, "triggerPrice");
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             Object response = null;
@@ -2853,7 +2853,7 @@ public class Weex extends WeexApi
 
     }
 
-    public Object createContractOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createContractOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2873,7 +2873,7 @@ public class Weex extends WeexApi
         final Object finalSide = side;
         final Object finalType = type;
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "symbol", Weex.this.toSandboxMarketId(market) );
+            put( "symbol", Weex.this.toSandboxMarketId((Map<String, Object>) (market)) );
             put( "side", ((String)finalSide).toUpperCase() );
             put( "quantity", Weex.this.amountToPrecision(symbol, amount) );
             put( "type", ((String)finalType).toUpperCase() );
@@ -3059,7 +3059,7 @@ public class Weex extends WeexApi
         return this.extend(request, parameters);
     }
 
-    public String encodeTriggerPriceType(Object triggerPriceType)
+    public String encodeTriggerPriceType(String triggerPriceType)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "mark", "MARK_PRICE" );
@@ -3787,7 +3787,7 @@ public class Weex extends WeexApi
             Object request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String, Object>)request).put("symbol", this.toSandboxMarketId(market));
+                ((Map<String, Object>)request).put("symbol", this.toSandboxMarketId((Map<String, Object>) (market)));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3945,7 +3945,7 @@ public class Weex extends WeexApi
         String errorMessage = this.safeString(order, "errorMsg");
         if ((!java.util.Objects.equals(errorCode, null)) || (!java.util.Objects.equals(errorMessage, null)))
         {
-            this.handleOrderOrPositionError(errorCode, errorMessage, order);
+            this.handleOrderOrPositionError(errorCode, errorMessage, (Map<String, Object>) (order));
         }
         if (java.util.Objects.equals(market, null))
         {
@@ -3990,7 +3990,7 @@ public class Weex extends WeexApi
             put( "id", Weex.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("orderId", "algoId", "successOrderId"))) );
             put( "clientOrderId", Weex.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId", "clientAlgoId"))) );
             put( "symbol", Weex.this.safeString(finalMarket, "symbol") );
-            put( "type", Weex.this.parseOrderType(finalRawType) );
+            put( "type", Weex.this.parseOrderType((String) (finalRawType)) );
             put( "timeInForce", Weex.this.safeString(order, "timeInForce") );
             put( "postOnly", null );
             put( "reduceOnly", isReduceOnly );
@@ -4015,7 +4015,7 @@ public class Weex extends WeexApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "new", "open" );
@@ -4030,7 +4030,7 @@ public class Weex extends WeexApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -4044,7 +4044,7 @@ public class Weex extends WeexApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public void handleOrderOrPositionError(Object errorCode, Object errorMessage, Object order)
+    public void handleOrderOrPositionError(String errorCode, String errorMessage, Map<String, Object> order)
     {
         if (java.util.Objects.equals(errorCode, null))
         {
@@ -4409,7 +4409,7 @@ public class Weex extends WeexApi
             put( "account", null );
             put( "referenceId", null );
             put( "referenceAccount", null );
-            put( "type", Weex.this.parseLedgerType(finalRawType) );
+            put( "type", Weex.this.parseLedgerType((String) (finalRawType)) );
             put( "currency", code );
             put( "amount", amount );
             put( "before", Weex.this.parseNumber(before) );
@@ -4422,7 +4422,7 @@ public class Weex extends WeexApi
         }}, currency);
     }
 
-    public String parseLedgerType(Object type)
+    public String parseLedgerType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "transfer_in", "transfer" );
@@ -4726,7 +4726,7 @@ public class Weex extends WeexApi
         String errorCode = this.safeString(position, "errorCode");
         if (!java.util.Objects.equals(errorMessage, null))
         {
-            this.handleOrderOrPositionError(errorCode, errorMessage, position);
+            this.handleOrderOrPositionError(errorCode, errorMessage, (Map<String, Object>) (position));
         }
         Object marketId = this.fromSandboxMarketId(this.safeString2(position, "symbol", "coinId")); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = this.safeMarket(marketId, market, null, "contract");
@@ -4885,12 +4885,12 @@ public class Weex extends WeexApi
             //         "takerCommissionRate": "0.0008"
             //     }
             //
-            return this.parseTradingFee(response, market);
+            return this.parseTradingFee((Map<String, Object>) (response), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         // contract
@@ -4993,7 +4993,7 @@ public class Weex extends WeexApi
         }};
     }
 
-    public String parseMarginType(Object marginType)
+    public String parseMarginType(String marginType)
     {
         Map<String, Object> marginTypes = new HashMap<String, Object>() {{
             put( "CROSSED", "cross" );
@@ -5030,14 +5030,14 @@ public class Weex extends WeexApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "marginType", Weex.this.encodeMarginMode(marginMode) );
+                put( "marginType", Weex.this.encodeMarginMode((String) (marginMode)) );
             }};
             return (this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, parameters))).join();
         });
 
     }
 
-    public String encodeMarginMode(Object marginMode)
+    public String encodeMarginMode(String marginMode)
     {
         Map<String, Object> marginTypes = new HashMap<String, Object>() {{
             put( "cross", "CROSSED" );
@@ -5178,7 +5178,7 @@ public class Weex extends WeexApi
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
-                ((Map<String, Object>)request).put("marginType", this.encodeMarginMode(marginMode));
+                ((Map<String, Object>)request).put("marginType", this.encodeMarginMode((String) (marginMode)));
             }
             Double isolatedLongLeverage = this.safeNumber(parameters, "isolatedLongLeverage");
             Double isolatedShortLeverage = this.safeNumber(parameters, "isolatedShortLeverage");
@@ -5274,7 +5274,7 @@ public class Weex extends WeexApi
             final Object finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "marginType", Weex.this.encodeMarginMode(finalMarginMode) );
+                put( "marginType", Weex.this.encodeMarginMode((String) (finalMarginMode)) );
                 put( "separatedType", separatedType );
             }};
             return (this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, parameters))).join();
@@ -5395,7 +5395,7 @@ public class Weex extends WeexApi
      * @param {object} market a unified market structure
      * @returns {string} the market id for the request
      */
-    public Object toSandboxMarketId(Object market)
+    public Object toSandboxMarketId(Map<String, Object> market)
     {
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String baseId = this.safeString(market, "baseId");

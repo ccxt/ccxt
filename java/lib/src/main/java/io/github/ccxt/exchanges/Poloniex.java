@@ -1112,14 +1112,14 @@ public class Poloniex extends PoloniexApi
     {
         if (((Map<?, ?>)market).containsKey("ctType"))
         {
-            return this.parseSwapMarket(market);
+            return this.parseSwapMarket((Map<String, Object>) (market));
         } else
         {
-            return this.parseSpotMarket(market);
+            return this.parseSpotMarket((Map<String, Object>) (market));
         }
     }
 
-    public Object parseSpotMarket(Object market)
+    public Object parseSpotMarket(Map<String, Object> market)
     {
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseCurrencyName");
@@ -1178,7 +1178,7 @@ public class Poloniex extends PoloniexApi
         }});
     }
 
-    public Object parseSwapMarket(Object market)
+    public Object parseSwapMarket(Map<String, Object> market)
     {
         //
         //            {
@@ -1995,7 +1995,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -3862,7 +3862,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "COMPLETE", "ok" );
