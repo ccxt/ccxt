@@ -627,8 +627,7 @@ impl LimitlessCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1260: bool = true;
                 while { if !__for_first_1260 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1260 = false; i.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
-                let mut q: Value = get_value(&queries, &i);
-                let mut q: Value = get_value(&queries, &i);
+                let mut q: Value = queries.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let __ws_arg_0 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("query".to_string(), q.clone());
@@ -641,8 +640,7 @@ impl LimitlessCore {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1259: bool = true;
                     while { if !__for_first_1259 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1259 = false; j.as_f64().unwrap_or(f64::NAN) < ((found.len() as i64) as f64) } {
-                    let mut raw: Value = get_value(&found, &j);
-                    let mut raw: Value = get_value(&found, &j);
+                    let mut raw: Value = found.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut slug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
                     if is_true(&((slug != Value::Null) && (slug.as_str() != Some("")))) && !(in_op(&seen, &slug)) {
                         add_element_to_object(&mut seen, &slug, Value::Bool(true));
@@ -716,8 +714,7 @@ impl LimitlessCore {
                                                 let mut i: Value = Value::Int(0);
                         let mut __for_first_1263: bool = true;
                         while { if !__for_first_1263 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1263 = false; i.as_f64().unwrap_or(f64::NAN) < ((page_markets.len() as i64) as f64) } {
-                        let mut raw: Value = get_value(&page_markets, &i);
-                        let mut raw: Value = get_value(&page_markets, &i);
+                        let mut raw: Value = page_markets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                         append_to_array(&mut allRaw, raw.clone());
                     }
                     }
@@ -740,8 +737,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1264: bool = true;
             while { if !__for_first_1264 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1264 = false; i.as_f64().unwrap_or(f64::NAN) < ((expandedRaw.len() as i64) as f64) } {
-            let mut raw: Value = get_value(&expandedRaw, &i);
-            let mut raw: Value = get_value(&expandedRaw, &i);
+            let mut raw: Value = expandedRaw.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut groupId: Value = self.safe_string_n(raw.clone(), Value::from(vec![Value::Str("groupSlug".to_string()), Value::Str("groupId".to_string())]), &[self.safe_string_k(raw.clone(), "slug", &[])]);
             let mut eventKey: Value = (if is_true(&((groupId != Value::Null) && (groupId.as_str() != Some("")))) { self.shorten_slug(groupId.clone()) } else { Value::Null });
             let mut m: Value = self.parse_market(raw.clone());
@@ -777,8 +773,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1265: bool = true;
             while { if !__for_first_1265 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1265 = false; i.as_f64().unwrap_or(f64::NAN) < ((eventKeys.len() as i64) as f64) } {
-            let mut eventKey: Value = get_value(&eventKeys, &i);
-            let mut eventKey: Value = get_value(&eventKeys, &i);
+            let mut eventKey: Value = eventKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut g: Value = get_value(&eventGroups, &eventKey);
             let mut g: Value = get_value(&eventGroups, &eventKey);
             add_element_to_object(&mut eventsDict, &eventKey, self.parse_event(g.clone()));
@@ -915,8 +910,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1266: bool = true;
             while { if !__for_first_1266 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1266 = false; i.as_f64().unwrap_or(f64::NAN) < ((tokenEntries.len() as i64) as f64) } {
-            let mut outcomeLabel: Value = get_value(&tokenEntries, &i);
-            let mut outcomeLabel: Value = get_value(&tokenEntries, &i);
+            let mut outcomeLabel: Value = tokenEntries.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut tokenData: Value = get_value(&tokens, &outcomeLabel);
             let mut tokenData: Value = get_value(&tokens, &outcomeLabel);
             let mut tokenId: Value = tokenData.clone();
@@ -1106,8 +1100,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1268: bool = true;
             while { if !__for_first_1268 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1268 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawRows.len() as i64) as f64) } {
-            let mut raw: Value = get_value(&rawRows, &i);
-            let mut raw: Value = get_value(&rawRows, &i);
+            let mut raw: Value = rawRows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut rowType: Option<String> = self.safe_string_k(raw.clone(), "marketType", &[]).as_str().map(str::to_owned);
             let mut nestedMarkets: Value = self.safe_list_k(raw.clone(), "markets", &[]);
             if is_true(&(rowType.as_deref() == Some("group"))) && is_true(&(nestedMarkets != Value::Null)) {
@@ -1378,8 +1371,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1269: bool = true;
             while { if !__for_first_1269 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1269 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
-            let mut rawMarket: Value = get_value(&rawMarkets, &i);
-            let mut rawMarket: Value = get_value(&rawMarkets, &i);
+            let mut rawMarket: Value = rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             // an already-parsed ccxt market row carries the unified 'market' handle + outcomes
             // with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             let mut marketSymbol: Option<String> = self.safe_string2(rawMarket.clone(), Value::Str("market".to_string()), Value::Str("symbol".to_string()), &[]).as_str().map(str::to_owned);
@@ -1756,7 +1748,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1270: bool = true;
             while { if !__for_first_1270 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1270 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
-            let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
+            let mut outcomeObj: Value = self.outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut slug: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]);
             if (slug == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() missing slug".to_string()))));
@@ -1780,8 +1772,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1271: bool = true;
             while { if !__for_first_1271 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1271 = false; i.as_f64().unwrap_or(f64::NAN) < ((slugs.len() as i64) as f64) } {
-            let mut slug: Value = get_value(&slugs, &i);
-            let mut slug: Value = get_value(&slugs, &i);
+            let mut slug: Value = slugs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let __ws_arg_18 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("addressOrSlug".to_string(), slug.clone());
@@ -1800,8 +1791,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1273: bool = true;
             while { if !__for_first_1273 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1273 = false; i.as_f64().unwrap_or(f64::NAN) < ((slugs.len() as i64) as f64) } {
-            let mut slug: Value = get_value(&slugs, &i);
-            let mut slug: Value = get_value(&slugs, &i);
+            let mut slug: Value = slugs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut detailIndex: Value = (match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut detail: Value = get_value(&responses, &detailIndex);
             let mut detail: Value = get_value(&responses, &detailIndex);
@@ -1892,8 +1882,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1274: bool = true;
             while { if !__for_first_1274 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1274 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut row: Value = get_value(&rows, &i);
-            let mut row: Value = get_value(&rows, &i);
+            let mut row: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut rowTokenId: Value = self.safe_string_k(row.clone(), "tokenId", &[]);
             if is_true(&(tokenId != Value::Null)) && is_true(&(rowTokenId != Value::Null)) && is_true(&(rowTokenId.as_str() != tokenId.as_str())) {
                 continue;
@@ -1969,11 +1958,11 @@ impl LimitlessCore {
                         let mut bi: Value = Value::Int(0);
             let mut __for_first_1275: bool = true;
             while { if !__for_first_1275 { bi = (match (&(bi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1275 = false; bi.as_f64().unwrap_or(f64::NAN) < ((bidsSource.len() as i64) as f64) } {
-            let mut priceStr: Value = self.safe_string_k(get_value(&bidsSource, &bi), "price", &[]);
+            let mut priceStr: Value = self.safe_string(bidsSource.as_array().and_then(|__arr| match &bi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("price".to_string()), &[]);
             if !isYes && is_true(&(priceStr != Value::Null)) {
                 priceStr = crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &priceStr);
             }
-            let mut sizeStr: Value = self.safe_string_k(get_value(&bidsSource, &bi), "size", &[]);
+            let mut sizeStr: Value = self.safe_string(bidsSource.as_array().and_then(|__arr| match &bi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("size".to_string()), &[]);
             if (sizeStr != Value::Null) {
                 sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr);
             }
@@ -1984,11 +1973,11 @@ impl LimitlessCore {
                         let mut ai: Value = Value::Int(0);
             let mut __for_first_1276: bool = true;
             while { if !__for_first_1276 { ai = (match (&(ai), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1276 = false; ai.as_f64().unwrap_or(f64::NAN) < ((asksSource.len() as i64) as f64) } {
-            let mut priceStr: Value = self.safe_string_k(get_value(&asksSource, &ai), "price", &[]);
+            let mut priceStr: Value = self.safe_string(asksSource.as_array().and_then(|__arr| match &ai { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("price".to_string()), &[]);
             if !isYes && is_true(&(priceStr != Value::Null)) {
                 priceStr = crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &priceStr);
             }
-            let mut sizeStr: Value = self.safe_string_k(get_value(&asksSource, &ai), "size", &[]);
+            let mut sizeStr: Value = self.safe_string(asksSource.as_array().and_then(|__arr| match &ai { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("size".to_string()), &[]);
             if (sizeStr != Value::Null) {
                 sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr);
             }
@@ -2118,8 +2107,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1278: bool = true;
             while { if !__for_first_1278 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1278 = false; i.as_f64().unwrap_or(f64::NAN) < ((history.len() as i64) as f64) } {
-            let mut point: Value = get_value(&history, &i);
-            let mut point: Value = get_value(&history, &i);
+            let mut point: Value = history.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut pointPrice: Value = self.safe_number_k(point.clone(), "price", &[]);
             let mut pointTs: Value = self.safe_integer_k(point.clone(), "timestamp", &[]);
             if (pointTs == Value::Null) {
@@ -2155,8 +2143,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1279: bool = true;
             while { if !__for_first_1279 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1279 = false; i.as_f64().unwrap_or(f64::NAN) < ((sorted.len() as i64) as f64) } {
-            let mut point: Value = get_value(&sorted, &i);
-            let mut point: Value = get_value(&sorted, &i);
+            let mut point: Value = sorted.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut pTs: Value = self.safe_integer_k(point.clone(), "timestamp", &[]);
             let mut pPrice: Value = self.safe_number_k(point, "price", &[]);
             if (pTs == Value::Null) {
@@ -2185,7 +2172,7 @@ impl LimitlessCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1280: bool = true;
             while { if !__for_first_1280 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1280 = false; i.as_f64().unwrap_or(f64::NAN) < ((bucketOrder.len() as i64) as f64) } {
-            append_to_array(&mut result, get_value(&candles, &get_value(&bucketOrder, &i)));
+            append_to_array(&mut result, get_value(&candles, &bucketOrder.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
         }
         }
         return self.filter_by_since_limit(result.clone(), &[since.clone(), limit.clone(), Value::Int(0)]);
@@ -3106,7 +3093,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1283: bool = true;
             while { if !__for_first_1283 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1283 = false; i.as_f64().unwrap_or(f64::NAN) < ((fields.len() as i64) as f64) } {
-            append_to_array(&mut signedFields, get_value(&fields, &i));
+            append_to_array(&mut signedFields, fields.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
         append_to_array(&mut signedFields, self.rlp_encode_bytes(self.int_to_rlp_hex(yParity.clone())));
@@ -3897,8 +3884,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (queries == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".to_string()))));
                 }
-                let mut q: Value = get_value(&queries, &i);
-                let mut q: Value = get_value(&queries, &i);
+                let mut q: Value = queries.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let __ws_arg_30 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("query".to_string(), q.clone());
@@ -3911,8 +3897,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1288: bool = true;
                     while { if !__for_first_1288 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1288 = false; j.as_f64().unwrap_or(f64::NAN) < ((found.len() as i64) as f64) } {
-                    let mut raw: Value = get_value(&found, &j);
-                    let mut raw: Value = get_value(&found, &j);
+                    let mut raw: Value = found.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut rawSlug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
                     if is_true(&((rawSlug != Value::Null) && (rawSlug.as_str() != Some("")))) && !(in_op(&seen, &rawSlug)) {
                         add_element_to_object(&mut seen, &rawSlug, Value::Bool(true));
@@ -3940,7 +3925,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1290: bool = true;
                 while { if !__for_first_1290 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1290 = false; i.as_f64().unwrap_or(f64::NAN) < listRawLength } {
-                append_to_array(&mut rawMarkets, get_value(&listRaw, &i));
+                append_to_array(&mut rawMarkets, listRaw.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             }
         }
@@ -3965,8 +3950,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1291: bool = true;
             while { if !__for_first_1291 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1291 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
-            let mut raw: Value = get_value(&expandedMarkets, &i);
-            let mut raw: Value = get_value(&expandedMarkets, &i);
+            let mut raw: Value = expandedMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut groupId: Value = self.safe_string_n(raw.clone(), Value::from(vec![Value::Str("groupSlug".to_string()), Value::Str("groupId".to_string())]), &[self.safe_string_k(raw.clone(), "slug", &[])]);
             let mut eventKey: Value = (if is_true(&((groupId != Value::Null) && (groupId.as_str() != Some("")))) { self.shorten_slug(groupId.clone()) } else { Value::Null });
             let mut m: Value = self.parse_market(raw.clone());
@@ -4003,7 +3987,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1292: bool = true;
             while { if !__for_first_1292 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1292 = false; i.as_f64().unwrap_or(f64::NAN) < eventKeysLength } {
-            let mut g: Value = get_value(&eventGroups, &get_value(&eventKeys, &i));
+            let mut g: Value = get_value(&eventGroups, &eventKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut ev: Value = self.parse_event(g.clone());
             append_to_array(&mut result, ev.clone());
         }
@@ -4076,7 +4060,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1293: bool = true;
                 while { if !__for_first_1293 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1293 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
                 if collected.as_f64().unwrap_or(f64::NAN) < maxMarkets.as_f64().unwrap_or(f64::NAN) {
-                    append_to_array(&mut allRaw, get_value(&data, &i));
+                    append_to_array(&mut allRaw, data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                     collected = self.sum(&[collected.clone(), Value::Int(1)]);
                 }
             }
@@ -4125,8 +4109,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1296: bool = true;
             while { if !__for_first_1296 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1296 = false; i.as_f64().unwrap_or(f64::NAN) < categoriesLength } {
-            let mut category: Value = get_value(&categories, &i);
-            let mut category: Value = get_value(&categories, &i);
+            let mut category: Value = categories.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut name: Value = self.safe_string_lower(category.clone(), Value::Str("name".to_string()), &[Value::Str("".to_string())]);
             let mut categoryId: Value = self.safe_string_k(category.clone(), "id", &[]);
             let mut matched: bool = false;
@@ -4137,7 +4120,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (name == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchRawMarketsByTags() missing name".to_string()))));
                 }
-                if get_index_of(&name, &get_value(&wanted, &wi)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                if get_index_of(&name, &wanted.as_array().and_then(|__arr| match &wi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     matched = true;
                     break;
                 }
@@ -4161,14 +4144,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut ci: Value = Value::Int(0);
             let mut __for_first_1298: bool = true;
             while { if !__for_first_1298 { ci = (match (&(ci), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1298 = false; ci.as_f64().unwrap_or(f64::NAN) < categoryIdsLength } {
-            let mut categoryMarkets: Value = self.fetch_raw_active_markets(&[params.clone(), get_value(&categoryIds, &ci)]).await;
+            let mut categoryMarkets: Value = self.fetch_raw_active_markets(&[params.clone(), categoryIds.as_array().and_then(|__arr| match &ci { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]).await;
             let mut categoryMarketsLength: f64 = ((categoryMarkets.len() as i64) as f64);
             {
                                 let mut mi: Value = Value::Int(0);
                 let mut __for_first_1297: bool = true;
                 while { if !__for_first_1297 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1297 = false; mi.as_f64().unwrap_or(f64::NAN) < categoryMarketsLength } {
-                let mut raw: Value = get_value(&categoryMarkets, &mi);
-                let mut raw: Value = get_value(&categoryMarkets, &mi);
+                let mut raw: Value = categoryMarkets.as_array().and_then(|__arr| match &mi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut slug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
                 if is_true(&(slug != Value::Null)) && !(in_op(&seen, &slug)) {
                     add_element_to_object(&mut seen, &slug, Value::Bool(true));

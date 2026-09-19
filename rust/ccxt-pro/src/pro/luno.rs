@@ -348,8 +348,7 @@ impl LunoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_487: bool = true;
             while { if !__for_first_487 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_487 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
-            let mut rawTrade: Value = get_value(&rawTrades, &i);
-            let mut rawTrade: Value = get_value(&rawTrades, &i);
+            let mut rawTrade: Value = rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut trade: Value = self.parse_trade(rawTrade.clone(), &[market.clone()]);
             stored.append(trade.clone());
         }
@@ -626,8 +625,7 @@ impl LunoCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_489: bool = true;
             while { if !__for_first_489 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_489 = false; j.as_f64().unwrap_or(f64::NAN) < ((handlers.len() as i64) as f64) } {
-            let mut handler: Value = get_value(&handlers, &j);
-            let mut handler: Value = get_value(&handlers, &j);
+            let mut handler: Value = handlers.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone(), subscriptions.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)]);
         }
         }
