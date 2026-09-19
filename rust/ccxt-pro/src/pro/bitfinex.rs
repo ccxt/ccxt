@@ -793,8 +793,8 @@ impl BitfinexCore {
             stored = ArrayCache::new(tradesLimit);
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut messageLength: Value = get_array_length(&message);
-        if is_equal(&messageLength, &Value::Int(2)) {
+        let mut messageLength: f64 = ((message.len() as i64) as f64);
+        if (messageLength == 2.0) {
             // initial snapshot
             let mut trades: Value = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]);
             // needs to be reversed to make chronological order
@@ -865,8 +865,8 @@ impl BitfinexCore {
         //       1655110144596
         //    ]
         //
-        let mut numFields: Value = get_array_length(&trade);
-        let mut isPublic: bool = numFields.as_f64().unwrap_or(f64::NAN) <= ((8i64) as f64);
+        let mut numFields: f64 = ((trade.len() as i64) as f64);
+        let mut isPublic: bool = numFields <= ((8i64) as f64);
         let mut marketId: Value = (if (!isPublic) { self.safe_string(trade.clone(), Value::Int(1), &[]) } else { Value::Null });
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut createdKey: Value = (if isPublic { Value::Int(1) } else { Value::Int(2) });
@@ -1099,7 +1099,7 @@ impl BitfinexCore {
             }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             if isRaw {
-                let mut deltas: Value = get_value(&message, &Value::Int(1));
+                let mut deltas: Value = message.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_102: bool = true;
@@ -1117,7 +1117,7 @@ impl BitfinexCore {
                 }
                 }
             }  else {
-                let mut deltas: Value = get_value(&message, &Value::Int(1));
+                let mut deltas: Value = message.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_103: bool = true;
@@ -1142,7 +1142,7 @@ impl BitfinexCore {
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
         }  else {
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-            let mut deltas: Value = get_value(&message, &Value::Int(1));
+            let mut deltas: Value = message.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut orderbookItem: Value = get_value(&self.orderbooks, &symbol);
             if isRaw {
                 let mut price: Value = self.safe_string(deltas.clone(), Value::Int(1), &[]);
@@ -1442,7 +1442,7 @@ impl BitfinexCore {
             m
         });
         let mut unifiedChannel: Value = self.safe_string(mappings, self.safe_string_k(message.clone(), "channel", &[]), &[]);
-        if (in_op(&message, &Value::Str("key".into()))) {
+        if (matches!(&message, Value::Dict(__d) if __d.contains_key("key"))) {
             // handle ohlcv differently because the message is different
             let mut key: Value = self.safe_string_k(message.clone(), "key", &[]);
             let mut subKeyId: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), key).into());

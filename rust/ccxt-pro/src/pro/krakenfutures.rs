@@ -1284,7 +1284,7 @@ impl KrakenfuturesCore {
                     while { if !__for_first_444 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_444 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&orders).as_f64().unwrap_or(f64::NAN) } {
                     let mut currentOrder: Value = get_value(&orders, &i);
                     let mut currentOrder: Value = get_value(&orders, &i);
-                    if is_equal(&crate::value::get_value_k(&currentOrder, "id"), &crate::value::get_value_k(&message, "order_id")) {
+                    if is_equal(&crate::value::get_value_k(&currentOrder, "id"), &message.as_map().and_then(|__m| __m.get("order_id")).cloned().unwrap_or(Value::Null)) {
                         let __ws_arg_0 = self.safe_dict_k(currentOrder.clone(), "info", &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
                             m
@@ -1297,7 +1297,7 @@ impl KrakenfuturesCore {
                         add_element_to_object(&mut orders, &i, self.extend(currentOrder.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), status.clone());
-        m.insert("info".to_string(), info);
+        m.insert("info".to_string(), info.clone());
     m
 })]));
                         client.resolve(&[orders.clone(), messageHash.clone()]);
@@ -1476,7 +1476,7 @@ impl KrakenfuturesCore {
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), self.safe_string_k(unparsedOrder.clone(), "filled", &[]));
         m.insert("remaining".to_string(), self.safe_string_k(unparsedOrder, "qty", &[]));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone());
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), Value::Null);
@@ -1974,7 +1974,7 @@ impl KrakenfuturesCore {
             }
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("margin".to_string(), futuresResult); }
             { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "margin")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("margin".to_string(), __be_tmp); } }
-            client.resolve(&[crate::value::get_value_k(&self.balance, "margin"), Value::Str(format!("{}{}", messageHash, Value::Str("futures".into())).into())]);
+            client.resolve(&[self.balance.as_map().and_then(|__m| __m.get("margin")).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", messageHash, Value::Str("futures".into())).into())]);
         }
         if (flexFutures != Value::Null) {
             let mut flexFutureCurrencies: Value = self.safe_dict_k(flexFutures, "currencies", &[Value::Map({
@@ -2007,7 +2007,7 @@ impl KrakenfuturesCore {
             }
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("flex".to_string(), flexFuturesResult); }
             { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "flex")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("flex".to_string(), __be_tmp); } }
-            client.resolve(&[crate::value::get_value_k(&self.balance, "flex"), Value::Str(format!("{}{}", messageHash, Value::Str("flex_futures".into())).into())]);
+            client.resolve(&[self.balance.as_map().and_then(|__m| __m.get("flex")).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", messageHash, Value::Str("flex_futures".into())).into())]);
         }
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
 }

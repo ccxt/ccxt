@@ -5408,7 +5408,7 @@ impl WeexCore {
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        let mut parsedType: Value = (if (is_equal(&type_var, &Value::Int(1))) { Value::Str("add".into()) } else { Value::Str("reduce".into()) });
+        let mut parsedType: Value = (if (type_var.as_f64() == Some(1.0)) { Value::Str("add".into()) } else { Value::Str("reduce".into()) });
         let __ws_arg_48 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_private_post_capi_v3_account_position_margin(&[__ws_arg_48]).await;
         let __ws_arg_49 = self.parse_margin_modification(response.clone(), &[market]);

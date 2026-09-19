@@ -2383,7 +2383,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         self.clean_cache(topicStructure);
         // clean swap balance if it existed
-        if (in_op(&self.balance, &Value::Str("swap".into()))) {
+        if (matches!(&self.balance, Value::Dict(__d) if __d.contains_key("swap"))) {
             remove(&mut self.balance, &Value::Str("swap".into()));
         }
 }
@@ -2392,7 +2392,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subHash: Value = Value::Str("spotState".into());
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subHash).into());
         self.clean_unsubscription(client, subHash, unSubHash, &[Value::Bool(true)]);
-        if (in_op(&self.balance, &Value::Str("spot".into()))) {
+        if (matches!(&self.balance, Value::Dict(__d) if __d.contains_key("spot"))) {
             remove(&mut self.balance, &Value::Str("spot".into()));
         }
 }

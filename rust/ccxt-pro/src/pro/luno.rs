@@ -335,7 +335,7 @@ impl LunoCore {
         if (length == 0.0) {
             return;
         }
-        let mut symbol: Value = crate::value::get_value_k(&subscription, "symbol");
+        let mut symbol: Value = subscription.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("trades:".into()), &symbol);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -469,7 +469,7 @@ impl LunoCore {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut symbol: Value = crate::value::get_value_k(&subscription, "symbol");
+        let mut symbol: Value = subscription.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = add(&Value::Str("orderbook:".into()), &symbol);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         if !(in_op(&self.orderbooks, &symbol)) {

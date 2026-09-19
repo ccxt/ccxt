@@ -3394,14 +3394,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (matches!(&config, Value::Dict(__d) if __d.contains_key("noCoin"))) && !(in_op(&params, &Value::Str("coin".into()))) {
+        if (matches!(&config, Value::Dict(__d) if __d.contains_key("noCoin"))) && !(matches!(&params, Value::Dict(__d) if __d.contains_key("coin"))) {
             return config.as_map().and_then(|__m| __m.get("noCoin")).cloned().unwrap_or(Value::Null);
-        }  else if (matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol"))) && !(in_op(&params, &Value::Str("symbol".into()))) {
+        }  else if (matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol"))) && !(matches!(&params, Value::Dict(__d) if __d.contains_key("symbol"))) {
             return config.as_map().and_then(|__m| __m.get("noSymbol")).cloned().unwrap_or(Value::Null);
-        }  else if (matches!(&config, Value::Dict(__d) if __d.contains_key("noPoolId"))) && !(in_op(&params, &Value::Str("poolId".into()))) {
+        }  else if (matches!(&config, Value::Dict(__d) if __d.contains_key("noPoolId"))) && !(matches!(&params, Value::Dict(__d) if __d.contains_key("poolId"))) {
             return config.as_map().and_then(|__m| __m.get("noPoolId")).cloned().unwrap_or(Value::Null);
-        }  else if (matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit"))) && (in_op(&params, &Value::Str("limit".into()))) {
-            let mut limit: Value = crate::value::get_value_k(&params, "limit");
+        }  else if (matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit"))) && (matches!(&params, Value::Dict(__d) if __d.contains_key("limit"))) {
+            let mut limit: Value = params.as_map().and_then(|__m| __m.get("limit")).cloned().unwrap_or(Value::Null);
             let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);

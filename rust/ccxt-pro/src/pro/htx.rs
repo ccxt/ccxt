@@ -1450,7 +1450,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut channel: Value = topic.clone();
         let mut messageHash: Value = topic.clone();
         if (contractCode != Value::Null) && (contractCode.as_str() != Some("*")) {
-            messageHash = Value::Str(format!("{}{}", add(&topic, &Value::Str(".".into())), to_lower(&contractCode)).into());
+            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(".".into())).into()), to_lower(&contractCode)).into());
         }
         params = self.omit(params.clone(), Value::Str("contract_code".into()), &[]);
         let mut requestParams: Value = self.extend(Value::Map({
@@ -2253,7 +2253,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         ]
         //     }
         //
-        let mut url: Value = get_value(&client, &Value::Str("url".into()));
+        let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
         let mut topic: Option<String> = self.safe_string_k(message.clone(), "topic", &[Value::Str("".into())]).as_str().map(str::to_owned);
         let mut defaultMarginMode: Value = (if (topic.as_deref() == Some("positions_cross")) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         if (self.positions.clone() == Value::Null) {
@@ -2762,7 +2762,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
         }
-        if (in_op(&message, &Value::Str("unsubbed".into()))) {
+        if (matches!(&message, Value::Dict(__d) if __d.contains_key("unsubbed"))) {
             self.handle_un_subscription(client.clone(), subscription.clone());
         }
 }
@@ -3135,11 +3135,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //         }
             //     }
             //
-            if (in_op(&message, &Value::Str("id".into()))) {
+            if (matches!(&message, Value::Dict(__d) if __d.contains_key("id"))) {
                 self.handle_subscription_status(client.clone(), message.clone());
                 return;
             }
-            if (in_op(&message, &Value::Str("action".into()))) {
+            if (matches!(&message, Value::Dict(__d) if __d.contains_key("action"))) {
                 let mut action: Option<String> = self.safe_string_k(message.clone(), "action", &[]).as_str().map(str::to_owned);
                 if (action.as_deref() == Some("ping")) {
                     self.handle_ping(client.clone(), message.clone());
@@ -3150,8 +3150,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     return;
                 }
             }
-            if (in_op(&message, &Value::Str("ch".into()))) {
-                if (crate::value::get_value_k(&message, "ch").as_str() == Some("auth")) {
+            if (matches!(&message, Value::Dict(__d) if __d.contains_key("ch"))) {
+                if (message.as_map().and_then(|__m| __m.get("ch")).cloned().unwrap_or(Value::Null).as_str() == Some("auth")) {
                     self.handle_authenticate(client.clone(), message.clone());
                     return;
                 }  else {
@@ -3160,7 +3160,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     return;
                 }
             }
-            if (in_op(&message, &Value::Str("op".into()))) {
+            if (matches!(&message, Value::Dict(__d) if __d.contains_key("op"))) {
                 let mut op: Option<String> = self.safe_string_k(message.clone(), "op", &[]).as_str().map(str::to_owned);
                 if (op.as_deref() == Some("ping")) {
                     self.handle_ping(client.clone(), message.clone());
@@ -3179,7 +3179,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     return;
                 }
             }
-            if (in_op(&message, &Value::Str("ping".into()))) {
+            if (matches!(&message, Value::Dict(__d) if __d.contains_key("ping"))) {
                 self.handle_ping(client.clone(), message.clone());
             }
         }

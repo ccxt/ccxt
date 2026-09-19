@@ -1527,7 +1527,7 @@ impl CexCore {
         let mut symbol: Value = self.pair_to_symbol(pair);
         let mut storedOrderBook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
-        if !is_equal(&incrementalId, &add(&crate::value::get_value_k(&storedOrderBook, "nonce"), &Value::Int(1))) {
+        if !is_equal(&incrementalId, &add(&storedOrderBook.as_map().and_then(|__m| __m.get("nonce")).cloned().unwrap_or(Value::Null), &Value::Int(1))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             client.reject(&[Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() skipped a message".into())).into()), messageHash.clone()]);
             return;
@@ -1535,12 +1535,12 @@ impl CexCore {
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "time", &[]);
         let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
         let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
-        self.handle_deltas(crate::value::get_value_k(&storedOrderBook, "asks"), asks);
-        self.handle_deltas(crate::value::get_value_k(&storedOrderBook, "bids"), bids);
+        self.handle_deltas(storedOrderBook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null), asks);
+        self.handle_deltas(storedOrderBook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null), bids);
         add_element_to_object(&mut storedOrderBook, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut storedOrderBook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         add_element_to_object(&mut storedOrderBook, &Value::Str("nonce".into()), incrementalId);
-        client.resolve(&[storedOrderBook, messageHash]);
+        client.resolve(&[storedOrderBook, messageHash.clone()]);
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
@@ -1650,7 +1650,7 @@ impl CexCore {
 }));
         }
         add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &Value::Str("unknown".into()), stored.clone());
-        client.resolve(&[stored, messageHash]);
+        client.resolve(&[stored, messageHash.clone()]);
 }
 
     pub fn handle_ohlcv24(&self, mut client: Value, mut message: Value) -> Value {
@@ -1685,7 +1685,7 @@ impl CexCore {
         let mut ohlcv: Value = Value::from(vec![self.safe_timestamp(data.clone(), Value::Str("time".into()), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
         let mut stored: Value = self.safe_value(self.ohlcvs.clone(), symbol, &[]);
         stored.append(ohlcv);
-        client.resolve(&[stored, messageHash]);
+        client.resolve(&[stored, messageHash.clone()]);
 }
 
     pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
@@ -1714,7 +1714,7 @@ impl CexCore {
         }
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         if dataLength > ((0i64) as f64) {
-            client.resolve(&[stored, messageHash]);
+            client.resolve(&[stored, messageHash.clone()]);
         }
 }
 
@@ -1898,7 +1898,7 @@ impl CexCore {
                 m.insert("type".to_string(), side);
                 m.insert("amount".to_string(), amount);
                 m.insert("price".to_string(), price);
-                m.insert("order_id".to_string(), id);
+                m.insert("order_id".to_string(), id.clone());
             m
         }), &[params]);
         let mut messageHash: Value = self.request_id();
@@ -1942,7 +1942,7 @@ impl CexCore {
         }
         let mut data: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_id".to_string(), id);
+                m.insert("order_id".to_string(), id.clone());
             m
         }), &[params]);
         let mut messageHash: Value = self.request_id();
@@ -2034,7 +2034,7 @@ impl CexCore {
         //
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
         let mut messageHash: Value = self.safe_string_k(message, "oid", &[]);
-        client.resolve(&[data, messageHash]);
+        client.resolve(&[data, messageHash.clone()]);
 }
 
     pub fn handle_connected(&self, mut client: Value, mut message: Value) -> Value {
@@ -2060,7 +2060,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHash: Value = self.safe_string_k(message.clone(), "oid", &[]);
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), messageHash.clone(), &[]);
             if (future != Value::Null) {
-                client.reject(&[Value::from(error.clone()), messageHash]);
+                client.reject(&[Value::from(error.clone()), messageHash.clone()]);
                 return Value::Bool(true);
             }  else {
                 panic!("{}", error);
@@ -2104,7 +2104,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         let mut handler: Value = self.safe_value(handlers, event.clone(), &[]);
         if (handler != Value::Null) {
-            self.dispatch_ws_handler(&handler, &[client, message.clone()]);
+            self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
         }
 }
 

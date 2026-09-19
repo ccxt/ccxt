@@ -1094,7 +1094,7 @@ impl BithumbCore {
             client.reject(&[Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" websocket error ".into())).into()), errorName).into()), addedMessage)))]);
             return Value::Bool(false);
         }
-        if !(in_op(&message, &Value::Str("status".into()))) {
+        if !(matches!(&message, Value::Dict(__d) if __d.contains_key("status"))) {
             return Value::Bool(true);
         }
         let mut errorCode: Option<String> = self.safe_string_k(message.clone(), "status", &[]).as_str().map(str::to_owned);

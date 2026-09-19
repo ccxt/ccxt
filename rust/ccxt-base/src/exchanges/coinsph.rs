@@ -3014,7 +3014,7 @@ impl CoinsphCore {
         let mut stringifiedArray: Value = json_stringify(&array);
         stringifiedArray = replace_str(&stringifiedArray, &Value::Str("[".into()), &Value::Str("%5B".into()));
         stringifiedArray = replace_str(&stringifiedArray, &Value::Str("]".into()), &Value::Str("%5D".into()));
-        let mut urlEncodedParam: Value = Value::Str(format!("{}{}", add(&key, &Value::Str("=".into())), stringifiedArray).into());
+        let mut urlEncodedParam: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".into())).into()), stringifiedArray).into());
         return urlEncodedParam;
 
     Value::Null

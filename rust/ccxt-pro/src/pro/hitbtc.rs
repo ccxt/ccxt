@@ -1939,7 +1939,7 @@ impl HitbtcCore {
             if (clientOrderId.is_some()) {
                 self.handle_order_request(client.clone(), message.clone());
             }
-            if (is_equal(&result, &Value::Bool(true))) && !(in_op(&message, &Value::Str("id".into()))) {
+            if (is_equal(&result, &Value::Bool(true))) && !(matches!(&message, Value::Dict(__d) if __d.contains_key("id"))) {
                 self.handle_authenticate(client.clone(), message.clone());
             }
             if (matches!(&result, Value::Arr(_))) {

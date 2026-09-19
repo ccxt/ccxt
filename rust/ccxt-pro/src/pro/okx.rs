@@ -497,7 +497,7 @@ impl OkxCore {
             if (symbols == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" subscribeMultiple() symbols is required".into()))));
             }
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", add(&channel, &Value::Str("::".into())), symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
+            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
         }
         }
         let mut request: Value = Value::Map({
@@ -527,7 +527,7 @@ impl OkxCore {
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            messageHash = add(&messageHash, &Value::Str(format!("{}{}", Value::Str(":".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into())).into());
             if let Value::Dict(__d) = &mut firstArgument { std::sync::Arc::make_mut(__d).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let mut request: Value = Value::Map({
@@ -2354,7 +2354,7 @@ impl OkxCore {
             });
             // Only add params['access'] to prevent sending custom parameters, such as extraParams.
             if (matches!(&params, Value::Dict(__d) if __d.contains_key("access"))) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("access".to_string(), crate::value::get_value_k(&params, "access")); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("access".to_string(), params.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null)); }
             }
             self.watch(url.clone(), messageHash.clone(), &[request, messageHash.clone()]).await;
         }
@@ -3614,7 +3614,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_unsubscription_ticker(&mut self, mut client: Value, mut symbol: Value, mut channel: Value) {
-        let mut subMessageHash: Value = Value::Str(format!("{}{}", add(&channel, &Value::Str("::".into())), symbol).into());
+        let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), symbol).into());
         self.clean_unsubscription(client.clone(), subMessageHash, messageHash.clone(), &[]);
         if (in_op(&self.tickers, &symbol)) {

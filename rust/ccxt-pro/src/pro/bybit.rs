@@ -748,7 +748,7 @@ impl BybitCore {
         let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), "trade");
         self.authenticate(url.clone(), &[]).await;
         let mut requestId: Value = to_string_val(&self.request_id());
-        if (in_op(&orderRequest, &Value::Str("orderFilter".into()))) {
+        if (matches!(&orderRequest, Value::Dict(__d) if __d.contains_key("orderFilter"))) {
             remove(&mut orderRequest, &Value::Str("orderFilter".into()));
         }
         let mut request: Value = Value::Map({
@@ -1904,9 +1904,9 @@ impl BybitCore {
 }
 
     pub fn get_private_type(&self, mut url: Value) -> Value {
-        if get_index_of(&url, &Value::Str("spot".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if Value::Int(url.as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             return Value::Str("spot".into());
-        }  else if get_index_of(&url, &Value::Str("v5/private".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        }  else if Value::Int(url.as_str().and_then(|__s| __s.find("v5/private")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             return Value::Str("unified".into());
         }  else {
             return Value::Str("usdc".into());
@@ -2473,7 +2473,7 @@ impl BybitCore {
         //         ]
         //     }
         //
-        if (matches!(&crate::value::get_value_k(&message, "data"), Value::Arr(_))) {
+        if (matches!(&message.as_map().and_then(|__m| __m.get("data")).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             let mut rawLiquidations: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
@@ -2495,14 +2495,14 @@ impl BybitCore {
             }
             }
         }  else {
-            let mut rawLiquidation: Value = self.safe_dict_k(message, "data", &[Value::Map({
+            let mut rawLiquidation: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
             let mut marketId: Value = self.safe_string_k(rawLiquidation.clone(), "symbol", &[]);
-            let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Str("".into()), Value::Str("contract".into())]);
+            let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("".into()), Value::Str("contract".into())]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut liquidation: Value = self.parse_ws_liquidation(rawLiquidation, &[market.clone()]);
+            let mut liquidation: Value = self.parse_ws_liquidation(rawLiquidation.clone(), &[market.clone()]);
             if (self.liquidations.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]);
                 self.liquidations = ArrayCache::new(limit.clone());
@@ -2510,7 +2510,7 @@ impl BybitCore {
             let mut cache: Value = self.liquidations.clone();
             cache.append(liquidation.clone());
             client.resolve(&[Value::from(vec![liquidation.clone()]), Value::Str("liquidations".into())]);
-            client.resolve(&[Value::from(vec![liquidation]), Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol).into())]);
+            client.resolve(&[Value::from(vec![liquidation.clone()]), Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol).into())]);
         }
 }
 
@@ -2534,7 +2534,7 @@ impl BybitCore {
         //     }
         //
         let mut marketId: Value = self.safe_string2(liquidation.clone(), Value::Str("symbol".into()), Value::Str("s".into()), &[]);
-        market = self.safe_market(&[marketId, market.clone(), Value::Str("".into()), Value::Str("contract".into())]);
+        market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("".into()), Value::Str("contract".into())]);
         let mut timestamp: Value = self.safe_integer2(liquidation.clone(), Value::Str("updatedTime".into()), Value::Str("T".into()), &[]);
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2543,7 +2543,7 @@ impl BybitCore {
         m.insert("contracts".to_string(), self.safe_number2(liquidation.clone(), Value::Str("size".into()), Value::Str("v".into()), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
         m.insert("price".to_string(), self.safe_number2(liquidation.clone(), Value::Str("price".into()), Value::Str("p".into()), &[]));
-        m.insert("side".to_string(), self.safe_string_lower2(liquidation, Value::Str("side".into()), Value::Str("S".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower2(liquidation.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]));
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -2596,7 +2596,7 @@ impl BybitCore {
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit.clone(), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbol.clone(), since, limit.clone(), Value::Bool(true)]);
 
     Value::Null
 }
@@ -2626,7 +2626,7 @@ impl BybitCore {
         if (symbol != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrders() does not support a symbol parameter, you must unwatch all orders".into()))));
         }
-        let mut url: Value = self.get_url_by_market_type(&[symbol, Value::Bool(true), method.clone(), params.clone()]).await;
+        let mut url: Value = self.get_url_by_market_type(&[symbol.clone(), Value::Bool(true), method.clone(), params.clone()]).await;
         self.authenticate(url.clone(), &[]).await;
         let mut topicsByMarket: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2663,7 +2663,7 @@ impl BybitCore {
         //    }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "reqId", &[]);
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2760,7 +2760,7 @@ impl BybitCore {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut orders: Value = self.orders.clone();
-        let mut rawOrders: Value = self.safe_list_k(message, "data", &[Value::from(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(rawOrders.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3081,7 +3081,7 @@ impl BybitCore {
             client.resolve(&[get_value(&self.balance, &account), messageHash.clone()]);
         }  else {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), info); }
-            let mut timestamp: Value = self.safe_integer_k(message, "ts", &[]);
+            let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
             add_element_to_object(&mut self.balance, &Value::Str("timestamp".into()), timestamp.clone());
             { let __be_tmp = self.iso8601(timestamp); add_element_to_object(&mut self.balance, &Value::Str("datetime".into()), __be_tmp); };
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
@@ -3161,14 +3161,13 @@ impl BybitCore {
         let mut client: Value = self.client(&[url.clone()]);
         let mut newTopics: Value = Value::from(vec![]);
         let mut topicsLength: Value = get_array_length(&topics);
-        let mut messageHashesLength: Value = get_array_length(&messageHashes);
+        let mut messageHashesLength: Value = Value::Int(messageHashes.len() as i64);
         if is_equal(&topicsLength, &messageHashesLength) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_226: bool = true;
                 while { if !__for_first_226 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_226 = false; i.as_f64().unwrap_or(f64::NAN) < topicsLength.as_f64().unwrap_or(f64::NAN) } {
-                let mut messageHash: Value = get_value(&messageHashes, &i);
-                let mut messageHash: Value = get_value(&messageHashes, &i);
+                let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
                     append_to_array(&mut newTopics, get_value(&topics, &i));
                 }
@@ -3234,7 +3233,7 @@ impl BybitCore {
                 m
             });
         }
-        return self.watch_multiple(url.clone(), messageHashes.clone(), &[message, messageHashes.clone(), subscription]).await;
+        return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone(), subscription]).await;
 
     Value::Null
 }
@@ -3267,7 +3266,7 @@ impl BybitCore {
         });
         let mut message: Value = self.extend(request, &[params.clone()]);
         let __ws_arg_0 = self.extend(subscription, &[subExtension]);
-        return self.watch_multiple(url.clone(), messageHashes.clone(), &[message, messageHashes.clone(), __ws_arg_0]).await;
+        return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone(), __ws_arg_0]).await;
 
     Value::Null
 }
@@ -3295,7 +3294,7 @@ impl BybitCore {
                 m
             });
             let mut message: Value = self.extend(request, &[params.clone()]);
-            self.watch(url.clone(), messageHash.clone(), &[message, messageHash.clone()]).await;
+            self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

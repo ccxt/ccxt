@@ -741,7 +741,7 @@ impl BinanceCore {
 
     pub fn get_private_ws_url(&self, mut type_var: Value, mut listenKey: Value) -> Value {
         if (type_var.as_str() == Some("future")) {
-            return Value::Str(format!("{}{}", add(&self.get_ws_url(type_var.clone(), Value::Str("private".into())), &Value::Str("?listenKey=".into())), listenKey).into());
+            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(type_var.clone(), Value::Str("private".into())), Value::Str("?listenKey=".into())).into()), listenKey).into());
         }
         return Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &type_var), &Value::Str("/".into())), listenKey).into());
 
@@ -901,7 +901,7 @@ impl BinanceCore {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions".into()))));
         }
         let mut numSubscriptions: Value = Value::Int(subscriptionHashes.len() as i64);
-        let mut url: Value = Value::Str(format!("{}{}", add(&self.get_ws_url(type_var.clone(), self.get_future_ws_category(Value::Str("forceOrder".into()))), &Value::Str("/".into())), self.stream(type_var.clone(), streamHash, &[numSubscriptions])).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(type_var.clone(), self.get_future_ws_category(Value::Str("forceOrder".into()))), Value::Str("/".into())).into()), self.stream(type_var.clone(), streamHash, &[numSubscriptions])).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1325,7 +1325,7 @@ impl BinanceCore {
         }
         }
         let mut messageHashesLength: Value = Value::Int(messageHashes.len() as i64);
-        let mut url: Value = Value::Str(format!("{}{}", add(&self.get_ws_url(type_var.clone(), self.get_future_ws_category(name.clone())), &Value::Str("/".into())), self.stream(type_var.clone(), streamHash, &[messageHashesLength])).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(type_var.clone(), self.get_future_ws_category(name.clone())), Value::Str("/".into())).into()), self.stream(type_var.clone(), streamHash, &[messageHashesLength])).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1406,7 +1406,7 @@ impl BinanceCore {
         }
         }
         let mut messageHashesLength: Value = Value::Int(subMessageHashes.len() as i64);
-        let mut url: Value = Value::Str(format!("{}{}", add(&self.get_ws_url(type_var.clone(), self.get_future_ws_category(Value::Str("depth".into()))), &Value::Str("/".into())), self.stream(type_var.clone(), streamHash, &[messageHashesLength])).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(type_var.clone(), self.get_future_ws_category(Value::Str("depth".into()))), Value::Str("/".into())).into()), self.stream(type_var.clone(), streamHash, &[messageHashesLength])).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1899,7 +1899,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut query: Value = self.omit(params, Value::Str("type".into()), &[]);
         let mut subParamsLength: Value = Value::Int(subParams.len() as i64);
-        let mut url: Value = Value::Str(format!("{}{}", add(&self.get_ws_url(type_var.clone(), self.get_future_ws_category(name)), &Value::Str("/".into())), self.stream(type_var.clone(), streamHash, &[subParamsLength])).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(type_var.clone(), self.get_future_ws_category(name)), Value::Str("/".into())).into()), self.stream(type_var.clone(), streamHash, &[subParamsLength])).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2009,7 +2009,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut query: Value = self.omit(params, Value::Str("type".into()), &[]);
         let mut subParamsLength: Value = Value::Int(subParams.len() as i64);
-        let mut url: Value = Value::Str(format!("{}{}", add(&self.get_ws_url(type_var.clone(), self.get_future_ws_category(name)), &Value::Str("/".into())), self.stream(type_var.clone(), streamHash, &[subParamsLength])).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(type_var.clone(), self.get_future_ws_category(name)), Value::Str("/".into())).into()), self.stream(type_var.clone(), streamHash, &[subParamsLength])).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2427,7 +2427,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), timeframeString).into()));
         }
         }
-        let mut url: Value = Value::Str(format!("{}{}", add(&self.get_ws_url(wsUrlType.clone(), self.get_future_ws_category(klineType)), &Value::Str("/".into())), self.stream(wsUrlType.clone(), Value::Str("multipleOHLCV".into()), &[])).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(wsUrlType.clone(), self.get_future_ws_category(klineType)), Value::Str("/".into())).into()), self.stream(wsUrlType.clone(), Value::Str("multipleOHLCV".into()), &[])).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2523,7 +2523,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe::ohlcv::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), timeframeString).into()));
         }
         }
-        let mut url: Value = Value::Str(format!("{}{}", add(&self.get_ws_url(wsUrlType.clone(), self.get_future_ws_category(klineType)), &Value::Str("/".into())), self.stream(wsUrlType.clone(), Value::Str("multipleOHLCV".into()), &[])).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(wsUrlType.clone(), self.get_future_ws_category(klineType)), Value::Str("/".into())).into()), self.stream(wsUrlType.clone(), Value::Str("multipleOHLCV".into()), &[])).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3282,7 +3282,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (symbols != Value::Null) {
             streamHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str("::".into())).into()), join(&symbols, &Value::Str(",".into()))).into());
         }
-        let mut url: Value = Value::Str(format!("{}{}", add(&self.get_ws_url(rawMarketType.clone(), self.get_future_ws_category(channelName.clone())), &Value::Str("/".into())), self.stream(rawMarketType, streamHash, &[])).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(rawMarketType.clone(), self.get_future_ws_category(channelName.clone())), Value::Str("/".into())).into()), self.stream(rawMarketType, streamHash, &[])).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4308,7 +4308,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "id", &[]);
         let mut rawBalance: Value = Value::Null;
-        if (matches!(&crate::value::get_value_k(&message, "result"), Value::Arr(_))) {
+        if (matches!(&message.as_map().and_then(|__m| __m.get("result")).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             // account.balance
             rawBalance = self.safe_list_k(message.clone(), "result", &[Value::from(vec![])]);
         }  else {
@@ -4317,9 +4317,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            rawBalance = self.safe_list_k(result, "assets", &[Value::from(vec![])]);
+            rawBalance = self.safe_list_k(result.clone(), "assets", &[Value::from(vec![])]);
         }
-        let mut parsedBalances: Value = self.parent.parse_balance_custom(rawBalance, &[]);
+        let mut parsedBalances: Value = self.parent.parse_balance_custom(rawBalance.clone(), &[]);
         client.resolve(&[parsedBalances, messageHash.clone()]);
 }
 

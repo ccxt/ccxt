@@ -6380,20 +6380,20 @@ impl HtxCore {
     pub fn parse_margin_balance_helper(&self, mut balance: Value, mut code: Value, mut result: Value) -> Value {
         let mut account: Value = Value::Null;
         if (in_op(&result, &code)) {
-            account = get_value(&result, &code);
+            account = result.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }  else {
             account = self.account();
         }
         if (account == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarginBalanceHelper() could not resolve account".into()))));
         }
-        if (crate::value::get_value_k(&balance, "type").as_str() == Some("trade")) {
+        if (balance.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("trade")) {
             add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(balance.clone(), "balance", &[]));
         }
         if (account == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarginBalanceHelper() could not resolve account".into()))));
         }
-        if (crate::value::get_value_k(&balance, "type").as_str() == Some("frozen")) {
+        if (balance.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("frozen")) {
             add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(balance.clone(), "balance", &[]));
         }
         return account;
@@ -12374,15 +12374,14 @@ impl HtxCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_791: bool = true;
-            while { if !__for_first_791 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_791 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&settlements).as_f64().unwrap_or(f64::NAN) } {
-            let mut settlement: Value = get_value(&settlements, &i);
-            let mut settlement: Value = get_value(&settlements, &i);
+            while { if !__for_first_791 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_791 = false; i.as_f64().unwrap_or(f64::NAN) < ((settlements.len() as i64) as f64) } {
+            let mut settlement: Value = settlements.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut list: Value = self.safe_list_k(settlement.clone(), "list", &[]);
-            if is_equal(&crate::value::get_value_k(&market, "linear"), &Value::Bool(true)) {
+            if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 let mut parsedSettlement: Value = self.parse_settlement(settlement.clone(), market.clone());
                 append_to_array(&mut result, parsedSettlement.clone());
             }  else if (list != Value::Null) {
-                let mut timestamp: Value = self.safe_integer_k(settlement, "settlement_time", &[]);
+                let mut timestamp: Value = self.safe_integer_k(settlement.clone(), "settlement_time", &[]);
                 let mut timestampDetails: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("timestamp".to_string(), timestamp.clone());
@@ -12399,7 +12398,7 @@ impl HtxCore {
                 }
                 }
             }  else {
-                append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), market.clone()));
+                append_to_array(&mut result, self.parse_settlement(settlements.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), market.clone()));
             }
         }
         }
@@ -12448,7 +12447,7 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("price".to_string(), self.safe_number_k(settlement, "settlement_price", &[]));
+        m.insert("price".to_string(), self.safe_number_k(settlement.clone(), "settlement_price", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m

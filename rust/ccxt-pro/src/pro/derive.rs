@@ -698,7 +698,7 @@ impl DeriveCore {
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".into())).into()), symbol)));
         client.reject(&[Value::from(error.clone()), topic.clone()]);
-        client.resolve(&[error, add(&Value::Str("unwatch".into()), &topic)]);
+        client.resolve(&[error, Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into())]);
 }
 
     pub fn handle_trades_un_subscription(&mut self, mut client: Value, mut topic: Value) {
@@ -714,7 +714,7 @@ impl DeriveCore {
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trades ".into())).into()), symbol)));
         client.reject(&[Value::from(error.clone()), topic.clone()]);
-        client.resolve(&[error, add(&Value::Str("unwatch".into()), &topic)]);
+        client.resolve(&[error, Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into())]);
 }
 
     pub fn handle_un_subscribe(&mut self, mut client: Value, mut message: Value) -> Value {

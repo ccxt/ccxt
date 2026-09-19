@@ -1855,7 +1855,7 @@ impl DydxCore {
         let mut encodedTx: Value = encodedTxsignDocVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut signDoc: Value = encodedTxsignDocVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut signature: Value = self.sign_hash(encodedTx, privateKey);
-        return self.encode_dydx_tx_raw(signDoc, Value::Str(format!("{}{}", signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null), signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null)).into()));
+        return self.encode_dydx_tx_raw(signDoc, add(&signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null), &signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null)));
 
     Value::Null
 }

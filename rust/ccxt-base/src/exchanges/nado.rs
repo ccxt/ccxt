@@ -3811,7 +3811,7 @@ impl NadoCore {
             appendix = crate::precise::Precise::stringAdd(&appendix, &crate::precise::Precise::stringMul(&builder, &Value::Str("281474976710656".into()))); // 1<<48
             appendix = crate::precise::Precise::stringAdd(&appendix, &crate::precise::Precise::stringMul(&builderFeeRate, &Value::Str("274877906944".into()))); // 1<<32
         }
-        if is_equal(&isTriggerOrder, &Value::Bool(true)) {
+        if (isTriggerOrder.as_bool() == Some(true)) {
             appendix = crate::precise::Precise::stringAdd(&appendix, &Value::Str("4096".into()));
         }
         return appendix;

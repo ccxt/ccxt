@@ -2152,7 +2152,7 @@ pub trait ExchangeBase:
 
     fn features_mapper(&mut self, mut initialFeatures: Value, mut marketType: Value, optional_args: &[Value]) -> Value {
         let mut subType = get_arg(optional_args, 0, Value::Null);
-        let mut featuresObj: Value = (if (subType != Value::Null) { get_value(&get_value(&initialFeatures, &marketType), &subType) } else { get_value(&initialFeatures, &marketType) });
+        let mut featuresObj: Value = (if (subType != Value::Null) { get_value(&initialFeatures.as_map().and_then(|__m| marketType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &subType) } else { initialFeatures.as_map().and_then(|__m| marketType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) });
         // if exchange does not have that market-type (eg. future>inverse)
         if (featuresObj == Value::Null) {
             return Value::Null;
@@ -2160,7 +2160,7 @@ pub trait ExchangeBase:
         let mut extendsStr: Value = self.safe_string_k(featuresObj.clone(), "extends", &[]);
         if (extendsStr != Value::Null) {
             featuresObj = self.omit(featuresObj.clone(), Value::Str("extends".into()), &[]);
-            let mut extendObj: Value = self.features_mapper(initialFeatures, extendsStr, &[]);
+            let mut extendObj: Value = self.features_mapper(initialFeatures.clone(), extendsStr, &[]);
             featuresObj = self.deep_extend(extendObj, &[featuresObj.clone()]);
         }
         //

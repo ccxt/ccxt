@@ -4045,7 +4045,7 @@ impl BithumbCore {
             return Value::Null;
         }
         let mut finalNumberStr: Value = numberStr;
-        while get_index_of(&finalNumberStr, &Value::Str(",".into())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        while Value::Int(finalNumberStr.as_str().and_then(|__s| __s.find(",")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             finalNumberStr = replace_str(&finalNumberStr, &Value::Str(",".into()), &Value::Str("".into()));
         }
         return finalNumberStr;

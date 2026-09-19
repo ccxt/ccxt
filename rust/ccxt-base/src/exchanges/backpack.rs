@@ -2183,8 +2183,7 @@ impl BackpackCore {
             while { if !__for_first_237 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_237 = false; i.as_f64().unwrap_or(f64::NAN) < ((balanceKeys.len() as i64) as f64) } {
             let mut id: Value = balanceKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut balance: Value = get_value(&response, &id);
-            let mut balance: Value = get_value(&response, &id);
+            let mut balance: Value = response.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut account: Value = self.account();
             let mut locked: Value = self.safe_string_k(balance.clone(), "locked", &[]);
             let mut staked: Value = self.safe_string_k(balance.clone(), "staked", &[]);
@@ -3388,9 +3387,9 @@ impl BackpackCore {
 })]);
             let mut sortedOrder: Value = self.keysort(order, &[]);
             let mut orderQuery: Value = self.urlencode(sortedOrder, &[]);
-            payload = Value::Str(format!("{}{}", payload, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("instruction=".into()), &instruction), Value::Str("&".into())).into()), orderQuery).into()), Value::Str("&".into())).into())).into());
+            payload = Value::Str(format!("{}{}", payload, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instruction=".into()), instruction).into()), Value::Str("&".into())).into()), orderQuery).into()), Value::Str("&".into())).into())).into());
             if (i.as_f64() == (subtract(&get_array_length(&params), &Value::Int(1))).as_f64()) {
-                payload = Value::Str(format!("{}{}", payload, add(&Value::Str(format!("{}{}", add(&Value::Str("timestamp=".into()), &ts), Value::Str("&window=".into())).into()), &recvWindow)).into());
+                payload = Value::Str(format!("{}{}", payload, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("timestamp=".into()), ts).into()), Value::Str("&window=".into())).into()), recvWindow).into())).into());
             }
         }
         }

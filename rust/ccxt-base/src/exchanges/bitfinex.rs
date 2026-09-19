@@ -1733,9 +1733,8 @@ impl BitfinexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_317: bool = true;
-            while { if !__for_first_317 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_317 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&ids).as_f64().unwrap_or(f64::NAN) } {
-            let mut id: Value = get_value(&ids, &i);
-            let mut id: Value = get_value(&ids, &i);
+            while { if !__for_first_317 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_317 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (ends_with(&id, &Value::Str("F0".into()))) {
                 continue;
             }
@@ -1763,16 +1762,16 @@ impl BitfinexCore {
 
     pub fn parse_currency_custom(&self, mut id: Value, mut indexed: Value, mut indexedNetworks: Value) -> Value {
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-        let mut label: Value = self.safe_list(crate::value::get_value_k(&indexed, "label"), id.clone(), &[Value::from(vec![])]);
+        let mut label: Value = self.safe_list(indexed.as_map().and_then(|__m| __m.get("label")).cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
         let mut name: Value = self.safe_string(label.clone(), Value::Int(1), &[]);
-        let mut pool: Value = self.safe_list(crate::value::get_value_k(&indexed, "pool"), id.clone(), &[Value::from(vec![])]);
+        let mut pool: Value = self.safe_list(indexed.as_map().and_then(|__m| __m.get("pool")).cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
         let mut rawType: Option<String> = self.safe_string(pool.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut isCryptoCoin: bool = (rawType.is_some()) || (in_op(&crate::value::get_value_k(&indexed, "explorer"), &id)); // "hacky" solution
+        let mut isCryptoCoin: bool = (rawType.is_some()) || (in_op(&indexed.as_map().and_then(|__m| __m.get("explorer")).cloned().unwrap_or(Value::Null), &id)); // "hacky" solution
         let mut type_var: Value = (if isCryptoCoin { Value::Str("crypto".into()) } else { Value::Null });
-        let mut feeValues: Value = self.safe_list(crate::value::get_value_k(&indexed, "fees"), id.clone(), &[Value::from(vec![])]);
+        let mut feeValues: Value = self.safe_list(indexed.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
         let mut fees: Value = self.safe_list(feeValues.clone(), Value::Int(1), &[Value::from(vec![])]);
         let mut fee: Value = self.safe_number(fees, Value::Int(1), &[]);
-        let mut undl: Value = self.safe_list(crate::value::get_value_k(&indexed, "undl"), id.clone(), &[Value::from(vec![])]);
+        let mut undl: Value = self.safe_list(indexed.as_map().and_then(|__m| __m.get("undl")).cloned().unwrap_or(Value::Null), id.clone(), &[Value::from(vec![])]);
         let mut defaultCurrencyPrecision: Value = self.safe_string_k(self.options.clone(), "defaultCurrencyPrecision", &[Value::Str("8".into())]); // kept here for backward-compatibility
         // numberToString instead of an `as string` cast: the describe() default for this option is the
         // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
@@ -1795,7 +1794,7 @@ impl BitfinexCore {
                 continue;
             }
             let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            let mut dwStatuses: Value = self.safe_list(crate::value::get_value_k(&indexed, "statuses"), networkId.clone(), &[Value::from(vec![])]);
+            let mut dwStatuses: Value = self.safe_list(indexed.as_map().and_then(|__m| __m.get("statuses")).cloned().unwrap_or(Value::Null), networkId.clone(), &[Value::from(vec![])]);
             if (network != Value::Null) {
                 add_element_to_object(&mut networks, &network, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1851,7 +1850,7 @@ impl BitfinexCore {
     m
 }));
         m.insert("networks".to_string(), networks);
-        m.insert("margin".to_string(), self.in_array(id.clone(), crate::value::get_value_k(&indexed, "marginables")));
+        m.insert("margin".to_string(), self.in_array(id.clone(), indexed.as_map().and_then(|__m| __m.get("marginables")).cloned().unwrap_or(Value::Null)));
     m
 }));
 
