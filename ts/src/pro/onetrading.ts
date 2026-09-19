@@ -105,7 +105,7 @@ export default class onetrading extends onetradingRest {
         return await this.watch (url, messageHash, request, subscribeHash, request);
     }
 
-    handleBalanceSnapshot (client: Client, message: any) {
+    handleBalanceSnapshot (client: Client, message: Dict): void {
         //
         // snapshot
         //     {
@@ -200,7 +200,7 @@ export default class onetrading extends onetradingRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         //
         //     {
         //         "ticker_updates": [{
@@ -232,7 +232,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (this.tickers, 'tickers');
     }
 
-    parseWSTicker (ticker: any, market: Market = undefined) {
+    parseWSTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "instrument": "ETH_BTC",
@@ -351,7 +351,7 @@ export default class onetrading extends onetradingRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         //  snapshot
         //     {
@@ -483,7 +483,7 @@ export default class onetrading extends onetradingRest {
         return orders;
     }
 
-    handleTrading (client: Client, message: any) {
+    handleTrading (client: Client, message: Dict): void {
         //
         //     {
         //         "order_book_sequence": 892925263,
@@ -539,7 +539,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (this.orders, 'orders');
     }
 
-    parseTradingOrder (order: any, market: Market = undefined) {
+    parseTradingOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "order_book_sequence": 892925263,
@@ -652,7 +652,7 @@ export default class onetrading extends onetradingRest {
         }, market);
     }
 
-    parseTradingOrderStatus (status: any) {
+    parseTradingOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'CANCELLED': 'canceled',
             'SELF_TRADE': 'rejected',
@@ -665,7 +665,7 @@ export default class onetrading extends onetradingRest {
         return this.safeString (statuses, status, status);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: Dict): void {
         //
         //  snapshot
         //     {
@@ -752,7 +752,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (this.myTrades, 'myTrades');
     }
 
-    handleAccountUpdate (client: Client, message: any) {
+    handleAccountUpdate (client: Client, message: Dict): void {
         //
         // order created
         //     {
@@ -1032,7 +1032,7 @@ export default class onetrading extends onetradingRest {
         }
     }
 
-    parseWsOrderStatus (status: any) {
+    parseWsOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'ORDER_REJECTED': 'rejected',
             'ORDER_CLOSED': 'closed',
@@ -1041,7 +1041,7 @@ export default class onetrading extends onetradingRest {
         return this.safeString (statuses, status, status);
     }
 
-    updateBalance (balance: any) {
+    updateBalance (balance: Dict): void {
         //
         //     {
         //         "currency_code": "EUR",
@@ -1142,7 +1142,7 @@ export default class onetrading extends onetradingRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         //  snapshot
         //     {
@@ -1205,7 +1205,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (stored, channel);
     }
 
-    override findTimeframe (timeframe: any, timeframes: any = undefined) {
+    override findTimeframe (timeframe: any, timeframes: any = undefined): Str {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
         }
@@ -1222,7 +1222,7 @@ export default class onetrading extends onetradingRest {
         return undefined;
     }
 
-    handleSubscriptions (client: Client, message: any) {
+    handleSubscriptions (client: Client, message: Dict): Dict {
         //
         //     {
         //         "channels": [{
@@ -1237,7 +1237,7 @@ export default class onetrading extends onetradingRest {
         return message;
     }
 
-    handleHeartbeat (client: Client, message: any) {
+    handleHeartbeat (client: Client, message: Dict): Dict {
         //
         //     {
         //         "subscription": "SYSTEM",
@@ -1249,7 +1249,7 @@ export default class onetrading extends onetradingRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     {
         //         "error": "MALFORMED_JSON",
@@ -1261,7 +1261,7 @@ export default class onetrading extends onetradingRest {
         throw new ExchangeError (this.id + ' ' + this.json (message));
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         const error = this.safeString (message, 'error');
         if (error !== undefined) {
             this.handleErrorMessage (client, message);
@@ -1300,7 +1300,7 @@ export default class onetrading extends onetradingRest {
         }
     }
 
-    handlePricePointUpdates (client: Client, message: any) {
+    handlePricePointUpdates (client: Client, message: Dict): Dict {
         //
         //     {
         //         "channel_name": "MARKET_TICKER",
@@ -1322,7 +1322,7 @@ export default class onetrading extends onetradingRest {
         return message;
     }
 
-    handleAuthenticationMessage (client: Client, message: any) {
+    handleAuthenticationMessage (client: Client, message: Dict): Dict {
         //
         //    {
         //        "channel_name": "SYSTEM",
@@ -1337,7 +1337,7 @@ export default class onetrading extends onetradingRest {
         return message;
     }
 
-    async watchMany (messageHash: any, request: any, subscriptionHash: any, symbols: Strings = [], params = {}) {
+    async watchMany (messageHash: string, request: Dict, subscriptionHash: string, symbols: Strings = [], params: Dict = {}): Promise<any> {
         let marketIds: string[] = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {
@@ -1377,7 +1377,7 @@ export default class onetrading extends onetradingRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscription);
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';

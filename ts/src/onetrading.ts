@@ -631,7 +631,7 @@ export default class onetrading extends Exchange {
         }
     }
 
-    async fetchPublicTradingFees (params = {}) {
+    async fetchPublicTradingFees (params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -705,7 +705,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    async fetchPrivateTradingFees (params = {}) {
+    async fetchPrivateTradingFees (params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -774,7 +774,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    parseFeeTiers (feeTiers: any, market: Market = undefined) {
+    parseFeeTiers (feeTiers: any[], market: Market = undefined): Dict {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
@@ -1253,7 +1253,7 @@ export default class onetrading extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'OPEN': 'open',
             'BOOKED': 'open',
@@ -1377,7 +1377,7 @@ export default class onetrading extends Exchange {
         }, market);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
@@ -1903,7 +1903,7 @@ export default class onetrading extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

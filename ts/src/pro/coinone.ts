@@ -80,7 +80,7 @@ export default class coinone extends coinoneRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         //     {
         //         "response_type": "DATA",
@@ -163,7 +163,7 @@ export default class coinone extends coinoneRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         //
         //     {
         //         "response_type": "DATA",
@@ -292,7 +292,7 @@ export default class coinone extends coinoneRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         //     {
         //         "response_type": "DATA",
@@ -380,7 +380,7 @@ export default class coinone extends coinoneRest {
         return false;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
@@ -413,13 +413,13 @@ export default class coinone extends coinoneRest {
         }
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         return {
             'request_type': 'PING',
         };
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         //     {
         //         "response_type":"PONG"

@@ -290,7 +290,7 @@ export default class upbit extends Exchange {
         });
     }
 
-    async fetchCurrency (code: string, params = {}) {
+    async fetchCurrency (code: string, params: Dict = {}): Promise<Dict> {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
         if (this.markets === undefined) {
@@ -300,7 +300,7 @@ export default class upbit extends Exchange {
         return await this.fetchCurrencyById (currency['id'], params);
     }
 
-    async fetchCurrencyById (id: string, params = {}) {
+    async fetchCurrencyById (id: string, params: Dict = {}): Promise<Dict> {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
         const request: Dict = {
@@ -390,7 +390,7 @@ export default class upbit extends Exchange {
         };
     }
 
-    async fetchMarket (symbol: string, params = {}) {
+    async fetchMarket (symbol: string, params: Dict = {}): Promise<Market> {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         if (this.markets === undefined) {
@@ -400,7 +400,7 @@ export default class upbit extends Exchange {
         return await this.fetchMarketById (market['id'], params);
     }
 
-    async fetchMarketById (id: Str, params = {}) {
+    async fetchMarketById (id: Str, params: Dict = {}): Promise<Market> {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         const request: Dict = {
@@ -875,7 +875,7 @@ export default class upbit extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    idsQueryStrings (ids: Strings, maxQueryLength: number) {
+    idsQueryStrings (ids: Strings, maxQueryLength: number): List {
         if (ids === undefined) {
             return [];
         }
@@ -1741,7 +1741,7 @@ export default class upbit extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'submitting': 'pending', // 처리 중
             'submitted': 'pending', // 처리 완료
@@ -1823,7 +1823,7 @@ export default class upbit extends Exchange {
         } as Transaction;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'wait': 'open',
             'done': 'closed',
@@ -2425,11 +2425,11 @@ export default class upbit extends Exchange {
         return this.parseTransaction (response);
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
         let url: Str = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         });
