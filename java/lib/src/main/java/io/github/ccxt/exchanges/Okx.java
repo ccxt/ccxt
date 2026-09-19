@@ -9313,7 +9313,7 @@ public class Okx extends OkxApi
                 Map<String, Object> borrowRateStructure = (Map<String, Object>) this.parseBorrowRate(item);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
                 ((Map<String, Object>)borrowRateStructure).put("period", 31536000000L);
-                Object borrrowRateCode = Helpers.GetValue(borrowRateHistories, code);
+                Object borrrowRateCode = (borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code));
                 ((List<Object>)borrrowRateCode).add(borrowRateStructure);
             }
         }
@@ -9321,7 +9321,7 @@ public class Okx extends OkxApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            ((Map<String, Object>)borrowRateHistories).put((String)code, this.filterByCurrencySinceLimit(Helpers.GetValue(borrowRateHistories, code), code, since, limit));
+            ((Map<String, Object>)borrowRateHistories).put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit));
         }
         return borrowRateHistories;
     }
@@ -10427,7 +10427,7 @@ public class Okx extends OkxApi
         {
             Object code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees(Helpers.GetValue(depositWithdrawFees, code), currency));
+            ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
         }
         return depositWithdrawFees;
     }

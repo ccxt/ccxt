@@ -2945,7 +2945,7 @@ public class Htx extends HtxApi
         Map<String, Object> futureMarketIdsForSymbols = (Map<String, Object>) this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
         if (futureMarketIdsForSymbols.containsKey(symbolOrMarketId))
         {
-            return Helpers.GetValue(futureMarketIdsForSymbols, symbolOrMarketId);
+            return (futureMarketIdsForSymbols == null || symbolOrMarketId == null ? null : futureMarketIdsForSymbols.get(symbolOrMarketId));
         }
         List<Object> futureMarkets = this.filterBy(this.markets, "future", true);
         Map<String, Object> futuresCharsMaps = new HashMap<String, Object>() {{
@@ -4604,7 +4604,7 @@ public class Htx extends HtxApi
         Map<String, Object> uniqueNetworkIds = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("networkChainIdsByNames"), currencyCode, new HashMap<String, Object>() {{}});
         if (uniqueNetworkIds.containsKey(networkCode))
         {
-            return Helpers.GetValue(uniqueNetworkIds, networkCode);
+            return (uniqueNetworkIds == null || networkCode == null ? null : uniqueNetworkIds.get(networkCode));
         } else
         {
             Object networkTitle = super.networkCodeToId(networkCode, currencyCode);
@@ -4892,7 +4892,7 @@ public class Htx extends HtxApi
                         for (var j = 0; j < ((List<?>)subCodes).size(); j++)
                         {
                             Object subCode = (subCodes == null || j < 0 || j >= subCodes.size() ? null : subCodes.get(j));
-                            result = this.mergeBalanceAccount(result, subCode, Helpers.GetValue(subResult, subCode));
+                            result = this.mergeBalanceAccount(result, subCode, (subResult == null || subCode == null ? null : subResult.get(subCode)));
                         }
                     }
                     result = this.safeBalance(result);
@@ -5184,7 +5184,7 @@ public class Htx extends HtxApi
         Object account = null;
         if (result.containsKey(code))
         {
-            account = Helpers.GetValue(result, code);
+            account = (result == null || code == null ? null : result.get(code));
         } else
         {
             account = this.account();
@@ -10542,7 +10542,7 @@ public class Htx extends HtxApi
             Long amountType = (Long) this.safeInteger2(parameters, "amount_type", "amountType", 2);
             final Object finalTimeframe = timeframe;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "period", Helpers.GetValue(timeframes, finalTimeframe) );
+                put( "period", (timeframes == null || !(finalTimeframe instanceof String) ? null : timeframes.get(finalTimeframe)) );
                 put( "amount_type", amountType );
             }};
             if (!java.util.Objects.equals(limit, null))

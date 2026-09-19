@@ -783,7 +783,7 @@ public class Kraken extends KrakenApi
                 {
                     isSynthetic = true;
                 }
-                Object market = Helpers.GetValue(markets, id);
+                Object market = (markets == null || id == null ? null : markets.get(id));
                 String baseIdRaw = this.safeString(market, "base");
                 String quoteIdRaw = this.safeString(market, "quote");
                 String baseId = this.safeCurrencyCode(baseIdRaw);
@@ -1354,7 +1354,7 @@ public class Kraken extends KrakenApi
                 Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Object ticker = Helpers.GetValue(tickers, id);
+                Object ticker = (tickers == null || id == null ? null : tickers.get(id));
                 ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -1623,7 +1623,7 @@ public class Kraken extends KrakenApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object value = Helpers.GetValue(ledger, key);
+                Object value = (ledger == null || key == null ? null : ledger.get(key));
                 Helpers.addElementToObject(value, "id", key);
                 ((List<Object>)items).add(value);
             }
@@ -1665,7 +1665,7 @@ public class Kraken extends KrakenApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object value = Helpers.GetValue(result, key);
+                Object value = (result == null || key == null ? null : result.get(key));
                 Helpers.addElementToObject(value, "id", key);
                 ((List<Object>)items).add(value);
             }
@@ -2209,7 +2209,7 @@ public class Kraken extends KrakenApi
         Map<String, Object> marketsByAltname = (Map<String, Object>) this.safeDict(this.options, "marketsByAltname", new HashMap<String, Object>() {{}});
         if ((id != null && marketsByAltname.containsKey(id)))
         {
-            return Helpers.GetValue(marketsByAltname, id);
+            return (marketsByAltname == null || !(id instanceof String) ? null : marketsByAltname.get(id));
         } else
         {
             return this.safeMarket(id);
@@ -3069,7 +3069,7 @@ final Object finalId = id;
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
                 Object id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
-                Object item = Helpers.GetValue(result, id);
+                Object item = (result == null || id == null ? null : result.get(id));
                 Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
                 }}, item));
@@ -3438,7 +3438,7 @@ final Object finalId = id;
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
                 Object id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
-                Object item = Helpers.GetValue(open, id);
+                Object item = (open == null || id == null ? null : open.get(id));
                 ((List<Object>)orders).add(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
                 }}, item));
@@ -3547,7 +3547,7 @@ final Object finalId = id;
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
                 Object id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
-                Object item = Helpers.GetValue(closed, id);
+                Object item = (closed == null || id == null ? null : closed.get(id));
                 ((List<Object>)orders).add(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
                 }}, item));
