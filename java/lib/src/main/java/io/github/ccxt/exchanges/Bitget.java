@@ -3669,7 +3669,7 @@ public class Bitget extends BitgetApi
         return new ArrayList<Object>(Arrays.asList(productType, parameters));
     }
 
-    public CompletableFuture<Object> handleUTAAndParams(Object parameters2, Object methodName, Object... optionalArgs)
+    public CompletableFuture<Object> handleUTAAndParams(Object parameters2, String methodName, Object... optionalArgs)
     {
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -5231,7 +5231,7 @@ final Object finalMinNotional = minNotional;
         }};
     }
 
-    public String parseTransactionType(Object type)
+    public String parseTransactionType(String type)
     {
         // the wire says withdraw, and a unified transaction says withdrawal
         Map<String, Object> types = new HashMap<String, Object>() {{
@@ -5240,7 +5240,7 @@ final Object finalMinNotional = minNotional;
         return this.safeString(types, ((String)type), type);
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "success", "ok" );
@@ -7225,7 +7225,7 @@ final Object finalMinNotional = minNotional;
         return this.safeBalance(result);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "new", "open" );
@@ -7733,7 +7733,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                Object request = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
+                Object request = this.createUtaOrderRequest((String) symbol, (String) type, (String) side, amount, price, parameters);
                 if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
                 {
                     response = (this.privateUtaPostV3TradePlaceStrategyOrder(request)).join();
@@ -7743,7 +7743,7 @@ final Object finalMinNotional = minNotional;
                 }
             } else
             {
-                Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+                Object request = this.createOrderRequest((String) symbol, (String) type, (String) side, amount, price, parameters);
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
                     if (Boolean.TRUE.equals(isTriggerOrder))
@@ -7790,7 +7790,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object createUtaOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createUtaOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -7961,7 +7961,7 @@ final Object finalMinNotional = minNotional;
         return this.extend(request, parameters);
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -12940,7 +12940,7 @@ final Object finalMinNotional = minNotional;
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "successful", "ok" );
