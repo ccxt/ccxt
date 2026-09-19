@@ -2322,7 +2322,7 @@ impl BitstampCore {
         //
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "timestamp", &[]);
         let mut vwap: Value = self.safe_string_k(ticker.clone(), "vwap", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "volume", &[]);
         let mut quoteVolume: Value = crate::precise::Precise::stringMul(&baseVolume, &vwap);
@@ -2423,7 +2423,7 @@ impl BitstampCore {
         //         "eur": 0.0
         //     }
         //
-        let mut currencyId: Value = self.safe_string_lower(transaction.clone(), Value::Str("currency".into()), &[]);
+        let mut currencyId: Value = self.safe_string_lower_k(transaction.clone(), "currency", &[]);
         if (currencyId != Value::Null) {
             return currencyId;
         }
@@ -2545,8 +2545,8 @@ impl BitstampCore {
         amountString = self.safe_string(trade.clone(), self.safe_string_k(market.clone(), "baseId", &[]), &[amountString.clone()]);
         costString = self.safe_string(trade.clone(), self.safe_string_k(market.clone(), "quoteId", &[]), &[costString.clone()]);
         // this endpoint is not aligned with "markets" endpoint
-        let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".into()), &[]);
-        let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".into()), &[]);
+        let mut baseIdLower: Value = self.safe_string_lower_k(market.clone(), "baseId", &[]);
+        let mut quoteIdLower: Value = self.safe_string_lower_k(market.clone(), "quoteId", &[]);
         let mut dashedIdLower: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseIdLower, Value::Str("_".into())).into()), quoteIdLower).into());
         if (priceString == Value::Null) {
             priceString = self.safe_string(trade.clone(), dashedIdLower, &[]);
@@ -2661,7 +2661,7 @@ impl BitstampCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("timestamp".into()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
+        return Value::from(vec![self.safe_timestamp_k(ohlcv.clone(), "timestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -3475,7 +3475,7 @@ impl BitstampCore {
         //         "timestamp": "1644406050"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product(contract.clone(), Value::Str("timestamp".into()), Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(contract.clone(), "timestamp", Value::Float(0.001), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
@@ -3818,7 +3818,7 @@ impl BitstampCore {
         }
         // there is no timestamp from fetchOrder
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "datetime", &[]));
-        let mut marketId: Value = self.safe_string_lower(order.clone(), Value::Str("currency_pair".into()), &[]);
+        let mut marketId: Value = self.safe_string_lower_k(order.clone(), "currency_pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("/".into())]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
@@ -4053,8 +4053,8 @@ impl BitstampCore {
         //
         // the websocket funding_rate channel additionally carries mark_price and index_price
         //
-        let mut currentTime: Value = self.safe_integer_product(fundingRate.clone(), Value::Str("timestamp".into()), Value::Int(1000), &[]);
-        let mut nextFundingRateTimestamp: Value = self.safe_integer_product(fundingRate.clone(), Value::Str("next_funding_time".into()), Value::Int(1000), &[]);
+        let mut currentTime: Value = self.safe_integer_product_k(fundingRate.clone(), "timestamp", Value::Int(1000), &[]);
+        let mut nextFundingRateTimestamp: Value = self.safe_integer_product_k(fundingRate.clone(), "next_funding_time", Value::Int(1000), &[]);
         let mut marketId: Value = self.safe_string_k(fundingRate.clone(), "market", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

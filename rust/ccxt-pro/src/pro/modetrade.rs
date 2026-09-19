@@ -968,7 +968,7 @@ impl ModetradeCore {
         let mut price: Value = self.safe_string2(trade.clone(), Value::Str("executedPrice".into()), Value::Str("price".into()), &[]);
         let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("executedQuantity".into()), Value::Str("size".into()), &[]);
         let mut cost: Value = crate::precise::Precise::stringMul(&price, &amount);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         let mut takerOrMaker: Value = Value::Null;
         let mut maker: Value = self.safe_bool_k(trade.clone(), "maker", &[]);
@@ -1000,7 +1000,7 @@ impl ModetradeCore {
         m.insert("cost".to_string(), cost);
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
-        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "type", &[]));
         m.insert("fee".to_string(), fee);
         m.insert("info".to_string(), trade);
     m
@@ -1297,8 +1297,8 @@ impl ModetradeCore {
             price = avgPrice;
         }
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
+        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
         let mut filled: Value = self.safe_number_k(order.clone(), "totalExecutedQuantity", &[]);
         let mut totalExecQuantity: Value = self.safe_string_k(order.clone(), "totalExecutedQuantity", &[]);
         let mut remaining: Value = amount.clone();

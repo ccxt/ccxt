@@ -1973,7 +1973,7 @@ impl CoinbaseinternationalCore {
         m.insert("datetime".to_string(), datetime);
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "side", &[]));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_number_k(trade.clone(), "fill_price", &[]));
         m.insert("amount".to_string(), self.safe_number_k(trade.clone(), "fill_qty", &[]));
@@ -2583,7 +2583,7 @@ impl CoinbaseinternationalCore {
         m.insert("type".to_string(), self.parse_order_type(self.safe_string_k(order.clone(), "type", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "tif", &[]));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "side", &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), self.safe_string_k(order.clone(), "stop_price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "size", &[]));

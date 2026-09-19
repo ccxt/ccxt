@@ -1489,7 +1489,7 @@ impl BitrueCore {
 
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut lowercaseId: Value = self.safe_string_lower(market.clone(), Value::Str("symbol".into()), &[]);
+        let mut lowercaseId: Value = self.safe_string_lower_k(market.clone(), "symbol", &[]);
         let mut side: Option<i64> = self.safe_integer_k(market.clone(), "side", &[]).as_i64(); // 1 linear, 0 inverse, undefined spot
         let mut type_var: Value = Value::Str("spot".into());
         let mut isLinear: Value = Value::Null;
@@ -2079,7 +2079,7 @@ impl BitrueCore {
         //         "open": "35349.4"
         //     }
         //
-        let mut timestamp: Value = self.safe_timestamp(ohlcv.clone(), Value::Str("i".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(ohlcv.clone(), "i", &[]);
         if (timestamp == Value::Null) {
             timestamp = self.safe_integer_k(ohlcv.clone(), "idx", &[]);
         }
@@ -2530,8 +2530,8 @@ impl BitrueCore {
         //   Note this is not the actual cost, since the exchange uses leverage to calculate margins.
         let mut cost: Value = self.safe_string2(order.clone(), Value::Str("cummulativeQuoteQty".into()), Value::Str("cumQuote".into()), &[]);
         let mut id: Value = self.safe_string_k(order.clone(), "orderId", &[]);
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut fills: Value = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
@@ -2652,7 +2652,7 @@ impl BitrueCore {
         }
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let mut isMarket: Value = Value::Bool(uppercaseType.as_str() == Some("MARKET"));
-            let mut timeInForce: Option<String> = self.safe_string_lower(params.clone(), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
+            let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
             if is_true(&postOnly) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("POST_ONLY".into())); }

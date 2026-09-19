@@ -1866,7 +1866,7 @@ impl WooCore {
             if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".to_string(), feeCost); }
         }
         let mut cost: Value = crate::precise::Precise::stringMul(&price, &amount);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if isFromFetchOrder {
@@ -2474,7 +2474,7 @@ impl WooCore {
         let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
         let mut isConditional: bool = isTrailing || (triggerPrice != Value::Null) || hasStopLoss || hasTakeProfit || (self.safe_value_k(params.clone(), "childOrders", &[]) != Value::Null);
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
-        let mut timeInForce: Option<String> = self.safe_string_lower(params.clone(), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
         let mut clientOrderIdKey: Value = (if isConditional { Value::Str("clientAlgoOrderId".into()) } else { Value::Str("clientOrderId".into()) });
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), orderType); }; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
@@ -3198,7 +3198,7 @@ impl WooCore {
         let mut timestrampString: Value = self.safe_string_k(order.clone(), "createdTime", &[]);
         if (timestrampString != Value::Null) {
             if Value::Int(timestrampString.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                timestamp = self.safe_timestamp(order.clone(), Value::Str("createdTime".into()), &[]); // algo orders
+                timestamp = self.safe_timestamp_k(order.clone(), "createdTime", &[]); // algo orders
             }  else {
                 timestamp = self.safe_integer_k(order.clone(), "createdTime", &[]); // regular orders
             }
@@ -3214,9 +3214,9 @@ impl WooCore {
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]); // This is base amount
         let mut cost: Value = self.safe_string_k(order.clone(), "amount", &[]); // This is quote amount
-        let mut orderType: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
+        let mut orderType: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
         let mut status: Value = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut filled: Value = self.safe_string2(order.clone(), Value::Str("executed".into()), Value::Str("totalExecutedQuantity".into()), &[]);
         let mut average: Value = self.omit_zero(self.safe_string_k(order.clone(), "averageExecutedPrice", &[]));
         // const remaining = Precise.stringSub (cost, filled);
@@ -3227,7 +3227,7 @@ impl WooCore {
         let mut lastUpdateTimestamp: Value = Value::Null;
         if (lastUpdateTimestampString != Value::Null) {
             if Value::Int(lastUpdateTimestampString.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                lastUpdateTimestamp = self.safe_timestamp(order.clone(), Value::Str("updatedTime".into()), &[]); // algo orders
+                lastUpdateTimestamp = self.safe_timestamp_k(order.clone(), "updatedTime", &[]); // algo orders
             }  else {
                 lastUpdateTimestamp = self.safe_integer_k(order.clone(), "updatedTime", &[]); // regular orders
             }
@@ -3875,7 +3875,7 @@ impl WooCore {
         m.insert("id".to_string(), self.safe_string_k(account.clone(), "applicationId", &[]));
         m.insert("name".to_string(), self.safe_string_n(account.clone(), Value::from(vec![Value::Str("name".into()), Value::Str("account".into()), Value::Str("alias".into())]), &[]));
         m.insert("code".to_string(), Value::Null);
-        m.insert("type".to_string(), self.safe_string_lower(account, Value::Str("accountType".into()), &[Value::Str("subaccount".into())]));
+        m.insert("type".to_string(), self.safe_string_lower_k(account, "accountType", &[Value::Str("subaccount".into())]));
     m
 });
 
@@ -4179,7 +4179,7 @@ impl WooCore {
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
         let mut side: Option<String> = self.safe_string_k(item.clone(), "tokenSide", &[]).as_str().map(str::to_owned);
         let mut direction: Value = (if (side.as_deref() == Some("DEPOSIT")) { Value::Str("in".into()) } else { Value::Str("out".into()) });
-        let mut timestamp: Value = self.safe_timestamp(item.clone(), Value::Str("createdTime".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(item.clone(), "createdTime", &[]);
         let mut fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::from(vec![Value::Str("feeToken".into())]), Value::from(vec![Value::Str("feeAmount".into())]));
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5377,7 +5377,7 @@ impl WooCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(leverage.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut marginMode: Value = self.safe_string_lower(leverage.clone(), Value::Str("marginMode".into()), &[]);
+        let mut marginMode: Value = self.safe_string_lower_k(leverage.clone(), "marginMode", &[]);
         let mut spotLeverage: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
         if (spotLeverage.as_f64() == Some(0.0)) {
             spotLeverage = Value::Null;
@@ -5739,7 +5739,7 @@ impl WooCore {
         let mut timestamp: Value = Value::Null;
         if (timestampString != Value::Null) {
             if Value::Int(timestampString.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
-                timestamp = self.safe_timestamp(position.clone(), Value::Str("timestamp".into()), &[]);
+                timestamp = self.safe_timestamp_k(position.clone(), "timestamp", &[]);
             }  else {
                 timestamp = self.safe_integer_k(position.clone(), "timestamp", &[]);
             }
@@ -6154,7 +6154,7 @@ impl WooCore {
 }));
     m
 }));
-        m.insert("created".to_string(), self.safe_timestamp(entry, Value::Str("createdTime".into()), &[]));
+        m.insert("created".to_string(), self.safe_timestamp_k(entry, "createdTime", &[]));
     m
 }));
             }

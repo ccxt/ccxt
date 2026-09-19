@@ -1339,7 +1339,7 @@ impl BitbnsCore {
         timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[timestamp.clone()]);
         let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("rate".into()), Value::Str("price".into()), &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "type", &[]);
         if (side != Value::Null) {
             if Value::Int(side.as_str().and_then(|__s| __s.find("buy")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 side = Value::Str("buy".into());

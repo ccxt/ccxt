@@ -116,9 +116,12 @@ impl crate::exchange_generated::ExchangeBase for BtcmarketsCore {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_transaction_type" => self.parse_transaction_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -739,7 +742,7 @@ impl BtcmarketsCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accepted".to_string(), Value::Str("pending".into()));
@@ -749,17 +752,21 @@ impl BtcmarketsCore {
                 m.insert("Failed".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(statuses, status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
-    pub fn parse_transaction_type(&self, mut type_var: Value) -> Option<String> {
+    pub fn parse_transaction_type(&self, mut type_var: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Withdraw".to_string(), Value::Str("withdrawal".into()));
                 m.insert("Deposit".to_string(), Value::Str("deposit".into()));
             m
         });
-        return self.safe_string(statuses, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(statuses, type_var.clone(), &[type_var.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -811,7 +818,7 @@ impl BtcmarketsCore {
         //
         let mut timestamp: Value = self.parse8601(self.safe_string_k(transaction.clone(), "creationTime", &[]));
         let mut lastUpdate: Value = self.parse8601(self.safe_string_k(transaction.clone(), "lastUpdate", &[]));
-        let mut type_var: Value = self.parse_transaction_type(self.safe_string_lower(transaction.clone(), Value::Str("type".into()), &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut type_var: Value = self.parse_transaction_type(self.safe_string_lower_k(transaction.clone(), "type", &[]));
         if (type_var.as_str() == Some("withdraw")) {
             type_var = Value::Str("withdrawal".into());
         }
@@ -835,7 +842,7 @@ impl BtcmarketsCore {
         let mut addressFrom: Value = Value::Null;
         let mut tagFrom: Value = Value::Null;
         let mut fee: Value = self.safe_string_k(transaction.clone(), "fee", &[]);
-        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "assetName", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[]);
         let mut amount: Value = self.safe_string_k(transaction.clone(), "amount", &[]);
@@ -1144,7 +1151,7 @@ impl BtcmarketsCore {
         //         ]
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product(response.clone(), Value::Str("snapshotId".into()), Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(response.clone(), "snapshotId", Value::Float(0.001), &[]);
         let mut orderbook: Value = self.parse_order_book(response.clone(), symbol, &[timestamp]);
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(response, "snapshotId", &[]));
         return orderbook;
@@ -1311,7 +1318,7 @@ impl BtcmarketsCore {
                 m
             });
         }
-        let mut takerOrMaker: Value = self.safe_string_lower(trade.clone(), Value::Str("liquidityType".into()), &[]);
+        let mut takerOrMaker: Value = self.safe_string_lower_k(trade.clone(), "liquidityType", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
@@ -1328,7 +1335,7 @@ impl BtcmarketsCore {
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("fee".to_string(), fee);
     m
-}), &[market]);
+}), &[market.clone()]);
 
     Value::Null
 }
@@ -1362,7 +1369,7 @@ impl BtcmarketsCore {
         });
         let __ws_arg_7 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_markets_market_id_trades(&[__ws_arg_7]).await;
-        return self.parse_trades(response, &[market, since, limit]);
+        return self.parse_trades(response, &[market.clone(), since, limit]);
 
     Value::Null
 }
@@ -1444,7 +1451,7 @@ impl BtcmarketsCore {
         params = self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]);
         let __ws_arg_8 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_8]).await;
-        return self.parse_order(response, &[market]);
+        return self.parse_order(response, &[market.clone()]);
 
     Value::Null
 }
@@ -1565,23 +1572,23 @@ impl BtcmarketsCore {
         if (market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null).as_str() == Some("AUD")) {
             currency = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
             let mut amountString: Value = self.number_to_string(amount.clone());
-            let mut priceString: Value = self.number_to_string(price);
+            let mut priceString: Value = self.number_to_string(price.clone());
             let mut otherUnitsAmount: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
-            cost = self.cost_to_precision(symbol.clone(), otherUnitsAmount);
+            cost = self.cost_to_precision(symbol.clone(), otherUnitsAmount.clone());
         }  else {
             currency = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
-            cost = self.amount_to_precision(symbol.clone(), amount);
+            cost = self.amount_to_precision(symbol.clone(), amount.clone());
         }
-        let mut rate: Value = self.safe_value(market, takerOrMaker.clone(), &[]);
+        let mut rate: Value = self.safe_value(market.clone(), takerOrMaker.clone(), &[]);
         let mut rateCost: Value = crate::precise::Precise::stringMul(&self.number_to_string(rate.clone()), &cost);
-        let mut feeCost: Value = self.fee_to_precision(symbol, rateCost);
+        let mut feeCost: Value = self.fee_to_precision(symbol.clone(), rateCost);
         if (feeCost == Value::Null) {
             feeCost = Value::Str("0".into());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), takerOrMaker);
-        m.insert("currency".to_string(), currency);
+        m.insert("currency".to_string(), currency.clone());
         m.insert("rate".to_string(), rate);
         m.insert("cost".to_string(), (match &feeCost { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
     m
@@ -1590,7 +1597,7 @@ impl BtcmarketsCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accepted".to_string(), Value::Str("open".into()));
@@ -1602,7 +1609,9 @@ impl BtcmarketsCore {
                 m.insert("Failed".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(statuses, status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1637,11 +1646,11 @@ impl BtcmarketsCore {
         }  else if (side.as_str() == Some("Ask")) {
             side = Value::Str("sell".into());
         }
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "openAmount", &[]);
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         let mut id: Value = self.safe_string_k(order.clone(), "orderId", &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
@@ -1659,10 +1668,10 @@ impl BtcmarketsCore {
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), price.clone());
         m.insert("triggerPrice".to_string(), self.safe_number_k(order, "triggerPrice", &[]));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.clone());
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), remaining);
         m.insert("average".to_string(), Value::Null);
@@ -1670,7 +1679,7 @@ impl BtcmarketsCore {
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market]);
+}), &[market.clone()]);
 
     Value::Null
 }
@@ -1746,7 +1755,7 @@ impl BtcmarketsCore {
         }
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_orders(&[__ws_arg_12]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        return self.parse_orders(response, &[market.clone(), since, limit]);
 
     Value::Null
 }
@@ -1776,7 +1785,7 @@ impl BtcmarketsCore {
             m
         });
         let __ws_arg_13 = self.extend(request, &[params]);
-        return self.fetch_orders(&[symbol, since, limit, __ws_arg_13]).await;
+        return self.fetch_orders(&[symbol.clone(), since, limit, __ws_arg_13]).await;
 
     Value::Null
 }
@@ -1800,7 +1809,7 @@ impl BtcmarketsCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Value = self.fetch_orders(&[symbol, since, limit, params]).await;
+        let mut orders: Value = self.fetch_orders(&[symbol.clone(), since, limit, params]).await;
         return self.filter_by(orders, Value::Str("status".into()), Value::Str("closed".into()), &[]);
 
     Value::Null
@@ -1845,7 +1854,7 @@ impl BtcmarketsCore {
         }
         let __ws_arg_14 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_trades(&[__ws_arg_14]).await;
-        return self.parse_trades(response, &[market, since, limit]);
+        return self.parse_trades(response, &[market.clone(), since, limit]);
 
     Value::Null
 }
@@ -1876,7 +1885,7 @@ impl BtcmarketsCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("assetName".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount, &[]));
+                m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
         if (code.as_str() != Some("AUD")) {
@@ -1888,7 +1897,7 @@ impl BtcmarketsCore {
         }
         let __ws_arg_15 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_withdrawals(&[__ws_arg_15]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[currency.clone()]);
 
     Value::Null
 }

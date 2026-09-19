@@ -1350,7 +1350,7 @@ impl BydfiCore {
         let mut side: Value = Value::Null; // fetchMyTrades always returns side BUY
         if (orderId == Value::Null) {
             // from fetchTrades
-            side = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+            side = self.safe_string_lower_k(trade.clone(), "side", &[]);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2643,7 +2643,7 @@ impl BydfiCore {
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "side", &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), stopPrice.clone());
         m.insert("stopLossPrice".to_string(), (if isStopLossOrder { stopPrice.clone() } else { Value::Null }));
@@ -2973,7 +2973,7 @@ impl BydfiCore {
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut buyOrSell: Value = self.safe_string_k(position.clone(), "side", &[]);
-        let mut rawPositionSide: Value = self.safe_string_lower(position.clone(), Value::Str("positionSide".into()), &[]);
+        let mut rawPositionSide: Value = self.safe_string_lower_k(position.clone(), "positionSide", &[]);
         let mut positionSide: Value = self.parse_position_side(buyOrSell);
         let mut hedged: Value = Value::Null;
         let mut isFetchPositionsHistory: bool = false;
@@ -3235,7 +3235,7 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market]));
-        m.insert("marginMode".to_string(), self.safe_string_lower(marginMode, Value::Str("marginType".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(marginMode, "marginType", &[]));
     m
 });
 
@@ -3705,8 +3705,8 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fromId: Value = self.safe_string_upper(transfer.clone(), Value::Str("sourceWallet".into()), &[]);
-        let mut toId: Value = self.safe_string_upper(transfer.clone(), Value::Str("targetWallet".into()), &[]);
+        let mut fromId: Value = self.safe_string_upper_k(transfer.clone(), "sourceWallet", &[]);
+        let mut toId: Value = self.safe_string_upper_k(transfer.clone(), "targetWallet", &[]);
         let mut fromAccount: Value = self.safe_string(accountsById.clone(), fromId.clone(), &[fromId.clone()]);
         let mut toAccount: Value = self.safe_string(accountsById, toId.clone(), &[toId.clone()]);
         let mut timestamp: Value = self.safe_integer_k(transfer.clone(), "timestamp", &[]);
@@ -3906,7 +3906,7 @@ impl BydfiCore {
         //
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "asset", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
-        let mut rawStatus: Value = self.safe_string_lower(transaction.clone(), Value::Str("status".into()), &[]);
+        let mut rawStatus: Value = self.safe_string_lower_k(transaction.clone(), "status", &[]);
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "createTime", &[]);
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_number_k(transaction.clone(), "fee", &[]);

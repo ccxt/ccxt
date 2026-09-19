@@ -4162,7 +4162,7 @@ impl OkxCore {
         //         state: "preopen",
         //
         let mut id: Value = self.safe_string_k(market.clone(), "instId", &[Value::Str("".into())]);
-        let mut type_var: Value = self.safe_string_lower(market.clone(), Value::Str("instType".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(market.clone(), "instType", &[]);
         if (type_var.as_str() == Some("futures")) {
             type_var = Value::Str("future".into());
         }
@@ -8873,9 +8873,9 @@ impl OkxCore {
             while { if !__for_first_1006 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1006 = false; i.as_f64().unwrap_or(f64::NAN) < ((leverage.len() as i64) as f64) } {
             let mut entry: Value = get_value(&leverage, &i);
             let mut entry: Value = get_value(&leverage, &i);
-            marginMode = self.safe_string_lower(entry.clone(), Value::Str("mgnMode".into()), &[]);
+            marginMode = self.safe_string_lower_k(entry.clone(), "mgnMode", &[]);
             marketId = self.safe_string_k(entry.clone(), "instId", &[]);
-            let mut positionSide: Option<String> = self.safe_string_lower(entry.clone(), Value::Str("posSide".into()), &[]).as_str().map(str::to_owned);
+            let mut positionSide: Option<String> = self.safe_string_lower_k(entry.clone(), "posSide", &[]).as_str().map(str::to_owned);
             if (positionSide.as_deref() == Some("long")) {
                 longLeverage = self.safe_integer_k(entry.clone(), "lever", &[]);
             }  else if (positionSide.as_deref() == Some("short")) {
@@ -12780,7 +12780,7 @@ impl OkxCore {
             self.load_markets(&[]).await;
         }
         let mut marginMode: Value = self.safe_string_k(params.clone(), "marginMode", &[]);
-        let mut instType: Value = self.safe_string_upper(params.clone(), Value::Str("instType".into()), &[]);
+        let mut instType: Value = self.safe_string_upper_k(params.clone(), "instType", &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("marginMode".into()), Value::Str("instType".into())]), &[]);
         if (limit == Value::Null) {
             limit = Value::Int(100);

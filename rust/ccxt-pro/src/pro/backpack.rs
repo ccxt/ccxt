@@ -1650,7 +1650,7 @@ impl BackpackCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("o".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "o", &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "f", &[]);
         let mut side: Value = self.parse_ws_order_side(self.safe_string_k(order.clone(), "S", &[]));
         let mut price: Value = self.safe_string_k(order.clone(), "p", &[]);

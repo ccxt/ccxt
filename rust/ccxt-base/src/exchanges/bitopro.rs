@@ -124,9 +124,11 @@ impl crate::exchange_generated::ExchangeBase for BitoproCore {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -980,7 +982,7 @@ impl BitoproCore {
         let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
         let mut timestamp: Value = Value::Null;
         if (id == Value::Null) {
-            timestamp = self.safe_timestamp(trade.clone(), Value::Str("timestamp".into()), &[]);
+            timestamp = self.safe_timestamp_k(trade.clone(), "timestamp", &[]);
         }  else {
             timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         }
@@ -988,8 +990,8 @@ impl BitoproCore {
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut type_var: Value = self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("action".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower_k(trade.clone(), "type", &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "action", &[]);
         if (side == Value::Null) {
             let mut isBuyer: Value = self.safe_bool_k(trade.clone(), "isBuyer", &[]);
             if (isBuyer.as_bool() == Some(true)) {
@@ -1376,7 +1378,7 @@ impl BitoproCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("-1".to_string(), Value::Str("open".into()));
@@ -1388,7 +1390,9 @@ impl BitoproCore {
                 m.insert("6".to_string(), Value::Str("canceled".into()));
             m
         });
-        return (if (status == Value::Null) { Value::Null } else { self.safe_string(statuses, status, &[]) }).as_str().map(str::to_owned);
+        return (if (status == Value::Null) { Value::Null } else { self.safe_string(statuses, status, &[]) });
+
+    Value::Null
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1440,8 +1444,8 @@ impl BitoproCore {
         market = self.safe_market(&[marketId, market.clone(), Value::Str("_".into())]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut orderStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
-        let mut status: Value = self.parse_order_status(orderStatus).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
+        let mut status: Value = self.parse_order_status(orderStatus);
+        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
         let mut average: Value = self.safe_string_k(order.clone(), "avgExecutionPrice", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "executedAmount", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "remainingAmount", &[]);
@@ -1902,7 +1906,7 @@ impl BitoproCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
         let mut states: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("COMPLETE".to_string(), Value::Str("ok".into()));
@@ -1916,7 +1920,9 @@ impl BitoproCore {
                 m.insert("WAIT_CONFIRMATION".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string(states, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(states, status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -1984,7 +1990,7 @@ impl BitoproCore {
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), self.network_id_to_code(&[networkId, code.clone()]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "total", &[]));
-        m.insert("status".to_string(), self.parse_transaction_status(status).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_transaction_status(status));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), address.clone());
@@ -2183,7 +2189,7 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut requestedNetwork: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]);
+            let mut requestedNetwork: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
             params = self.omit(params.clone(), Value::from(vec![Value::Str("network".into())]), &[]);
             let mut networkId: Value = (if (requestedNetwork == Value::Null) { Value::Null } else { self.safe_string(networks, requestedNetwork.clone(), &[]) });
             if (networkId == Value::Null) {
@@ -2307,15 +2313,15 @@ impl BitoproCore {
                 let mut nonce: Value = self.milliseconds();
                 let mut rawData: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("nonce".to_string(), nonce);
+                        m.insert("nonce".to_string(), nonce.clone());
                     m
                 });
                 let mut data: Value = json_stringify(&rawData);
-                let mut payload: Value = self.string_to_base64(data, &[]);
+                let mut payload: Value = self.string_to_base64(data.clone(), &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
                 add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-APIKEY".into()), self.apiKey.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload);
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature);
+                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload.clone());
+                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature.clone());
             }
         }  else if (api.as_str() == Some("public")) && (method.as_str() == Some("GET")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
@@ -2325,10 +2331,10 @@ impl BitoproCore {
         url = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &url);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), body.clone());
+        m.insert("headers".to_string(), headers.clone());
     m
 });
 

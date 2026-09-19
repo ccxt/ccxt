@@ -1195,7 +1195,7 @@ impl BitteamCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("t".into()), &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
+        return Value::from(vec![self.safe_timestamp_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1827,7 +1827,7 @@ impl BitteamCore {
         if (createdAt != Value::Null) {
             timestamp = self.parse8601(createdAt);
         }  else {
-            timestamp = self.safe_timestamp(order.clone(), Value::Str("timestamp".into()), &[]);
+            timestamp = self.safe_timestamp_k(order.clone(), "timestamp", &[]);
         }
         let mut updatedAt: Value = self.safe_string_k(order.clone(), "updatedAt", &[]);
         let mut lastUpdateTimestamp: Value = self.parse8601(updatedAt);
@@ -2287,7 +2287,7 @@ impl BitteamCore {
         //         "highest_price_24h": 38389.994463,
         //         "lowest_price_24h": 37574.894999
         //     }
-        let mut marketId: Value = self.safe_string_lower(ticker.clone(), Value::Str("trading_pairs".into()), &[]);
+        let mut marketId: Value = self.safe_string_lower_k(ticker.clone(), "trading_pairs", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut bestBidPrice: Value = Value::Null;
         let mut bestAskPrice: Value = Value::Null;

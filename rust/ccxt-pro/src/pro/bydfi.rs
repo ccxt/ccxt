@@ -1202,7 +1202,7 @@ impl BydfiCore {
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "ro", &[]));
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("S".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "S", &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "p", &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
@@ -1388,7 +1388,7 @@ impl BydfiCore {
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "l", &[]));
         m.insert("liquidationPrice".to_string(), self.parse_number(self.safe_string_k(position.clone(), "lq", &[]), &[]));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), self.safe_string_lower(position, Value::Str("mt".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(position, "mt", &[]));
         m.insert("percentage".to_string(), Value::Null);
     m
 }));

@@ -518,7 +518,7 @@ impl WhitebitCore {
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut data: Value = self.safe_dict(params, Value::Int(1), &[]);
-        let mut timestamp: Value = self.safe_timestamp(data.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(data.clone(), "timestamp", &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
             let mut ob: Value = self.order_book(&[]);
             add_element_to_object(&mut self.orderbooks, &symbol, ob);
@@ -1053,8 +1053,8 @@ impl WhitebitCore {
             remaining = self.safe_string_k(order.clone(), "left", &[]);
             amount = self.safe_string_k(order.clone(), "amount", &[]);
         }
-        let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("ctime".into()), &[]);
-        let mut lastTradeTimestamp: Value = self.safe_timestamp(order.clone(), Value::Str("mtime".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(order.clone(), "ctime", &[]);
+        let mut lastTradeTimestamp: Value = self.safe_timestamp_k(order.clone(), "mtime", &[]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut rawSide: Option<i64> = self.safe_integer_k(order.clone(), "side", &[]).as_i64();
         let mut side: Value = (if (rawSide == Some(1)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });

@@ -1909,7 +1909,7 @@ impl CoinexCore {
         //     { "id": 2, "code": 21001, "message": "require auth" }
         //     { "id": 1, "code": 21002, "message": "Signature Incorrect" }
         //
-        let mut message: Value = self.safe_string_lower(response.clone(), Value::Str("message".into()), &[]);
+        let mut message: Value = self.safe_string_lower_k(response.clone(), "message", &[]);
         let mut isErrorMessage: bool = (message != Value::Null) && (message.as_str() != Some("ok"));
         let mut errorCode: Value = self.safe_string_k(response, "code", &[]);
         let mut isErrorCode: bool = (errorCode != Value::Null) && (errorCode.as_str() != Some("0"));
@@ -1942,7 +1942,7 @@ impl CoinexCore {
         //         "message": ""
         //     }
         //
-        let mut status: Option<String> = self.safe_string_lower(message.clone(), Value::Str("message".into()), &[]).as_str().map(str::to_owned);
+        let mut status: Option<String> = self.safe_string_lower_k(message.clone(), "message", &[]).as_str().map(str::to_owned);
         let mut errorCode: Option<String> = self.safe_string_k(message.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut messageHash: Value = Value::Str("authenticated".into());
         if (status.as_deref() == Some("ok")) || (errorCode.as_deref() == Some("0")) {

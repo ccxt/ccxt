@@ -651,7 +651,7 @@ impl CoincheckCore {
             let mut exchangeStatus: Value = exchangeStatuses.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut rawStatus: Option<String> = self.safe_string_k(exchangeStatus.clone(), "status", &[]).as_str().map(str::to_owned);
             if (updated == Value::Null) {
-                updated = self.safe_timestamp(exchangeStatus, Value::Str("timestamp".into()), &[]);
+                updated = self.safe_timestamp_k(exchangeStatus, "timestamp", &[]);
             }
             if (rawStatus.as_deref() != Some("available")) {
                 status = Value::Str("maintenance".into());
@@ -840,7 +840,7 @@ impl CoincheckCore {
         // }
         //
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "timestamp", &[]);
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();

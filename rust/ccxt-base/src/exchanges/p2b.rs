@@ -767,7 +767,7 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_product(response, Value::Str("cache_time".into()), Value::Int(1000), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(response, "cache_time", Value::Int(1000), &[]);
         let __ws_arg_1 = self.iso8601(timestamp.clone());
         let __ws_arg_2 = self.parse_ticker(result, &[market]);
         return self.extend(Value::Map({
@@ -813,7 +813,7 @@ impl P2bCore {
         //        change: '3.13'
         //    }
         //
-        let mut timestamp: Value = self.safe_integer_product(ticker.clone(), Value::Str("at".into()), Value::Int(1000), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "at", Value::Int(1000), &[]);
         if (in_op(&ticker, &Value::Str("ticker".into()))) {
             ticker = self.safe_dict_k(ticker.clone(), "ticker", &[]);
         }
@@ -908,7 +908,7 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_product(response, Value::Str("current_time".into()), Value::Int(1000), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(response, "current_time", Value::Int(1000), &[]);
         return self.parse_order_book(result, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
 
     Value::Null

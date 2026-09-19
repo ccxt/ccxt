@@ -2735,7 +2735,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //          ]
         //      }
         //
-        let mut timestamp: Value = self.safe_timestamp(response.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(response.clone(), "timestamp", &[]);
         return self.parse_order_book(response, symbol, &[timestamp]);
 
     Value::Null
@@ -3073,7 +3073,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let mut response: Value = self.v4_public_get_time(&[params]).await;
-        return self.safe_integer_product(response, Value::Str("time".into()), Value::Int(1000), &[]);
+        return self.safe_integer_product_k(response, "time", Value::Int(1000), &[]);
 
     Value::Null
 }
@@ -3187,7 +3187,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("activation_price".into())]), &[]);
         let mut isStopOrder: bool = triggerPrice != Value::Null;
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[]);
+        let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[]);
         if (timeInForce != Value::Null) && (timeInForce.as_str() != Some("GTC")) && (timeInForce.as_str() != Some("IOC")) && (timeInForce.as_str() != Some("PO")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support timeInForce ".into())).into()), timeInForce).into()), Value::Str(", only GTC, IOC and PO are allowed".into()))));
         }
@@ -3810,7 +3810,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             });
         }
         let mut timestamp: Value = self.safe_timestamp2(order.clone(), Value::Str("ctime".into()), Value::Str("timestamp".into()), &[]);
-        let mut lastTradeTimestamp: Value = self.safe_timestamp(order.clone(), Value::Str("ftime".into()), &[]);
+        let mut lastTradeTimestamp: Value = self.safe_timestamp_k(order.clone(), "ftime", &[]);
         let mut postOnly: Value = self.safe_bool_k(order.clone(), "postOnly", &[]);
         let mut ioc: Value = self.safe_bool_k(order.clone(), "ioc", &[]);
         let mut timeInForce: Value = Value::Null;
@@ -4461,7 +4461,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         currency = self.safe_currency(Value::Null, &[currency.clone()]);
         let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
-        let mut timestamp: Value = self.safe_timestamp(transaction.clone(), Value::Str("createdAt".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(transaction.clone(), "createdAt", &[]);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "ticker", &[]);
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut method: Option<String> = self.safe_string_k(transaction.clone(), "method", &[]).as_str().map(str::to_owned);
@@ -4774,7 +4774,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut marketId: Value = self.safe_string_k(info.clone(), "market", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market, Value::Str("_".into())]);
-        let mut timestamp: Value = self.safe_timestamp(info.clone(), Value::Str("modifyDate".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(info.clone(), "modifyDate", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
@@ -5564,7 +5564,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut marketId: Value = self.safe_string_k(position.clone(), "market", &[]);
-        let mut timestamp: Value = self.safe_timestamp(position.clone(), Value::Str("openDate".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(position.clone(), "openDate", &[]);
         let mut tpsl: Value = self.safe_dict_k(position.clone(), "tpsl", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5593,7 +5593,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("hedged".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp(position.clone(), Value::Str("modifyDate".into()), &[]));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(position.clone(), "modifyDate", &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("collateral".to_string(), self.safe_number_k(position, "margin", &[]));
@@ -5672,7 +5672,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(info.clone(), "market", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(info.clone(), Value::Str("fundingTime".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(info.clone(), "fundingTime", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());

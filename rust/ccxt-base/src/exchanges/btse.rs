@@ -1087,7 +1087,7 @@ impl BtseCore {
     m
 }));
         let mut response: Value = self.public_get_spot_api_v33_time(&[params]).await;
-        return self.safe_timestamp(response, Value::Str("epoch".into()), &[]);
+        return self.safe_timestamp_k(response, "epoch", &[]);
 
     Value::Null
 }
@@ -1966,7 +1966,7 @@ impl BtseCore {
                 baseVolume = crate::precise::Precise::stringMul(&baseVolume, &contractSizeString);
             }
         }
-        let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("closeTime".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "closeTime", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
@@ -2079,7 +2079,7 @@ impl BtseCore {
         //
         let mut marketId: Value = self.safe_string_k(interest.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(interest.clone(), Value::Str("closeTime".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(interest.clone(), "closeTime", &[]);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -2198,7 +2198,7 @@ impl BtseCore {
         //
         let mut marketId: Value = self.safe_string_k(contract.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(contract.clone(), Value::Str("closeTime".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(contract.clone(), "closeTime", &[]);
         // dated futures carry a zero nextFundingTime as funding only applies to
         // perpetuals, observed live, the zero means no next funding and is omitted
         let mut nextFundingTimestamp: Value = self.safe_integer_omit_zero(contract.clone(), Value::Str("nextFundingTime".into()), &[]);
@@ -4550,7 +4550,7 @@ impl BtseCore {
         //
         let mut marketId: Value = self.safe_string_k(marginMode.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
-        let mut positionMode: Option<String> = self.safe_string_lower(marginMode.clone(), Value::Str("marginMode".into()), &[]).as_str().map(str::to_owned);
+        let mut positionMode: Option<String> = self.safe_string_lower_k(marginMode.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut marginModeValue: Value = Value::Str("cross".into());
         if (positionMode.as_deref() == Some("isolated")) {
             marginModeValue = Value::Str("isolated".into());
@@ -4737,7 +4737,7 @@ impl BtseCore {
             let mut entrty: Value = safeResponse.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut leverageValue: Value = self.safe_integer_k(entrty.clone(), "leverage", &[]);
             let mut positionDirection: Option<String> = self.safe_string_k(entrty.clone(), "positionDirection", &[]).as_str().map(str::to_owned);
-            marginMode = self.safe_string_lower(entrty, Value::Str("marginMode".into()), &[]);
+            marginMode = self.safe_string_lower_k(entrty, "marginMode", &[]);
             if (positionDirection.as_deref() == Some("LONG")) {
                 longLeverage = leverageValue.clone();
             }  else if (positionDirection.as_deref() == Some("SHORT")) {

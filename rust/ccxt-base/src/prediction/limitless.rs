@@ -1939,7 +1939,7 @@ impl LimitlessCore {
         let mut decimals: Value = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
         let mut scaleStr: Value = self.parse_precision(&[self.number_to_string(negate(&decimals))]);
-        let mut outcomeLabel: Option<String> = self.safe_string_lower(crate::value::get_value_k(&outcomeObj, "info"), Value::Str("outcomeLabel".into()), &[Value::Str("yes".into())]).as_str().map(str::to_owned);
+        let mut outcomeLabel: Option<String> = self.safe_string_lower_k(crate::value::get_value_k(&outcomeObj, "info"), "outcomeLabel", &[Value::Str("yes".into())]).as_str().map(str::to_owned);
         let mut isYes: bool = outcomeLabel.as_deref() != Some("no");
         let mut rawBids: Value = self.safe_list_k(response.clone(), "bids", &[Value::from(vec![])]);
         let mut rawAsks: Value = self.safe_list_k(response, "asks", &[Value::from(vec![])]);
@@ -2016,7 +2016,7 @@ impl LimitlessCore {
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
         let mut slug: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]);
-        let mut outcomeLabel: Value = self.safe_string_upper(crate::value::get_value_k(&outcomeObj, "info"), Value::Str("outcomeLabel".into()), &[]);
+        let mut outcomeLabel: Value = self.safe_string_upper_k(crate::value::get_value_k(&outcomeObj, "info"), "outcomeLabel", &[]);
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[Value::Str("1d".into())]);
         let __ws_arg_21 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2081,7 +2081,7 @@ impl LimitlessCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                    let mut title: Value = self.safe_string_upper(series.clone(), Value::Str("title".into()), &[Value::Str("".into())]);
+                    let mut title: Value = self.safe_string_upper_k(series.clone(), "title", &[Value::Str("".into())]);
                     if (title == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing title".into()))));
                     }
@@ -3426,7 +3426,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1284: bool = true;
             while { if !__for_first_1284 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1284 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut item: Value = self.safe_dict(data.clone(), i.clone(), &[]);
-            let mut strategy: Value = self.safe_string_lower(item.clone(), Value::Str("strategy".into()), &[]);
+            let mut strategy: Value = self.safe_string_lower_k(item.clone(), "strategy", &[]);
             if (strategy != Value::Null) {
                 let mut buyIndex: Value = Value::Int(strategy.as_str().and_then(|__s| __s.find("buy")).map(|__i| __i as i64).unwrap_or(-1));
                 let mut sellIndex: Value = Value::Int(strategy.as_str().and_then(|__s| __s.find("sell")).map(|__i| __i as i64).unwrap_or(-1));
@@ -3524,11 +3524,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut id: Value = self.safe_string_k(trade.clone(), "transactionHash", &[]);
-        let mut timestamp: Value = self.safe_integer_product(trade.clone(), Value::Str("blockTimestamp".into()), Value::Int(1000), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(trade.clone(), "blockTimestamp", Value::Int(1000), &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "outcomeTokenPrice", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "outcomeTokenAmount", &[]);
         let mut cost: Value = self.safe_string_k(trade.clone(), "collateralAmount", &[]);
-        let mut rawSide: Value = self.safe_string_lower(trade.clone(), Value::Str("strategy".into()), &[]);
+        let mut rawSide: Value = self.safe_string_lower_k(trade.clone(), "strategy", &[]);
         if (rawSide == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() missing rawSide".into()))));
         }
@@ -4098,7 +4098,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1296: bool = true;
             while { if !__for_first_1296 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1296 = false; i.as_f64().unwrap_or(f64::NAN) < categoriesLength } {
             let mut category: Value = categories.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut name: Value = self.safe_string_lower(category.clone(), Value::Str("name".into()), &[Value::Str("".into())]);
+            let mut name: Value = self.safe_string_lower_k(category.clone(), "name", &[Value::Str("".into())]);
             let mut categoryId: Value = self.safe_string_k(category, "id", &[]);
             let mut matched: bool = false;
             {

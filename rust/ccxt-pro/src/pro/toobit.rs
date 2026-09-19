@@ -1369,8 +1369,8 @@ impl ToobitCore {
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "O", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
-        let mut priceType: Option<String> = self.safe_string_lower(order.clone(), Value::Str("pt".into()), &[]).as_str().map(str::to_owned);
-        let mut rawOrderType: Value = self.safe_string_lower(order.clone(), Value::Str("o".into()), &[]);
+        let mut priceType: Option<String> = self.safe_string_lower_k(order.clone(), "pt", &[]).as_str().map(str::to_owned);
+        let mut rawOrderType: Value = self.safe_string_lower_k(order.clone(), "o", &[]);
         let mut orderType: Value = Value::Null;
         if (priceType.as_deref() == Some("market")) {
             orderType = Value::Str("market".into());
@@ -1397,9 +1397,9 @@ impl ToobitCore {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer2(order.clone(), Value::Str("U".into()), Value::Str("E".into()), &[]));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), orderType);
-        m.insert("timeInForce".to_string(), self.safe_string_upper(order.clone(), Value::Str("f".into()), &[]));
+        m.insert("timeInForce".to_string(), self.safe_string_upper_k(order.clone(), "f", &[]));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("S".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "S", &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "L", &[]));
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
@@ -1503,7 +1503,7 @@ impl ToobitCore {
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "o", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("S".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "S", &[]));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "p", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade, "q", &[]));
@@ -1703,7 +1703,7 @@ impl ToobitCore {
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[]));
         m.insert("notional".to_string(), self.omit_zero(self.safe_string_k(position.clone(), "pv", &[])));
-        m.insert("marginMode".to_string(), self.safe_string_lower(position.clone(), Value::Str("mt".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(position.clone(), "mt", &[]));
         m.insert("liquidationPrice".to_string(), self.safe_string_k(position.clone(), "f", &[]));
         m.insert("entryPrice".to_string(), self.safe_string_k(position.clone(), "p", &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_string_k(position.clone(), "up", &[]));
@@ -1712,7 +1712,7 @@ impl ToobitCore {
         m.insert("contracts".to_string(), Value::Null);
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("markPrice".to_string(), self.safe_string_k(position.clone(), "mp", &[]));
-        m.insert("side".to_string(), self.safe_string_lower(position.clone(), Value::Str("S".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "S", &[]));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);

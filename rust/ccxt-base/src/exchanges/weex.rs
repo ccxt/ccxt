@@ -2341,7 +2341,7 @@ impl WeexCore {
                 m.insert("interval".to_string(), self.safe_string(contractTimeframes, timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut priceType: Value = self.safe_string_upper(params.clone(), Value::Str("price".into()), &[]);
+        let mut priceType: Value = self.safe_string_upper_k(params.clone(), "price", &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("historical".into()), Value::Str("until".into()), Value::Str("price".into())]), &[]);
         let mut response: Value = Value::Null;
         if (limit != Value::Null) {
@@ -2509,7 +2509,7 @@ impl WeexCore {
         //
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "time", &[]);
         let mut isBuyer: Value = self.safe_bool_k(trade.clone(), "isBuyer", &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "isBuyerMaker", &[]);
         if (isBuyer != Value::Null) {
             side = (if isBuyer.as_bool() == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
@@ -2953,8 +2953,8 @@ impl WeexCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), currencyCode);
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
-        m.insert("fromAccount".to_string(), self.safe_string_lower(transfer.clone(), Value::Str("fromType".into()), &[]));
-        m.insert("toAccount".to_string(), self.safe_string_lower(transfer, Value::Str("toType".into()), &[]));
+        m.insert("fromAccount".to_string(), self.safe_string_lower_k(transfer.clone(), "fromType", &[]));
+        m.insert("toAccount".to_string(), self.safe_string_lower_k(transfer, "toType", &[]));
         m.insert("status".to_string(), self.parse_transfer_status(status));
     m
 });
@@ -4145,7 +4145,7 @@ impl WeexCore {
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), isReduceOnly);
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "side", &[]));
         m.insert("amount".to_string(), self.safe_string2(order.clone(), Value::Str("origQty".into()), Value::Str("quantity".into()), &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), triggerPrice);
@@ -4870,7 +4870,7 @@ impl WeexCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("contracts".to_string(), self.parse_number(size, &[]));
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(position.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "side", &[]));
         m.insert("notional".to_string(), self.parse_number(notional, &[]));
         m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizePnl", &[]));

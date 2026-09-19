@@ -886,7 +886,7 @@ impl UpbitCore {
         // }
         //
         let mut id: Value = self.safe_string_k(order.clone(), "uuid", &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("ask_bid".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "ask_bid", &[]);
         if (side.as_str() == Some("bid")) {
             side = Value::Str("buy".into());
         }  else {
@@ -939,7 +939,7 @@ impl UpbitCore {
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         // see: parseWsOrder
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("ask_bid".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "ask_bid", &[]);
         if (side.as_str() == Some("bid")) {
             side = Value::Str("buy".into());
         }  else {

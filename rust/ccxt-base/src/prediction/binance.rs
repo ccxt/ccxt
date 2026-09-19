@@ -993,7 +993,7 @@ impl BinanceCore {
             let mut __for_first_1179: bool = true;
             while { if !__for_first_1179 { oi = (match (&(oi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1179 = false; oi.as_f64().unwrap_or(f64::NAN) < rawOutcomesLength } {
             let mut rawOutcome: Value = rawOutcomes.as_array().and_then(|__arr| match &oi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut label: Value = self.safe_string_upper(rawOutcome.clone(), Value::Str("name".into()), &[]);
+            let mut label: Value = self.safe_string_upper_k(rawOutcome.clone(), "name", &[]);
             let mut tokenId: Value = self.safe_string_k(rawOutcome.clone(), "tokenId", &[]);
             let mut outcomeHandle: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketSymbol, Value::Str(":".into())).into()), label).into());
             let mut price: Value = self.safe_string_k(rawOutcome.clone(), "price", &[]);
@@ -1186,7 +1186,7 @@ impl BinanceCore {
         if (outcomeIndex.is_some()) {
             isMirrored = outcomeIndex.as_deref() != Some("0");
         }  else {
-            let mut label: Option<String> = self.safe_string_upper(outcomeObj.clone(), Value::Str("label".into()), &[Value::Str("YES".into())]).as_str().map(str::to_owned);
+            let mut label: Option<String> = self.safe_string_upper_k(outcomeObj.clone(), "label", &[Value::Str("YES".into())]).as_str().map(str::to_owned);
             isMirrored = (label.as_deref() == Some("NO")) || (label.as_deref() == Some("DOWN"));
         }
         let mut lastString: Value = self.safe_string_k(raw.clone(), "lastTradePrice", &[]);
@@ -1433,7 +1433,7 @@ impl BinanceCore {
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         if (outcomeObj == Value::Null) {
             let mut marketId: Value = self.safe_string_k(order.clone(), "marketId", &[]);
-            let mut outcome: Value = self.safe_string_upper(order.clone(), Value::Str("outcome".into()), &[]);
+            let mut outcome: Value = self.safe_string_upper_k(order.clone(), "outcome", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut outcomeName: Value = self.safe_string_k(market, "market", &[]);
             if (outcomeName == Value::Null) {
@@ -1442,7 +1442,7 @@ impl BinanceCore {
             outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome).into())).into());
             outcomeObj = self.safe_outcome(outcomeName, &[]);
         }
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "createTime", &[]);
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1457,7 +1457,7 @@ impl BinanceCore {
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObj.clone(), "market", &[]));
-        m.insert("type".to_string(), self.safe_string_lower(order.clone(), Value::Str("orderType".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "orderType", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), Value::Null);
@@ -1858,7 +1858,7 @@ impl BinanceCore {
         let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
         if (outcomeObj == Value::Null) {
             let mut marketId: Value = self.safe_string_k(position.clone(), "marketId", &[]);
-            let mut outcome: Value = self.safe_string_upper(position.clone(), Value::Str("outcomeName".into()), &[]);
+            let mut outcome: Value = self.safe_string_upper_k(position.clone(), "outcomeName", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut outcomeName: Value = self.safe_string_k(market, "market", &[]);
             if (outcomeName == Value::Null) {
@@ -2048,7 +2048,7 @@ impl BinanceCore {
         //
         if (outcomeObj == Value::Null) {
             let mut marketId: Value = self.safe_string_k(trade.clone(), "marketId", &[]);
-            let mut outcome: Value = self.safe_string_upper(trade.clone(), Value::Str("outcome".into()), &[]);
+            let mut outcome: Value = self.safe_string_upper_k(trade.clone(), "outcome", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut outcomeName: Value = self.safe_string_k(market, "market", &[]);
             if (outcomeName == Value::Null) {
@@ -2061,7 +2061,7 @@ impl BinanceCore {
         let mut filled: Value = self.safe_string_k(trade.clone(), "filledShareQty", &[]);
         let mut cost: Value = self.safe_string_k(trade.clone(), "filledUsdtAmount", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut orderType: Value = self.safe_string_lower(trade.clone(), Value::Str("orderType".into()), &[]);
+        let mut orderType: Value = self.safe_string_lower_k(trade.clone(), "orderType", &[]);
         let mut fee: Value = Value::Null;
         if (orderType.as_str() == Some("market")) && (cost != Value::Null) && (price != Value::Null) && (filled != Value::Null) {
             // buys pay cost above price*filled, sells receive proceeds net of the fee —
@@ -2087,7 +2087,7 @@ impl BinanceCore {
         m.insert("market".to_string(), self.safe_string_k(outcomeObj.clone(), "market", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("type".to_string(), orderType);
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "side", &[]));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), self.safe_string_k(trade, "makerShareQty", &[]));
@@ -2289,7 +2289,7 @@ impl BinanceCore {
                 amountStr = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&amountStr, &priceStr), &fee);
             }
         }
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".into()), &[defaultTif]);
+        let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[defaultTif]);
         let mut accountType: Value = self.safe_string_k(params.clone(), "accountType", &[]);
         if (accountType == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires accountType (SPOT, FUNDING)".into()))));

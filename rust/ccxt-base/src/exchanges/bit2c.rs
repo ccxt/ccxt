@@ -1085,7 +1085,7 @@ impl Bit2cCore {
         }
         let mut id: Value = self.safe_string_k(orderUnified.clone(), "id", &[]);
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
-        let mut timestamp: Value = self.safe_integer_product(orderUnified.clone(), Value::Str("created".into()), Value::Int(1000), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(orderUnified.clone(), "created", Value::Int(1000), &[]);
         // status field vary between responses
         // bit2c status type:
         // 0 = New
@@ -1308,7 +1308,7 @@ impl Bit2cCore {
         let mut reference: Value = self.safe_string_k(trade.clone(), "reference", &[]);
         if (reference != Value::Null) {
             id = reference.clone();
-            timestamp = self.safe_timestamp(trade.clone(), Value::Str("ticks".into()), &[]);
+            timestamp = self.safe_timestamp_k(trade.clone(), "ticks", &[]);
             price = self.safe_string_k(trade.clone(), "price", &[]);
             price = self.remove_comma_from_value(price.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             amount = self.safe_string_k(trade.clone(), "firstAmount", &[]);
@@ -1335,7 +1335,7 @@ impl Bit2cCore {
                 });
             }
         }  else {
-            timestamp = self.safe_timestamp(trade.clone(), Value::Str("date".into()), &[]);
+            timestamp = self.safe_timestamp_k(trade.clone(), "date", &[]);
             id = self.safe_string_k(trade.clone(), "tid", &[]);
             price = self.safe_string_k(trade.clone(), "price", &[]);
             amount = self.safe_string_k(trade.clone(), "amount", &[]);

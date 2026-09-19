@@ -1724,7 +1724,7 @@ impl CoinbaseexchangeCore {
         let mut feeRate: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
         let mut cost: Value = Value::Null;
-        let mut feeCurrencyId: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".into()), &[]);
+        let mut feeCurrencyId: Value = self.safe_string_lower_k(market.clone(), "quoteId", &[]);
         if (feeCurrencyId != Value::Null) {
             let mut costField: Value = Value::Str(format!("{}{}", feeCurrencyId, Value::Str("_value".into())).into());
             cost = self.safe_string(trade.clone(), costField, &[]);
@@ -2010,7 +2010,7 @@ impl CoinbaseexchangeCore {
     m
 }));
         let mut response: Value = self.public_get_time(&[params]).await;
-        return self.safe_timestamp(response, Value::Str("epoch".into()), &[]);
+        return self.safe_timestamp_k(response, "epoch", &[]);
 
     Value::Null
 }

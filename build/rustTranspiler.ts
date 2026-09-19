@@ -3504,7 +3504,8 @@ export class RustTranspilerBuilder {
     }
 
     rewriteLiteralKeySafeCalls(content: string): string {
-        const variants = ['value', 'string', 'integer', 'float', 'number', 'bool', 'dict', 'list'];
+        const variants = ['value', 'string', 'integer', 'float', 'number', 'bool', 'dict', 'list',
+            'string_lower', 'string_upper', 'timestamp'];
         const variantRe = variants.join('|');
         const re = new RegExp(
             'self\\.safe_(' + variantRe + ')\\(' +
@@ -3513,8 +3514,20 @@ export class RustTranspilerBuilder {
             '(&\\[[^\\]]*\\])\\)',
             'g',
         );
-        return content.replace(re, (_, name, obj, key, tail) =>
+        content = content.replace(re, (_, name, obj, key, tail) =>
             `self.safe_${name}_k(${obj}, "${key}", ${tail})`);
+        // `safe_integer_product` carries its conversion factor between the key
+        // and the defaults slice, so it needs its own shape.
+        const productRe = new RegExp(
+            'self\\.safe_integer_product\\(' +
+            '([^()]*(?:\\([^()]*\\)[^()]*)*?), ' +
+            'Value::Str\\("([^"\\\\]*)"\\.to_string\\(\\)\\), ' +
+            '([^,()]*(?:\\([^()]*\\)[^,()]*)*?), ' +
+            '(&\\[[^\\]]*\\])\\)',
+            'g',
+        );
+        return content.replace(productRe, (_, obj, key, factor, tail) =>
+            `self.safe_integer_product_k(${obj}, "${key}", ${factor}, ${tail})`);
     }
 
     rewriteExchangeMethodCalls(content: string): string {

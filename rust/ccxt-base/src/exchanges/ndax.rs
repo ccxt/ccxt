@@ -1776,9 +1776,9 @@ impl NdaxCore {
             priceString = self.safe_string_k(trade.clone(), "Price", &[]);
             amountString = self.safe_string_k(trade.clone(), "Quantity", &[]);
             costString = self.safe_string2(trade.clone(), Value::Str("Value".into()), Value::Str("GrossValueExecuted".into()), &[]);
-            takerOrMaker = self.safe_string_lower(trade.clone(), Value::Str("MakerTaker".into()), &[]);
-            side = self.safe_string_lower(trade.clone(), Value::Str("Side".into()), &[]);
-            type_var = self.safe_string_lower(trade.clone(), Value::Str("OrderType".into()), &[]);
+            takerOrMaker = self.safe_string_lower_k(trade.clone(), "MakerTaker", &[]);
+            side = self.safe_string_lower_k(trade.clone(), "Side", &[]);
+            type_var = self.safe_string_lower_k(trade.clone(), "OrderType", &[]);
             let mut feeCostString: Value = self.safe_string_k(trade.clone(), "Fee", &[]);
             if (feeCostString != Value::Null) {
                 let mut feeCurrencyId: Value = self.safe_string_k(trade.clone(), "FeeProductId", &[]);
@@ -2216,10 +2216,10 @@ impl NdaxCore {
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "LastUpdatedTime", &[]));
         m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(order.clone(), "OrderState", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
-        m.insert("type".to_string(), self.safe_string_lower(order.clone(), Value::Str("OrderType".into()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "OrderType", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("Side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "Side", &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "Price", &[]));
         m.insert("triggerPrice".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(order.clone(), "StopPrice", &[])), &[]));
         m.insert("cost".to_string(), self.safe_string_k(order.clone(), "GrossValueExecuted", &[]));

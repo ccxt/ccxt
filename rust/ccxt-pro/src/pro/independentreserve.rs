@@ -360,7 +360,7 @@ impl IndependentreserveCore {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "TradeGuid", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderNo", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone(), Value::Str("-".into())]));
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("Side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "Side", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "Price", &[]));

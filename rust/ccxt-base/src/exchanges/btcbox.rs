@@ -816,7 +816,7 @@ impl BtcboxCore {
         //          "type":"buy"
         //      }
         //
-        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("date".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "date", &[]);
         market = self.safe_market(&[Value::Null, market.clone()]);
         let mut id: Value = self.safe_string_k(trade.clone(), "tid", &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);

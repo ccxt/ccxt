@@ -731,7 +731,7 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_timestamp(balances, Value::Str("server_time".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(balances, "server_time", &[]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -828,9 +828,9 @@ impl IndodaxCore {
         //     }
         //
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("server_time".into()), &[]);
-        let mut baseVolume: Value = Value::Str(format!("{}{}", Value::Str("vol_".into()), self.safe_string_lower(market.clone(), Value::Str("baseId".into()), &[])).into());
-        let mut quoteVolume: Value = Value::Str(format!("{}{}", Value::Str("vol_".into()), self.safe_string_lower(market.clone(), Value::Str("quoteId".into()), &[])).into());
+        let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "server_time", &[]);
+        let mut baseVolume: Value = Value::Str(format!("{}{}", Value::Str("vol_".into()), self.safe_string_lower_k(market.clone(), "baseId", &[])).into());
+        let mut quoteVolume: Value = Value::Str(format!("{}{}", Value::Str("vol_".into()), self.safe_string_lower_k(market.clone(), "quoteId", &[])).into());
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -971,7 +971,7 @@ impl IndodaxCore {
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("date".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "date", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "tid", &[]));
@@ -1029,7 +1029,7 @@ impl IndodaxCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("Time".into()), &[]), self.safe_number_k(ohlcv.clone(), "Open", &[]), self.safe_number_k(ohlcv.clone(), "High", &[]), self.safe_number_k(ohlcv.clone(), "Low", &[]), self.safe_number_k(ohlcv.clone(), "Close", &[]), self.safe_number_k(ohlcv, "Volume", &[])]);
+        return Value::from(vec![self.safe_timestamp_k(ohlcv.clone(), "Time", &[]), self.safe_number_k(ohlcv.clone(), "Open", &[]), self.safe_number_k(ohlcv.clone(), "High", &[]), self.safe_number_k(ohlcv.clone(), "Low", &[]), self.safe_number_k(ohlcv.clone(), "Close", &[]), self.safe_number_k(ohlcv, "Volume", &[])]);
 
     Value::Null
 }

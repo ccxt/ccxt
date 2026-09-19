@@ -677,7 +677,7 @@ impl ApexCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_product(message, Value::Str("ts".into()), Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(message, "ts", Value::Float(0.001), &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
@@ -841,7 +841,7 @@ impl ApexCore {
             let mut merged: Value = self.extend(rawTicker, &[data]);
             parsed = self.parse_ticker(merged, &[]);
         }
-        let mut timestamp: Value = self.safe_integer_product(message, Value::Str("ts".into()), Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(message, "ts", Value::Float(0.001), &[]);
         add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.iso8601(timestamp));
         add_element_to_object(&mut self.tickers, &symbol, parsed);

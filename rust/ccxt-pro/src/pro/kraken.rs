@@ -475,7 +475,7 @@ impl KrakenCore {
             if (reduceOnly.as_bool() == Some(true)) {
                 add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("reduce_only".into()), Value::Bool(true));
             }
-            let mut timeInForce: Value = self.safe_string_lower(params.clone(), Value::Str("timeInForce".into()), &[]);
+            let mut timeInForce: Value = self.safe_string_lower_k(params.clone(), "timeInForce", &[]);
             if (timeInForce != Value::Null) {
                 add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("time_in_force".into()), timeInForce);
             }

@@ -549,7 +549,7 @@ impl DeepcoinCore {
                 if (listenKey == Value::Null) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".into()))));
                 }
-                listenKeyExpiryTimestamp = self.safe_timestamp(data, Value::Str("expire_time".into()), &[]);
+                listenKeyExpiryTimestamp = self.safe_timestamp_k(data, "expire_time", &[]);
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), listenKey.clone()); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyExpiryTimestamp".to_string(), listenKeyExpiryTimestamp); }
             }
@@ -1078,7 +1078,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("B".into()), &[]), self.safe_number_k(ohlcv.clone(), "O", &[]), self.safe_number_k(ohlcv.clone(), "H", &[]), self.safe_number_k(ohlcv.clone(), "L", &[]), self.safe_number_k(ohlcv.clone(), "C", &[]), self.safe_number_k(ohlcv, "V", &[])]);
+        return Value::from(vec![self.safe_timestamp_k(ohlcv.clone(), "B", &[]), self.safe_number_k(ohlcv.clone(), "O", &[]), self.safe_number_k(ohlcv.clone(), "H", &[]), self.safe_number_k(ohlcv.clone(), "L", &[]), self.safe_number_k(ohlcv.clone(), "C", &[]), self.safe_number_k(ohlcv, "V", &[])]);
 
     Value::Null
 }
@@ -1543,7 +1543,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut state: Value = self.safe_string_k(order.clone(), "Or", &[]);
-        let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("IT".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(order.clone(), "IT", &[]);
         let mut direction: Value = self.safe_string_k(order.clone(), "D", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1552,7 +1552,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp(order.clone(), Value::Str("U".into()), &[]));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(order.clone(), "U", &[]));
         m.insert("status".to_string(), self.parse_ws_order_status(state));
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("type".to_string(), Value::Null);

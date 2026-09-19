@@ -326,7 +326,7 @@ impl CoincheckCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timestamp: Value = self.safe_timestamp(data.clone(), Value::Str("last_update_at".into()), &[]);
+        let mut timestamp: Value = self.safe_timestamp_k(data.clone(), "last_update_at", &[]);
         let mut snapshot: Value = self.parse_order_book(data, symbol.clone(), &[timestamp]);
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {

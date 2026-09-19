@@ -1887,7 +1887,7 @@ impl WeexCore {
         }
         let mut marketResolved: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
         market = marketResolved.clone();
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("orderSide".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(trade.clone(), "orderSide", &[]);
         let mut fee: Value = Value::Null;
         let mut commission: Value = self.safe_string_k(trade.clone(), "fillFee", &[]);
         if (commission != Value::Null) {
@@ -1917,7 +1917,7 @@ impl WeexCore {
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
         m.insert("side".to_string(), side);
-        m.insert("takerOrMaker".to_string(), self.safe_string_lower(trade.clone(), Value::Str("direction".into()), &[]));
+        m.insert("takerOrMaker".to_string(), self.safe_string_lower_k(trade.clone(), "direction", &[]));
         m.insert("price".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "fillSize", &[]));
         m.insert("cost".to_string(), self.safe_string_k(trade, "fillValue", &[]));
@@ -2204,7 +2204,7 @@ impl WeexCore {
         }
         let mut marketResolved: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
         market = marketResolved.clone();
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("orderSide".into()), &[]);
+        let mut side: Value = self.safe_string_lower_k(order.clone(), "orderSide", &[]);
         let mut fee: Value = Value::Null;
         let mut commission: Value = self.safe_string_k(order.clone(), "cumFillFee", &[]);
         if (commission != Value::Null) {
@@ -2224,7 +2224,7 @@ impl WeexCore {
                 m
             });
         }
-        let mut rawStatus: Value = self.safe_string_lower(order.clone(), Value::Str("status".into()), &[]);
+        let mut rawStatus: Value = self.safe_string_lower_k(order.clone(), "status", &[]);
         let mut rawType: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut triggerPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "triggerPrice", &[]));
         let mut stopLossPrice: Value = Value::Null;

@@ -8107,7 +8107,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("tradeId".into()), Value::Str("execId".into()), &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("symbol".to_string(), symbol);
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "side", &[]));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "orderType", &[]));
         m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "tradeScope", &[]));
         m.insert("price".to_string(), self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("priceAvg".into()), Value::Str("price".into()), Value::Str("execPrice".into())]), &[]));
@@ -14365,7 +14365,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(transfer.clone(), "ts", &[]);
-        let mut status: Value = self.safe_string_lower(transfer.clone(), Value::Str("status".into()), &[]);
+        let mut status: Value = self.safe_string_lower_k(transfer.clone(), "status", &[]);
         let mut currencyId: Value = self.safe_string_k(transfer.clone(), "coin", &[]);
         let mut fromAccountRaw: Value = self.safe_string_k(transfer.clone(), "fromType", &[]);
         let mut accountsById: Value = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({

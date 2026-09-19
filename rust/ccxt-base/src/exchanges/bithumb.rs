@@ -1180,7 +1180,7 @@ impl BithumbCore {
                 let mut code: Value = codes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut account: Value = self.account();
                 let mut currency: Value = self.currency(code.clone());
-                let mut lowerCurrencyId: Value = self.safe_string_lower(currency, Value::Str("id".into()), &[]);
+                let mut lowerCurrencyId: Value = self.safe_string_lower_k(currency, "id", &[]);
                 add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string(balances.clone(), Value::Str(format!("{}{}", Value::Str("total_".into()), lowerCurrencyId).into()), &[]));
                 add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string(balances.clone(), Value::Str(format!("{}{}", Value::Str("in_use_".into()), lowerCurrencyId).into()), &[]));
                 add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string(balances.clone(), Value::Str(format!("{}{}", Value::Str("available_".into()), lowerCurrencyId).into()), &[]));
@@ -2105,7 +2105,7 @@ impl BithumbCore {
                 }
                 timestamp = self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", transactionDate, Value::Str(" ".into())).into()), transactionTime).into()));
             }  else {
-                timestamp = self.safe_integer_product(trade.clone(), Value::Str("transaction_date".into()), Value::Float(0.001), &[]);
+                timestamp = self.safe_integer_product_k(trade.clone(), "transaction_date", Value::Float(0.001), &[]);
             }
         }
         if (timestamp != Value::Null) && (!isGenerationTwo) {
@@ -2905,7 +2905,7 @@ impl BithumbCore {
                 timestamp = self.parse8601(datetime.clone());
             }
         }  else {
-            timestamp = self.safe_integer_product(order.clone(), Value::Str("order_date".into()), Value::Float(0.001), &[]);
+            timestamp = self.safe_integer_product_k(order.clone(), "order_date", Value::Float(0.001), &[]);
             datetime = self.iso8601(timestamp.clone());
         }
         let mut sideProperty: Option<String> = self.safe_string2(order.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
@@ -2966,7 +2966,7 @@ impl BithumbCore {
             });
         }
         let mut postOnly: Value = Value::Null;
-        let mut timeInForce: Value = self.safe_string_upper(order.clone(), Value::Str("time_in_force".into()), &[]);
+        let mut timeInForce: Value = self.safe_string_upper_k(order.clone(), "time_in_force", &[]);
         if (timeInForce.as_str() == Some("POST_ONLY")) {
             timeInForce = Value::Str("PO".into());
             postOnly = Value::Bool(true);

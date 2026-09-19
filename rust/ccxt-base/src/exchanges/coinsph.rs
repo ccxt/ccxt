@@ -1354,7 +1354,7 @@ impl CoinsphCore {
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), Value::Bool(self.safe_string_lower(market.clone(), Value::Str("status".into()), &[]).as_str() == Some("trading")));
+                    m.insert("active".to_string(), Value::Bool(self.safe_string_lower_k(market.clone(), "status", &[]).as_str() == Some("trading")));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
