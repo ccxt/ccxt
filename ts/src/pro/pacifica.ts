@@ -68,7 +68,7 @@ export default class pacifica extends pacificaRest {
         });
     }
 
-    setupApiKeyHeaders (key: Str = undefined): void {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
+    setupApiKeyHeaders (key: Str = undefined) {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
         const headers: Dict = {};
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
@@ -103,7 +103,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: any = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -185,7 +185,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params: any = {}): Promise<Order> {
         const batchOperationType = 'edit_order';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -242,7 +242,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params: any = {}): Promise<Order[]> {
         const batchOperationType = 'batch_orders';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -318,7 +318,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: any = {}): Promise<Order> {
         const operationType = 'cancel_order';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -377,7 +377,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrdersWs (symbol: Str = undefined, params: any = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -418,7 +418,7 @@ export default class pacifica extends pacificaRest {
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: any = {}): Promise<OrderBook> {
         this.setupApiKeyHeaders ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -453,7 +453,7 @@ export default class pacifica extends pacificaRest {
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -477,7 +477,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // {
         //   "channel": "book",
@@ -545,7 +545,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: any = {}): Promise<Ticker> {
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
     }
@@ -559,7 +559,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: any = {}): Promise<Tickers> {
         this.setupApiKeyHeaders ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -591,7 +591,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -622,7 +622,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Trade[]> {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('watchMyTrades', params);
         if (this.markets === undefined) {
@@ -661,7 +661,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -726,7 +726,7 @@ export default class pacifica extends pacificaRest {
         return this.parseTicker (rawTicker, market);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         // {
         //   "channel": "account_trades",
@@ -792,7 +792,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -826,7 +826,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -848,7 +848,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         // {
         //   "channel": "trades",
@@ -978,7 +978,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1015,7 +1015,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1038,7 +1038,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messagehash, message, messagehash);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // {
         //   "channel": "candle",
@@ -1092,7 +1092,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1133,7 +1133,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1157,7 +1157,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         // not snapshot, only updates
         // {
         //   "channel": "account_order_updates",
@@ -1236,7 +1236,7 @@ export default class pacifica extends pacificaRest {
         return false;
     }
 
-    handleOrderBookUnsubscription (client: Client, subscription: Dict): void {
+    handleOrderBookUnsubscription (client: Client, subscription: Dict) {
         const marketId = this.safeString2 (subscription, 'symbol', 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1248,7 +1248,7 @@ export default class pacifica extends pacificaRest {
         }
     }
 
-    handleTradesUnsubscription (client: Client, subscription: Dict): void {
+    handleTradesUnsubscription (client: Client, subscription: Dict) {
         const marketId = this.safeString2 (subscription, 'symbol', 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1260,7 +1260,7 @@ export default class pacifica extends pacificaRest {
         }
     }
 
-    handleTickersUnsubscription (client: Client, subscription: Dict): void {
+    handleTickersUnsubscription (client: Client, subscription: Dict) {
         const subMessageHash = 'tickers';
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
@@ -1270,7 +1270,7 @@ export default class pacifica extends pacificaRest {
         }
     }
 
-    handleOHLCVUnsubscription (client: Client, subscription: Dict): void {
+    handleOHLCVUnsubscription (client: Client, subscription: Dict) {
         const marketId = this.safeString2 (subscription, 'symbol', 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1289,7 +1289,7 @@ export default class pacifica extends pacificaRest {
         }
     }
 
-    handleOrderUnsubscription (client: Client, subscription: Dict): void {
+    handleOrderUnsubscription (client: Client, subscription: Dict) {
         const subHash = 'order';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
@@ -1299,7 +1299,7 @@ export default class pacifica extends pacificaRest {
         this.cleanCache (topicStructure);
     }
 
-    handleMyTradesUnsubscription (client: Client, subscription: Dict): void {
+    handleMyTradesUnsubscription (client: Client, subscription: Dict) {
         const subHash = 'myTrades';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
@@ -1309,7 +1309,7 @@ export default class pacifica extends pacificaRest {
         this.cleanCache (topicStructure);
     }
 
-    handleSubscriptionResponse (client: Client, message: Dict): void {
+    handleSubscriptionResponse (client: Client, message: Dict) {
         //  {
         //      "channel": "subscribe",
         //      "data": {
@@ -1433,7 +1433,7 @@ export default class pacifica extends pacificaRest {
         return payload;
     }
 
-    handleWsPost (client: Client, message: Dict): void {
+    handleWsPost (client: Client, message: Dict) {
         //
         // market order
         // {

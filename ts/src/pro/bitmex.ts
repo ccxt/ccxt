@@ -424,7 +424,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
     }
 
-    handleLiquidation (client: Client, message: Dict): void {
+    handleLiquidation (client: Client, message: Dict) {
         //
         //    {
         //        "table":"liquidation",
@@ -497,7 +497,7 @@ export default class bitmex extends bitmexRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "table": "margin",
@@ -603,7 +603,7 @@ export default class bitmex extends bitmexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         // initial snapshot
         //
@@ -726,7 +726,7 @@ export default class bitmex extends bitmexRest {
         return await future;
     }
 
-    handleAuthenticationMessage (client: Client, message: Dict): void {
+    handleAuthenticationMessage (client: Client, message: Dict) {
         const authenticated = this.safeBool (message, 'success', false);
         const messageHash = 'authenticated';
         if (authenticated === true) {
@@ -778,7 +778,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         // partial
         //    {
@@ -1010,7 +1010,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: Dict): void {
+    handleOrders (client: Client, message: Dict) {
         //
         //     {
         //         "table": "order",
@@ -1230,7 +1230,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "table":"execution",
@@ -1448,7 +1448,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "table": "tradeBin1m",
@@ -1560,7 +1560,7 @@ export default class bitmex extends bitmexRest {
         return await this.watch (url, event);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // first snapshot
         //
@@ -1752,7 +1752,7 @@ export default class bitmex extends bitmexRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         //
         //     {
         //         "info": "Welcome to the BitMEX Realtime API.",

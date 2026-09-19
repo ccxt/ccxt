@@ -680,7 +680,7 @@ export default class ndax extends Exchange {
         });
     }
 
-    override parseOrderBook (orderbook: any, symbol: any, timestamp: Int = undefined, bidsKey: string = 'bids', asksKey: string = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2): OrderBook {
+    override parseOrderBook (orderbook: any, symbol: any, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
         let nonce: Int = undefined;
         const result: Dict = {
             'symbol': symbol,
@@ -2713,7 +2713,7 @@ export default class ndax extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = 'public', method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

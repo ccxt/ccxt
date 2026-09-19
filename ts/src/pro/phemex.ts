@@ -208,7 +208,7 @@ export default class phemex extends phemexRest {
         });
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "spot_market24h": {
@@ -332,7 +332,7 @@ export default class phemex extends phemexRest {
         return await this.subscribePrivate (type, messageHash, params);
     }
 
-    handleBalance (type: string, client: Client, message: any[]): void {
+    handleBalance (type: string, client: Client, message: any[]) {
         // spot
         //    [
         //       {
@@ -409,7 +409,7 @@ export default class phemex extends phemexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "sequence": 1795484727,
@@ -455,7 +455,7 @@ export default class phemex extends phemexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "kline": [
@@ -720,18 +720,18 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    customHandleDelta (bookside: any, delta: any[], market: Market = undefined): void {
+    customHandleDelta (bookside: any, delta: any[], market: Market = undefined) {
         const bidAsk = this.customParseBidAsk (delta, 0, 1, market);
         bookside.storeArray (bidAsk);
     }
 
-    customHandleDeltas (bookside: any, deltas: any[], market: Market = undefined): void {
+    customHandleDeltas (bookside: any, deltas: any[], market: Market = undefined) {
         for (let i = 0; i < deltas.length; i++) {
             this.customHandleDelta (bookside, deltas[i], market);
         }
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "book": {
@@ -846,7 +846,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: any[]): void {
+    handleMyTrades (client: Client, message: any[]) {
         //
         // swap
         //    [
@@ -1015,7 +1015,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: any): void {
+    handleOrders (client: Client, message: any) {
         // spot update
         // {
         //        "closed":[
@@ -1409,7 +1409,7 @@ export default class phemex extends phemexRest {
         }, market);
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         // private spot update
         // {
         //     "orders": { closed: [ ], fills: [ ], open: [] },
@@ -1542,7 +1542,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    handleAuthenticate (client: Client, message: Dict): void {
+    handleAuthenticate (client: Client, message: Dict) {
         //
         // {
         //     "error": null,

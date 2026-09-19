@@ -587,7 +587,7 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    override setMarkets (markets: any, currencies = undefined) {
+    override setMarkets (markets: any, currencies: any = undefined) {
         const result = super.setMarkets (markets, currencies);
         const symbols = Object.keys (result);
         for (let i = 0; i < symbols.length; i++) {
@@ -3087,7 +3087,7 @@ export default class deepcoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let requestPath = path;
         if (method === 'GET') {
             const query = this.urlencode (params);

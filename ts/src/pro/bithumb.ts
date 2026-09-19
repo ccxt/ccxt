@@ -43,7 +43,7 @@ export default class bithumb extends bithumbRest {
         });
     }
 
-    async pong (client: Client, message: any): Promise<void> {
+    async pong (client: Client, message: any): Promise<any> {
         const ping = this.safeInteger (message, 'ping');
         if (ping !== undefined) {
             await client.send ({ 'pong': ping });
@@ -52,11 +52,11 @@ export default class bithumb extends bithumbRest {
         }
     }
 
-    handlePing (client: Client, message: any): void {
+    handlePing (client: Client, message: any) {
         this.spawn (this.pong, client, message);
     }
 
-    handlePong (client: Client, message: any): void {
+    handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
     }
 
@@ -173,7 +173,7 @@ export default class bithumb extends bithumbRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         // generation 1
         //
@@ -404,7 +404,7 @@ export default class bithumb extends bithumbRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // generation 1
         //
@@ -591,7 +591,7 @@ export default class bithumb extends bithumbRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         // generation 1
         //
@@ -664,7 +664,7 @@ export default class bithumb extends bithumbRest {
         }
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // generation 1
         //
@@ -793,7 +793,7 @@ export default class bithumb extends bithumbRest {
         return balance;
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //    {
         //        "type": "myAsset",
@@ -924,7 +924,7 @@ export default class bithumb extends bithumbRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: Dict): void {
+    handleOrders (client: Client, message: Dict) {
         //
         //    {
         //        "type": "myOrder",
@@ -964,7 +964,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (cachedOrders, symbolSpecificMessageHash);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         //
         //    {
         //        "type": "myOrder",

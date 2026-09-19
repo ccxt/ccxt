@@ -132,7 +132,7 @@ export default class bitstamp extends bitstampRest {
         return await this.watch (url, unsubHash, this.extend (request, params), unsubHash, subscription);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -188,7 +188,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleDelta (orderbook: any, delta: any): void {
+    override handleDelta (orderbook: any, delta: any) {
         const timestamp = this.safeTimestamp (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -201,7 +201,7 @@ export default class bitstamp extends bitstampRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    handleBidAsks (bookSide: any, bidAsks: any[]): void {
+    handleBidAsks (bookSide: any, bidAsks: any[]) {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
@@ -325,7 +325,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleTrade (client: Client, message: Dict): void {
+    handleTrade (client: Client, message: Dict) {
         //
         //     {
         //         "data": {
@@ -395,7 +395,7 @@ export default class bitstamp extends bitstampRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleFundingRate (client: Client, message: Dict): void {
+    handleFundingRate (client: Client, message: Dict) {
         //
         //     {
         //         "data": {
@@ -539,7 +539,7 @@ export default class bitstamp extends bitstampRest {
         return await this.unWatchChannel (channel, channel, 'myTrades', [ symbol ], params);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "data": {
@@ -624,7 +624,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleOrders (client: Client, message: Dict): void {
+    handleOrders (client: Client, message: Dict) {
         //
         //     {
         //         "data": {
@@ -673,7 +673,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (this.orders, channel);
     }
 
-    override parseWsOrder (order: Dict, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // order_deleted after a full fill - amount_str carries the amount
         // left to be executed, amount_at_create the original order amount
@@ -765,7 +765,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleOrderBookSubscription (client: Client, message: Dict): void {
+    handleOrderBookSubscription (client: Client, message: Dict) {
         const channel = this.safeString (message, 'channel');
         if (channel === undefined) {
             return;
@@ -776,7 +776,7 @@ export default class bitstamp extends bitstampRest {
         this.orderbooks[symbol] = this.orderBook ();
     }
 
-    handleSubscriptionStatus (client: Client, message: Dict): void {
+    handleSubscriptionStatus (client: Client, message: Dict) {
         //
         //     {
         //         "event": "bts:subscription_succeeded",
@@ -798,7 +798,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleUnsubscriptionStatus (client: Client, message: Dict): void {
+    handleUnsubscriptionStatus (client: Client, message: Dict) {
         //
         //     {
         //         "event": "bts:unsubscription_succeeded",
@@ -857,7 +857,7 @@ export default class bitstamp extends bitstampRest {
         return newCache;
     }
 
-    handleSubject (client: Client, message: Dict): void {
+    handleSubject (client: Client, message: Dict) {
         //
         //     {
         //         "data": {
@@ -932,7 +932,7 @@ export default class bitstamp extends bitstampRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) !== true) {
             return;
         }

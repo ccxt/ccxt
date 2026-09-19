@@ -913,7 +913,7 @@ export default class bydfi extends Exchange {
         return result;
     }
 
-    override parseOHLCV (ohlcv: any[], market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "s": "ETH-USDT",
@@ -1161,7 +1161,7 @@ export default class bydfi extends Exchange {
         return this.parseFundingRateHistories (data, market, since, limit);
     }
 
-    override parseFundingRateHistory (contract: Dict, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "ETH-USDT",
@@ -2606,7 +2606,7 @@ export default class bydfi extends Exchange {
         return this.parseBalance (data);
     }
 
-    override parseBalance (response: any[]): Balances {
+    override parseBalance (response: any): Balances {
         const timestamp = this.milliseconds ();
         const result: Dict = {
             'info': response,
@@ -2972,7 +2972,7 @@ export default class bydfi extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path: any, api: any = 'public', method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api];
         let endpoint = '/' + path;
         let query = '';

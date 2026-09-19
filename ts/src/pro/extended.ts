@@ -74,7 +74,7 @@ export default class extended extends extendedRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -129,13 +129,13 @@ export default class extended extends extendedRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside: any, delta: Dict): void {
+    override handleDelta (bookside: any, delta: Dict) {
         const price = this.safeFloat (delta, 'p');
         const amount = this.safeFloat2 (delta, 'c', 'q');
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any[]): void {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -214,7 +214,7 @@ export default class extended extends extendedRest {
         return await this.watchPrivate ('balance', params);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "type": "BALANCE",
@@ -305,7 +305,7 @@ export default class extended extends extendedRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "type": "TRADE",
@@ -395,7 +395,7 @@ export default class extended extends extendedRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         "type": "POSITION",
@@ -454,7 +454,7 @@ export default class extended extends extendedRest {
         client.resolve (newPositions, 'positions');
     }
 
-    handleOrders (client: Client, message: Dict): void {
+    handleOrders (client: Client, message: Dict) {
         //
         //     {
         //         "type": "ORDER",
@@ -545,7 +545,7 @@ export default class extended extends extendedRest {
         });
     }
 
-    handleFundingRate (client: Client, message: Dict): void {
+    handleFundingRate (client: Client, message: Dict) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -620,7 +620,7 @@ export default class extended extends extendedRest {
         });
     }
 
-    handleMarkPrice (client: Client, message: Dict): void {
+    handleMarkPrice (client: Client, message: Dict) {
         //
         //     {
         //         "type": "MP",
@@ -686,7 +686,7 @@ export default class extended extends extendedRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -784,7 +784,7 @@ export default class extended extends extendedRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "ts": 1695738675123,
@@ -861,7 +861,7 @@ export default class extended extends extendedRest {
         throw new ExchangeError (feedback);
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }

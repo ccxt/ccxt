@@ -1202,7 +1202,7 @@ export default class xt extends Exchange {
         return this.parseMarkets (swapAndFutureMarkets);
     }
 
-    override parseMarkets (markets: any): Market[] {
+    override parseMarkets (markets: any) {
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.parseMarket (markets[i]));
@@ -5845,7 +5845,7 @@ export default class xt extends Exchange {
         return undefined;
     }
 
-    override sign (path: any, api: any = [], method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
+    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);

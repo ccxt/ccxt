@@ -1216,7 +1216,7 @@ export default class grvt extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //            {
         //                "open_time": "1767288240000000000",
@@ -1254,7 +1254,7 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -1298,7 +1298,7 @@ export default class grvt extends Exchange {
         return this.parseFundingRateHistories (result, market);
     }
 
-    override parseFundingRateHistory (rawItem: Dict, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (rawItem: any, market: Market = undefined): FundingRateHistory {
         //
         //            {
         //                "instrument": "BTC_USDT_Perp",
@@ -2018,7 +2018,7 @@ export default class grvt extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const orderLeg: Dict = {
@@ -2278,7 +2278,7 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarketsAndSignIn ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
@@ -2608,7 +2608,7 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         await this.loadMarketsAndSignIn ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
@@ -2654,7 +2654,7 @@ export default class grvt extends Exchange {
         return this.parseIncomes (result, market, since, limit);
     }
 
-    override parseIncome (income: Dict, market: Market = undefined): FundingHistory {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //            {
         //                "event_time": "1765267200004987902",
@@ -2871,7 +2871,7 @@ export default class grvt extends Exchange {
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarketsAndSignIn ();
         const subAccountId = this.getSubAccountId (params);
         const request: Dict = {
@@ -3122,7 +3122,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
         const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
@@ -3157,7 +3157,7 @@ export default class grvt extends Exchange {
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarketsAndSignIn ();
         const subAccoubntId = this.getSubAccountId (params);
         const request: Dict = {
@@ -3300,7 +3300,7 @@ export default class grvt extends Exchange {
         return requestId;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + path;
         let queryString = '';

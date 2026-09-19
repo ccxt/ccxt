@@ -636,7 +636,7 @@ export class BaseExchange {
         this.loadExchangeSpecificFiles ();
     }
 
-    async loadExchangeSpecificFiles (): Promise<void> {
+    async loadExchangeSpecificFiles () {
         if (this.id === 'mexc') {
             try {
                 protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
@@ -688,11 +688,11 @@ export class BaseExchange {
         return this.throttler.throttle (cost);
     }
 
-    initThrottler (): void {
+    initThrottler () {
         this.throttler = new Throttler (this.tokenBucket);
     }
 
-    defineRestApiEndpoint (methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config = {}): void {
+    defineRestApiEndpoint (methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config = {}) {
         const splitPath = path.split (/[^a-zA-Z0-9]/);
         const camelcaseSuffix = splitPath.map (this.capitalize).join ('');
         const underscoreSuffix = splitPath.map ((x: string) => x.trim ().toLowerCase ()).filter ((x: string) => x.length > 0).join ('_');
@@ -708,7 +708,7 @@ export class BaseExchange {
         this[underscore] = partial;
     }
 
-    defineRestApi (api: any, methodName: any, paths: string[] = []): void {
+    defineRestApi (api: any, methodName: any, paths: string[] = []) {
         const keys = Object.keys (api);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -743,11 +743,11 @@ export class BaseExchange {
         }
     }
 
-    log (...args: any[]): void {
+    log (...args: any[]) {
         console.log (...args);
     }
 
-    async loadProxyModules (): Promise<any> {
+    async loadProxyModules () {
         // when loading markets, multiple parallel calls are made, so need one promise
         if (this.proxiesModulesLoading === undefined) {
             this.proxiesModulesLoading = (async () => {
@@ -822,7 +822,7 @@ export class BaseExchange {
         return chosenAgent;
     }
 
-    async loadHttpProxyAgent (): Promise<any> {
+    async loadHttpProxyAgent () {
         // for `http://` protocol proxy-urls, we need to load `http` module only on first call
         if (this.httpAgent === undefined) {
             const httpModule = await import (/* webpackIgnore: true */'node:http');
@@ -844,7 +844,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    addFetchCache (data: any): void {
+    addFetchCache (data: any) {
         if (this.fetchHistoryCacheSize <= 0) {
             return;
         }
@@ -911,7 +911,7 @@ export class BaseExchange {
      * @description resolves the fetch implementation once per instance - the platform-native fetch is used everywhere (undici in node, native fetch in bun / browsers / deno), a user-supplied this.fetchImplementation always takes precedence
      * @returns {Promise<any>} a promise that resolves when the fetch client is ready
      */
-    async loadFetchImplementation (): Promise<any> {
+    async loadFetchImplementation () {
         // one shared promise, so parallel first-requests initialize the client only once
         if (this.fetchImplementationLoading === undefined) {
             this.fetchImplementationLoading = (async () => {
@@ -1091,7 +1091,7 @@ export class BaseExchange {
      * @description closes an undici dispatcher that left this.proxyDictionaries - close () drains in-flight requests before releasing sockets, and any close failure is irrelevant because the dispatcher is already unreferenced; legacy node-style agents are left untouched (never destroyed, matching the long-standing behavior, because live ws connections may still use them)
      * @param {any} entry the evicted or replaced proxyDictionaries value
      */
-    releaseProxyDictionaryEntry (entry: any): void {
+    releaseProxyDictionaryEntry (entry: any) {
         if ((entry !== undefined) && (entry !== null) && (typeof entry.dispatch === 'function') && (typeof entry.close === 'function')) {
             entry.close ().catch (() => {});
         }
@@ -1169,7 +1169,7 @@ export class BaseExchange {
      * @param {boolean} [binary] true to return a Buffer, false to return a utf8 string
      * @returns {Promise<any>} the response body
      */
-    async undiciBody (res: any, binary = false): Promise<any> {
+    async undiciBody (res: any, binary = false) {
         let contentEncoding = res.headers['content-encoding'];
         if ((res.statusCode === 204) || (res.statusCode === 304)) {
             contentEncoding = undefined; // bodyless statuses, nothing to inflate
@@ -1206,7 +1206,7 @@ export class BaseExchange {
      * @param {string} [httpsProxy] unified httpsProxy setting
      * @param {string} [socksProxy] unified socksProxy setting
      */
-    setFetchProxyOptions (params: any, httpProxy: any, httpsProxy: any, socksProxy: any): void {
+    setFetchProxyOptions (params: any, httpProxy: any, httpsProxy: any, socksProxy: any) {
         // unified proxy settings take precedence over legacy proxy-carrying agent objects
         let selectedProxy: any = undefined;
         if ((httpProxy !== undefined) && (httpProxy !== null) && (httpProxy !== '')) {
@@ -1248,7 +1248,7 @@ export class BaseExchange {
         params['dispatcher'] = this.getFetchProxyDispatcher (selectedProxy);
     }
 
-    async fetch (url: any, method = 'GET', headers: any = undefined, body: any = undefined): Promise<any> {
+    async fetch (url: any, method = 'GET', headers: any = undefined, body: any = undefined) {
         // ##### PROXY & HEADERS #####
         headers = this.extend (this.headers, headers);
         // proxy-url
@@ -1610,7 +1610,7 @@ export class BaseExchange {
         });
     }
 
-    checkRequiredDependencies (): void {
+    checkRequiredDependencies () {
 
     }
 
@@ -1638,7 +1638,7 @@ export class BaseExchange {
         }
     }
 
-    checkOrderArguments (market: any, type: any, side: any, amount: any, price: any, params: any): void {
+    checkOrderArguments (market: any, type: any, side: any, amount: any, price: any, params: any) {
         if (price === undefined) {
             if (type === 'limit') {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
@@ -1649,7 +1649,7 @@ export class BaseExchange {
         }
     }
 
-    handleHttpStatusCode (code: any, reason: any, url: any, method: any, body: any): void {
+    handleHttpStatusCode (code: any, reason: any, url: any, method: any, body: any) {
         const codeAsString = code.toString ();
         if (codeAsString in this.httpExceptions) {
             const ErrorClass = this.httpExceptions[codeAsString];
@@ -1687,7 +1687,7 @@ export class BaseExchange {
         return future;
     }
 
-    delay (timeout: any, method: any, ...args: any[]): void {
+    delay (timeout: any, method: any, ...args: any[]) {
         setTimeout (() => {
             this.spawn (method, ...args);
         }, timeout);
@@ -1709,7 +1709,7 @@ export class BaseExchange {
         return new CountedOrderBook (snapshot, depth);
     }
 
-    handleMessage (client: Client, message: any): void {} // stub to override
+    handleMessage (client: Client, message: any) {} // stub to override
 
     // ping (client: Client) {} // stub to override
 
@@ -1952,18 +1952,18 @@ export class BaseExchange {
         return future;
     }
 
-    onConnected (client: Client, message: any = undefined): void {
+    onConnected (client: Client, message: any = undefined) {
         // for user hooks
         // console.log ('Connected to', client.url)
     }
 
-    onError (client: Client, error: any): void {
+    onError (client: Client, error: any) {
         if ((client.url in this.clients) && (this.clients[client.url].error !== undefined)) {
             delete this.clients[client.url];
         }
     }
 
-    onClose (client: Client, error: any): void {
+    onClose (client: Client, error: any) {
         if (client.error !== undefined) {
             // connection closed due to an error, do nothing
         } else {
@@ -1974,7 +1974,7 @@ export class BaseExchange {
         }
     }
 
-    async close (cleanInstanceCache = false): Promise<void> {
+    async close (cleanInstanceCache = false) {
         // [WS]
         await this.sleep (0); // allow other futures to run
         const allClients = (this.clients !== undefined) ? this.clients : {};
@@ -2023,7 +2023,7 @@ export class BaseExchange {
         return (property in obj ? obj[property] : defaultValue);
     }
 
-    setProperty (obj: any, property: any, defaultValue: any = undefined): void {
+    setProperty (obj: any, property: any, defaultValue: any = undefined) {
         obj[property] = defaultValue;
     }
 
@@ -2236,7 +2236,7 @@ export class BaseExchange {
         return zkSign;
     }
 
-    async loadDydxProtos (): Promise<void> {
+    async loadDydxProtos () {
         // load dydx protos
         const tasks = [
             import ('../static_dependencies/dydx-v4-client/registry.js') as Promise<any>,
@@ -2390,7 +2390,7 @@ export class BaseExchange {
         return elem.toString (16);
     }
 
-    extendExchangeOptions (newOptions: Dict): void {
+    extendExchangeOptions (newOptions: Dict) {
         this.options = this.extend (this.options, newOptions);
     }
 
@@ -2522,13 +2522,13 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    checkLighterSignedError (method: string, result: any, request: any = undefined): void {
+    checkLighterSignedError (method: string, result: any, request: any = undefined) {
         if ('error' in result) {
             this.raiseLighterSignerError (method, result['error'], request);
         }
     }
 
-    raiseLighterSignerError (method: string, error: any, request: any = undefined): void {
+    raiseLighterSignerError (method: string, error: any, request: any = undefined) {
         const errorText = String (error);
         let message = method + '() failed with error: ' + errorText;
         // the native signer keeps one client per (apiKeyIndex, accountIndex) pair, so this
@@ -2711,14 +2711,14 @@ export class BaseExchange {
         return [ res.txType, res.txInfo, res.messageToSign ];
     }
 
-    setLastRestRequestTimestamp (): void {
+    setLastRestRequestTimestamp () {
         // hand-written per language (not transpiled): in most languages this is a
         // plain assignment, but the Go implementation guards the write with a mutex
         // because concurrent requests would otherwise data-race on this field
         this.lastRestRequestTimestamp = this.milliseconds ();
     }
 
-    setLastRequest (request: any): void {
+    setLastRequest (request: any) {
         // hand-written per language (not transpiled): plain assignments in most
         // languages, but the Go implementation guards the writes with a mutex because
         // concurrent requests would otherwise data-race on these bookkeeping fields
@@ -3115,7 +3115,7 @@ export class BaseExchange {
         };
     }
 
-    cleanRestData (): void {
+    cleanRestData () {
         this.ids = undefined;
         this.markets = undefined;
         this.markets_by_id = undefined;
@@ -3131,7 +3131,7 @@ export class BaseExchange {
         this.last_request_headers = undefined;
     }
 
-    cleanWsData (): void {
+    cleanWsData () {
         this.balance = this.createSafeDictionary (true);
         this.orderbooks = this.createSafeDictionary (true);
         this.tickers = this.createSafeDictionary (true);
@@ -3313,7 +3313,7 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    storeByKey (dict: any, key: NullableIndexType, value: any): void {
+    storeByKey (dict: any, key: NullableIndexType, value: any) {
         /**
          * @ignore
          * @method
@@ -3325,17 +3325,17 @@ export class BaseExchange {
         }
     }
 
-    handleDeltas (orderbook: any, deltas: any): void {
+    handleDeltas (orderbook: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (orderbook, deltas[i]);
         }
     }
 
-    handleDelta (bookside: any, delta: any): void {
+    handleDelta (bookside: any, delta: any) {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
     }
 
-    handleDeltasWithKeys (bookSide: any, deltas: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): void {
+    handleDeltasWithKeys (bookSide: any, deltas: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         for (let i = 0; i < deltas.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (deltas[i], priceKey, amountKey, countOrIdKey);
             bookSide.storeArray (bidAsk);
@@ -3500,7 +3500,7 @@ export class BaseExchange {
         return [ wsProxy, wssProxy, wsSocksProxy ];
     }
 
-    checkConflictingProxies (proxyAgentSet: any, proxyUrlSet: any): void {
+    checkConflictingProxies (proxyAgentSet: any, proxyUrlSet: any) {
         const proxyAgentIsSet = (proxyAgentSet !== undefined) && (proxyAgentSet !== null) && (proxyAgentSet !== '');
         const proxyUrlIsSet = (proxyUrlSet !== undefined) && (proxyUrlSet !== null) && (proxyUrlSet !== '');
         if (proxyAgentIsSet && proxyUrlIsSet) {
@@ -3628,7 +3628,7 @@ export class BaseExchange {
      * @description set the sandbox mode for the exchange
      * @param {boolean} enabled true to enable sandbox mode, false to disable it
      */
-    setSandboxMode (enabled: boolean): void {
+    setSandboxMode (enabled: boolean) {
         if (enabled) {
             if ('test' in this.urls) {
                 if (typeof this.urls['api'] === 'string') {
@@ -3662,7 +3662,7 @@ export class BaseExchange {
      * @description enables or disables demo trading mode
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
-    enableDemoTrading (enable: boolean): void {
+    enableDemoTrading (enable: boolean) {
         if (this.isSandboxModeEnabled) {
             throw new NotSupported (this.id + ' demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
         }
@@ -3997,7 +3997,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchOpenInterests() is not supported yet');
     }
 
-    async signIn (params: Dict = {}): Promise<{}> {
+    async signIn (params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' signIn() is not supported yet');
     }
 
@@ -4053,7 +4053,7 @@ export class BaseExchange {
         return timestamp;
     }
 
-    afterConstruct (): void {
+    afterConstruct () {
         // networks
         this.createNetworksByIdObject ();
         this.featuresGenerator ();
@@ -4070,7 +4070,7 @@ export class BaseExchange {
         }
     }
 
-    initRestRateLimiter (): void {
+    initRestRateLimiter () {
         if (this.rateLimit === undefined || (this.id !== undefined && this.rateLimit === -1)) {
             throw new ExchangeError (this.id + '.rateLimit property is not configured');
         }
@@ -4094,7 +4094,7 @@ export class BaseExchange {
         this.initThrottler ();
     }
 
-    featuresGenerator (): void {
+    featuresGenerator () {
         //
         // in the exchange-specific features can be something like this, where we support 'string' aliases too:
         //
@@ -4284,7 +4284,7 @@ export class BaseExchange {
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
 
-    createNetworksByIdObject (): void {
+    createNetworksByIdObject () {
         // automatically generate network-id-to-code mappings
         const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary
         this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
@@ -5569,7 +5569,7 @@ export class BaseExchange {
         return result;
     }
 
-    async fetchWebEndpoint (method: any, endpointMethod: any, returnAsJson: any, startRegex: Str = undefined, endRegex: Str = undefined): Promise<any> {
+    async fetchWebEndpoint (method: any, endpointMethod: any, returnAsJson: any, startRegex: Str = undefined, endRegex: Str = undefined) {
         let errorMessage = '';
         const options = this.safeValue (this.options, method, {});
         const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
@@ -6793,7 +6793,7 @@ export class BaseExchange {
         }
     }
 
-    async fetchCrossBorrowRate (code: string, params: Dict = {}): Promise<CrossBorrowRate> {
+    async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
         await this.loadMarkets ();
         if (this.has['fetchBorrowRates'] === undefined || this.has['fetchBorrowRates'] === false) {
             throw new NotSupported (this.id + ' fetchCrossBorrowRate() is not supported yet');
@@ -6963,7 +6963,7 @@ export class BaseExchange {
         return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
-    throwExactlyMatchedException (exact: any, string: any, message: any): void {
+    throwExactlyMatchedException (exact: any, string: any, message: any) {
         if (string === undefined) {
             return;
         }
@@ -6972,7 +6972,7 @@ export class BaseExchange {
         }
     }
 
-    throwBroadlyMatchedException (broad: any, string: any, message: any): void {
+    throwBroadlyMatchedException (broad: any, string: any, message: any) {
         const broadKey = this.findBroadlyMatchedKey (broad, string);
         if (broadKey !== undefined) {
             throw new broad[broadKey] (message);
@@ -8085,7 +8085,7 @@ export class BaseExchange {
         }
     }
 
-    checkRequiredArgument (methodName: string, argument: any, argumentName: any, options: string[] = []): void {
+    checkRequiredArgument (methodName: string, argument: any, argumentName: any, options: string[] = []) {
         /**
          * @ignore
          * @method
@@ -8106,7 +8106,7 @@ export class BaseExchange {
         }
     }
 
-    checkRequiredMarginArgument (methodName: string, symbol: Str, marginMode: string): void {
+    checkRequiredMarginArgument (methodName: string, symbol: Str, marginMode: string) {
         /**
          * @ignore
          * @method
@@ -8954,7 +8954,7 @@ export class BaseExchange {
         return reconstructedDate;
     }
 
-    async loadMarketsAndSignIn (): Promise<void> {
+    async loadMarketsAndSignIn () {
         await Promise.all ([ this.loadMarkets (), this.signIn () ]);
     }
 
@@ -9073,7 +9073,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' unWatchBidsAsks () is not supported yet');
     }
 
-    cleanUnsubscription (client: Client, subHash: Str, unsubHash: Str, subHashIsPrefix = false): void {
+    cleanUnsubscription (client: Client, subHash: Str, unsubHash: Str, subHashIsPrefix = false) {
         if ((unsubHash !== undefined) && (unsubHash in client.subscriptions)) {
             delete client.subscriptions[unsubHash];
         }
@@ -9105,7 +9105,7 @@ export class BaseExchange {
         client.resolve (true, unsubHash);
     }
 
-    cleanCache (subscription: Dict | undefined): void {
+    cleanCache (subscription: Dict | undefined) {
         const topic = this.safeString (subscription, 'topic');
         const symbols = this.safeList (subscription, 'symbols', []);
         const symbolsLength = symbols.length;
@@ -9714,7 +9714,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
 
-    async loadOrderBook (client: Client, messageHash: string, symbol: string, limit: Int = undefined, params: Dict = {}): Promise<void> {
+    async loadOrderBook (client: Client, messageHash: string, symbol: string, limit: Int = undefined, params: Dict = {}): Promise<any> {
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;

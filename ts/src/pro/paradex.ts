@@ -69,7 +69,7 @@ export default class paradex extends paradexRest {
         return await future;
     }
 
-    handleAuthenticationMessage (client: Client, message: Dict): void {
+    handleAuthenticationMessage (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -186,7 +186,7 @@ export default class paradex extends paradexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -358,7 +358,7 @@ export default class paradex extends paradexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -515,7 +515,7 @@ export default class paradex extends paradexRest {
         return this.filterByArray (this.fundingRates, 'symbol', symbols);
     }
 
-    handleFundingRate (client: Client, message: Dict): void {
+    handleFundingRate (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",

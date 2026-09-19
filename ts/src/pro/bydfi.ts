@@ -80,7 +80,7 @@ export default class bydfi extends bydfiRest {
         });
     }
 
-    override ping (client: Client): Dict | Str {
+    override ping (client: Client) {
         return {
             'id': this.requestId (),
             'method': 'ping',
@@ -277,7 +277,7 @@ export default class bydfi extends bydfiRest {
         return messageHashes;
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "s": "KAS-USDT",
@@ -400,7 +400,7 @@ export default class bydfi extends bydfiRest {
         return await this.watchPublic (messageHashes, channels, params, subscription);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "s": "ETH-USDC",
@@ -537,7 +537,7 @@ export default class bydfi extends bydfiRest {
         return await this.watchPublic (messageHashes, channels, params, subscription);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "a": [ [ 150000, 15 ], ... ],
@@ -614,7 +614,7 @@ export default class bydfi extends bydfiRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         "T": 1766588450558,
@@ -760,7 +760,7 @@ export default class bydfi extends bydfiRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         "a": {
@@ -910,7 +910,7 @@ export default class bydfi extends bydfiRest {
         return await this.watchPrivate ([ messageHash ], params);
     }
 
-    fetchBalanceSnapshot (client: Client): void {
+    fetchBalanceSnapshot (client: Client) {
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         if (fetchBalanceSnapshot === true) {
@@ -922,7 +922,7 @@ export default class bydfi extends bydfiRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadBalanceSnapshot (client: Client, messageHash: string): Promise<any> {
         const params: Dict = {
             'type': 'swap',
         };
@@ -934,7 +934,7 @@ export default class bydfi extends bydfiRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "a": {
@@ -1019,7 +1019,7 @@ export default class bydfi extends bydfiRest {
         return message;
     }
 
-    handleUnSubscription (client: Client, subscription: Dict): void {
+    handleUnSubscription (client: Client, subscription: Dict) {
         const messageHashes = this.safeList (subscription, 'messageHashes', []);
         const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -1041,7 +1041,7 @@ export default class bydfi extends bydfiRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: Dict): void {
+    handleErrorMessage (client: Client, message: Dict) {
         //
         //     {
         //         "msg": "Service error",
@@ -1057,7 +1057,7 @@ export default class bydfi extends bydfiRest {
         throw new ExchangeError (feedback);
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         const code = this.safeString (message, 'code');
         if (code !== undefined && (code !== '0')) {
             this.handleErrorMessage (client, message);

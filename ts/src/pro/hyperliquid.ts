@@ -75,7 +75,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrdersWs (orders: OrderRequest[], params: Dict = {}) {
+    override async createOrdersWs (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -111,7 +111,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -146,7 +146,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params: Dict = {}) {
+    override async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -179,7 +179,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order cancellation
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params: Dict = {}) {
+    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -216,7 +216,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order cancellation
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}) {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const orders = await this.cancelOrdersWs ([ id ], symbol, params);
         return this.safeDict (orders, 0) as Order;
     }
@@ -282,7 +282,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "l2Book",
@@ -622,7 +622,7 @@ export default class hyperliquid extends hyperliquidRest {
         return this.parseTicker (rawTicker, market);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "userFills",
@@ -743,7 +743,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "trades",
@@ -916,7 +916,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messagehash, message, messagehash);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         channel: 'candle',
@@ -954,7 +954,7 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (ohlcv, messageHash);
     }
 
-    handleWsPost (client: Client, message: Dict): void {
+    handleWsPost (client: Client, message: Dict) {
         //    {
         //         channel: "post",
         //         data: {
@@ -1058,7 +1058,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         // {
@@ -1148,7 +1148,7 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (this.balance[(account as string)], messageHash);
     }
 
-    parseWsBalance (balance: Dict, accountType: Str = undefined): void {
+    parseWsBalance (balance: Dict, accountType: Str = undefined) {
         //
         // spot
         //     {
@@ -1256,14 +1256,14 @@ export default class hyperliquid extends hyperliquidRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, symbols: Strings = undefined): void {
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
         if (this.positions !== undefined) {
             return;
         }
         this.positions = new ArrayCacheBySymbolBySide ();
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -1416,7 +1416,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         channel: 'orderUpdates',
@@ -1536,7 +1536,7 @@ export default class hyperliquid extends hyperliquidRest {
         return false;
     }
 
-    handleOrderBookUnsubscription (client: Client, subscription: Dict): void {
+    handleOrderBookUnsubscription (client: Client, subscription: Dict) {
         //
         //        "subscription":{
         //           "type":"l2Book",
@@ -1556,7 +1556,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    handleTradesUnsubscription (client: Client, subscription: Dict): void {
+    handleTradesUnsubscription (client: Client, subscription: Dict) {
         //
         const coin = this.safeString (subscription, 'coin');
         const marketId = this.coinToMarketId (coin);
@@ -1569,7 +1569,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    handleTickersUnsubscription (client: Client, subscription: Dict): void {
+    handleTickersUnsubscription (client: Client, subscription: Dict) {
         //
         const subMessageHash = 'tickers';
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -1580,7 +1580,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    handleTickerUnsubscription (client: Client, subscription: Dict): void {
+    handleTickerUnsubscription (client: Client, subscription: Dict) {
         //
         const coin = this.safeString (subscription, 'coin');
         const marketId = this.coinToMarketId (coin);
@@ -1593,7 +1593,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    handleOHLCVUnsubscription (client: Client, subscription: Dict): void {
+    handleOHLCVUnsubscription (client: Client, subscription: Dict) {
         const coin = this.safeString (subscription, 'coin');
         const marketId = this.coinToMarketId (coin);
         const symbol = this.safeSymbol (marketId);
@@ -1609,7 +1609,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    handleOrderUnsubscription (client: Client, subscription: Dict): void {
+    handleOrderUnsubscription (client: Client, subscription: Dict) {
         const subHash = 'order';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
@@ -1628,7 +1628,7 @@ export default class hyperliquid extends hyperliquidRest {
         this.cleanCache (topicStructure);
     }
 
-    handleMyTradesUnsubscription (client: Client, subscription: Dict): void {
+    handleMyTradesUnsubscription (client: Client, subscription: Dict) {
         const subHash = 'myTrades';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
@@ -1647,7 +1647,7 @@ export default class hyperliquid extends hyperliquidRest {
         this.cleanCache (topicStructure);
     }
 
-    handlePositionsUnsubscription (client: Client, subscription: Dict): void {
+    handlePositionsUnsubscription (client: Client, subscription: Dict) {
         const subHash = 'clearinghouseState';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
@@ -1661,7 +1661,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    handleSpotBalanceUnsubscription (client: Client, subscription: Dict): void {
+    handleSpotBalanceUnsubscription (client: Client, subscription: Dict) {
         const subHash = 'spotState';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
@@ -1670,7 +1670,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    handleSubscriptionResponse (client: Client, message: Dict): void {
+    handleSubscriptionResponse (client: Client, message: Dict) {
         // {
         //     "channel":"subscriptionResponse",
         //     "data":{
@@ -1722,7 +1722,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         //
         // {
         //     "channel":"subscriptionResponse",

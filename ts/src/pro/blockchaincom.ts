@@ -61,7 +61,7 @@ export default class blockchaincom extends blockchaincomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: any = {}): Promise<Balances> {
         await this.authenticate (params);
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
@@ -73,7 +73,7 @@ export default class blockchaincom extends blockchaincomRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //  subscribed
         //     {
@@ -137,7 +137,7 @@ export default class blockchaincom extends blockchaincomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -160,7 +160,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //  subscribed
         //     {
@@ -215,7 +215,7 @@ export default class blockchaincom extends blockchaincomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: any = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -232,7 +232,7 @@ export default class blockchaincom extends blockchaincomRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //  subscribed
         //     {
@@ -327,7 +327,7 @@ export default class blockchaincom extends blockchaincomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -345,7 +345,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //  subscribed
         //     {
@@ -387,7 +387,7 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    override parseWsTrade (trade: Dict, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "seqnum": 1,
@@ -431,7 +431,7 @@ export default class blockchaincom extends blockchaincomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -454,7 +454,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: Dict): void {
+    handleOrders (client: Client, message: Dict) {
         //
         //     {
         //         "seqnum": 1,
@@ -555,7 +555,7 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (this.orders, messageHash);
     }
 
-    override parseWsOrder (order: Dict, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "seqnum": 3,
@@ -649,7 +649,7 @@ export default class blockchaincom extends blockchaincomRest {
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: any = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -668,7 +668,7 @@ export default class blockchaincom extends blockchaincomRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //  subscribe
         //     {
@@ -764,7 +764,7 @@ export default class blockchaincom extends blockchaincomRest {
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }
 
-    handleAuthenticationMessage (client: Client, message: Dict): void {
+    handleAuthenticationMessage (client: Client, message: Dict) {
         //
         //     {
         //         "seqnum": 0,

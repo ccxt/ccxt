@@ -1930,7 +1930,7 @@ export default class hitbtc extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv: any[], market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // Spot and Swap
         //
@@ -3262,7 +3262,7 @@ export default class hitbtc extends Exchange {
         });
     }
 
-    override parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "contract_type": "perpetual",
@@ -3757,7 +3757,7 @@ export default class hitbtc extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    override parseDepositWithdrawFee (fee: Dict, currency: Currency = undefined): Dict {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
         //
         //    {
         //         "full_name": "ConnectWealth",
@@ -3902,7 +3902,7 @@ export default class hitbtc extends Exchange {
         return undefined;
     }
 
-    override sign (path: any, api: any = 'public', method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + implodedPath;

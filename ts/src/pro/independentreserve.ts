@@ -63,7 +63,7 @@ export default class independentreserve extends independentreserveRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //    {
         //        "Channel": "ticker-btc-usd",
@@ -158,7 +158,7 @@ export default class independentreserve extends independentreserveRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //    {
         //        "Channel": "orderbook/1/eth/aud",
@@ -268,7 +268,7 @@ export default class independentreserve extends independentreserveRest {
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any[]): void {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -295,7 +295,7 @@ export default class independentreserve extends independentreserveRest {
         return message;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         const event = this.safeString (message, 'Event');
         const handlers: Dict = {
             'Subscriptions': this.handleSubscriptions,

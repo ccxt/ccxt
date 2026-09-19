@@ -5320,7 +5320,7 @@ export default class coinbase extends Exchange {
         }
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds () - this.options['timeDifference'];
     }
 

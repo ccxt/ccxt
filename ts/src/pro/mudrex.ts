@@ -51,7 +51,7 @@ export default class mudrex extends mudrexRest {
      * @method
      * @description injects the broker Partner-Id into the websocket connection headers
      */
-    setBrokerHeaders (): void {
+    setBrokerHeaders () {
         const brokerId = this.safeString (this.options, 'broker');
         if (brokerId === undefined) {
             return;
@@ -65,7 +65,7 @@ export default class mudrex extends mudrexRest {
         this.options['ws'] = wsOptions;
     }
 
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: any = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -87,7 +87,7 @@ export default class mudrex extends mudrexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: any = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -121,7 +121,7 @@ export default class mudrex extends mudrexRest {
         return this.filterByArrayTickers (this.tickers, 'symbol', symbols);
     }
 
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -175,7 +175,7 @@ export default class mudrex extends mudrexRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: Dict): void {
+    handleErrorMessage (client: Client, message: Dict) {
         const error = this.safeDict (message, 'error', {});
         const code = this.safeString (error, 'code');
         const msg = this.safeString (error, 'msg');
@@ -186,7 +186,7 @@ export default class mudrex extends mudrexRest {
         throw new ExchangeError (feedback);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         const stream = this.safeString (message, 'stream');
         if (stream === undefined) {
             return;
@@ -223,7 +223,7 @@ export default class mudrex extends mudrexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const t = data[i];

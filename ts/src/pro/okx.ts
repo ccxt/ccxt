@@ -304,7 +304,7 @@ export default class okx extends okxRest {
         return this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "arg": { channel: "trades", instId: "BTC-USDT" },
@@ -418,7 +418,7 @@ export default class okx extends okxRest {
         return this.filterByArray (this.fundingRates, 'symbol', symbols);
     }
 
-    handleFundingRate (client: Client, message: Dict): void {
+    handleFundingRate (client: Client, message: Dict) {
         //
         // "data":[
         //     {
@@ -589,7 +589,7 @@ export default class okx extends okxRest {
         return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "arg": { channel: "tickers", instId: "BTC-USDT" },
@@ -679,7 +679,7 @@ export default class okx extends okxRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         //
         // tickers
         //
@@ -823,7 +823,7 @@ export default class okx extends okxRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
     }
 
-    handleLiquidation (client: Client, message: Dict): void {
+    handleLiquidation (client: Client, message: Dict) {
         //
         //    {
         //        "arg": {
@@ -914,7 +914,7 @@ export default class okx extends okxRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
     }
 
-    handleMyLiquidation (client: Client, message: Dict): void {
+    handleMyLiquidation (client: Client, message: Dict) {
         //
         //    {
         //        "arg": {
@@ -1185,7 +1185,7 @@ export default class okx extends okxRest {
         return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "arg": { channel: "candle1m", instId: "BTC-USDT" },
@@ -1378,7 +1378,7 @@ export default class okx extends okxRest {
         return this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         //
         //     [
         //         "31685", // price
@@ -1392,7 +1392,7 @@ export default class okx extends okxRest {
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any): void {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -1653,11 +1653,11 @@ export default class okx extends okxRest {
         return await this.subscribe ('private', 'account', 'account', undefined, params);
     }
 
-    handleBalanceAndPosition (client: Client, message: Dict): void {
+    handleBalanceAndPosition (client: Client, message: Dict) {
         this.handleMyLiquidation (client, message);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         arg: {
@@ -1881,7 +1881,7 @@ export default class okx extends okxRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //    {
         //        arg: {
@@ -2035,7 +2035,7 @@ export default class okx extends okxRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: Dict): void {
+    handleOrders (client: Client, message: Dict) {
         //
         //     {
         //         "arg":{
@@ -2119,7 +2119,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "arg":{
@@ -2267,7 +2267,7 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handlePlaceOrders (client: Client, message: Dict): void {
+    handlePlaceOrders (client: Client, message: Dict) {
         //
         //  batch-orders/order/cancel-order
         //    {
@@ -2459,7 +2459,7 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleCancelAllOrders (client: Client, message: Dict): void {
+    handleCancelAllOrders (client: Client, message: Dict) {
         //
         //    {
         //        "id": "1512",
@@ -2487,7 +2487,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    handleAuthenticate (client: Client, message: Dict): void {
+    handleAuthenticate (client: Client, message: Dict) {
         //
         //     { event: "login", success: true }
         //
@@ -2561,7 +2561,7 @@ export default class okx extends okxRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any): void {
+    override handleMessage (client: Client, message: any) {
         if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
@@ -2669,7 +2669,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleUnSubscriptionTrades (client: Client, symbol: string, channel: string): void {
+    handleUnSubscriptionTrades (client: Client, symbol: string, channel: string) {
         const subMessageHash = channel + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
@@ -2678,7 +2678,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleUnsubscriptionOrderBook (client: Client, symbol: string, channel: string): void {
+    handleUnsubscriptionOrderBook (client: Client, symbol: string, channel: string) {
         const subMessageHash = channel + ':' + symbol;
         const messageHash = 'unsubscribe:orderbook:' + symbol;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
@@ -2687,7 +2687,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleUnsubscriptionOHLCV (client: Client, symbol: string, channel: string): void {
+    handleUnsubscriptionOHLCV (client: Client, symbol: string, channel: string) {
         const tf = channel.replace ('candle', '');
         const timeframe = this.findTimeframe (tf);
         if (timeframe === undefined) {
@@ -2701,7 +2701,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleUnsubscriptionTicker (client: Client, symbol: string, channel: string): void {
+    handleUnsubscriptionTicker (client: Client, symbol: string, channel: string) {
         const subMessageHash = channel + '::' + symbol;
         const messageHash = 'unsubscribe:ticker:' + symbol;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
@@ -2710,7 +2710,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleUnsubscription (client: Client, message: Dict): void {
+    handleUnsubscription (client: Client, message: Dict) {
         //
         // {
         //     "event": "unsubscribe",

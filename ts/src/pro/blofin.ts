@@ -72,7 +72,7 @@ export default class blofin extends blofinRest {
         return 'ping';
     }
 
-    handlePong (client: Client, message: any): void {
+    handlePong (client: Client, message: any) {
         //
         //   'pong'
         //
@@ -120,7 +120,7 @@ export default class blofin extends blofinRest {
         return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //       arg: {
@@ -201,7 +201,7 @@ export default class blofin extends blofinRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //   {
         //     arg: {
@@ -286,7 +286,7 @@ export default class blofin extends blofinRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         // message
         //
@@ -357,7 +357,7 @@ export default class blofin extends blofinRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (data[i]);
@@ -429,7 +429,7 @@ export default class blofin extends blofinRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // message
         //
@@ -495,7 +495,7 @@ export default class blofin extends blofinRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         arg: {
@@ -566,7 +566,7 @@ export default class blofin extends blofinRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrders (client: Client, message: Dict): void {
+    handleOrders (client: Client, message: Dict) {
         //
         //     {
         //         action: 'update',
@@ -621,7 +621,7 @@ export default class blofin extends blofinRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit);
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         arg: { channel: 'positions' },
@@ -677,7 +677,7 @@ export default class blofin extends blofinRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    handleFundingRate (client: Client, message: Dict): void {
+    handleFundingRate (client: Client, message: Dict) {
         //
         //     {
         //         "arg": {

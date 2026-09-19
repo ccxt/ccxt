@@ -58,7 +58,7 @@ export default class cryptocom extends cryptocomRest {
         });
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict): Promise<any> {
         // {
         //     "id": 1587523073344,
         //     "method": "public/heartbeat",
@@ -165,7 +165,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<OrderBook> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -202,20 +202,20 @@ export default class cryptocom extends cryptocomRest {
         return await this.unWatchPublicMultiple ('orderbook', symbols, messageHashes, subMessageHashes, topics, params);
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         const count = this.safeInteger (delta, 2);
         bookside.storeArray ([ price, amount, count ]);
     }
 
-    override handleDeltas (bookside: any, deltas: any): void {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // snapshot
         //    {
@@ -334,7 +334,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override unWatchTrades (symbol: string, params: Dict = {}): Promise<Trade[]> {
+    override unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         return this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
@@ -396,7 +396,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.unWatchPublicMultiple ('trades', symbols, messageHashes, topics, topics, params);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         // {
         //     "code": 0,
@@ -577,7 +577,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.unWatchPublicMultiple ('ticker', symbols, messageHashes, subMessageHashes, subMessageHashes, params);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //       "instrument_name": "ETHUSD-PERP",
@@ -705,7 +705,7 @@ export default class cryptocom extends cryptocomRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         const data = this.safeList (message, 'data', []);
         const ticker = this.safeDict (data, 0, {});
         const parsedTicker = this.parseWsBidAsk (ticker);
@@ -786,7 +786,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.unWatchPublicMultiple ('ohlcv', [ market['symbol'] ], [ messageHash ], [ subMessageHash ], [ subMessageHash ], params, subExtend);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //  {
         //       "instrument_name": "BTC_USDT",
@@ -850,7 +850,7 @@ export default class cryptocom extends cryptocomRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: Dict, subscription: Dict | undefined = undefined): void {
+    handleOrders (client: Client, message: Dict, subscription: Dict | undefined = undefined) {
         //
         //    {
         //        "method": "subscribe",
@@ -950,7 +950,7 @@ export default class cryptocom extends cryptocomRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: any, symbols: Strings = undefined): void {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -963,7 +963,7 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<any> {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -982,7 +982,7 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //    {
         //        "subscription": "user.position_balance",
@@ -1050,7 +1050,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchPrivateSubscribe (messageHash, params);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "id": 1,
@@ -1173,7 +1173,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchPrivateRequest (messageHash, request);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         //    {
         //        "id": 1,
@@ -1225,7 +1225,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} Returns exchange raw message {@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrdersWs (symbol: Str = undefined, params: Dict = {}) {
+    override async cancelAllOrdersWs (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1242,7 +1242,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchPrivateRequest (messageHash, request) as Order[];
     }
 
-    handleCancelAllOrders (client: Client, message: Dict): void {
+    handleCancelAllOrders (client: Client, message: Dict) {
         //
         //    {
         //        "id": 1688914586647,
@@ -1366,7 +1366,7 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
-    handleSubscribe (client: Client, message: Dict): void {
+    handleSubscribe (client: Client, message: Dict) {
         const methods: Dict = {
             'candlestick': this.handleOHLCV,
             'ticker': this.handleTicker,
@@ -1394,7 +1394,7 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         //
         // ping
         //    {
@@ -1475,11 +1475,11 @@ export default class cryptocom extends cryptocomRest {
         return await future;
     }
 
-    handlePing (client: Client, message: Dict): void {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 
-    handleAuthenticate (client: Client, message: Dict): void {
+    handleAuthenticate (client: Client, message: Dict) {
         //
         //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
@@ -1487,7 +1487,7 @@ export default class cryptocom extends cryptocomRest {
         future.resolve (true);
     }
 
-    handleUnsubscribe (client: Client, message: Dict): void {
+    handleUnsubscribe (client: Client, message: Dict) {
         const id = this.safeString (message, 'id');
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {

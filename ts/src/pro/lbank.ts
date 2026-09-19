@@ -63,7 +63,7 @@ export default class lbank extends lbankRest {
         return newValue;
     }
 
-    checkContractMarket (market: Market, methodName: string): void {
+    checkContractMarket (market: Market, methodName: string) {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
         if ((market !== undefined) && (market['contract'] === true)) {
@@ -148,7 +148,7 @@ export default class lbank extends lbankRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // request
         //    {
@@ -306,7 +306,7 @@ export default class lbank extends lbankRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "tick":{
@@ -452,7 +452,7 @@ export default class lbank extends lbankRest {
         return this.sortBy (result, 'timestamp') as Trade[]; // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         // request
         //     {
@@ -584,7 +584,7 @@ export default class lbank extends lbankRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: Dict): void {
+    handleOrders (client: Client, message: Dict) {
         //
         //     {
         //         "orderUpdate":{
@@ -740,7 +740,7 @@ export default class lbank extends lbankRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "data": {
@@ -840,7 +840,7 @@ export default class lbank extends lbankRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // request
         //    {
@@ -915,7 +915,7 @@ export default class lbank extends lbankRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: Dict): void {
+    handleErrorMessage (client: Client, message: Dict) {
         //
         //    {
         //        SERVER: 'V2',
@@ -929,7 +929,7 @@ export default class lbank extends lbankRest {
         client.reject (error);
     }
 
-    async handlePing (client: Client, message: any): Promise<void> {
+    async handlePing (client: Client, message: any): Promise<any> {
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
@@ -947,7 +947,7 @@ export default class lbank extends lbankRest {
         }
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         const status = this.safeString (message, 'status');
         if (status === 'error') {
             this.handleErrorMessage (client, message);

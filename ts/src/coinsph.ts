@@ -677,7 +677,7 @@ export default class coinsph extends Exchange {
         });
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}): number {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: any = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
@@ -1137,7 +1137,7 @@ export default class coinsph extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv: any[], market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1371,7 +1371,7 @@ export default class coinsph extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response: Dict): Balances {
+    override parseBalance (response: any): Balances {
         const balances = this.safeList (response, 'balances', []);
         const result: Dict = {
             'info': response,
@@ -2229,7 +2229,7 @@ export default class coinsph extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "ETH",
@@ -2279,7 +2279,7 @@ export default class coinsph extends Exchange {
         return urlEncodedParam;
     }
 
-    override sign (path: any, api: any = 'public', method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);

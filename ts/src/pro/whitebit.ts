@@ -175,7 +175,7 @@ export default class whitebit extends whitebitRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // {
         //     "method":"depth_update",
@@ -240,13 +240,13 @@ export default class whitebit extends whitebitRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any[]): void {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -383,7 +383,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //    {
         //        "method":"trades_update",
@@ -457,7 +457,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: Dict , subscription: Dict | undefined = undefined): void {
+    handleMyTrades (client: Client, message: Dict , subscription: Dict | undefined = undefined) {
         //
         //   {
         //       "method": "deals_update",
@@ -490,7 +490,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: any[] , market: Market = undefined): Trade {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         //   [
         //         1894994106, // id
@@ -584,7 +584,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: Dict , subscription: Dict | undefined = undefined): void {
+    handleOrder (client: Client, message: Dict , subscription: Dict | undefined = undefined) {
         //
         // {
         //     "method": "ordersPending_update",
@@ -775,7 +775,7 @@ export default class whitebit extends whitebitRest {
         return await this.watchPrivate (messageHash, method, [], params);
     }
 
-    setBalanceCache (client: Client, type: any, subscriptionHash: any): void {
+    setBalanceCache (client: Client, type: any, subscriptionHash: any) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -800,7 +800,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         //
@@ -1093,7 +1093,7 @@ export default class whitebit extends whitebitRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         //
         // auth
         //    { error: null, result: { status: "success" }, id: 1656084550 }
@@ -1132,7 +1132,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: Dict , id: Int): void {
+    handleSubscriptionStatus (client: Client, message: Dict , id: Int) {
         // not every method stores its subscription
         // as an object so we can't do indeById here
         const subs = client.subscriptions;

@@ -92,7 +92,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: any = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -110,7 +110,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         // swap
         //
@@ -208,7 +208,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: any = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -266,7 +266,7 @@ export default class mexc extends mexcRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTickers (client: Client, message: Dict): void {
+    handleTickers (client: Client, message: Dict) {
         //
         // swap
         //
@@ -426,7 +426,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: any = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -464,7 +464,7 @@ export default class mexc extends mexcRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
@@ -571,7 +571,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -599,7 +599,7 @@ export default class mexc extends mexcRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // spot
         //
@@ -771,7 +771,7 @@ export default class mexc extends mexcRest {
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: any = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -795,7 +795,7 @@ export default class mexc extends mexcRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSubscription (client: Client, message: Dict): void {
+    handleOrderBookSubscription (client: Client, message: Dict) {
         // spot
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
@@ -806,7 +806,7 @@ export default class mexc extends mexcRest {
         this.orderbooks[symbol] = this.orderBook ({});
     }
 
-    override getCacheIndex (orderbook: any, cache: any) {
+    override getCacheIndex (orderbook: any, cache: any): number {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDelta = this.safeDict (cache, 0);
@@ -830,7 +830,7 @@ export default class mexc extends mexcRest {
         return cache.length;
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // spot
         //    {
@@ -935,7 +935,7 @@ export default class mexc extends mexcRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    handleBooksideDelta (bookside: any, bidasks: any): void {
+    handleBooksideDelta (bookside: any, bidasks: any) {
         //
         //    [{
         //        "p": "20290.89",
@@ -983,7 +983,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1008,7 +1008,7 @@ export default class mexc extends mexcRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         // protobuf
         // {
         // "channel": "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
@@ -1098,7 +1098,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1125,7 +1125,7 @@ export default class mexc extends mexcRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client: Client, message: Dict, subscription: Dict | undefined = undefined): void {
+    handleMyTrade (client: Client, message: Dict, subscription: Dict | undefined = undefined) {
         //
         //    {
         //        "c": "spot@private.deals.v3.api",
@@ -1186,7 +1186,7 @@ export default class mexc extends mexcRest {
         client.resolve (trades, symbolSpecificMessageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // public trade (protobuf)
         //    {
@@ -1282,7 +1282,7 @@ export default class mexc extends mexcRest {
      * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'swap'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1309,7 +1309,7 @@ export default class mexc extends mexcRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         // spot
         //    {
@@ -1412,7 +1412,7 @@ export default class mexc extends mexcRest {
         client.resolve (orders, symbolSpecificMessageHash);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         //
         // spot
         //     {
@@ -1570,7 +1570,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: any = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1585,7 +1585,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         //
@@ -1653,7 +1653,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async watchFundingRate (symbol: string, params: any = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1675,7 +1675,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
+    override async unWatchFundingRate (symbol: string, params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1693,7 +1693,7 @@ export default class mexc extends mexcRest {
         return undefined;
     }
 
-    handleFundingRate (client: Client, message: Dict): void {
+    handleFundingRate (client: Client, message: Dict) {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -1758,7 +1758,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1821,7 +1821,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1967,7 +1967,7 @@ export default class mexc extends mexcRest {
         return undefined;
     }
 
-    handleUnsubscriptions (client: Client, messageHashes: string[]): void {
+    handleUnsubscriptions (client: Client, messageHashes: string[]) {
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const subMessageHash = messageHash.replace ('unsubscribe:', '');
@@ -2058,7 +2058,7 @@ export default class mexc extends mexcRest {
         return listenKey;
     }
 
-    async keepAliveListenKey (listenKey: Str, params: Dict = {}): Promise<void> {
+    async keepAliveListenKey (listenKey: Str, params: Dict = {}): Promise<any> {
         if (listenKey === undefined) {
             return;
         }
@@ -2083,7 +2083,7 @@ export default class mexc extends mexcRest {
         return message;
     }
 
-    handleSubscriptionStatus (client: Client, message: Dict): void {
+    handleSubscriptionStatus (client: Client, message: Dict) {
         //
         //    {
         //        "id": 0,

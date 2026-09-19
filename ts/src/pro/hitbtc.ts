@@ -249,7 +249,7 @@ export default class hitbtc extends hitbtcRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //    {
         //        "ch": "orderbook/full",                 // Channel
@@ -309,13 +309,13 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeNumber (delta, 0);
         const amount = this.safeNumber (delta, 1);
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any): void {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -388,7 +388,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterByArray (newTickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //    {
         //        "ch": "ticker/1s",
@@ -539,7 +539,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterByArray (newTickers, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
@@ -815,7 +815,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    override parseWsOHLCV (ohlcv: any[], market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "t": 1626860340000,             // Message timestamp
@@ -951,7 +951,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    handleOrderHelper (client: Client, message: Dict, order: Dict): void {
+    handleOrderHelper (client: Client, message: Dict, order: Dict) {
         const orders = this.orders;
         if (orders === undefined) {
             return;
@@ -1268,7 +1268,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1342,7 +1342,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleError (client, message)) {
             return;
         }

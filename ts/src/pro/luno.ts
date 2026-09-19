@@ -70,7 +70,7 @@ export default class luno extends lunoRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict, subscription: Dict): void {
+    handleTrades (client: Client, message: Dict, subscription: Dict) {
         //
         //     {
         //         "sequence": "110980825",
@@ -171,7 +171,7 @@ export default class luno extends lunoRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict, subscription: Dict): void {
+    handleOrderBook (client: Client, message: Dict, subscription: Dict) {
         //
         //     {
         //         "sequence": "24352",
@@ -239,7 +239,7 @@ export default class luno extends lunoRest {
         };
     }
 
-    override parseOrderBookBidsAsks (bidasks: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2): any[] {
+    override parseOrderBookBidsAsks (bidasks: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
         const result: any[] = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -259,7 +259,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    override handleDelta (orderbook: any, message: Dict): void {
+    override handleDelta (orderbook: any, message: Dict) {
         //
         //  create
         //     {
@@ -323,7 +323,7 @@ export default class luno extends lunoRest {
         }
     }
 
-    override handleMessage (client: Client, message: any): void {
+    override handleMessage (client: Client, message: any) {
         if (message === '') {
             return;
         }

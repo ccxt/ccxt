@@ -107,7 +107,7 @@ export default class derive extends deriveRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // {
         //     method: 'subscription',
@@ -354,7 +354,7 @@ export default class derive extends deriveRest {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    handleOrderBookUnSubscription (client: Client, topic: string): void {
+    handleOrderBookUnSubscription (client: Client, topic: string) {
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
         const market = this.safeMarket (marketId);
@@ -370,7 +370,7 @@ export default class derive extends deriveRest {
         client.resolve (error, 'unwatch' + topic);
     }
 
-    handleTradesUnSubscription (client: Client, topic: string): void {
+    handleTradesUnSubscription (client: Client, topic: string) {
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
         const market = this.safeMarket (marketId);
@@ -449,7 +449,7 @@ export default class derive extends deriveRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleTrade (client: Client, message: Dict): void {
+    handleTrade (client: Client, message: Dict) {
         //
         //
         const params = this.safeDict (message, 'params');
@@ -563,7 +563,7 @@ export default class derive extends deriveRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         // {
         //     method: 'subscription',
@@ -687,7 +687,7 @@ export default class derive extends deriveRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client: Client, message: Dict): void {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //
         let myTrades = this.myTrades;
@@ -740,7 +740,7 @@ export default class derive extends deriveRest {
         }
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
@@ -789,7 +789,7 @@ export default class derive extends deriveRest {
         }
     }
 
-    handleAuth (client: Client, message: Dict): void {
+    handleAuth (client: Client, message: Dict) {
         //
         // {
         //     id: 1,

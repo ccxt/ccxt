@@ -485,7 +485,7 @@ export default class bybit extends bybitRest {
         return this.unWatchTickers ([ symbol ], params);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         // linear
         //     {
@@ -794,7 +794,7 @@ export default class bybit extends bybitRest {
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "kline.5.BTCUSDT",
@@ -997,7 +997,7 @@ export default class bybit extends bybitRest {
         return this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "orderbook.50.BTCUSDT",
@@ -1070,12 +1070,12 @@ export default class bybit extends bybitRest {
         }
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any): void {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -1180,7 +1180,7 @@ export default class bybit extends bybitRest {
         return this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "publicTrade.BTCUSDT",
@@ -1386,7 +1386,7 @@ export default class bybit extends bybitRest {
         return await this.unWatchTopics (url, 'myTrades', [ ], [ messageHash ], [ subHash ], [ topic ], params);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         // spot
         //    {
@@ -1575,7 +1575,7 @@ export default class bybit extends bybitRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, symbols: Strings = undefined): void {
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
         if (this.positions !== undefined) {
             return;
         }
@@ -1591,7 +1591,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<any> {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         const fetchFunctions = [
             this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'linear' }),
@@ -1615,7 +1615,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //    {
         //        topic: 'position',
@@ -1751,7 +1751,7 @@ export default class bybit extends bybitRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
     }
 
-    handleLiquidation (client: Client, message: Dict): void {
+    handleLiquidation (client: Client, message: Dict) {
         //
         //     {
         //         "data": {
@@ -1917,7 +1917,7 @@ export default class bybit extends bybitRest {
         return await this.unWatchTopics (url, 'orders', [ ], [ messageHash ], [ subHash ], topics, params);
     }
 
-    handleOrderWs (client: Client, message: Dict): void {
+    handleOrderWs (client: Client, message: Dict) {
         //
         //    {
         //        "reqId":"1",
@@ -1944,7 +1944,7 @@ export default class bybit extends bybitRest {
         client.resolve (order, messageHash);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         //     spot
         //     {
@@ -2123,7 +2123,7 @@ export default class bybit extends bybitRest {
         return await this.watchTopics (url, [ messageHash ], topics, params);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         //    {
@@ -2317,7 +2317,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    parseWsBalance (balance: Dict, accountType: Str = undefined): void {
+    parseWsBalance (balance: Dict, accountType: Str = undefined) {
         //
         // spot
         //    {
@@ -2582,7 +2582,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         const topic = this.safeString2 (message, 'topic', 'op', '');
         if (this.handleErrorMessage (client, message) === true) {
             return;

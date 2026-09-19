@@ -110,7 +110,7 @@ export default class apex extends apexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "recentlyTrade.H.BTCUSDT",
@@ -154,7 +154,7 @@ export default class apex extends apexRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // public
         //    {
@@ -294,7 +294,7 @@ export default class apex extends apexRest {
         return url;
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "orderbook25.H.BTCUSDT",
@@ -422,7 +422,7 @@ export default class apex extends apexRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         // "topic":"instrumentInfo.H.BTCUSDT",
         //     "type":"snapshot",
         //     "data":{
@@ -525,7 +525,7 @@ export default class apex extends apexRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "candle.5.BTCUSDT",
@@ -700,7 +700,7 @@ export default class apex extends apexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, lists: any[]): void {
+    handleMyTrades (client: Client, lists: any[]) {
         // [
         //     {
         //         "symbol":"ETH-USDT",
@@ -741,7 +741,7 @@ export default class apex extends apexRest {
         client.resolve (trades, messageHash);
     }
 
-    handleOrder (client: Client, lists: any[]): void {
+    handleOrder (client: Client, lists: any[]) {
         // [
         //     {
         //         "symbol":"ETH-USDT",
@@ -792,7 +792,7 @@ export default class apex extends apexRest {
         client.resolve (orders, messageHash);
     }
 
-    setPositionsCache (client: Client, symbols: Strings = undefined): void {
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
         if (this.positions !== undefined) {
             return;
         }
@@ -803,7 +803,7 @@ export default class apex extends apexRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<any> {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         const fetchFunctions = [
             this.fetchPositions (),
@@ -826,7 +826,7 @@ export default class apex extends apexRest {
         }
     }
 
-    handlePositions (client: Client, lists: any[]): void {
+    handlePositions (client: Client, lists: any[]) {
         //
         // [
         //     {
@@ -1064,7 +1064,7 @@ export default class apex extends apexRest {
         };
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict): Promise<any> {
         //
         //     {"op": "ping", "args": ["1761069137485"]}
         //
@@ -1092,12 +1092,12 @@ export default class apex extends apexRest {
         return message;
     }
 
-    handlePing (client: Client, message: Dict): void {
+    handlePing (client: Client, message: Dict) {
         client.lastPong = this.milliseconds ();
         this.spawn (this.pong, client, message);
     }
 
-    handleAccount (client: Client, message: Dict): void {
+    handleAccount (client: Client, message: Dict) {
         const contents = this.safeDict (message, 'contents', {});
         const fills = this.safeList (contents, 'fills', []);
         if (fills !== undefined) {

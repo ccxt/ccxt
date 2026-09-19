@@ -59,7 +59,7 @@ export default class bittrade extends bittradeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: any = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -130,7 +130,7 @@ export default class bittrade extends bittradeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -215,7 +215,7 @@ export default class bittrade extends bittradeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -245,7 +245,7 @@ export default class bittrade extends bittradeRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "market.btcusdt.kline.1min",
@@ -294,7 +294,7 @@ export default class bittrade extends bittradeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: any = {}): Promise<OrderBook> {
         if ((limit !== undefined) && (limit !== 150)) {
             throw new ExchangeError (this.id + ' watchOrderBook accepts limit = 150 only');
         }
@@ -326,7 +326,7 @@ export default class bittrade extends bittradeRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client: Client, message: Dict, subscription: Dict): void {
+    handleOrderBookSnapshot (client: Client, message: Dict, subscription: Dict) {
         //
         //     {
         //         "id": 1583473663565,
@@ -452,7 +452,7 @@ export default class bittrade extends bittradeRest {
         return orderbook;
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // deltas
         //
@@ -489,7 +489,7 @@ export default class bittrade extends bittradeRest {
         }
     }
 
-    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict): void {
+    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict) {
         const symbol = this.safeString (subscription, 'symbol');
         if (symbol === undefined) {
             return;
@@ -545,7 +545,7 @@ export default class bittrade extends bittradeRest {
         return message;
     }
 
-    handleSubject (client: Client, message: Dict): void {
+    handleSubject (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "market.btcusdt.mbp.150",
@@ -585,14 +585,14 @@ export default class bittrade extends bittradeRest {
         }
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict): Promise<any> {
         //
         //     { ping: 1583491673714 }
         //
         await client.send ({ 'pong': this.safeInteger (message, 'ping') });
     }
 
-    handlePing (client: Client, message: Dict): void {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 

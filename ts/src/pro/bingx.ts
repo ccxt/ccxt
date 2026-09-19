@@ -149,7 +149,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: any = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -192,7 +192,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -205,7 +205,7 @@ export default class bingx extends bingxRest {
         return await this.unWatch (messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         // swap
         //
@@ -374,7 +374,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -429,7 +429,7 @@ export default class bingx extends bingxRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -442,7 +442,7 @@ export default class bingx extends bingxRest {
         return await this.unWatch (messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         // spot: first snapshot
         //
@@ -562,7 +562,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: any = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -620,7 +620,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: any = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -640,7 +640,7 @@ export default class bingx extends bingxRest {
         bookside.store (price, amount);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // spot
         //
@@ -779,7 +779,7 @@ export default class bingx extends bingxRest {
         ];
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // spot:
         //
@@ -908,7 +908,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -995,7 +995,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1060,7 +1060,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1122,7 +1122,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: any = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1172,7 +1172,7 @@ export default class bingx extends bingxRest {
         return await this.watch (url, messageHash, request, subscriptionHash, subscription);
     }
 
-    setBalanceCache (client: Client, type: any, subType: Str, subscriptionHash: string, params: Dict): void {
+    setBalanceCache (client: Client, type: any, subType: Str, subscriptionHash: string, params: Dict) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -1189,7 +1189,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: any, subType: Str): Promise<void> {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: any, subType: Str): Promise<any> {
         const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
@@ -1211,7 +1211,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1259,7 +1259,7 @@ export default class bingx extends bingxRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: Str, symbols: Strings = undefined): void {
+    setPositionsCache (client: Client, type: Str, symbols: Strings = undefined) {
         if (this.positions !== undefined) {
             return;
         }
@@ -1275,7 +1275,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, type: Str): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string, type: Str): Promise<any> {
         const positions = await this.fetchPositions (undefined, { 'type': type, 'subType': 'linear' });
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1350,7 +1350,7 @@ export default class bingx extends bingxRest {
         });
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",
@@ -1431,7 +1431,7 @@ export default class bingx extends bingxRest {
         return true;
     }
 
-    async keepAliveListenKey (params: Dict = {}): Promise<void> {
+    async keepAliveListenKey (params: Dict = {}): Promise<any> {
         const listenKey = this.safeString (this.options, 'listenKey');
         if (listenKey === undefined) {
             // A network error happened: we can't renew a listen key that does not exist.
@@ -1512,7 +1512,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async pong (client: Client, message: any): Promise<void> {
+    async pong (client: Client, message: any): Promise<any> {
         //
         // spot
         // {
@@ -1539,7 +1539,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         "code": 0,
@@ -1662,7 +1662,7 @@ export default class bingx extends bingxRest {
         client.resolve (stored, messageHash + ':' + symbol);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //
         //      {
@@ -1740,7 +1740,7 @@ export default class bingx extends bingxRest {
         client.resolve (cachedTrades, messageHash + ':' + symbol);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         // spot
         //     {
         //         "e":"ACCOUNT_UPDATE",
@@ -1883,7 +1883,7 @@ export default class bingx extends bingxRest {
         return message;
     }
 
-    handleUnSubscription (client: Client, subscription: Dict): void {
+    handleUnSubscription (client: Client, subscription: Dict) {
         const messageHashes = this.safeList (subscription, 'messageHashes', []) as List;
         const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []) as List;
         for (let i = 0; i < messageHashes.length; i++) {

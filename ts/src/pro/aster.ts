@@ -369,7 +369,7 @@ export default class aster extends asterRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //             "e": "24hrTicker",
@@ -543,7 +543,7 @@ export default class aster extends asterRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //             "e": "bookTicker",
@@ -710,7 +710,7 @@ export default class aster extends asterRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
-    handleTrade (client: Client, message: Dict): void {
+    handleTrade (client: Client, message: Dict) {
         //
         //     {
         //         "e": "aggTrade",
@@ -1023,7 +1023,7 @@ export default class aster extends asterRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //             "e": "depthUpdate",
@@ -1206,7 +1206,7 @@ export default class aster extends asterRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //             "e": "kline",
@@ -1329,7 +1329,7 @@ export default class aster extends asterRest {
         }
     }
 
-    async keepAliveListenKey (params: Dict = {}): Promise<void> {
+    async keepAliveListenKey (params: Dict = {}): Promise<any> {
         const type = this.safeString (params, 'type', 'spot');
         const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
         const listenKey = this.safeString (listenKeyOptions, type);
@@ -1398,7 +1398,7 @@ export default class aster extends asterRest {
         return await this.watch (url, messageHash, message, type);
     }
 
-    setBalanceCache (client: Client, type: any): void {
+    setBalanceCache (client: Client, type: any) {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
@@ -1415,7 +1415,7 @@ export default class aster extends asterRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: any): Promise<void> {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: any): Promise<any> {
         const params: Dict = {
             'type': type,
         };
@@ -1429,7 +1429,7 @@ export default class aster extends asterRest {
         }
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot balance update
         //     {
@@ -1556,7 +1556,7 @@ export default class aster extends asterRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client): void {
+    setPositionsCache (client: Client) {
         if (this.positions !== undefined) {
             return;
         }
@@ -1572,7 +1572,7 @@ export default class aster extends asterRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<any> {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1591,7 +1591,7 @@ export default class aster extends asterRest {
         }
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",
@@ -1785,7 +1785,7 @@ export default class aster extends asterRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleOrderUpdate (client: Client, message: Dict): void {
+    handleOrderUpdate (client: Client, message: Dict) {
         const rawOrder = this.safeDict (message, 'o', message);
         const e = this.safeString (message, 'e');
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
@@ -1795,7 +1795,7 @@ export default class aster extends asterRest {
         this.handleMyTrade (client, message);
     }
 
-    handleMyTrade (client: Client, message: Dict): void {
+    handleMyTrade (client: Client, message: Dict) {
         const messageHash = 'myTrades';
         const executionType = this.safeString (message, 'x');
         if (executionType === 'TRADE') {
@@ -1866,7 +1866,7 @@ export default class aster extends asterRest {
         }
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         // spot
         //     {
@@ -2030,12 +2030,12 @@ export default class aster extends asterRest {
         return this.safeMarket (marketId, undefined, undefined, marketType);
     }
 
-    handleBalanceAndPosition (client: Client, message: Dict): void {
+    handleBalanceAndPosition (client: Client, message: Dict) {
         this.handleBalance (client, message);
         this.handlePositions (client, message);
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         const messageInner = this.safeDict (message, 'data', message); // can be either wrapped in 'data' or full object itself
         const event = this.safeString (messageInner, 'e');
         const methods: Dict = {

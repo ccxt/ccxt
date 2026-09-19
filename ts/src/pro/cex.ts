@@ -81,7 +81,7 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "e": "get-balance",
@@ -172,7 +172,7 @@ export default class cex extends cexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTradesSnapshot (client: Client, message: Dict): void {
+    handleTradesSnapshot (client: Client, message: Dict) {
         //
         //     {
         //         "e": "history",
@@ -220,7 +220,7 @@ export default class cex extends cexRest {
         }, market);
     }
 
-    handleTrade (client: Client, message: Dict): void {
+    handleTrade (client: Client, message: Dict) {
         //
         //     {
         //         "e": "history-update",
@@ -232,7 +232,7 @@ export default class cex extends cexRest {
         this.handleTradesInner (client, message);
     }
 
-    handleTradesInner (client: Client, message: Dict): void {
+    handleTradesInner (client: Client, message: Dict) {
         const data = this.safeList (message, 'data', []);
         const symbol = this.safeString (this.options['watchTrades'], 'symbol');
         if (symbol === undefined) {
@@ -357,7 +357,7 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, messageHash) as Ticker;
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "e": "tick",
@@ -551,7 +551,7 @@ export default class cex extends cexRest {
         return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit);
     }
 
-    handleTransaction (client: Client, message: Dict): void {
+    handleTransaction (client: Client, message: Dict) {
         const data = this.safeDict (message, 'data');
         const symbol2 = this.safeString (data, 'symbol2');
         if (symbol2 === undefined) {
@@ -561,7 +561,7 @@ export default class cex extends cexRest {
         this.handleMyTrades (client, message);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "e": "tx",
@@ -680,7 +680,7 @@ export default class cex extends cexRest {
         return this.safeTrade (parsedTrade, market);
     }
 
-    handleOrderUpdate (client: Client, message: Dict): void {
+    handleOrderUpdate (client: Client, message: Dict) {
         //
         //  partialExecution
         //     {
@@ -928,7 +928,7 @@ export default class cex extends cexRest {
         return this.fromPrecision (amount, scale);
     }
 
-    handleOrdersSnapshot (client: Client, message: Dict): void {
+    handleOrdersSnapshot (client: Client, message: Dict) {
         //
         //     {
         //         "e": "open-orders",
@@ -1003,7 +1003,7 @@ export default class cex extends cexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client: Client, message: Dict): void {
+    handleOrderBookSnapshot (client: Client, message: Dict) {
         //
         //     {
         //         "e": "order-book-subscribe",
@@ -1053,7 +1053,7 @@ export default class cex extends cexRest {
         return symbol;
     }
 
-    handleOrderBookUpdate (client: Client, message: Dict): void {
+    handleOrderBookUpdate (client: Client, message: Dict) {
         //
         //     {
         //         "e": "md_update",
@@ -1090,12 +1090,12 @@ export default class cex extends cexRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any): void {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -1135,7 +1135,7 @@ export default class cex extends cexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleInitOHLCV (client: Client, message: Dict): void {
+    handleInitOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "e": "init-ohlcv-data",
@@ -1190,7 +1190,7 @@ export default class cex extends cexRest {
         return message;
     }
 
-    handleOHLCV1m (client: Client, message: Dict): void {
+    handleOHLCV1m (client: Client, message: Dict) {
         //
         //     {
         //         "e": "ohlcv1m",
@@ -1223,7 +1223,7 @@ export default class cex extends cexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "e": "ohlcv",
@@ -1483,7 +1483,7 @@ export default class cex extends cexRest {
         return this.parseOrders (canceledOrders, undefined, undefined, undefined, params);
     }
 
-    resolveData (client: Client, message: Dict): void {
+    resolveData (client: Client, message: Dict) {
         //
         //    "e": "open-orders",
         //    "data": [
@@ -1544,7 +1544,7 @@ export default class cex extends cexRest {
         }
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         const ok = this.safeString (message, 'ok');
         if (ok === 'error') {
             this.handleErrorMessage (client, message);
@@ -1580,7 +1580,7 @@ export default class cex extends cexRest {
         }
     }
 
-    handleAuthenticationMessage (client: Client, message: Dict): void {
+    handleAuthenticationMessage (client: Client, message: Dict) {
         //
         //     {
         //         "e": "auth",

@@ -102,7 +102,7 @@ export default class backpack extends backpackRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    handleUnsubscriptions (url: string, messageHashes: string[], message: Dict): void {
+    handleUnsubscriptions (url: string, messageHashes: string[], message: Dict) {
         const client = this.client (url);
         this.watchMultiple (url, messageHashes, message, messageHashes);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -257,7 +257,7 @@ export default class backpack extends backpackRest {
         return await this.watchPublic (topics, messageHashes, params, true);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         data: {
@@ -381,7 +381,7 @@ export default class backpack extends backpackRest {
         return await this.watchPublic (topics, messageHashes, params, true);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //         data: {
@@ -542,7 +542,7 @@ export default class backpack extends backpackRest {
         return await this.watchPublic (topics, messageHashes, params, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         data: {
@@ -706,7 +706,7 @@ export default class backpack extends backpackRest {
         return await this.watchPublic (topics, messageHashes, params, true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         data: {
@@ -883,7 +883,7 @@ export default class backpack extends backpackRest {
         return await this.watchPublic (topics, messageHashes, params, true);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -942,14 +942,14 @@ export default class backpack extends backpackRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    handleBidAsks (bookSide: any, bidAsks: any[]): void {
+    handleBidAsks (bookSide: any, bidAsks: any[]) {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }
 
-    override getCacheIndex (orderbook: any, cache: any) {
+    override getCacheIndex (orderbook: any, cache: any): number {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         const firstDelta = this.safeDict (cache, 0);
@@ -1038,7 +1038,7 @@ export default class backpack extends backpackRest {
         return await this.watchPrivate ([ topic ], [ messageHash ], params, true);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         data: {
@@ -1222,7 +1222,7 @@ export default class backpack extends backpackRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async unWatchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<any[]> {
+    override async unWatchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1242,7 +1242,7 @@ export default class backpack extends backpackRest {
         return await this.watchPrivate (topics, messageHashes, params, true);
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         data: {

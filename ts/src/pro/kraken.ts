@@ -5,7 +5,7 @@ import krakenRest from '../kraken.js';
 import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ChecksumError, AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List, Fee , Market } from '../base/types.js';
+import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List, Fee, Market } from '../base/types.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
@@ -301,7 +301,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleCreateEditOrder (client: Client, message: Dict): void {
+    handleCreateEditOrder (client: Client, message: Dict) {
         //
         //  createOrder
         //     {
@@ -427,7 +427,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleCancelOrder (client: Client, message: Dict): void {
+    handleCancelOrder (client: Client, message: Dict) {
         //
         //     {
         //         "method": "cancel_order",
@@ -472,7 +472,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleCancelAllOrders (client: Client, message: Dict): void {
+    handleCancelAllOrders (client: Client, message: Dict) {
         //
         //     {
         //         "method": "cancel_all",
@@ -489,7 +489,7 @@ export default class kraken extends krakenRest {
         client.resolve (message, reqId);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "ticker",
@@ -549,7 +549,7 @@ export default class kraken extends krakenRest {
         client.resolve (result, messageHash);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "trade",
@@ -585,7 +585,7 @@ export default class kraken extends krakenRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "ohlc",
@@ -864,7 +864,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, event);
     }
 
-    handleHeartbeat (client: Client, message: Dict): void {
+    handleHeartbeat (client: Client, message: Dict) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -874,7 +874,7 @@ export default class kraken extends krakenRest {
         client.resolve (message, event);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // first message (snapshot)
         //
@@ -1004,7 +1004,7 @@ export default class kraken extends krakenRest {
         client.resolve (orderbook, messageHash);
     }
 
-    customHandleDeltas (bookside: any, deltas: any[]): void {
+    customHandleDeltas (bookside: any, deltas: any[]) {
         // const sortOrder = (key === 'bids') ? true : false;
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
@@ -1177,7 +1177,7 @@ export default class kraken extends krakenRest {
         return await this.watchPrivate ('myTrades', symbol, since, limit, params);
     }
 
-    handleMyTrades (client: Client, message: Dict, subscription: Dict | undefined = undefined): void {
+    handleMyTrades (client: Client, message: Dict, subscription: Dict | undefined = undefined) {
         //
         //     {
         //         "channel": "executions",
@@ -1235,7 +1235,7 @@ export default class kraken extends krakenRest {
         }
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         //     {
         //         "order_id": "O6NTZC-K6FRH-ATWBCK",
@@ -1308,7 +1308,7 @@ export default class kraken extends krakenRest {
         return this.watchPrivate ('orders', symbol, since, limit, this.extend (params, { 'snap_orders': true }));
     }
 
-    handleOrders (client: Client, message: Dict, subscription: Dict | undefined = undefined): void {
+    handleOrders (client: Client, message: Dict, subscription: Dict | undefined = undefined) {
         //
         //     {
         //         "channel": "executions",
@@ -1380,7 +1380,7 @@ export default class kraken extends krakenRest {
         }
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         //
         // watchOrders
         //
@@ -1507,7 +1507,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "balances",
@@ -1564,7 +1564,7 @@ export default class kraken extends krakenRest {
         return messageHash;
     }
 
-    handleSubscriptionStatus (client: Client, message: Dict): void {
+    handleSubscriptionStatus (client: Client, message: Dict) {
         //
         // public
         //
@@ -1637,7 +1637,7 @@ export default class kraken extends krakenRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         let channel = this.safeString (message, 'channel');
         if (channel !== undefined) {
             if (channel === 'executions') {

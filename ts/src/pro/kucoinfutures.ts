@@ -2,7 +2,7 @@
 
 import kucoin from './kucoin.js';
 import { BadRequest } from '../base/errors.js';
-import type { Dict, Str, Strings, TransferEntry } from '../base/types.js';
+import type { Dict, Str, Strings, TransferEntry, Tickers } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchBidsAsks (symbols: Strings = undefined, params: Dict = {}) {
+    override async fetchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         const request: Dict = {
             'method': 'futuresPublicGetAllTickers',
         };

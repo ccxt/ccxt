@@ -1320,7 +1320,7 @@ export default class nado extends nadoRest {
         }, market);
     }
 
-    handleTrade (client: Client, message: Dict): void {
+    handleTrade (client: Client, message: Dict) {
         const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1336,7 +1336,7 @@ export default class nado extends nadoRest {
         client.resolve (trades, messageHash);
     }
 
-    handleMyTrade (client: Client, message: Dict): void {
+    handleMyTrade (client: Client, message: Dict) {
         const trade = this.parseWsMyTrade (message);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1349,7 +1349,7 @@ export default class nado extends nadoRest {
         client.resolve (trades, 'myTrades:' + symbol);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "type": "latest_candlestick",
@@ -1450,7 +1450,7 @@ export default class nado extends nadoRest {
         }, market);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         const order = this.parseWsOrder (message);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1524,7 +1524,7 @@ export default class nado extends nadoRest {
         });
     }
 
-    handlePosition (client: Client, message: Dict): void {
+    handlePosition (client: Client, message: Dict) {
         const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
         if (!this.safeBool (market, 'contract', false)) {
@@ -1578,7 +1578,7 @@ export default class nado extends nadoRest {
         }, market);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         const ticker = this.parseWsBidAsk (message);
         const symbol = this.safeString (ticker, 'symbol');
         if (symbol === undefined) {
@@ -1631,7 +1631,7 @@ export default class nado extends nadoRest {
         return result;
     }
 
-    handleAllBidsAsks (client: Client, message: Dict): void {
+    handleAllBidsAsks (client: Client, message: Dict) {
         const tickers = this.parseWsAllBidsAsks (message);
         const symbols = Object.keys (tickers);
         for (let i = 0; i < symbols.length; i++) {
@@ -1654,7 +1654,7 @@ export default class nado extends nadoRest {
         bookside.storeArray (bidAsk);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "type": "book_depth",
@@ -1708,7 +1708,7 @@ export default class nado extends nadoRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleExecuteResponse (client: Client, message: Dict): void {
+    handleExecuteResponse (client: Client, message: Dict) {
         //
         //     {
         //         "status": "success",
@@ -1732,7 +1732,7 @@ export default class nado extends nadoRest {
         client.resolve (message, messageHash);
     }
 
-    handleSubscription (client: Client, message: Dict): void {
+    handleSubscription (client: Client, message: Dict) {
         const id = this.safeString (message, 'id');
         const subscription = this.safeDict (client.subscriptions, 'subscription:' + id);
         if (subscription !== undefined) {
@@ -1742,7 +1742,7 @@ export default class nado extends nadoRest {
         }
     }
 
-    handleAuthentication (client: Client, message: Dict): void {
+    handleAuthentication (client: Client, message: Dict) {
         const id = this.safeString (message, 'id');
         const messageHash = this.safeString (client.subscriptions, 'authentication:' + id);
         if (messageHash !== undefined) {
@@ -1752,7 +1752,7 @@ export default class nado extends nadoRest {
         }
     }
 
-    handleUnsubscription (client: Client, message: Dict): void {
+    handleUnsubscription (client: Client, message: Dict) {
         const id = this.safeString (message, 'id');
         const unsubscription = this.safeDict (client.subscriptions, 'unsubscription:' + id);
         if (unsubscription !== undefined) {
@@ -1784,7 +1784,7 @@ export default class nado extends nadoRest {
         }
     }
 
-    handleUnsubscriptionCache (messageHash: Str): void {
+    handleUnsubscriptionCache (messageHash: Str) {
         if (messageHash === undefined) {
             return;
         }
@@ -1892,7 +1892,7 @@ export default class nado extends nadoRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }

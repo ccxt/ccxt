@@ -3616,7 +3616,7 @@ export default class hashkey extends Exchange {
         return this.parseOrders (response as Dict, market, since, limit);
     }
 
-    checkTypeParam (methodName: string, params: Dict): void {
+    checkTypeParam (methodName: string, params: Dict) {
         // some hashkey endpoints have a type param for swap markets that defines the type of an order
         // type param is reserved in ccxt for defining the type of the market
         // current method warns user if he provides the exchange specific value in type parameter
@@ -4550,7 +4550,7 @@ export default class hashkey extends Exchange {
         };
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
         let url = this.urls['api'][api] + '/' + path;
         let query: Str = undefined;
         if (api === 'private') {
@@ -4602,7 +4602,7 @@ export default class hashkey extends Exchange {
         return result;
     }
 
-    override handleErrors (code: int, reason: string, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined {
+    override handleErrors (code: int, reason: string, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

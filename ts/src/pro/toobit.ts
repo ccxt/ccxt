@@ -156,7 +156,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handleIncomingPong (client: Client, pongTimestamp: Int): void {
+    handleIncomingPong (client: Client, pongTimestamp: Int) {
         client.lastPong = pongTimestamp;
     }
 
@@ -217,7 +217,7 @@ export default class toobit extends toobitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         symbol: "DOGEUSDT",
@@ -332,7 +332,7 @@ export default class toobit extends toobitRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -462,7 +462,7 @@ export default class toobit extends toobitRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTickers (client: Client, message: Dict): void {
+    handleTickers (client: Client, message: Dict) {
         //
         //    {
         //        "symbol": "DOGEUSDT",
@@ -580,7 +580,7 @@ export default class toobit extends toobitRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -635,7 +635,7 @@ export default class toobit extends toobitRest {
         bookside.storeArray (bidAsk);
     }
 
-    handleOrderBookPartialSnapshot (client: Client, message: Dict): void {
+    handleOrderBookPartialSnapshot (client: Client, message: Dict) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -661,7 +661,7 @@ export default class toobit extends toobitRest {
         this.setOrderBookSnapshot (client, message, 'depth');
     }
 
-    setOrderBookSnapshot (client: Client, message: Dict, channel: string): void {
+    setOrderBookSnapshot (client: Client, message: Dict, channel: string) {
         const data = this.safeList (message, 'data', []);
         const length = data.length;
         if (length === 0) {
@@ -718,7 +718,7 @@ export default class toobit extends toobitRest {
         return await this.watch (url, messageHash, params, subscriptionHash);
     }
 
-    setBalanceCache (client: Client, marketType: Str, subscriptionHash: Str = undefined, params: Dict = {}): void {
+    setBalanceCache (client: Client, marketType: Str, subscriptionHash: Str = undefined, params: Dict = {}) {
         if ((subscriptionHash === undefined) || (subscriptionHash in client.subscriptions)) {
             return;
         }
@@ -730,7 +730,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         //
@@ -790,7 +790,7 @@ export default class toobit extends toobitRest {
         client.resolve (this.balance[type], type + ':balance');
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, marketType: Str): Promise<void> {
+    async loadBalanceSnapshot (client: Client, messageHash: string, marketType: Str): Promise<any> {
         const response = await this.fetchBalance ({ 'type': marketType });
         const type = (marketType === 'spot') ? 'spot' : 'contract';
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
@@ -834,7 +834,7 @@ export default class toobit extends toobitRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         //    {
         //        "e": "executionReport",
@@ -879,7 +879,7 @@ export default class toobit extends toobitRest {
         client.resolve (orders, messageHash);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         const timestamp = this.safeInteger (order, 'O');
         const marketId = this.safeString (order, 's');
         const symbol = this.safeSymbol (marketId, market);
@@ -957,7 +957,7 @@ export default class toobit extends toobitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message: Dict): void {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //    {
         //        "e": "ticketInfo",
@@ -1050,7 +1050,7 @@ export default class toobit extends toobitRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: string, symbols: Strings = undefined, isPortfolioMargin: Bool = false): void {
+    setPositionsCache (client: Client, type: string, symbols: Strings = undefined, isPortfolioMargin: Bool = false) {
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -1069,7 +1069,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, type: string): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string, type: string): Promise<any> {
         const params: Dict = {
             'type': type,
         };
@@ -1088,7 +1088,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handlePositions (client: Client, message: any): void {
+    handlePositions (client: Client, message: any) {
         //
         // [
         //     {
@@ -1184,7 +1184,7 @@ export default class toobit extends toobitRest {
         });
     }
 
-    async authenticate (params: Dict = {}): Promise<void> {
+    async authenticate (params: Dict = {}): Promise<any> {
         const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
@@ -1233,7 +1233,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    async keepAliveListenKey (params: Dict = {}): Promise<void> {
+    async keepAliveListenKey (params: Dict = {}): Promise<any> {
         const options = this.safeDict (this.options, 'ws', {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {

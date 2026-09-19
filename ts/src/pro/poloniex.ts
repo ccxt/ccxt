@@ -275,7 +275,7 @@ export default class poloniex extends poloniexRest {
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}) {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             const clientOrderIds = this.safeValue (params, 'clientOrderId', []);
@@ -297,7 +297,7 @@ export default class poloniex extends poloniexRest {
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params: Dict = {}) {
+    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -325,7 +325,7 @@ export default class poloniex extends poloniexRest {
         return await this.tradeRequest ('cancelAllOrders', params);
     }
 
-    handleOrderRequest (client: Client, message: Dict): void {
+    handleOrderRequest (client: Client, message: Dict) {
         //
         //    {
         //        "id": "1234567",
@@ -568,7 +568,7 @@ export default class poloniex extends poloniexRest {
         return await this.subscribe (name, name, true, undefined, params);
     }
 
-    override parseWsOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -683,7 +683,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // handleTrade
         //
@@ -764,7 +764,7 @@ export default class poloniex extends poloniexRest {
         return this.safeString (statuses, status, status);
     }
 
-    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -944,7 +944,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -1069,7 +1069,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // snapshot
         //
@@ -1164,7 +1164,7 @@ export default class poloniex extends poloniexRest {
         }
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //    {
         //       "channel": "balances",
@@ -1228,7 +1228,7 @@ export default class poloniex extends poloniexRest {
         return this.safeBalance (result);
     }
 
-    handleMyTrades (client: Client, parsedTrade: Trade): void {
+    handleMyTrades (client: Client, parsedTrade: Trade) {
         // emulated using the orders' stream
         const messageHash = 'myTrades';
         const symbol = parsedTrade['symbol'];
@@ -1243,7 +1243,7 @@ export default class poloniex extends poloniexRest {
         client.resolve (trades, symbolMessageHash);
     }
 
-    handlePong (client: Client): void {
+    handlePong (client: Client) {
         client.lastPong = this.milliseconds ();
     }
 

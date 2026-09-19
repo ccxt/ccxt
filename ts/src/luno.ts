@@ -685,7 +685,7 @@ export default class luno extends Exchange {
         return result;
     }
 
-    override parseBalance (response: Dict): Balances {
+    override parseBalance (response: any): Balances {
         const wallets = this.safeList (response, 'balance', []);
         const result: Dict = {
             'info': response,
@@ -1211,7 +1211,7 @@ export default class luno extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         // {
         //     "timestamp": 1664055240000,
         //     "open": "19612.65",
@@ -1644,7 +1644,7 @@ export default class luno extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "account_id": "string",
@@ -1709,7 +1709,7 @@ export default class luno extends Exchange {
         return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
-    override sign (path: any, api: any = 'public', method: Str = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length > 0) {

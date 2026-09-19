@@ -107,7 +107,7 @@ export default class deribit extends deribitRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // subscription
         //     {
@@ -248,7 +248,7 @@ export default class deribit extends deribitRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -326,7 +326,7 @@ export default class deribit extends deribitRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -413,7 +413,7 @@ export default class deribit extends deribitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -493,7 +493,7 @@ export default class deribit extends deribitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -593,7 +593,7 @@ export default class deribit extends deribitRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //  snapshot
         //     {
@@ -691,7 +691,7 @@ export default class deribit extends deribitRest {
         return data;
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         const price = delta[1];
         const amount = delta[2];
         if (delta[0] === 'new' || delta[0] === 'change') {
@@ -701,7 +701,7 @@ export default class deribit extends deribitRest {
         }
     }
 
-    override handleDeltas (bookside: any, deltas: any): void {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -748,7 +748,7 @@ export default class deribit extends deribitRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: Dict): void {
+    handleOrders (client: Client, message: Dict) {
         // Does not return a snapshot of current orders
         //
         //     {
@@ -849,7 +849,7 @@ export default class deribit extends deribitRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -894,7 +894,7 @@ export default class deribit extends deribitRest {
         client.resolve (resolveData, messageHash);
     }
 
-    override parseWsOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "c": "28909.0",
@@ -964,7 +964,7 @@ export default class deribit extends deribitRest {
         return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions);
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         //
         // error
         //     {

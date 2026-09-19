@@ -8,7 +8,7 @@ import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, Inv
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, DepositWithdrawFee, FundingRates, FundingRate, Fee, FeeString, NullableDict, List, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, Fee, FeeString, NullableDict, List, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3023,7 +3023,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): DepositWithdrawFee {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
         //
         // * only used for fetchPrivateDepositWithdrawFees
         //
@@ -3082,7 +3082,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every spot endpoint ends with ".do"

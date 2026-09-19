@@ -159,7 +159,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} true if successfully unsubscribed, false otherwise
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}) {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -189,7 +189,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    handleOHLCV (client: Client, message: any[], subscription: Dict): void {
+    handleOHLCV (client: Client, message: any[], subscription: Dict) {
         //
         // initial snapshot
         //   [
@@ -352,7 +352,7 @@ export default class bitfinex extends bitfinexRest {
         return this.unSubscribe ('ticker', 'ticker', symbol, params);
     }
 
-    handleMyTrade (client: Client, message: any[], subscription: Dict = {}): void {
+    handleMyTrade (client: Client, message: any[], subscription: Dict = {}) {
         //
         // trade execution
         // [
@@ -393,7 +393,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    handleTrades (client: Client, message: any[], subscription: Dict): void {
+    handleTrades (client: Client, message: any[], subscription: Dict) {
         //
         // initial snapshot
         //
@@ -461,7 +461,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: any[], market: Market = undefined): Trade {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         //    [
         //        1128060969, // id
@@ -563,7 +563,7 @@ export default class bitfinex extends bitfinexRest {
         }, market);
     }
 
-    handleTicker (client: Client, message: any[], subscription: Dict): void {
+    handleTicker (client: Client, message: any[], subscription: Dict) {
         //
         // [
         //    340432, // channel ID
@@ -664,7 +664,7 @@ export default class bitfinex extends bitfinexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any[], subscription: Dict): void {
+    handleOrderBook (client: Client, message: any[], subscription: Dict) {
         //
         // first message (snapshot)
         //
@@ -765,7 +765,7 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    handleChecksum (client: Client, message: any[], subscription: Dict): void {
+    handleChecksum (client: Client, message: any[], subscription: Dict) {
         //
         // [ 173904, "cs", -890884919 ]
         //
@@ -830,7 +830,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.subscribePrivate (messageHash);
     }
 
-    handleBalance (client: Client, message: any[], subscription: Dict): void {
+    handleBalance (client: Client, message: any[], subscription: Dict) {
         //
         // snapshot (exchange + margin together)
         //   [
@@ -1051,7 +1051,7 @@ export default class bitfinex extends bitfinexRest {
         return await future;
     }
 
-    handleAuthenticationMessage (client: Client, message: Dict): void {
+    handleAuthenticationMessage (client: Client, message: Dict) {
         const messageHash = 'authenticated';
         const status = this.safeString (message, 'status');
         if (status === 'OK') {
@@ -1094,7 +1094,7 @@ export default class bitfinex extends bitfinexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: any[], subscription: Dict): void {
+    handleOrders (client: Client, message: any[], subscription: Dict) {
         //
         // limit order
         //    [
@@ -1182,7 +1182,7 @@ export default class bitfinex extends bitfinexRest {
         return this.safeString (statuses, status, status);
     }
 
-    override parseWsOrder (order: any[], market: Market = undefined): Order {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         //
         //   [
         //       97084883506, // order id
@@ -1269,7 +1269,7 @@ export default class bitfinex extends bitfinexRest {
         }, market);
     }
 
-    override handleMessage (client: Client, message: any): void {
+    override handleMessage (client: Client, message: any) {
         const channelId = this.safeString (message, 0);
         //
         //     [

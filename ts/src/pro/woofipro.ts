@@ -119,7 +119,7 @@ export default class woofipro extends woofiproRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@orderbook",
@@ -273,7 +273,7 @@ export default class woofipro extends woofiproRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleTickers (client: Client, message: Dict): void {
+    handleTickers (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"tickers",
@@ -332,7 +332,7 @@ export default class woofipro extends woofiproRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //       "topic": "bbos",
@@ -414,7 +414,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -491,7 +491,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleTrade (client: Client, message: Dict): void {
+    handleTrade (client: Client, message: Dict) {
         //
         // {
         //     "topic":"PERP_ADA_USDC@trade",
@@ -597,7 +597,7 @@ export default class woofipro extends woofiproRest {
         }, market);
     }
 
-    handleAuth (client: Client, message: Dict): void {
+    handleAuth (client: Client, message: Dict) {
         //
         //     {
         //         "event": "auth",
@@ -871,7 +871,7 @@ export default class woofipro extends woofiproRest {
         });
     }
 
-    handleOrderUpdate (client: Client, message: Dict): void {
+    handleOrderUpdate (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "executionreport",
@@ -922,7 +922,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handleOrder (client: Client, message: Dict, topic: any): void {
+    handleOrder (client: Client, message: Dict, topic: any) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -954,7 +954,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handleMyTrade (client: Client, message: Dict): void {
+    handleMyTrade (client: Client, message: Dict) {
         //
         // {
         //     symbol: 'PERP_XRP_USDC',
@@ -1051,7 +1051,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, symbols: Strings = undefined): void {
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -1064,7 +1064,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<any> {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1083,7 +1083,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //    {
         //        "topic":"position",
@@ -1231,7 +1231,7 @@ export default class woofipro extends woofiproRest {
         return await this.watchPrivate (messageHash, message);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"balance",
@@ -1319,7 +1319,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
@@ -1380,11 +1380,11 @@ export default class woofipro extends woofiproRest {
         return { 'event': 'ping' };
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict): Promise<any> {
         await client.send ({ 'event': 'pong' });
     }
 
-    handlePing (client: Client, message: Dict): void {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 

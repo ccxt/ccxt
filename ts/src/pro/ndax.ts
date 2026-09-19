@@ -75,7 +75,7 @@ export default class ndax extends ndaxRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         const payload = this.safeDict (message, 'o', {});
         //
         //     {
@@ -154,7 +154,7 @@ export default class ndax extends ndaxRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         const payload = this.safeList (message, 'o', []);
         //
         // initial snapshot
@@ -246,7 +246,7 @@ export default class ndax extends ndaxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "m": 1,
@@ -408,7 +408,7 @@ export default class ndax extends ndaxRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "m": 3,
@@ -488,7 +488,7 @@ export default class ndax extends ndaxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict): void {
+    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict) {
         //
         //     {
         //         "m": 1,
@@ -525,7 +525,7 @@ export default class ndax extends ndaxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleSubscriptionStatus (client: Client, message: Dict): void {
+    handleSubscriptionStatus (client: Client, message: Dict) {
         //
         //     {
         //         "m": 1,
@@ -545,7 +545,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         //
         //     {
         //         "m": 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error

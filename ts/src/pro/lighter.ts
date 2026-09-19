@@ -116,13 +116,13 @@ export default class lighter extends lighterRest {
         return await this.subscribePublic (messageHash, params);
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 'price');
         const amount = this.safeFloat (delta, 'size');
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any): void {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -139,7 +139,7 @@ export default class lighter extends lighterRest {
         return orderbook;
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // {
         //     "channel": "order_book:0",
@@ -235,7 +235,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         // watchTicker
         //     {
@@ -534,7 +534,7 @@ export default class lighter extends lighterRest {
         }, market);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "trade:0",
@@ -912,7 +912,7 @@ export default class lighter extends lighterRest {
         });
     }
 
-    handleLiquidation (client: Client, message: Dict): void {
+    handleLiquidation (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "trade:0",
@@ -1293,7 +1293,7 @@ export default class lighter extends lighterRest {
         return this.parseOrders ([ rawMessage ]);
     }
 
-    handleWsSendtxApi (client: Client, message: Dict): void {
+    handleWsSendtxApi (client: Client, message: Dict) {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
@@ -1398,7 +1398,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1463,7 +1463,7 @@ export default class lighter extends lighterRest {
         return message;
     }
 
-    handleUnSubscription (client: Client, message: Dict): void {
+    handleUnSubscription (client: Client, message: Dict) {
         //
         //     {
         //         "type": "unsubscribed",
@@ -1493,7 +1493,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleOrderBookUnSubscription (client: Client, marketId: Str): void {
+    handleOrderBookUnSubscription (client: Client, marketId: Str) {
         const symbol = this.safeSymbol (marketId);
         const subMessageHash = this.getMessageHash ('orderbook', symbol);
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -1503,7 +1503,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleTickerUnSubscription (client: Client, marketId: Str): void {
+    handleTickerUnSubscription (client: Client, marketId: Str) {
         if (marketId === 'all') {
             // a ticker hash is served by the one wire channel that created its subscription
             // record, so sweep by owner instead of by name prefix: a ticker::<symbol> hash
@@ -1547,7 +1547,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleTradesUnSubscription (client: Client, marketId: Str): void {
+    handleTradesUnSubscription (client: Client, marketId: Str) {
         const symbol = this.safeSymbol (marketId);
         const subMessageHash = this.getMessageHash ('trade', symbol);
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -1557,7 +1557,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleMyTradesUnSubscription (client: Client): void {
+    handleMyTradesUnSubscription (client: Client) {
         // one account-wide channel feeds the plural hash and every per-symbol hash
         const messageHash = 'unsubscribe:' + this.getMessageHash ('myTrades');
         this.cleanUnsubscription (client, 'myTrades', messageHash, true);
@@ -1567,14 +1567,14 @@ export default class lighter extends lighterRest {
         this.cleanCache (myTradesStructure);
     }
 
-    handleOrdersUnSubscription (client: Client, marketId: Str): void {
+    handleOrdersUnSubscription (client: Client, marketId: Str) {
         const symbol = this.safeSymbol (marketId);
         const subMessageHash = this.getMessageHash ('orders', symbol);
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
     }
 
-    handleAllOrdersUnSubscription (client: Client): void {
+    handleAllOrdersUnSubscription (client: Client) {
         // only the plural hash is awaited on this channel, per-symbol order hashes
         // belong to the account_orders/<marketId> channels and stay untouched here
         const subMessageHash = this.getMessageHash ('orders');
@@ -1586,14 +1586,14 @@ export default class lighter extends lighterRest {
         this.cleanCache (ordersStructure);
     }
 
-    handlePing (client: Client, message: any): void {
+    handlePing (client: Client, message: any) {
         //
         //     { "type": "ping" }
         //
         this.spawn (this.pong, client, message);
     }
 
-    async pong (client: Client, message: any): Promise<void> {
+    async pong (client: Client, message: any): Promise<any> {
         const request: Dict = {
             'type': 'pong',
         };

@@ -425,7 +425,7 @@ export default class lighter extends Exchange {
         return signer;
     }
 
-    initAuthObject (strAccountIndex: string, strApiKeyIndex: string): void {
+    initAuthObject (strAccountIndex: string, strApiKeyIndex: string) {
         if (!('auths' in this.options)) {
             this.options['auths'] = {};
         }
@@ -724,7 +724,7 @@ export default class lighter extends Exchange {
         return signer;
     }
 
-    override setSandboxMode (enable: boolean): void {
+    override setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
         this.options['chainId'] = enable ? 300 : 304;
@@ -3384,7 +3384,7 @@ export default class lighter extends Exchange {
         };
     }
 
-    override sign (path: any, api: any = 'public', method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
         let url: Str = undefined;
         if (api === 'root') {
             url = this.implodeHostname (this.urls['api']['public']);

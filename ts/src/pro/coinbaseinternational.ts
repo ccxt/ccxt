@@ -273,7 +273,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleInstrument (client: Client, message: Dict): void {
+    handleInstrument (client: Client, message: Dict) {
         //
         //    {
         //        "sequence": 1,
@@ -385,7 +385,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         });
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         // snapshot
         //    {
@@ -483,7 +483,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // {
         //     "sequence": 0,
@@ -591,7 +591,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         //    {
         //       "sequence": 0,
@@ -651,7 +651,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.subscribeMultiple ('LEVEL2', symbols, params);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // snapshot
         //    {
@@ -755,7 +755,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
-    handleFundingRate (client: Client, message: Dict): void {
+    handleFundingRate (client: Client, message: any) {
         //
         // snapshot
         //    {
@@ -810,7 +810,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }

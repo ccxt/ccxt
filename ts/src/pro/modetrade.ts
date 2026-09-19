@@ -119,7 +119,7 @@ export default class modetrade extends modetradeRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@orderbook",
@@ -273,7 +273,7 @@ export default class modetrade extends modetradeRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleTickers (client: Client, message: Dict): void {
+    handleTickers (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"tickers",
@@ -332,7 +332,7 @@ export default class modetrade extends modetradeRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //       "topic": "bbos",
@@ -415,7 +415,7 @@ export default class modetrade extends modetradeRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -494,7 +494,7 @@ export default class modetrade extends modetradeRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleTrade (client: Client, message: Dict): void {
+    handleTrade (client: Client, message: Dict) {
         //
         // {
         //     "topic":"PERP_ADA_USDC@trade",
@@ -600,7 +600,7 @@ export default class modetrade extends modetradeRest {
         }, market);
     }
 
-    handleAuth (client: Client, message: Dict): void {
+    handleAuth (client: Client, message: Dict) {
         //
         //     {
         //         "event": "auth",
@@ -874,7 +874,7 @@ export default class modetrade extends modetradeRest {
         });
     }
 
-    handleOrderUpdate (client: Client, message: Dict): void {
+    handleOrderUpdate (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "executionreport",
@@ -927,7 +927,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    handleOrder (client: Client, message: Dict, topic: Str): void {
+    handleOrder (client: Client, message: Dict, topic: Str) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -959,7 +959,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    handleMyTrade (client: Client, message: Dict): void {
+    handleMyTrade (client: Client, message: Dict) {
         //
         // {
         //     symbol: 'PERP_XRP_USDC',
@@ -1050,7 +1050,7 @@ export default class modetrade extends modetradeRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: any, symbols: Strings = undefined): void {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -1063,7 +1063,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<any> {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1082,7 +1082,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //    {
         //        "topic":"position",
@@ -1230,7 +1230,7 @@ export default class modetrade extends modetradeRest {
         return await this.watchPrivate (messageHash, message);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"balance",
@@ -1318,7 +1318,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
@@ -1380,11 +1380,11 @@ export default class modetrade extends modetradeRest {
         return { 'event': 'ping' };
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict): Promise<any> {
         await client.send ({ 'event': 'pong' });
     }
 
-    handlePing (client: Client, message: Dict): void {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 

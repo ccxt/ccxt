@@ -101,7 +101,7 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "symbol": "DOGEUSDT",
@@ -196,7 +196,7 @@ export default class hashkey extends hashkeyRest {
         return await this.wathPublic (market, topic, messageHash, params);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -260,7 +260,7 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -328,7 +328,7 @@ export default class hashkey extends hashkeyRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -402,7 +402,7 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         // swap
         //     {
@@ -526,7 +526,7 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message: Dict, subscription: Dict = {}): void {
+    handleMyTrade (client: Client, message: Dict, subscription: Dict = {}) {
         //
         //     {
         //         "e": "ticketInfo",
@@ -653,7 +653,7 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePosition (client: Client, message: Dict): void {
+    handlePosition (client: Client, message: Dict) {
         //
         //     {
         //         "e": "outboundContractPositionInfo",
@@ -753,7 +753,7 @@ export default class hashkey extends hashkeyRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    setBalanceCache (client: Client, type: string, subscribeHash: string): void {
+    setBalanceCache (client: Client, type: string, subscribeHash: string) {
         if (subscribeHash in client.subscriptions) {
             return;
         }
@@ -770,7 +770,7 @@ export default class hashkey extends hashkeyRest {
         // without this comment, transpilation breaks for some reason...
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: string): Promise<void> {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string): Promise<any> {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
@@ -781,7 +781,7 @@ export default class hashkey extends hashkeyRest {
         }
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "e": "outboundContractAccountInfo",        // event type
@@ -877,7 +877,7 @@ export default class hashkey extends hashkeyRest {
         return listenKey;
     }
 
-    async keepAliveListenKey (listenKey: Str, params: Dict = {}): Promise<void> {
+    async keepAliveListenKey (listenKey: Str, params: Dict = {}): Promise<any> {
         if (listenKey === undefined) {
             return;
         }
@@ -897,7 +897,7 @@ export default class hashkey extends hashkeyRest {
         }
     }
 
-    override handleMessage (client: Client, message: any): void {
+    override handleMessage (client: Client, message: any) {
         if (Array.isArray (message)) {
             message = this.safeDict (message, 0, {});
         }

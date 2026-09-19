@@ -51,7 +51,7 @@ export default class grvt extends grvtRest {
         });
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         //
         // confirmation
         //
@@ -191,7 +191,7 @@ export default class grvt extends grvtRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         // v1.ticker.s
         //
@@ -339,7 +339,7 @@ export default class grvt extends grvtRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.trade",
@@ -444,7 +444,7 @@ export default class grvt extends grvtRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.candle",
@@ -557,7 +557,7 @@ export default class grvt extends grvtRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.book.s",
@@ -689,7 +689,7 @@ export default class grvt extends grvtRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message: Dict): void {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.fill",
@@ -782,7 +782,7 @@ export default class grvt extends grvtRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePosition (client: Client, message: Dict): void {
+    handlePosition (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.position",
@@ -867,7 +867,7 @@ export default class grvt extends grvtRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.order",

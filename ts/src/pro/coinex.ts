@@ -97,7 +97,7 @@ export default class coinex extends coinexRest {
         return requestId;
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //  spot
         //
@@ -287,7 +287,7 @@ export default class coinex extends coinexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         //
@@ -370,7 +370,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    parseWsBalance (balance: Dict, accountType: Str = undefined): void {
+    parseWsBalance (balance: Dict, accountType: Str = undefined) {
         //
         // spot
         //
@@ -463,7 +463,7 @@ export default class coinex extends coinexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "method": "user_deals.update",
@@ -504,7 +504,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         // spot
         //
@@ -567,7 +567,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    override parseWsTrade (trade: Dict, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // spot watchTrades
         //
@@ -842,18 +842,18 @@ export default class coinex extends coinexRest {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any): void {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "method": "depth.update",
@@ -975,7 +975,7 @@ export default class coinex extends coinexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: Dict): void {
+    handleOrders (client: Client, message: Dict) {
         //
         // spot
         //
@@ -1110,7 +1110,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    override parseWsOrder (order: Dict, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //
@@ -1296,7 +1296,7 @@ export default class coinex extends coinexRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //         "method": "bbo.update",
@@ -1346,7 +1346,7 @@ export default class coinex extends coinexRest {
         }, market);
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         const method = this.safeString (message, 'method');
         const error = this.safeString (message, 'message');
         if (error !== undefined) {
@@ -1370,7 +1370,7 @@ export default class coinex extends coinexRest {
         this.handleSubscriptionStatus (client, message);
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
@@ -1392,7 +1392,7 @@ export default class coinex extends coinexRest {
         return undefined;
     }
 
-    handleAuthenticationMessage (client: Client, message: Dict): void {
+    handleAuthenticationMessage (client: Client, message: Dict) {
         //
         // success
         //
@@ -1425,7 +1425,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: Dict): void {
+    handleSubscriptionStatus (client: Client, message: Dict) {
         const id = this.safeInteger (message, 'id');
         const subscription = this.safeDict (client.subscriptions, id);
         if (subscription !== undefined) {

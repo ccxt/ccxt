@@ -351,7 +351,7 @@ export default class extended extends Exchange {
         });
     }
 
-    override async loadMarkets (reload: boolean = false, params: Dict = {}) {
+    override async loadMarkets (reload: any = false, params: Dict = {}) {
         const markets = await super.loadMarkets (reload, params);
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
         if ((currenciesByNumericId === undefined) || reload) {
@@ -1382,7 +1382,7 @@ export default class extended extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (info: Dict, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //       "m": "BTC-USD",
@@ -1455,7 +1455,7 @@ export default class extended extends Exchange {
         return this.parseOpenInterestsHistory (data, market, since, limit);
     }
 
-    override parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //     {
         //       "i": "112620590.6060360000000000",
@@ -3578,7 +3578,7 @@ export default class extended extends Exchange {
         return undefined;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const version = this.safeString (api, 0);
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);

@@ -6735,7 +6735,7 @@ export default class okx extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
-    override sign (path: any, api: any = 'public', method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const isArray = Array.isArray (params);
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -7338,7 +7338,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    override async fetchCrossBorrowRates (params: Dict = {}): Promise<CrossBorrowRates> {
+    override async fetchCrossBorrowRates (params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7377,7 +7377,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    override async fetchCrossBorrowRate (code: string, params: Dict = {}): Promise<CrossBorrowRate> {
+    override async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7404,7 +7404,7 @@ export default class okx extends Exchange {
         return this.parseBorrowRate (rate);
     }
 
-    override parseBorrowRate (info: Dict, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //    {
         //        "amt": "992.10341195",
@@ -8115,7 +8115,7 @@ export default class okx extends Exchange {
      * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterestHistory (symbol: string, timeframe: string = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OpenInterest[]> {
+    override async fetchOpenInterestHistory (symbol: string, timeframe: string = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         const options = this.safeDict (this.options, 'fetchOpenInterestHistory', {});
         const timeframes = this.safeDict (options, 'timeframes', {});
         timeframe = this.safeString (timeframes, timeframe, timeframe);
@@ -8228,7 +8228,7 @@ export default class okx extends Exchange {
         }, market);
     }
 
-    override setSandboxMode (enable: boolean): void {
+    override setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
         if (enable) {
@@ -8304,7 +8304,7 @@ export default class okx extends Exchange {
         return this.parseDepositWithdrawFees (data, codes);
     }
 
-    override parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined): Dict {
+    override parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined): any {
         //
         // [
         //   {

@@ -779,7 +779,7 @@ export default class btcturk extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    override parseOHLCVs (ohlcvs: any, market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false): OHLCV[] {
+    override parseOHLCVs (ohlcvs: any, market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
         const results: OHLCV[] = [];
         const timestamp = this.safeList (ohlcvs, 't', []);
         const high = this.safeList (ohlcvs, 'h', []);
@@ -1075,7 +1075,7 @@ export default class btcturk extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = 'public', method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }

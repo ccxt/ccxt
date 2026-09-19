@@ -126,7 +126,7 @@ export default class weex extends weexRest {
         return await this.watch (url, messageHash, this.deepExtend (message, params), subscribeHash, subscription);
     }
 
-    authenticate (url: string): void {
+    authenticate (url: string) {
         this.checkRequiredCredentials ();
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
@@ -277,7 +277,7 @@ export default class weex extends weexRest {
         return await this.subscribePublic (unSubHashes, channels, isContract, params, subscription);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "e": "ticker",
@@ -474,7 +474,7 @@ export default class weex extends weexRest {
         return await this.subscribePublic (unSubHashes, channels, isContract, params, subscription);
     }
 
-    handleTrade (client: Client, message: Dict): void {
+    handleTrade (client: Client, message: Dict) {
         //
         //     {
         //         "e": "trade",
@@ -698,7 +698,7 @@ export default class weex extends weexRest {
         return await this.subscribePublic (unSubHashes, channels, isContract, params, subscription);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         e: 'kline',
@@ -754,7 +754,7 @@ export default class weex extends weexRest {
         client.resolve (resolveData, messageHash);
     }
 
-    override parseWsOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         t: 1776092400000,
@@ -900,7 +900,7 @@ export default class weex extends weexRest {
         return await this.subscribePublic (unSubHashes, channels, isContract, params, subscription);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "e": "depth",
@@ -949,7 +949,7 @@ export default class weex extends weexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta);
         bookside.storeArray (bidAsk);
     }
@@ -1032,7 +1032,7 @@ export default class weex extends weexRest {
         return await this.subscribePublic (unSubHashes, channels, false, params, subscription);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //         "e": "bookTicker",
@@ -1142,7 +1142,7 @@ export default class weex extends weexRest {
         return await this.subscribePrivate (unSubHash, unSubHash, channel, isContract, params, subscription);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         // spot
         //     {
@@ -1349,7 +1349,7 @@ export default class weex extends weexRest {
         return await this.subscribePrivate (unSubHash, unSubHash, channel, isContract, params, subscription);
     }
 
-    handleOrders (client: Client, message: Dict): void {
+    handleOrders (client: Client, message: Dict) {
         //
         //     {
         //         "e": "orders",
@@ -1611,7 +1611,7 @@ export default class weex extends weexRest {
         return await this.subscribePrivate (messageHash, type, 'account', isContract, params);
     }
 
-    setBalanceCache (client: Client, type: string): void {
+    setBalanceCache (client: Client, type: string) {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
@@ -1628,7 +1628,7 @@ export default class weex extends weexRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: string): Promise<void> {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string): Promise<any> {
         const params: Dict = {
             'type': type,
         };
@@ -1642,7 +1642,7 @@ export default class weex extends weexRest {
         }
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         //     {
@@ -1770,7 +1770,7 @@ export default class weex extends weexRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, params: Dict = {}): void {
+    setPositionsCache (client: Client, params: Dict = {}) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -1783,7 +1783,7 @@ export default class weex extends weexRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, params: any): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string, params: any): Promise<any> {
         const positions = await this.fetchPositions (undefined, params);
         this.positions = new ArrayCacheBySymbolById ();
         const cache = this.positions;
@@ -1823,7 +1823,7 @@ export default class weex extends weexRest {
         return await this.subscribePrivate (unSubHash, unSubHash, channel, true, params, subscription);
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         "e": "positions",
@@ -1904,7 +1904,7 @@ export default class weex extends weexRest {
         return market;
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict): Promise<any> {
         //
         //     { "event": "ping", "time": "1776078750000" } - public
         //
@@ -1917,7 +1917,7 @@ export default class weex extends weexRest {
         await client.send (response);
     }
 
-    handlePing (client: Client, message: Dict): void {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 
@@ -1967,7 +1967,7 @@ export default class weex extends weexRest {
         return false;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         //
         //     { "id": "5", "method": "PONG" }
         //

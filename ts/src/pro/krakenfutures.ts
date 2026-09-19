@@ -240,7 +240,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override watchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+    override watchTrades (symbol: any, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -255,7 +255,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTradesForSymbols (symbols: Str[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: any, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
         if (this.newUpdates) {
             const first = this.safeList (trades, 0);
@@ -307,7 +307,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //    {
         //        feed: 'open_positions',
@@ -525,7 +525,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return await this.subscribePrivate (name, messageHash, params);
     }
 
-    handleTrade (client: Client, message: Dict): void {
+    handleTrade (client: Client, message: Dict) {
         //
         // snapshot
         //
@@ -869,7 +869,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return message;
     }
 
-    handleOrderSnapshot (client: Client, message: Dict): void {
+    handleOrderSnapshot (client: Client, message: Dict) {
         //
         // verbose
         //
@@ -1029,7 +1029,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //    {
         //        "time": 1680811086487,
@@ -1073,7 +1073,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //    {
         //        "feed": "ticker_lite",
@@ -1183,7 +1183,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    handleOrderBookSnapshot (client: Client, message: Dict): void {
+    handleOrderBookSnapshot (client: Client, message: Dict) {
         //
         //    {
         //        "feed": "book_snapshot",
@@ -1250,7 +1250,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //    {
         //        "feed": "book",
@@ -1283,7 +1283,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // snapshot
         //
@@ -1507,7 +1507,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //    {
         //        "feed": "fills_snapshot",
@@ -1681,7 +1681,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         const event = this.safeString (message, 'event');
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);

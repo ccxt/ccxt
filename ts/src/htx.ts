@@ -6,7 +6,7 @@ import Exchange from './abstract/htx.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint, DepositAddresses, MarketInterface, LastPrice, LastPrices, Liquidation, FundingHistory, DepositWithdrawFee } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint, DepositAddresses, MarketInterface, LastPrice, LastPrices, Liquidation, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2331,7 +2331,7 @@ export default class htx extends Exchange {
         return this.parseLastPrices (data, symbols);
     }
 
-    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
         // example responses are documented in fetchLastPrices
         const marketId = this.safeString2 (entry, 'symbol', 'contract_code');
         market = this.safeMarket (marketId, market);
@@ -2951,7 +2951,7 @@ export default class htx extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
-    override parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "amount":1.2082,
@@ -6374,7 +6374,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined) {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined) {
         //
         //     {
         //         "currency": "usdt",
@@ -7580,7 +7580,7 @@ export default class htx extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override sign (path: string, api: string = 'public', method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const pathString: string = path;
         let url = '/';
         const isArrayParams = Array.isArray (params);
@@ -7945,7 +7945,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    override parseIncome (income: Dict, market: Market = undefined): Dict {
+    override parseIncome (income: any, market: Market = undefined): Dict {
         //
         //     {
         //       "id": "1667161118",
@@ -8633,7 +8633,7 @@ export default class htx extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'contract_code');
     }
 
-    override parseMarketLeverageTiers (info: Dict, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         const currencyId = this.safeString (info, 'trade_partition');
         const marketId = this.safeString (info, 'contract_code');
         const tiers: List = [];
@@ -8676,7 +8676,7 @@ export default class htx extends Exchange {
      * @param {int} [params.pair] eg BTC-USDT *Only for USDT-M*
      * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterestHistory (symbol: string, timeframe: string = '1h', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OpenInterest[]> {
+    override async fetchOpenInterestHistory (symbol: string, timeframe: string = '1h', since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (timeframe !== '1h' && timeframe !== '4h' && timeframe !== '12h' && timeframe !== '1d') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
         }
@@ -8963,7 +8963,7 @@ export default class htx extends Exchange {
         return openInterest as OpenInterest;
     }
 
-    override parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         // fetchOpenInterestHistory
         //
@@ -9400,7 +9400,7 @@ export default class htx extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    override parseDepositWithdrawFee (fee: Dict, currency: Currency = undefined): DepositWithdrawFee {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
         //
         //            {
         //              "currency": "sxp",
@@ -9683,7 +9683,7 @@ export default class htx extends Exchange {
         return this.parseLiquidations (data, market, since, limit);
     }
 
-    override parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
+    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
         //
         //     {
         //         "query_id": 452057,

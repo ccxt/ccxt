@@ -86,7 +86,7 @@ export default class bitopro extends bitoproRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "event": "ORDER_BOOK",
@@ -148,7 +148,7 @@ export default class bitopro extends bitoproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client: Client, message: Dict): void {
+    handleTrade (client: Client, message: Dict) {
         //
         //     {
         //         "event": "TRADE",
@@ -217,7 +217,7 @@ export default class bitopro extends bitoproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message: Dict): void {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //     {
         //         "event": "USER_TRADE",
@@ -353,7 +353,7 @@ export default class bitopro extends bitoproRest {
         return await this.watchPublic ('tickers', messageHash, market['id']);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "event": "TICKER",
@@ -390,7 +390,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (result, messageHash);
     }
 
-    authenticate (url: string): void {
+    authenticate (url: string) {
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }
@@ -443,7 +443,7 @@ export default class bitopro extends bitoproRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "event": "ACCOUNT_BALANCE",
@@ -486,7 +486,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (this.balance, event);
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         const methods: Dict = {
             'TRADE': this.handleTrade,
             'TICKER': this.handleTicker,

@@ -89,7 +89,7 @@ export default class alpaca extends alpacaRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //    {
         //         "T": "q",
@@ -180,7 +180,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //    {
         //        "T": "b",
@@ -236,7 +236,7 @@ export default class alpaca extends alpacaRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // snapshot
         //    {
@@ -283,12 +283,12 @@ export default class alpaca extends alpacaRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside: any, delta: Dict): void {
+    override handleDelta (bookside: any, delta: Dict) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 'p', 's');
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any[]): void {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -325,7 +325,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "T": "t",
@@ -422,12 +422,12 @@ export default class alpaca extends alpacaRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleTradeUpdate (client: Client, message: Dict): void {
+    handleTradeUpdate (client: Client, message: Dict) {
         this.handleOrder (client, message);
         this.handleMyTrade (client, message);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "trade_updates",
@@ -488,7 +488,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (orders, messageHash);
     }
 
-    handleMyTrade (client: Client, message: Dict): void {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "trade_updates",
@@ -671,7 +671,7 @@ export default class alpaca extends alpacaRest {
         return message;
     }
 
-    handleCryptoMessage (client: Client, message: any[]): void {
+    handleCryptoMessage (client: Client, message: any[]) {
         for (let i = 0; i < message.length; i++) {
             const data = message[i];
             const T = this.safeString (data, 'T');
@@ -702,7 +702,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    handleTradingMessage (client: Client, message: Dict): void {
+    handleTradingMessage (client: Client, message: Dict) {
         const stream = this.safeString (message, 'stream');
         const methods: Dict = {
             'authorization': this.handleAuthenticate,
@@ -715,7 +715,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    override handleMessage (client: Client, message: any): void {
+    override handleMessage (client: Client, message: any) {
         if (Array.isArray (message)) {
             this.handleCryptoMessage (client, message);
             return;
@@ -723,7 +723,7 @@ export default class alpaca extends alpacaRest {
         this.handleTradingMessage (client, message);
     }
 
-    handleAuthenticate (client: Client, message: Dict): void {
+    handleAuthenticate (client: Client, message: Dict) {
         //
         // crypto
         //    {

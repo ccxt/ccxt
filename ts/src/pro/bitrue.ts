@@ -90,7 +90,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "e": "BALANCE",
@@ -142,7 +142,7 @@ export default class bitrue extends bitrueRest {
         client.resolve (this.balance, messageHash);
     }
 
-    parseWSBalances (balances: any[]): void {
+    parseWSBalances (balances: any[]) {
         //
         //    [{
         //         "a": "btc",
@@ -221,7 +221,7 @@ export default class bitrue extends bitrueRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         //    {
         //        "e": "ORDER",
@@ -350,7 +350,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url as string, messageHash, request, messageHash);
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "market_ethbtc_simple_depth_step0",
@@ -502,7 +502,7 @@ export default class bitrue extends bitrueRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "event_rep": "",
@@ -622,7 +622,7 @@ export default class bitrue extends bitrueRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "market_e_btcusdt_kline_1min",
@@ -670,7 +670,7 @@ export default class bitrue extends bitrueRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsOHLCV (tick: Dict, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (tick: any, market: Market = undefined): OHLCV {
         const symbol = (market as Dict)['symbol'];
         const idSeconds = this.safeInteger (tick, 'id');
         const timestamp = (idSeconds === undefined) ? undefined : idSeconds * 1000;
@@ -718,7 +718,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "market_e_btcusdt_ticker",
@@ -808,11 +808,11 @@ export default class bitrue extends bitrueRest {
         return this.safeString (statuses, status, status);
     }
 
-    handlePing (client: Client, message: Dict): void {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict): Promise<any> {
         //
         //     {
         //         "ping": 1670057540627
@@ -825,7 +825,7 @@ export default class bitrue extends bitrueRest {
         await client.send (pong);
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if ('channel' in message) {
             const channel = this.safeString (message, 'channel');
             if ((channel as string).indexOf ('_depth_step') > -1) {
@@ -917,7 +917,7 @@ export default class bitrue extends bitrueRest {
         return this.options['listenKeyUrl'];
     }
 
-    async keepAliveListenKey (params: Dict = {}): Promise<void> {
+    async keepAliveListenKey (params: Dict = {}): Promise<any> {
         const listenKey = this.safeString (this.options, 'listenKey');
         const request: Dict = {
             'listenKey': listenKey,

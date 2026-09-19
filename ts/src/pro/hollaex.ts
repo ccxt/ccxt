@@ -66,7 +66,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: any = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -76,7 +76,7 @@ export default class hollaex extends hollaexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"orderbook",
@@ -135,7 +135,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -149,7 +149,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "trade",
@@ -196,7 +196,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -214,7 +214,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: Dict, subscription: Dict | undefined = undefined): void {
+    handleMyTrades (client: Client, message: Dict, subscription: Dict | undefined = undefined) {
         //
         // {
         //     "topic":"usertrade",
@@ -283,7 +283,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: any = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -301,7 +301,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: Dict, subscription: Dict | undefined = undefined): void {
+    handleOrder (client: Client, message: Dict, subscription: Dict | undefined = undefined) {
         //
         //     {
         //         "topic": "order",
@@ -407,12 +407,12 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: any = {}): Promise<Balances> {
         const messageHash = 'wallet';
         return await this.watchPrivate (messageHash, params);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "wallet",
@@ -516,7 +516,7 @@ export default class hollaex extends hollaexRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         //
         // pong
         //
@@ -634,12 +634,12 @@ export default class hollaex extends hollaexRest {
         return message;
     }
 
-    override onError (client: Client, error: any): void {
+    override onError (client: Client, error: any) {
         this.options['ws-expires'] = undefined;
         super.onError (client, error);
     }
 
-    override onClose (client: Client, error: any): void {
+    override onClose (client: Client, error: any) {
         this.options['ws-expires'] = undefined;
         super.onClose (client, error);
     }

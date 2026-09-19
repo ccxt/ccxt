@@ -408,7 +408,7 @@ export default class p2b extends p2bRest {
         return message;
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //    {
         //        "method": "depth.update",
@@ -472,7 +472,7 @@ export default class p2b extends p2bRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
@@ -527,12 +527,12 @@ export default class p2b extends p2bRest {
         return message;
     }
 
-    override onError (client: Client, error: any): void {
+    override onError (client: Client, error: any) {
         this.options['tickerSubs'] = this.createSafeDictionary ();
         super.onError (client, error);
     }
 
-    override onClose (client: Client, error: any): void {
+    override onClose (client: Client, error: any) {
         this.options['tickerSubs'] = this.createSafeDictionary ();
         super.onClose (client, error);
     }

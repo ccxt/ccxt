@@ -219,7 +219,7 @@ export default class bitget extends bitgetRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message: Dict): void {
+    handleTicker (client: Client, message: Dict) {
         //
         // default
         //
@@ -465,7 +465,7 @@ export default class bitget extends bitgetRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message: Dict): void {
+    handleBidAsk (client: Client, message: Dict) {
         const ticker = this.parseWsBidAsk (message);
         const symbol = ticker['symbol'];
         if (symbol !== undefined) {
@@ -593,7 +593,7 @@ export default class bitget extends bitgetRest {
         return await this.unWatchChannel (symbol, channel, messageHash, 'watchOHLCV', params);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "action": "snapshot",
@@ -854,7 +854,7 @@ export default class bitget extends bitgetRest {
         }
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //   {
         //       "action":"snapshot",
@@ -978,13 +978,13 @@ export default class bitget extends bitgetRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async handleCheckSumError (client: Client, symbol: string, messageHash: string): Promise<void> {
+    async handleCheckSumError (client: Client, symbol: string, messageHash: string): Promise<any> {
         await this.unWatchOrderBook (symbol);
         const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
         client.reject (error, messageHash);
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         // we store the string representations in the orderbook for checksum calculation
         // this simplifies the code for generating checksums as we do not need to do any complex number transformations
@@ -992,7 +992,7 @@ export default class bitget extends bitgetRest {
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any): void {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -1095,7 +1095,7 @@ export default class bitget extends bitgetRest {
         return await this.unWatchChannel (symbol, channelTopic, 'trade', 'watchTrades', params);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "action": "snapshot",
@@ -1342,7 +1342,7 @@ export default class bitget extends bitgetRest {
         return this.filterBySymbolsSinceLimit (newPositions, symbols, since, limit, true);
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         "action": "snapshot",
@@ -1654,7 +1654,7 @@ export default class bitget extends bitgetRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         // spot
         //
@@ -2134,7 +2134,7 @@ export default class bitget extends bitgetRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         // spot
         // {
@@ -2336,7 +2336,7 @@ export default class bitget extends bitgetRest {
         return await this.watchPrivate (uta, messageHash, messageHash, args, params);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         //
@@ -2592,7 +2592,7 @@ export default class bitget extends bitgetRest {
         return await this.watch (url, messageHash, message, subscriptionHash);
     }
 
-    handleAuthenticate (client: Client, message: Dict): void {
+    handleAuthenticate (client: Client, message: Dict) {
         //
         //  { event: "login", code: 0 }
         //
@@ -2631,7 +2631,7 @@ export default class bitget extends bitgetRest {
         }
     }
 
-    override handleMessage (client: Client, message: any): void {
+    override handleMessage (client: Client, message: any) {
         //
         //   {
         //       "action": "snapshot",
@@ -2788,7 +2788,7 @@ export default class bitget extends bitgetRest {
         return message;
     }
 
-    handleOrderBookUnSubscription (client: Client, message: Dict): void {
+    handleOrderBookUnSubscription (client: Client, message: Dict) {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         //
@@ -2820,7 +2820,7 @@ export default class bitget extends bitgetRest {
         client.resolve (true, messageHash);
     }
 
-    handleTradesUnSubscription (client: Client, message: Dict): void {
+    handleTradesUnSubscription (client: Client, message: Dict) {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
         //
@@ -2848,7 +2848,7 @@ export default class bitget extends bitgetRest {
         client.resolve (true, messageHash);
     }
 
-    handleTickerUnSubscription (client: Client, message: Dict): void {
+    handleTickerUnSubscription (client: Client, message: Dict) {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
         //
@@ -2876,7 +2876,7 @@ export default class bitget extends bitgetRest {
         client.resolve (true, messageHash);
     }
 
-    handleOHLCVUnSubscription (client: Client, message: Dict): void {
+    handleOHLCVUnSubscription (client: Client, message: Dict) {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
         //

@@ -398,7 +398,7 @@ export default class htx extends htxRest {
         return await this.unsubscribePublic (market, subMessageHash, topic, params);
     }
 
-    handleOHLCV (client: Client, message: Dict): void {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "market.btcusdt.kline.1min",
@@ -519,7 +519,7 @@ export default class htx extends htxRest {
         return await this.unsubscribePublic (market, subMessageHash, topic, params);
     }
 
-    handleOrderBookSnapshot (client: Client, message: Dict, subscription: Dict): void {
+    handleOrderBookSnapshot (client: Client, message: Dict, subscription: Dict) {
         //
         //     {
         //         "id": 1583473663565,
@@ -647,19 +647,19 @@ export default class htx extends htxRest {
         return undefined;
     }
 
-    override handleDelta (bookside: any, delta: any): void {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any): void {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleOrderBookMessage (client: Client, message: Dict): void {
+    handleOrderBookMessage (client: Client, message: Dict) {
         // spot markets
         //
         //     {
@@ -762,7 +762,7 @@ export default class htx extends htxRest {
         }
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // deltas
         //
@@ -836,7 +836,7 @@ export default class htx extends htxRest {
         }
     }
 
-    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict): void {
+    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict) {
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
         const limit = this.safeInteger (subscription, 'limit');
@@ -1044,7 +1044,7 @@ export default class htx extends htxRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrder (client: Client, message: Dict): void {
+    handleOrder (client: Client, message: Dict) {
         //
         // spot
         //
@@ -1646,7 +1646,7 @@ export default class htx extends htxRest {
         return this.filterBySymbolsSinceLimit (this.safeValue (this.safeValue (this.positions, url), marginMode), symbols, since, limit, false);
     }
 
-    handlePositions (client: Client, message: Dict): void {
+    handlePositions (client: Client, message: Dict) {
         //
         //    {
         //        op: 'notify',
@@ -1897,7 +1897,7 @@ export default class htx extends htxRest {
         return await this.subscribePrivate (channel, messageHash, type, subType, params, subscriptionParams);
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         // spot
         //
         //     {
@@ -2151,7 +2151,7 @@ export default class htx extends htxRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: Dict): void {
+    handleSubscriptionStatus (client: Client, message: Dict) {
         //
         //     {
         //         "id": 1583414227,
@@ -2192,7 +2192,7 @@ export default class htx extends htxRest {
         }
     }
 
-    handleUnSubscription (client: Client, subscription: Dict | undefined): void {
+    handleUnSubscription (client: Client, subscription: Dict | undefined) {
         const messageHashes = this.safeList (subscription, 'messageHashes', []);
         const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -2217,7 +2217,7 @@ export default class htx extends htxRest {
         return message;
     }
 
-    handleSubject (client: Client, message: Dict): void {
+    handleSubject (client: Client, message: Dict) {
         // spot
         //     {
         //         "ch": "market.btcusdt.mbp.150",
@@ -2380,11 +2380,11 @@ export default class htx extends htxRest {
         }
     }
 
-    handlePing (client: Client, message: Dict): void {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 
-    handleAuthenticate (client: Client, message: Dict): void {
+    handleAuthenticate (client: Client, message: Dict) {
         //
         // spot
         //
@@ -2496,7 +2496,7 @@ export default class htx extends htxRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
@@ -2592,7 +2592,7 @@ export default class htx extends htxRest {
         }
     }
 
-    handleMyTrade (client: Client, message: Dict, extendParams: Dict = {}): void {
+    handleMyTrade (client: Client, message: Dict, extendParams: Dict = {}) {
         //
         // spot
         //

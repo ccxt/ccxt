@@ -143,7 +143,7 @@ export default class xt extends xtRest {
         return client.subscriptions['token'];
     }
 
-    override getCacheIndex (orderbook: Dict, cache: any): number {
+    override getCacheIndex (orderbook: any, cache: any): number {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDelta = this.safeDict (cache, 0);
@@ -161,7 +161,7 @@ export default class xt extends xtRest {
         return cache.length;
     }
 
-    override handleDelta (orderbook: Dict, delta: Dict): void {
+    override handleDelta (orderbook: Dict, delta: Dict) {
         orderbook['nonce'] = this.safeInteger2 (delta, 'i', 'u');
         const obAsks = this.safeList (delta, 'a', []);
         const obBids = this.safeList (delta, 'b', []);
@@ -333,7 +333,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -386,7 +386,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -441,7 +441,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<OHLCV[]> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -487,7 +487,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<Trade[]> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -539,7 +539,7 @@ export default class xt extends xtRest {
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
-    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<OrderBook> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -690,7 +690,7 @@ export default class xt extends xtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
      */
-    override async unWatchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+    override async unWatchFundingRate (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -735,7 +735,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    setPositionsCache (client: Client): void {
+    setPositionsCache (client: Client) {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -749,7 +749,7 @@ export default class xt extends xtRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: any): Promise<any> {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -768,7 +768,7 @@ export default class xt extends xtRest {
         }
     }
 
-    handlePosition (client: any, message: Dict): void {
+    handlePosition (client: any, message: Dict) {
         //
         //    {
         //      topic: 'position',
@@ -1113,7 +1113,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // spot
         //
@@ -1427,7 +1427,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleBalance (client: Client, message: Dict): void {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         //
@@ -1477,7 +1477,7 @@ export default class xt extends xtRest {
         client.resolve (this.balance, 'balance::' + tradeType);
     }
 
-    handleMyTrades (client: Client, message: Dict): void {
+    handleMyTrades (client: Client, message: Dict) {
         //
         // spot
         //
@@ -1530,7 +1530,7 @@ export default class xt extends xtRest {
         client.resolve (stored, 'trade::' + tradeType);
     }
 
-    override handleMessage (client: Client, message: Dict): void {
+    override handleMessage (client: Client, message: Dict) {
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
             client.onPong ();
@@ -1600,7 +1600,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleUnSubscription (client: Client, subscription: Dict): void {
+    handleUnSubscription (client: Client, subscription: Dict) {
         const messageHashes = this.safeList (subscription, 'messageHashes', []);
         const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
         for (let j = 0; j < messageHashes.length; j++) {
@@ -1611,7 +1611,7 @@ export default class xt extends xtRest {
         this.cleanCache (subscription);
     }
 
-    handleErrorMessage (client: Client, message: Dict): void {
+    handleErrorMessage (client: Client, message: Dict) {
         //
         //    {
         //        "id": "123",

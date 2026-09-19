@@ -590,7 +590,7 @@ export default class coinmate extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    override parseTicker (ticker: NullableDict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: any, market: Market = undefined): Ticker {
         //
         //     {
         //         "last": "0.001337",
@@ -676,7 +676,7 @@ export default class coinmate extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override parseTransaction (transaction: NullableDict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: any, currency: Currency = undefined): Transaction {
         //
         // deposits
         //
@@ -1280,7 +1280,7 @@ export default class coinmate extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = 'public', method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
         let url = (this.urls['api'] as Dict)['rest'] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length > 0) {

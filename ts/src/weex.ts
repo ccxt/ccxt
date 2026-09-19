@@ -1379,7 +1379,7 @@ export default class weex extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1665,7 +1665,7 @@ export default class weex extends Exchange {
         return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv: any[], market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1850,7 +1850,7 @@ export default class weex extends Exchange {
         return this.parseOpenInterest (response, market);
     }
 
-    override parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1981,7 +1981,7 @@ export default class weex extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract: Dict, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -3276,7 +3276,7 @@ export default class weex extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    handleOrderOrPositionError (errorCode: Str, errorMessage: Str, order: Dict): void {
+    handleOrderOrPositionError (errorCode: Str, errorMessage: Str, order: Dict) {
         if (errorCode === undefined) {
             errorCode = '';
         }
@@ -3660,7 +3660,7 @@ export default class weex extends Exchange {
         return this.parseIncomes (items, market, since, limit);
     }
 
-    override parseIncome (income: Dict, market: Market = undefined): object {
+    override parseIncome (income: any, market: Market = undefined): object {
         //
         //     {
         //         "billId": "793622764958253481",
@@ -4368,12 +4368,12 @@ export default class weex extends Exchange {
         return marketId;
     }
 
-    override setSandboxMode (enable: boolean): void {
+    override setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }
 
-    override sign (path: any, api: any = 'public', method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let endpoint = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const isBatch = (path.indexOf ('batch') >= 0);

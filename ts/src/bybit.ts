@@ -1448,7 +1448,7 @@ export default class bybit extends Exchange {
      * @see https://bybit-exchange.github.io/docs/v5/demo
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
-    override enableDemoTrading (enable: boolean): void {
+    override enableDemoTrading (enable: boolean) {
         if (this.isSandboxModeEnabled) {
             throw new NotSupported (this.id + ' demo trading does not support in sandbox environment');
         }
@@ -2775,7 +2775,7 @@ export default class bybit extends Exchange {
         return await this.fetchTickers (symbols, params);
     }
 
-    override parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         "1621162800",
@@ -3531,7 +3531,7 @@ export default class bybit extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp, 'b', 'a');
     }
 
-    override parseBalance (response: Dict): Balances {
+    override parseBalance (response: any): Balances {
         //
         // cross
         //     {
@@ -5969,7 +5969,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "chainType": "ERC20",
@@ -7466,7 +7466,7 @@ export default class bybit extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of open interest structures
      */
-    override async fetchOpenInterestHistory (symbol: string, timeframe: Str = '1h', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OpenInterest[]> {
+    override async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (timeframe === '1m') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
@@ -7492,7 +7492,7 @@ export default class bybit extends Exchange {
         return await this.fetchDerivativesOpenInterestHistory (symbol, timeframe, since, limit, params);
     }
 
-    override parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //    {
         //        "openInterest": 64757.62400000,
@@ -7572,7 +7572,7 @@ export default class bybit extends Exchange {
         return this.parseBorrowRate (coin, currency);
     }
 
-    override parseBorrowRate (info: Dict, currency: Currency = undefined): CrossBorrowRate {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         // fetchCrossBorrowRate
         //     {
@@ -8823,7 +8823,7 @@ export default class bybit extends Exchange {
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
-    override parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
+    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
         //
         //     {
         //         "symbol": "ETHPERP",
@@ -10018,7 +10018,7 @@ export default class bybit extends Exchange {
         return this.safeString (marginModes, marginMode, marginMode);
     }
 
-    override sign (path: any, api: any = 'public', method: Str = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length > 0) {

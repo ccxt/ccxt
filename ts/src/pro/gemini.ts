@@ -156,7 +156,7 @@ export default class gemini extends geminiRest {
         }, market);
     }
 
-    handleTrade (client: Client, message: Dict): void {
+    handleTrade (client: Client, message: Dict) {
         //
         //     {
         //         "type": "trade",
@@ -183,7 +183,7 @@ export default class gemini extends geminiRest {
         client.resolve (stored, messageHash);
     }
 
-    handleTrades (client: Client, message: Dict): void {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "type": "l2_updates",
@@ -241,7 +241,7 @@ export default class gemini extends geminiRest {
         }
     }
 
-    handleTradesForMultidata (client: Client, trades: any[], timestamp: Int): void {
+    handleTradesForMultidata (client: Client, trades: any[], timestamp: Int) {
         if (trades !== undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const storesForSymbols: Dict = {};
@@ -404,7 +404,7 @@ export default class gemini extends geminiRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: Dict): void {
+    handleOrderBook (client: Client, message: Dict) {
         const isInitial = ('auction_events' in message) && ('trades' in message) && ('changes' in message);
         const changes = this.safeList (message, 'changes', []);
         const marketId = this.safeStringLower (message, 'symbol');
@@ -464,7 +464,7 @@ export default class gemini extends geminiRest {
         return this.helperForWatchMultipleConstruct ('bidsasks', symbols, params);
     }
 
-    handleBidsAsksForMultidata (client: Client, rawBidAskChanges: any[], timestamp: Int, nonce: Int): void {
+    handleBidsAsksForMultidata (client: Client, rawBidAskChanges: any[], timestamp: Int, nonce: Int) {
         //
         // {
         //     eventId: '1683002916916153',
@@ -561,7 +561,7 @@ export default class gemini extends geminiRest {
         return await this.watchMultiple (url, messageHashes, undefined);
     }
 
-    handleOrderBookForMultidata (client: Client, rawOrderBookChanges: any[], timestamp: Int, nonce: Int): void {
+    handleOrderBookForMultidata (client: Client, rawOrderBookChanges: any[], timestamp: Int, nonce: Int) {
         //
         // rawOrderBookChanges
         //
@@ -609,7 +609,7 @@ export default class gemini extends geminiRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleL2Updates (client: Client, message: Dict): void {
+    handleL2Updates (client: Client, message: Dict) {
         //
         //     {
         //         "type": "l2_updates",
@@ -711,7 +711,7 @@ export default class gemini extends geminiRest {
         return message;
     }
 
-    handleOrder (client: Client, message: any[]): void {
+    handleOrder (client: Client, message: any[]) {
         //
         //     [
         //         {
@@ -748,7 +748,7 @@ export default class gemini extends geminiRest {
         client.resolve (this.orders, messageHash);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         //
         //     {
         //         "type": "accepted",
@@ -831,7 +831,7 @@ export default class gemini extends geminiRest {
         return this.safeString (types, type, type);
     }
 
-    handleError (client: Client, message: Dict): void {
+    handleError (client: Client, message: Dict) {
         //
         //     {
         //         "reason": "NoValidTradingPairs",
@@ -841,7 +841,7 @@ export default class gemini extends geminiRest {
         throw new ExchangeError (this.json (message));
     }
 
-    override handleMessage (client: Client, message: any): void {
+    override handleMessage (client: Client, message: any) {
         //
         //  public
         //     {
@@ -942,7 +942,7 @@ export default class gemini extends geminiRest {
         }
     }
 
-    async authenticate (params: Dict = {}): Promise<void> {
+    async authenticate (params: Dict = {}): Promise<any> {
         const url = this.safeString (params, 'url');
         if (url === undefined) {
             return;
