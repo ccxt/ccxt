@@ -494,8 +494,8 @@ impl BitstampCore {
     pub fn handle_bid_asks(&self, mut bookSide: Value, mut bidAsks: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_158: bool = true;
-            while { if !__for_first_158 { i = add(&i, &Value::Int(1)); } __for_first_158 = false; is_less_than(&i, &get_array_length(&bidAsks)) } {
+            let mut __for_first_159: bool = true;
+            while { if !__for_first_159 { i = add(&i, &Value::Int(1)); } __for_first_159 = false; is_less_than(&i, &get_array_length(&bidAsks)) } {
             let mut bidAsk: Value = self.parse_order_book_bid_ask(get_value(&bidAsks, &i), &[]);
             bookSide.store_array(bidAsk.clone());
         }
@@ -515,8 +515,8 @@ impl BitstampCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_159: bool = true;
-            while { if !__for_first_159 { i = add(&i, &Value::Int(1)); } __for_first_159 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_160: bool = true;
+            while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             let mut delta: Value = get_value(&deltas, &i);
             let mut delta: Value = get_value(&deltas, &i);
             let mut deltaNonce: Value = self.safe_integer_k(delta.clone(), "microtimestamp", &[]);
@@ -1234,8 +1234,8 @@ impl BitstampCore {
         let mut entries: Value = self.to_array(cache.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_160: bool = true;
-            while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&entries)) } {
+            let mut __for_first_161: bool = true;
+            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&entries)) } {
             let mut entry: Value = get_value(&entries, &i);
             let mut entry: Value = get_value(&entries, &i);
             let mut entrySymbol: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -1303,8 +1303,8 @@ impl BitstampCore {
         let mut keys: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_161: bool = true;
-            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_162: bool = true;
+            while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_greater_than(&get_index_of(&channel, &key), &negate(&Value::Int(1))) {
