@@ -475,7 +475,7 @@ export default class p2b extends Exchange {
         //        current_time: '1699252644.487566'
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseTickers (result, symbols);
     }
 
@@ -517,7 +517,7 @@ export default class p2b extends Exchange {
         //        current_time: '1699252958.859391'
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const timestamp = this.safeIntegerProduct (response, 'cache_time', 1000);
         return this.extend (
             { 'timestamp': timestamp, 'datetime': this.iso8601 (timestamp) },
@@ -559,7 +559,7 @@ export default class p2b extends Exchange {
         //
         const timestamp = this.safeIntegerProduct (ticker, 'at', 1000);
         if ('ticker' in ticker) {
-            ticker = this.safeValue (ticker, 'ticker');
+            ticker = this.safeDict (ticker, 'ticker');
         }
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
@@ -636,7 +636,7 @@ export default class p2b extends Exchange {
         //        "current_time": 1698733470.469274
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const timestamp = this.safeIntegerProduct (response, 'current_time', 1000);
         return this.parseOrderBook (result, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
@@ -866,7 +866,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseBalance (result);
     }
 
@@ -1113,7 +1113,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const records = this.safeList (result, 'records', []);
         return this.parseTrades (records, market, since, limit);
     }
@@ -1193,7 +1193,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const deals = this.safeList (result, 'deals', []);
         return this.parseTrades (deals, market, since, limit);
     }
@@ -1275,7 +1275,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result', {});
         let orders: Order[] = [];
         const keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
