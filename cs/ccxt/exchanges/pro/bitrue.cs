@@ -469,7 +469,7 @@ public partial class bitrue : ccxt.bitrue
             }
             string? baseId = this.safeStringLower(candidate, "baseId", "");
             string? quoteId = this.safeStringLower(candidate, "quoteId", "");
-            if (isEqual(add(((string)baseId), quoteId), wsBaseQuote))
+            if (isEqual((((string)baseId) + quoteId), wsBaseQuote))
             {
                 return candidate;
             }

@@ -1717,6 +1717,28 @@ export function csharpAwaitedThisCallType (csharp, node) {
 export const CSHARP_LOCAL_THIS_MEMBER_TYPES = {
     // Exchange.Options.cs: `public string id { get; set; } = "Exchange";`
     'id': 'string',
+    // the other `public string <name> { get; set; }` configuration properties of the
+    // hand-written base (cs/ccxt/base/Exchange.Options.cs) read as `this.<name>`: same
+    // static type as `id`, so a `+` whose LEFT operand is one of them binds the
+    // add(string, *) overloads, which ARE C# concatenation for every right operand.
+    // `url` is the REST endpoint property (the ws `client.url` read is the separate
+    // CSHARP_CLIENT_MEMBER_TYPES table).
+    'version': 'string',
+    'hostname': 'string',
+    'url': 'string',
+    'userAgent': 'string',
+    'rateLimiterAlgorithm': 'string',
+    'apiKey': 'string',
+    'secret': 'string',
+    'password': 'string',
+    'uid': 'string',
+    'accountId': 'string',
+    'login': 'string',
+    'privateKey': 'string',
+    'walletAddress': 'string',
+    'twofa': 'string',
+    'proxy': 'string',
+    'agent': 'string',
 };
 
 // `client.<member>` reads of the hand-written WebSocketClient (cs/ccxt/ws/Client.cs).
@@ -6281,10 +6303,12 @@ function nativeArithmeticOperandKind (csharp, node) {
     case ts.SyntaxKind.AsExpression:
         // the printer casts only `as string` / `as any` / `as any[]`; every other assertion
         // (`as number`, `as Int`, `as Num`, ...) prints the BARE operand (the rule
-        // csharpTypeOfValue documents), so the operand kind is the inner expression's. A
-        // string assertion is left to the string family's own classifier.
+        // csharpTypeOfValue documents), so the operand kind is the inner expression's.
+        // `x as string` prints `((string)x)`, whose static type IS string: the enclosing
+        // add() binds add(string, *), the same C# concatenation the operator prints, and a
+        // non-string box throws at the cast itself in both spellings.
         if (node.type?.kind === ts.SyntaxKind.StringKeyword) {
-            return undefined;
+            return 'string';
         }
         if (node.type?.kind === ts.SyntaxKind.AnyKeyword) {
             return undefined;
