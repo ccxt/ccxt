@@ -1126,6 +1126,8 @@ impl CoinbaseCore {
 }
 
     pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "channel": "market_trades",
@@ -1149,7 +1151,7 @@ impl CoinbaseCore {
         //        ]
         //    }
         //
-        let mut events: Value = self.safe_list_k(message, "events", &[]);
+        let mut events: Value = (match message.get("events") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         if (events == Value::Null) {
             return;
         }
@@ -1191,6 +1193,8 @@ impl CoinbaseCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "channel": "user",
@@ -1219,7 +1223,7 @@ impl CoinbaseCore {
         //        ]
         //    }
         //
-        let mut events: Value = self.safe_list_k(message, "events", &[]);
+        let mut events: Value = (match message.get("events") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         if (events == Value::Null) {
             return;
         }

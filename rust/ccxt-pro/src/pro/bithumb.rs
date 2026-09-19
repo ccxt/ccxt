@@ -1075,13 +1075,15 @@ impl BithumbCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "status" : "5100",
         //        "resmsg" : "Invalid Filter Syntax"
         //    }
         //
-        let mut error: Value = self.safe_dict_k(message.clone(), "error", &[]);
+        let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (error != Value::Null) {
             let mut errorName: Value = self.safe_string_k(error.clone(), "name", &[Value::Str("Error".into())]);
             let mut errorMessage: Value = self.safe_string_k(error, "message", &[Value::Str("".into())]);
@@ -1094,16 +1096,16 @@ impl BithumbCore {
             client.reject(&[Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" websocket error ".into())).into()), errorName).into()), addedMessage)))]);
             return Value::Bool(false);
         }
-        if !(matches!(&message, Value::Dict(__d) if __d.contains_key("status"))) {
+        if !(message.contains_key("status")) {
             return Value::Bool(true);
         }
-        let mut errorCode: Option<String> = self.safe_string_k(message.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut errorCode: Option<String> = (match message.get("status") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (errorCode.as_deref() == Some("UP")) || (errorCode.as_deref() == Some("0000")) {
                 return Value::Bool(true);
             }
             if (errorCode.as_deref() != Some("0000")) {
-                let mut msg: Value = self.safe_string_k(message.clone(), "resmsg", &[]);
+                let mut msg: Value = (match message.get("resmsg") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg)));
             }
             return Value::Bool(true);

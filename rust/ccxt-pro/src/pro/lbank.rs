@@ -442,6 +442,8 @@ impl LbankCore {
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // request
         //    {
@@ -493,7 +495,7 @@ impl LbankCore {
         //          TS: '2022-10-02T12:44:15.865'
         //      }
         //
-        let mut marketId: Value = self.safe_string_k(message.clone(), "pair", &[]);
+        let mut marketId: Value = (match message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Str("_".into())]);
         let mut watchOHLCVOptions: Value = self.safe_dict_k(self.options.clone(), "watchOHLCV", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -503,11 +505,11 @@ impl LbankCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut records: Value = self.safe_list_k(message.clone(), "records", &[]);
+        let mut records: Value = (match message.get("records") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         if (records != Value::Null) {
             let mut rawOHLCV: Value = self.safe_list(records, Value::Int(0), &[Value::from(vec![])]);
             let mut parsed: Value = Value::from(vec![self.safe_integer(rawOHLCV.clone(), Value::Int(0), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(1), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(2), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(3), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(4), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(5), &[])]);
-            let mut timeframeId: Value = self.safe_string_k(message.clone(), "kbar", &[]);
+            let mut timeframeId: Value = (match message.get("kbar") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[timeframes.clone()]);
             { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -523,10 +525,10 @@ impl LbankCore {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fetchOHLCV:".into()), symbol).into()), Value::Str(":".into())).into()), timeframeId).into());
             client.resolve(&[stored.clone(), messageHash.clone()]);
         }  else {
-            let mut rawOHLCV: Value = self.safe_dict_k(message, "kbar", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut rawOHLCV: Value = (match message.get("kbar") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
             let mut timeframeId: Value = self.safe_string_k(rawOHLCV.clone(), "slot", &[]);
             let mut datetime: Value = self.safe_string_k(rawOHLCV.clone(), "t", &[]);
             let mut parsed: Value = Value::from(vec![self.parse8601(datetime), self.safe_number_k(rawOHLCV.clone(), "o", &[]), self.safe_number_k(rawOHLCV.clone(), "h", &[]), self.safe_number_k(rawOHLCV.clone(), "l", &[]), self.safe_number_k(rawOHLCV.clone(), "c", &[]), self.safe_number_k(rawOHLCV, "v", &[])]);
@@ -788,6 +790,8 @@ impl LbankCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // request
         //     {
@@ -814,7 +818,7 @@ impl LbankCore {
         //         "TS":"2019-06-28T19:55:49.466"
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(message.clone(), "pair", &[]);
+        let mut marketId: Value = (match message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -823,8 +827,8 @@ impl LbankCore {
             stored = ArrayCache::new(limit);
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut rawTrade: Value = self.safe_value_k(message.clone(), "trade", &[]);
-        let mut rawTrades: Value = self.safe_list_k(message, "trades", &[Value::from(vec![rawTrade])]);
+        let mut rawTrade: Value = (match message.get("trade") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let mut rawTrades: Value = (match message.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![rawTrade]) });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_474: bool = true;
@@ -1116,6 +1120,8 @@ impl LbankCore {
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "data": {
@@ -1131,11 +1137,11 @@ impl LbankCore {
         //         "TS": "2021-07-26T19:48:03.548"
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut timestamp: Value = self.parse8601(self.safe_string_k(message, "TS", &[]));
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut timestamp: Value = self.parse8601((match message.get("TS") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         let mut datetime: Value = self.iso8601(timestamp.clone());
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), data.clone()); }
         add_element_to_object(&mut self.balance, &Value::Str("timestamp".into()), timestamp);
@@ -1315,6 +1321,8 @@ impl LbankCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        SERVER: 'V2',
@@ -1323,7 +1331,7 @@ impl LbankCore {
         //        TS: '2024-01-16T08:09:43.314'
         //    }
         //
-        let mut errMsg: Value = self.safe_string_k(message, "message", &[Value::Str("".into())]);
+        let mut errMsg: Value = (match message.get("message") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), errMsg)));
         client.reject(&[Value::from(error)]);
 }

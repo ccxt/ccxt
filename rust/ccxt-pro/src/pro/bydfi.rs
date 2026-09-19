@@ -1092,6 +1092,8 @@ impl BydfiCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "T": 1766588450558,
@@ -1120,10 +1122,10 @@ impl BydfiCore {
         //         }
         //     }
         //
-        let mut rawOrder: Value = self.safe_dict_k(message.clone(), "o", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut rawOrder: Value = (match message.get("o") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "s", &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1135,7 +1137,7 @@ impl BydfiCore {
         }
         let mut orders: Value = self.orders.clone();
         let mut order: Value = self.parse_ws_order(rawOrder, &[market]);
-        let mut lastUpdateTimestamp: Value = self.safe_integer_k(message, "T", &[]);
+        let mut lastUpdateTimestamp: Value = (match message.get("T") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         add_element_to_object(&mut order, &Value::Str("lastUpdateTimestamp".into()), lastUpdateTimestamp);
         orders.append(order);
         client.resolve(&[orders.clone(), messageHash]);
@@ -1261,6 +1263,8 @@ impl BydfiCore {
 }
 
     pub fn handle_positions(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "a": {
@@ -1301,10 +1305,10 @@ impl BydfiCore {
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "a", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("a") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut positionsData: Value = self.safe_list_k(data, "p", &[Value::from(vec![])]);
         let mut rawPosition: Value = self.safe_dict(positionsData, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1320,7 +1324,7 @@ impl BydfiCore {
         }
         let mut cache: Value = self.positions.clone();
         let mut parsedPosition: Value = self.parse_ws_position(rawPosition, &[market]);
-        let mut timestamp: Value = self.safe_integer_k(message, "T", &[]);
+        let mut timestamp: Value = (match message.get("T") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         add_element_to_object(&mut parsedPosition, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut parsedPosition, &Value::Str("datetime".into()), self.iso8601(timestamp));
         cache.append(parsedPosition.clone());

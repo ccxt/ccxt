@@ -938,6 +938,8 @@ impl BinanceCore {
  * @returns {object} a market structure
  */
     pub fn parse_topic_market(&self, mut rawMarket: Value, mut rawTopic: Value) -> Value {
+        let __rawTopic_empty = indexmap::IndexMap::new();
+        let rawTopic = rawTopic.as_map().unwrap_or(&__rawTopic_empty);
         //
         //     {
         //         "marketId": 5567895,
@@ -957,10 +959,10 @@ impl BinanceCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(rawMarket.clone(), "marketId", &[]);
-        let mut topicId: Value = self.safe_string_k(rawTopic.clone(), "marketTopicId", &[]);
-        let mut topicSlug: Value = self.safe_string_k(rawTopic.clone(), "slug", &[]);
-        let mut vendor: Value = self.safe_string_k(rawTopic.clone(), "vendor", &[]);
-        let mut collateral: Value = self.safe_string_k(rawTopic.clone(), "collateral", &[Value::Str("USDT".into())]);
+        let mut topicId: Value = (match rawTopic.get("marketTopicId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut topicSlug: Value = (match rawTopic.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut vendor: Value = (match rawTopic.get("vendor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut collateral: Value = (match rawTopic.get("collateral") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("USDT".into()) });
         let mut title: Value = self.safe_string_k(rawMarket.clone(), "title", &[marketId.clone()]);
         let mut marketSymbol: Value = self.slug_to_market_symbol(topicSlug.clone(), title.clone());
         let mut tradingStatus: Option<String> = self.safe_string_k(rawMarket.clone(), "tradingStatus", &[]).as_str().map(str::to_owned);
@@ -970,8 +972,8 @@ impl BinanceCore {
             active = Value::Bool((status.as_deref() == Some("REGISTERED")) || (status.as_deref() == Some("OPEN")));
         }
         let mut resolved: Value = Value::Bool((status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED")));
-        let mut endDate: Value = self.safe_integer_k(rawTopic.clone(), "endDate", &[]);
-        let mut feeRateBps: Value = self.safe_string_k(rawTopic.clone(), "feeRateBps", &[Value::Str("200".into())]);
+        let mut endDate: Value = (match rawTopic.get("endDate") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
+        let mut feeRateBps: Value = (match rawTopic.get("feeRateBps") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("200".into()) });
         let mut feeRate: Value = self.parse_number(crate::precise::Precise::stringDiv(&feeRateBps, &Value::Str("10000".into())), &[]);
         let mut decimalPrecision: Value = self.safe_string_k(rawMarket.clone(), "decimalPrecision", &[Value::Str("2".into())]);
         let mut pricePrecision: Value = self.parse_number(self.parse_precision(&[decimalPrecision]), &[]);
@@ -1025,7 +1027,7 @@ impl BinanceCore {
         m.insert("marketId".to_string(), marketId.clone());
         m.insert("marketTopicId".to_string(), topicId.clone());
         m.insert("vendor".to_string(), vendor.clone());
-        m.insert("chainId".to_string(), self.safe_string_k(rawTopic.clone(), "chainId", &[]));
+        m.insert("chainId".to_string(), (match rawTopic.get("chainId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("slug".to_string(), topicSlug.clone());
         m.insert("marketTitle".to_string(), title.clone());
         m.insert("outcomeLabel".to_string(), label);
@@ -1034,7 +1036,7 @@ impl BinanceCore {
         m.insert("chance".to_string(), self.safe_string_k(rawOutcome, "chance", &[]));
         m.insert("collateral".to_string(), collateral.clone());
         m.insert("feeRateBps".to_string(), feeRateBps.clone());
-        m.insert("slippageBps".to_string(), self.safe_string_k(rawTopic.clone(), "slippageBps", &[]));
+        m.insert("slippageBps".to_string(), (match rawTopic.get("slippageBps") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("conditionId".to_string(), self.safe_string_k(rawMarket.clone(), "conditionId", &[]));
         m.insert("externalId".to_string(), self.safe_string_k(rawMarket.clone(), "externalId", &[]));
     m
@@ -1119,7 +1121,7 @@ impl BinanceCore {
         m.insert("liquidity".to_string(), liquidity);
     m
 })]));
-        m.insert("created".to_string(), self.safe_integer_k(rawTopic, "publishedAt", &[]));
+        m.insert("created".to_string(), (match rawTopic.get("publishedAt") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));
     m
 });
 

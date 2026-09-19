@@ -2893,12 +2893,14 @@ impl CoinbaseexchangeCore {
 }
 
     pub fn parse_transaction_status(&self, mut transaction: Value) -> Value {
-        let mut canceled: Value = self.safe_value_k(transaction.clone(), "canceled_at", &[]);
+        let __transaction_empty = indexmap::IndexMap::new();
+        let transaction = transaction.as_map().unwrap_or(&__transaction_empty);
+        let mut canceled: Value = (match transaction.get("canceled_at") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         if (canceled != Value::Null) && (canceled != Value::Null) {
             return Value::Str("canceled".into());
         }
-        let mut processed: Value = self.safe_value_k(transaction.clone(), "processed_at", &[]);
-        let mut completed: Value = self.safe_value_k(transaction, "completed_at", &[]);
+        let mut processed: Value = (match transaction.get("processed_at") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let mut completed: Value = (match transaction.get("completed_at") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         if (completed != Value::Null) && (completed != Value::Null) {
             return Value::Str("ok".into());
         }  else if (processed != Value::Null) && (processed != Value::Null) {

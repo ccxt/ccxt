@@ -502,6 +502,8 @@ impl BitfinexCore {
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
+        let __subscription_empty = indexmap::IndexMap::new();
+        let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         //
         // initial snapshot
         //   [
@@ -557,8 +559,8 @@ impl BitfinexCore {
             // update
             ohlcvs = Value::from(vec![data]);
         }
-        let mut channel: Value = self.safe_string_k(subscription.clone(), "channel", &[]);
-        let mut key: Value = self.safe_string_k(subscription, "key", &[Value::Str("".into())]);
+        let mut channel: Value = (match subscription.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut key: Value = (match subscription.get("key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut keyParts: Value = split(&key, &Value::Str(":".into()));
         let mut interval: Value = self.safe_string(keyParts, Value::Int(1), &[]);
         let mut marketId: Value = key;
@@ -1049,6 +1051,8 @@ impl BitfinexCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
+        let __message_empty = Vec::new();
+        let message = message.as_array().unwrap_or(&__message_empty);
         //
         // first message (snapshot)
         //
@@ -1099,7 +1103,7 @@ impl BitfinexCore {
             }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             if isRaw {
-                let mut deltas: Value = message.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+                let mut deltas: Value = message.get(1).cloned().unwrap_or(Value::Null);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_102: bool = true;
@@ -1117,7 +1121,7 @@ impl BitfinexCore {
                 }
                 }
             }  else {
-                let mut deltas: Value = message.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+                let mut deltas: Value = message.get(1).cloned().unwrap_or(Value::Null);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_103: bool = true;
@@ -1142,7 +1146,7 @@ impl BitfinexCore {
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
         }  else {
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-            let mut deltas: Value = message.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+            let mut deltas: Value = message.get(1).cloned().unwrap_or(Value::Null);
             let mut orderbookItem: Value = get_value(&self.orderbooks, &symbol);
             if isRaw {
                 let mut price: Value = self.safe_string(deltas.clone(), Value::Int(1), &[]);
@@ -1381,6 +1385,8 @@ impl BitfinexCore {
 }
 
     pub fn handle_unsubscription_status(&mut self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // {
         //     "event": "unsubscribed",
@@ -1388,7 +1394,7 @@ impl BitfinexCore {
         //     "chanId": CHANNEL_ID
         // }
         //
-        let mut channelId: Value = self.safe_string_k(message, "chanId", &[]);
+        let mut channelId: Value = (match message.get("chanId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut unSubChannel: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channelId).into());
         let mut subMessageHash: Value = self.safe_string(get_value(&client, &Value::Str("subscriptions".into())), unSubChannel.clone(), &[]);
         let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);

@@ -1695,17 +1695,19 @@ impl WoofiproCore {
 }
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
-        let mut token: Value = self.safe_dict_k(rawCurrency.clone(), "_token", &[Value::Map({
+        let __rawCurrency_empty = indexmap::IndexMap::new();
+        let rawCurrency = rawCurrency.as_map().unwrap_or(&__rawCurrency_empty);
+        let mut token: Value = (match rawCurrency.get("_token") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+}) });
         let mut currencyId: Value = self.safe_string_k(token.clone(), "token", &[]);
         let mut networks: Value = self.safe_list_k(token.clone(), "chain_details", &[Value::from(vec![])]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-        let mut indexedChains: Value = self.safe_dict_k(rawCurrency, "_indexedChains", &[Value::Map({
+        let mut indexedChains: Value = (match rawCurrency.get("_indexedChains") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+}) });
         let mut resultingNetworks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

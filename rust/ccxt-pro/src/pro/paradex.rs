@@ -325,6 +325,8 @@ impl ParadexCore {
 }
 
     pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -332,7 +334,7 @@ impl ParadexCore {
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(message, "result", &[]);
+        let mut result: Value = (match message.get("result") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (result != Value::Null) {
             // client.resolve (true, messageHash);
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), Value::Str("authenticated".into()), &[]);
@@ -475,6 +477,8 @@ impl ParadexCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -504,10 +508,10 @@ impl ParadexCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -703,6 +707,8 @@ impl ParadexCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -730,10 +736,10 @@ impl ParadexCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -904,6 +910,8 @@ impl ParadexCore {
 }
 
     pub fn handle_funding_rate(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -922,10 +930,10 @@ impl ParadexCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -982,6 +990,8 @@ impl ParadexCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -996,7 +1006,7 @@ impl ParadexCore {
         //         "usOut": 1718179125962495
         //     }
         //
-        let mut error: Value = self.safe_dict_k(message, "error", &[]);
+        let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (error == Value::Null) {
             return Value::Bool(true);
         }  else {

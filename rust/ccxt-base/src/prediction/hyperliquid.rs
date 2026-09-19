@@ -439,9 +439,11 @@ impl HyperliquidCore {
  * @returns {string} the outcome
  */
     pub fn build_outcome_symbol(&self, mut desc: Value, mut side: Value, mut outcomeId: Value) -> Value {
-        let mut underlying: Value = self.safe_string_k(desc.clone(), "underlying", &[Value::Str(format!("{}{}", Value::Str("OUTCOME".into()), to_string_val(&outcomeId)).into())]);
-        let mut targetPrice: Value = self.safe_string_k(desc.clone(), "targetPrice", &[]);
-        let mut expiry: Value = self.safe_string_k(desc, "expiry", &[Value::Str("".into())]);
+        let __desc_empty = indexmap::IndexMap::new();
+        let desc = desc.as_map().unwrap_or(&__desc_empty);
+        let mut underlying: Value = (match desc.get("underlying") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str(format!("{}{}", Value::Str("OUTCOME".into()), to_string_val(&outcomeId)).into()) });
+        let mut targetPrice: Value = (match desc.get("targetPrice") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut expiry: Value = (match desc.get("expiry") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         // Parse expiry: "20260503-0600" → "20260503"
         let mut expiryDate: Value = (if (expiry.as_str() != Some("")) { split(&expiry, &Value::Str("-".into())).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Str("".into()) });
         let mut label: Value = (if (side.as_f64() == Some(0.0)) { Value::Str("YES".into()) } else { Value::Str("NO".into()) });
@@ -474,6 +476,8 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __question_empty = indexmap::IndexMap::new();
+        let question = question.as_map().unwrap_or(&__question_empty);
         let mut underlying: Value = self.safe_string_k(desc.clone(), "underlying", &[]);
         if (underlying != Value::Null) && (underlying.as_str() != Some("")) {
             let mut targetPrice: Value = self.safe_string_k(desc.clone(), "targetPrice", &[]);
@@ -488,7 +492,7 @@ impl HyperliquidCore {
             }
             return base;
         }
-        let mut questionDescription: Value = self.safe_string_k(question.clone(), "description", &[]);
+        let mut questionDescription: Value = (match question.get("description") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (questionDescription != Value::Null) && (questionDescription.as_str() != Some("")) {
             let mut questionDesc: Value = self.parse_outcome_description(questionDescription);
             let mut questionClass: Option<String> = self.safe_string_lower(questionDesc.clone(), Value::Str("class".into()), &[]).as_str().map(str::to_owned);
@@ -542,7 +546,7 @@ impl HyperliquidCore {
                 }
             }
         }
-        let mut questionName: Value = self.safe_string_k(question, "name", &[]);
+        let mut questionName: Value = (match question.get("name") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (questionName != Value::Null) && (questionName.as_str() != Some("")) {
             let mut questionSlug: Value = self.shorten_slug(questionName);
             if (questionSlug != Value::Null) && (questionSlug.as_str() != Some("")) {
@@ -1578,7 +1582,9 @@ impl HyperliquidCore {
 
     pub fn find_outcome_in_market(&self, mut market: Value, optional_args: &[Value]) -> Value {
         let mut sideHint = get_arg(optional_args, 0, Value::Null);
-        let mut outcomesList: Value = self.safe_list_k(market, "outcomes", &[Value::from(vec![])]);
+        let __market_empty = indexmap::IndexMap::new();
+        let market = market.as_map().unwrap_or(&__market_empty);
+        let mut outcomesList: Value = (match market.get("outcomes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut normalizedHint: Value = (if ((sideHint != Value::Null) && (sideHint.as_str() != Some(""))) { to_upper(&sideHint) } else { Value::Null });
         if (normalizedHint != Value::Null) {
             {

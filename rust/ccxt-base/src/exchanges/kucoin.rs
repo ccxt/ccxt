@@ -8642,7 +8642,9 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tradeType: Value = self.safe_string_k(params.clone(), "tradeType", &[]);
+        let __params_empty = indexmap::IndexMap::new();
+        let params = params.as_map().unwrap_or(&__params_empty);
+        let mut tradeType: Value = (match params.get("tradeType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (tradeType == Value::Null) {
             if is_true(&isContractMarket) {
                 tradeType = Value::Str("FUTURES".into());

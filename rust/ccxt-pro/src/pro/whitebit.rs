@@ -471,6 +471,8 @@ impl WhitebitCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // {
         //     "method":"depth_update",
@@ -508,7 +510,7 @@ impl WhitebitCore {
         //     "id":null
         //  }
         //
-        let mut params: Value = self.safe_list_k(message, "params", &[Value::from(vec![])]);
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut isSnapshot: Value = self.safe_value(params.clone(), Value::Int(0), &[]);
         let mut marketId: Value = self.safe_string(params.clone(), Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
@@ -719,6 +721,8 @@ impl WhitebitCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        "method":"trades_update",
@@ -743,7 +747,7 @@ impl WhitebitCore {
         //        ]
         //    }
         //
-        let mut params: Value = self.safe_list_k(message, "params", &[Value::from(vec![])]);
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut marketId: Value = self.safe_string(params.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -807,6 +811,8 @@ impl WhitebitCore {
 
     pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value, optional_args: &[Value]) {
         let mut subscription = get_arg(optional_args, 0, Value::Null);
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //   {
         //       "method": "deals_update",
@@ -826,7 +832,7 @@ impl WhitebitCore {
         //       "id": null
         //   }
         //
-        let mut trade: Value = self.safe_value_k(message, "params", &[]);
+        let mut trade: Value = (match message.get("params") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCache::new(limit);
@@ -951,6 +957,8 @@ impl WhitebitCore {
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value, optional_args: &[Value]) {
         let mut subscription = get_arg(optional_args, 0, Value::Null);
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // {
         //     "method": "ordersPending_update",
@@ -977,7 +985,7 @@ impl WhitebitCore {
         //     "id": null
         // }
         //
-        let mut params: Value = self.safe_list_k(message, "params", &[Value::from(vec![])]);
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut data: Value = self.safe_dict(params.clone(), Value::Int(1), &[]);
         if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -1193,6 +1201,8 @@ impl WhitebitCore {
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // spot
         //
@@ -1229,12 +1239,12 @@ impl WhitebitCore {
         //       "id":null
         //   }
         //
-        let mut method: Value = self.safe_string_k(message.clone(), "method", &[]);
+        let mut method: Value = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (method == Value::Null) {
             return;
         }
         let mut isMargin: bool = Value::Int(method.as_str().and_then(|__s| __s.find("Margin")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        let mut data: Value = self.safe_list_k(message, "params", &[Value::from(vec![])]);
+        let mut data: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_661: bool = true;

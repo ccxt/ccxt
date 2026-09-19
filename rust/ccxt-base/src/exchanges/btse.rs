@@ -4951,7 +4951,9 @@ impl BtseCore {
 }
 
     pub fn futures_request_id(&self, mut market: Value) -> Value {
-        return self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("tradeCurrency".into()), &[market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]);
+        let __market_empty = indexmap::IndexMap::new();
+        let market = market.as_map().unwrap_or(&__market_empty);
+        return self.safe_string_k(market.get("info").cloned().unwrap_or(Value::Null), "tradeCurrency", &[market.get("id").cloned().unwrap_or(Value::Null)]);
 
     Value::Null
 }

@@ -2775,6 +2775,8 @@ impl XtCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        let __market_empty = indexmap::IndexMap::new();
+        let market = market.as_map().unwrap_or(&__market_empty);
         //
         // spot
         //
@@ -2802,7 +2804,7 @@ impl XtCore {
         //         "v": "702461.58895"
         //     }
         //
-        let mut isInverse: Value = self.safe_bool_k(market, "inverse", &[]);
+        let mut isInverse: Value = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null });
         let mut volumeIndex: Value = (if (isInverse.as_bool() == Some(true)) { Value::Str("v".into()) } else { Value::Str("a".into()) });
         return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number2(ohlcv, Value::Str("q".into()), volumeIndex, &[])]);
 

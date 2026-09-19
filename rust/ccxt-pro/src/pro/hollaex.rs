@@ -486,6 +486,8 @@ impl HollaexCore {
 
     pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value, optional_args: &[Value]) {
         let mut subscription = get_arg(optional_args, 0, Value::Null);
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // {
         //     "topic":"usertrade",
@@ -508,8 +510,8 @@ impl HollaexCore {
         //     "time":1652434215
         // }
         //
-        let mut channel: Value = self.safe_string_k(message.clone(), "topic", &[]);
-        let mut rawTrades: Value = self.safe_value_k(message, "data", &[]);
+        let mut channel: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut rawTrades: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         // usually the first message is an empty array
         // when the user does not have any trades yet
         let mut dataLength: Value = get_array_length(&rawTrades);
@@ -595,6 +597,8 @@ impl HollaexCore {
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value, optional_args: &[Value]) {
         let mut subscription = get_arg(optional_args, 0, Value::Null);
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "topic": "order",
@@ -652,11 +656,11 @@ impl HollaexCore {
         //        "time":1652430035
         //       }
         //
-        let mut channel: Value = self.safe_string_k(message.clone(), "topic", &[]);
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut channel: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         // usually the first message is an empty array
         let mut dataLength: Value = get_array_length(&data);
         if is_equal(&dataLength, &Value::Int(0)) {

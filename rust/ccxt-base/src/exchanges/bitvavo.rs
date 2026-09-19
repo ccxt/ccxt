@@ -3063,6 +3063,8 @@ impl BitvavoCore {
 
     pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         //
         //   {
         //       "symbol": "1INCH",
@@ -3103,7 +3105,7 @@ impl BitvavoCore {
         });
         let mut networks: Value = self.safe_list_k(fee, "networks", &[]);
         let mut networkId: Value = self.safe_string(networks, Value::Int(0), &[]); // Bitvavo currently only supports one network per currency
-        let mut currencyCode: Value = self.safe_string_k(currency, "code", &[]);
+        let mut currencyCode: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (networkId.as_str() == Some("Mainnet")) {
             networkId = currencyCode.clone();
         }
@@ -3227,10 +3229,12 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (matches!(&config, Value::Dict(__d) if __d.contains_key("noMarket"))) && !(in_op(&params, &Value::Str("market".into()))) {
-            return config.as_map().and_then(|__m| __m.get("noMarket")).cloned().unwrap_or(Value::Null);
+        let __config_empty = indexmap::IndexMap::new();
+        let config = config.as_map().unwrap_or(&__config_empty);
+        if (config.contains_key("noMarket")) && !(in_op(&params, &Value::Str("market".into()))) {
+            return config.get("noMarket").cloned().unwrap_or(Value::Null);
         }
-        return self.safe_number_k(config, "cost", &[Value::Int(1)]);
+        return (match config.get("cost") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Int(1) }, _ => Value::Int(1) });
 
     Value::Null
 }

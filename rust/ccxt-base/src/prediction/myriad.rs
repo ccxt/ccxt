@@ -2918,28 +2918,29 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn parse_trade_tx(&self, mut txHash: Value, mut quote: Value, mut market: Value, mut side: Value) -> Value {
+        let __quote_empty = indexmap::IndexMap::new();
+        let quote = quote.as_map().unwrap_or(&__quote_empty);
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), txHash.clone());
         m.insert("clientOrderId".to_string(), Value::Null);
-        let __ws_arg_23 = self.safe_dict_k(quote.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
         m.insert("info".to_string(), self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("transactionHash".to_string(), txHash);
     m
-}), &[__ws_arg_23]));
+}), &[(match quote.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) })]));
         m.insert("outcome".to_string(), self.safe_string_k(market.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(market.clone(), "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(market.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(market.clone(), "market", &[]));
         m.insert("type".to_string(), Value::Str("market".into()));
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), self.safe_number_k(quote.clone(), "priceAverage", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(quote.clone(), "shares", &[]));
-        m.insert("cost".to_string(), self.safe_number_k(quote, "value", &[]));
+        m.insert("price".to_string(), (match quote.get("priceAverage") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }));
+        m.insert("amount".to_string(), (match quote.get("shares") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }));
+        m.insert("cost".to_string(), (match quote.get("value") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }));
         m.insert("status".to_string(), Value::Str("closed".into()));
         m.insert("fee".to_string(), Value::Null);
     m
@@ -3220,8 +3221,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("network_id".to_string(), networkId);
             m
         });
-        let __ws_arg_24 = self.extend(request, &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_24]).await;
+        let __ws_arg_23 = self.extend(request, &[params.clone()]);
+        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_23]).await;
         return self.parse_prediction_ticker(response, &[outcomeObj]);
 
     Value::Null
@@ -3252,8 +3253,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("network_id".to_string(), self.safe_string_k(info, "networkId", &[]));
             m
         });
-        let __ws_arg_25 = self.extend(request, &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_25]).await;
+        let __ws_arg_24 = self.extend(request, &[params.clone()]);
+        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_24]).await;
         //
         //     {
         //         "fees": {
@@ -3463,8 +3464,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("outcome".to_string(), outcomeId.clone());
                 m
             });
-            let __ws_arg_26 = self.extend(obRequest, &[params.clone()]);
-            let mut obResponse: Value = self.myriad_public_get_markets_id_orderbook(&[__ws_arg_26]).await;
+            let __ws_arg_25 = self.extend(obRequest, &[params.clone()]);
+            let mut obResponse: Value = self.myriad_public_get_markets_id_orderbook(&[__ws_arg_25]).await;
             return self.safe_prediction_order_book(self.parse_wei_order_book(obResponse, self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()])), &[outcomeObj.clone()]);
         }
         let mut request: Value = Value::Map({
@@ -3473,8 +3474,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("network_id".to_string(), networkId);
             m
         });
-        let __ws_arg_27 = self.extend(request, &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_27]).await;
+        let __ws_arg_26 = self.extend(request, &[params.clone()]);
+        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_26]).await;
         //
         //     {
         //         "id": "756",
@@ -3608,8 +3609,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
     pub fn parse_wei_order_book(&self, mut response: Value, mut outcome: Value) -> Value {
-        let mut rawBids: Value = self.safe_list_k(response.clone(), "bids", &[Value::from(vec![])]);
-        let mut rawAsks: Value = self.safe_list_k(response, "asks", &[Value::from(vec![])]);
+        let __response_empty = indexmap::IndexMap::new();
+        let response = response.as_map().unwrap_or(&__response_empty);
+        let mut rawBids: Value = (match response.get("bids") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut rawAsks: Value = (match response.get("asks") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut bids: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -3677,13 +3680,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomeId: Value = self.safe_string_k(outcomeInfo.clone(), "outcomeId", &[self.safe_string(outcomeInfo.clone(), Value::Str("id".into()), &[])]);
         let mut outcomeTitle: Value = self.safe_string_k(outcomeInfo.clone(), "outcomeLabel", &[self.safe_string(outcomeInfo.clone(), Value::Str("label".into()), &[self.safe_string(outcomeInfo, Value::Str("title".into()), &[])])]);
         let mut bucketKey: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[Value::Str("30d".into())]);
-        let __ws_arg_28 = self.extend(Value::Map({
+        let __ws_arg_27 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), marketId);
                 m.insert("network_id".to_string(), networkId);
             m
         }), &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_28]).await;
+        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_27]).await;
         //
         //     {
         //         "id": "164",
@@ -3891,13 +3894,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let __ws_arg_29 = self.extend(Value::Map({
+            let __ws_arg_28 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(info.clone(), "marketId", &[]));
                     m.insert("network_id".to_string(), self.safe_string_k(info, "networkId", &[]));
                 m
             }), &[params.clone()]);
-            append_to_array(&mut promises, self.myriad_public_get_markets_id(&[__ws_arg_29]).await);
+            append_to_array(&mut promises, self.myriad_public_get_markets_id(&[__ws_arg_28]).await);
         }
         }
         let mut responses: Value = promise_all(&promises).await;
@@ -3963,8 +3966,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
-        let __ws_arg_30 = self.extend(request, &[params.clone()]);
-        let mut response: Value = self.myriad_public_get_markets_id_events(&[__ws_arg_30]).await;
+        let __ws_arg_29 = self.extend(request, &[params.clone()]);
+        let mut response: Value = self.myriad_public_get_markets_id_events(&[__ws_arg_29]).await;
         //
         //     {
         //         "data": [
@@ -4226,45 +4229,45 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut endDate: Value = self.safe_string_k(rawEvent.clone(), "expiresAt", &[self.safe_string(rawEvent.clone(), Value::Str("endDate".into()), &[])]);
-        let __ws_arg_31 = self.safe_string_k(rawEvent.clone(), "id", &[]);
-        let __ws_arg_32 = self.shorten_slug(questionSlug.clone());
-        let __ws_arg_33 = self.safe_string_k(rawEvent.clone(), "title", &[]);
-        let __ws_arg_34 = self.safe_string_k(rawEvent.clone(), "description", &[]);
-        let __ws_arg_35 = self.safe_number2(rawEvent.clone(), Value::Str("volumeNotional24h".into()), Value::Str("volume24h".into()), &[]);
-        let __ws_arg_36 = self.safe_number_k(rawEvent.clone(), "liquidity", &[]);
-        let __ws_arg_37 = self.safe_string_k(rawEvent.clone(), "url", &[]);
-        let __ws_arg_38 = self.safe_string_k(rawEvent.clone(), "imageUrl", &[self.safe_string(rawEvent.clone(), Value::Str("image".into()), &[])]);
-        let __ws_arg_39 = self.safe_bool_k(rawEvent.clone(), "active", &[]);
-        let __ws_arg_40 = self.safe_bool_k(rawEvent.clone(), "resolved", &[Value::Bool(false)]);
-        let __ws_arg_41 = self.safe_string_k(rawEvent.clone(), "category", &[]);
-        let __ws_arg_42 = self.safe_list_k(rawEvent.clone(), "tags", &[]);
-        let __ws_arg_43 = self.parse8601(self.safe_string_k(rawEvent.clone(), "createdAt", &[]));
-        let __ws_arg_44 = self.safe_string_k(rawEvent.clone(), "createdAt", &[]);
-        let __ws_arg_45 = self.parse8601(endDate.clone());
-        let __ws_arg_46 = self.parse8601(self.safe_string_k(rawEvent.clone(), "updatedAt", &[]));
-        let __ws_arg_47 = self.safe_string_k(rawEvent.clone(), "resolutionSource", &[]);
+        let __ws_arg_30 = self.safe_string_k(rawEvent.clone(), "id", &[]);
+        let __ws_arg_31 = self.shorten_slug(questionSlug.clone());
+        let __ws_arg_32 = self.safe_string_k(rawEvent.clone(), "title", &[]);
+        let __ws_arg_33 = self.safe_string_k(rawEvent.clone(), "description", &[]);
+        let __ws_arg_34 = self.safe_number2(rawEvent.clone(), Value::Str("volumeNotional24h".into()), Value::Str("volume24h".into()), &[]);
+        let __ws_arg_35 = self.safe_number_k(rawEvent.clone(), "liquidity", &[]);
+        let __ws_arg_36 = self.safe_string_k(rawEvent.clone(), "url", &[]);
+        let __ws_arg_37 = self.safe_string_k(rawEvent.clone(), "imageUrl", &[self.safe_string(rawEvent.clone(), Value::Str("image".into()), &[])]);
+        let __ws_arg_38 = self.safe_bool_k(rawEvent.clone(), "active", &[]);
+        let __ws_arg_39 = self.safe_bool_k(rawEvent.clone(), "resolved", &[Value::Bool(false)]);
+        let __ws_arg_40 = self.safe_string_k(rawEvent.clone(), "category", &[]);
+        let __ws_arg_41 = self.safe_list_k(rawEvent.clone(), "tags", &[]);
+        let __ws_arg_42 = self.parse8601(self.safe_string_k(rawEvent.clone(), "createdAt", &[]));
+        let __ws_arg_43 = self.safe_string_k(rawEvent.clone(), "createdAt", &[]);
+        let __ws_arg_44 = self.parse8601(endDate.clone());
+        let __ws_arg_45 = self.parse8601(self.safe_string_k(rawEvent.clone(), "updatedAt", &[]));
+        let __ws_arg_46 = self.safe_string_k(rawEvent.clone(), "resolutionSource", &[]);
         return self.extend(rawEvent.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), __ws_arg_31);
+        m.insert("id".to_string(), __ws_arg_30);
         m.insert("slug".to_string(), questionSlug.clone());
-        m.insert("event".to_string(), (if ((questionSlug != Value::Null) && (questionSlug.as_str() != Some(""))) { __ws_arg_32 } else { Value::Null }));
-        m.insert("title".to_string(), __ws_arg_33);
-        m.insert("description".to_string(), __ws_arg_34);
+        m.insert("event".to_string(), (if ((questionSlug != Value::Null) && (questionSlug.as_str() != Some(""))) { __ws_arg_31 } else { Value::Null }));
+        m.insert("title".to_string(), __ws_arg_32);
+        m.insert("description".to_string(), __ws_arg_33);
         m.insert("markets".to_string(), marketsList);
-        m.insert("volume".to_string(), __ws_arg_35);
-        m.insert("liquidity".to_string(), __ws_arg_36);
-        m.insert("url".to_string(), __ws_arg_37);
-        m.insert("image".to_string(), __ws_arg_38);
-        m.insert("active".to_string(), __ws_arg_39);
-        m.insert("resolved".to_string(), __ws_arg_40);
-        m.insert("category".to_string(), __ws_arg_41);
-        m.insert("tags".to_string(), __ws_arg_42);
-        m.insert("created".to_string(), __ws_arg_43);
-        m.insert("createdDatetime".to_string(), __ws_arg_44);
-        m.insert("end".to_string(), (if ((endDate != Value::Null) && (endDate.as_str() != Some(""))) { __ws_arg_45 } else { Value::Null }));
+        m.insert("volume".to_string(), __ws_arg_34);
+        m.insert("liquidity".to_string(), __ws_arg_35);
+        m.insert("url".to_string(), __ws_arg_36);
+        m.insert("image".to_string(), __ws_arg_37);
+        m.insert("active".to_string(), __ws_arg_38);
+        m.insert("resolved".to_string(), __ws_arg_39);
+        m.insert("category".to_string(), __ws_arg_40);
+        m.insert("tags".to_string(), __ws_arg_41);
+        m.insert("created".to_string(), __ws_arg_42);
+        m.insert("createdDatetime".to_string(), __ws_arg_43);
+        m.insert("end".to_string(), (if ((endDate != Value::Null) && (endDate.as_str() != Some(""))) { __ws_arg_44 } else { Value::Null }));
         m.insert("endDatetime".to_string(), endDate);
-        m.insert("lastUpdatedAt".to_string(), __ws_arg_46);
-        m.insert("resolutionSource".to_string(), __ws_arg_47);
+        m.insert("lastUpdatedAt".to_string(), __ws_arg_45);
+        m.insert("resolutionSource".to_string(), __ws_arg_46);
         m.insert("info".to_string(), rawEvent);
     m
 })]);

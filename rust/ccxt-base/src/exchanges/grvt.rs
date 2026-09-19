@@ -3247,8 +3247,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn eip_message_for_order(&self, mut order: Value, mut structureType: Value) -> Value {
+        let __order_empty = indexmap::IndexMap::new();
+        let order = order.as_map().unwrap_or(&__order_empty);
         let mut priceMultiplier: Value = Value::Str("1000000000".into());
-        let mut orderLegs: Value = self.safe_list_k(order.clone(), "legs", &[Value::from(vec![])]);
+        let mut orderLegs: Value = (match order.get("legs") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut legs: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -3291,19 +3293,19 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut returnValue: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("subAccountID".to_string(), order.as_map().and_then(|__m| __m.get("sub_account_id")).cloned().unwrap_or(Value::Null));
-                m.insert("isMarket".to_string(), order.as_map().and_then(|__m| __m.get("is_market")).cloned().unwrap_or(Value::Null));
-                m.insert("timeInForce".to_string(), self.time_in_force_to_int(order.as_map().and_then(|__m| __m.get("time_in_force")).cloned().unwrap_or(Value::Null)));
-                m.insert("postOnly".to_string(), order.as_map().and_then(|__m| __m.get("post_only")).cloned().unwrap_or(Value::Null));
-                m.insert("reduceOnly".to_string(), order.as_map().and_then(|__m| __m.get("reduce_only")).cloned().unwrap_or(Value::Null));
+                m.insert("subAccountID".to_string(), order.get("sub_account_id").cloned().unwrap_or(Value::Null));
+                m.insert("isMarket".to_string(), order.get("is_market").cloned().unwrap_or(Value::Null));
+                m.insert("timeInForce".to_string(), self.time_in_force_to_int(order.get("time_in_force").cloned().unwrap_or(Value::Null)));
+                m.insert("postOnly".to_string(), order.get("post_only").cloned().unwrap_or(Value::Null));
+                m.insert("reduceOnly".to_string(), order.get("reduce_only").cloned().unwrap_or(Value::Null));
                 m.insert("legs".to_string(), legs);
-                m.insert("nonce".to_string(), crate::value::get_value_k(&order.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null), "nonce"));
-                m.insert("expiration".to_string(), crate::value::get_value_k(&order.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null), "expiration"));
+                m.insert("nonce".to_string(), crate::value::get_value_k(&order.get("signature").cloned().unwrap_or(Value::Null), "nonce"));
+                m.insert("expiration".to_string(), crate::value::get_value_k(&order.get("signature").cloned().unwrap_or(Value::Null), "expiration"));
             m
         });
         if (structureType.as_str() == Some("EIP712_ORDER_WITH_BUILDER_TYPE")) && matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
-            if let Value::Dict(__d) = &mut returnValue { std::sync::Arc::make_mut(__d).insert("builder".to_string(), order.as_map().and_then(|__m| __m.get("builder")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut returnValue { std::sync::Arc::make_mut(__d).insert("builderFee".to_string(), self.parse_to_int((match (&(self.convert_to_big_int_custom(self.fee_amount_multiplier())), &(crate::runtime::parse_float(&order.as_map().and_then(|__m| __m.get("builder_fee")).cloned().unwrap_or(Value::Null)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); }; // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            if let Value::Dict(__d) = &mut returnValue { std::sync::Arc::make_mut(__d).insert("builder".to_string(), order.get("builder").cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut returnValue { std::sync::Arc::make_mut(__d).insert("builderFee".to_string(), self.parse_to_int((match (&(self.convert_to_big_int_custom(self.fee_amount_multiplier())), &(crate::runtime::parse_float(&order.get("builder_fee").cloned().unwrap_or(Value::Null)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); }; // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return returnValue;
 
