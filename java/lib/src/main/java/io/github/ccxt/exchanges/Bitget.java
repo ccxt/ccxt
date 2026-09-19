@@ -6738,7 +6738,7 @@ final Object finalMinNotional = minNotional;
             }
             Integer msInDay = 86400000;
             Long now = this.milliseconds();
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Long until = this.safeInteger(parameters, "until");
             Boolean limitDefined = !java.util.Objects.equals(limit, null);
             Boolean sinceDefined = !java.util.Objects.equals(since, null);
@@ -6809,9 +6809,9 @@ final Object finalMinNotional = minNotional;
                 {
                     Integer maxDistanceDaysForContracts = 90;
                     // only correct if request is larger
-                    if (Helpers.isGreaterThan(Helpers.subtract(calculatedEndTime, calculatedStartTime), Helpers.multiply(maxDistanceDaysForContracts, msInDay)))
+                    if (Helpers.isGreaterThan(Helpers.subtract(calculatedEndTime, calculatedStartTime), (((long) maxDistanceDaysForContracts) * ((long) msInDay))))
                     {
-                        calculatedEndTime = this.sum(calculatedStartTime, Helpers.multiply(maxDistanceDaysForContracts, msInDay));
+                        calculatedEndTime = this.sum(calculatedStartTime, (((long) maxDistanceDaysForContracts) * ((long) msInDay)));
                         ((Map<String, Object>)request).put("endTime", calculatedEndTime);
                     }
                 }
@@ -10141,7 +10141,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (java.util.Objects.equals(since, null))
                     {
-                        since = Helpers.subtract(now, 7776000000L);
+                        since = (now - 7776000000L);
                         ((Map<String, Object>)request).put("startTime", since);
                     }
                     if (java.util.Objects.equals(marginMode, "isolated"))
@@ -10161,7 +10161,7 @@ final Object finalMinNotional = minNotional;
                     parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                     if (java.util.Objects.equals(since, null))
                     {
-                        since = Helpers.subtract(now, 7776000000L);
+                        since = (now - 7776000000L);
                         ((Map<String, Object>)request).put("startTime", since);
                     }
                     if (java.util.Objects.equals(endTime, null))
@@ -14364,7 +14364,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("startTime", since);
             } else
             {
-                ((Map<String, Object>)request).put("startTime", Helpers.subtract(now, msInDay));
+                ((Map<String, Object>)request).put("startTime", (now - ((long) msInDay)));
             }
             String endTime = this.safeString2(parameters, "endTime", "until");
             if (!java.util.Objects.equals(endTime, null))

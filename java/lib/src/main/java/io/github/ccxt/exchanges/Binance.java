@@ -10041,7 +10041,7 @@ public class Binance extends BinanceApi
                 if (java.util.Objects.equals(since, null))
                 {
                     Long oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
-                    ((Map<String, Object>)request).put("startTime", Helpers.subtract(until, oneWeek));
+                    ((Map<String, Object>)request).put("startTime", (until - oneWeek));
                 }
             }
             Object response = null;
@@ -18666,7 +18666,7 @@ final Object finalMarket = market;
                     ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
                 }
                 ((Map<String, Object>)request).put("tranId", id);
-                ((Map<String, Object>)request).put("startTime", Helpers.subtract(now, msInDay));
+                ((Map<String, Object>)request).put("startTime", (now - ((long) msInDay)));
                 ((Map<String, Object>)request).put("endTime", now);
                 response = (this.sapiGetAssetConvertTransferQueryByPage(this.extend(request, parameters))).join();
             } else
@@ -18734,7 +18734,7 @@ final Object finalMarket = market;
                 ((Map<String, Object>)request).put("startTime", since);
             } else
             {
-                ((Map<String, Object>)request).put("startTime", Helpers.subtract(now, msInThirtyDays));
+                ((Map<String, Object>)request).put("startTime", (now - msInThirtyDays));
             }
             Long endTime = (Long) this.safeInteger2(parameters, "endTime", "until");
             if (!java.util.Objects.equals(endTime, null))
